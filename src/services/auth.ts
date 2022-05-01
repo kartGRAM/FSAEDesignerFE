@@ -1,6 +1,7 @@
-import axios from 'axios';
+// import axios from 'axios';
+import {instance as axios} from '@app/utils/axios';
 
-export const checkLoggedIn = async (apiURL: any) => {
+export const checkLoggedIn = async () => {
   let result: boolean = false;
   const params = new URL(window.location.href).searchParams;
 
@@ -12,17 +13,10 @@ export const checkLoggedIn = async (apiURL: any) => {
   }
 
   await axios
-    .post(
-      `${apiURL}api/check_logged_in/`,
-      {},
-      {
-        xsrfCookieName: 'csrftoken',
-        xsrfHeaderName: 'X-CSRFTOKEN',
-        withCredentials: true
-      }
-    )
+    .post(`api/check_logged_in/`, {})
     // eslint-disable-next-line no-unused-vars
     .then((response) => {
+      window.history.pushState({}, '', `${new URL(window.location.origin)}`);
       result = true;
     })
     // eslint-disable-next-line no-unused-vars

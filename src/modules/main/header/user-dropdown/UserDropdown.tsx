@@ -26,8 +26,7 @@ const UserDropdown = () => {
     event.preventDefault();
     setDropdownOpen(false);
     dispatch(logoutUser());
-    window.location.href = `${apiURL}logout/`;
-    // navigate('/');
+    window.location.href = `${apiURL}/logout/`;
   };
 
   const navigateToProfile = (event: any) => {

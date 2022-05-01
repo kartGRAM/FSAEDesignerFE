@@ -13,11 +13,11 @@ const PrivateRoute = () => {
 
   useEffect(() => {
     const func = async () => {
-      const payload = await checkLoggedIn(apiURL);
+      const payload = await checkLoggedIn();
       if (payload) {
         dispatch(loginUser());
       } else {
-        window.location.href = `${apiURL}login/`;
+        window.location.href = `${apiURL}/login/`;
       }
     };
     if (!isLoggedIn && !loggingOut) func();

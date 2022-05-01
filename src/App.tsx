@@ -33,20 +33,6 @@ const App = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/*
-        <Route path="/login" element={<PublicRoute />}>
-          <Route path="/login" element={<Login />} />
-        </Route>
-        <Route path="/register" element={<PublicRoute />}>
-          <Route path="/register" element={<Register />} />
-        </Route>
-        <Route path="/forgot-password" element={<PublicRoute />}>
-          <Route path="/forgot-password" element={<ForgetPassword />} />
-        </Route>
-        <Route path="/recover-password" element={<PublicRoute />}>
-          <Route path="/recover-password" element={<RecoverPassword />} />
-        </Route>
-        */}
         <Route path="/" element={<PrivateRoute />}>
           <Route path="/" element={<Main />}>
             <Route path="/sub-menu-2" element={<Blank />} />

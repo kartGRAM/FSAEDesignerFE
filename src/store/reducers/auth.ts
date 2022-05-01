@@ -14,7 +14,7 @@ const initialState: AuthState = {
     email: 'mail@example.com',
     picture: null
   },
-  apiURLBase: 'http://127.0.0.1:8000/'
+  apiURLBase: 'http://127.0.0.1:8000'
 };
 
 export const authSlice = createSlice({
