@@ -1,12 +1,19 @@
-import axios, {AxiosRequestConfig} from 'axios';
-import store from '@store/store';
-import {logoutUser} from '@store/reducers/auth';
+// import axios, {AxiosRequestConfig} from 'axios';
+import axios from 'axios';
+// import store from '@store/store';
+// import {logoutUser} from '@store/reducers/auth';
 
-const intance = axios.create({
-  baseURL: `${process.env.REACT_APP_GATEKEEPER_URL}`
+document.cookie = 'sessionid=ngz4ie9knrt5ntjj6du35qsimwma2zsx';
+document.cookie =
+  'csrftoken=sCO4lNnel9noTNQh42a1HkSnjrpJkNRBy8ae1jpSyhTOiH22dVNswvmk6gaG7xTL';
+
+const instance = axios.create({
+  // baseURL: `${process.env.REACT_APP_GATEKEEPER_URL}`,
+  withCredentials: true
 });
 
-intance.interceptors.request.use(
+/*
+instance.interceptors.request.use(
   (request: AxiosRequestConfig<any>) => {
     const {token} = store.getState().auth;
     if (token) {
@@ -19,7 +26,7 @@ intance.interceptors.request.use(
   }
 );
 
-intance.interceptors.response.use(
+instance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response.data.status === 401) {
@@ -28,5 +35,6 @@ intance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+*/
 
-export default intance;
+export {instance};

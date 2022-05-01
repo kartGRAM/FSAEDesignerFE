@@ -26,9 +26,10 @@ const Register = () => {
   const register = async (email: string, password: string) => {
     try {
       setAuthLoading(true);
+      // eslint-disable-next-line no-unused-vars
       const token = await AuthService.registerByAuth(email, password);
       setAuthLoading(false);
-      dispatch(loginUser(token));
+      dispatch(loginUser());
       toast.success('Registration is success');
       navigate('/');
     } catch (error: any) {
@@ -40,9 +41,10 @@ const Register = () => {
   const registerByGoogle = async () => {
     try {
       setGoogleAuthLoading(true);
+      // eslint-disable-next-line no-unused-vars
       const token = await AuthService.registerByGoogle();
       setGoogleAuthLoading(false);
-      dispatch(loginUser(token));
+      dispatch(loginUser());
       toast.success('Authentication is succeed!');
       navigate('/');
     } catch (error: any) {
@@ -55,9 +57,10 @@ const Register = () => {
     try {
       setFacebookAuthLoading(true);
 
+      // eslint-disable-next-line no-unused-vars
       const token = await AuthService.registerByFacebook();
       setFacebookAuthLoading(false);
-      dispatch(loginUser(token));
+      dispatch(loginUser());
       toast.success('Register is succeeded!');
       navigate('/');
     } catch (error: any) {

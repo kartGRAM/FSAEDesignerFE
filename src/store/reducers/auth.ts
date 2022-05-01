@@ -3,35 +3,36 @@ import {createSlice} from '@reduxjs/toolkit';
 export interface AuthState {
   isLoggedIn: boolean;
   token: string | null;
+  csrfToken: string | null;
   currentUser: any;
+  apiURLBase: string | null;
 }
 
 const initialState: AuthState = {
   isLoggedIn: !!localStorage.getItem('token'),
   token: localStorage.getItem('token'),
+  csrfToken: localStorage.getItem('csrfToken'),
   currentUser: {
     email: 'mail@example.com',
     picture: null
-  }
+  },
+  apiURLBase: 'http://127.0.0.1:8000/'
 };
 
 export const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    loginUser: (state, {payload}) => {
-      localStorage.setItem('token', payload);
+    loginUser: (state) => {
       state.isLoggedIn = true;
-      state.token = payload;
     },
+    // eslint-disable-next-line no-unused-vars
     logoutUser: (state) => {
-      localStorage.removeItem('token');
-      state.currentUser = {};
       state.isLoggedIn = false;
-      state.token = null;
     },
+    // eslint-disable-next-line no-unused-vars
     loadUser: (state, {payload}) => {
-      state.currentUser = payload;
+      // state.currentUser = payload;
     }
   }
 });

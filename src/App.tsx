@@ -1,10 +1,10 @@
 import React, {useEffect} from 'react';
 import {BrowserRouter, Routes, Route} from 'react-router-dom';
 import Main from '@modules/main/Main';
-import Login from '@modules/login/Login';
-import Register from '@modules/register/Register';
-import ForgetPassword from '@modules/forgot-password/ForgotPassword';
-import RecoverPassword from '@modules/recover-password/RecoverPassword';
+// import Login from '@modules/login/Login';
+// import Register from '@modules/register/Register';
+// import ForgetPassword from '@modules/forgot-password/ForgotPassword';
+// import RecoverPassword from '@modules/recover-password/RecoverPassword';
 import {useWindowSize} from '@app/hooks/useWindowSize';
 import {calculateWindowSize} from '@app/utils/helpers';
 import {useDispatch, useSelector} from 'react-redux';
@@ -15,7 +15,7 @@ import Blank from '@pages/Blank';
 import SubMenu from '@pages/SubMenu';
 import Profile from '@pages/profile/Profile';
 
-import PublicRoute from './routes/PublicRoute';
+// import PublicRoute from './routes/PublicRoute';
 import PrivateRoute from './routes/PrivateRoute';
 
 const App = () => {
@@ -33,6 +33,7 @@ const App = () => {
   return (
     <BrowserRouter>
       <Routes>
+        {/*
         <Route path="/login" element={<PublicRoute />}>
           <Route path="/login" element={<Login />} />
         </Route>
@@ -45,6 +46,7 @@ const App = () => {
         <Route path="/recover-password" element={<PublicRoute />}>
           <Route path="/recover-password" element={<RecoverPassword />} />
         </Route>
+        */}
         <Route path="/" element={<PrivateRoute />}>
           <Route path="/" element={<Main />}>
             <Route path="/sub-menu-2" element={<Blank />} />

@@ -1,7 +1,6 @@
 import React, {useState, useEffect, useCallback} from 'react';
 import {Outlet} from 'react-router-dom';
 import {useDispatch, useSelector} from 'react-redux';
-import {Gatekeeper} from 'gatekeeper-client-sdk';
 import {loadUser, logoutUser} from '@store/reducers/auth';
 import {toggleSidebarMenu} from '@app/store/reducers/ui';
 import {addWindowClass, removeWindowClass, sleep} from '@app/utils/helpers';
@@ -27,7 +26,7 @@ const Main = () => {
 
   const fetchProfile = async () => {
     try {
-      const response = await Gatekeeper.getProfile();
+      const response = {};
       dispatch(loadUser(response));
       await sleep(1000);
       setIsAppLoaded(true);

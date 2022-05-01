@@ -27,10 +27,11 @@ const Login = () => {
   const login = async (email: string, password: string) => {
     try {
       setAuthLoading(true);
+      // eslint-disable-next-line no-unused-vars
       const token = await AuthService.loginByAuth(email, password);
       toast.success('Login is succeed!');
       setAuthLoading(false);
-      dispatch(loginUser(token));
+      dispatch(loginUser());
       navigate('/');
     } catch (error: any) {
       setAuthLoading(false);
@@ -41,10 +42,11 @@ const Login = () => {
   const loginByGoogle = async () => {
     try {
       setGoogleAuthLoading(true);
+      // eslint-disable-next-line no-unused-vars
       const token = await AuthService.loginByGoogle();
       toast.success('Login is succeeded!');
       setGoogleAuthLoading(false);
-      dispatch(loginUser(token));
+      dispatch(loginUser());
       navigate('/');
     } catch (error: any) {
       setGoogleAuthLoading(false);
@@ -55,10 +57,11 @@ const Login = () => {
   const loginByFacebook = async () => {
     try {
       setFacebookAuthLoading(true);
+      // eslint-disable-next-line no-unused-vars
       const token = await AuthService.loginByFacebook();
       toast.success('Login is succeeded!');
       setFacebookAuthLoading(false);
-      dispatch(loginUser(token));
+      dispatch(loginUser());
       navigate('/');
     } catch (error: any) {
       setFacebookAuthLoading(false);
