@@ -2,16 +2,14 @@ import {createSlice} from '@reduxjs/toolkit';
 
 export interface AuthState {
   isLoggedIn: boolean;
-  token: string | null;
-  csrfToken: string | null;
+  loggingOut: boolean;
   currentUser: any;
   apiURLBase: string | null;
 }
 
 const initialState: AuthState = {
-  isLoggedIn: !!localStorage.getItem('token'),
-  token: localStorage.getItem('token'),
-  csrfToken: localStorage.getItem('csrfToken'),
+  isLoggedIn: false,
+  loggingOut: false,
   currentUser: {
     email: 'mail@example.com',
     picture: null
@@ -28,7 +26,13 @@ export const authSlice = createSlice({
     },
     // eslint-disable-next-line no-unused-vars
     logoutUser: (state) => {
+      if (navigator.cookieEnabled) {
+        // cookieに保存した値の処理後、不要になったcookieを削除する。
+        document.cookie = 'sessionid=; max-age=0';
+        document.cookie = 'csrftoken=; max-age=0';
+      }
       state.isLoggedIn = false;
+      state.loggingOut = true;
     },
     // eslint-disable-next-line no-unused-vars
     loadUser: (state, {payload}) => {

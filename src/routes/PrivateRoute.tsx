@@ -7,6 +7,7 @@ import {checkLoggedIn} from '../services/auth';
 const PrivateRoute = () => {
   const dispatch = useDispatch();
   const isLoggedIn = useSelector((state: any) => state.auth.isLoggedIn);
+  const loggingOut = useSelector((state: any) => state.auth.loggingOut);
 
   const apiURL = useSelector((state: any) => state.auth.apiURLBase);
 
@@ -19,8 +20,8 @@ const PrivateRoute = () => {
         window.location.href = `${apiURL}login/`;
       }
     };
-    func();
-  });
+    if (!isLoggedIn && !loggingOut) func();
+  }, [isLoggedIn]);
   return isLoggedIn ? (
     <Outlet />
   ) : (

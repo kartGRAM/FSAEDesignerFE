@@ -19,13 +19,15 @@ const UserDropdown = () => {
   const [t] = useTranslation();
   const dispatch = useDispatch();
   const user = useSelector((state: any) => state.auth.currentUser);
+  const apiURL = useSelector((state: any) => state.auth.apiURLBase);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const logOut = (event: any) => {
     event.preventDefault();
     setDropdownOpen(false);
     dispatch(logoutUser());
-    navigate('/login');
+    window.location.href = `${apiURL}logout/`;
+    // navigate('/');
   };
 
   const navigateToProfile = (event: any) => {
