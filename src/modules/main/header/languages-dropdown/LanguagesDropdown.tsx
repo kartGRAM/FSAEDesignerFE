@@ -10,14 +10,14 @@ export interface Language {
 
 const languages: Language[] = [
   {
+    key: 'jp',
+    icon: 'flag-icon-jp',
+    label: 'header.language.japanese'
+  },
+  {
     key: 'en',
     icon: 'flag-icon-us',
     label: 'header.language.english'
-  },
-  {
-    key: 'tr',
-    icon: 'flag-icon-tr',
-    label: 'header.language.turkish'
   },
   {
     key: 'de',
@@ -28,11 +28,6 @@ const languages: Language[] = [
     key: 'fr',
     icon: 'flag-icon-fr',
     label: 'header.language.french'
-  },
-  {
-    key: 'es',
-    icon: 'flag-icon-es',
-    label: 'header.language.spanish'
   }
 ];
 

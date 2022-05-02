@@ -12,7 +12,7 @@ export interface IMenuItem {
 
 export const MENU: IMenuItem[] = [
   {
-    name: 'menusidebar.label.dashboard',
+    name: 'menusidebar.label.top',
     path: '/'
   },
   {

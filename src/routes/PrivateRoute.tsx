@@ -2,6 +2,7 @@ import React, {useEffect} from 'react';
 import {Outlet} from 'react-router-dom';
 import {useSelector, useDispatch} from 'react-redux';
 import {loginUser} from '@store/reducers/auth';
+import {toast} from 'react-toastify';
 import {checkLoggedIn} from '../services/auth';
 
 const root = process.env.PUBLIC_URL;
@@ -17,6 +18,7 @@ const PrivateRoute = () => {
       const payload = await checkLoggedIn();
       if (payload) {
         dispatch(loginUser());
+        toast.success('Login is succeed!');
       } else {
         window.location.href = `${apiURL}/login/`;
       }
