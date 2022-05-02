@@ -3,6 +3,7 @@ import {useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 import {MenuItem} from '@components';
 
+const root = process.env.PUBLIC_URL;
 export interface IMenuItem {
   name: string;
   path?: string;
@@ -44,7 +45,7 @@ const MenuSidebar = () => {
     <aside className={`main-sidebar elevation-4 ${sidebarSkin}`}>
       <Link to="/" className="brand-link">
         <img
-          src="/img/logo.png"
+          src={root + '/img/logo.png'}
           alt="AdminLTE Logo"
           className="brand-image img-circle elevation-3"
           style={{opacity: '.8'}}
@@ -55,7 +56,7 @@ const MenuSidebar = () => {
         <div className="user-panel mt-3 pb-3 mb-3 d-flex">
           <div className="image">
             <img
-              src={user.picture || '/img/default-profile.png'}
+              src={user.picture || root + '/img/default-profile.png'}
               className="img-circle elevation-2"
               alt="User"
             />

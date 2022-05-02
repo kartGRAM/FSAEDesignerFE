@@ -1,13 +1,14 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
 
+const root = process.env.PUBLIC_URL;
 const Post = ({isClearfix = false}: {isClearfix?: boolean}) => {
   return (
     <div className={`post ${isClearfix ? 'clearfix' : ''}`}>
       <div className="user-block">
         <img
           className="img-circle img-bordered-sm"
-          src="/img/default-profile.png"
+          src={root + '/img/default-profile.png'}
           alt="User"
         />
         <span className="username">

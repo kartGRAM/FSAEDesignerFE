@@ -5,6 +5,7 @@ import ActivityTab from './ActivityTab';
 import TimelineTab from './TimelineTab';
 import SettingsTab from './SettingsTab';
 
+const root = process.env.PUBLIC_URL;
 const Profile = () => {
   const [activeTab, setActiveTab] = useState('ACTIVITY');
   const [t] = useTranslation();
@@ -25,7 +26,7 @@ const Profile = () => {
                   <div className="text-center">
                     <img
                       className="profile-user-img img-fluid img-circle"
-                      src="/img/default-profile.png"
+                      src={root + '/img/default-profile.png'}
                       alt="User profile"
                     />
                   </div>

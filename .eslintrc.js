@@ -41,6 +41,7 @@ module.exports = {
     'react/prop-types': 'off',
     'import/no-unresolved': 'off',
     'no-param-reassign': 'off',
+    'prefer-template': 'off',
     'prettier/prettier': [
       'error',
       {

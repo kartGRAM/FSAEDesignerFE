@@ -3,6 +3,7 @@ import {Link} from 'react-router-dom';
 import {useTranslation} from 'react-i18next';
 import {Dropdown} from '@components';
 
+const root = process.env.PUBLIC_URL;
 const MessagesDropdown = () => {
   const [t] = useTranslation();
 
@@ -21,7 +22,7 @@ const MessagesDropdown = () => {
           <Link to="/" className="dropdown-item">
             <div className="media">
               <img
-                src="/img/default-profile.png"
+                src={root + '/img/default-profile.png'}
                 alt="User Avatar"
                 className="img-size-50 mr-3 img-circle"
               />
@@ -49,7 +50,7 @@ const MessagesDropdown = () => {
           <Link to="/" className="dropdown-item">
             <div className="media">
               <img
-                src="/img/default-profile.png"
+                src={root + '/img/default-profile.png'}
                 alt="User Avatar"
                 className="img-size-50 img-circle mr-3"
               />
@@ -77,7 +78,7 @@ const MessagesDropdown = () => {
           <Link to="/" className="dropdown-item">
             <div className="media">
               <img
-                src="/img/default-profile.png"
+                src={root + '/img/default-profile.png'}
                 alt="User Avatar"
                 className="img-size-50 img-circle mr-3"
               />

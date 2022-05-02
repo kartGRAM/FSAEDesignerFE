@@ -7,6 +7,7 @@ import {logoutUser} from '@store/reducers/auth';
 import {Dropdown} from '@components';
 import styled from 'styled-components';
 
+const root = process.env.PUBLIC_URL;
 const StyledUserImage = styled.img`
   height: 1.6rem !important;
   width: 1.6rem !important;
@@ -43,7 +44,7 @@ const UserDropdown = () => {
       menuContainerTag="ul"
       buttonTemplate={
         <StyledUserImage
-          src={user.picture || '/img/default-profile.png'}
+          src={user.picture || `${root}/img/default-profile.png`}
           className="user-image img-circle elevation-2"
           alt="User"
         />
@@ -52,7 +53,7 @@ const UserDropdown = () => {
         <>
           <li className="user-header bg-primary">
             <img
-              src={user.picture || '/img/default-profile.png'}
+              src={user.picture || `${root}/img/default-profile.png`}
               className="img-circle elevation-2"
               alt="User"
             />

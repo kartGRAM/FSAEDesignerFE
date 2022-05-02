@@ -9,6 +9,7 @@ import Header from '@app/modules/main/header/Header';
 import MenuSidebar from '@app/modules/main/menu-sidebar/MenuSidebar';
 import Footer from '@app/modules/main/footer/Footer';
 
+const root = process.env.PUBLIC_URL;
 const Main = () => {
   const dispatch = useDispatch();
   const menuSidebarCollapsed = useSelector(
@@ -78,7 +79,7 @@ const Main = () => {
         <div className="preloader flex-column justify-content-center align-items-center">
           <img
             className="animation__shake"
-            src="/img/logo.png"
+            src={root + '/img/logo.png'}
             alt="AdminLTELogo"
             height="60"
             width="60"

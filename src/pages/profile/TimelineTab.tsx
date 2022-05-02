@@ -1,6 +1,7 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
 
+const root = process.env.PUBLIC_URL;
 const TimelineTab = ({isActive}: {isActive: boolean}) => {
   return (
     <div className={`tab-pane ${isActive ? 'active' : ''}`}>
@@ -98,22 +99,22 @@ const TimelineTab = ({isActive}: {isActive: boolean}) => {
             </h3>
             <div className="timeline-body">
               <img
-                src="/img/default-profile.png"
+                src={root + '/img/default-profile.png'}
                 style={{width: '1.6rem', height: '1.6rem'}}
                 alt="..."
               />
               <img
-                src="/img/default-profile.png"
+                src={root + '/img/default-profile.png'}
                 style={{width: '1.6rem', height: '1.6rem'}}
                 alt="..."
               />
               <img
-                src="/img/default-profile.png"
+                src={root + '/img/default-profile.png'}
                 style={{width: '1.6rem', height: '1.6rem'}}
                 alt="..."
               />
               <img
-                src="/img/default-profile.png"
+                src={root + '/img/default-profile.png'}
                 style={{width: '1.6rem', height: '1.6rem'}}
                 alt="..."
               />
