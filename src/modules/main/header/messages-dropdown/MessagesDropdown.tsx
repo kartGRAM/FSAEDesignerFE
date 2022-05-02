@@ -22,7 +22,7 @@ const MessagesDropdown = () => {
           <Link to="/" className="dropdown-item">
             <div className="media">
               <img
-                src={root + '/img/default-profile.png'}
+                src={`${root}/img/default-profile.png`}
                 alt="User Avatar"
                 className="img-size-50 mr-3 img-circle"
               />
@@ -50,7 +50,7 @@ const MessagesDropdown = () => {
           <Link to="/" className="dropdown-item">
             <div className="media">
               <img
-                src={root + '/img/default-profile.png'}
+                src={`${root}/img/default-profile.png`}
                 alt="User Avatar"
                 className="img-size-50 img-circle mr-3"
               />
@@ -78,7 +78,7 @@ const MessagesDropdown = () => {
           <Link to="/" className="dropdown-item">
             <div className="media">
               <img
-                src={root + '/img/default-profile.png'}
+                src={`${root}/img/default-profile.png`}
                 alt="User Avatar"
                 className="img-size-50 img-circle mr-3"
               />

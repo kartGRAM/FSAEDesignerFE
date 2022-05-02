@@ -99,22 +99,22 @@ const TimelineTab = ({isActive}: {isActive: boolean}) => {
             </h3>
             <div className="timeline-body">
               <img
-                src={root + '/img/default-profile.png'}
+                src={`${root}/img/default-profile.png`}
                 style={{width: '1.6rem', height: '1.6rem'}}
                 alt="..."
               />
               <img
-                src={root + '/img/default-profile.png'}
+                src={`${root}/img/default-profile.png`}
                 style={{width: '1.6rem', height: '1.6rem'}}
                 alt="..."
               />
               <img
-                src={root + '/img/default-profile.png'}
+                src={`${root}/img/default-profile.png`}
                 style={{width: '1.6rem', height: '1.6rem'}}
                 alt="..."
               />
               <img
-                src={root + '/img/default-profile.png'}
+                src={`${root}/img/default-profile.png`}
                 style={{width: '1.6rem', height: '1.6rem'}}
                 alt="..."
               />

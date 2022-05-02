@@ -1,4 +1,9 @@
 {
+  "login": {
+    "button": {
+      "signOut": "Sign Out"
+    }
+  },
   "main": {
     "label": {
       "moreInfo": "More info",
@@ -46,7 +51,9 @@
     "label": {
       "top": "Top",
       "profile": "Profile",
-      "blank": "Blank",
+      "tire-data-analyzer": "Tire Data Analyzer",
+      "geometry-designer": "Geometry Designer",
+      "simulator": "Simulator",
       "mainMenu": "Main Menu",
       "subMenu": "Sub Menu"
     }

@@ -26,7 +26,7 @@ const Profile = () => {
                   <div className="text-center">
                     <img
                       className="profile-user-img img-fluid img-circle"
-                      src={root + '/img/default-profile.png'}
+                      src={`${root}/img/default-profile.png`}
                       alt="User profile"
                     />
                   </div>

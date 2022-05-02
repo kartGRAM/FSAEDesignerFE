@@ -16,8 +16,16 @@ export const MENU: IMenuItem[] = [
     path: '/'
   },
   {
-    name: 'menusidebar.label.blank',
-    path: '/blank'
+    name: 'menusidebar.label.tire-data-analyzer',
+    path: '/tire-data-analyzer'
+  },
+  {
+    name: 'menusidebar.label.geometry-designer',
+    path: '/geometry-designer'
+  },
+  {
+    name: 'menusidebar.label.simulator',
+    path: '/simulator'
   },
   {
     name: 'menusidebar.label.mainMenu',
@@ -28,8 +36,8 @@ export const MENU: IMenuItem[] = [
       },
 
       {
-        name: 'menusidebar.label.blank',
-        path: '/sub-menu-2'
+        name: 'menusidebar.label.subMenu',
+        path: '/sub-menu-1'
       }
     ]
   }
@@ -45,18 +53,18 @@ const MenuSidebar = () => {
     <aside className={`main-sidebar elevation-4 ${sidebarSkin}`}>
       <Link to="/" className="brand-link">
         <img
-          src={root + '/img/logo.png'}
+          src={`${root}/img/logo.png`}
           alt="AdminLTE Logo"
           className="brand-image img-circle elevation-3"
           style={{opacity: '.8'}}
         />
-        <span className="brand-text font-weight-light">AdminLTE 3</span>
+        <span className="brand-text font-weight-light">FSAE Designer</span>
       </Link>
       <div className="sidebar">
         <div className="user-panel mt-3 pb-3 mb-3 d-flex">
           <div className="image">
             <img
-              src={user.picture || root + '/img/default-profile.png'}
+              src={user.picture || `${root}/img/default-profile.png`}
               className="img-circle elevation-2"
               alt="User"
             />

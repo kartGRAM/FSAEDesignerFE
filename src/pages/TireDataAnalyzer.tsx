@@ -2,10 +2,10 @@
 import React from 'react';
 import {ContentHeader} from '@components';
 
-const Blank = () => {
+const TireDataAnalyzer = () => {
   return (
     <div>
-      <ContentHeader title="Blank Page" />
+      <ContentHeader title="Tire Data Analyzer" />
       <section className="content">
         <div className="container-fluid">
           <div className="card">
@@ -43,4 +43,4 @@ const Blank = () => {
   );
 };
 
-export default Blank;
+export default TireDataAnalyzer;

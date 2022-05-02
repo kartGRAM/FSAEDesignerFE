@@ -18,7 +18,7 @@ const PrivateRoute = () => {
       const payload = await checkLoggedIn();
       if (payload) {
         dispatch(loginUser());
-        toast.success('Login is succeed!');
+        toast.success('Login is succeed!', {autoClose: 700});
       } else {
         window.location.href = `${apiURL}/login/`;
       }
@@ -31,7 +31,7 @@ const PrivateRoute = () => {
     <div className="preloader flex-column justify-content-center align-items-center">
       <img
         className="animation__shake"
-        src={root + '/img/logo.png'}
+        src={`${root}/img/logo.png`}
         alt="AdminLTELogo"
         height="60"
         width="60"

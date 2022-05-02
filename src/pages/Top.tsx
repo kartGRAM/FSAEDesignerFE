@@ -1,7 +1,7 @@
 import {BannerBox} from '@app/components';
 import React from 'react';
 
-const Dashboard = () => {
+const Top = () => {
   return (
     <div className="container-fluid vh-container d-flex flex-column align-items-center justify-content-center">
       <div>
@@ -12,9 +12,9 @@ const Dashboard = () => {
       <div className="row justify-content-center w-100">
         <div className="col-lg-8 col-12">
           <BannerBox
-            title="Tire Data Analyzer Ver. 1.0"
+            title="Tire Data Analyzer Ver. 0.1"
             description="fit your tire model"
-            navigateTo="/Blank"
+            navigateTo="/tire-data-analyzer"
           />
         </div>
       </div>
@@ -24,7 +24,7 @@ const Dashboard = () => {
           <BannerBox
             title="Geometry Designer Ver. 0.1"
             description="design your suspension geometries"
-            navigateTo="/Blank"
+            navigateTo="/geometry-designer"
           />
         </div>
       </div>
@@ -34,7 +34,7 @@ const Dashboard = () => {
           <BannerBox
             title="Simulater Ver. 0.1"
             description="check your vehicles"
-            navigateTo="/Blank"
+            navigateTo="/simulator"
           />
         </div>
       </div>
@@ -43,4 +43,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default Top;
