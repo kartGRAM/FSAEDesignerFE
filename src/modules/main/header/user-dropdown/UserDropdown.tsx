@@ -6,8 +6,8 @@ import {useTranslation} from 'react-i18next';
 import {logoutUser} from '@store/reducers/auth';
 import {Dropdown} from '@components';
 import styled from 'styled-components';
+import {root} from '@app/utils/helpers';
 
-const root = process.env.PUBLIC_URL;
 const StyledUserImage = styled.img`
   height: 1.6rem !important;
   width: 1.6rem !important;

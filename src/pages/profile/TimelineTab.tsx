@@ -1,7 +1,7 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
+import {root} from '@app/utils/helpers';
 
-const root = process.env.PUBLIC_URL;
 const TimelineTab = ({isActive}: {isActive: boolean}) => {
   return (
     <div className={`tab-pane ${isActive ? 'active' : ''}`}>

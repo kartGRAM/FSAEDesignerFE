@@ -14,6 +14,8 @@ export const calculateWindowSize = (windowWidth: number) => {
   return 'xs';
 };
 
+export const root = process.env.PUBLIC_URL;
+
 export const setWindowClass = (classList: string) => {
   const window: HTMLElement | null =
     document && document.getElementById('root');

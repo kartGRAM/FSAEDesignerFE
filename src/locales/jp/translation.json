@@ -1,0 +1,67 @@
+{
+  "main": {
+    "label": {
+      "moreInfo": "More info",
+      "follow": "Follow",
+      "aboutMe": "About Me",
+      "education": "Education",
+      "location": "Location",
+      "skills": "Skills",
+      "notes": "Notes",
+      "activity": "Activity",
+      "timeline": "Timeline",
+      "settings": "Settings"
+    }
+  },
+  "header": {
+    "label": {
+      "home": "Home",
+      "contact": "Contact"
+    },
+    "language": {
+      "japanese": "日本語",
+      "english": "英語",
+      "german": "ドイツ語",
+      "french": "フランス語"
+    },
+    "messages": {
+      "ago": "{{quantity}} {{unit}} Ago",
+      "seeAll": "See All Messages"
+    },
+    "notifications": {
+      "count": "{{quantity}} Notifications",
+      "newMessagesCount": "{{quantity}} new messages",
+      "friendRequestsCount": "{{quantity}} friend requests",
+      "reportsCount": "{{quantity}} new reports",
+      "seeAll": "See All Notifications"
+    },
+    "user": {
+      "profile": "Profile",
+      "followers": "Followers",
+      "sales": "Sales",
+      "friends": "Friends"
+    }
+  },
+  "menusidebar": {
+    "label": {
+      "top": "Top",
+      "profile": "Profile",
+      "blank": "Blank",
+      "mainMenu": "Main Menu",
+      "subMenu": "Sub Menu"
+    }
+  },
+  "footer": {
+    "version": "Version",
+    "copyright": "All rights reserved."
+  },
+  "views": {
+    "user": {
+      "profile": "User Profile",
+      "following": "Following"
+    }
+  },
+  "measurement": {
+    "quantityUnit": "{{quantity}} {{unit}}"
+  }
+}

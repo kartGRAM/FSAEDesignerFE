@@ -2,8 +2,8 @@ import React from 'react';
 import {useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 import {MenuItem} from '@components';
+import {root} from '@app/utils/helpers';
 
-const root = process.env.PUBLIC_URL;
 export interface IMenuItem {
   name: string;
   path?: string;

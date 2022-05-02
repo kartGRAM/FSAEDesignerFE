@@ -3,13 +3,17 @@ import {Outlet} from 'react-router-dom';
 import {useDispatch, useSelector} from 'react-redux';
 import {loadUser, logoutUser} from '@store/reducers/auth';
 import {toggleSidebarMenu} from '@app/store/reducers/ui';
-import {addWindowClass, removeWindowClass, sleep} from '@app/utils/helpers';
+import {
+  root,
+  addWindowClass,
+  removeWindowClass,
+  sleep
+} from '@app/utils/helpers';
 import ControlSidebar from '@app/modules/main/control-sidebar/ControlSidebar';
 import Header from '@app/modules/main/header/Header';
 import MenuSidebar from '@app/modules/main/menu-sidebar/MenuSidebar';
 import Footer from '@app/modules/main/footer/Footer';
 
-const root = process.env.PUBLIC_URL;
 const Main = () => {
   const dispatch = useDispatch();
   const menuSidebarCollapsed = useSelector(

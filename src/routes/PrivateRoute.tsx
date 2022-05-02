@@ -3,9 +3,9 @@ import {Outlet} from 'react-router-dom';
 import {useSelector, useDispatch} from 'react-redux';
 import {loginUser} from '@store/reducers/auth';
 import {toast} from 'react-toastify';
+import {root} from '@app/utils/helpers';
 import {checkLoggedIn} from '../services/auth';
 
-const root = process.env.PUBLIC_URL;
 const PrivateRoute = () => {
   const dispatch = useDispatch();
   const isLoggedIn = useSelector((state: any) => state.auth.isLoggedIn);

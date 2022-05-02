@@ -1,11 +1,11 @@
 import React, {useState} from 'react';
 import {useTranslation} from 'react-i18next';
 import {ContentHeader, Button} from '@components';
+import {root} from '@app/utils/helpers';
 import ActivityTab from './ActivityTab';
 import TimelineTab from './TimelineTab';
 import SettingsTab from './SettingsTab';
 
-const root = process.env.PUBLIC_URL;
 const Profile = () => {
   const [activeTab, setActiveTab] = useState('ACTIVITY');
   const [t] = useTranslation();
