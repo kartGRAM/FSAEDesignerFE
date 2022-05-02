@@ -2,7 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {Provider} from 'react-redux';
 import {toast} from 'react-toastify';
-import {Gatekeeper} from 'gatekeeper-client-sdk';
 import App from '@app/App';
 import store from '@store/store';
 
@@ -21,8 +20,6 @@ toast.configure({
   rtl: false,
   pauseOnHover: true
 });
-
-Gatekeeper.initialize('08401b7e-da7e-4bf3-a9bf-6f594ae5fb02');
 
 ReactDOM.render(
   <Provider store={store}>
