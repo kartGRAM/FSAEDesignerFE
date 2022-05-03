@@ -25,6 +25,7 @@ const Top = () => {
             title="Geometry Designer Ver. 0.1"
             description="design your suspension geometries"
             navigateTo="/geometry-designer"
+            img="/img/geometry.png"
           />
         </div>
       </div>

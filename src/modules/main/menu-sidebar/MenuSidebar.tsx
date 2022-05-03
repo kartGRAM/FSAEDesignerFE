@@ -75,7 +75,7 @@ const MenuSidebar = () => {
             </Link>
           </div>
         </div>
-        <nav className="mt-2" style={{overflowY: 'hidden'}}>
+        <nav className="mt-2 nav-sidebar">
           <ul
             className={`nav nav-pills nav-sidebar flex-column${
               menuItemFlat ? ' nav-flat' : ''

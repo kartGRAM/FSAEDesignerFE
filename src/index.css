@@ -23,3 +23,8 @@
 .vh-container{
   height: calc(100vh - 200px);
 }
+
+.nav-sidebar::-webkit-scrollbar{
+  display:none;
+  overflow-y: hidden;
+}

@@ -56,17 +56,32 @@ const Main = () => {
   }, []);
 
   useEffect(() => {
+    // いずれ直さないといけない
     removeWindowClass('sidebar-closed');
     removeWindowClass('sidebar-collapse');
     removeWindowClass('sidebar-open');
-    if (menuSidebarCollapsed && screenSize === 'lg') {
+    if (menuSidebarCollapsed) {
       addWindowClass('sidebar-collapse');
-    } else if (menuSidebarCollapsed && screenSize === 'xs') {
+    } else if (!menuSidebarCollapsed && screenSize === 'xs') {
+      addWindowClass('sidebar-open');
+    } else if (!menuSidebarCollapsed && screenSize === 'sm') {
       addWindowClass('sidebar-open');
     } else if (!menuSidebarCollapsed && screenSize !== 'lg') {
       addWindowClass('sidebar-closed');
       addWindowClass('sidebar-collapse');
     }
+    /*
+    if (menuSidebarCollapsed && screenSize === 'lg') {
+      addWindowClass('sidebar-collapse');
+    } else if (menuSidebarCollapsed && screenSize === 'md') {
+      addWindowClass('sidebar-collapse');
+    } else if (menuSidebarCollapsed && screenSize === 'xs') {
+      addWindowClass('sidebar-collapse');
+    } else if (!menuSidebarCollapsed && screenSize !== 'lg') {
+      addWindowClass('sidebar-closed');
+      addWindowClass('sidebar-collapse');
+    }
+    */
   }, [screenSize, menuSidebarCollapsed]);
 
   useEffect(() => {

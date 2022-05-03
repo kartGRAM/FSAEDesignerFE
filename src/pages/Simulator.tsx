@@ -10,7 +10,7 @@ const Simulator = () => {
         <div className="container-fluid">
           <div className="card">
             <div className="card-header">
-              <h3 className="card-title">Title</h3>
+              <h3 className="card-title">Not implemented</h3>
               <div className="card-tools">
                 <button
                   type="button"
@@ -32,10 +32,8 @@ const Simulator = () => {
                 </button>
               </div>
             </div>
-            <div className="card-body">
-              Start creating your amazing application!
-            </div>
-            <div className="card-footer">Footer</div>
+            <div className="card-body">工事中</div>
+            <div className="card-footer" />
           </div>
         </div>
       </section>
