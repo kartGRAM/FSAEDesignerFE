@@ -4,21 +4,27 @@ import React, {useEffect} from 'react';
 import {ContentHeader} from '@components';
 import * as THREE from 'three';
 
+interface HandleCameraAspectParams {
+  camera: THREE.PerspectiveCamera;
+  renderer: THREE.WebGLRenderer;
+}
+
 const GeometryDesigner = () => {
   const createBox = () => {
-    // サイズを指定
-    const width = 960;
-    const height = 540;
     // レンダラを作成
     const renderer: any = new THREE.WebGLRenderer({
       canvas: document.querySelector('#nyumon-sample1') as HTMLCanvasElement
     });
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(width, height);
+    const width = window.innerWidth;
+    const height = window.innerHeight;
     // シーンを作成
     const scene = new THREE.Scene();
     // カメラを作成
     const camera = new THREE.PerspectiveCamera(45, width / height);
+    // resize
+    window.addEventListener('resize', () => onResize({camera, renderer}));
+    onResize({camera, renderer});
+
     camera.position.set(0, 0, +1000);
     // 箱を作成
     const geometry = new THREE.BoxGeometry(400, 400, 400);
@@ -34,16 +40,31 @@ const GeometryDesigner = () => {
       requestAnimationFrame(tick);
     }
   };
+
+  const onResize = ({camera, renderer}: HandleCameraAspectParams) => {
+    // サイズを取得
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    // レンダラーのサイズを調整する
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(width, height);
+
+    // カメラのアスペクト比を正す
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+  };
   // didMountで描画しないと、Cannot read property 'width' of nullというエラーが出る
   useEffect(() => {
     createBox();
+    return () => window.removeEventListener('resize', () => onResize);
   }, []);
   return (
     <div>
       <ContentHeader title="Geomtry Designer" />
       <section className="content">
         <div className="container-fluid">
-          <canvas id="nyumon-sample1" className="h-100" />
+          <canvas id="nyumon-sample1" className="h-100 w-100" />
         </div>
       </section>
     </div>

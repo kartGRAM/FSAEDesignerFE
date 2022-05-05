@@ -6,6 +6,7 @@ import React, {useEffect, useState} from 'react';
 import {NavLink, useNavigate, useLocation, Location} from 'react-router-dom';
 import {useTranslation} from 'react-i18next';
 import {IMenuItem} from '@app/modules/main/menu-sidebar/MenuSidebar';
+import {root} from '@app/utils/helpers';
 
 const MenuItem = ({menuItem}: {menuItem: IMenuItem}) => {
   const [t] = useTranslation();
@@ -71,7 +72,17 @@ const MenuItem = ({menuItem}: {menuItem: IMenuItem}) => {
         onClick={handleMainMenuAction}
         style={{cursor: 'pointer'}}
       >
-        <i className="nav-icon fas fa-tachometer-alt" />
+        {menuItem.svg ? (
+          <svg className="svg-nav-icon" viewBox="0 0 288 288">
+            <use xlinkHref={`${root}${menuItem.icon}#tire_0`} />
+          </svg>
+        ) : (
+          <i
+            className={`nav-icon ${
+              menuItem.icon ? menuItem.icon : 'fa-tachometer-alt'
+            }`}
+          />
+        )}
         <p>{t(menuItem.name)}</p>
         {isExpandable ? <i className="right fas fa-angle-left" /> : null}
       </a>

@@ -7,28 +7,36 @@ import {root} from '@app/utils/helpers';
 export interface IMenuItem {
   name: string;
   path?: string;
+  icon?: string;
+  svg?: boolean;
   children?: Array<IMenuItem>;
 }
 
 export const MENU: IMenuItem[] = [
   {
     name: 'menusidebar.label.top',
+    icon: 'fas fa-home',
     path: '/'
   },
   {
     name: 'menusidebar.label.tire-data-analyzer',
-    path: '/tire-data-analyzer'
+    path: '/tire-data-analyzer',
+    svg: true,
+    icon: '/img/tire_0.svg'
   },
   {
     name: 'menusidebar.label.geometry-designer',
+    icon: 'fas fa-project-diagram',
     path: '/geometry-designer'
   },
   {
     name: 'menusidebar.label.simulator',
+    icon: 'fas fa-flag-checkered',
     path: '/simulator'
   },
   {
     name: 'menusidebar.label.mainMenu',
+    icon: 'fas fa-cog',
     children: [
       {
         name: 'menusidebar.label.subMenu',

@@ -28,3 +28,10 @@
   display:none;
   overflow-y: hidden;
 }
+
+
+.svg-nav-icon{
+  fill: currentColor;
+  width: 28px;
+  height: 28px;
+}
