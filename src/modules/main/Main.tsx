@@ -113,7 +113,7 @@ const Main = () => {
         <MenuSidebar />
 
         <div className="content-wrapper">
-          <div className="pt-3" />
+          {/* <div className="pt-3" /> */}
           <section className="content">
             <Outlet />
           </section>

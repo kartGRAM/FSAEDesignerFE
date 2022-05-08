@@ -35,3 +35,26 @@
   width: 28px;
   height: 28px;
 }
+
+.content-full-height {
+    height: calc(100vh - calc(3.5rem + 1px) - calc(3.5rem + 1px) - calc(2.66rem + 30px));
+    padding-bottom: 0.5rem;
+    position:relative;
+}
+
+.fullscreen{
+    position:fixed;
+    left:  0px;                /* 左からの位置指定 */
+    top: 0px;                  /* 上からの位置指定 */
+    height: 100vh;
+    width: 100vw;
+    z-index: 10000;
+}
+
+
+.fullscreen-btn{
+    position:absolute;
+    right:  10px;                /* 左からの位置指定 */
+    top: 10px;                  /* 上からの位置指定 */
+    z-index: 10001;
+}
