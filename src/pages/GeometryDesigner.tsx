@@ -1,13 +1,11 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React, {useEffect, useRef} from 'react';
 import {ContentHeader} from '@components';
-// eslint-disable-next-line no-unused-vars
 import track, {DisposeAll} from '@app/utils/ResourceTracker';
-// eslint-disable-next-line no-unused-vars
 import {useDispatch, useSelector} from 'react-redux';
-// eslint-disable-next-line no-unused-vars
 import {toggleFullScreen} from '@app/store/reducers/geometryDesigner';
 import * as THREE from 'three';
+import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 
 interface HandleCameraAspectParams {
   camera: THREE.PerspectiveCamera;
@@ -19,7 +17,7 @@ const GeometryDesigner = () => {
   const isFullScreen = useSelector((state: any) => state.gd.isFullScreen);
   const dispatch = useDispatch();
 
-  const createBox = (): ResizeObserver => {
+  const init = (): ResizeObserver => {
     // レンダラを作成
     const renderer = new THREE.WebGLRenderer({
       canvas: canvas.current!
@@ -28,6 +26,8 @@ const GeometryDesigner = () => {
     const scene = new THREE.Scene();
     // カメラを作成
     const camera = new THREE.PerspectiveCamera(45, 1);
+    // コントロールを作成
+    const controls = new OrbitControls(camera, renderer.domElement);
     onResize({camera, renderer});
     const resizeObserver = new ResizeObserver(
       // eslint-disable-next-line consistent-return,no-unused-vars
@@ -50,6 +50,8 @@ const GeometryDesigner = () => {
       renderer.render(scene, camera);
       // レンダリング
       requestAnimationFrame(tick);
+      // updateControls
+      controls.update();
     }
     return resizeObserver;
   };
@@ -75,7 +77,7 @@ const GeometryDesigner = () => {
 
   // didMountで描画しないと、Cannot read property 'width' of nullというエラーが出る
   useEffect(() => {
-    const resizeObserver = createBox();
+    const resizeObserver = init();
     return () => {
       DisposeAll();
       resizeObserver.disconnect();
@@ -87,7 +89,7 @@ const GeometryDesigner = () => {
       <ContentHeader title="Geomtry Designer" />
       <section className="content">
         <div
-          className={`container-fluid
+          className={`container-fluid p-0
           ${isFullScreen ? 'fullscreen' : 'content-full-height'}
           `}
         >

@@ -5,7 +5,7 @@ export interface GDState {
 }
 
 const initialState: GDState = {
-  isFullScreen: true
+  isFullScreen: false
 };
 
 export const geometryDesignerSlice = createSlice({
