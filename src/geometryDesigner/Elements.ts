@@ -4,7 +4,9 @@ import {Vector3, Matrix3} from 'three';
 import {
   Millimeter,
   Joint,
-  PointWithInfo,
+  ElementID,
+  NodeID,
+  NodeWithInfo,
   IElement,
   IAssembly,
   IBar,
@@ -38,8 +40,29 @@ export class Assembly implements IAssembly {
 
   joints: Joint[];
 
-  getPoints(): PointWithInfo[] {
-    throw Error('Not Supported Exception');
+  getJointedLinkIDs(id: ElementID): NodeID[] {
+    const joints = this.joints.filter(
+      (joint) => joint.lhs[0] === id || joint.rhs[0] === id
+    );
+    const jointedPoints = joints.map((joint) =>
+      joint.lhs[0] === id ? joint.lhs[1] : joint.rhs[1]
+    );
+    return jointedPoints;
+  }
+
+  getNodes(): NodeWithInfo[] {
+    // eslint-disable-next-line no-array-constructor
+    let points = new Array<NodeWithInfo>();
+    this.children.forEach((element, elementID) => {
+      let pis = element.getNodes();
+      const jointedLinkIDs = this.getJointedLinkIDs(elementID);
+      pis = pis.filter((_, i) => !jointedLinkIDs.includes(i));
+      pis = pis.map((pi) => {
+        return {p: pi.p, info: `${pi.info}@${this.name}`};
+      });
+      points = [...points, ...pis];
+    });
+    return points;
   }
 
   get inertialTensor(): Matrix3 {
@@ -76,7 +99,7 @@ export class Bar implements IBar {
 
   point: Vector3;
 
-  getPoints(): PointWithInfo[] {
+  getNodes(): NodeWithInfo[] {
     return [
       {p: this.fixedPoint, info: `fixedPoint@${this.name}`},
       {p: this.point, info: `point@${this.name}`}
@@ -109,7 +132,7 @@ export class SpringDumper implements ISpringDumper {
 
   point: Vector3;
 
-  getPoints(): PointWithInfo[] {
+  getNodes(): NodeWithInfo[] {
     return [
       {p: this.fixedPoint, info: `fixedPoint@${this.name}`},
       {p: this.point, info: `point@${this.name}`}
@@ -154,18 +177,16 @@ export class AArm implements IAArm {
 
   points: Array<Vector3>;
 
-  getPoints(): PointWithInfo[] {
-    const fp = this.fixedPoints.map((point, i): PointWithInfo => {
+  getNodes(): NodeWithInfo[] {
+    const fp = this.fixedPoints.map((point, i): NodeWithInfo => {
       return {p: point, info: `fixedPoint:${i}@${this.name}`};
     });
-    const p = this.fixedPoints.map((point, i): PointWithInfo => {
+    const p = this.fixedPoints.map((point, i): NodeWithInfo => {
       return {p: point, info: `point:${i}@${this.name}`};
     });
 
     return [...fp, ...p];
   }
-
-  showPoints: boolean;
 
   get inertialTensor(): Matrix3 {
     return new Matrix3();
@@ -178,14 +199,11 @@ export class AArm implements IAArm {
   constructor(
     name: string,
     fixedPoints: [Vector3, Vector3],
-    points: Array<Vector3>,
-    showPoints: boolean = true
+    points: Array<Vector3>
   ) {
     this.name = name;
     this.fixedPoints = fixedPoints;
     this.points = points;
-
-    this.showPoints = showPoints;
   }
 }
 
@@ -200,11 +218,11 @@ export class BellCrank implements IBellCrank {
 
   points: Array<Vector3>;
 
-  getPoints(): PointWithInfo[] {
-    const fp = this.fixedPoints.map((point, i): PointWithInfo => {
+  getNodes(): NodeWithInfo[] {
+    const fp = this.fixedPoints.map((point, i): NodeWithInfo => {
       return {p: point, info: `fixedPoint:${i}@${this.name}`};
     });
-    const p = this.fixedPoints.map((point, i): PointWithInfo => {
+    const p = this.fixedPoints.map((point, i): NodeWithInfo => {
       return {p: point, info: `point:${i}@${this.name}`};
     });
 
@@ -241,11 +259,11 @@ export class Body implements IBody {
 
   points: Array<Vector3>;
 
-  getPoints(): PointWithInfo[] {
-    const fp = this.fixedPoints.map((point, i): PointWithInfo => {
+  getNodes(): NodeWithInfo[] {
+    const fp = this.fixedPoints.map((point, i): NodeWithInfo => {
       return {p: point, info: `fixedPoint:${i}@${this.name}`};
     });
-    const p = this.fixedPoints.map((point, i): PointWithInfo => {
+    const p = this.fixedPoints.map((point, i): NodeWithInfo => {
       return {p: point, info: `point:${i}@${this.name}`};
     });
 
@@ -296,7 +314,7 @@ export class Tire implements ITire {
     return this.tireCenter.add(new Vector3(0, -this.tireCenter.y, 0));
   }
 
-  getPoints(): PointWithInfo[] {
+  getNodes(): NodeWithInfo[] {
     return [
       {p: this.leftBearing, info: `leftBearing@${this.name}`},
       {p: this.rightBearing, info: `rightBearing@${this.name}`}

@@ -2,14 +2,14 @@ import {Vector3, Matrix3, Mesh} from 'three';
 
 export type Radian = number;
 export type ElementID = number;
-export type LinkID = number;
+export type NodeID = number;
 export type Millimeter = number;
 export interface Joint {
-  lhs: [ElementID, LinkID];
-  rhs: [ElementID, LinkID];
+  lhs: [ElementID, NodeID];
+  rhs: [ElementID, NodeID];
 }
 
-export interface PointWithInfo {
+export interface NodeWithInfo {
   p: Vector3;
   info: string;
 }
@@ -24,7 +24,7 @@ export interface IElement {
   name: string;
   inertialTensor: Matrix3;
   mesh?: Mesh;
-  getPoints(): PointWithInfo[];
+  getNodes(): NodeWithInfo[];
 }
 
 export interface IAssembly extends IElement {

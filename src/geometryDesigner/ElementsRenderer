@@ -1,0 +1,40 @@
+import * as THREE from 'three';
+import track  from '@app/utils/ResourceTracker';
+import {Vector3, Matrix3} from 'three';
+import{IElement, IBar} from "./IElements";
+
+const isBar = (element: IElement): element is IBar => element.className === "Bar";
+
+export const render = (
+  element: IElement,
+  scene: THREE.Scene,
+  offset: Vector3 = new Vector3(),
+  rotation: Matrix3 = new Matrix3()
+  ): void => {
+  let material: THREE.Material | THREE.Material[] = null;
+  if( element.mesh ){
+    if( element.mesh.geometry){
+      if( !element.mesh.material ){
+        element.mesh.material = track(new THREE.MeshNormalMaterial());
+      }
+      scene.add(element.mesh);
+      return;
+    }
+    if( element.mesh.material)
+    {
+      material = element.mesh.material;
+    }
+  }
+  if(isBar(element))
+  {
+    const bar = element;
+    if(!material){
+      material = new THREE.LineBasicMaterial({
+        color: "0xff0000",
+        linewidth: 2
+      }
+      )
+    }
+
+  }
+};

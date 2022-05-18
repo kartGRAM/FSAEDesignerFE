@@ -59,14 +59,19 @@ export const getLeftFrontSuspention = (): Assembly => {
   const armsSubAssy = new Assembly(
     'armsSubAssy',
     [uprightSubAssy, upperArm, lowerArm, tieRod],
+    [
+      {lhs: [0, 0], rhs: [1, 2]},
+      {lhs: [0, 1], rhs: [2, 2]},
+      {lhs: [0, 2], rhs: [3, 1]}
+    ],
     new Vector3(),
     new Matrix3()
   );
 
   const coilover = new SpringDumper(
     'coilover',
-    new Vector3(-20, 355.6, 193.3),
     new Vector3(-20, 261.1, 352.3),
+    new Vector3(-20, 355.6, 193.3),
     -10,
     10
   );
@@ -86,6 +91,10 @@ export const getLeftFrontSuspention = (): Assembly => {
   const pushRodSubAssy = new Assembly(
     'pushRodSubAssy',
     [coilover, bellCrank, pushRod],
+    [
+      {lhs: [0, 1], rhs: [1, 2]},
+      {lhs: [1, 3], rhs: [2, 2]}
+    ],
     new Vector3(),
     new Matrix3()
   );
@@ -93,6 +102,7 @@ export const getLeftFrontSuspention = (): Assembly => {
   const leftFrontSuspensionSubAssy = new Assembly(
     'leftFrontSuspensionSubAssy',
     [armsSubAssy, pushRodSubAssy],
+    [{lhs: [0, 4], rhs: [1, 3]}],
     new Vector3(),
     new Matrix3()
   );
