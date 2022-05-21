@@ -6,6 +6,8 @@ import {useDispatch, useSelector} from 'react-redux';
 import {toggleFullScreen} from '@app/store/reducers/geometryDesigner';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
+import {render} from '@app/geometryDesigner/ElementsRenderer';
+import {getLeftFrontSuspension} from '@app/geometryDesigner/SampleGeometry';
 
 interface HandleCameraAspectParams {
   camera: THREE.PerspectiveCamera;
@@ -25,7 +27,7 @@ const GeometryDesigner = () => {
     // シーンを作成
     const scene = new THREE.Scene();
     // カメラを作成
-    const camera = new THREE.PerspectiveCamera(45, 1);
+    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100000);
     // コントロールを作成
     const controls = new OrbitControls(camera, renderer.domElement);
     onResize({camera, renderer});
@@ -37,12 +39,16 @@ const GeometryDesigner = () => {
     );
     resizeObserver.observe(canvas.current!);
 
-    camera.position.set(0, 0, +1000);
+    camera.position.set(0, 0, +3000);
     // 箱を作成
     const geometry = track(new THREE.BoxGeometry(400, 400, 400));
     const material = track(new THREE.MeshNormalMaterial());
     const box = new THREE.Mesh(geometry, material);
-    scene.add(box);
+    // scene.add(box);
+
+    const sample = getLeftFrontSuspension();
+
+    render(sample, scene);
     tick();
     // 毎フレーム時に実行されるループイベント
     function tick() {

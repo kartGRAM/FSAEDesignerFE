@@ -1,4 +1,4 @@
-import {Vector3, Matrix3} from 'three';
+import {Vector3} from 'three';
 import {
   Assembly,
   Bar,
@@ -9,7 +9,7 @@ import {
   SpringDumper
 } from './Elements';
 
-export const getLeftFrontSuspention = (): Assembly => {
+export const getLeftFrontSuspension = (): Assembly => {
   const tireCenter = new Vector3(0, 607.5, 220);
 
   const tire = new Tire('leftTire', tireCenter, -30, -60);
@@ -32,20 +32,18 @@ export const getLeftFrontSuspention = (): Assembly => {
     [
       {lhs: [0, 0], rhs: [1, 3]},
       {lhs: [0, 1], rhs: [1, 4]}
-    ],
-    new Vector3(),
-    new Matrix3()
+    ]
   );
 
   const upperArm = new AArm(
     'upperArm',
-    [new Vector3(35, 260, 283.8), new Vector3(-220, 260, 283.8)],
+    [new Vector3(35, 260, 283.8), new Vector3(-200, 260, 283.8)],
     [new Vector3(-19.12, 521.93, 310)]
   );
 
   const lowerArm = new AArm(
     'lowerArm',
-    [new Vector3(35, 215, 132.2), new Vector3(-20, 215, 132.2)],
+    [new Vector3(35, 215, 132.2), new Vector3(-200, 215, 132.2)],
     // upright & pushRodPivod
     [new Vector3(-4.25, 545.82, 140), new Vector3(-20, 490.3, 284.2)]
   );
@@ -63,9 +61,7 @@ export const getLeftFrontSuspention = (): Assembly => {
       {lhs: [0, 0], rhs: [1, 2]},
       {lhs: [0, 1], rhs: [2, 2]},
       {lhs: [0, 2], rhs: [3, 1]}
-    ],
-    new Vector3(),
-    new Matrix3()
+    ]
   );
 
   const coilover = new SpringDumper(
@@ -94,17 +90,13 @@ export const getLeftFrontSuspention = (): Assembly => {
     [
       {lhs: [0, 1], rhs: [1, 2]},
       {lhs: [1, 3], rhs: [2, 2]}
-    ],
-    new Vector3(),
-    new Matrix3()
+    ]
   );
 
   const leftFrontSuspensionSubAssy = new Assembly(
     'leftFrontSuspensionSubAssy',
     [armsSubAssy, pushRodSubAssy],
-    [{lhs: [0, 4], rhs: [1, 3]}],
-    new Vector3(),
-    new Matrix3()
+    [{lhs: [0, 4], rhs: [1, 3]}]
   );
   return leftFrontSuspensionSubAssy;
 };

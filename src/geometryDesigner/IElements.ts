@@ -1,4 +1,5 @@
 import {Vector3, Matrix3, Mesh} from 'three';
+import {AtLeast1, AtLeast2} from '@app/utils/atLeast';
 
 export type Radian = number;
 export type ElementID = number;
@@ -25,6 +26,8 @@ export interface IElement {
   inertialTensor: Matrix3;
   mesh?: Mesh;
   getNodes(): NodeWithInfo[];
+  position?: Vector3;
+  rotation?: Matrix3;
 }
 
 export interface IAssembly extends IElement {
@@ -51,20 +54,22 @@ export interface IBody extends IElement {
 
 export interface IAArm extends IBody {
   fixedPoints: [Vector3, Vector3];
-  points: Vector3[];
+  points: AtLeast1<Vector3>;
 }
 
 export interface IBellCrank extends IBody {
   // Axis
   fixedPoints: [Vector3, Vector3];
   // Points
-  points: Vector3[];
+  points: AtLeast2<Vector3>;
 }
 
 export interface ITire extends IElement {
   tireCenter: Vector3;
   toLeftBearing: number;
   toRightBearing: number;
+  readonly rightBearing: Vector3;
+  readonly leftBearing: Vector3;
   readonly diameter: Millimeter;
 }
 

@@ -1,6 +1,7 @@
 /* eslint-disable max-classes-per-file */
 /* eslint-disable class-methods-use-this */
 import {Vector3, Matrix3} from 'three';
+import {AtLeast1, AtLeast2} from '@app/utils/atLeast';
 import {
   Millimeter,
   Joint,
@@ -34,13 +35,9 @@ export class Assembly implements IAssembly {
 
   name: string;
 
-  position: Vector3;
-
-  rotation: Matrix3;
-
   joints: Joint[];
 
-  getJointedLinkIDs(id: ElementID): NodeID[] {
+  getJointedNodeIDs(id: ElementID): NodeID[] {
     const joints = this.joints.filter(
       (joint) => joint.lhs[0] === id || joint.rhs[0] === id
     );
@@ -55,10 +52,25 @@ export class Assembly implements IAssembly {
     let points = new Array<NodeWithInfo>();
     this.children.forEach((element, elementID) => {
       let pis = element.getNodes();
-      const jointedLinkIDs = this.getJointedLinkIDs(elementID);
-      pis = pis.filter((_, i) => !jointedLinkIDs.includes(i));
+      const jointedNodeIDs = this.getJointedNodeIDs(elementID);
+      pis = pis.filter((_, i) => !jointedNodeIDs.includes(i));
       pis = pis.map((pi) => {
         return {p: pi.p, info: `${pi.info}@${this.name}`};
+      });
+      points = [...points, ...pis];
+    });
+    return points;
+  }
+
+  getJoints(): NodeWithInfo[] {
+    // eslint-disable-next-line no-array-constructor
+    let points = new Array<NodeWithInfo>();
+    this.children.forEach((element, elementID) => {
+      let pis = element.getNodes();
+      const jointedNodeIDs = this.getJointedNodeIDs(elementID);
+      pis = pis.filter((_, i) => jointedNodeIDs.includes(i));
+      pis = pis.map((pi) => {
+        return {p: pi.p, info: pi.info};
       });
       points = [...points, ...pis];
     });
@@ -73,18 +85,10 @@ export class Assembly implements IAssembly {
     throw Error('Not Supported Exception');
   }
 
-  constructor(
-    name: string,
-    children: IElement[],
-    joints: Joint[],
-    position: Vector3 = new Vector3(),
-    rotation: Matrix3 = new Matrix3()
-  ) {
+  constructor(name: string, children: IElement[], joints: Joint[]) {
     this.name = name;
     this._children = children;
     this.joints = joints;
-    this.position = position;
-    this.rotation = rotation;
   }
 }
 
@@ -98,6 +102,10 @@ export class Bar implements IBar {
   fixedPoint: Vector3;
 
   point: Vector3;
+
+  position?: Vector3;
+
+  rotation?: Matrix3;
 
   getNodes(): NodeWithInfo[] {
     return [
@@ -131,6 +139,10 @@ export class SpringDumper implements ISpringDumper {
   fixedPoint: Vector3;
 
   point: Vector3;
+
+  position?: Vector3;
+
+  rotation?: Matrix3;
 
   getNodes(): NodeWithInfo[] {
     return [
@@ -175,13 +187,17 @@ export class AArm implements IAArm {
 
   fixedPoints: [Vector3, Vector3];
 
-  points: Array<Vector3>;
+  points: AtLeast1<Vector3>;
+
+  position?: Vector3;
+
+  rotation?: Matrix3;
 
   getNodes(): NodeWithInfo[] {
     const fp = this.fixedPoints.map((point, i): NodeWithInfo => {
       return {p: point, info: `fixedPoint:${i}@${this.name}`};
     });
-    const p = this.fixedPoints.map((point, i): NodeWithInfo => {
+    const p = this.points.map((point, i): NodeWithInfo => {
       return {p: point, info: `point:${i}@${this.name}`};
     });
 
@@ -199,7 +215,7 @@ export class AArm implements IAArm {
   constructor(
     name: string,
     fixedPoints: [Vector3, Vector3],
-    points: Array<Vector3>
+    points: AtLeast1<Vector3>
   ) {
     this.name = name;
     this.fixedPoints = fixedPoints;
@@ -216,13 +232,17 @@ export class BellCrank implements IBellCrank {
 
   fixedPoints: [Vector3, Vector3];
 
-  points: Array<Vector3>;
+  points: AtLeast2<Vector3>;
+
+  position?: Vector3;
+
+  rotation?: Matrix3;
 
   getNodes(): NodeWithInfo[] {
     const fp = this.fixedPoints.map((point, i): NodeWithInfo => {
       return {p: point, info: `fixedPoint:${i}@${this.name}`};
     });
-    const p = this.fixedPoints.map((point, i): NodeWithInfo => {
+    const p = this.points.map((point, i): NodeWithInfo => {
       return {p: point, info: `point:${i}@${this.name}`};
     });
 
@@ -240,7 +260,7 @@ export class BellCrank implements IBellCrank {
   constructor(
     name: string,
     fixedPoints: [Vector3, Vector3],
-    points: Array<Vector3>
+    points: AtLeast2<Vector3>
   ) {
     this.name = name;
     this.fixedPoints = fixedPoints;
@@ -259,11 +279,15 @@ export class Body implements IBody {
 
   points: Array<Vector3>;
 
+  position?: Vector3;
+
+  rotation?: Matrix3;
+
   getNodes(): NodeWithInfo[] {
     const fp = this.fixedPoints.map((point, i): NodeWithInfo => {
       return {p: point, info: `fixedPoint:${i}@${this.name}`};
     });
-    const p = this.fixedPoints.map((point, i): NodeWithInfo => {
+    const p = this.points.map((point, i): NodeWithInfo => {
       return {p: point, info: `point:${i}@${this.name}`};
     });
 
@@ -302,16 +326,20 @@ export class Tire implements ITire {
 
   toRightBearing: number;
 
+  position?: Vector3;
+
+  rotation?: Matrix3;
+
   get leftBearing(): Vector3 {
-    return this.tireCenter.add(new Vector3(0, this.toLeftBearing, 0));
+    return this.tireCenter.clone().add(new Vector3(0, this.toLeftBearing, 0));
   }
 
   get rightBearing(): Vector3 {
-    return this.tireCenter.add(new Vector3(0, this.toRightBearing, 0));
+    return this.tireCenter.clone().add(new Vector3(0, this.toRightBearing, 0));
   }
 
   get ground(): Vector3 {
-    return this.tireCenter.add(new Vector3(0, -this.tireCenter.y, 0));
+    return this.tireCenter.clone().add(new Vector3(0, -this.tireCenter.y, 0));
   }
 
   getNodes(): NodeWithInfo[] {
