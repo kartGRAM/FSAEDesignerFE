@@ -47,6 +47,13 @@ const GeometryDesigner = () => {
     // scene.add(box);
 
     const sample = getFrontSuspension();
+    const axes = new THREE.AxesHelper(25);
+    axes.setColors(
+      new THREE.Color(0x00ff00),
+      new THREE.Color(0x0000ff),
+      new THREE.Color(0xff0000)
+    );
+    scene.add(axes);
 
     render(sample, scene);
     tick();

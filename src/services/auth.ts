@@ -16,7 +16,7 @@ export const checkLoggedIn = async () => {
     .post(`api/check_logged_in/`, {})
     // eslint-disable-next-line no-unused-vars
     .then((response) => {
-      window.history.pushState({}, '', `${new URL(window.location.origin)}`);
+      // window.history.pushState({}, '', `${new URL(window.location.origin)}`);
       result = true;
     })
     // eslint-disable-next-line no-unused-vars

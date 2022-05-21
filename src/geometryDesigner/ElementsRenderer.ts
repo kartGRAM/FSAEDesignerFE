@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import track from '@app/utils/ResourceTracker';
 import {Vector3, Matrix3} from 'three';
+import store from '@store/store';
 import {
   IElement,
   IBar,
@@ -37,11 +38,18 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
   }
   const position = element.position ?? new Vector3(0, 0, 0);
   const rotation = element.rotation ?? new Matrix3();
+  const coMatrix = store.getState().gd.transCoordinateMatrix;
+  const trans = (p: Vector3) => {
+    return position
+      .clone()
+      .add(p.clone().applyMatrix3(rotation))
+      .applyMatrix3(coMatrix);
+  };
   // show nodes
   {
     const nodes: Vector3[] = [];
     element.getNodes().forEach((nodeWI) => {
-      nodes.push(position.clone().add(nodeWI.p.clone().applyMatrix3(rotation)));
+      nodes.push(trans(nodeWI.p));
     });
     const pm = track(
       new THREE.PointsMaterial({
@@ -77,9 +85,8 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
     const geometry = track(new THREE.CircleGeometry(tire.diameter / 2, 32));
     const circle = new THREE.Mesh(geometry, material);
     circle.rotateX(THREE.MathUtils.degToRad(90));
-    circle.position.add(
-      position.clone().add(tire.tireCenter.clone().applyMatrix3(rotation))
-    );
+    circle.applyMatrix4(new THREE.Matrix4().setFromMatrix3(coMatrix));
+    circle.position.add(trans(tire.tireCenter));
     scene.add(circle);
 
     material = track(
@@ -89,11 +96,9 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
       })
     );
     const points = [];
-    points.push(position.clone().add(tire.rightBearing.applyMatrix3(rotation)));
-    points.push(position.clone().add(tire.leftBearing.applyMatrix3(rotation)));
-    points.push(
-      position.clone().add(tire.tireCenter.clone().applyMatrix3(rotation))
-    );
+    points.push(trans(tire.rightBearing));
+    points.push(trans(tire.leftBearing));
+    points.push(trans(tire.tireCenter));
 
     const lgeometry = track(new THREE.BufferGeometry().setFromPoints(points));
 
@@ -111,10 +116,8 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
       );
     }
     const points = [];
-    points.push(position.clone().add(bar.point.clone().applyMatrix3(rotation)));
-    points.push(
-      position.clone().add(bar.fixedPoint.clone().applyMatrix3(rotation))
-    );
+    points.push(trans(bar.point));
+    points.push(trans(bar.fixedPoint));
 
     const geometry = track(new THREE.BufferGeometry().setFromPoints(points));
 
@@ -132,12 +135,8 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
       );
     }
     const points = [];
-    points.push(
-      position.clone().add(spring.point.clone().applyMatrix3(rotation))
-    );
-    points.push(
-      position.clone().add(spring.fixedPoint.clone().applyMatrix3(rotation))
-    );
+    points.push(trans(spring.point));
+    points.push(trans(spring.fixedPoint));
 
     const geometry = track(new THREE.BufferGeometry().setFromPoints(points));
 
@@ -155,16 +154,12 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
       );
     }
     const points = [];
-    points.push(
-      position.clone().add(aArm.fixedPoints[0].clone().applyMatrix3(rotation))
-    );
+    points.push(trans(aArm.fixedPoints[0]));
     const flexPoints = [...aArm.points];
     // points have at least one point;
     const point0 = flexPoints.shift()!;
-    points.push(position.clone().add(point0.clone().applyMatrix3(rotation)));
-    points.push(
-      position.clone().add(aArm.fixedPoints[1].clone().applyMatrix3(rotation))
-    );
+    points.push(trans(point0));
+    points.push(trans(aArm.fixedPoints[1]));
     const geometry = track(new THREE.BufferGeometry().setFromPoints(points));
 
     const line = new THREE.Line(geometry, material);
@@ -181,16 +176,8 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
       );
     }
     let points: Vector3[] = [];
-    points.push(
-      position
-        .clone()
-        .add(bellCrank.fixedPoints[0].clone().applyMatrix3(rotation))
-    );
-    points.push(
-      position
-        .clone()
-        .add(bellCrank.fixedPoints[1].clone().applyMatrix3(rotation))
-    );
+    points.push(trans(bellCrank.fixedPoints[0]));
+    points.push(trans(bellCrank.fixedPoints[1]));
     let geometry = track(new THREE.BufferGeometry().setFromPoints(points));
     let line = new THREE.Line(geometry, material);
     scene.add(line);
@@ -199,15 +186,11 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
       .add(bellCrank.fixedPoints[1])
       .multiplyScalar(0.5);
     points = [];
-    points.push(position.clone().add(center.clone().applyMatrix3(rotation)));
+    points.push(trans(center));
     // points have at least two points;
-    points.push(
-      position.clone().add(bellCrank.points[0].clone().applyMatrix3(rotation))
-    );
-    points.push(
-      position.clone().add(bellCrank.points[1].clone().applyMatrix3(rotation))
-    );
-    points.push(position.clone().add(center.clone().applyMatrix3(rotation)));
+    points.push(trans(bellCrank.points[0]));
+    points.push(trans(bellCrank.points[1]));
+    points.push(trans(center));
     geometry = track(new THREE.BufferGeometry().setFromPoints(points));
     line = new THREE.Line(geometry, material);
     scene.add(line);
@@ -225,7 +208,7 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
 
     const nodes: Vector3[] = [];
     body.getNodes().forEach((nodeWI) => {
-      nodes.push(position.clone().add(nodeWI.p.clone().applyMatrix3(rotation)));
+      nodes.push(trans(nodeWI.p));
     });
     nodes.forEach((node, i) => {
       nodes.slice(i + 1).forEach((otherNode) => {
