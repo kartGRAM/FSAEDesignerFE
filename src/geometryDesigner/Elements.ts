@@ -104,6 +104,10 @@ export class Assembly implements IAssembly {
   }
 }
 
+export class Frame extends Assembly {
+  i = 3;
+}
+
 export class Bar implements IBar {
   get className(): string {
     return 'Bar';
