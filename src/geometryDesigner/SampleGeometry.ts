@@ -21,8 +21,8 @@ export const getLeftFrontSuspension = (): Assembly => {
     // StearingPoint & TireSupportBearingPosition
     [
       new Vector3(-65, 530, 175),
-      tireCenter.sub(new Vector3(0, -30, 0)),
-      tireCenter.add(new Vector3(0, -60, 0))
+      tireCenter.clone().add(new Vector3(0, -30, 0)),
+      tireCenter.clone().add(new Vector3(0, -60, 0))
     ]
   );
 
@@ -99,4 +99,16 @@ export const getLeftFrontSuspension = (): Assembly => {
     [{lhs: [0, 4], rhs: [1, 3]}]
   );
   return leftFrontSuspensionSubAssy;
+};
+
+export const getFrontSuspension = (): Assembly => {
+  const leftSuspension = getLeftFrontSuspension();
+  const rightSuspension = leftSuspension.getMirror();
+
+  const frontSuspensionSubAssy = new Assembly(
+    'frontSuspentionSubAssy',
+    [leftSuspension, rightSuspension],
+    []
+  );
+  return frontSuspensionSubAssy;
 };

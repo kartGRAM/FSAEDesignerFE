@@ -26,6 +26,7 @@ export interface IElement {
   inertialTensor: Matrix3;
   mesh?: Mesh;
   getNodes(): NodeWithInfo[];
+  getMirror(): IElement;
   position?: Vector3;
   rotation?: Matrix3;
 }

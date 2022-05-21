@@ -227,9 +227,15 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
     body.getNodes().forEach((nodeWI) => {
       nodes.push(position.clone().add(nodeWI.p.clone().applyMatrix3(rotation)));
     });
-    const geometry = track(new THREE.BufferGeometry().setFromPoints(nodes));
-
-    const line = new THREE.Line(geometry, material);
-    scene.add(line);
+    nodes.forEach((node, i) => {
+      nodes.slice(i + 1).forEach((otherNode) => {
+        const geometry = track(
+          new THREE.BufferGeometry().setFromPoints([node, otherNode])
+        );
+        // material is not null
+        const line = new THREE.Line(geometry, material!);
+        scene.add(line);
+      });
+    });
   }
 };

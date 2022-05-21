@@ -23,7 +23,7 @@ export class Assembly implements IAssembly {
     return 'Assembly';
   }
 
-  _children: Array<IElement>;
+  _children: IElement[];
 
   get children(): IElement[] {
     return this._children;
@@ -60,6 +60,18 @@ export class Assembly implements IAssembly {
       points = [...points, ...pis];
     });
     return points;
+  }
+
+  getMirror(): Assembly {
+    const children = this.children.map((child) => child.getMirror());
+    const joints: Joint[] = this.joints.map((joint) => {
+      return {
+        lhs: [joint.lhs[0], joint.lhs[1]],
+        rhs: [joint.rhs[0], joint.rhs[1]]
+      };
+    });
+
+    return new Assembly(`mirror_${this.name}`, children, joints);
   }
 
   getJoints(): NodeWithInfo[] {
@@ -114,6 +126,14 @@ export class Bar implements IBar {
     ];
   }
 
+  getMirror(): Bar {
+    const fp = this.fixedPoint.clone();
+    fp.setY(-fp.y);
+    const p = this.point.clone();
+    p.setY(-p.y);
+    return new Bar(`mirror_${this.name}`, fp, p);
+  }
+
   get inertialTensor(): Matrix3 {
     return new Matrix3();
   }
@@ -149,6 +169,20 @@ export class SpringDumper implements ISpringDumper {
       {p: this.fixedPoint, info: `fixedPoint@${this.name}`},
       {p: this.point, info: `point@${this.name}`}
     ];
+  }
+
+  getMirror(): SpringDumper {
+    const fp = this.fixedPoint.clone();
+    fp.setY(-fp.y);
+    const p = this.point.clone();
+    p.setY(-p.y);
+    return new SpringDumper(
+      `mirror_${this.name}`,
+      fp,
+      p,
+      this.dlMin,
+      this.dlMax
+    );
   }
 
   dlMin: Millimeter;
@@ -204,6 +238,22 @@ export class AArm implements IAArm {
     return [...fp, ...p];
   }
 
+  getMirror(): AArm {
+    const fp: [Vector3, Vector3] = [
+      this.fixedPoints[0].clone(),
+      this.fixedPoints[1].clone()
+    ];
+    fp[0].setY(-fp[0].y);
+    fp[1].setY(-fp[1].y);
+    const points = this.points.map((point) => {
+      const p = point.clone();
+      p.setY(-p.y);
+      return p;
+    });
+    const point0 = points.shift()!;
+    return new AArm(`mirror_${this.name}`, fp, [point0, ...points]);
+  }
+
   get inertialTensor(): Matrix3 {
     return new Matrix3();
   }
@@ -249,6 +299,27 @@ export class BellCrank implements IBellCrank {
     return [...fp, ...p];
   }
 
+  getMirror(): BellCrank {
+    const fp: [Vector3, Vector3] = [
+      this.fixedPoints[0].clone(),
+      this.fixedPoints[1].clone()
+    ];
+    fp[0].setY(-fp[0].y);
+    fp[1].setY(-fp[1].y);
+    const points = this.points.map((point) => {
+      const p = point.clone();
+      p.setY(-p.y);
+      return p;
+    });
+    const point0 = points.shift()!;
+    const point1 = points.shift()!;
+    return new BellCrank(`mirror_${this.name}`, fp, [
+      point0,
+      point1,
+      ...points
+    ]);
+  }
+
   get inertialTensor(): Matrix3 {
     return new Matrix3();
   }
@@ -292,6 +363,20 @@ export class Body implements IBody {
     });
 
     return [...fp, ...p];
+  }
+
+  getMirror(): Body {
+    const fp = this.fixedPoints.map((point) => {
+      const p = point.clone();
+      p.setY(-p.y);
+      return p;
+    });
+    const points = this.points.map((point) => {
+      const p = point.clone();
+      p.setY(-p.y);
+      return p;
+    });
+    return new Body(`mirror_${this.name}`, fp, points);
   }
 
   get inertialTensor(): Matrix3 {
@@ -347,6 +432,17 @@ export class Tire implements ITire {
       {p: this.leftBearing, info: `leftBearing@${this.name}`},
       {p: this.rightBearing, info: `rightBearing@${this.name}`}
     ];
+  }
+
+  getMirror(): Tire {
+    const center = this.tireCenter.clone();
+    center.setY(-center.y);
+    return new Tire(
+      `mirror_${this.name}`,
+      center,
+      -this.toRightBearing,
+      -this.toLeftBearing
+    );
   }
 
   get diameter(): Millimeter {
