@@ -27,8 +27,11 @@ export interface IElement {
   mesh?: Mesh;
   getNodes(): NodeWithInfo[];
   getMirror(): IElement;
-  position?: Vector3;
+  // eslint-disable-next-line no-unused-vars
+  arrange(parentPosition?: Vector3): void;
+  position: Vector3;
   rotation?: Matrix3;
+  initialPosition: Vector3;
 }
 
 export interface IAssembly extends IElement {

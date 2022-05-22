@@ -7,7 +7,7 @@ import {toggleFullScreen} from '@app/store/reducers/geometryDesigner';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import {render} from '@app/geometryDesigner/ElementsRenderer';
-import {getFrontSuspension} from '@app/geometryDesigner/SampleGeometry';
+import {getSuspension} from '@app/geometryDesigner/SampleGeometry';
 
 interface HandleCameraAspectParams {
   camera: THREE.PerspectiveCamera;
@@ -46,7 +46,7 @@ const GeometryDesigner = () => {
     const box = new THREE.Mesh(geometry, material);
     // scene.add(box);
 
-    const sample = getFrontSuspension();
+    const sample = getSuspension();
     const axes = new THREE.AxesHelper(25);
     axes.setColors(
       new THREE.Color(0x00ff00),

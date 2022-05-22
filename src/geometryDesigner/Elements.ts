@@ -37,6 +37,16 @@ export class Assembly implements IAssembly {
 
   joints: Joint[];
 
+  initialPosition: Vector3;
+
+  get position(): Vector3 {
+    return new Vector3();
+  }
+
+  set position(p: Vector3) {
+    throw Error('Not Supported Exception');
+  }
+
   getJointedNodeIDs(id: ElementID): NodeID[] {
     const joints = this.joints.filter(
       (joint) => joint.lhs[0] === id || joint.rhs[0] === id
@@ -60,6 +70,13 @@ export class Assembly implements IAssembly {
       points = [...points, ...pis];
     });
     return points;
+  }
+
+  arrange(parentPosition?: Vector3) {
+    const pp = parentPosition ?? new Vector3();
+    this.children.forEach((child) => {
+      child.arrange(this.initialPosition.clone().add(pp));
+    });
   }
 
   getMirror(): Assembly {
@@ -97,15 +114,25 @@ export class Assembly implements IAssembly {
     throw Error('Not Supported Exception');
   }
 
-  constructor(name: string, children: IElement[], joints: Joint[]) {
+  constructor(
+    name: string,
+    children: IElement[],
+    joints: Joint[],
+    initialPosition?: Vector3
+  ) {
     this.name = name;
     this._children = children;
     this.joints = joints;
+    this.initialPosition = initialPosition ?? new Vector3();
+    this.arrange();
   }
 }
 
 export class Frame extends Assembly {
-  i = 3;
+  constructor(name: string, children: IElement[]) {
+    const joints: Joint[] = [];
+    super(name, children, joints);
+  }
 }
 
 export class Bar implements IBar {
@@ -119,15 +146,22 @@ export class Bar implements IBar {
 
   point: Vector3;
 
-  position?: Vector3;
+  initialPosition: Vector3;
 
-  rotation?: Matrix3;
+  position: Vector3;
+
+  rotation: Matrix3 = new Matrix3();
 
   getNodes(): NodeWithInfo[] {
     return [
       {p: this.fixedPoint, info: `fixedPoint@${this.name}`},
       {p: this.point, info: `point@${this.name}`}
     ];
+  }
+
+  arrange(parentPosition?: Vector3) {
+    const pp = parentPosition ?? new Vector3();
+    this.position = this.initialPosition.clone().add(pp);
   }
 
   getMirror(): Bar {
@@ -146,10 +180,17 @@ export class Bar implements IBar {
     throw Error('Not Supported Exception');
   }
 
-  constructor(name: string, fixedPoint: Vector3, point: Vector3) {
+  constructor(
+    name: string,
+    fixedPoint: Vector3,
+    point: Vector3,
+    initialPosition?: Vector3
+  ) {
     this.name = name;
     this.fixedPoint = fixedPoint;
     this.point = point;
+    this.initialPosition = initialPosition ?? new Vector3();
+    this.position = this.initialPosition;
   }
 }
 
@@ -164,15 +205,22 @@ export class SpringDumper implements ISpringDumper {
 
   point: Vector3;
 
-  position?: Vector3;
+  initialPosition: Vector3;
 
-  rotation?: Matrix3;
+  position: Vector3;
+
+  rotation: Matrix3 = new Matrix3();
 
   getNodes(): NodeWithInfo[] {
     return [
       {p: this.fixedPoint, info: `fixedPoint@${this.name}`},
       {p: this.point, info: `point@${this.name}`}
     ];
+  }
+
+  arrange(parentPosition?: Vector3) {
+    const pp = parentPosition ?? new Vector3();
+    this.position = this.initialPosition.clone().add(pp);
   }
 
   getMirror(): SpringDumper {
@@ -206,13 +254,16 @@ export class SpringDumper implements ISpringDumper {
     fixedPoint: Vector3,
     point: Vector3,
     dlMin: Millimeter,
-    dlMax: Millimeter
+    dlMax: Millimeter,
+    initialPosition?: Vector3
   ) {
     this.name = name;
     this.fixedPoint = fixedPoint;
     this.point = point;
     this.dlMin = dlMin;
     this.dlMax = dlMax;
+    this.initialPosition = initialPosition ?? new Vector3();
+    this.position = this.initialPosition;
   }
 }
 
@@ -227,9 +278,11 @@ export class AArm implements IAArm {
 
   points: AtLeast1<Vector3>;
 
-  position?: Vector3;
+  initialPosition: Vector3;
 
-  rotation?: Matrix3;
+  position: Vector3;
+
+  rotation: Matrix3 = new Matrix3();
 
   getNodes(): NodeWithInfo[] {
     const fp = this.fixedPoints.map((point, i): NodeWithInfo => {
@@ -240,6 +293,11 @@ export class AArm implements IAArm {
     });
 
     return [...fp, ...p];
+  }
+
+  arrange(parentPosition?: Vector3) {
+    const pp = parentPosition ?? new Vector3();
+    this.position = this.initialPosition.clone().add(pp);
   }
 
   getMirror(): AArm {
@@ -269,11 +327,14 @@ export class AArm implements IAArm {
   constructor(
     name: string,
     fixedPoints: [Vector3, Vector3],
-    points: AtLeast1<Vector3>
+    points: AtLeast1<Vector3>,
+    initialPosition?: Vector3
   ) {
     this.name = name;
     this.fixedPoints = fixedPoints;
     this.points = points;
+    this.initialPosition = initialPosition ?? new Vector3();
+    this.position = this.initialPosition;
   }
 }
 
@@ -288,9 +349,11 @@ export class BellCrank implements IBellCrank {
 
   points: AtLeast2<Vector3>;
 
-  position?: Vector3;
+  initialPosition: Vector3;
 
-  rotation?: Matrix3;
+  position: Vector3;
+
+  rotation: Matrix3 = new Matrix3();
 
   getNodes(): NodeWithInfo[] {
     const fp = this.fixedPoints.map((point, i): NodeWithInfo => {
@@ -301,6 +364,11 @@ export class BellCrank implements IBellCrank {
     });
 
     return [...fp, ...p];
+  }
+
+  arrange(parentPosition?: Vector3) {
+    const pp = parentPosition ?? new Vector3();
+    this.position = this.initialPosition.clone().add(pp);
   }
 
   getMirror(): BellCrank {
@@ -335,11 +403,14 @@ export class BellCrank implements IBellCrank {
   constructor(
     name: string,
     fixedPoints: [Vector3, Vector3],
-    points: AtLeast2<Vector3>
+    points: AtLeast2<Vector3>,
+    initialPosition?: Vector3
   ) {
     this.name = name;
     this.fixedPoints = fixedPoints;
     this.points = points;
+    this.initialPosition = initialPosition ?? new Vector3();
+    this.position = this.initialPosition;
   }
 }
 
@@ -354,9 +425,11 @@ export class Body implements IBody {
 
   points: Array<Vector3>;
 
-  position?: Vector3;
+  initialPosition: Vector3;
 
-  rotation?: Matrix3;
+  position: Vector3;
+
+  rotation: Matrix3 = new Matrix3();
 
   getNodes(): NodeWithInfo[] {
     const fp = this.fixedPoints.map((point, i): NodeWithInfo => {
@@ -367,6 +440,11 @@ export class Body implements IBody {
     });
 
     return [...fp, ...p];
+  }
+
+  arrange(parentPosition?: Vector3) {
+    const pp = parentPosition ?? new Vector3();
+    this.position = this.initialPosition.clone().add(pp);
   }
 
   getMirror(): Body {
@@ -394,11 +472,15 @@ export class Body implements IBody {
   constructor(
     name: string,
     fixedPoints: Array<Vector3>,
-    points: Array<Vector3>
+    points: Array<Vector3>,
+    initialPosition?: Vector3
   ) {
     this.name = name;
     this.fixedPoints = fixedPoints;
     this.points = points;
+
+    this.initialPosition = initialPosition ?? new Vector3();
+    this.position = this.initialPosition;
   }
 }
 
@@ -415,9 +497,11 @@ export class Tire implements ITire {
 
   toRightBearing: number;
 
-  position?: Vector3;
+  initialPosition: Vector3;
 
-  rotation?: Matrix3;
+  position: Vector3;
+
+  rotation: Matrix3 = new Matrix3();
 
   get leftBearing(): Vector3 {
     return this.tireCenter.clone().add(new Vector3(0, this.toLeftBearing, 0));
@@ -436,6 +520,11 @@ export class Tire implements ITire {
       {p: this.leftBearing, info: `leftBearing@${this.name}`},
       {p: this.rightBearing, info: `rightBearing@${this.name}`}
     ];
+  }
+
+  arrange(parentPosition?: Vector3) {
+    const pp = parentPosition ?? new Vector3();
+    this.position = this.initialPosition.clone().add(pp);
   }
 
   getMirror(): Tire {
@@ -465,11 +554,14 @@ export class Tire implements ITire {
     name: string,
     tireCenter: Vector3,
     toLeftBearing: number,
-    toRightBearing: number
+    toRightBearing: number,
+    initialPosition?: Vector3
   ) {
     this.name = name;
     this.tireCenter = tireCenter;
     this.toLeftBearing = toLeftBearing;
     this.toRightBearing = toRightBearing;
+    this.initialPosition = initialPosition ?? new Vector3();
+    this.position = this.initialPosition;
   }
 }
