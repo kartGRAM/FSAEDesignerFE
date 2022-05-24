@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React, {useEffect, useRef} from 'react';
 import {ContentHeader} from '@components';
@@ -8,6 +9,8 @@ import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import {render} from '@app/geometryDesigner/ElementsRenderer';
 import {getSuspension} from '@app/geometryDesigner/SampleGeometry';
+import ElementsTreeView from '@app/components/geomtry-designer/ElementsTreeView';
+import MiniDrawer from '@app/components/geomtry-designer/SideBar';
 
 interface HandleCameraAspectParams {
   camera: THREE.PerspectiveCamera;
@@ -17,6 +20,8 @@ interface HandleCameraAspectParams {
 const GeometryDesigner = () => {
   const canvas = useRef<HTMLCanvasElement>(null);
   const isFullScreen = useSelector((state: any) => state.gd.isFullScreen);
+  const fullScreenZ = useSelector((state: any) => state.gd.fullScreenZIndex);
+  const bgColor: number = useSelector((state: any) => state.gd.backgroundColor);
   const dispatch = useDispatch();
 
   const init = (): ResizeObserver => {
@@ -24,6 +29,7 @@ const GeometryDesigner = () => {
     const renderer = new THREE.WebGLRenderer({
       canvas: canvas.current!
     });
+    renderer.setClearColor(bgColor, 1);
     // シーンを作成
     const scene = new THREE.Scene();
     // カメラを作成
@@ -104,16 +110,23 @@ const GeometryDesigner = () => {
         <div
           className={`container-fluid p-0
           ${isFullScreen ? 'fullscreen' : 'content-full-height'}
+          d-flex
           `}
+          style={{zIndex: fullScreenZ}}
         >
-          <canvas ref={canvas} className="h-100 w-100 bg-dark" />
-          <button
-            type="button"
-            className="btn btn-tool fullscreen-btn"
-            onClick={() => dispatch(toggleFullScreen())}
-          >
-            <i className={`fas fa-${isFullScreen ? 'compress' : 'expand'}`} />
-          </button>
+          <MiniDrawer />
+          <div className="h-100 w-100 position-relative">
+            <canvas ref={canvas} className="gd-canvas" />
+            <button
+              type="button"
+              className="btn btn-tool fullscreen-btn"
+              onClick={() => dispatch(toggleFullScreen())}
+            >
+              <i className={`fas fa-${isFullScreen ? 'compress' : 'expand'}`} />
+            </button>
+
+            <ElementsTreeView className="gd-treeview" />
+          </div>
         </div>
       </section>
     </div>

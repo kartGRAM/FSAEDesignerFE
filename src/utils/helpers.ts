@@ -41,3 +41,27 @@ export const removeWindowClass = (classList: string) => {
     window.classList.remove(classList);
   }
 };
+
+export const NumberToRGB = (code: number) => {
+  let rgb = code.toString(16);
+
+  if (rgb.length === 5) rgb = `0${rgb}`;
+
+  return `#${rgb}`;
+};
+
+export interface color {
+  r: number;
+  g: number;
+  b: number;
+}
+export const hexToRgb = (hex: string): color | null => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (result) {
+    const rc = parseInt(result[1], 16);
+    const gc = parseInt(result[2], 16);
+    const bc = parseInt(result[3], 16);
+    return {r: rc, g: gc, b: bc}; // return 23,14,45 -> reformat if needed
+  }
+  return null;
+};

@@ -44,7 +44,7 @@ export const MENU: IMenuItem[] = [
       },
 
       {
-        name: 'menusidebar.label.subMenu',
+        name: 'menusidebar.label.subMenu2',
         path: '/sub-menu-2'
       }
     ]
