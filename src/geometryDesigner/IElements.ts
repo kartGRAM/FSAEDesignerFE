@@ -25,6 +25,7 @@ export interface IElement {
   name: string;
   inertialTensor: Matrix3;
   mesh?: Mesh;
+  readonly nodeID: string;
   getNodes(): NodeWithInfo[];
   getMirror(): IElement;
   // eslint-disable-next-line no-unused-vars
@@ -84,3 +85,18 @@ export interface IRackAndPinion extends IElement {
   axis: IAxis;
   dlPerRad: Radian;
 }
+
+export const isBar = (element: IElement): element is IBar =>
+  element.className === 'Bar';
+export const isSpringDumper = (element: IElement): element is ISpringDumper =>
+  element.className === 'SpringDumper';
+export const isTire = (element: IElement): element is ITire =>
+  element.className === 'Tire';
+export const isAArm = (element: IElement): element is IAArm =>
+  element.className === 'AArm';
+export const isBody = (element: IElement): element is IBody =>
+  element.className === 'Body';
+export const isBellCrank = (element: IElement): element is IBellCrank =>
+  element.className === 'BellCrank';
+export const isAssembly = (element: IElement): element is IAssembly =>
+  element.className === 'Assembly';

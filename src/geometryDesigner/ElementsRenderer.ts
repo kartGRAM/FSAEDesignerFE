@@ -4,29 +4,16 @@ import {Vector3, Matrix3} from 'three';
 import store from '@store/store';
 import {
   IElement,
-  IBar,
-  ISpringDumper,
-  ITire,
-  IAArm,
-  IBellCrank,
-  IBody,
-  IAssembly
+  isAssembly,
+  isBar,
+  isTire,
+  isSpringDumper,
+  isAArm,
+  isBellCrank,
+  isBody
 } from './IElements';
 
 // eslint-disable-next-line prettier/prettier
-const isBar = (element: IElement): element is IBar => element.className === "Bar";
-const isSpringDumper = (element: IElement): element is ISpringDumper =>
-  element.className === 'SpringDumper';
-const isTire = (element: IElement): element is ITire =>
-  element.className === 'Tire';
-const isAArm = (element: IElement): element is IAArm =>
-  element.className === 'AArm';
-const isBody = (element: IElement): element is IBody =>
-  element.className === 'Body';
-const isBellCrank = (element: IElement): element is IBellCrank =>
-  element.className === 'BellCrank';
-const isAssembly = (element: IElement): element is IAssembly =>
-  element.className === 'Assembly';
 
 export const render = (element: IElement, scene: THREE.Scene): void => {
   if (isAssembly(element)) {

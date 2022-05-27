@@ -1,10 +1,13 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React, {useEffect, useRef} from 'react';
 import {ContentHeader} from '@components';
 import track, {DisposeAll} from '@app/utils/ResourceTracker';
 import {useDispatch, useSelector} from 'react-redux';
-import {toggleFullScreen} from '@app/store/reducers/geometryDesigner';
+import {
+  toggleFullScreen,
+  setTopAssembly
+} from '@store/reducers/geometryDesigner';
+import {RootState} from '@store/store';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import {render} from '@app/geometryDesigner/ElementsRenderer';
@@ -19,9 +22,13 @@ interface HandleCameraAspectParams {
 
 const GeometryDesigner = () => {
   const canvas = useRef<HTMLCanvasElement>(null);
-  const isFullScreen = useSelector((state: any) => state.gd.isFullScreen);
-  const fullScreenZ = useSelector((state: any) => state.gd.fullScreenZIndex);
-  const bgColor: number = useSelector((state: any) => state.gd.backgroundColor);
+  const isFullScreen = useSelector((state: RootState) => state.gd.isFullScreen);
+  const fullScreenZ = useSelector(
+    (state: RootState) => state.gd.fullScreenZIndex
+  );
+  const bgColor: number = useSelector(
+    (state: RootState) => state.gd.backgroundColor
+  );
   const dispatch = useDispatch();
 
   const init = (): ResizeObserver => {
@@ -53,6 +60,8 @@ const GeometryDesigner = () => {
     // scene.add(box);
 
     const sample = getSuspension();
+    dispatch(setTopAssembly(sample));
+
     const axes = new THREE.AxesHelper(25);
     axes.setColors(
       new THREE.Color(0x00ff00),

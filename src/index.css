@@ -60,6 +60,7 @@
 .gd-treeview{
     scrollbar-width: none; /*Firefox対応のスクロールバー非表示コード*/
     position:absolute;
+    height: 100%;
     left:  0px;                /* 左からの位置指定 */
     top: 0px;                  /* 上からの位置指定 */
 }

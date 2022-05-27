@@ -2,6 +2,7 @@
 /* eslint-disable class-methods-use-this */
 import {Vector3, Matrix3} from 'three';
 import {AtLeast1, AtLeast2} from '@app/utils/atLeast';
+import {v1 as uuidv1} from 'uuid';
 import {
   Millimeter,
   Joint,
@@ -18,7 +19,19 @@ import {
   ITire
 } from './IElements';
 
-export class Assembly implements IAssembly {
+export abstract class Element {
+  _nodeID: string;
+
+  get nodeID(): string {
+    return this._nodeID;
+  }
+
+  constructor() {
+    this._nodeID = uuidv1(); // ⇨ '2c5ea4c0-4067-11e9-8bad-9b1deb4d3b7d'
+  }
+}
+
+export class Assembly extends Element implements IAssembly {
   get className(): string {
     return 'Assembly';
   }
@@ -120,6 +133,7 @@ export class Assembly implements IAssembly {
     joints: Joint[],
     initialPosition?: Vector3
   ) {
+    super();
     this.name = name;
     this._children = children;
     this.joints = joints;
@@ -135,7 +149,7 @@ export class Frame extends Assembly {
   }
 }
 
-export class Bar implements IBar {
+export class Bar extends Element implements IBar {
   get className(): string {
     return 'Bar';
   }
@@ -186,6 +200,7 @@ export class Bar implements IBar {
     point: Vector3,
     initialPosition?: Vector3
   ) {
+    super();
     this.name = name;
     this.fixedPoint = fixedPoint;
     this.point = point;
@@ -194,7 +209,7 @@ export class Bar implements IBar {
   }
 }
 
-export class SpringDumper implements ISpringDumper {
+export class SpringDumper extends Element implements ISpringDumper {
   get className(): string {
     return 'SpringDumper';
   }
@@ -257,6 +272,7 @@ export class SpringDumper implements ISpringDumper {
     dlMax: Millimeter,
     initialPosition?: Vector3
   ) {
+    super();
     this.name = name;
     this.fixedPoint = fixedPoint;
     this.point = point;
@@ -267,7 +283,7 @@ export class SpringDumper implements ISpringDumper {
   }
 }
 
-export class AArm implements IAArm {
+export class AArm extends Element implements IAArm {
   get className(): string {
     return 'AArm';
   }
@@ -330,6 +346,7 @@ export class AArm implements IAArm {
     points: AtLeast1<Vector3>,
     initialPosition?: Vector3
   ) {
+    super();
     this.name = name;
     this.fixedPoints = fixedPoints;
     this.points = points;
@@ -338,7 +355,7 @@ export class AArm implements IAArm {
   }
 }
 
-export class BellCrank implements IBellCrank {
+export class BellCrank extends Element implements IBellCrank {
   get className(): string {
     return 'BellCrank';
   }
@@ -406,6 +423,7 @@ export class BellCrank implements IBellCrank {
     points: AtLeast2<Vector3>,
     initialPosition?: Vector3
   ) {
+    super();
     this.name = name;
     this.fixedPoints = fixedPoints;
     this.points = points;
@@ -414,7 +432,7 @@ export class BellCrank implements IBellCrank {
   }
 }
 
-export class Body implements IBody {
+export class Body extends Element implements IBody {
   get className(): string {
     return 'Body';
   }
@@ -475,6 +493,7 @@ export class Body implements IBody {
     points: Array<Vector3>,
     initialPosition?: Vector3
   ) {
+    super();
     this.name = name;
     this.fixedPoints = fixedPoints;
     this.points = points;
@@ -484,7 +503,7 @@ export class Body implements IBody {
   }
 }
 
-export class Tire implements ITire {
+export class Tire extends Element implements ITire {
   get className(): string {
     return 'Tire';
   }
@@ -557,6 +576,7 @@ export class Tire implements ITire {
     toRightBearing: number,
     initialPosition?: Vector3
   ) {
+    super();
     this.name = name;
     this.tireCenter = tireCenter;
     this.toLeftBearing = toLeftBearing;

@@ -55,6 +55,7 @@ module.exports = {
     'no-shadow': 'off',
     'no-use-before-define': 'off',
     'react/require-default-props': 'off',
-    'no-underscore-dangle': ['error', {allowAfterThis: true}]
+    'no-underscore-dangle': ['error', {allowAfterThis: true}],
+    'no-plusplus': 'off'
   }
 };
