@@ -10,10 +10,15 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import InboxIcon from '@mui/icons-material/MoveToInbox';
-import MailIcon from '@mui/icons-material/Mail';
+import HomeRepairServiceIcon from '@mui/icons-material/HomeRepairService';
+import SettingsInputComponentIcon from '@mui/icons-material/SettingsInputComponent';
+import BrushIcon from '@mui/icons-material/Brush';
+import SettingsIcon from '@mui/icons-material/Settings';
+import AutoGraphIcon from '@mui/icons-material/AutoGraph';
+import ComputerIcon from '@mui/icons-material/Computer';
 import {useSelector} from 'react-redux';
 import {NumberToRGB} from '@app/utils/helpers';
+import {RootState} from '@store/store';
 
 const drawerWidth = 240;
 
@@ -56,7 +61,12 @@ const Drawer = styled(MuiDrawer, {
 }));
 
 export default function MiniDrawer() {
-  const bgColor: number = useSelector((state: any) => state.gd.bgSideBar);
+  const bgColor: number = useSelector(
+    (state: RootState) => state.gd.sidebarState.backgroundColor
+  );
+  const iconColor: number = useSelector(
+    (state: RootState) => state.gd.sidebarState.iconColor
+  );
   const open = false;
   return (
     <Drawer
@@ -77,8 +87,14 @@ export default function MiniDrawer() {
     >
       <Divider />
       <List>
-        {['Inbox', 'Starred', 'Send email', 'Drafts'].map((text, index) => (
-          <ListItem key={text} disablePadding sx={{display: 'block'}}>
+        {[
+          {text: 'elements', icon: <HomeRepairServiceIcon />},
+          {text: 'parameters', icon: <SettingsInputComponentIcon />},
+          {text: 'analysis', icon: <AutoGraphIcon />},
+          {text: 'style', icon: <BrushIcon />},
+          {text: 'visualization', icon: <ComputerIcon />}
+        ].map((item, index) => (
+          <ListItem key={item.text} disablePadding sx={{display: 'block'}}>
             <ListItemButton
               sx={{
                 minHeight: 48,
@@ -90,20 +106,25 @@ export default function MiniDrawer() {
                 sx={{
                   minWidth: 0,
                   mr: open ? 3 : 'auto',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  color: NumberToRGB(iconColor)
                 }}
               >
-                {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
+                {item.icon}
               </ListItemIcon>
-              <ListItemText primary={text} sx={{opacity: open ? 1 : 0}} />
+              <ListItemText primary={item.text} sx={{opacity: open ? 1 : 0}} />
             </ListItemButton>
           </ListItem>
         ))}
       </List>
       <Divider />
-      <List>
-        {['All mail', 'Trash', 'Spam'].map((text, index) => (
-          <ListItem key={text} disablePadding sx={{display: 'block'}}>
+      <List
+        sx={{
+          justifyContent: 'bottom'
+        }}
+      >
+        {[{text: 'settings', icon: <SettingsIcon />}].map((item, index) => (
+          <ListItem key={item.text} disablePadding sx={{display: 'block'}}>
             <ListItemButton
               sx={{
                 minHeight: 48,
@@ -115,12 +136,13 @@ export default function MiniDrawer() {
                 sx={{
                   minWidth: 0,
                   mr: open ? 3 : 'auto',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  color: NumberToRGB(iconColor)
                 }}
               >
-                {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
+                {item.icon}
               </ListItemIcon>
-              <ListItemText primary={text} sx={{opacity: open ? 1 : 0}} />
+              <ListItemText primary={item.text} sx={{opacity: open ? 1 : 0}} />
             </ListItemButton>
           </ListItem>
         ))}

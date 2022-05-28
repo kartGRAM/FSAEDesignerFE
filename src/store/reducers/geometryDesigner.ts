@@ -8,12 +8,23 @@ export interface IAssemblyTreeViewState {
   borderLeft: string;
 }
 
+export interface ISidebarState {
+  backgroundColor: number;
+  iconColor: number;
+}
+
+export interface IAppBarState {
+  backgroundColor: number;
+  fontColor: number;
+}
+
 export interface GDState {
   isFullScreen: boolean;
   fullScreenZIndex: number;
   transCoordinateMatrix: Matrix3;
   backgroundColor: number;
-  bgSideBar: number;
+  appBarState: IAppBarState;
+  sidebarState: ISidebarState;
   topAssembly?: IAssembly;
   assemblyTreeViewState: IAssemblyTreeViewState;
 }
@@ -27,7 +38,14 @@ const initialState: GDState = {
     fontColor: 'white',
     borderLeft: `1px dashed ${alpha('#ffffff', 0.4)}`
   },
-  bgSideBar: 0x666666,
+  appBarState: {
+    backgroundColor: 0x333333,
+    fontColor: 0xeeeeee
+  },
+  sidebarState: {
+    backgroundColor: 0x333333,
+    iconColor: 0xdddddd
+  },
   // eslint-disable-next-line prettier/prettier
   transCoordinateMatrix: new Matrix3().set(
     0, 1, 0,

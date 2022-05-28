@@ -13,6 +13,7 @@ import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import {render} from '@app/geometryDesigner/ElementsRenderer';
 import {getSuspension} from '@app/geometryDesigner/SampleGeometry';
 import ElementsTreeView from '@app/components/geomtry-designer/ElementsTreeView';
+import GDAppBar from '@app/components/geomtry-designer/GDAppBar';
 import MiniDrawer from '@app/components/geomtry-designer/SideBar';
 
 interface HandleCameraAspectParams {
@@ -119,22 +120,27 @@ const GeometryDesigner = () => {
         <div
           className={`container-fluid p-0
           ${isFullScreen ? 'fullscreen' : 'content-full-height'}
-          d-flex
+          d-flex flex-column
           `}
           style={{zIndex: fullScreenZ}}
         >
-          <MiniDrawer />
-          <div className="h-100 w-100 position-relative">
-            <canvas ref={canvas} className="gd-canvas" />
-            <button
-              type="button"
-              className="btn btn-tool fullscreen-btn"
-              onClick={() => dispatch(toggleFullScreen())}
-            >
-              <i className={`fas fa-${isFullScreen ? 'compress' : 'expand'}`} />
-            </button>
+          <GDAppBar />
+          <div className="h-100 w-100 position-relative d-flex">
+            <MiniDrawer />
+            <div className="h-100 w-100 position-relative">
+              <canvas ref={canvas} className="gd-canvas" />
+              <button
+                type="button"
+                className="btn btn-tool fullscreen-btn"
+                onClick={() => dispatch(toggleFullScreen())}
+              >
+                <i
+                  className={`fas fa-${isFullScreen ? 'compress' : 'expand'}`}
+                />
+              </button>
 
-            <ElementsTreeView className="gd-treeview" />
+              <ElementsTreeView />
+            </div>
           </div>
         </div>
       </section>

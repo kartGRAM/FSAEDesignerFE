@@ -131,7 +131,10 @@ const ElementsTreeView: React.FC<Props> = (props: Props) => {
         flexGrow: 1,
         maxWidth: 400,
         overflowY: 'auto',
-        color: tvState.fontColor
+        color: tvState.fontColor,
+        '&::-webkit-scrollbar': {
+          display: 'none'
+        }
       }}
     >
       <StyledTreeItem
