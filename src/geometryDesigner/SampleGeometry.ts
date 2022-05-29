@@ -79,13 +79,13 @@ const getLeftFrontSuspension = (): Assembly => {
   );
 
   const pushRod = new Bar(
-    'pushRod',
+    'pullRod',
     new Vector3(-20, 490.3, 284.2),
     new Vector3(-20, 316.5, 98.4)
   );
 
   const pushRodSubAssy = new Assembly(
-    'pushRodSubAssy',
+    'pullRodSubAssy',
     [coilover, bellCrank, pushRod],
     [
       {lhs: [0, 1], rhs: [1, 2]},
