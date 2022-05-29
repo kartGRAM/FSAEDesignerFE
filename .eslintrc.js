@@ -56,6 +56,7 @@ module.exports = {
     'no-use-before-define': 'off',
     'react/require-default-props': 'off',
     'no-underscore-dangle': ['error', {allowAfterThis: true}],
-    'no-plusplus': 'off'
+    'no-plusplus': 'off',
+    'react/jsx-no-bind': 'off'
   }
 };
