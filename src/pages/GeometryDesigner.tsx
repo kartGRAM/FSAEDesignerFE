@@ -1,17 +1,13 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React, {useEffect, useRef} from 'react';
 import {ContentHeader} from '@components';
-import track, {DisposeAll} from '@app/utils/ResourceTracker';
+import {DisposeAll} from '@app/utils/ResourceTracker';
 import {useDispatch, useSelector} from 'react-redux';
-import {
-  toggleFullScreen,
-  setTopAssembly
-} from '@store/reducers/geometryDesigner';
+import {toggleFullScreen} from '@store/reducers/geometryDesigner';
 import {RootState} from '@store/store';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
-import {render} from '@app/geometryDesigner/ElementsRenderer';
-import {getSuspension} from '@app/geometryDesigner/SampleGeometry';
+// import {render} from '@app/geometryDesigner/ElementsRenderer';
 import ElementsTreeView from '@app/components/geomtry-designer/ElementsTreeView';
 import GDAppBar from '@app/components/geomtry-designer/GDAppBar';
 import MiniDrawer from '@app/components/geomtry-designer/SideBar';
@@ -44,6 +40,7 @@ const GeometryDesigner = () => {
     const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100000);
     // コントロールを作成
     const controls = new OrbitControls(camera, renderer.domElement);
+    controls.listenToKeyEvents(renderer.domElement);
     onResize({camera, renderer});
     const resizeObserver = new ResizeObserver(
       // eslint-disable-next-line consistent-return,no-unused-vars
@@ -54,15 +51,6 @@ const GeometryDesigner = () => {
     resizeObserver.observe(canvas.current!);
 
     camera.position.set(0, 0, +3000);
-    // 箱を作成
-    const geometry = track(new THREE.BoxGeometry(400, 400, 400));
-    const material = track(new THREE.MeshNormalMaterial());
-    const box = new THREE.Mesh(geometry, material);
-    // scene.add(box);
-
-    const sample = getSuspension();
-    dispatch(setTopAssembly(sample));
-
     const axes = new THREE.AxesHelper(25);
     axes.setColors(
       new THREE.Color(0x00ff00),
@@ -71,11 +59,10 @@ const GeometryDesigner = () => {
     );
     scene.add(axes);
 
-    render(sample, scene);
+    // render(sample, scene);
     tick();
     // 毎フレーム時に実行されるループイベント
     function tick() {
-      box.rotation.y += 0.01;
       renderer.render(scene, camera);
       // レンダリング
       requestAnimationFrame(tick);
@@ -104,6 +91,14 @@ const GeometryDesigner = () => {
     camera.updateProjectionMatrix();
   };
 
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    // eslint-disable-next-line no-alert
+    alert('keydown');
+    if (event.key === 'F8') {
+      // eslint-disable-next-line no-alert
+      alert('keydown');
+    }
+  };
   // didMountで描画しないと、Cannot read property 'width' of nullというエラーが出る
   useEffect(() => {
     const resizeObserver = init();
@@ -125,10 +120,15 @@ const GeometryDesigner = () => {
           style={{zIndex: fullScreenZ}}
         >
           <GDAppBar />
+
           <div className="h-100 w-100 position-relative d-flex">
             <MiniDrawer />
             <div className="h-100 w-100 position-relative">
-              <canvas ref={canvas} className="gd-canvas" />
+              <canvas
+                ref={canvas}
+                className="gd-canvas"
+                onKeyDown={handleKeyDown}
+              />
               <button
                 type="button"
                 className="btn btn-tool fullscreen-btn"
@@ -149,3 +149,14 @@ const GeometryDesigner = () => {
 };
 
 export default GeometryDesigner;
+
+/*
+const handleKeyDown = (event: KeyboardEvent) => {
+  if (event.key === 'F8') {
+    // eslint-disable-next-line no-alert
+    alert('keydown');
+  }
+};
+
+document.onkeydown = handleKeyDown;
+*/

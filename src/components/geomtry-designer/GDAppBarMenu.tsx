@@ -151,6 +151,9 @@ export const GDAppBarMenu: React.VFC<Props> = (props) => {
                       backgroundColor: '#017384',
                       color: '#ffffff'
                     },
+                    '&& .MuiMenuItem-root': {
+                      fontSize: '0.8rem'
+                    },
                     '& .MuiDivider-root': {
                       backgroundColor: '#cccccc!important'
                     }

@@ -1,4 +1,4 @@
-import {Vector3, Matrix3, Mesh} from 'three';
+import {Vector3, Matrix3} from 'three';
 import {AtLeast1, AtLeast2} from '@app/utils/atLeast';
 
 export type Radian = number;
@@ -24,7 +24,6 @@ export interface IElement {
   readonly className: string;
   name: string;
   inertialTensor: Matrix3;
-  mesh?: Mesh;
   readonly nodeID: string;
   getNodes(): NodeWithInfo[];
   getMirror(): IElement;

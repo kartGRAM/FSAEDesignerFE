@@ -49,26 +49,11 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
     scene.add(mesh);
   }
 
-  let material: THREE.Material | THREE.Material[] | null = null;
-  if (element.mesh) {
-    if (element.mesh.geometry) {
-      if (!element.mesh.material) {
-        element.mesh.material = track(new THREE.MeshNormalMaterial());
-      }
-      scene.add(element.mesh);
-      return;
-    }
-    if (element.mesh.material) {
-      material = element.mesh.material;
-    }
-  }
-
   if (isTire(element)) {
     const tire = element;
-    if (!material) {
-      material = track(new THREE.MeshNormalMaterial({side: THREE.DoubleSide}));
-    }
-
+    let material: THREE.Material = track(
+      new THREE.MeshNormalMaterial({side: THREE.DoubleSide})
+    );
     const geometry = track(new THREE.CircleGeometry(tire.diameter / 2, 32));
     const circle = new THREE.Mesh(geometry, material);
     circle.rotateX(THREE.MathUtils.degToRad(90));
@@ -94,14 +79,12 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
   }
   if (isBar(element)) {
     const bar = element;
-    if (!material) {
-      material = track(
-        new THREE.LineBasicMaterial({
-          color: 0xff0000,
-          linewidth: 2
-        })
-      );
-    }
+    const material = track(
+      new THREE.LineBasicMaterial({
+        color: 0xff0000,
+        linewidth: 2
+      })
+    );
     const points = [];
     points.push(trans(bar.point));
     points.push(trans(bar.fixedPoint));
@@ -113,14 +96,12 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
   }
   if (isSpringDumper(element)) {
     const spring = element;
-    if (!material) {
-      material = track(
-        new THREE.LineBasicMaterial({
-          color: 0x0000ff,
-          linewidth: 2
-        })
-      );
-    }
+    const material = track(
+      new THREE.LineBasicMaterial({
+        color: 0x0000ff,
+        linewidth: 2
+      })
+    );
     const points = [];
     points.push(trans(spring.point));
     points.push(trans(spring.fixedPoint));
@@ -132,14 +113,12 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
   }
   if (isAArm(element)) {
     const aArm = element;
-    if (!material) {
-      material = track(
-        new THREE.LineBasicMaterial({
-          color: 0xff0000,
-          linewidth: 2
-        })
-      );
-    }
+    const material = track(
+      new THREE.LineBasicMaterial({
+        color: 0xff0000,
+        linewidth: 2
+      })
+    );
     const points = [];
     points.push(trans(aArm.fixedPoints[0]));
     const flexPoints = [...aArm.points];
@@ -154,14 +133,12 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
   }
   if (isBellCrank(element)) {
     const bellCrank = element;
-    if (!material) {
-      material = track(
-        new THREE.LineBasicMaterial({
-          color: 0xff0000,
-          linewidth: 2
-        })
-      );
-    }
+    const material = track(
+      new THREE.LineBasicMaterial({
+        color: 0xff0000,
+        linewidth: 2
+      })
+    );
     let points: Vector3[] = [];
     points.push(trans(bellCrank.fixedPoints[0]));
     points.push(trans(bellCrank.fixedPoints[1]));
@@ -184,14 +161,12 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
   }
   if (isBody(element)) {
     const body = element;
-    if (!material) {
-      material = track(
-        new THREE.LineBasicMaterial({
-          color: 0x00ffff,
-          linewidth: 2
-        })
-      );
-    }
+    const material = track(
+      new THREE.LineBasicMaterial({
+        color: 0x00ffff,
+        linewidth: 2
+      })
+    );
 
     const nodes: Vector3[] = [];
     body.getNodes().forEach((nodeWI) => {

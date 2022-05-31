@@ -14,6 +14,8 @@ import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
 import {NumberToRGB} from '@app/utils/helpers';
 import {GDAppBarMenu} from '@app/components/geomtry-designer/GDAppBarMenu';
+import GDMIOpenFromTemplates from '@app/components/geomtry-designer/GDMIOpenFromTemplates';
+import GDMIClose from '@app/components/geomtry-designer/GDMIClose';
 
 import MenuItem from '@mui/material/MenuItem';
 
@@ -82,13 +84,15 @@ export default function GDAppBar() {
       >
         <GDAppBarMenu name="File">
           <MenuItem>New Empty Assembly</MenuItem>
-          <MenuItem>New Assembly From Templates</MenuItem>
+          <GDMIOpenFromTemplates />
           <Divider />
           <MenuItem>Open</MenuItem>
           <MenuItem>Open Recent</MenuItem>
           <Divider />
           <MenuItem>Save</MenuItem>
           <MenuItem>Save As...</MenuItem>
+          <Divider />
+          <GDMIClose />
         </GDAppBarMenu>
         <GDAppBarMenu name="Edit">
           <MenuItem>Undo</MenuItem>
