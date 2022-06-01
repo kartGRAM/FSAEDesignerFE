@@ -1,7 +1,7 @@
 import * as React from 'react';
 import MenuItem from '@mui/material/MenuItem';
 import {useDispatch} from 'react-redux';
-import {setTopAssembly} from '@store/reducers/geometryDesigner';
+import {setTopAssembly} from '@app/store/reducers/dataGeometryDesigner';
 
 export default function GDMIClose() {
   const dispatch = useDispatch();

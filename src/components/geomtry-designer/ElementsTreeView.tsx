@@ -61,7 +61,7 @@ const StyledTreeItem = (props: ElementTreeItemProps) => {
   const {element} = props;
 
   const tvState = useSelector(
-    (state: RootState) => state.gd.assemblyTreeViewState
+    (state: RootState) => state.ugd.assemblyTreeViewState
   );
   const Inner = styled((props: TreeItemProps) => (
     <TreeItem {...props} TransitionComponent={TransitionComponent} />
@@ -104,10 +104,10 @@ interface Props {
 const ElementsTreeView: React.FC<Props> = (props: Props) => {
   const {className} = props;
   const tvState = useSelector(
-    (state: RootState) => state.gd.assemblyTreeViewState
+    (state: RootState) => state.ugd.assemblyTreeViewState
   );
   const nAssembly: IAssembly | undefined = useSelector(
-    (state: RootState) => state.gd.topAssembly
+    (state: RootState) => state.dgd.topAssembly
   );
   if (!nAssembly) {
     return <div />;

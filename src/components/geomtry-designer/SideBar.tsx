@@ -62,10 +62,10 @@ const Drawer = styled(MuiDrawer, {
 
 export default function MiniDrawer() {
   const bgColor: number = useSelector(
-    (state: RootState) => state.gd.sidebarState.backgroundColor
+    (state: RootState) => state.ugd.sidebarState.backgroundColor
   );
   const iconColor: number = useSelector(
-    (state: RootState) => state.gd.sidebarState.iconColor
+    (state: RootState) => state.ugd.sidebarState.iconColor
   );
   const open = false;
   return (
