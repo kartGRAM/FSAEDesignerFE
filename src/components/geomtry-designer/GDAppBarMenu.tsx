@@ -7,8 +7,9 @@ import Popper from '@mui/material/Popper';
 import MenuList from '@mui/material/MenuList';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-// eslint-disable-next-line no-unused-vars
-import MenuItem from '@mui/material/MenuItem';
+import {useSelector} from 'react-redux';
+import {RootState} from '@store/store';
+import {NumberToRGB} from '@app/utils/helpers';
 
 interface Props {
   name: string;
@@ -18,13 +19,13 @@ interface Props {
 export const GDAppBarMenu: React.VFC<Props> = (props) => {
   const [open, setOpen] = React.useState(false);
   const anchorRef = React.useRef<HTMLButtonElement>(null);
+  const enabledColorLight: number = useSelector(
+    (state: RootState) => state.uigd.enabledColorLight
+  );
+  const enabledColorDark: number = useSelector(
+    (state: RootState) => state.uigd.enabledColorDark
+  );
 
-  // eslint-disable-next-line no-unused-vars
-  const handleOpen = () => {
-    setOpen(true);
-  };
-
-  // eslint-disable-next-line no-unused-vars
   const handleClose = (event: Event | React.SyntheticEvent) => {
     if (
       anchorRef.current &&
@@ -39,14 +40,6 @@ export const GDAppBarMenu: React.VFC<Props> = (props) => {
   const handleToggle = (event: Event | React.SyntheticEvent) => {
     setOpen((prev) => !prev);
   };
-
-  // eslint-disable-next-line no-unused-vars
-  function handleButtonKeyDown(event: React.KeyboardEvent) {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      setOpen(true);
-    }
-  }
 
   function handleListKeyDown(event: React.KeyboardEvent) {
     if (event.key === 'Enter') {
@@ -86,7 +79,7 @@ export const GDAppBarMenu: React.VFC<Props> = (props) => {
             content: '""',
             width: '100%',
             height: '0.2rem',
-            borderBottom: '0.2rem solid #019fb6',
+            borderBottom: `0.2rem solid ${NumberToRGB(enabledColorLight)}`,
             display: 'block',
             bottom: '0px',
             position: 'absolute',
@@ -144,11 +137,11 @@ export const GDAppBarMenu: React.VFC<Props> = (props) => {
                   sx={{
                     color: '#cccccc',
                     '&& .Mui-focusVisible': {
-                      backgroundColor: '#017384',
+                      backgroundColor: NumberToRGB(enabledColorDark),
                       color: '#ffffff'
                     },
                     '&& :hover': {
-                      backgroundColor: '#017384',
+                      backgroundColor: NumberToRGB(enabledColorDark),
                       color: '#ffffff'
                     },
                     '&& .MuiMenuItem-root': {

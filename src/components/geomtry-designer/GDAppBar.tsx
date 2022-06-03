@@ -65,7 +65,7 @@ const StyledInputBase = styled(InputBase)(({theme}) => ({
 
 export default function GDAppBar() {
   const bgColor: number = useSelector(
-    (state: RootState) => state.ugd.appBarState.backgroundColor
+    (state: RootState) => state.uigd.appBarState.backgroundColor
   );
   return (
     <AppBar

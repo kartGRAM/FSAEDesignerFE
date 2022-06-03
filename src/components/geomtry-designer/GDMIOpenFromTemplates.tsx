@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, {useEffect} from 'react';
 import MenuItem from '@mui/material/MenuItem';
 import {useDispatch} from 'react-redux';
 import {setTopAssembly} from '@app/store/reducers/dataGeometryDesigner';
@@ -10,6 +10,11 @@ export default function GDMIOpenFromTemplates() {
     const sample = getSuspension();
     dispatch(setTopAssembly(sample));
   };
+
+  // とりあえずテスト用に入れる
+  useEffect(() => {
+    handleOnClick();
+  }, []);
 
   return (
     <MenuItem onClick={handleOnClick}> New Assembly From Templates</MenuItem>

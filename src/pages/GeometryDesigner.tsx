@@ -2,20 +2,21 @@
 import React from 'react';
 import {ContentHeader} from '@components';
 import {useDispatch, useSelector} from 'react-redux';
-import {toggleFullScreen} from '@app/store/reducers/uiGeometryDesigner';
+import {toggleFullScreen} from '@app/store/reducers/uiTempGeometryDesigner';
 import {RootState} from '@store/store';
 // import {render} from '@app/geometryDesigner/ElementsRenderer';
 import ElementsTreeView from '@app/components/geomtry-designer/ElementsTreeView';
 import GDAppBar from '@app/components/geomtry-designer/GDAppBar';
 import MiniDrawer from '@app/components/geomtry-designer/SideBar';
 import GDScene from '@app/components/geomtry-designer/GDScene';
+import SidePanel from '@app/components/geomtry-designer/SidePanel';
 
 const GeometryDesigner = () => {
   const isFullScreen = useSelector(
-    (state: RootState) => state.ugd.isFullScreen
+    (state: RootState) => state.uitgd.isFullScreen
   );
   const fullScreenZ = useSelector(
-    (state: RootState) => state.ugd.fullScreenZIndex
+    (state: RootState) => state.uitgd.fullScreenZIndex
   );
   const dispatch = useDispatch();
 
@@ -34,6 +35,7 @@ const GeometryDesigner = () => {
 
           <div className="h-100 w-100 position-relative d-flex">
             <MiniDrawer />
+            <SidePanel />
             <div className="h-100 w-100 position-relative">
               <GDScene />
               <button

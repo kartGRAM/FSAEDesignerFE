@@ -13,8 +13,6 @@ import {
   isBody
 } from './IElements';
 
-// eslint-disable-next-line prettier/prettier
-
 export const render = (element: IElement, scene: THREE.Scene): void => {
   if (isAssembly(element)) {
     const assembly = element;
