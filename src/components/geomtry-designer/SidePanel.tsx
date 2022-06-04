@@ -12,10 +12,10 @@ import Divider from '@mui/material/Divider';
 import {alpha} from '@mui/material/styles';
 // eslint-disable-next-line no-unused-vars
 import {resizePanel} from '@app/store/reducers/uiGeometryDesigner';
+import $ from 'jquery';
+import 'jqueryui';
 
 export default function SidePanel() {
-  const [initialPos, setInitialPos] = React.useState<number>(0);
-
   const boxRef = React.useRef<HTMLDivElement>(null);
   const dividerRef = React.useRef<HTMLHRElement>(null);
   const bgColor: number = useSelector(
@@ -33,61 +33,53 @@ export default function SidePanel() {
   const collapsed: boolean = useSelector(
     (state: RootState) => state.uigd.sidePanelState.collapsed
   );
-  const [initialWidth, setInitialWidth] = React.useState<number | null>(0);
   const enabledColorLight: number = useSelector(
     (state: RootState) => state.uigd.enabledColorLight
   );
 
-  // eslint-disable-next-line no-unused-vars
   const dispatch = useDispatch();
 
-  const initial = (e: React.DragEvent) => {
-    e.dataTransfer.setDragImage(new Image(), 0, 0);
-    // e.dataTransfer.effectAllowed = 'move';
-    // e.dataTransfer.dropEffect = 'move';
-    setInitialPos(e.clientX);
-    const initial = boxRef.current?.offsetWidth;
-    if (initial !== undefined) {
-      setInitialWidth(initial);
-    }
-    // const html = document.getElementsByTagName('html');
-    // html[0].style.cursor = 'col-resize';
-  };
-
+  // eslint-disable-next-line no-unused-vars
   const clipWidth = (wpx: number): number => {
     wpx = Math.max(0, Math.min(wpx, 1000));
     if (wpx < minWidth) wpx = 0;
     return wpx;
   };
 
-  const resize = (e: React.MouseEvent) => {
-    if (initialWidth !== null) {
-      const wpx = clipWidth(initialWidth + e.clientX - initialPos);
-      const width = `${wpx}px`;
+  React.useEffect(() => {
+    const resize = (e: any, ui: any) => {
+      if (ui.position.left < minWidth) {
+        ui.position.left = 0;
+      }
+      if (ui.position.left > 1000) {
+        ui.position.left = 1000;
+      }
       if (boxRef.current) {
-        boxRef.current.style.width = width;
+        boxRef.current.style.width = `${ui.position.left}px`;
         boxRef.current.style.display = 'unset';
-        if (wpx === 0) boxRef.current.style.display = 'none';
+        if (ui.position.left === 0) boxRef.current.style.display = 'none';
       }
-      if (dividerRef.current) {
-        dividerRef.current.style.left = `calc(${width} - 2px)`;
-      }
-      // dispatch(resizePanel(width));
-    }
-  };
-
-  const resizeEnd = (e: React.MouseEvent) => {
-    if (initialWidth !== null) {
+    };
+    const resizeEnd = (e: any, ui: any) => {
       if (boxRef.current) {
         boxRef.current.removeAttribute('style');
       }
       if (dividerRef.current) {
         dividerRef.current.removeAttribute('style');
       }
-      const width = clipWidth(initialWidth + e.clientX - initialPos);
-      dispatch(resizePanel(width));
+      dispatch(resizePanel(ui.position.left));
+    };
+
+    if (dividerRef.current) {
+      $(dividerRef.current).draggable({
+        containment: 'parent',
+        scroll: false,
+        axis: 'x',
+        drag: resize,
+        stop: resizeEnd
+      });
     }
-  };
+  }, []);
   return (
     <>
       <Box
@@ -151,9 +143,9 @@ export default function SidePanel() {
         orientation="vertical"
         flexItem
         draggable="true"
-        onDragStart={initial}
-        onDrag={resize}
-        onDragEnd={resizeEnd}
+        // onDragStart={initial}
+        // onDrag={resize}
+        // onDragEnd={resizeEnd}
         ref={dividerRef}
         sx={{
           position: 'absolute',
@@ -168,8 +160,8 @@ export default function SidePanel() {
             backgroundColor: NumberToRGB(enabledColorLight)
           },
           '&:active': {
-            backgroundColor: NumberToRGB(enabledColorLight),
-            cursor: 'col-resize'
+            cursor: 'col-resize',
+            backgroundColor: NumberToRGB(enabledColorLight)
           }
         }}
       />
