@@ -1,4 +1,4 @@
-import {createSlice} from '@reduxjs/toolkit';
+import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {alpha} from '@mui/material/styles';
 
 export interface IAssemblyTreeViewState {
@@ -48,7 +48,7 @@ const initialState: GDState = {
     iconColor: 0xdddddd
   },
   sidePanelState: {
-    backgroundColor: 0x2d2d2d,
+    backgroundColor: 0x2e2e2e,
     fontColor: 0xcccccc,
     panelWidth: '300px'
   }
@@ -57,9 +57,13 @@ const initialState: GDState = {
 export const uiGeometryDesignerSlice = createSlice({
   name: 'uiGeometryDesigner',
   initialState,
-  reducers: {}
+  reducers: {
+    resizePanel: (state: GDState, action: PayloadAction<string>) => {
+      state.sidePanelState.panelWidth = action.payload;
+    }
+  }
 });
 
-// export const {} = uiGeometryDesignerSlice.actions;
+export const {resizePanel} = uiGeometryDesignerSlice.actions;
 
 export default uiGeometryDesignerSlice.reducer;

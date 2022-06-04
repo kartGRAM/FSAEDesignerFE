@@ -5,12 +5,19 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {useSelector} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 import {NumberToRGB} from '@app/utils/helpers';
 import {RootState} from '@store/store';
 import Divider from '@mui/material/Divider';
+import {alpha} from '@mui/material/styles';
+// eslint-disable-next-line no-unused-vars
+import {resizePanel} from '@app/store/reducers/uiGeometryDesigner';
 
 export default function SidePanel() {
+  const [initialPos, setInitialPos] = React.useState<number>(0);
+
+  const boxRef = React.useRef<HTMLDivElement>(null);
+  const dividerRef = React.useRef<HTMLHRElement>(null);
   const bgColor: number = useSelector(
     (state: RootState) => state.uigd.sidePanelState.backgroundColor
   );
@@ -20,7 +27,56 @@ export default function SidePanel() {
   const panelWidth: string = useSelector(
     (state: RootState) => state.uigd.sidePanelState.panelWidth
   );
+  const [initialWidth, setInitialWidth] = React.useState<number | null>(0);
+  const enabledColorLight: number = useSelector(
+    (state: RootState) => state.uigd.enabledColorLight
+  );
 
+  // eslint-disable-next-line no-unused-vars
+  const dispatch = useDispatch();
+
+  const initial = (e: React.DragEvent) => {
+    e.dataTransfer.setDragImage(new Image(), 0, 0);
+    // e.dataTransfer.effectAllowed = 'move';
+    // e.dataTransfer.dropEffect = 'move';
+    setInitialPos(e.clientX);
+    const initial = boxRef.current?.offsetWidth;
+    if (initial) {
+      setInitialWidth(initial);
+    }
+    // const html = document.getElementsByTagName('html');
+    // html[0].style.cursor = 'col-resize';
+  };
+
+  const resize = (e: React.MouseEvent) => {
+    if (initialWidth) {
+      let wpx = initialWidth + e.clientX - initialPos;
+      wpx = Math.max(0, Math.min(wpx, 1000));
+      const width = `${wpx}px`;
+      if (boxRef.current) {
+        boxRef.current.style.width = width;
+      }
+      if (dividerRef.current) {
+        dividerRef.current.style.left = `calc(${width} - 2px)`;
+      }
+      // dispatch(resizePanel(width));
+    }
+  };
+
+  const resizeEnd = (e: React.MouseEvent) => {
+    if (initialWidth) {
+      if (boxRef.current) {
+        boxRef.current.removeAttribute('style');
+      }
+      if (dividerRef.current) {
+        dividerRef.current.removeAttribute('style');
+      }
+      let wpx = initialWidth + e.clientX - initialPos;
+      wpx = Math.max(0, Math.min(wpx, 1000));
+      const width = `${wpx}px`;
+      dispatch(resizePanel(width));
+    }
+  };
   return (
     <>
       <Box
@@ -28,9 +84,13 @@ export default function SidePanel() {
           backgroundColor: NumberToRGB(bgColor),
           height: '100%',
           width: panelWidth,
+          paddingLeft: 1,
+          paddingRight: 1,
+          flexShrink: 0,
 
           color: NumberToRGB(fontColor)
         }}
+        ref={boxRef}
       >
         <Typography variant="h6">Variables</Typography>
         <Accordion>
@@ -76,7 +136,32 @@ export default function SidePanel() {
         </Accordion>
       </Box>
 
-      <Divider orientation="vertical" flexItem />
+      <Divider
+        orientation="vertical"
+        flexItem
+        draggable="true"
+        onDragStart={initial}
+        onDrag={resize}
+        onDragEnd={resizeEnd}
+        ref={dividerRef}
+        sx={{
+          position: 'absolute',
+          height: '100%',
+          left: `calc(${panelWidth} - 2px)`,
+          width: '4px',
+          zIndex: 1000,
+          backgroundColor: 'transparent',
+          borderColor: alpha('#000000', 0),
+          cursor: 'col-resize',
+          '&:hover': {
+            backgroundColor: NumberToRGB(enabledColorLight)
+          },
+          '&:active': {
+            backgroundColor: NumberToRGB(enabledColorLight),
+            cursor: 'col-resize'
+          }
+        }}
+      />
     </>
   );
 }

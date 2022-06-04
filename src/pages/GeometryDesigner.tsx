@@ -10,6 +10,8 @@ import GDAppBar from '@app/components/geomtry-designer/GDAppBar';
 import MiniDrawer from '@app/components/geomtry-designer/SideBar';
 import GDScene from '@app/components/geomtry-designer/GDScene';
 import SidePanel from '@app/components/geomtry-designer/SidePanel';
+import {NumberToRGB} from '@app/utils/helpers';
+import Box from '@mui/material/Box';
 
 const GeometryDesigner = () => {
   const isFullScreen = useSelector(
@@ -19,6 +21,10 @@ const GeometryDesigner = () => {
     (state: RootState) => state.uitgd.fullScreenZIndex
   );
   const dispatch = useDispatch();
+
+  const bgColor: number = useSelector(
+    (state: RootState) => state.uigd.backgroundColor
+  );
 
   return (
     <div>
@@ -35,20 +41,29 @@ const GeometryDesigner = () => {
 
           <div className="h-100 w-100 position-relative d-flex">
             <MiniDrawer />
-            <SidePanel />
-            <div className="h-100 w-100 position-relative">
-              <GDScene />
-              <button
-                type="button"
-                className="btn btn-tool fullscreen-btn"
-                onClick={() => dispatch(toggleFullScreen())}
-              >
-                <i
-                  className={`fas fa-${isFullScreen ? 'compress' : 'expand'}`}
-                />
-              </button>
 
-              <ElementsTreeView />
+            <div className="h-100 w-100 position-relative d-flex">
+              <SidePanel />
+              <Box
+                className="h-100 w-100 position-relative"
+                sx={{
+                  paddingLeft: '2px',
+                  backgroundColor: NumberToRGB(bgColor)
+                }}
+              >
+                <GDScene />
+                <button
+                  type="button"
+                  className="btn btn-tool fullscreen-btn"
+                  onClick={() => dispatch(toggleFullScreen())}
+                >
+                  <i
+                    className={`fas fa-${isFullScreen ? 'compress' : 'expand'}`}
+                  />
+                </button>
+
+                <ElementsTreeView />
+              </Box>
             </div>
           </div>
         </div>
