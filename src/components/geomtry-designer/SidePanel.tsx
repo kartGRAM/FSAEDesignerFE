@@ -39,6 +39,7 @@ export default function SidePanel() {
 
   const dispatch = useDispatch();
 
+  // ドラッグ中にカーソルがdisabledになるのを防止するため(だけに)、jQueryUIを使用する。
   React.useEffect(() => {
     const resize = (e: any, ui: any) => {
       if (ui.position.left < minWidth) {
@@ -149,6 +150,8 @@ export default function SidePanel() {
           backgroundColor: 'transparent',
           borderColor: alpha('#000000', 0),
           cursor: 'col-resize',
+
+          transition: 'background-color 0.15s ease 0s',
           '&:hover': {
             backgroundColor: NumberToRGB(enabledColorLight)
           },
