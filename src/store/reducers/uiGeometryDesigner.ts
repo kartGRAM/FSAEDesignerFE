@@ -17,8 +17,10 @@ export interface IAppBarState {
 }
 export interface ISidePanelState {
   backgroundColor: number;
+  minWidth: number;
+  collapsed: boolean;
   fontColor: number;
-  panelWidth: string;
+  panelWidth: number;
 }
 
 export interface GDState {
@@ -49,8 +51,10 @@ const initialState: GDState = {
   },
   sidePanelState: {
     backgroundColor: 0x2e2e2e,
+    minWidth: 200,
+    collapsed: false,
     fontColor: 0xcccccc,
-    panelWidth: '300px'
+    panelWidth: 300
   }
 };
 
@@ -58,8 +62,12 @@ export const uiGeometryDesignerSlice = createSlice({
   name: 'uiGeometryDesigner',
   initialState,
   reducers: {
-    resizePanel: (state: GDState, action: PayloadAction<string>) => {
+    resizePanel: (state: GDState, action: PayloadAction<number>) => {
       state.sidePanelState.panelWidth = action.payload;
+      state.sidePanelState.collapsed = false;
+      if (action.payload < state.sidePanelState.minWidth) {
+        state.sidePanelState.collapsed = true;
+      }
     }
   }
 });

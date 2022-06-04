@@ -24,8 +24,14 @@ export default function SidePanel() {
   const fontColor: number = useSelector(
     (state: RootState) => state.uigd.sidePanelState.fontColor
   );
-  const panelWidth: string = useSelector(
+  const panelWidth: number = useSelector(
     (state: RootState) => state.uigd.sidePanelState.panelWidth
+  );
+  const minWidth: Number = useSelector(
+    (state: RootState) => state.uigd.sidePanelState.minWidth
+  );
+  const collapsed: boolean = useSelector(
+    (state: RootState) => state.uigd.sidePanelState.collapsed
   );
   const [initialWidth, setInitialWidth] = React.useState<number | null>(0);
   const enabledColorLight: number = useSelector(
@@ -41,20 +47,27 @@ export default function SidePanel() {
     // e.dataTransfer.dropEffect = 'move';
     setInitialPos(e.clientX);
     const initial = boxRef.current?.offsetWidth;
-    if (initial) {
+    if (initial !== undefined) {
       setInitialWidth(initial);
     }
     // const html = document.getElementsByTagName('html');
     // html[0].style.cursor = 'col-resize';
   };
 
+  const clipWidth = (wpx: number): number => {
+    wpx = Math.max(0, Math.min(wpx, 1000));
+    if (wpx < minWidth) wpx = 0;
+    return wpx;
+  };
+
   const resize = (e: React.MouseEvent) => {
-    if (initialWidth) {
-      let wpx = initialWidth + e.clientX - initialPos;
-      wpx = Math.max(0, Math.min(wpx, 1000));
+    if (initialWidth !== null) {
+      const wpx = clipWidth(initialWidth + e.clientX - initialPos);
       const width = `${wpx}px`;
       if (boxRef.current) {
         boxRef.current.style.width = width;
+        boxRef.current.style.display = 'unset';
+        if (wpx === 0) boxRef.current.style.display = 'none';
       }
       if (dividerRef.current) {
         dividerRef.current.style.left = `calc(${width} - 2px)`;
@@ -64,16 +77,14 @@ export default function SidePanel() {
   };
 
   const resizeEnd = (e: React.MouseEvent) => {
-    if (initialWidth) {
+    if (initialWidth !== null) {
       if (boxRef.current) {
         boxRef.current.removeAttribute('style');
       }
       if (dividerRef.current) {
         dividerRef.current.removeAttribute('style');
       }
-      let wpx = initialWidth + e.clientX - initialPos;
-      wpx = Math.max(0, Math.min(wpx, 1000));
-      const width = `${wpx}px`;
+      const width = clipWidth(initialWidth + e.clientX - initialPos);
       dispatch(resizePanel(width));
     }
   };
@@ -83,11 +94,11 @@ export default function SidePanel() {
         sx={{
           backgroundColor: NumberToRGB(bgColor),
           height: '100%',
-          width: panelWidth,
+          width: `${panelWidth}px`,
           paddingLeft: 1,
           paddingRight: 1,
           flexShrink: 0,
-
+          display: collapsed ? 'none' : 'unset',
           color: NumberToRGB(fontColor)
         }}
         ref={boxRef}
@@ -147,7 +158,7 @@ export default function SidePanel() {
         sx={{
           position: 'absolute',
           height: '100%',
-          left: `calc(${panelWidth} - 2px)`,
+          left: `calc(${panelWidth}px - 2px)`,
           width: '4px',
           zIndex: 1000,
           backgroundColor: 'transparent',
