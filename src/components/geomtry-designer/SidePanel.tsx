@@ -39,13 +39,6 @@ export default function SidePanel() {
 
   const dispatch = useDispatch();
 
-  // eslint-disable-next-line no-unused-vars
-  const clipWidth = (wpx: number): number => {
-    wpx = Math.max(0, Math.min(wpx, 1000));
-    if (wpx < minWidth) wpx = 0;
-    return wpx;
-  };
-
   React.useEffect(() => {
     const resize = (e: any, ui: any) => {
       if (ui.position.left < minWidth) {
@@ -55,7 +48,7 @@ export default function SidePanel() {
         ui.position.left = 1000;
       }
       if (boxRef.current) {
-        boxRef.current.style.width = `${ui.position.left}px`;
+        boxRef.current.style.width = `${ui.position.left + 2}px`;
         boxRef.current.style.display = 'unset';
         if (ui.position.left === 0) boxRef.current.style.display = 'none';
       }
@@ -67,7 +60,7 @@ export default function SidePanel() {
       if (dividerRef.current) {
         dividerRef.current.removeAttribute('style');
       }
-      dispatch(resizePanel(ui.position.left));
+      dispatch(resizePanel(ui.position.left + 2));
     };
 
     if (dividerRef.current) {
@@ -79,7 +72,7 @@ export default function SidePanel() {
         stop: resizeEnd
       });
     }
-  }, []);
+  }, [dispatch]);
   return (
     <>
       <Box
