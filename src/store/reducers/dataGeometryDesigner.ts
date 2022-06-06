@@ -34,11 +34,25 @@ export const dataGeometryDesignerSlice = createSlice({
       action: PayloadAction<IAssembly | undefined>
     ) => {
       state.topAssembly = action.payload;
+    },
+    setVisibility: (
+      state: GDState,
+      action: PayloadAction<{
+        absPath: string;
+        visibility: boolean;
+      }>
+    ) => {
+      if (state.topAssembly) {
+        const element = state.topAssembly.getElementByPath(
+          action.payload.absPath
+        );
+        if (element) element.visible = action.payload.visibility;
+      }
     }
   }
 });
 
-export const {setCoordinateMatrix, setTopAssembly} =
+export const {setCoordinateMatrix, setTopAssembly, setVisibility} =
   dataGeometryDesignerSlice.actions;
 
 export default dataGeometryDesignerSlice.reducer;

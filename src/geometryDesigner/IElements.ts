@@ -15,16 +15,14 @@ export interface NodeWithPath {
   path: string;
 }
 
-export interface IAxis {
-  point: Vector3;
-  direction: Vector3;
-}
-
 export interface IElement {
   readonly className: string;
   name: string;
   inertialTensor: Matrix3;
+  visible: boolean | undefined;
+  parent: IAssembly | null;
   readonly nodeID: string;
+  readonly absPath: string;
   getNodes(): NodeWithPath[];
   getMirror(): IElement;
   // eslint-disable-next-line no-unused-vars
@@ -37,6 +35,8 @@ export interface IElement {
 export interface IAssembly extends IElement {
   children: IElement[];
   joints: Joint[];
+  // eslint-disable-next-line no-unused-vars
+  getElementByPath(path: string): IElement | null;
 }
 
 export interface IBar extends IElement {
@@ -81,7 +81,6 @@ export interface IRackAndPinion extends IElement {
   points: [Vector3, Vector3];
   dlMin: Millimeter;
   dlMax: Millimeter;
-  axis: IAxis;
   dlPerRad: Radian;
 }
 

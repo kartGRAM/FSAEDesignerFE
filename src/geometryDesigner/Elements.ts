@@ -16,18 +16,28 @@ import {
   IAArm,
   IBellCrank,
   IBody,
-  ITire
+  ITire,
+  isAssembly
 } from './IElements';
 
 export abstract class Element {
   _nodeID: string;
 
+  name: string;
+
+  parent: IAssembly | null = null;
+
+  get absPath(): string {
+    return `${this.nodeID}${this.parent ? `@${this.parent.absPath}` : ''}`;
+  }
+
   get nodeID(): string {
     return this._nodeID;
   }
 
-  constructor() {
+  constructor(name: string) {
     this._nodeID = uuidv1(); // ⇨ '2c5ea4c0-4067-11e9-8bad-9b1deb4d3b7d'
+    this.name = name;
   }
 }
 
@@ -42,11 +52,51 @@ export class Assembly extends Element implements IAssembly {
     return this._children;
   }
 
+  getElementByPath(path: string): IElement | null {
+    const idx = path.indexOf(this.absPath);
+    if (idx === -1) return null;
+    if (idx === 0) return this;
+    const fromThis = path.slice(0, idx - 1);
+    let element: IElement | null = null;
+    // eslint-disable-next-line no-restricted-syntax
+    for (const child of this.children) {
+      if (isAssembly(child)) {
+        element = child.getElementByPath(fromThis);
+        if (element != null) return element;
+      } else if (child.nodeID === fromThis) {
+        return child;
+      }
+    }
+    return element;
+  }
+
   set children(elements: IElement[]) {
     this._children = elements;
   }
 
-  name: string;
+  get visible(): boolean | undefined {
+    let allTrue = true;
+    let allFalse = false;
+    let undef = false;
+    this.children.forEach((child) => {
+      if (child.visible === undefined) {
+        undef = true;
+        return;
+      }
+      allTrue = allTrue && child.visible;
+      allFalse = allFalse || child.visible;
+    });
+    if (undef) return undefined;
+    if (allTrue) return true;
+    if (!allFalse) return false;
+    return undefined;
+  }
+
+  set visible(visibility: boolean | undefined) {
+    this.children.forEach((child) => {
+      child.visible = visibility;
+    });
+  }
 
   joints: Joint[];
 
@@ -78,7 +128,7 @@ export class Assembly extends Element implements IAssembly {
       const jointedNodeIDs = this.getJointedNodeIDs(elementID);
       pis = pis.filter((_, i) => !jointedNodeIDs.includes(i));
       pis = pis.map((pi) => {
-        return {p: pi.p, path: `${pi.path}@${this.name}`};
+        return {p: pi.p, path: `${pi.path}@${this.nodeID}`};
       });
       points = [...points, ...pis];
     });
@@ -133,9 +183,11 @@ export class Assembly extends Element implements IAssembly {
     joints: Joint[],
     initialPosition?: Vector3
   ) {
-    super();
-    this.name = name;
+    super(name);
     this._children = children;
+    this.children.forEach((child) => {
+      child.parent = this;
+    });
     this.joints = joints;
     this.initialPosition = initialPosition ?? new Vector3();
     this.arrange();
@@ -154,7 +206,7 @@ export class Bar extends Element implements IBar {
     return 'Bar';
   }
 
-  name: string;
+  visible: boolean | undefined = true;
 
   fixedPoint: Vector3;
 
@@ -168,8 +220,8 @@ export class Bar extends Element implements IBar {
 
   getNodes(): NodeWithPath[] {
     return [
-      {p: this.fixedPoint, path: `fixedPoint@${this.name}`},
-      {p: this.point, path: `point@${this.name}`}
+      {p: this.fixedPoint, path: `fixedPoint@${this.nodeID}`},
+      {p: this.point, path: `point@${this.nodeID}`}
     ];
   }
 
@@ -200,8 +252,7 @@ export class Bar extends Element implements IBar {
     point: Vector3,
     initialPosition?: Vector3
   ) {
-    super();
-    this.name = name;
+    super(name);
     this.fixedPoint = fixedPoint;
     this.point = point;
     this.initialPosition = initialPosition ?? new Vector3();
@@ -214,7 +265,7 @@ export class SpringDumper extends Element implements ISpringDumper {
     return 'SpringDumper';
   }
 
-  name: string;
+  visible: boolean | undefined = true;
 
   fixedPoint: Vector3;
 
@@ -228,8 +279,8 @@ export class SpringDumper extends Element implements ISpringDumper {
 
   getNodes(): NodeWithPath[] {
     return [
-      {p: this.fixedPoint, path: `fixedPoint@${this.name}`},
-      {p: this.point, path: `point@${this.name}`}
+      {p: this.fixedPoint, path: `fixedPoint@${this.nodeID}`},
+      {p: this.point, path: `point@${this.nodeID}`}
     ];
   }
 
@@ -272,8 +323,7 @@ export class SpringDumper extends Element implements ISpringDumper {
     dlMax: Millimeter,
     initialPosition?: Vector3
   ) {
-    super();
-    this.name = name;
+    super(name);
     this.fixedPoint = fixedPoint;
     this.point = point;
     this.dlMin = dlMin;
@@ -288,7 +338,7 @@ export class AArm extends Element implements IAArm {
     return 'AArm';
   }
 
-  name: string;
+  visible: boolean | undefined = true;
 
   fixedPoints: [Vector3, Vector3];
 
@@ -302,10 +352,10 @@ export class AArm extends Element implements IAArm {
 
   getNodes(): NodeWithPath[] {
     const fp = this.fixedPoints.map((point, i): NodeWithPath => {
-      return {p: point, path: `fixedPoint:${i}@${this.name}`};
+      return {p: point, path: `fixedPoint:${i}@${this.nodeID}`};
     });
     const p = this.points.map((point, i): NodeWithPath => {
-      return {p: point, path: `point:${i}@${this.name}`};
+      return {p: point, path: `point:${i}@${this.nodeID}`};
     });
 
     return [...fp, ...p];
@@ -346,8 +396,7 @@ export class AArm extends Element implements IAArm {
     points: AtLeast1<Vector3>,
     initialPosition?: Vector3
   ) {
-    super();
-    this.name = name;
+    super(name);
     this.fixedPoints = fixedPoints;
     this.points = points;
     this.initialPosition = initialPosition ?? new Vector3();
@@ -360,7 +409,7 @@ export class BellCrank extends Element implements IBellCrank {
     return 'BellCrank';
   }
 
-  name: string;
+  visible: boolean | undefined = true;
 
   fixedPoints: [Vector3, Vector3];
 
@@ -374,10 +423,10 @@ export class BellCrank extends Element implements IBellCrank {
 
   getNodes(): NodeWithPath[] {
     const fp = this.fixedPoints.map((point, i): NodeWithPath => {
-      return {p: point, path: `fixedPoint:${i}@${this.name}`};
+      return {p: point, path: `fixedPoint:${i}@${this.nodeID}`};
     });
     const p = this.points.map((point, i): NodeWithPath => {
-      return {p: point, path: `point:${i}@${this.name}`};
+      return {p: point, path: `point:${i}@${this.nodeID}`};
     });
 
     return [...fp, ...p];
@@ -423,8 +472,7 @@ export class BellCrank extends Element implements IBellCrank {
     points: AtLeast2<Vector3>,
     initialPosition?: Vector3
   ) {
-    super();
-    this.name = name;
+    super(name);
     this.fixedPoints = fixedPoints;
     this.points = points;
     this.initialPosition = initialPosition ?? new Vector3();
@@ -437,7 +485,7 @@ export class Body extends Element implements IBody {
     return 'Body';
   }
 
-  name: string;
+  visible: boolean | undefined = true;
 
   fixedPoints: Array<Vector3>;
 
@@ -451,10 +499,10 @@ export class Body extends Element implements IBody {
 
   getNodes(): NodeWithPath[] {
     const fp = this.fixedPoints.map((point, i): NodeWithPath => {
-      return {p: point, path: `fixedPoint:${i}@${this.name}`};
+      return {p: point, path: `fixedPoint:${i}@${this.nodeID}`};
     });
     const p = this.points.map((point, i): NodeWithPath => {
-      return {p: point, path: `point:${i}@${this.name}`};
+      return {p: point, path: `point:${i}@${this.nodeID}`};
     });
 
     return [...fp, ...p];
@@ -493,8 +541,7 @@ export class Body extends Element implements IBody {
     points: Array<Vector3>,
     initialPosition?: Vector3
   ) {
-    super();
-    this.name = name;
+    super(name);
     this.fixedPoints = fixedPoints;
     this.points = points;
 
@@ -508,7 +555,7 @@ export class Tire extends Element implements ITire {
     return 'Tire';
   }
 
-  name: string;
+  visible: boolean | undefined = true;
 
   tireCenter: Vector3;
 
@@ -536,8 +583,8 @@ export class Tire extends Element implements ITire {
 
   getNodes(): NodeWithPath[] {
     return [
-      {p: this.leftBearing, path: `leftBearing@${this.name}`},
-      {p: this.rightBearing, path: `rightBearing@${this.name}`}
+      {p: this.leftBearing, path: `leftBearing@${this.nodeID}`},
+      {p: this.rightBearing, path: `rightBearing@${this.nodeID}`}
     ];
   }
 
@@ -576,8 +623,7 @@ export class Tire extends Element implements ITire {
     toRightBearing: number,
     initialPosition?: Vector3
   ) {
-    super();
-    this.name = name;
+    super(name);
     this.tireCenter = tireCenter;
     this.toLeftBearing = toLeftBearing;
     this.toRightBearing = toRightBearing;

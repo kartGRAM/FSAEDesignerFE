@@ -11,9 +11,10 @@ import Box from '@mui/material/Box';
 import {useSpring, animated} from 'react-spring';
 import {TransitionProps} from '@mui/material/transitions';
 import {RootState} from '@store/store';
-import {useSelector} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 import {IAssembly, IElement, isAssembly} from '@app/geometryDesigner/IElements';
 import {NumberToRGB, getReversal} from '@app/utils/helpers';
+import {setVisibility} from '@app/store/reducers/dataGeometryDesigner';
 
 function MinusSquare(props: SvgIconProps) {
   return (
@@ -33,7 +34,10 @@ function PlusSquare(props: SvgIconProps) {
   );
 }
 
-const VisibilityControl = () => {
+interface VisibilityControlProps {
+  element: IElement;
+}
+const VisibilityControl = (props: VisibilityControlProps) => {
   const nColor = getReversal(
     NumberToRGB(
       useSelector(
@@ -42,10 +46,22 @@ const VisibilityControl = () => {
     )
   );
   const color: string = nColor ?? '#fe6049';
+  const dispatch = useDispatch();
+
+  const {element} = props;
   return (
     <Checkbox
       size="small"
-      defaultChecked
+      checked={element.visible}
+      indeterminate={element.visible === undefined}
+      onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+        dispatch(
+          setVisibility({
+            absPath: element.absPath,
+            visibility: event.target.checked
+          })
+        );
+      }}
       sx={{
         padding: 0.3,
         color: alpha(color, 0.7),
@@ -107,7 +123,7 @@ const ElementsTreeView: React.FC<Props> = (props: Props) => {
     const MyLabel = () => {
       return (
         <Box display="flex">
-          <VisibilityControl />
+          <VisibilityControl element={element} />
           <Typography>{label}</Typography>
         </Box>
       );
