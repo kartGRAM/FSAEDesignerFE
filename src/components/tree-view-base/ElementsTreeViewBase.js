@@ -396,6 +396,13 @@ const TreeView = React.forwardRef(function TreeView(inProps, ref) {
    */
 
   const toggleExpansion = (event, value = focusedNodeId) => {
+    if (
+      event.type === 'click' &&
+      event.target.nodeName !== 'path' &&
+      event.target.nodeName !== 'svg'
+    ) {
+      return;
+    }
     let newExpanded;
 
     if (expanded.indexOf(value) !== -1) {
@@ -703,7 +710,7 @@ const TreeView = React.forwardRef(function TreeView(inProps, ref) {
         break;
       case 'Enter':
         if (!isDisabled(focusedNodeId)) {
-          if (isExpandable(focusedNodeId)) {
+          if (isExpandable(focusedNodeId) && isSelected(focusedNodeId)) {
             toggleExpansion(event);
             flag = true;
           } else if (multiSelect) {
@@ -802,6 +809,8 @@ const TreeView = React.forwardRef(function TreeView(inProps, ref) {
 
   const handleFocus = (event) => {
     // if the event bubbled (which is React specific) we don't want to steal focus
+    // クリック時に呼ばれる。キー操作時には呼ばれない
+
     if (event.target === event.currentTarget) {
       const firstSelected = Array.isArray(selected) ? selected[0] : selected;
       focus(event, firstSelected || getNavigableChildrenIds(null)[0]);

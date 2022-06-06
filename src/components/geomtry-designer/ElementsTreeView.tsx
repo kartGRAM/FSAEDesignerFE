@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-unused-vars
 import React, {useState, useEffect, useRef} from 'react';
 import SvgIcon, {SvgIconProps} from '@mui/material/SvgIcon';
-import {styled} from '@mui/material/styles';
+import {styled, alpha} from '@mui/material/styles';
 import TreeView from '@app/components/tree-view-base';
 import TreeItem, {TreeItemProps, treeItemClasses} from '@mui/lab/TreeItem';
 import Collapse from '@mui/material/Collapse';
@@ -14,7 +14,6 @@ import {RootState} from '@store/store';
 import {useSelector} from 'react-redux';
 import {IAssembly, IElement, isAssembly} from '@app/geometryDesigner/IElements';
 import {NumberToRGB} from '@app/utils/helpers';
-import usePrevious from '@app/hooks/usePrevious';
 
 function MinusSquare(props: SvgIconProps) {
   return (
@@ -79,9 +78,6 @@ const ElementsTreeView: React.FC<Props> = (props: Props) => {
 
   const refSelected = useRef<HTMLDivElement>(null);
   const refFocused = useRef<HTMLDivElement>(null);
-  const [selected, setSelected] = useState<string>('');
-  // eslint-disable-next-line no-unused-vars
-  const prevSelected = usePrevious<string>(selected, '');
 
   if (!nAssembly) {
     return <div />;
@@ -93,15 +89,7 @@ const ElementsTreeView: React.FC<Props> = (props: Props) => {
 
     const MyLabel = () => {
       return (
-        <Box
-          display="flex"
-          onClick={(event) => {
-            event.stopPropagation();
-          }}
-          onDoubleClick={() => {
-            setSelected(props.nodeId);
-          }}
-        >
+        <Box display="flex">
           <VisibilityControl />
           <Typography>{label}</Typography>
         </Box>
@@ -109,10 +97,7 @@ const ElementsTreeView: React.FC<Props> = (props: Props) => {
     };
 
     const StyledTreeItem = styled((props: TreeItemProps) => (
-      <TreeItem
-        {...props}
-        TransitionComponent={true ? undefined : TransitionComponent}
-      />
+      <TreeItem {...props} TransitionComponent={TransitionComponent} />
     ))(() => ({
       [`& .${treeItemClasses.iconContainer}`]: {
         '& .close': {
@@ -125,19 +110,19 @@ const ElementsTreeView: React.FC<Props> = (props: Props) => {
         borderLeft: tvState.borderLeft
       },
       [`& .Mui-focused`]: {
+        backgroundColor: `${alpha(selectedColor, 0.2)}!important`,
+        transition: 'all 0.3s 0s ease'
+      },
+      [`& .${treeItemClasses.selected}`]: {
         backgroundColor: `${selectedColor}!important`,
-        transition: 'all 0.5s 0s ease'
-      }
-      /* [`& .${treeItemClasses.selected}`]: {
-        backgroundColor: `${selectedColor}!important`,
-        transition: 'all 0.5s 0s ease',
+        transition: 'all 0.3s 0s ease',
         '&:hover': {
           backgroundColor: `${selectedColor}!important`
         },
         [`& .${treeItemClasses.focused}`]: {
           backgroundColor: `${selectedColor}!important`
         }
-      } */
+      }
     }));
 
     return (
@@ -159,10 +144,6 @@ const ElementsTreeView: React.FC<Props> = (props: Props) => {
     );
   };
 
-  if (refSelected.current) {
-    refSelected.current.innerText = `selected:${selected} : prev:${prevSelected}`;
-  }
-
   return (
     <>
       <TreeView
@@ -171,7 +152,6 @@ const ElementsTreeView: React.FC<Props> = (props: Props) => {
         defaultExpanded={['1']}
         defaultCollapseIcon={<MinusSquare />}
         defaultExpandIcon={<PlusSquare />}
-        selected={selected}
         // defaultEndIcon={<Checkbox />}
         sx={{
           scrollbarWidth: 'none' /* Firefox対応のスクロールバー非表示コード */,
@@ -189,9 +169,8 @@ const ElementsTreeView: React.FC<Props> = (props: Props) => {
         }}
         onNodeSelect={(event: React.SyntheticEvent, nodeIds: string) => {
           if (refSelected.current) {
-            refSelected.current.innerText = `selected:${nodeIds} : prev:${prevSelected}`;
+            refSelected.current.innerText = `selected:${nodeIds}`;
           }
-          setSelected(nodeIds);
         }}
         onNodeFocus={(event: React.SyntheticEvent, nodeIds: string) => {
           if (refFocused.current) {
