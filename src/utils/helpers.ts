@@ -65,3 +65,13 @@ export const hexToRgb = (hex: string): color | null => {
   }
   return null;
 };
+
+export function getReversal(color: string): string | null {
+  const col = hexToRgb(color);
+  if (!col) return null;
+  let {r, g, b} = col;
+  r = 255 - r;
+  g = 255 - g;
+  b = 255 - b;
+  return NumberToRGB(r * 256 * 256 + g * 256 + b);
+}

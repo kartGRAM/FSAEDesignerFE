@@ -39,7 +39,7 @@ const initialState: GDState = {
   enabledColorDark: 0x017384,
   enabledColorLight: 0x019fb6,
   assemblyTreeViewState: {
-    fontColor: 0xffffff,
+    fontColor: 0xdddddd,
     selectedColor: 0x019fb6,
     borderLeft: `1px dashed ${alpha('#ffffff', 0.4)}`
   },

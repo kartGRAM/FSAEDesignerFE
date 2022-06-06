@@ -13,7 +13,7 @@ import {TransitionProps} from '@mui/material/transitions';
 import {RootState} from '@store/store';
 import {useSelector} from 'react-redux';
 import {IAssembly, IElement, isAssembly} from '@app/geometryDesigner/IElements';
-import {NumberToRGB} from '@app/utils/helpers';
+import {NumberToRGB, getReversal} from '@app/utils/helpers';
 
 function MinusSquare(props: SvgIconProps) {
   return (
@@ -34,7 +34,27 @@ function PlusSquare(props: SvgIconProps) {
 }
 
 const VisibilityControl = () => {
-  return <Checkbox size="small" sx={{padding: 0.3}} color="secondary" />;
+  const nColor = getReversal(
+    NumberToRGB(
+      useSelector(
+        (state: RootState) => state.uigd.assemblyTreeViewState.selectedColor
+      )
+    )
+  );
+  const color: string = nColor ?? '#fe6049';
+  return (
+    <Checkbox
+      size="small"
+      defaultChecked
+      sx={{
+        padding: 0.3,
+        color: alpha(color, 0.7),
+        '&.Mui-checked': {
+          color: alpha(color, 0.8)
+        }
+      }}
+    />
+  );
 };
 
 interface ElementTreeItemProps extends TreeItemProps {
@@ -76,9 +96,6 @@ const ElementsTreeView: React.FC<Props> = (props: Props) => {
   );
   const selectedColor = NumberToRGB(tvState.selectedColor);
 
-  const refSelected = useRef<HTMLDivElement>(null);
-  const refFocused = useRef<HTMLDivElement>(null);
-
   if (!nAssembly) {
     return <div />;
   }
@@ -114,13 +131,13 @@ const ElementsTreeView: React.FC<Props> = (props: Props) => {
         transition: 'all 0.3s 0s ease'
       },
       [`& .${treeItemClasses.selected}`]: {
-        backgroundColor: `${selectedColor}!important`,
+        backgroundColor: `${alpha(selectedColor, 0.8)}!important`,
         transition: 'all 0.3s 0s ease',
         '&:hover': {
-          backgroundColor: `${selectedColor}!important`
+          backgroundColor: `${alpha(selectedColor, 0.8)}!important`
         },
         [`& .${treeItemClasses.focused}`]: {
-          backgroundColor: `${selectedColor}!important`
+          backgroundColor: `${alpha(selectedColor, 0.8)}!important`
         }
       }
     }));
@@ -167,20 +184,7 @@ const ElementsTreeView: React.FC<Props> = (props: Props) => {
             display: 'none'
           }
         }}
-        onNodeSelect={(event: React.SyntheticEvent, nodeIds: string) => {
-          if (refSelected.current) {
-            refSelected.current.innerText = `selected:${nodeIds}`;
-          }
-        }}
-        onNodeFocus={(event: React.SyntheticEvent, nodeIds: string) => {
-          if (refFocused.current) {
-            refFocused.current.innerText = `focused:${nodeIds}`;
-          }
-        }}
       >
-        <div ref={refSelected}>selected: </div>
-        <div ref={refFocused}>focused: </div>
-
         <MyTreeItem
           element={assembly}
           key={assembly.nodeID}
