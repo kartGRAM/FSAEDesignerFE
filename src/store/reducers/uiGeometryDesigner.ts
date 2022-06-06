@@ -2,8 +2,9 @@ import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {alpha} from '@mui/material/styles';
 
 export interface IAssemblyTreeViewState {
-  fontColor: string;
+  fontColor: number;
   borderLeft: string;
+  selectedColor: number;
 }
 
 export interface ISidebarState {
@@ -38,7 +39,8 @@ const initialState: GDState = {
   enabledColorDark: 0x017384,
   enabledColorLight: 0x019fb6,
   assemblyTreeViewState: {
-    fontColor: 'white',
+    fontColor: 0xffffff,
+    selectedColor: 0x019fb6,
     borderLeft: `1px dashed ${alpha('#ffffff', 0.4)}`
   },
   appBarState: {

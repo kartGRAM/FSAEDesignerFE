@@ -16,6 +16,7 @@ import {NumberToRGB} from '@app/utils/helpers';
 import {GDAppBarMenu} from '@app/components/geomtry-designer/GDAppBarMenu';
 import GDMIOpenFromTemplates from '@app/components/geomtry-designer/GDMIOpenFromTemplates';
 import GDMIClose from '@app/components/geomtry-designer/GDMIClose';
+import GDMIResetUISettings from '@app/components/geomtry-designer/GDMIResetUISettings';
 
 import MenuItem from '@mui/material/MenuItem';
 
@@ -101,6 +102,8 @@ export default function GDAppBar() {
           <MenuItem>Cut</MenuItem>
           <MenuItem>Copy</MenuItem>
           <MenuItem>Paste</MenuItem>
+          <Divider />
+          <GDMIResetUISettings />
         </GDAppBarMenu>
         <GDAppBarMenu name="View">
           <MenuItem>Parspective</MenuItem>

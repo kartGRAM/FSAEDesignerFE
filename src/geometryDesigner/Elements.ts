@@ -8,7 +8,7 @@ import {
   Joint,
   ElementID,
   NodeID,
-  NodeWithInfo,
+  NodeWithPath,
   IElement,
   IAssembly,
   IBar,
@@ -70,15 +70,15 @@ export class Assembly extends Element implements IAssembly {
     return jointedPoints;
   }
 
-  getNodes(): NodeWithInfo[] {
+  getNodes(): NodeWithPath[] {
     // eslint-disable-next-line no-array-constructor
-    let points = new Array<NodeWithInfo>();
+    let points = new Array<NodeWithPath>();
     this.children.forEach((element, elementID) => {
       let pis = element.getNodes();
       const jointedNodeIDs = this.getJointedNodeIDs(elementID);
       pis = pis.filter((_, i) => !jointedNodeIDs.includes(i));
       pis = pis.map((pi) => {
-        return {p: pi.p, info: `${pi.info}@${this.name}`};
+        return {p: pi.p, path: `${pi.path}@${this.name}`};
       });
       points = [...points, ...pis];
     });
@@ -104,15 +104,15 @@ export class Assembly extends Element implements IAssembly {
     return new Assembly(`mirror_${this.name}`, children, joints);
   }
 
-  getJoints(): NodeWithInfo[] {
+  getJoints(): NodeWithPath[] {
     // eslint-disable-next-line no-array-constructor
-    let points = new Array<NodeWithInfo>();
+    let points = new Array<NodeWithPath>();
     this.children.forEach((element, elementID) => {
       let pis = element.getNodes();
       const jointedNodeIDs = this.getJointedNodeIDs(elementID);
       pis = pis.filter((_, i) => jointedNodeIDs.includes(i));
       pis = pis.map((pi) => {
-        return {p: pi.p, info: pi.info};
+        return {p: pi.p, path: pi.path};
       });
       points = [...points, ...pis];
     });
@@ -166,10 +166,10 @@ export class Bar extends Element implements IBar {
 
   rotation: Matrix3 = new Matrix3();
 
-  getNodes(): NodeWithInfo[] {
+  getNodes(): NodeWithPath[] {
     return [
-      {p: this.fixedPoint, info: `fixedPoint@${this.name}`},
-      {p: this.point, info: `point@${this.name}`}
+      {p: this.fixedPoint, path: `fixedPoint@${this.name}`},
+      {p: this.point, path: `point@${this.name}`}
     ];
   }
 
@@ -226,10 +226,10 @@ export class SpringDumper extends Element implements ISpringDumper {
 
   rotation: Matrix3 = new Matrix3();
 
-  getNodes(): NodeWithInfo[] {
+  getNodes(): NodeWithPath[] {
     return [
-      {p: this.fixedPoint, info: `fixedPoint@${this.name}`},
-      {p: this.point, info: `point@${this.name}`}
+      {p: this.fixedPoint, path: `fixedPoint@${this.name}`},
+      {p: this.point, path: `point@${this.name}`}
     ];
   }
 
@@ -300,12 +300,12 @@ export class AArm extends Element implements IAArm {
 
   rotation: Matrix3 = new Matrix3();
 
-  getNodes(): NodeWithInfo[] {
-    const fp = this.fixedPoints.map((point, i): NodeWithInfo => {
-      return {p: point, info: `fixedPoint:${i}@${this.name}`};
+  getNodes(): NodeWithPath[] {
+    const fp = this.fixedPoints.map((point, i): NodeWithPath => {
+      return {p: point, path: `fixedPoint:${i}@${this.name}`};
     });
-    const p = this.points.map((point, i): NodeWithInfo => {
-      return {p: point, info: `point:${i}@${this.name}`};
+    const p = this.points.map((point, i): NodeWithPath => {
+      return {p: point, path: `point:${i}@${this.name}`};
     });
 
     return [...fp, ...p];
@@ -372,12 +372,12 @@ export class BellCrank extends Element implements IBellCrank {
 
   rotation: Matrix3 = new Matrix3();
 
-  getNodes(): NodeWithInfo[] {
-    const fp = this.fixedPoints.map((point, i): NodeWithInfo => {
-      return {p: point, info: `fixedPoint:${i}@${this.name}`};
+  getNodes(): NodeWithPath[] {
+    const fp = this.fixedPoints.map((point, i): NodeWithPath => {
+      return {p: point, path: `fixedPoint:${i}@${this.name}`};
     });
-    const p = this.points.map((point, i): NodeWithInfo => {
-      return {p: point, info: `point:${i}@${this.name}`};
+    const p = this.points.map((point, i): NodeWithPath => {
+      return {p: point, path: `point:${i}@${this.name}`};
     });
 
     return [...fp, ...p];
@@ -449,12 +449,12 @@ export class Body extends Element implements IBody {
 
   rotation: Matrix3 = new Matrix3();
 
-  getNodes(): NodeWithInfo[] {
-    const fp = this.fixedPoints.map((point, i): NodeWithInfo => {
-      return {p: point, info: `fixedPoint:${i}@${this.name}`};
+  getNodes(): NodeWithPath[] {
+    const fp = this.fixedPoints.map((point, i): NodeWithPath => {
+      return {p: point, path: `fixedPoint:${i}@${this.name}`};
     });
-    const p = this.points.map((point, i): NodeWithInfo => {
-      return {p: point, info: `point:${i}@${this.name}`};
+    const p = this.points.map((point, i): NodeWithPath => {
+      return {p: point, path: `point:${i}@${this.name}`};
     });
 
     return [...fp, ...p];
@@ -534,10 +534,10 @@ export class Tire extends Element implements ITire {
     return this.tireCenter.clone().add(new Vector3(0, -this.tireCenter.y, 0));
   }
 
-  getNodes(): NodeWithInfo[] {
+  getNodes(): NodeWithPath[] {
     return [
-      {p: this.leftBearing, info: `leftBearing@${this.name}`},
-      {p: this.rightBearing, info: `rightBearing@${this.name}`}
+      {p: this.leftBearing, path: `leftBearing@${this.name}`},
+      {p: this.rightBearing, path: `rightBearing@${this.name}`}
     ];
   }
 

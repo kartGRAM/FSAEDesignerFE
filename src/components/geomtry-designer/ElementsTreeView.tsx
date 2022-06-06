@@ -1,14 +1,20 @@
-import React from 'react';
+// eslint-disable-next-line no-unused-vars
+import React, {useState, useEffect, useRef} from 'react';
 import SvgIcon, {SvgIconProps} from '@mui/material/SvgIcon';
 import {styled} from '@mui/material/styles';
-import TreeView from '@mui/lab/TreeView';
+import TreeView from '@app/components/tree-view-base';
 import TreeItem, {TreeItemProps, treeItemClasses} from '@mui/lab/TreeItem';
 import Collapse from '@mui/material/Collapse';
+import Typography from '@mui/material/Typography';
+import Checkbox from '@mui/material/Checkbox';
+import Box from '@mui/material/Box';
 import {useSpring, animated} from 'react-spring';
 import {TransitionProps} from '@mui/material/transitions';
 import {RootState} from '@store/store';
 import {useSelector} from 'react-redux';
 import {IAssembly, IElement, isAssembly} from '@app/geometryDesigner/IElements';
+import {NumberToRGB} from '@app/utils/helpers';
+import usePrevious from '@app/hooks/usePrevious';
 
 function MinusSquare(props: SvgIconProps) {
   return (
@@ -28,8 +34,16 @@ function PlusSquare(props: SvgIconProps) {
   );
 }
 
-function Checkbox() {
-  return <input type="checkbox" readOnly className="" checked={false} />;
+const VisibilityControl = () => {
+  return <Checkbox size="small" sx={{padding: 0.3}} color="secondary" />;
+};
+
+interface ElementTreeItemProps extends TreeItemProps {
+  element: IElement;
+}
+
+interface Props {
+  className?: string;
 }
 
 function TransitionComponent(props: TransitionProps) {
@@ -53,54 +67,6 @@ function TransitionComponent(props: TransitionProps) {
   );
 }
 
-interface ElementTreeItemProps extends TreeItemProps {
-  element: IElement;
-}
-
-const StyledTreeItem = (props: ElementTreeItemProps) => {
-  const {element} = props;
-
-  const tvState = useSelector(
-    (state: RootState) => state.uigd.assemblyTreeViewState
-  );
-  const Inner = styled((props: TreeItemProps) => (
-    <TreeItem {...props} TransitionComponent={TransitionComponent} />
-  ))(() => ({
-    [`& .${treeItemClasses.iconContainer}`]: {
-      '& .close': {
-        opacity: 0.3
-      }
-    },
-    [`& .${treeItemClasses.group}`]: {
-      marginLeft: 15,
-      paddingLeft: 5,
-      borderLeft: tvState.borderLeft
-    }
-  }));
-
-  if (isAssembly(element)) {
-    const assembly = element;
-    return (
-      <Inner {...props}>
-        {assembly.children.map((child) => {
-          return (
-            <StyledTreeItem
-              element={child}
-              nodeId={child.nodeID}
-              label={child.name}
-            />
-          );
-        })}
-      </Inner>
-    );
-  }
-  return <Inner {...props} />;
-};
-
-interface Props {
-  className?: string;
-}
-
 const ElementsTreeView: React.FC<Props> = (props: Props) => {
   const {className} = props;
   const tvState = useSelector(
@@ -109,40 +75,141 @@ const ElementsTreeView: React.FC<Props> = (props: Props) => {
   const nAssembly: IAssembly | undefined = useSelector(
     (state: RootState) => state.dgd.topAssembly
   );
+  const selectedColor = NumberToRGB(tvState.selectedColor);
+
+  const refSelected = useRef<HTMLDivElement>(null);
+  const refFocused = useRef<HTMLDivElement>(null);
+  const [selected, setSelected] = useState<string>('');
+  // eslint-disable-next-line no-unused-vars
+  const prevSelected = usePrevious<string>(selected, '');
+
   if (!nAssembly) {
     return <div />;
   }
-  // eslint-disable-next-line no-unused-vars
-  const assembly: IAssembly = nAssembly!;
-  return (
-    <TreeView
-      className={className}
-      aria-label="customized"
-      defaultExpanded={['1']}
-      defaultCollapseIcon={<MinusSquare />}
-      defaultExpandIcon={<PlusSquare />}
-      defaultEndIcon={<Checkbox />}
-      sx={{
-        scrollbarWidth: 'none' /* Firefox対応のスクロールバー非表示コード */,
-        position: 'absolute',
-        height: '100%',
-        left: 0 /* 左からの位置指定 */,
-        top: 0 /* 上からの位置指定 */,
-        flexGrow: 1,
-        maxWidth: 400,
-        overflowY: 'auto',
-        color: tvState.fontColor,
-        '&::-webkit-scrollbar': {
-          display: 'none'
-        }
-      }}
-    >
-      <StyledTreeItem
-        element={assembly}
-        nodeId={assembly.nodeID}
-        label={assembly.name}
+  const assembly: IAssembly = nAssembly;
+
+  const MyTreeItem = (props: ElementTreeItemProps) => {
+    const {element, label} = props;
+
+    const MyLabel = () => {
+      return (
+        <Box
+          display="flex"
+          onClick={(event) => {
+            event.stopPropagation();
+          }}
+          onDoubleClick={() => {
+            setSelected(props.nodeId);
+          }}
+        >
+          <VisibilityControl />
+          <Typography>{label}</Typography>
+        </Box>
+      );
+    };
+
+    const StyledTreeItem = styled((props: TreeItemProps) => (
+      <TreeItem
+        {...props}
+        TransitionComponent={true ? undefined : TransitionComponent}
       />
-    </TreeView>
+    ))(() => ({
+      [`& .${treeItemClasses.iconContainer}`]: {
+        '& .close': {
+          opacity: 0.3
+        }
+      },
+      [`& .${treeItemClasses.group}`]: {
+        marginLeft: 15,
+        paddingLeft: 5,
+        borderLeft: tvState.borderLeft
+      },
+      [`& .Mui-focused`]: {
+        backgroundColor: `${selectedColor}!important`,
+        transition: 'all 0.5s 0s ease'
+      }
+      /* [`& .${treeItemClasses.selected}`]: {
+        backgroundColor: `${selectedColor}!important`,
+        transition: 'all 0.5s 0s ease',
+        '&:hover': {
+          backgroundColor: `${selectedColor}!important`
+        },
+        [`& .${treeItemClasses.focused}`]: {
+          backgroundColor: `${selectedColor}!important`
+        }
+      } */
+    }));
+
+    return (
+      // eslint-disable-next-line react/destructuring-assignment
+      <StyledTreeItem {...props} label={<MyLabel />}>
+        {isAssembly(element)
+          ? element.children.map((child) => {
+              return (
+                <MyTreeItem
+                  element={child}
+                  nodeId={child.nodeID}
+                  label={child.name}
+                  key={child.nodeID}
+                />
+              );
+            })
+          : null}
+      </StyledTreeItem>
+    );
+  };
+
+  if (refSelected.current) {
+    refSelected.current.innerText = `selected:${selected} : prev:${prevSelected}`;
+  }
+
+  return (
+    <>
+      <TreeView
+        className={className}
+        aria-label="customized"
+        defaultExpanded={['1']}
+        defaultCollapseIcon={<MinusSquare />}
+        defaultExpandIcon={<PlusSquare />}
+        selected={selected}
+        // defaultEndIcon={<Checkbox />}
+        sx={{
+          scrollbarWidth: 'none' /* Firefox対応のスクロールバー非表示コード */,
+          position: 'absolute',
+          height: '100%',
+          left: 0 /* 左からの位置指定 */,
+          top: 0 /* 上からの位置指定 */,
+          flexGrow: 1,
+          maxWidth: 400,
+          overflowY: 'auto',
+          color: NumberToRGB(tvState.fontColor),
+          '&::-webkit-scrollbar': {
+            display: 'none'
+          }
+        }}
+        onNodeSelect={(event: React.SyntheticEvent, nodeIds: string) => {
+          if (refSelected.current) {
+            refSelected.current.innerText = `selected:${nodeIds} : prev:${prevSelected}`;
+          }
+          setSelected(nodeIds);
+        }}
+        onNodeFocus={(event: React.SyntheticEvent, nodeIds: string) => {
+          if (refFocused.current) {
+            refFocused.current.innerText = `focused:${nodeIds}`;
+          }
+        }}
+      >
+        <div ref={refSelected}>selected: </div>
+        <div ref={refFocused}>focused: </div>
+
+        <MyTreeItem
+          element={assembly}
+          key={assembly.nodeID}
+          nodeId={assembly.nodeID}
+          label={assembly.name}
+        />
+      </TreeView>
+    </>
   );
 };
 

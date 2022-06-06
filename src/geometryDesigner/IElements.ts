@@ -10,9 +10,9 @@ export interface Joint {
   rhs: [ElementID, NodeID];
 }
 
-export interface NodeWithInfo {
+export interface NodeWithPath {
   p: Vector3;
-  info: string;
+  path: string;
 }
 
 export interface IAxis {
@@ -25,7 +25,7 @@ export interface IElement {
   name: string;
   inertialTensor: Matrix3;
   readonly nodeID: string;
-  getNodes(): NodeWithInfo[];
+  getNodes(): NodeWithPath[];
   getMirror(): IElement;
   // eslint-disable-next-line no-unused-vars
   arrange(parentPosition?: Vector3): void;
