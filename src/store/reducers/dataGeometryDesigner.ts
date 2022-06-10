@@ -1,6 +1,5 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
-import {Matrix3} from 'three';
-import {IAssembly} from '@app/geometryDesigner/IElements';
+import {IDataMatrix3, IAssembly} from '@app/geometryDesigner/IElements';
 
 export interface IAssemblyTreeViewState {
   fontColor: string;
@@ -8,25 +7,28 @@ export interface IAssemblyTreeViewState {
 }
 
 export interface GDState {
-  transCoordinateMatrix: Matrix3;
+  transCoordinateMatrix: IDataMatrix3;
   topAssembly?: IAssembly;
 }
 
 const initialState: GDState = {
   topAssembly: undefined,
   // eslint-disable-next-line prettier/prettier
-  transCoordinateMatrix: new Matrix3().set(
-    0, 1, 0,
+  transCoordinateMatrix: [
     0, 0, 1,
-    1, 0, 0
-  )
+    1, 0, 0,
+    0, 1, 0
+  ]
 };
 
 export const dataGeometryDesignerSlice = createSlice({
   name: 'dataGeometryDesigner',
   initialState,
   reducers: {
-    setCoordinateMatrix: (state: GDState, action: PayloadAction<Matrix3>) => {
+    setCoordinateMatrix: (
+      state: GDState,
+      action: PayloadAction<IDataMatrix3>
+    ) => {
       state.transCoordinateMatrix = action.payload;
     },
     setTopAssembly: (
@@ -46,7 +48,9 @@ export const dataGeometryDesignerSlice = createSlice({
         const element = state.topAssembly.getElementByPath(
           action.payload.absPath
         );
-        if (element) element.visible = action.payload.visibility;
+        if (element) {
+          element.visible = action.payload.visibility;
+        }
       }
     }
   }

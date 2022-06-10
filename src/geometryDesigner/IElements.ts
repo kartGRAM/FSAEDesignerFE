@@ -10,8 +10,37 @@ export interface Joint {
   rhs: [ElementID, NodeID];
 }
 
+export interface IDataVector3 {
+  x: number;
+  y: number;
+  z: number;
+}
+
+export type IDataMatrix3 = [
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number
+];
+
+export function getMatrix3(m: IDataMatrix3) {
+  const mat = new Matrix3();
+  mat.elements = [...m];
+  return mat;
+}
+
 export interface NodeWithPath {
   p: Vector3;
+  path: string;
+}
+
+export interface INodeWithPath {
+  p: IDataVector3;
   path: string;
 }
 
@@ -30,6 +59,17 @@ export interface IElement {
   position: Vector3;
   rotation?: Matrix3;
   initialPosition: Vector3;
+}
+
+export interface DataElement {
+  name: string;
+  inertialTensor: IDataMatrix3;
+  parent: IAssembly | null;
+  nodeID: string;
+  absPath: string;
+  position: IDataVector3;
+  rotation?: IDataMatrix3;
+  initialPosition: IDataVector3;
 }
 
 export interface IAssembly extends IElement {

@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 import React, {useEffect} from 'react';
 import MenuItem from '@mui/material/MenuItem';
 import {useDispatch} from 'react-redux';
@@ -11,10 +12,10 @@ export default function GDMIOpenFromTemplates() {
     dispatch(setTopAssembly(sample));
   };
 
-  // とりあえずテスト用に入れる
+  /* とりあえずテスト用に入れる
   useEffect(() => {
     handleOnClick();
-  }, []);
+  }, []); */
 
   return (
     <MenuItem onClick={handleOnClick}> New Assembly From Templates</MenuItem>

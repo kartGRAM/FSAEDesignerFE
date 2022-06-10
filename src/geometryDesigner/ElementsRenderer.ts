@@ -3,6 +3,7 @@ import track from '@app/utils/ResourceTracker';
 import {Vector3, Matrix3} from 'three';
 import store from '@store/store';
 import {
+  getMatrix3,
   IElement,
   isAssembly,
   isBar,
@@ -28,7 +29,7 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
     return position
       .clone()
       .add(p.clone().applyMatrix3(rotation))
-      .applyMatrix3(coMatrix);
+      .applyMatrix3(getMatrix3(coMatrix));
   };
   // show nodes
   {
@@ -55,7 +56,9 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
     const geometry = track(new THREE.CircleGeometry(tire.diameter / 2, 32));
     const circle = new THREE.Mesh(geometry, material);
     circle.rotateX(THREE.MathUtils.degToRad(90));
-    circle.applyMatrix4(new THREE.Matrix4().setFromMatrix3(coMatrix));
+    circle.applyMatrix4(
+      new THREE.Matrix4().setFromMatrix3(getMatrix3(coMatrix))
+    );
     circle.position.add(trans(tire.tireCenter));
     scene.add(circle);
 

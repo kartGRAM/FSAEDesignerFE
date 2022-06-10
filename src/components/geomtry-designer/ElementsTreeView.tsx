@@ -38,6 +38,7 @@ interface VisibilityControlProps {
   element: IElement;
 }
 const VisibilityControl = (props: VisibilityControlProps) => {
+  const {element} = props;
   const nColor = getReversal(
     NumberToRGB(
       useSelector(
@@ -48,12 +49,20 @@ const VisibilityControl = (props: VisibilityControlProps) => {
   const color: string = nColor ?? '#fe6049';
   const dispatch = useDispatch();
 
-  const {element} = props;
+  const visible: boolean | undefined = useSelector((state: RootState) => {
+    const e = state.dgd.topAssembly?.getElementByPath(element.absPath);
+    return e?.visible;
+  });
+
+  /* const visible: boolean | undefined = useSelector(
+    // eslint-disable-next-line no-unused-vars
+    (state: RootState) => element.visible
+  ); */
   return (
     <Checkbox
       size="small"
-      checked={element.visible}
-      indeterminate={element.visible === undefined}
+      checked={visible}
+      // indeterminate={visible === undefined}
       onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
         dispatch(
           setVisibility({

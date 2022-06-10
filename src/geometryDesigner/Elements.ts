@@ -53,7 +53,7 @@ export class Assembly extends Element implements IAssembly {
   }
 
   getElementByPath(path: string): IElement | null {
-    const idx = path.indexOf(this.absPath);
+    const idx = path.indexOf(this.nodeID);
     if (idx === -1) return null;
     if (idx === 0) return this;
     const fromThis = path.slice(0, idx - 1);
@@ -73,6 +73,8 @@ export class Assembly extends Element implements IAssembly {
   set children(elements: IElement[]) {
     this._children = elements;
   }
+
+  // _visible: boolean | undefined = true;
 
   get visible(): boolean | undefined {
     let allTrue = true;
@@ -107,7 +109,7 @@ export class Assembly extends Element implements IAssembly {
   }
 
   set position(p: Vector3) {
-    throw Error('Not Supported Exception');
+    // throw Error('Not Supported Exception');
   }
 
   getJointedNodeIDs(id: ElementID): NodeID[] {
@@ -174,7 +176,7 @@ export class Assembly extends Element implements IAssembly {
   }
 
   set inertialTensor(mat: Matrix3) {
-    throw Error('Not Supported Exception');
+    // throw Error('Not Supported Exception');
   }
 
   constructor(
@@ -243,7 +245,7 @@ export class Bar extends Element implements IBar {
   }
 
   set inertialTensor(mat: Matrix3) {
-    throw Error('Not Supported Exception');
+    // throw Error('Not Supported Exception');
   }
 
   constructor(
@@ -312,7 +314,7 @@ export class SpringDumper extends Element implements ISpringDumper {
   }
 
   set inertialTensor(mat: Matrix3) {
-    throw Error('Not Supported Exception');
+    // throw Error('Not Supported Exception');
   }
 
   constructor(
@@ -387,7 +389,7 @@ export class AArm extends Element implements IAArm {
   }
 
   set inertialTensor(mat: Matrix3) {
-    throw Error('Not Supported Exception');
+    // throw Error('Not Supported Exception');
   }
 
   constructor(
@@ -463,7 +465,7 @@ export class BellCrank extends Element implements IBellCrank {
   }
 
   set inertialTensor(mat: Matrix3) {
-    throw Error('Not Supported Exception');
+    // throw Error('Not Supported Exception');
   }
 
   constructor(
@@ -532,7 +534,7 @@ export class Body extends Element implements IBody {
   }
 
   set inertialTensor(mat: Matrix3) {
-    throw Error('Not Supported Exception');
+    // throw Error('Not Supported Exception');
   }
 
   constructor(
@@ -613,7 +615,7 @@ export class Tire extends Element implements ITire {
   }
 
   set inertialTensor(mat: Matrix3) {
-    throw Error('Not Supported Exception');
+    // throw Error('Not Supported Exception');
   }
 
   constructor(
