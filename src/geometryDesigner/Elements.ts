@@ -4,6 +4,8 @@ import {Vector3, Matrix3} from 'three';
 import {AtLeast1, AtLeast2} from '@app/utils/atLeast';
 import {v1 as uuidv1} from 'uuid';
 import {
+  getDataMatrix3,
+  getDataVector3,
   Millimeter,
   Joint,
   ElementID,
@@ -11,13 +13,19 @@ import {
   NodeWithPath,
   IElement,
   IAssembly,
+  IDataAssembly,
   IBar,
+  IDataBar,
   ISpringDumper,
+  IDataSpringDumper,
   IAArm,
+  IDataAArm,
   IBellCrank,
+  IDataBellCrank,
   IBody,
+  IDataBody,
   ITire,
-  isAssembly
+  IDataTire
 } from './IElements';
 
 export abstract class Element {
@@ -52,26 +60,11 @@ export class Assembly extends Element implements IAssembly {
     return this._children;
   }
 
-  getElementByPath(path: string): IElement | null {
-    const idx = path.indexOf(this.nodeID);
-    if (idx === -1) return null;
-    if (idx === 0) return this;
-    const fromThis = path.slice(0, idx - 1);
-    let element: IElement | null = null;
-    // eslint-disable-next-line no-restricted-syntax
-    for (const child of this.children) {
-      if (isAssembly(child)) {
-        element = child.getElementByPath(fromThis);
-        if (element != null) return element;
-      } else if (child.nodeID === fromThis) {
-        return child;
-      }
-    }
-    return element;
-  }
-
   set children(elements: IElement[]) {
     this._children = elements;
+    this._children.forEach((child) => {
+      child.parent = this;
+    });
   }
 
   // _visible: boolean | undefined = true;
@@ -194,6 +187,23 @@ export class Assembly extends Element implements IAssembly {
     this.initialPosition = initialPosition ?? new Vector3();
     this.arrange();
   }
+
+  getDataElement(): IDataAssembly {
+    const data: IDataAssembly = {
+      children: this.children.map((child) => child.getDataElement()),
+      joints: [...this.joints],
+      className: this.className,
+      name: this.name,
+      inertialTensor: getDataMatrix3(this.inertialTensor),
+      nodeID: this.nodeID,
+      absPath: this.absPath,
+
+      position: getDataVector3(this.position),
+      initialPosition: getDataVector3(this.initialPosition),
+      visible: this.visible
+    };
+    return data;
+  }
 }
 
 export class Frame extends Assembly {
@@ -259,6 +269,23 @@ export class Bar extends Element implements IBar {
     this.point = point;
     this.initialPosition = initialPosition ?? new Vector3();
     this.position = this.initialPosition;
+  }
+
+  getDataElement(): IDataBar {
+    const data: IDataBar = {
+      className: this.className,
+      name: this.name,
+      inertialTensor: getDataMatrix3(this.inertialTensor),
+      nodeID: this.nodeID,
+      absPath: this.absPath,
+      position: getDataVector3(this.position),
+      initialPosition: getDataVector3(this.initialPosition),
+
+      fixedPoint: getDataVector3(this.fixedPoint),
+      point: getDataVector3(this.point),
+      visible: this.visible
+    };
+    return data;
   }
 }
 
@@ -333,6 +360,25 @@ export class SpringDumper extends Element implements ISpringDumper {
     this.initialPosition = initialPosition ?? new Vector3();
     this.position = this.initialPosition;
   }
+
+  getDataElement(): IDataSpringDumper {
+    const data: IDataSpringDumper = {
+      visible: this.visible,
+      className: this.className,
+      name: this.name,
+      inertialTensor: getDataMatrix3(this.inertialTensor),
+      nodeID: this.nodeID,
+      absPath: this.absPath,
+      position: getDataVector3(this.position),
+      initialPosition: getDataVector3(this.initialPosition),
+
+      fixedPoint: getDataVector3(this.fixedPoint),
+      point: getDataVector3(this.point),
+      dlMin: this.dlMin,
+      dlMax: this.dlMax
+    };
+    return data;
+  }
 }
 
 export class AArm extends Element implements IAArm {
@@ -403,6 +449,24 @@ export class AArm extends Element implements IAArm {
     this.points = points;
     this.initialPosition = initialPosition ?? new Vector3();
     this.position = this.initialPosition;
+  }
+
+  getDataElement(): IDataAArm {
+    const gd3 = getDataVector3;
+
+    const data: IDataAArm = {
+      visible: this.visible,
+      className: this.className,
+      name: this.name,
+      inertialTensor: getDataMatrix3(this.inertialTensor),
+      nodeID: this.nodeID,
+      absPath: this.absPath,
+      position: gd3(this.position),
+      initialPosition: gd3(this.initialPosition),
+      fixedPoints: this.fixedPoints.map((point) => gd3(point)),
+      points: this.points.map((point) => gd3(point))
+    };
+    return data;
   }
 }
 
@@ -480,6 +544,24 @@ export class BellCrank extends Element implements IBellCrank {
     this.initialPosition = initialPosition ?? new Vector3();
     this.position = this.initialPosition;
   }
+
+  getDataElement(): IDataBellCrank {
+    const gd3 = getDataVector3;
+
+    const data: IDataBellCrank = {
+      visible: this.visible,
+      className: this.className,
+      name: this.name,
+      inertialTensor: getDataMatrix3(this.inertialTensor),
+      nodeID: this.nodeID,
+      absPath: this.absPath,
+      position: gd3(this.position),
+      initialPosition: gd3(this.initialPosition),
+      fixedPoints: this.fixedPoints.map((point) => gd3(point)),
+      points: this.points.map((point) => gd3(point))
+    };
+    return data;
+  }
 }
 
 export class Body extends Element implements IBody {
@@ -549,6 +631,24 @@ export class Body extends Element implements IBody {
 
     this.initialPosition = initialPosition ?? new Vector3();
     this.position = this.initialPosition;
+  }
+
+  getDataElement(): IDataBody {
+    const gd3 = getDataVector3;
+
+    const data: IDataBody = {
+      visible: this.visible,
+      className: this.className,
+      name: this.name,
+      inertialTensor: getDataMatrix3(this.inertialTensor),
+      nodeID: this.nodeID,
+      absPath: this.absPath,
+      position: gd3(this.position),
+      initialPosition: gd3(this.initialPosition),
+      fixedPoints: this.fixedPoints.map((point) => gd3(point)),
+      points: this.points.map((point) => gd3(point))
+    };
+    return data;
   }
 }
 
@@ -631,5 +731,24 @@ export class Tire extends Element implements ITire {
     this.toRightBearing = toRightBearing;
     this.initialPosition = initialPosition ?? new Vector3();
     this.position = this.initialPosition;
+  }
+
+  getDataElement(): IDataTire {
+    const gd3 = getDataVector3;
+
+    const data: IDataTire = {
+      visible: this.visible,
+      className: this.className,
+      name: this.name,
+      inertialTensor: getDataMatrix3(this.inertialTensor),
+      nodeID: this.nodeID,
+      absPath: this.absPath,
+      position: gd3(this.position),
+      initialPosition: gd3(this.initialPosition),
+      tireCenter: this.tireCenter,
+      toLeftBearing: this.toLeftBearing,
+      toRightBearing: this.toRightBearing
+    };
+    return data;
   }
 }

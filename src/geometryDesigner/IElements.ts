@@ -28,10 +28,19 @@ export type IDataMatrix3 = [
   number
 ];
 
-export function getMatrix3(m: IDataMatrix3) {
+export function getMatrix3(m: IDataMatrix3): Matrix3 {
   const mat = new Matrix3();
   mat.elements = [...m];
   return mat;
+}
+
+export function getDataVector3(vec: Vector3): IDataVector3 {
+  return {x: vec.x, y: vec.y, z: vec.z};
+}
+
+export function getDataMatrix3(mat: Matrix3): IDataMatrix3 {
+  const m = mat.elements;
+  return [m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8]];
 }
 
 export interface NodeWithPath {
@@ -44,6 +53,30 @@ export interface INodeWithPath {
   path: string;
 }
 
+export function getElementByPath(
+  root: IAssembly | IDataAssembly,
+  path: string
+): IElement | IDataElement | null {
+  const idx = path.indexOf(root.nodeID);
+  if (idx === -1) return null;
+  if (idx === 0) return root;
+  const fromThis = path.slice(0, idx - 1);
+  let element: IElement | IDataElement | null = null;
+  // eslint-disable-next-line no-restricted-syntax
+  for (const child of root.children) {
+    if (isElement(child) && isAssembly(child)) {
+      element = getElementByPath(child, fromThis);
+      if (element != null) return element;
+    } else if (isDataElement(child) && isDataAssembly(child)) {
+      element = getElementByPath(child, fromThis);
+      if (element != null) return element;
+    } else if (child.nodeID === fromThis) {
+      return child;
+    }
+  }
+  return element;
+}
+
 export interface IElement {
   readonly className: string;
   name: string;
@@ -54,6 +87,7 @@ export interface IElement {
   readonly absPath: string;
   getNodes(): NodeWithPath[];
   getMirror(): IElement;
+  getDataElement(): IDataElement;
   // eslint-disable-next-line no-unused-vars
   arrange(parentPosition?: Vector3): void;
   position: Vector3;
@@ -61,12 +95,13 @@ export interface IElement {
   initialPosition: Vector3;
 }
 
-export interface DataElement {
+export interface IDataElement {
+  className: string;
   name: string;
   inertialTensor: IDataMatrix3;
-  parent: IAssembly | null;
   nodeID: string;
   absPath: string;
+  visible: boolean | undefined;
   position: IDataVector3;
   rotation?: IDataMatrix3;
   initialPosition: IDataVector3;
@@ -75,13 +110,21 @@ export interface DataElement {
 export interface IAssembly extends IElement {
   children: IElement[];
   joints: Joint[];
-  // eslint-disable-next-line no-unused-vars
-  getElementByPath(path: string): IElement | null;
+}
+
+export interface IDataAssembly extends IDataElement {
+  children: IDataElement[];
+  joints: Joint[];
 }
 
 export interface IBar extends IElement {
   fixedPoint: Vector3;
   point: Vector3;
+}
+
+export interface IDataBar extends IDataElement {
+  fixedPoint: IDataVector3;
+  point: IDataVector3;
 }
 
 export interface ISpringDumper extends IElement {
@@ -91,9 +134,21 @@ export interface ISpringDumper extends IElement {
   dlMax: Millimeter;
 }
 
+export interface IDataSpringDumper extends IDataElement {
+  fixedPoint: IDataVector3;
+  point: IDataVector3;
+  dlMin: Millimeter;
+  dlMax: Millimeter;
+}
+
 export interface IBody extends IElement {
   fixedPoints: Vector3[];
   points: Vector3[];
+}
+
+export interface IDataBody extends IDataElement {
+  fixedPoints: IDataVector3[];
+  points: IDataVector3[];
 }
 
 export interface IAArm extends IBody {
@@ -101,11 +156,21 @@ export interface IAArm extends IBody {
   points: AtLeast1<Vector3>;
 }
 
+export interface IDataAArm extends IDataElement {
+  fixedPoints: IDataVector3[];
+  points: IDataVector3[];
+}
+
 export interface IBellCrank extends IBody {
   // Axis
   fixedPoints: [Vector3, Vector3];
   // Points
   points: AtLeast2<Vector3>;
+}
+
+export interface IDataBellCrank extends IDataElement {
+  fixedPoints: IDataVector3[];
+  points: IDataVector3[];
 }
 
 export interface ITire extends IElement {
@@ -117,12 +182,26 @@ export interface ITire extends IElement {
   readonly diameter: Millimeter;
 }
 
+export interface IDataTire extends IDataElement {
+  tireCenter: IDataVector3;
+  toLeftBearing: number;
+  toRightBearing: number;
+}
+
 export interface IRackAndPinion extends IElement {
   points: [Vector3, Vector3];
   dlMin: Millimeter;
   dlMax: Millimeter;
   dlPerRad: Radian;
 }
+
+export const isElement = (
+  element: IElement | IDataElement
+): element is IElement => 'getNodes' in element;
+
+export const isDataElement = (
+  element: IElement | IDataElement
+): element is IDataElement => !('getNodes' in element);
 
 export const isBar = (element: IElement): element is IBar =>
   element.className === 'Bar';
@@ -138,3 +217,7 @@ export const isBellCrank = (element: IElement): element is IBellCrank =>
   element.className === 'BellCrank';
 export const isAssembly = (element: IElement): element is IAssembly =>
   element.className === 'Assembly';
+
+export const isDataAssembly = (
+  element: IDataElement
+): element is IDataAssembly => element.className === 'Assembly';

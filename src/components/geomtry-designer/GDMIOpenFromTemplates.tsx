@@ -9,7 +9,7 @@ export default function GDMIOpenFromTemplates() {
   const dispatch = useDispatch();
   const handleOnClick = () => {
     const sample = getSuspension();
-    dispatch(setTopAssembly(sample));
+    dispatch(setTopAssembly(sample.getDataElement()));
   };
 
   /* とりあえずテスト用に入れる

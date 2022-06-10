@@ -12,7 +12,13 @@ import {useSpring, animated} from 'react-spring';
 import {TransitionProps} from '@mui/material/transitions';
 import {RootState} from '@store/store';
 import {useSelector, useDispatch} from 'react-redux';
-import {IAssembly, IElement, isAssembly} from '@app/geometryDesigner/IElements';
+import {
+  IDataAssembly,
+  IDataElement,
+  isDataAssembly,
+  getElementByPath,
+  isDataElement
+} from '@app/geometryDesigner/IElements';
 import {NumberToRGB, getReversal} from '@app/utils/helpers';
 import {setVisibility} from '@app/store/reducers/dataGeometryDesigner';
 
@@ -35,8 +41,9 @@ function PlusSquare(props: SvgIconProps) {
 }
 
 interface VisibilityControlProps {
-  element: IElement;
+  element: IDataElement;
 }
+
 const VisibilityControl = (props: VisibilityControlProps) => {
   const {element} = props;
   const nColor = getReversal(
@@ -50,8 +57,14 @@ const VisibilityControl = (props: VisibilityControlProps) => {
   const dispatch = useDispatch();
 
   const visible: boolean | undefined = useSelector((state: RootState) => {
-    const e = state.dgd.topAssembly?.getElementByPath(element.absPath);
-    return e?.visible;
+    const top = state.dgd.topAssembly;
+    if (top) {
+      const e = getElementByPath(top, element.absPath);
+      if (e && isDataElement(e)) {
+        return e.visible;
+      }
+    }
+    return undefined;
   });
 
   /* const visible: boolean | undefined = useSelector(
@@ -83,11 +96,22 @@ const VisibilityControl = (props: VisibilityControlProps) => {
 };
 
 interface ElementTreeItemProps extends TreeItemProps {
-  element: IElement;
+  element: IDataElement;
 }
 
-interface Props {
-  className?: string;
+interface MyLabelProps {
+  label: React.ReactNode;
+  element: IDataElement;
+}
+
+function MyLabel(props: MyLabelProps) {
+  const {label, element} = props;
+  return (
+    <Box display="flex">
+      <VisibilityControl element={element} />
+      <Typography>{label}</Typography>
+    </Box>
+  );
 }
 
 function TransitionComponent(props: TransitionProps) {
@@ -111,12 +135,16 @@ function TransitionComponent(props: TransitionProps) {
   );
 }
 
+interface Props {
+  className?: string;
+}
+
 const ElementsTreeView: React.FC<Props> = (props: Props) => {
   const {className} = props;
   const tvState = useSelector(
     (state: RootState) => state.uigd.assemblyTreeViewState
   );
-  const nAssembly: IAssembly | undefined = useSelector(
+  const nAssembly: IDataAssembly | undefined = useSelector(
     (state: RootState) => state.dgd.topAssembly
   );
   const selectedColor = NumberToRGB(tvState.selectedColor);
@@ -124,19 +152,10 @@ const ElementsTreeView: React.FC<Props> = (props: Props) => {
   if (!nAssembly) {
     return <div />;
   }
-  const assembly: IAssembly = nAssembly;
+  const assembly: IDataAssembly = nAssembly;
 
   const MyTreeItem = (props: ElementTreeItemProps) => {
     const {element, label} = props;
-
-    const MyLabel = () => {
-      return (
-        <Box display="flex">
-          <VisibilityControl element={element} />
-          <Typography>{label}</Typography>
-        </Box>
-      );
-    };
 
     const StyledTreeItem = styled((props: TreeItemProps) => (
       <TreeItem {...props} TransitionComponent={TransitionComponent} />
@@ -169,8 +188,11 @@ const ElementsTreeView: React.FC<Props> = (props: Props) => {
 
     return (
       // eslint-disable-next-line react/destructuring-assignment
-      <StyledTreeItem {...props} label={<MyLabel />}>
-        {isAssembly(element)
+      <StyledTreeItem
+        {...props}
+        label={<MyLabel label={label} element={element} />}
+      >
+        {isDataAssembly(element)
           ? element.children.map((child) => {
               return (
                 <MyTreeItem

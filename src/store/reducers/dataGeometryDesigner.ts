@@ -1,5 +1,5 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
-import {IDataMatrix3, IAssembly} from '@app/geometryDesigner/IElements';
+import {IDataMatrix3, IDataAssembly} from '@app/geometryDesigner/IElements';
 
 export interface IAssemblyTreeViewState {
   fontColor: string;
@@ -8,7 +8,7 @@ export interface IAssemblyTreeViewState {
 
 export interface GDState {
   transCoordinateMatrix: IDataMatrix3;
-  topAssembly?: IAssembly;
+  topAssembly?: IDataAssembly;
 }
 
 const initialState: GDState = {
@@ -33,7 +33,7 @@ export const dataGeometryDesignerSlice = createSlice({
     },
     setTopAssembly: (
       state: GDState,
-      action: PayloadAction<IAssembly | undefined>
+      action: PayloadAction<IDataAssembly | undefined>
     ) => {
       state.topAssembly = action.payload;
     },

@@ -5,7 +5,7 @@ import {DisposeAll} from '@app/utils/ResourceTracker';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 // eslint-disable-next-line no-unused-vars
-import {IAssembly, IElement, isAssembly} from '@app/geometryDesigner/IElements';
+import {IAssembly, IDataAssembly} from '@app/geometryDesigner/IElements';
 import {render} from '@app/geometryDesigner/ElementsRenderer';
 
 interface HandleCameraAspectParams {
@@ -23,7 +23,7 @@ export default function GDScene() {
     (state: RootState) => state.uigd.backgroundColor
   );
 
-  const assembly: IAssembly | undefined = useSelector(
+  const assembly: IDataAssembly | undefined = useSelector(
     (state: RootState) => state.dgd.topAssembly
   );
 
