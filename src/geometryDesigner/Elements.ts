@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable max-classes-per-file */
 /* eslint-disable class-methods-use-this */
 import {Vector3, Matrix3} from 'three';
