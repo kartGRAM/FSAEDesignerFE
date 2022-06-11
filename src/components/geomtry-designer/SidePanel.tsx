@@ -1,10 +1,5 @@
 import React from 'react';
 import Box from '@mui/material/Box';
-import Accordion from '@mui/material/Accordion';
-import AccordionSummary from '@mui/material/AccordionSummary';
-import AccordionDetails from '@mui/material/AccordionDetails';
-import Typography from '@mui/material/Typography';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {useSelector, useDispatch} from 'react-redux';
 import {NumberToRGB} from '@app/utils/helpers';
 import {RootState} from '@store/store';
@@ -12,6 +7,7 @@ import Divider from '@mui/material/Divider';
 import {alpha} from '@mui/material/styles';
 // eslint-disable-next-line no-unused-vars
 import {resizePanel} from '@app/store/reducers/uiGeometryDesigner';
+import ParametersRoot from '@app/components/geomtry-designer/side-panel-components/parameters/ParametersRoot';
 import $ from 'jquery';
 import 'jqueryui';
 
@@ -35,6 +31,9 @@ export default function SidePanel() {
   );
   const enabledColorLight: number = useSelector(
     (state: RootState) => state.uigd.enabledColorLight
+  );
+  const selectedTab: string = useSelector(
+    (state: RootState) => state.uitgd.sidePanelState.selectedTab
   );
 
   const dispatch = useDispatch();
@@ -74,6 +73,13 @@ export default function SidePanel() {
       });
     }
   }, [dispatch]);
+
+  // eslint-disable-next-line no-undef
+  let adContent: JSX.Element | null = null;
+  if (selectedTab === 'parameters') {
+    adContent = <ParametersRoot />;
+  }
+
   return (
     <>
       <Box
@@ -89,48 +95,7 @@ export default function SidePanel() {
         }}
         ref={boxRef}
       >
-        <Typography variant="h6">Variables</Typography>
-        <Accordion>
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="panel1a-content"
-            id="panel1a-header"
-          >
-            <Typography>Accordion 1</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            <Typography>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-              Suspendisse malesuada lacus ex, sit amet blandit leo lobortis
-              eget.
-            </Typography>
-          </AccordionDetails>
-        </Accordion>
-        <Accordion>
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="panel2a-content"
-            id="panel2a-header"
-          >
-            <Typography>Accordion 2</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            <Typography>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-              Suspendisse malesuada lacus ex, sit amet blandit leo lobortis
-              eget.
-            </Typography>
-          </AccordionDetails>
-        </Accordion>
-        <Accordion disabled>
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="panel3a-content"
-            id="panel3a-header"
-          >
-            <Typography>Disabled Accordion</Typography>
-          </AccordionSummary>
-        </Accordion>
+        {adContent}
       </Box>
 
       <Divider

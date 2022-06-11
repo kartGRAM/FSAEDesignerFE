@@ -2,7 +2,7 @@
 import * as React from 'react';
 import {styled, Theme, CSSObject} from '@mui/material/styles';
 import Box from '@mui/material/Box';
-import MuiDrawer from '@mui/material/Drawer';
+import MuiDrawer, {DrawerProps} from '@mui/material/Drawer';
 import List from '@mui/material/List';
 import CssBaseline from '@mui/material/CssBaseline';
 import Divider from '@mui/material/Divider';
@@ -43,13 +43,28 @@ const closedMixin = (theme: Theme): CSSObject => ({
   }
 });
 
-const Drawer = styled(MuiDrawer, {
-  shouldForwardProp: (prop) => prop !== 'open'
-})(({theme, open}) => ({
+interface MyDrawerProps extends DrawerProps {
+  bgColor: number;
+}
+
+// eslint-disable-next-line no-undef
+const Drawer = styled<(props: MyDrawerProps) => JSX.Element>(MuiDrawer, {
+  shouldForwardProp: (prop) => prop !== 'open' && prop !== 'bgColor'
+})(({theme, open, bgColor}) => ({
   width: drawerWidth,
   flexShrink: 0,
   whiteSpace: 'nowrap',
   boxSizing: 'border-box',
+  '& .MuiDrawer-root': {
+    backgroundColor: NumberToRGB(bgColor),
+    position: 'static',
+    height: '100%'
+  },
+  '& .MuiPaper-root': {
+    backgroundColor: NumberToRGB(bgColor),
+    position: 'static',
+    height: '100%'
+  },
   ...(open && {
     ...openedMixin(theme),
     '& .MuiDrawer-paper': openedMixin(theme)
@@ -69,22 +84,7 @@ export default function MiniDrawer() {
   );
   const open = false;
   return (
-    <Drawer
-      variant="permanent"
-      open={false}
-      sx={{
-        '& .MuiDrawer-root': {
-          backgroundColor: NumberToRGB(bgColor),
-          position: 'static',
-          height: '100%'
-        },
-        '& .MuiPaper-root': {
-          backgroundColor: NumberToRGB(bgColor),
-          position: 'static',
-          height: '100%'
-        }
-      }}
-    >
+    <Drawer variant="permanent" open={false} bgColor={bgColor}>
       <Divider />
       <List>
         {[

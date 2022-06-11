@@ -18,6 +18,7 @@ import {
 } from '@app/geometryDesigner/IElements';
 import {NumberToRGB, getReversal} from '@app/utils/helpers';
 import {setVisibility} from '@app/store/reducers/dataGeometryDesigner';
+import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
 
 function MinusSquare(props: SvgIconProps) {
   return (
@@ -106,8 +107,13 @@ interface MyLabelProps {
 
 function MyLabel(props: MyLabelProps) {
   const {label, element} = props;
+  const dispatch = useDispatch();
+  const handleOnClick = () => {
+    dispatch(selectElement({absPath: element.absPath}));
+  };
+
   return (
-    <Box display="flex">
+    <Box display="flex" onClick={handleOnClick}>
       <VisibilityControl element={element} />
       <Typography>{label}</Typography>
     </Box>
