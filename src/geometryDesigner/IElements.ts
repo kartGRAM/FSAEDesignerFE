@@ -28,6 +28,10 @@ export type IDataMatrix3 = [
   number
 ];
 
+export function getVector3(v: IDataVector3): Vector3 {
+  return new Vector3(v.x, v.y, v.z);
+}
+
 export function getMatrix3(m: IDataMatrix3): Matrix3 {
   const mat = new Matrix3();
   mat.elements = [...m];
@@ -218,6 +222,20 @@ export const isBellCrank = (element: IElement): element is IBellCrank =>
 export const isAssembly = (element: IElement): element is IAssembly =>
   element.className === 'Assembly';
 
+export const isDataBar = (element: IDataElement): element is IDataBar =>
+  element.className === 'Bar';
+export const isDataSpringDumper = (
+  element: IDataElement
+): element is IDataSpringDumper => element.className === 'SpringDumper';
+export const isDataTire = (element: IDataElement): element is IDataTire =>
+  element.className === 'Tire';
+export const isDataAArm = (element: IDataElement): element is IDataAArm =>
+  element.className === 'AArm';
+export const isDataBody = (element: IDataElement): element is IDataBody =>
+  element.className === 'Body';
+export const isDataBellCrank = (
+  element: IDataElement
+): element is IDataBellCrank => element.className === 'BellCrank';
 export const isDataAssembly = (
   element: IDataElement
 ): element is IDataAssembly => element.className === 'Assembly';

@@ -4,12 +4,9 @@ import SvgIcon, {SvgIconProps} from '@mui/material/SvgIcon';
 import {styled, alpha} from '@mui/material/styles';
 import TreeView from '@app/components/tree-view-base';
 import TreeItem, {TreeItemProps, treeItemClasses} from '@mui/lab/TreeItem';
-import Collapse from '@mui/material/Collapse';
 import Typography from '@mui/material/Typography';
 import Checkbox from '@mui/material/Checkbox';
 import Box from '@mui/material/Box';
-import {useSpring, animated} from 'react-spring';
-import {TransitionProps} from '@mui/material/transitions';
 import {RootState} from '@store/store';
 import {useSelector, useDispatch} from 'react-redux';
 import {
@@ -75,7 +72,7 @@ const VisibilityControl = (props: VisibilityControlProps) => {
     <Checkbox
       size="small"
       checked={visible}
-      // indeterminate={visible === undefined}
+      indeterminate={visible === undefined}
       onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
         dispatch(
           setVisibility({
@@ -88,6 +85,9 @@ const VisibilityControl = (props: VisibilityControlProps) => {
         padding: 0.3,
         color: alpha(color, 0.7),
         '&.Mui-checked': {
+          color: alpha(color, 0.8)
+        },
+        '&.MuiCheckbox-indeterminate': {
           color: alpha(color, 0.8)
         }
       }}
@@ -114,27 +114,6 @@ function MyLabel(props: MyLabelProps) {
   );
 }
 
-function TransitionComponent(props: TransitionProps) {
-  const style = useSpring({
-    from: {
-      opacity: 0,
-      transform: 'translate3d(20px,0,0)'
-    },
-    to: {
-      // eslint-disable-next-line react/destructuring-assignment
-      opacity: props.in ? 1 : 0,
-      // eslint-disable-next-line react/destructuring-assignment
-      transform: `translate3d(${props.in ? 0 : 20}px,0,0)`
-    }
-  });
-
-  return (
-    <animated.div style={style}>
-      <Collapse {...props} />
-    </animated.div>
-  );
-}
-
 interface Props {
   className?: string;
 }
@@ -158,7 +137,7 @@ const ElementsTreeView: React.FC<Props> = (props: Props) => {
     const {element, label} = props;
 
     const StyledTreeItem = styled((props: TreeItemProps) => (
-      <TreeItem {...props} TransitionComponent={TransitionComponent} />
+      <TreeItem {...props} />
     ))(() => ({
       [`& .${treeItemClasses.iconContainer}`]: {
         '& .close': {

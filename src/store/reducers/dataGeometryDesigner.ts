@@ -1,5 +1,10 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
-import {IDataMatrix3, IDataAssembly} from '@app/geometryDesigner/IElements';
+import {
+  IDataMatrix3,
+  IDataAssembly,
+  getElementByPath
+} from '@app/geometryDesigner/IElements';
+import {getAssembly} from '@app/geometryDesigner/Elements';
 
 export interface IAssemblyTreeViewState {
   fontColor: string;
@@ -45,12 +50,12 @@ export const dataGeometryDesignerSlice = createSlice({
       }>
     ) => {
       if (state.topAssembly) {
-        const element = state.topAssembly.getElementByPath(
-          action.payload.absPath
-        );
+        const assembly = getAssembly(state.topAssembly);
+        const element = getElementByPath(assembly, action.payload.absPath);
         if (element) {
           element.visible = action.payload.visibility;
         }
+        state.topAssembly = assembly.getDataElement() as IDataAssembly;
       }
     }
   }

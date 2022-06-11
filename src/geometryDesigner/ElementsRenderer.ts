@@ -15,6 +15,9 @@ import {
 } from './IElements';
 
 export const render = (element: IElement, scene: THREE.Scene): void => {
+  if (element.visible === false) {
+    return;
+  }
   if (isAssembly(element)) {
     const assembly = element;
     assembly.children.forEach((child) => {

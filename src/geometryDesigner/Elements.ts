@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable max-classes-per-file */
 /* eslint-disable class-methods-use-this */
 import {Vector3, Matrix3} from 'three';
@@ -5,28 +6,99 @@ import {AtLeast1, AtLeast2} from '@app/utils/atLeast';
 import {v1 as uuidv1} from 'uuid';
 import {
   getDataMatrix3,
+  getMatrix3,
   getDataVector3,
+  getVector3,
   Millimeter,
   Joint,
   ElementID,
   NodeID,
   NodeWithPath,
   IElement,
+  IDataElement,
   IAssembly,
   IDataAssembly,
+  isDataAssembly,
   IBar,
   IDataBar,
+  isDataBar,
   ISpringDumper,
   IDataSpringDumper,
+  isDataSpringDumper,
   IAArm,
   IDataAArm,
+  isDataAArm,
   IBellCrank,
   IDataBellCrank,
+  isDataBellCrank,
   IBody,
   IDataBody,
+  isDataBody,
   ITire,
-  IDataTire
+  IDataTire,
+  isDataTire
 } from './IElements';
+
+export function getElement(element: IDataElement): IElement {
+  if (isDataAssembly(element)) {
+    const children = element.children.map((child) => getElement(child));
+    const assembly = new Assembly('', [], [], undefined);
+    assembly.setDataElement(element, children);
+    return assembly;
+  }
+  if (isDataBar(element)) {
+    const bar = new Bar('', new Vector3(), new Vector3(), undefined);
+    bar.setDataElement(element);
+    return bar;
+  }
+  if (isDataSpringDumper(element)) {
+    const sd = new SpringDumper(
+      '',
+      new Vector3(),
+      new Vector3(),
+      0,
+      0,
+      undefined
+    );
+    sd.setDataElement(element);
+    return sd;
+  }
+  if (isDataAArm(element)) {
+    const aarm = new AArm(
+      '',
+      [new Vector3(), new Vector3()],
+      [new Vector3()],
+      undefined
+    );
+    aarm.setDataElement(element);
+    return aarm;
+  }
+  if (isDataBellCrank(element)) {
+    const bc = new BellCrank(
+      '',
+      [new Vector3(), new Vector3()],
+      [new Vector3(), new Vector3()],
+      undefined
+    );
+    bc.setDataElement(element);
+    return bc;
+  }
+  if (isDataBody(element)) {
+    const body = new Body('', [], [], undefined);
+    body.setDataElement(element);
+    return body;
+  }
+  if (isDataTire(element)) {
+    const tire = new Tire('', new Vector3(), 0, 0, undefined);
+    tire.setDataElement(element);
+    return tire;
+  }
+  throw Error('Not Supported Exception');
+}
+
+export function getAssembly(assembly: IDataAssembly): IAssembly {
+  return getElement(assembly) as IAssembly;
+}
 
 export abstract class Element {
   _nodeID: string;
@@ -46,6 +118,11 @@ export abstract class Element {
   constructor(name: string) {
     this._nodeID = uuidv1(); // ⇨ '2c5ea4c0-4067-11e9-8bad-9b1deb4d3b7d'
     this.name = name;
+  }
+
+  setDataElementBase(element: IDataElement) {
+    this.name = element.name;
+    this._nodeID = element.nodeID;
   }
 }
 
@@ -204,6 +281,15 @@ export class Assembly extends Element implements IAssembly {
     };
     return data;
   }
+
+  setDataElement(element: IDataAssembly, children: IElement[]) {
+    super.setDataElementBase(element);
+    this.children = children;
+    this.joints = [...element.joints];
+    this.inertialTensor = getMatrix3(element.inertialTensor);
+    this.position = getVector3(this.position);
+    this.initialPosition = getVector3(this.initialPosition);
+  }
 }
 
 export class Frame extends Assembly {
@@ -286,6 +372,17 @@ export class Bar extends Element implements IBar {
       visible: this.visible
     };
     return data;
+  }
+
+  setDataElement(element: IDataBar) {
+    super.setDataElementBase(element);
+    this.visible = element.visible;
+    this.inertialTensor = getMatrix3(element.inertialTensor);
+    this.position = getVector3(element.position);
+    this.initialPosition = getVector3(element.initialPosition);
+
+    this.fixedPoint = getVector3(element.fixedPoint);
+    this.point = getVector3(element.point);
   }
 }
 
@@ -379,6 +476,21 @@ export class SpringDumper extends Element implements ISpringDumper {
     };
     return data;
   }
+
+  setDataElement(element: IDataSpringDumper) {
+    super.setDataElementBase(element);
+
+    this.visible = element.visible;
+    this.inertialTensor = getMatrix3(element.inertialTensor);
+    this.position = getVector3(element.position);
+    this.initialPosition = getVector3(element.initialPosition);
+
+    this.fixedPoint = getVector3(element.fixedPoint);
+    this.point = getVector3(element.point);
+
+    this.dlMin = element.dlMin;
+    this.dlMax = element.dlMax;
+  }
 }
 
 export class AArm extends Element implements IAArm {
@@ -467,6 +579,21 @@ export class AArm extends Element implements IAArm {
       points: this.points.map((point) => gd3(point))
     };
     return data;
+  }
+
+  setDataElement(element: IDataAArm) {
+    super.setDataElementBase(element);
+
+    this.visible = element.visible;
+    this.inertialTensor = getMatrix3(element.inertialTensor);
+    this.position = getVector3(element.position);
+    this.initialPosition = getVector3(element.initialPosition);
+
+    const fp = element.fixedPoints.map((v) => getVector3(v));
+    this.fixedPoints = [fp[0], fp[1]];
+    const p = element.points.map((v) => getVector3(v));
+    const point0 = p.shift()!;
+    this.points = [point0, ...p];
   }
 }
 
@@ -562,6 +689,22 @@ export class BellCrank extends Element implements IBellCrank {
     };
     return data;
   }
+
+  setDataElement(element: IDataBellCrank) {
+    super.setDataElementBase(element);
+
+    this.visible = element.visible;
+    this.inertialTensor = getMatrix3(element.inertialTensor);
+    this.position = getVector3(element.position);
+    this.initialPosition = getVector3(element.initialPosition);
+
+    const fp = element.fixedPoints.map((v) => getVector3(v));
+    this.fixedPoints = [fp[0], fp[1]];
+    const p = element.points.map((v) => getVector3(v));
+    const point0 = p.shift()!;
+    const point1 = p.shift()!;
+    this.points = [point0, point1, ...p];
+  }
 }
 
 export class Body extends Element implements IBody {
@@ -649,6 +792,18 @@ export class Body extends Element implements IBody {
       points: this.points.map((point) => gd3(point))
     };
     return data;
+  }
+
+  setDataElement(element: IDataBellCrank) {
+    super.setDataElementBase(element);
+
+    this.visible = element.visible;
+    this.inertialTensor = getMatrix3(element.inertialTensor);
+    this.position = getVector3(element.position);
+    this.initialPosition = getVector3(element.initialPosition);
+
+    this.fixedPoints = element.fixedPoints.map((v) => getVector3(v));
+    this.points = element.points.map((v) => getVector3(v));
   }
 }
 
@@ -745,10 +900,23 @@ export class Tire extends Element implements ITire {
       absPath: this.absPath,
       position: gd3(this.position),
       initialPosition: gd3(this.initialPosition),
-      tireCenter: this.tireCenter,
+      tireCenter: gd3(this.tireCenter),
       toLeftBearing: this.toLeftBearing,
       toRightBearing: this.toRightBearing
     };
     return data;
+  }
+
+  setDataElement(element: IDataTire) {
+    super.setDataElementBase(element);
+
+    this.visible = element.visible;
+    this.inertialTensor = getMatrix3(element.inertialTensor);
+    this.position = getVector3(element.position);
+    this.initialPosition = getVector3(element.initialPosition);
+
+    this.tireCenter = getVector3(element.tireCenter);
+    this.toLeftBearing = element.toLeftBearing;
+    this.toRightBearing = element.toRightBearing;
   }
 }

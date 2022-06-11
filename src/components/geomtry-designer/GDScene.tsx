@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 // eslint-disable-next-line no-unused-vars
 import {IAssembly, IDataAssembly} from '@app/geometryDesigner/IElements';
+import {getAssembly} from '@app/geometryDesigner/Elements';
 import {render} from '@app/geometryDesigner/ElementsRenderer';
 
 interface HandleCameraAspectParams {
@@ -91,19 +92,19 @@ export default function GDScene() {
   }, []);
 
   useEffect(() => {
-    if (!assembly) {
-      scene.current?.clear();
-      DisposeAll();
+    // if (!assembly) {
+    scene.current?.clear();
+    DisposeAll();
 
-      const axes = new THREE.AxesHelper(25);
-      axes.setColors(
-        new THREE.Color(0x00ff00),
-        new THREE.Color(0x0000ff),
-        new THREE.Color(0xff0000)
-      );
-      scene.current?.add(axes);
-    }
-    if (assembly && scene.current) render(assembly, scene.current);
+    const axes = new THREE.AxesHelper(25);
+    axes.setColors(
+      new THREE.Color(0x00ff00),
+      new THREE.Color(0x0000ff),
+      new THREE.Color(0xff0000)
+    );
+    scene.current?.add(axes);
+    // }
+    if (assembly && scene.current) render(getAssembly(assembly), scene.current);
   }, [assembly]);
 
   return <canvas ref={canvas} className="gd-canvas" />;
