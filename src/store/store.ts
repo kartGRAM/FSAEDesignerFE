@@ -7,6 +7,7 @@ import {uitGeometryDesignerSlice} from '@app/store/reducers/uiTempGeometryDesign
 import {dataGeometryDesignerSlice} from '@app/store/reducers/dataGeometryDesigner';
 // eslint-disable-next-line no-unused-vars
 import {createLogger} from 'redux-logger';
+// eslint-disable-next-line no-unused-vars
 import {save, load} from 'redux-localstorage-simple';
 
 const store = configureStore({
@@ -17,18 +18,21 @@ const store = configureStore({
     uigd: uiGeometryDesignerSlice.reducer,
     dgd: dataGeometryDesignerSlice.reducer
   },
+  /*
   preloadedState: load({
     states: ['uigd'],
     namespace: 'FSAEDesigner'
   }),
+  */
+  // eslint-disable-next-line no-unused-vars
   middleware: (getDefaultMiddleware) => [
     // ...getDefaultMiddleware().concat(createLogger()),
-    ...getDefaultMiddleware().concat(
+    /* ...getDefaultMiddleware().concat(
       save({
         states: ['uigd'],
         namespace: 'FSAEDesigner'
       })
-    )
+    ) */
   ]
 });
 

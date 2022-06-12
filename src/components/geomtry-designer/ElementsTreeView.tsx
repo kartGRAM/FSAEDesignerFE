@@ -107,13 +107,9 @@ interface MyLabelProps {
 
 function MyLabel(props: MyLabelProps) {
   const {label, element} = props;
-  const dispatch = useDispatch();
-  const handleOnClick = () => {
-    dispatch(selectElement({absPath: element.absPath}));
-  };
 
   return (
-    <Box display="flex" onClick={handleOnClick}>
+    <Box display="flex">
       <VisibilityControl element={element} />
       <Typography>{label}</Typography>
     </Box>
@@ -132,6 +128,7 @@ const ElementsTreeView: React.FC<Props> = (props: Props) => {
   const nAssembly: IDataAssembly | undefined = useSelector(
     (state: RootState) => state.dgd.topAssembly
   );
+  const dispatch = useDispatch();
   const selectedColor = NumberToRGB(tvState.selectedColor);
 
   if (!nAssembly) {
@@ -182,7 +179,7 @@ const ElementsTreeView: React.FC<Props> = (props: Props) => {
               return (
                 <MyTreeItem
                   element={child}
-                  nodeId={child.nodeID}
+                  nodeId={child.absPath}
                   label={child.name}
                   key={child.nodeID}
                 />
@@ -193,6 +190,10 @@ const ElementsTreeView: React.FC<Props> = (props: Props) => {
     );
   };
 
+  const handleOnSelect = (e: React.SyntheticEvent, path: string) => {
+    dispatch(selectElement({absPath: path}));
+  };
+
   return (
     <>
       <TreeView
@@ -201,6 +202,7 @@ const ElementsTreeView: React.FC<Props> = (props: Props) => {
         defaultExpanded={['1']}
         defaultCollapseIcon={<MinusSquare />}
         defaultExpandIcon={<PlusSquare />}
+        onNodeSelect={handleOnSelect}
         // defaultEndIcon={<Checkbox />}
         sx={{
           scrollbarWidth: 'none' /* Firefox対応のスクロールバー非表示コード */,
@@ -220,7 +222,7 @@ const ElementsTreeView: React.FC<Props> = (props: Props) => {
         <MyTreeItem
           element={assembly}
           key={assembly.nodeID}
-          nodeId={assembly.nodeID}
+          nodeId={assembly.absPath}
           label={assembly.name}
         />
       </TreeView>

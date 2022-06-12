@@ -16,9 +16,9 @@ interface HandleCameraAspectParams {
 export default function GDScene() {
   const canvas = useRef<HTMLCanvasElement>(null);
   const scene = useRef<THREE.Scene | null>(null);
-  const isFullScreen = useSelector(
+  /* const isFullScreen = useSelector(
     (state: RootState) => state.uitgd.isFullScreen
-  );
+  ); */
 
   const bgColor: number = useSelector(
     (state: RootState) => state.uigd.backgroundColor
@@ -67,12 +67,12 @@ export default function GDScene() {
   const onResize = ({camera, renderer}: HandleCameraAspectParams) => {
     if (!canvas.current) return;
     // サイズを取得
-    let width = canvas.current!.clientWidth;
-    let height = canvas.current!.clientHeight;
-    if (isFullScreen) {
+    const width = canvas.current!.clientWidth;
+    const height = canvas.current!.clientHeight;
+    /* if (isFullScreen) {
       width = window.innerWidth;
       height = window.innerHeight;
-    }
+    } */
 
     // レンダラーのサイズを調整する
     renderer.setPixelRatio(window.devicePixelRatio);

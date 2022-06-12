@@ -8,6 +8,7 @@ import {alpha} from '@mui/material/styles';
 // eslint-disable-next-line no-unused-vars
 import {resizePanel} from '@app/store/reducers/uiGeometryDesigner';
 import ParametersRoot from '@app/components/geomtry-designer/side-panel-components/parameters/ParametersRoot';
+import ElementsRoot from '@app/components/geomtry-designer/side-panel-components/elements/ElementsRoot';
 import $ from 'jquery';
 import 'jqueryui';
 
@@ -76,7 +77,10 @@ export default function SidePanel() {
 
   // eslint-disable-next-line no-undef
   let adContent: JSX.Element | null = null;
-  if (selectedTab === 'parameters') {
+
+  if (selectedTab === 'elements') {
+    adContent = <ElementsRoot />;
+  } else if (selectedTab === 'parameters') {
     adContent = <ParametersRoot />;
   }
 

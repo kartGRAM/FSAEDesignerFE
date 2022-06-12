@@ -1,7 +1,15 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 
+export type SidePanelTab =
+  | 'elements'
+  | 'parameters'
+  | 'analysis'
+  | 'style'
+  | 'visualization'
+  | 'settings';
+
 export interface SidePanelState {
-  selectedTab: 'elements' | 'parameters';
+  selectedTab: SidePanelTab;
 }
 
 export interface GDState {
@@ -12,8 +20,8 @@ export interface GDState {
 }
 
 const initialState: GDState = {
-  isFullScreen: false,
-  fullScreenZIndex: 0,
+  isFullScreen: true,
+  fullScreenZIndex: 10000000,
   selectedElementAbsPath: '',
   sidePanelState: {selectedTab: 'elements'}
 };
@@ -34,11 +42,19 @@ export const uitGeometryDesignerSlice = createSlice({
     ) => {
       state.selectedElementAbsPath = action.payload.absPath;
       state.sidePanelState.selectedTab = 'parameters';
+    },
+    selectSidePanelTab: (
+      state: GDState,
+      action: PayloadAction<{
+        tab: SidePanelTab;
+      }>
+    ) => {
+      state.sidePanelState.selectedTab = action.payload.tab;
     }
   }
 });
 
-export const {toggleFullScreen, selectElement} =
+export const {toggleFullScreen, selectElement, selectSidePanelTab} =
   uitGeometryDesignerSlice.actions;
 
 export default uitGeometryDesignerSlice.reducer;

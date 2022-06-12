@@ -9,6 +9,7 @@ export interface IAssemblyTreeViewState {
 
 export interface ISidebarState {
   backgroundColor: number;
+  selectedBgColor: number;
   iconColor: number;
 }
 
@@ -48,6 +49,7 @@ const initialState: GDState = {
     fontColor: 0xeeeeee
   },
   sidebarState: {
+    selectedBgColor: 0x555555,
     backgroundColor: 0x333333,
     iconColor: 0xdddddd
   },

@@ -16,9 +16,13 @@ import BrushIcon from '@mui/icons-material/Brush';
 import SettingsIcon from '@mui/icons-material/Settings';
 import AutoGraphIcon from '@mui/icons-material/AutoGraph';
 import ComputerIcon from '@mui/icons-material/Computer';
-import {useSelector} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 import {NumberToRGB} from '@app/utils/helpers';
 import {RootState} from '@store/store';
+import {
+  SidePanelTab,
+  selectSidePanelTab
+} from '@app/store/reducers/uiTempGeometryDesigner';
 
 const drawerWidth = 240;
 
@@ -79,10 +83,22 @@ export default function MiniDrawer() {
   const bgColor: number = useSelector(
     (state: RootState) => state.uigd.sidebarState.backgroundColor
   );
+  const selectedBgColor: number = useSelector(
+    (state: RootState) => state.uigd.sidebarState.selectedBgColor
+  );
+  const selectedTab: string = useSelector(
+    (state: RootState) => state.uitgd.sidePanelState.selectedTab
+  );
   const iconColor: number = useSelector(
     (state: RootState) => state.uigd.sidebarState.iconColor
   );
   const open = false;
+  const dispatch = useDispatch();
+
+  const panelSelect = (selectedTab: SidePanelTab) => {
+    dispatch(selectSidePanelTab({tab: selectedTab}));
+  };
+
   return (
     <Drawer variant="permanent" open={false} bgColor={bgColor}>
       <Divider />
@@ -99,7 +115,19 @@ export default function MiniDrawer() {
               sx={{
                 minHeight: 48,
                 justifyContent: open ? 'initial' : 'center',
-                px: 2.5
+                px: 2.5,
+                backgroundColor:
+                  item.text === selectedTab
+                    ? `${NumberToRGB(selectedBgColor)}!important`
+                    : undefined
+              }}
+              onClick={() => {
+                panelSelect(item.text as SidePanelTab);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'enter') {
+                  panelSelect(item.text as SidePanelTab);
+                }
               }}
             >
               <ListItemIcon
@@ -129,7 +157,19 @@ export default function MiniDrawer() {
               sx={{
                 minHeight: 48,
                 justifyContent: open ? 'initial' : 'center',
-                px: 2.5
+                px: 2.5,
+                backgroundColor:
+                  item.text === selectedTab
+                    ? `${NumberToRGB(selectedBgColor)}!important`
+                    : undefined
+              }}
+              onClick={() => {
+                panelSelect(item.text as SidePanelTab);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'enter') {
+                  panelSelect(item.text as SidePanelTab);
+                }
               }}
             >
               <ListItemIcon
