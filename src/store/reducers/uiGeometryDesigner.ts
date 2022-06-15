@@ -25,6 +25,11 @@ export interface ISidePanelState {
   panelWidth: number;
 }
 
+export interface GDParameterConfigState {
+  kinematicParamsExpanded: boolean;
+  dynamicParamsExpanded: boolean;
+}
+
 export interface GDState {
   backgroundColor: number;
   enabledColorDark: number;
@@ -33,6 +38,7 @@ export interface GDState {
   sidebarState: ISidebarState;
   sidePanelState: ISidePanelState;
   assemblyTreeViewState: IAssemblyTreeViewState;
+  parameterConfigState: GDParameterConfigState;
 }
 
 const initialState: GDState = {
@@ -59,6 +65,10 @@ const initialState: GDState = {
     collapsed: false,
     fontColor: 0xcccccc,
     panelWidth: 300
+  },
+  parameterConfigState: {
+    kinematicParamsExpanded: true,
+    dynamicParamsExpanded: true
   }
 };
 
@@ -72,10 +82,26 @@ export const uiGeometryDesignerSlice = createSlice({
       if (action.payload < state.sidePanelState.minWidth) {
         state.sidePanelState.collapsed = true;
       }
+    },
+    kinematicParamsDefaultExpandedChange: (
+      state: GDState,
+      action: PayloadAction<boolean>
+    ) => {
+      state.parameterConfigState.kinematicParamsExpanded = action.payload;
+    },
+    dynamicParamsDefaultExpandedChange: (
+      state: GDState,
+      action: PayloadAction<boolean>
+    ) => {
+      state.parameterConfigState.dynamicParamsExpanded = action.payload;
     }
   }
 });
 
-export const {resizePanel} = uiGeometryDesignerSlice.actions;
+export const {
+  resizePanel,
+  kinematicParamsDefaultExpandedChange,
+  dynamicParamsDefaultExpandedChange
+} = uiGeometryDesignerSlice.actions;
 
 export default uiGeometryDesignerSlice.reducer;

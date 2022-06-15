@@ -6,6 +6,12 @@ import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {IAArm, IDataAArm} from '@gd/IElements';
 import {getElement} from '@gd/Elements';
+import {useDispatch, useSelector} from 'react-redux';
+import {RootState} from '@store/store';
+import {
+  kinematicParamsDefaultExpandedChange,
+  dynamicParamsDefaultExpandedChange
+} from '@store/reducers/uiGeometryDesigner';
 
 interface Params {
   dataElement: IDataAArm;
@@ -15,10 +21,23 @@ export default function AArmConfig(params: Params) {
   const {dataElement} = params;
   // eslint-disable-next-line no-unused-vars
   const element = getElement(dataElement) as IAArm;
+  const dispatch = useDispatch();
+  const kinematicParamsDefaultExpanded = useSelector(
+    (state: RootState) =>
+      state.uigd.parameterConfigState.kinematicParamsExpanded
+  );
+  const dynamicParamsDefaultExpanded = useSelector(
+    (state: RootState) => state.uigd.parameterConfigState.dynamicParamsExpanded
+  );
   return (
     <>
       <Typography variant="h6">Parameters</Typography>
-      <Accordion>
+      <Accordion
+        defaultExpanded={kinematicParamsDefaultExpanded}
+        onChange={(e, expanded) => {
+          dispatch(kinematicParamsDefaultExpandedChange(expanded));
+        }}
+      >
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="panel1a-content"
@@ -28,7 +47,12 @@ export default function AArmConfig(params: Params) {
         </AccordionSummary>
         <AccordionDetails />
       </Accordion>
-      <Accordion>
+      <Accordion
+        defaultExpanded={dynamicParamsDefaultExpanded}
+        onChange={(e, expanded) => {
+          dispatch(dynamicParamsDefaultExpandedChange(expanded));
+        }}
+      >
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="panel2a-content"
