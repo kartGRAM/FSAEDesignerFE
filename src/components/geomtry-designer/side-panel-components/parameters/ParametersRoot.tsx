@@ -13,7 +13,7 @@ export default function ParametersRoot() {
   // eslint-disable-next-line no-undef
   let component: JSX.Element | null = null;
   if (element && isDataAArm(element)) {
-    component = <AArmConfig />;
+    component = <AArmConfig dataElement={element} />;
   }
 
   return component;

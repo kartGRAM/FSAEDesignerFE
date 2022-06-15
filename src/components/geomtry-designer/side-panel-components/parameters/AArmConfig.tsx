@@ -4,8 +4,17 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import {IAArm, IDataAArm} from '@gd/IElements';
+import {getElement} from '@gd/Elements';
 
-export default function AArmConfig() {
+interface Params {
+  dataElement: IDataAArm;
+}
+
+export default function AArmConfig(params: Params) {
+  const {dataElement} = params;
+  // eslint-disable-next-line no-unused-vars
+  const element = getElement(dataElement) as IAArm;
   return (
     <>
       <Typography variant="h6">Parameters</Typography>
