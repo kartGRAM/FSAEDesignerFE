@@ -45,7 +45,9 @@ export default function AArmConfig(params: Params) {
         >
           <Typography>Kinematic Parameters</Typography>
         </AccordionSummary>
-        <AccordionDetails />
+        <AccordionDetails>
+          <input />
+        </AccordionDetails>
       </Accordion>
       <Accordion
         defaultExpanded={dynamicParamsDefaultExpanded}
@@ -67,13 +69,13 @@ export default function AArmConfig(params: Params) {
           </Typography>
         </AccordionDetails>
       </Accordion>
-      <Accordion disabled>
+      <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="panel3a-content"
           id="panel3a-header"
         >
-          <Typography>Disabled Accordion</Typography>
+          <Typography>Other Configs</Typography>
         </AccordionSummary>
       </Accordion>
     </>
