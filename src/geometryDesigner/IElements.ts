@@ -58,9 +58,24 @@ export interface INodeWithPath {
 }
 
 export function getElementByPath(
-  root: IAssembly | IDataAssembly,
+  root: IAssembly | undefined | null,
+  path: string
+): IElement | null {
+  return getElementByPathCore(root, path) as IElement | null;
+}
+
+export function getDataElementByPath(
+  root: IDataAssembly | undefined | null,
+  path: string
+): IDataElement | null {
+  return getElementByPathCore(root, path) as IDataElement | null;
+}
+
+function getElementByPathCore(
+  root: IAssembly | IDataAssembly | undefined | null,
   path: string
 ): IElement | IDataElement | null {
+  if (!root) return null;
   const idx = path.indexOf(root.nodeID);
   if (idx === -1) return null;
   if (idx === 0) return root;
@@ -69,10 +84,10 @@ export function getElementByPath(
   // eslint-disable-next-line no-restricted-syntax
   for (const child of root.children) {
     if (isElement(child) && isAssembly(child)) {
-      element = getElementByPath(child, fromThis);
+      element = getElementByPathCore(child, fromThis);
       if (element != null) return element;
     } else if (isDataElement(child) && isDataAssembly(child)) {
-      element = getElementByPath(child, fromThis);
+      element = getElementByPathCore(child, fromThis);
       if (element != null) return element;
     } else if (child.nodeID === fromThis) {
       return child;

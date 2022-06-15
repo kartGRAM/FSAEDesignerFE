@@ -13,7 +13,7 @@ import {
   IDataAssembly,
   IDataElement,
   isDataAssembly,
-  getElementByPath,
+  getDataElementByPath,
   isDataElement
 } from '@app/geometryDesigner/IElements';
 import {NumberToRGB, getReversal} from '@app/utils/helpers';
@@ -57,7 +57,7 @@ const VisibilityControl = (props: VisibilityControlProps) => {
   const visible: boolean | undefined = useSelector((state: RootState) => {
     const top = state.dgd.topAssembly;
     if (top) {
-      const e = getElementByPath(top, element.absPath);
+      const e = getDataElementByPath(top, element.absPath);
       if (e && isDataElement(e)) {
         return e.visible;
       }

@@ -3,6 +3,8 @@
     "esModuleInterop": true,
 
     "paths": {
+      "@gdComponents/*": ["src/components/geomtry-designer/*"],
+      "@gd/*": ["src/geometryDesigner/*"],
       "@app/*": ["src/*"],
       "@store/*": ["src/store/*"],
       "@store": ["src/store/"],
