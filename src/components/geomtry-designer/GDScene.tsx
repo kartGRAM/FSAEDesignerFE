@@ -1,7 +1,7 @@
 import React, {useEffect, useRef} from 'react';
 import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
-import {DisposeAll} from '@app/utils/ResourceTracker';
+import {dispose, disposeAll} from '@app/utils/ResourceTracker';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 // eslint-disable-next-line no-unused-vars
@@ -16,12 +16,13 @@ interface HandleCameraAspectParams {
 export default function GDScene() {
   const canvas = useRef<HTMLCanvasElement>(null);
   const scene = useRef<THREE.Scene | null>(null);
-  /* const isFullScreen = useSelector(
-    (state: RootState) => state.uitgd.isFullScreen
-  ); */
 
   const bgColor: number = useSelector(
     (state: RootState) => state.uigd.backgroundColor
+  );
+
+  const selectedPoint = useSelector(
+    (state: RootState) => state.uitgd.gdSceneState.selectedPoint
   );
 
   const assembly: IDataAssembly | undefined = useSelector(
@@ -50,6 +51,13 @@ export default function GDScene() {
     resizeObserver.observe(canvas.current!);
 
     camera.position.set(0, 0, +3000);
+    const axes = new THREE.AxesHelper(25);
+    axes.setColors(
+      new THREE.Color(0x00ff00),
+      new THREE.Color(0x0000ff),
+      new THREE.Color(0xff0000)
+    );
+    scene.current.add(axes);
 
     // render(sample, scene);
     tick();
@@ -86,26 +94,19 @@ export default function GDScene() {
   useEffect(() => {
     const resizeObserver = init();
     return () => {
-      DisposeAll();
+      if (scene.current) disposeAll(scene.current);
       resizeObserver.disconnect();
     };
   }, []);
 
   useEffect(() => {
-    // if (!assembly) {
-    scene.current?.clear();
-    DisposeAll();
-
-    const axes = new THREE.AxesHelper(25);
-    axes.setColors(
-      new THREE.Color(0x00ff00),
-      new THREE.Color(0x0000ff),
-      new THREE.Color(0xff0000)
-    );
-    scene.current?.add(axes);
-    // }
+    if (scene.current) dispose('Assembly', scene.current);
     if (assembly && scene.current) render(getAssembly(assembly), scene.current);
   }, [assembly]);
 
+  useEffect(() => {
+    if (scene.current) dispose('Helpers', scene.current);
+    // if (assembly && scene.current) render(getAssembly(assembly), scene.current);
+  }, [selectedPoint]);
   return <canvas ref={canvas} className="gd-canvas" />;
 }

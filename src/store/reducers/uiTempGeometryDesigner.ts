@@ -1,4 +1,5 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
+import {IDataVector3} from '@gd/IElements';
 
 export type SidePanelTab =
   | 'elements'
@@ -17,13 +18,21 @@ export interface GDState {
   fullScreenZIndex: number;
   selectedElementAbsPath: string;
   sidePanelState: SidePanelState;
+  gdSceneState: GDSceneState;
+}
+
+export interface GDSceneState {
+  selectedPoint: IDataVector3 | null;
 }
 
 const initialState: GDState = {
   isFullScreen: true,
   fullScreenZIndex: 10000000,
   selectedElementAbsPath: '',
-  sidePanelState: {selectedTab: 'elements'}
+  sidePanelState: {selectedTab: 'elements'},
+  gdSceneState: {
+    selectedPoint: null
+  }
 };
 
 export const uitGeometryDesignerSlice = createSlice({

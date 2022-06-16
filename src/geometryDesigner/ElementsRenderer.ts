@@ -44,20 +44,28 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
       new THREE.PointsMaterial({
         size: 10,
         color: 0x00ff00
-      })
+      }),
+      'Assembly'
     );
-    const geometry = track(new THREE.BufferGeometry().setFromPoints(nodes));
-    const mesh = new THREE.Points(geometry, pm);
+    const geometry = track(
+      new THREE.BufferGeometry().setFromPoints(nodes),
+      'Assembly'
+    );
+    const mesh = track(new THREE.Points(geometry, pm), 'Assembly');
     scene.add(mesh);
   }
 
   if (isTire(element)) {
     const tire = element;
     let material: THREE.Material = track(
-      new THREE.MeshNormalMaterial({side: THREE.DoubleSide})
+      new THREE.MeshNormalMaterial({side: THREE.DoubleSide}),
+      'Assembly'
     );
-    const geometry = track(new THREE.CircleGeometry(tire.diameter / 2, 32));
-    const circle = new THREE.Mesh(geometry, material);
+    const geometry = track(
+      new THREE.CircleGeometry(tire.diameter / 2, 32),
+      'Assembly'
+    );
+    const circle = track(new THREE.Mesh(geometry, material), 'Assembly');
     circle.rotateX(THREE.MathUtils.degToRad(90));
     circle.applyMatrix4(
       new THREE.Matrix4().setFromMatrix3(getMatrix3(coMatrix))
@@ -69,16 +77,20 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
       new THREE.LineBasicMaterial({
         color: 0xff0000,
         linewidth: 2
-      })
+      }),
+      'Assembly'
     );
     const points = [];
     points.push(trans(tire.rightBearing));
     points.push(trans(tire.leftBearing));
     points.push(trans(tire.tireCenter));
 
-    const lgeometry = track(new THREE.BufferGeometry().setFromPoints(points));
+    const lgeometry = track(
+      new THREE.BufferGeometry().setFromPoints(points),
+      'Assembly'
+    );
 
-    const line = new THREE.Line(lgeometry, material);
+    const line = track(new THREE.Line(lgeometry, material), 'Assembly');
     scene.add(line);
   }
   if (isBar(element)) {
@@ -87,15 +99,19 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
       new THREE.LineBasicMaterial({
         color: 0xff0000,
         linewidth: 2
-      })
+      }),
+      'Assembly'
     );
     const points = [];
     points.push(trans(bar.point));
     points.push(trans(bar.fixedPoint));
 
-    const geometry = track(new THREE.BufferGeometry().setFromPoints(points));
+    const geometry = track(
+      new THREE.BufferGeometry().setFromPoints(points),
+      'Assembly'
+    );
 
-    const line = new THREE.Line(geometry, material);
+    const line = track(new THREE.Line(geometry, material), 'Assembly');
     scene.add(line);
   }
   if (isSpringDumper(element)) {
@@ -104,15 +120,19 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
       new THREE.LineBasicMaterial({
         color: 0x0000ff,
         linewidth: 2
-      })
+      }),
+      'Assembly'
     );
     const points = [];
     points.push(trans(spring.point));
     points.push(trans(spring.fixedPoint));
 
-    const geometry = track(new THREE.BufferGeometry().setFromPoints(points));
+    const geometry = track(
+      new THREE.BufferGeometry().setFromPoints(points),
+      'Assembly'
+    );
 
-    const line = new THREE.Line(geometry, material);
+    const line = track(new THREE.Line(geometry, material), 'Assembly');
     scene.add(line);
   }
   if (isAArm(element)) {
@@ -121,7 +141,8 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
       new THREE.LineBasicMaterial({
         color: 0xff0000,
         linewidth: 2
-      })
+      }),
+      'Assembly'
     );
     const points = [];
     points.push(trans(aArm.fixedPoints[0]));
@@ -130,9 +151,12 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
     const point0 = flexPoints.shift()!;
     points.push(trans(point0));
     points.push(trans(aArm.fixedPoints[1]));
-    const geometry = track(new THREE.BufferGeometry().setFromPoints(points));
+    const geometry = track(
+      new THREE.BufferGeometry().setFromPoints(points),
+      'Assembly'
+    );
 
-    const line = new THREE.Line(geometry, material);
+    const line = track(new THREE.Line(geometry, material), 'Assembly');
     scene.add(line);
   }
   if (isBellCrank(element)) {
@@ -141,13 +165,17 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
       new THREE.LineBasicMaterial({
         color: 0xff0000,
         linewidth: 2
-      })
+      }),
+      'Assembly'
     );
     let points: Vector3[] = [];
     points.push(trans(bellCrank.fixedPoints[0]));
     points.push(trans(bellCrank.fixedPoints[1]));
-    let geometry = track(new THREE.BufferGeometry().setFromPoints(points));
-    let line = new THREE.Line(geometry, material);
+    let geometry = track(
+      new THREE.BufferGeometry().setFromPoints(points),
+      'Assembly'
+    );
+    let line = track(new THREE.Line(geometry, material), 'Assembly');
     scene.add(line);
     const center = bellCrank.fixedPoints[0]
       .clone()
@@ -159,8 +187,11 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
     points.push(trans(bellCrank.points[0]));
     points.push(trans(bellCrank.points[1]));
     points.push(trans(center));
-    geometry = track(new THREE.BufferGeometry().setFromPoints(points));
-    line = new THREE.Line(geometry, material);
+    geometry = track(
+      new THREE.BufferGeometry().setFromPoints(points),
+      'Assembly'
+    );
+    line = track(new THREE.Line(geometry, material), 'Assembly');
     scene.add(line);
   }
   if (isBody(element)) {
@@ -169,7 +200,8 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
       new THREE.LineBasicMaterial({
         color: 0x00ffff,
         linewidth: 2
-      })
+      }),
+      'Assembly'
     );
 
     const nodes: Vector3[] = [];
@@ -179,10 +211,11 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
     nodes.forEach((node, i) => {
       nodes.slice(i + 1).forEach((otherNode) => {
         const geometry = track(
-          new THREE.BufferGeometry().setFromPoints([node, otherNode])
+          new THREE.BufferGeometry().setFromPoints([node, otherNode]),
+          'Assembly'
         );
         // material is not null
-        const line = new THREE.Line(geometry, material!);
+        const line = track(new THREE.Line(geometry, material!), 'Assembly');
         scene.add(line);
       });
     });

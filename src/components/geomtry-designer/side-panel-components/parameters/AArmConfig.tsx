@@ -12,6 +12,7 @@ import {
   kinematicParamsDefaultExpandedChange,
   dynamicParamsDefaultExpandedChange
 } from '@store/reducers/uiGeometryDesigner';
+import Vector from '@gdComponents/Vector';
 
 interface Params {
   dataElement: IDataAArm;
@@ -31,7 +32,7 @@ export default function AArmConfig(params: Params) {
   );
   return (
     <>
-      <Typography variant="h6">Parameters</Typography>
+      <Typography variant="h6">{dataElement.name} Parameters</Typography>
       <Accordion
         defaultExpanded={kinematicParamsDefaultExpanded}
         onChange={(e, expanded) => {
@@ -46,7 +47,9 @@ export default function AArmConfig(params: Params) {
           <Typography>Kinematic Parameters</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <input />
+          <Vector vector={dataElement.fixedPoints[0]} name="Chassis Fore" />
+          <Vector vector={dataElement.fixedPoints[0]} name="Chassis Aft" />
+          <Vector vector={dataElement.points[0]} name="Upright" />
         </AccordionDetails>
       </Accordion>
       <Accordion
@@ -60,7 +63,7 @@ export default function AArmConfig(params: Params) {
           aria-controls="panel2a-content"
           id="panel2a-header"
         >
-          <Typography>DynamicParameters</Typography>
+          <Typography>Dynamic Parameters</Typography>
         </AccordionSummary>
         <AccordionDetails>
           <Typography>
@@ -75,7 +78,7 @@ export default function AArmConfig(params: Params) {
           aria-controls="panel3a-content"
           id="panel3a-header"
         >
-          <Typography>Other Configs</Typography>
+          <Typography>Other Configurations</Typography>
         </AccordionSummary>
       </Accordion>
     </>
