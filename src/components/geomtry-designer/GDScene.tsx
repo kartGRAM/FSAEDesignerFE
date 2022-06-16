@@ -1,11 +1,10 @@
 import React, {useEffect, useRef} from 'react';
 import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
-import {dispose, disposeAll} from '@app/utils/ResourceTracker';
+import track, {dispose, disposeAll} from '@app/utils/ResourceTracker';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
-// eslint-disable-next-line no-unused-vars
-import {IAssembly, IDataAssembly} from '@app/geometryDesigner/IElements';
+import {IDataAssembly, getVector3} from '@app/geometryDesigner/IElements';
 import {getAssembly} from '@app/geometryDesigner/Elements';
 import {render} from '@app/geometryDesigner/ElementsRenderer';
 
@@ -38,7 +37,7 @@ export default function GDScene() {
     // シーンを作成
     scene.current = new THREE.Scene();
     // カメラを作成
-    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100000);
+    const camera = new THREE.PerspectiveCamera(45, 1, 100, 100000);
     // コントロールを作成
     const controls = new OrbitControls(camera, renderer.domElement);
     onResize({camera, renderer});
@@ -105,8 +104,26 @@ export default function GDScene() {
   }, [assembly]);
 
   useEffect(() => {
-    if (scene.current) dispose('Helpers', scene.current);
-    // if (assembly && scene.current) render(getAssembly(assembly), scene.current);
+    const resourceType = 'Helpers' as const;
+    if (scene.current) {
+      dispose(resourceType, scene.current);
+      if (selectedPoint) {
+        const node = getVector3(selectedPoint);
+        const pm = track(
+          new THREE.PointsMaterial({
+            size: 30,
+            color: 0xff0000
+          }),
+          resourceType
+        );
+        const geometry = track(
+          new THREE.BufferGeometry().setFromPoints([node]),
+          resourceType
+        );
+        const mesh = track(new THREE.Points(geometry, pm), resourceType);
+        scene.current.add(mesh);
+      }
+    }
   }, [selectedPoint]);
   return <canvas ref={canvas} className="gd-canvas" />;
 }

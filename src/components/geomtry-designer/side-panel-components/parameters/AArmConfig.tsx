@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, {useEffect} from 'react';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
@@ -7,6 +7,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {IAArm, IDataAArm} from '@gd/IElements';
 import {getElement} from '@gd/Elements';
 import {useDispatch, useSelector} from 'react-redux';
+import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
 import {RootState} from '@store/store';
 import {
   kinematicParamsDefaultExpandedChange,
@@ -22,6 +23,13 @@ export default function AArmConfig(params: Params) {
   const {dataElement} = params;
   // eslint-disable-next-line no-unused-vars
   const element = getElement(dataElement) as IAArm;
+
+  useEffect(() => {
+    return () => {
+      dispatch(setSelectedPoint({point: null}));
+    };
+  });
+
   const dispatch = useDispatch();
   const kinematicParamsDefaultExpanded = useSelector(
     (state: RootState) =>
@@ -46,10 +54,25 @@ export default function AArmConfig(params: Params) {
         >
           <Typography>Kinematic Parameters</Typography>
         </AccordionSummary>
-        <AccordionDetails>
-          <Vector vector={dataElement.fixedPoints[0]} name="Chassis Fore" />
-          <Vector vector={dataElement.fixedPoints[0]} name="Chassis Aft" />
-          <Vector vector={dataElement.points[0]} name="Upright" />
+        <AccordionDetails sx={{padding: 0}}>
+          <Vector
+            vector={element.fixedPoints[0]}
+            offset={element.position}
+            rotation={element.rotation}
+            name="Chassis Fore"
+          />
+          <Vector
+            vector={element.fixedPoints[1]}
+            offset={element.position}
+            rotation={element.rotation}
+            name="Chassis Aft"
+          />
+          <Vector
+            vector={element.points[0]}
+            offset={element.position}
+            rotation={element.rotation}
+            name="Upright"
+          />
         </AccordionDetails>
       </Accordion>
       <Accordion

@@ -59,11 +59,24 @@ export const uitGeometryDesignerSlice = createSlice({
       }>
     ) => {
       state.sidePanelState.selectedTab = action.payload.tab;
+    },
+
+    setSelectedPoint: (
+      state: GDState,
+      action: PayloadAction<{
+        point: IDataVector3 | null;
+      }>
+    ) => {
+      state.gdSceneState.selectedPoint = action.payload.point;
     }
   }
 });
 
-export const {toggleFullScreen, selectElement, selectSidePanelTab} =
-  uitGeometryDesignerSlice.actions;
+export const {
+  toggleFullScreen,
+  selectElement,
+  selectSidePanelTab,
+  setSelectedPoint
+} = uitGeometryDesignerSlice.actions;
 
 export default uitGeometryDesignerSlice.reducer;

@@ -64,7 +64,7 @@ const initialState: GDState = {
     minWidth: 200,
     collapsed: false,
     fontColor: 0xcccccc,
-    panelWidth: 300
+    panelWidth: 450
   },
   parameterConfigState: {
     kinematicParamsExpanded: true,
