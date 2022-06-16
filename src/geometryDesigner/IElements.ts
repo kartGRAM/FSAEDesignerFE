@@ -100,6 +100,8 @@ export interface IElement {
   readonly className: string;
   name: string;
   inertialTensor: Matrix3;
+  mass: number;
+  centerOfGravity: Vector3;
   visible: boolean | undefined;
   parent: IAssembly | null;
   readonly nodeID: string;
@@ -118,6 +120,8 @@ export interface IDataElement {
   className: string;
   name: string;
   inertialTensor: IDataMatrix3;
+  mass: number;
+  centerOfGravity: IDataVector3;
   nodeID: string;
   absPath: string;
   visible: boolean | undefined;

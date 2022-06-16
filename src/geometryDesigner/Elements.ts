@@ -240,12 +240,36 @@ export class Assembly extends Element implements IAssembly {
     return points;
   }
 
+  get mass(): number {
+    let mass = 0;
+    this.children.forEach((child) => {
+      mass += child.mass;
+    });
+    return mass;
+  }
+
+  set mass(m: number) {
+    throw Error('Not Supported Exception');
+  }
+
+  get centerOfGravity(): Vector3 {
+    const center = new Vector3();
+    this.children.forEach((child) => {
+      center.add(child.position.clone().multiplyScalar(child.mass));
+    });
+    return center;
+  }
+
+  set centerOfGravity(v: Vector3) {
+    throw Error('Not Supported Exception');
+  }
+
   get inertialTensor(): Matrix3 {
     return new Matrix3();
   }
 
   set inertialTensor(mat: Matrix3) {
-    // throw Error('Not Supported Exception');
+    throw Error('Not Supported Exception');
   }
 
   constructor(
@@ -271,6 +295,8 @@ export class Assembly extends Element implements IAssembly {
       className: this.className,
       name: this.name,
       inertialTensor: getDataMatrix3(this.inertialTensor),
+      centerOfGravity: getVector3(this.centerOfGravity),
+      mass: this.mass,
       nodeID: this.nodeID,
       absPath: this.absPath,
 
@@ -305,6 +331,10 @@ export class Bar extends Element implements IBar {
 
   visible: boolean | undefined = true;
 
+  mass: number;
+
+  centerOfGravity: Vector3;
+
   fixedPoint: Vector3;
 
   point: Vector3;
@@ -332,7 +362,11 @@ export class Bar extends Element implements IBar {
     fp.setY(-fp.y);
     const p = this.point.clone();
     p.setY(-p.y);
-    return new Bar(`mirror_${this.name}`, fp, p);
+    const ip = this.initialPosition.clone();
+    ip.setY(-ip.y);
+    const cog = this.centerOfGravity.clone();
+    cog.setY(-cog.y);
+    return new Bar(`mirror_${this.name}`, fp, p, ip, this.mass, cog);
   }
 
   get inertialTensor(): Matrix3 {
@@ -347,13 +381,17 @@ export class Bar extends Element implements IBar {
     name: string,
     fixedPoint: Vector3,
     point: Vector3,
-    initialPosition?: Vector3
+    initialPosition?: Vector3,
+    mass?: number,
+    centerOfGravity?: Vector3
   ) {
     super(name);
     this.fixedPoint = fixedPoint;
     this.point = point;
     this.initialPosition = initialPosition ?? new Vector3();
     this.position = this.initialPosition;
+    this.mass = mass ?? 0.001;
+    this.centerOfGravity = centerOfGravity ?? new Vector3();
   }
 
   getDataElement(): IDataBar {
@@ -365,6 +403,8 @@ export class Bar extends Element implements IBar {
       absPath: this.absPath,
       position: getDataVector3(this.position),
       initialPosition: getDataVector3(this.initialPosition),
+      centerOfGravity: getVector3(this.centerOfGravity),
+      mass: this.mass,
 
       fixedPoint: getDataVector3(this.fixedPoint),
       point: getDataVector3(this.point),
@@ -377,6 +417,8 @@ export class Bar extends Element implements IBar {
     super.setDataElementBase(element);
     this.visible = element.visible;
     this.inertialTensor = getMatrix3(element.inertialTensor);
+    this.mass = element.mass;
+    this.centerOfGravity = getVector3(element.centerOfGravity);
     this.position = getVector3(element.position);
     this.initialPosition = getVector3(element.initialPosition);
 
@@ -391,6 +433,10 @@ export class SpringDumper extends Element implements ISpringDumper {
   }
 
   visible: boolean | undefined = true;
+
+  mass: number;
+
+  centerOfGravity: Vector3;
 
   fixedPoint: Vector3;
 
@@ -419,12 +465,19 @@ export class SpringDumper extends Element implements ISpringDumper {
     fp.setY(-fp.y);
     const p = this.point.clone();
     p.setY(-p.y);
+    const ip = this.initialPosition.clone();
+    ip.setY(-ip.y);
+    const cog = this.centerOfGravity.clone();
+    cog.setY(-cog.y);
     return new SpringDumper(
       `mirror_${this.name}`,
       fp,
       p,
       this.dlMin,
-      this.dlMax
+      this.dlMax,
+      ip,
+      this.mass,
+      cog
     );
   }
 
@@ -446,7 +499,9 @@ export class SpringDumper extends Element implements ISpringDumper {
     point: Vector3,
     dlMin: Millimeter,
     dlMax: Millimeter,
-    initialPosition?: Vector3
+    initialPosition?: Vector3,
+    mass?: number,
+    centerOfGravity?: Vector3
   ) {
     super(name);
     this.fixedPoint = fixedPoint;
@@ -455,6 +510,8 @@ export class SpringDumper extends Element implements ISpringDumper {
     this.dlMax = dlMax;
     this.initialPosition = initialPosition ?? new Vector3();
     this.position = this.initialPosition;
+    this.mass = mass ?? 0.001;
+    this.centerOfGravity = centerOfGravity ?? new Vector3();
   }
 
   getDataElement(): IDataSpringDumper {
@@ -463,6 +520,8 @@ export class SpringDumper extends Element implements ISpringDumper {
       className: this.className,
       name: this.name,
       inertialTensor: getDataMatrix3(this.inertialTensor),
+      mass: this.mass,
+      centerOfGravity: getDataVector3(this.centerOfGravity),
       nodeID: this.nodeID,
       absPath: this.absPath,
       position: getDataVector3(this.position),
@@ -481,6 +540,8 @@ export class SpringDumper extends Element implements ISpringDumper {
 
     this.visible = element.visible;
     this.inertialTensor = getMatrix3(element.inertialTensor);
+    this.mass = element.mass;
+    this.centerOfGravity = getVector3(element.centerOfGravity);
     this.position = getVector3(element.position);
     this.initialPosition = getVector3(element.initialPosition);
 
@@ -498,6 +559,10 @@ export class AArm extends Element implements IAArm {
   }
 
   visible: boolean | undefined = true;
+
+  mass: number;
+
+  centerOfGravity: Vector3;
 
   fixedPoints: [Vector3, Vector3];
 
@@ -537,8 +602,19 @@ export class AArm extends Element implements IAArm {
       p.setY(-p.y);
       return p;
     });
+    const ip = this.initialPosition.clone();
+    ip.setY(-ip.y);
+    const cog = this.centerOfGravity.clone();
+    cog.setY(-cog.y);
     const point0 = points.shift()!;
-    return new AArm(`mirror_${this.name}`, fp, [point0, ...points]);
+    return new AArm(
+      `mirror_${this.name}`,
+      fp,
+      [point0, ...points],
+      ip,
+      this.mass,
+      this.centerOfGravity
+    );
   }
 
   get inertialTensor(): Matrix3 {
@@ -553,13 +629,17 @@ export class AArm extends Element implements IAArm {
     name: string,
     fixedPoints: [Vector3, Vector3],
     points: AtLeast1<Vector3>,
-    initialPosition?: Vector3
+    initialPosition?: Vector3,
+    mass?: number,
+    centerOfGravity?: Vector3
   ) {
     super(name);
     this.fixedPoints = fixedPoints;
     this.points = points;
     this.initialPosition = initialPosition ?? new Vector3();
     this.position = this.initialPosition;
+    this.mass = mass ?? 0.001;
+    this.centerOfGravity = centerOfGravity ?? new Vector3();
   }
 
   getDataElement(): IDataAArm {
@@ -570,6 +650,8 @@ export class AArm extends Element implements IAArm {
       className: this.className,
       name: this.name,
       inertialTensor: getDataMatrix3(this.inertialTensor),
+      mass: this.mass,
+      centerOfGravity: getDataVector3(this.centerOfGravity),
       nodeID: this.nodeID,
       absPath: this.absPath,
       position: gd3(this.position),
@@ -585,7 +667,8 @@ export class AArm extends Element implements IAArm {
 
     this.visible = element.visible;
     this.inertialTensor = getMatrix3(element.inertialTensor);
-    this.position = getVector3(element.position);
+    this.mass = element.mass;
+    this.centerOfGravity = getVector3(element.centerOfGravity);
     this.initialPosition = getVector3(element.initialPosition);
 
     const fp = element.fixedPoints.map((v) => getVector3(v));
@@ -602,6 +685,10 @@ export class BellCrank extends Element implements IBellCrank {
   }
 
   visible: boolean | undefined = true;
+
+  mass: number;
+
+  centerOfGravity: Vector3;
 
   fixedPoints: [Vector3, Vector3];
 
@@ -643,11 +730,18 @@ export class BellCrank extends Element implements IBellCrank {
     });
     const point0 = points.shift()!;
     const point1 = points.shift()!;
-    return new BellCrank(`mirror_${this.name}`, fp, [
-      point0,
-      point1,
-      ...points
-    ]);
+    const ip = this.initialPosition.clone();
+    ip.setY(-ip.y);
+    const cog = this.centerOfGravity.clone();
+    cog.setY(-cog.y);
+    return new BellCrank(
+      `mirror_${this.name}`,
+      fp,
+      [point0, point1, ...points],
+      ip,
+      this.mass,
+      cog
+    );
   }
 
   get inertialTensor(): Matrix3 {
@@ -662,13 +756,17 @@ export class BellCrank extends Element implements IBellCrank {
     name: string,
     fixedPoints: [Vector3, Vector3],
     points: AtLeast2<Vector3>,
-    initialPosition?: Vector3
+    initialPosition?: Vector3,
+    mass?: number,
+    centerOfGravity?: Vector3
   ) {
     super(name);
     this.fixedPoints = fixedPoints;
     this.points = points;
     this.initialPosition = initialPosition ?? new Vector3();
     this.position = this.initialPosition;
+    this.mass = mass ?? 0.001;
+    this.centerOfGravity = centerOfGravity ?? new Vector3();
   }
 
   getDataElement(): IDataBellCrank {
@@ -679,6 +777,8 @@ export class BellCrank extends Element implements IBellCrank {
       className: this.className,
       name: this.name,
       inertialTensor: getDataMatrix3(this.inertialTensor),
+      mass: this.mass,
+      centerOfGravity: getDataVector3(this.centerOfGravity),
       nodeID: this.nodeID,
       absPath: this.absPath,
       position: gd3(this.position),
@@ -694,6 +794,8 @@ export class BellCrank extends Element implements IBellCrank {
 
     this.visible = element.visible;
     this.inertialTensor = getMatrix3(element.inertialTensor);
+    this.mass = element.mass;
+    this.centerOfGravity = getVector3(element.centerOfGravity);
     this.position = getVector3(element.position);
     this.initialPosition = getVector3(element.initialPosition);
 
@@ -712,6 +814,10 @@ export class Body extends Element implements IBody {
   }
 
   visible: boolean | undefined = true;
+
+  mass: number;
+
+  centerOfGravity: Vector3;
 
   fixedPoints: Array<Vector3>;
 
@@ -750,7 +856,11 @@ export class Body extends Element implements IBody {
       p.setY(-p.y);
       return p;
     });
-    return new Body(`mirror_${this.name}`, fp, points);
+    const ip = this.initialPosition.clone();
+    ip.setY(-ip.y);
+    const cog = this.centerOfGravity.clone();
+    cog.setY(-cog.y);
+    return new Body(`mirror_${this.name}`, fp, points, ip, this.mass, cog);
   }
 
   get inertialTensor(): Matrix3 {
@@ -765,7 +875,9 @@ export class Body extends Element implements IBody {
     name: string,
     fixedPoints: Array<Vector3>,
     points: Array<Vector3>,
-    initialPosition?: Vector3
+    initialPosition?: Vector3,
+    mass?: number,
+    centerOfGravity?: Vector3
   ) {
     super(name);
     this.fixedPoints = fixedPoints;
@@ -773,6 +885,8 @@ export class Body extends Element implements IBody {
 
     this.initialPosition = initialPosition ?? new Vector3();
     this.position = this.initialPosition;
+    this.mass = mass ?? 0.001;
+    this.centerOfGravity = centerOfGravity ?? new Vector3();
   }
 
   getDataElement(): IDataBody {
@@ -783,6 +897,8 @@ export class Body extends Element implements IBody {
       className: this.className,
       name: this.name,
       inertialTensor: getDataMatrix3(this.inertialTensor),
+      mass: this.mass,
+      centerOfGravity: getDataVector3(this.centerOfGravity),
       nodeID: this.nodeID,
       absPath: this.absPath,
       position: gd3(this.position),
@@ -798,6 +914,8 @@ export class Body extends Element implements IBody {
 
     this.visible = element.visible;
     this.inertialTensor = getMatrix3(element.inertialTensor);
+    this.mass = element.mass;
+    this.centerOfGravity = getVector3(element.centerOfGravity);
     this.position = getVector3(element.position);
     this.initialPosition = getVector3(element.initialPosition);
 
@@ -812,6 +930,10 @@ export class Tire extends Element implements ITire {
   }
 
   visible: boolean | undefined = true;
+
+  mass: number;
+
+  centerOfGravity: Vector3;
 
   tireCenter: Vector3;
 
@@ -852,11 +974,18 @@ export class Tire extends Element implements ITire {
   getMirror(): Tire {
     const center = this.tireCenter.clone();
     center.setY(-center.y);
+    const ip = this.initialPosition.clone();
+    ip.setY(-ip.y);
+    const cog = this.centerOfGravity.clone();
+    cog.setY(-cog.y);
     return new Tire(
       `mirror_${this.name}`,
       center,
       -this.toRightBearing,
-      -this.toLeftBearing
+      -this.toLeftBearing,
+      ip,
+      this.mass,
+      cog
     );
   }
 
@@ -877,7 +1006,9 @@ export class Tire extends Element implements ITire {
     tireCenter: Vector3,
     toLeftBearing: number,
     toRightBearing: number,
-    initialPosition?: Vector3
+    initialPosition?: Vector3,
+    mass?: number,
+    centerOfGravity?: Vector3
   ) {
     super(name);
     this.tireCenter = tireCenter;
@@ -885,6 +1016,8 @@ export class Tire extends Element implements ITire {
     this.toRightBearing = toRightBearing;
     this.initialPosition = initialPosition ?? new Vector3();
     this.position = this.initialPosition;
+    this.mass = mass ?? 0.001;
+    this.centerOfGravity = centerOfGravity ?? new Vector3();
   }
 
   getDataElement(): IDataTire {
@@ -895,6 +1028,8 @@ export class Tire extends Element implements ITire {
       className: this.className,
       name: this.name,
       inertialTensor: getDataMatrix3(this.inertialTensor),
+      mass: this.mass,
+      centerOfGravity: getDataVector3(this.centerOfGravity),
       nodeID: this.nodeID,
       absPath: this.absPath,
       position: gd3(this.position),
@@ -911,6 +1046,8 @@ export class Tire extends Element implements ITire {
 
     this.visible = element.visible;
     this.inertialTensor = getMatrix3(element.inertialTensor);
+    this.mass = element.mass;
+    this.centerOfGravity = getVector3(element.centerOfGravity);
     this.position = getVector3(element.position);
     this.initialPosition = getVector3(element.initialPosition);
 

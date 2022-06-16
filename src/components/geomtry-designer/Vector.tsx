@@ -2,7 +2,7 @@ import * as React from 'react';
 import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import InputAdornment from '@mui/material/InputAdornment';
-import {IDataVector3, getMatrix3} from '@gd/IElements';
+import {getMatrix3, getDataVector3} from '@gd/IElements';
 import Typography from '@mui/material/Typography';
 import {useDispatch, useSelector} from 'react-redux';
 import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
@@ -36,10 +36,6 @@ const ValueField = (props: ValueProps) => {
   );
 };
 
-const dvec = (v: Vector3): IDataVector3 => {
-  return {x: v.x, y: v.y, z: v.z};
-};
-
 export default function Vector(props: Props) {
   const {name, vector, offset, rotation} = props;
   const rot = rotation ?? new Matrix3();
@@ -57,7 +53,7 @@ export default function Vector(props: Props) {
       .applyMatrix3(getMatrix3(coMatrix));
   };
   const handleFocus = () => {
-    dispatch(setSelectedPoint({point: dvec(trans(vector))}));
+    dispatch(setSelectedPoint({point: getDataVector3(trans(vector))}));
   };
   const handleBlur = () => {};
   return (
