@@ -311,7 +311,6 @@ export class Assembly extends Element implements IAssembly {
     super.setDataElementBase(element);
     this.children = children;
     this.joints = [...element.joints];
-    this.inertialTensor = getMatrix3(element.inertialTensor);
     this.position = getVector3(this.position);
     this.initialPosition = getVector3(this.initialPosition);
   }
@@ -669,6 +668,7 @@ export class AArm extends Element implements IAArm {
     this.inertialTensor = getMatrix3(element.inertialTensor);
     this.mass = element.mass;
     this.centerOfGravity = getVector3(element.centerOfGravity);
+    this.position = getVector3(element.position);
     this.initialPosition = getVector3(element.initialPosition);
 
     const fp = element.fixedPoints.map((v) => getVector3(v));
