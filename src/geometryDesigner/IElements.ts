@@ -11,40 +11,71 @@ export interface Joint {
 }
 
 export interface IDataVector3 {
+  absPath: string;
   x: number;
   y: number;
   z: number;
 }
 
-export type IDataMatrix3 = [
-  number,
-  number,
-  number,
-  number,
-  number,
-  number,
-  number,
-  number,
-  number
-];
+export type IDataMatrix3 = {
+  absPath: string;
+  mat: [number, number, number, number, number, number, number, number, number];
+};
 
-export function getVector3(v: IDataVector3): Vector3 {
-  return new Vector3(v.x, v.y, v.z);
+export function getVector3(v: IDataVector3): {
+  v: Vector3;
+  name: string;
+  parentPath: string;
+  absPath: string;
+} {
+  const tmp = v.absPath.split(`@`);
+  const n = tmp.pop()!;
+  const p = tmp.join(`@`);
+  return {
+    v: new Vector3(v.x, v.y, v.z),
+    name: n,
+    parentPath: p,
+    absPath: v.absPath
+  };
 }
 
-export function getMatrix3(m: IDataMatrix3): Matrix3 {
+export function getMatrix3(m: IDataMatrix3): {
+  mat: Matrix3;
+  name: string;
+  parentPath: string;
+  absPath: string;
+} {
+  const tmp = m.absPath.split(`@`);
+  const n = tmp.pop()!;
+  const p = tmp.join(`@`);
   const mat = new Matrix3();
-  mat.elements = [...m];
-  return mat;
+  mat.elements = [...m.mat];
+  return {
+    mat,
+    name: n,
+    parentPath: p,
+    absPath: m.absPath
+  };
 }
 
-export function getDataVector3(vec: Vector3): IDataVector3 {
-  return {x: vec.x, y: vec.y, z: vec.z};
+export function getDataVector3(
+  vec: Vector3,
+  name: string,
+  parentPath: string
+): IDataVector3 {
+  return {absPath: `${name}@${parentPath}`, x: vec.x, y: vec.y, z: vec.z};
 }
 
-export function getDataMatrix3(mat: Matrix3): IDataMatrix3 {
+export function getDataMatrix3(
+  mat: Matrix3,
+  name: string,
+  parentPath: string
+): IDataMatrix3 {
   const m = mat.elements;
-  return [m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8]];
+  return {
+    absPath: `${name}@${parentPath}`,
+    mat: [m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8]]
+  };
 }
 
 export interface NodeWithPath {

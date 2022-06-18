@@ -108,7 +108,7 @@ export default function GDScene() {
     if (scene.current) {
       dispose(resourceType, scene.current);
       if (selectedPoint) {
-        const node = getVector3(selectedPoint);
+        const node = getVector3(selectedPoint).v;
         const pm = track(
           new THREE.PointsMaterial({
             size: 30,

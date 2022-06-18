@@ -56,22 +56,19 @@ export default function AArmConfig(params: Params) {
         </AccordionSummary>
         <AccordionDetails sx={{padding: 0}}>
           <Vector
-            vector={element.fixedPoints[0]}
+            vector={dataElement.fixedPoints[0]}
             offset={element.position}
             rotation={element.rotation}
-            name="Chassis Fore"
           />
           <Vector
-            vector={element.fixedPoints[1]}
+            vector={dataElement.fixedPoints[1]}
             offset={element.position}
             rotation={element.rotation}
-            name="Chassis Aft"
           />
           <Vector
-            vector={element.points[0]}
+            vector={dataElement.points[0]}
             offset={element.position}
             rotation={element.rotation}
-            name="Upright"
           />
         </AccordionDetails>
       </Accordion>

@@ -119,9 +119,76 @@ export abstract class Element {
     this.name = name;
   }
 
+  abstract get className(): string;
+
+  abstract get visible(): boolean | undefined;
+
+  // eslint-disable-next-line no-unused-vars
+  abstract set visible(b: boolean | undefined);
+
+  abstract get mass(): number;
+
+  // eslint-disable-next-line no-unused-vars
+  abstract set mass(m: number);
+
+  abstract get position(): Vector3;
+
+  // eslint-disable-next-line no-unused-vars
+  abstract set position(p: Vector3);
+
+  abstract get initialPosition(): Vector3;
+
+  // eslint-disable-next-line no-unused-vars
+  abstract set initialPosition(p: Vector3);
+
+  abstract get centerOfGravity(): Vector3;
+
+  // eslint-disable-next-line no-unused-vars
+  abstract set centerOfGravity(v: Vector3);
+
+  abstract get inertialTensor(): Matrix3;
+
+  // eslint-disable-next-line no-unused-vars
+  abstract set inertialTensor(mat: Matrix3);
+
+  getDataElementBase(): IDataElement {
+    return {
+      className: this.className,
+      name: this.name,
+      inertialTensor: getDataMatrix3(
+        this.inertialTensor,
+        'inertialTensor',
+        this.absPath
+      ),
+      centerOfGravity: getDataVector3(
+        this.centerOfGravity,
+        'centerOfGraity',
+        this.absPath
+      ),
+      mass: this.mass,
+      nodeID: this.nodeID,
+      absPath: this.absPath,
+
+      position: getDataVector3(this.position, 'position', this.absPath),
+      initialPosition: getDataVector3(
+        this.initialPosition,
+        'initialPosition',
+        this.absPath
+      ),
+      visible: this.visible
+    };
+  }
+
   setDataElementBase(element: IDataElement) {
     this.name = element.name;
     this._nodeID = element.nodeID;
+    this.position = getVector3(element.position).v;
+    this.initialPosition = getVector3(element.initialPosition).v;
+
+    this.visible = element.visible;
+    this.inertialTensor = getMatrix3(element.inertialTensor).mat;
+    this.mass = element.mass;
+    this.centerOfGravity = getVector3(element.centerOfGravity).v;
   }
 }
 
@@ -142,8 +209,6 @@ export class Assembly extends Element implements IAssembly {
       child.parent = this;
     });
   }
-
-  // _visible: boolean | undefined = true;
 
   get visible(): boolean | undefined {
     let allTrue = true;
@@ -248,9 +313,8 @@ export class Assembly extends Element implements IAssembly {
     return mass;
   }
 
-  set mass(m: number) {
-    throw Error('Not Supported Exception');
-  }
+  // eslint-disable-next-line no-empty-function
+  set mass(m: number) {}
 
   get centerOfGravity(): Vector3 {
     const center = new Vector3();
@@ -260,17 +324,15 @@ export class Assembly extends Element implements IAssembly {
     return center;
   }
 
-  set centerOfGravity(v: Vector3) {
-    throw Error('Not Supported Exception');
-  }
+  // eslint-disable-next-line no-empty-function
+  set centerOfGravity(v: Vector3) {}
 
   get inertialTensor(): Matrix3 {
     return new Matrix3();
   }
 
-  set inertialTensor(mat: Matrix3) {
-    throw Error('Not Supported Exception');
-  }
+  // eslint-disable-next-line no-empty-function
+  set inertialTensor(mat: Matrix3) {}
 
   constructor(
     name: string,
@@ -289,20 +351,11 @@ export class Assembly extends Element implements IAssembly {
   }
 
   getDataElement(): IDataAssembly {
+    const baseData = super.getDataElementBase();
     const data: IDataAssembly = {
+      ...baseData,
       children: this.children.map((child) => child.getDataElement()),
-      joints: [...this.joints],
-      className: this.className,
-      name: this.name,
-      inertialTensor: getDataMatrix3(this.inertialTensor),
-      centerOfGravity: getVector3(this.centerOfGravity),
-      mass: this.mass,
-      nodeID: this.nodeID,
-      absPath: this.absPath,
-
-      position: getDataVector3(this.position),
-      initialPosition: getDataVector3(this.initialPosition),
-      visible: this.visible
+      joints: [...this.joints]
     };
     return data;
   }
@@ -311,8 +364,6 @@ export class Assembly extends Element implements IAssembly {
     super.setDataElementBase(element);
     this.children = children;
     this.joints = [...element.joints];
-    this.position = getVector3(this.position);
-    this.initialPosition = getVector3(this.initialPosition);
   }
 }
 
@@ -394,35 +445,21 @@ export class Bar extends Element implements IBar {
   }
 
   getDataElement(): IDataBar {
-    const data: IDataBar = {
-      className: this.className,
-      name: this.name,
-      inertialTensor: getDataMatrix3(this.inertialTensor),
-      nodeID: this.nodeID,
-      absPath: this.absPath,
-      position: getDataVector3(this.position),
-      initialPosition: getDataVector3(this.initialPosition),
-      centerOfGravity: getVector3(this.centerOfGravity),
-      mass: this.mass,
+    const baseData = super.getDataElementBase();
 
-      fixedPoint: getDataVector3(this.fixedPoint),
-      point: getDataVector3(this.point),
-      visible: this.visible
+    const data: IDataBar = {
+      ...baseData,
+      fixedPoint: getDataVector3(this.fixedPoint, 'fixedPoint', this.absPath),
+      point: getDataVector3(this.point, 'point', this.absPath)
     };
     return data;
   }
 
   setDataElement(element: IDataBar) {
     super.setDataElementBase(element);
-    this.visible = element.visible;
-    this.inertialTensor = getMatrix3(element.inertialTensor);
-    this.mass = element.mass;
-    this.centerOfGravity = getVector3(element.centerOfGravity);
-    this.position = getVector3(element.position);
-    this.initialPosition = getVector3(element.initialPosition);
 
-    this.fixedPoint = getVector3(element.fixedPoint);
-    this.point = getVector3(element.point);
+    this.fixedPoint = getVector3(element.fixedPoint).v;
+    this.point = getVector3(element.point).v;
   }
 }
 
@@ -514,20 +551,11 @@ export class SpringDumper extends Element implements ISpringDumper {
   }
 
   getDataElement(): IDataSpringDumper {
+    const baseData = super.getDataElementBase();
     const data: IDataSpringDumper = {
-      visible: this.visible,
-      className: this.className,
-      name: this.name,
-      inertialTensor: getDataMatrix3(this.inertialTensor),
-      mass: this.mass,
-      centerOfGravity: getDataVector3(this.centerOfGravity),
-      nodeID: this.nodeID,
-      absPath: this.absPath,
-      position: getDataVector3(this.position),
-      initialPosition: getDataVector3(this.initialPosition),
-
-      fixedPoint: getDataVector3(this.fixedPoint),
-      point: getDataVector3(this.point),
+      ...baseData,
+      fixedPoint: getDataVector3(this.fixedPoint, 'fixedPoint', this.absPath),
+      point: getDataVector3(this.point, 'point', this.absPath),
       dlMin: this.dlMin,
       dlMax: this.dlMax
     };
@@ -536,16 +564,8 @@ export class SpringDumper extends Element implements ISpringDumper {
 
   setDataElement(element: IDataSpringDumper) {
     super.setDataElementBase(element);
-
-    this.visible = element.visible;
-    this.inertialTensor = getMatrix3(element.inertialTensor);
-    this.mass = element.mass;
-    this.centerOfGravity = getVector3(element.centerOfGravity);
-    this.position = getVector3(element.position);
-    this.initialPosition = getVector3(element.initialPosition);
-
-    this.fixedPoint = getVector3(element.fixedPoint);
-    this.point = getVector3(element.point);
+    this.fixedPoint = getVector3(element.fixedPoint).v;
+    this.point = getVector3(element.point).v;
 
     this.dlMin = element.dlMin;
     this.dlMax = element.dlMax;
@@ -641,39 +661,35 @@ export class AArm extends Element implements IAArm {
     this.centerOfGravity = centerOfGravity ?? new Vector3();
   }
 
+  fixedPointName = ['chassisFore', 'chassisAft'];
+
+  pointName = ['upright', 'attachedPoint'];
+
   getDataElement(): IDataAArm {
+    const baseData = super.getDataElementBase();
     const gd3 = getDataVector3;
 
     const data: IDataAArm = {
-      visible: this.visible,
-      className: this.className,
-      name: this.name,
-      inertialTensor: getDataMatrix3(this.inertialTensor),
-      mass: this.mass,
-      centerOfGravity: getDataVector3(this.centerOfGravity),
-      nodeID: this.nodeID,
-      absPath: this.absPath,
-      position: gd3(this.position),
-      initialPosition: gd3(this.initialPosition),
-      fixedPoints: this.fixedPoints.map((point) => gd3(point)),
-      points: this.points.map((point) => gd3(point))
+      ...baseData,
+      fixedPoints: this.fixedPoints.map((point, i) =>
+        gd3(point, this.fixedPointName[i], this.absPath)
+      ),
+      points: this.points.map((point, i) =>
+        gd3(
+          point,
+          i < 1 ? this.pointName[i] : `${this.pointName[1]}${i - 1}`,
+          this.absPath
+        )
+      )
     };
     return data;
   }
 
   setDataElement(element: IDataAArm) {
     super.setDataElementBase(element);
-
-    this.visible = element.visible;
-    this.inertialTensor = getMatrix3(element.inertialTensor);
-    this.mass = element.mass;
-    this.centerOfGravity = getVector3(element.centerOfGravity);
-    this.position = getVector3(element.position);
-    this.initialPosition = getVector3(element.initialPosition);
-
-    const fp = element.fixedPoints.map((v) => getVector3(v));
+    const fp = element.fixedPoints.map((v) => getVector3(v).v);
     this.fixedPoints = [fp[0], fp[1]];
-    const p = element.points.map((v) => getVector3(v));
+    const p = element.points.map((v) => getVector3(v).v);
     const point0 = p.shift()!;
     this.points = [point0, ...p];
   }
@@ -769,39 +785,35 @@ export class BellCrank extends Element implements IBellCrank {
     this.centerOfGravity = centerOfGravity ?? new Vector3();
   }
 
+  fixedPointName = ['pivot1', 'pivot2'];
+
+  pointName = ['coilover', 'rod', 'attachment'];
+
   getDataElement(): IDataBellCrank {
+    const baseData = super.getDataElementBase();
     const gd3 = getDataVector3;
 
     const data: IDataBellCrank = {
-      visible: this.visible,
-      className: this.className,
-      name: this.name,
-      inertialTensor: getDataMatrix3(this.inertialTensor),
-      mass: this.mass,
-      centerOfGravity: getDataVector3(this.centerOfGravity),
-      nodeID: this.nodeID,
-      absPath: this.absPath,
-      position: gd3(this.position),
-      initialPosition: gd3(this.initialPosition),
-      fixedPoints: this.fixedPoints.map((point) => gd3(point)),
-      points: this.points.map((point) => gd3(point))
+      ...baseData,
+      fixedPoints: this.fixedPoints.map((point, i) =>
+        gd3(point, this.fixedPointName[i], this.absPath)
+      ),
+      points: this.points.map((point, i) =>
+        gd3(
+          point,
+          i < 2 ? this.pointName[i] : `${this.pointName[2]}${i - 2}`,
+          this.absPath
+        )
+      )
     };
     return data;
   }
 
   setDataElement(element: IDataBellCrank) {
     super.setDataElementBase(element);
-
-    this.visible = element.visible;
-    this.inertialTensor = getMatrix3(element.inertialTensor);
-    this.mass = element.mass;
-    this.centerOfGravity = getVector3(element.centerOfGravity);
-    this.position = getVector3(element.position);
-    this.initialPosition = getVector3(element.initialPosition);
-
-    const fp = element.fixedPoints.map((v) => getVector3(v));
+    const fp = element.fixedPoints.map((v) => getVector3(v).v);
     this.fixedPoints = [fp[0], fp[1]];
-    const p = element.points.map((v) => getVector3(v));
+    const p = element.points.map((v) => getVector3(v).v);
     const point0 = p.shift()!;
     const point1 = p.shift()!;
     this.points = [point0, point1, ...p];
@@ -890,19 +902,11 @@ export class Body extends Element implements IBody {
   }
 
   getDataElement(): IDataBody {
+    const baseData = super.getDataElementBase();
     const gd3 = getDataVector3;
 
     const data: IDataBody = {
-      visible: this.visible,
-      className: this.className,
-      name: this.name,
-      inertialTensor: getDataMatrix3(this.inertialTensor),
-      mass: this.mass,
-      centerOfGravity: getDataVector3(this.centerOfGravity),
-      nodeID: this.nodeID,
-      absPath: this.absPath,
-      position: gd3(this.position),
-      initialPosition: gd3(this.initialPosition),
+      ...baseData,
       fixedPoints: this.fixedPoints.map((point) => gd3(point)),
       points: this.points.map((point) => gd3(point))
     };
@@ -911,16 +915,8 @@ export class Body extends Element implements IBody {
 
   setDataElement(element: IDataBellCrank) {
     super.setDataElementBase(element);
-
-    this.visible = element.visible;
-    this.inertialTensor = getMatrix3(element.inertialTensor);
-    this.mass = element.mass;
-    this.centerOfGravity = getVector3(element.centerOfGravity);
-    this.position = getVector3(element.position);
-    this.initialPosition = getVector3(element.initialPosition);
-
-    this.fixedPoints = element.fixedPoints.map((v) => getVector3(v));
-    this.points = element.points.map((v) => getVector3(v));
+    this.fixedPoints = element.fixedPoints.map((v) => getVector3(v).v);
+    this.points = element.points.map((v) => getVector3(v).v);
   }
 }
 
@@ -1021,19 +1017,11 @@ export class Tire extends Element implements ITire {
   }
 
   getDataElement(): IDataTire {
+    const baseData = super.getDataElementBase();
     const gd3 = getDataVector3;
 
     const data: IDataTire = {
-      visible: this.visible,
-      className: this.className,
-      name: this.name,
-      inertialTensor: getDataMatrix3(this.inertialTensor),
-      mass: this.mass,
-      centerOfGravity: getDataVector3(this.centerOfGravity),
-      nodeID: this.nodeID,
-      absPath: this.absPath,
-      position: gd3(this.position),
-      initialPosition: gd3(this.initialPosition),
+      ...baseData,
       tireCenter: gd3(this.tireCenter),
       toLeftBearing: this.toLeftBearing,
       toRightBearing: this.toRightBearing
@@ -1043,15 +1031,7 @@ export class Tire extends Element implements ITire {
 
   setDataElement(element: IDataTire) {
     super.setDataElementBase(element);
-
-    this.visible = element.visible;
-    this.inertialTensor = getMatrix3(element.inertialTensor);
-    this.mass = element.mass;
-    this.centerOfGravity = getVector3(element.centerOfGravity);
-    this.position = getVector3(element.position);
-    this.initialPosition = getVector3(element.initialPosition);
-
-    this.tireCenter = getVector3(element.tireCenter);
+    this.tireCenter = getVector3(element.tireCenter).v;
     this.toLeftBearing = element.toLeftBearing;
     this.toRightBearing = element.toRightBearing;
   }

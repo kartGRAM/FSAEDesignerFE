@@ -32,7 +32,7 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
     return position
       .clone()
       .add(p.clone().applyMatrix3(rotation))
-      .applyMatrix3(getMatrix3(coMatrix));
+      .applyMatrix3(getMatrix3(coMatrix).mat);
   };
   // show nodes
   {
