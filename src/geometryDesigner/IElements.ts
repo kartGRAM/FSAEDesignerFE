@@ -1,6 +1,11 @@
 import {AtLeast1, AtLeast2} from '@app/utils/atLeast';
 import {zip2} from '@app/utils/zip';
-import {Vector3, Matrix3} from './NamedLinearAlgebra';
+import {
+  Vector3,
+  Matrix3,
+  IDataVector3,
+  IDataMatrix3
+} from './NamedLinearAlgebra';
 
 export type Radian = number;
 export type ElementID = number;
@@ -9,40 +14,6 @@ export type Millimeter = number;
 export interface Joint {
   lhs: [ElementID, NodeID];
   rhs: [ElementID, NodeID];
-}
-
-export interface IDataVector3 {
-  absPath: string;
-  x: number;
-  y: number;
-  z: number;
-}
-
-export type IDataMatrix3 = {
-  absPath: string;
-  elements: [
-    number,
-    number,
-    number,
-    number,
-    number,
-    number,
-    number,
-    number,
-    number
-  ];
-};
-
-export function getVector3(parent: IElement, v: IDataVector3): Vector3 {
-  const name = v.absPath.split('@').pop()!;
-  return new Vector3(name, parent, v.x, v.y, v.z);
-}
-
-export function getMatrix3(parent: IElement, m: IDataMatrix3): Matrix3 {
-  const name = m.absPath.split('@').pop()!;
-  const mat = new Matrix3(name, parent);
-  mat.elements = {...m.elements};
-  return mat;
 }
 
 export function syncVisible(target: IDataElement, source: IElement) {
