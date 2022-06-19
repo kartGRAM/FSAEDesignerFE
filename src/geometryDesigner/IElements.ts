@@ -1,5 +1,6 @@
-import {Vector3, Matrix3} from 'three';
 import {AtLeast1, AtLeast2} from '@app/utils/atLeast';
+import {zip2} from '@app/utils/zip';
+import {Vector3, Matrix3} from './NamedLinearAlgebra';
 
 export type Radian = number;
 export type ElementID = number;
@@ -19,63 +20,39 @@ export interface IDataVector3 {
 
 export type IDataMatrix3 = {
   absPath: string;
-  mat: [number, number, number, number, number, number, number, number, number];
+  elements: [
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number
+  ];
 };
 
-export function getVector3(v: IDataVector3): {
-  v: Vector3;
-  name: string;
-  parentPath: string;
-  absPath: string;
-} {
-  const tmp = v.absPath.split(`@`);
-  const n = tmp.pop()!;
-  const p = tmp.join(`@`);
-  return {
-    v: new Vector3(v.x, v.y, v.z),
-    name: n,
-    parentPath: p,
-    absPath: v.absPath
-  };
+export function getVector3(parent: IElement, v: IDataVector3): Vector3 {
+  const name = v.absPath.split('@').pop()!;
+  return new Vector3(name, parent, v.x, v.y, v.z);
 }
 
-export function getMatrix3(m: IDataMatrix3): {
-  mat: Matrix3;
-  name: string;
-  parentPath: string;
-  absPath: string;
-} {
-  const tmp = m.absPath.split(`@`);
-  const n = tmp.pop()!;
-  const p = tmp.join(`@`);
-  const mat = new Matrix3();
-  mat.elements = [...m.mat];
-  return {
-    mat,
-    name: n,
-    parentPath: p,
-    absPath: m.absPath
-  };
+export function getMatrix3(parent: IElement, m: IDataMatrix3): Matrix3 {
+  const name = m.absPath.split('@').pop()!;
+  const mat = new Matrix3(name, parent);
+  mat.elements = {...m.elements};
+  return mat;
 }
 
-export function getDataVector3(
-  vec: Vector3,
-  name: string,
-  parentPath: string
-): IDataVector3 {
-  return {absPath: `${name}@${parentPath}`, x: vec.x, y: vec.y, z: vec.z};
-}
-
-export function getDataMatrix3(
-  mat: Matrix3,
-  name: string,
-  parentPath: string
-): IDataMatrix3 {
-  const m = mat.elements;
-  return {
-    absPath: `${name}@${parentPath}`,
-    mat: [m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8]]
-  };
+export function syncVisible(target: IDataElement, source: IElement) {
+  if (isAssembly(source) && isDataAssembly(target)) {
+    // eslint-disable-next-line no-restricted-syntax
+    for (const [e, d] of zip2(source.children, target.children)) {
+      syncVisible(d, e);
+    }
+  }
+  target.visible = source.visible;
 }
 
 export interface NodeWithPath {

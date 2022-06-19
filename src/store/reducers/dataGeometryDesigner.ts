@@ -2,6 +2,7 @@ import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {
   IDataMatrix3,
   IDataAssembly,
+  syncVisible,
   getElementByPath
 } from '@app/geometryDesigner/IElements';
 import {getAssembly} from '@app/geometryDesigner/Elements';
@@ -52,10 +53,10 @@ export const dataGeometryDesignerSlice = createSlice({
       if (state.topAssembly) {
         const assembly = getAssembly(state.topAssembly);
         const element = getElementByPath(assembly, action.payload.absPath);
-        if (element) {
+        if (assembly && element) {
           element.visible = action.payload.visibility;
+          syncVisible(state.topAssembly, assembly);
         }
-        state.topAssembly = assembly.getDataElement() as IDataAssembly;
       }
     }
   }
