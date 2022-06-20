@@ -1,10 +1,10 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {
-  IDataMatrix3,
   IDataAssembly,
   syncVisible,
   getElementByPath
 } from '@app/geometryDesigner/IElements';
+import {IDataMatrix3} from '@gd/NamedValues';
 import {getAssembly} from '@app/geometryDesigner/Elements';
 
 export interface IAssemblyTreeViewState {
@@ -20,11 +20,10 @@ export interface GDState {
 const initialState: GDState = {
   topAssembly: undefined,
   // eslint-disable-next-line prettier/prettier
-  transCoordinateMatrix: [
-    0, 0, 1,
-    1, 0, 0,
-    0, 1, 0
-  ]
+  transCoordinateMatrix: {
+    absPath: 'transCoordinateMatrix@global',
+    elements: [0, 0, 1, 1, 0, 0, 0, 1, 0]
+  }
 };
 
 export const dataGeometryDesignerSlice = createSlice({

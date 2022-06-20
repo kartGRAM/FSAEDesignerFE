@@ -4,8 +4,9 @@ import {RootState} from '@store/store';
 import track, {dispose, disposeAll} from '@app/utils/ResourceTracker';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
-import {IDataAssembly, getVector3} from '@app/geometryDesigner/IElements';
-import {getAssembly} from '@app/geometryDesigner/Elements';
+import {IDataAssembly} from '@gd/IElements';
+import {getAssembly} from '@gd/Elements';
+import {Vector3} from '@gd/NamedValues';
 import {render} from '@app/geometryDesigner/ElementsRenderer';
 
 interface HandleCameraAspectParams {
@@ -108,7 +109,7 @@ export default function GDScene() {
     if (scene.current) {
       dispose(resourceType, scene.current);
       if (selectedPoint) {
-        const node = getVector3(selectedPoint).v;
+        const node = new Vector3(selectedPoint);
         const pm = track(
           new THREE.PointsMaterial({
             size: 30,

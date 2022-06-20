@@ -1,11 +1,6 @@
 import {AtLeast1, AtLeast2} from '@app/utils/atLeast';
 import {zip2} from '@app/utils/zip';
-import {
-  Vector3,
-  Matrix3,
-  IDataVector3,
-  IDataMatrix3
-} from './NamedLinearAlgebra';
+import {Vector3, Matrix3, IDataVector3, IDataMatrix3} from './NamedValues';
 
 export type Radian = number;
 export type ElementID = number;

@@ -1,13 +1,9 @@
 /* eslint-disable max-classes-per-file */
 /* eslint-disable class-methods-use-this */
-import {Vector3, Matrix3} from 'three';
+import {Vector3, Matrix3} from '@gd/NamedValues';
 import {AtLeast1, AtLeast2} from '@app/utils/atLeast';
 import {v1 as uuidv1} from 'uuid';
 import {
-  getDataMatrix3,
-  getMatrix3,
-  getDataVector3,
-  getVector3,
   Millimeter,
   Joint,
   ElementID,
@@ -114,9 +110,18 @@ export abstract class Element {
     return this._nodeID;
   }
 
-  constructor(name: string) {
+  private isData = (params: any): params is IDataElement => 'absPath' in params;
+
+  constructor(params: {name: string} | IDataElement) {
     this._nodeID = uuidv1(); // ⇨ '2c5ea4c0-4067-11e9-8bad-9b1deb4d3b7d'
-    this.name = name;
+    if (this.isData(params)) {
+      const element = params;
+      this.name = element.name;
+      this._nodeID = element.nodeID;
+    } else {
+      const {name} = params;
+      this.name = name;
+    }
   }
 
   abstract get className(): string;
@@ -155,40 +160,26 @@ export abstract class Element {
     return {
       className: this.className,
       name: this.name,
-      inertialTensor: getDataMatrix3(
-        this.inertialTensor,
-        'inertialTensor',
-        this.absPath
-      ),
-      centerOfGravity: getDataVector3(
-        this.centerOfGravity,
-        'centerOfGraity',
-        this.absPath
-      ),
+      inertialTensor: this.inertialTensor.getData(this),
+      centerOfGravity: this.centerOfGravity.getData(this),
       mass: this.mass,
       nodeID: this.nodeID,
       absPath: this.absPath,
 
-      position: getDataVector3(this.position, 'position', this.absPath),
-      initialPosition: getDataVector3(
-        this.initialPosition,
-        'initialPosition',
-        this.absPath
-      ),
+      position: this.position.getData(this),
+      initialPosition: this.initialPosition.getData(this),
       visible: this.visible
     };
   }
 
-  setDataElementBase(element: IDataElement) {
-    this.name = element.name;
-    this._nodeID = element.nodeID;
-    this.position = getVector3(element.position).v;
-    this.initialPosition = getVector3(element.initialPosition).v;
+  setDataAbstracts(element: IDataElement): void {
+    this.position = new Vector3(element.position);
+    this.initialPosition = new Vector3(element.initialPosition);
 
     this.visible = element.visible;
-    this.inertialTensor = getMatrix3(element.inertialTensor).mat;
+    this.inertialTensor = new Matrix3(element.inertialTensor);
     this.mass = element.mass;
-    this.centerOfGravity = getVector3(element.centerOfGravity).v;
+    this.centerOfGravity = new Vector3(element.centerOfGravity);
   }
 }
 
@@ -334,20 +325,36 @@ export class Assembly extends Element implements IAssembly {
   // eslint-disable-next-line no-empty-function
   set inertialTensor(mat: Matrix3) {}
 
+  private isData = (params: any): params is IDataAssembly =>
+    'absPath' in params;
+
   constructor(
-    name: string,
-    children: IElement[],
-    joints: Joint[],
-    initialPosition?: Vector3
+    params:
+      | {
+          name: string;
+          children: IElement[];
+          joints: Joint[];
+          initialPosition?: Vector3;
+        }
+      | IDataAssembly
   ) {
-    super(name);
-    this._children = children;
-    this.children.forEach((child) => {
-      child.parent = this;
-    });
-    this.joints = joints;
-    this.initialPosition = initialPosition ?? new Vector3();
-    this.arrange();
+    super(params);
+    if (this.isData(params)) {
+      super.setDataAbstracts(params);
+      this.children = children;
+      this.joints = [...element.joints];
+    } else {
+      const {children, joints, initialPosition} = params;
+
+      this._children = children;
+      this.children.forEach((child) => {
+        child.parent = this;
+      });
+      this.joints = joints;
+      this.initialPosition =
+        initialPosition ?? new Vector3({name: 'initialPosition'});
+      this.arrange();
+    }
   }
 
   getDataElement(): IDataAssembly {
@@ -360,11 +367,7 @@ export class Assembly extends Element implements IAssembly {
     return data;
   }
 
-  setDataElement(element: IDataAssembly, children: IElement[]) {
-    super.setDataElementBase(element);
-    this.children = children;
-    this.joints = [...element.joints];
-  }
+  setDataElement(element: IDataAssembly, children: IElement[]) {}
 }
 
 export class Frame extends Assembly {

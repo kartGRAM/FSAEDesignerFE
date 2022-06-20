@@ -1,9 +1,8 @@
 import * as THREE from 'three';
 import track from '@app/utils/ResourceTracker';
-import {Vector3, Matrix3} from 'three';
+import {Vector3, Matrix3} from '@gd/NamedValues';
 import store from '@store/store';
 import {
-  getMatrix3,
   IElement,
   isAssembly,
   isBar,
@@ -25,14 +24,16 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
     });
     return;
   }
-  const position = element.position ?? new Vector3(0, 0, 0);
-  const rotation = element.rotation ?? new Matrix3();
+  const position = element.position ?? new Vector3({name: 'position'});
+  const rotation = element.rotation ?? new Matrix3({name: 'rotation'});
   const coMatrix = store.getState().dgd.transCoordinateMatrix;
   const trans = (p: Vector3) => {
-    return position
+    const tmp = position
       .clone()
       .add(p.clone().applyMatrix3(rotation))
-      .applyMatrix3(getMatrix3(coMatrix).mat);
+      .applyMatrix3(new Matrix3(coMatrix));
+    tmp.name = p.name;
+    return tmp;
   };
   // show nodes
   {
@@ -68,7 +69,7 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
     const circle = track(new THREE.Mesh(geometry, material), 'Assembly');
     circle.rotateX(THREE.MathUtils.degToRad(90));
     circle.applyMatrix4(
-      new THREE.Matrix4().setFromMatrix3(getMatrix3(coMatrix))
+      new THREE.Matrix4().setFromMatrix3(new Matrix3(coMatrix))
     );
     circle.position.add(trans(tire.tireCenter));
     scene.add(circle);
