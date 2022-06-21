@@ -107,6 +107,8 @@ export interface IDataElement {
 export interface IAssembly extends IElement {
   children: IElement[];
   joints: Joint[];
+
+  getDataElement(): IDataAssembly;
 }
 
 export interface IDataAssembly extends IDataElement {

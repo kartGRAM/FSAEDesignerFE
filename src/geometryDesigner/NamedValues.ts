@@ -1,21 +1,23 @@
 /* eslint-disable max-classes-per-file */
-import {Vector3 as TV3, Matrix3 as TM3} from 'three';
+import {Vector3, Matrix3} from 'three';
+import {IElement} from '@gd/IElements';
 
-export interface INamedData {
-  absPath: string;
+/* export interface IData {
+  className: string;
 }
 
-export interface IDataPrimitive<T> extends INamedData {
-  value: T;
-}
+const isData = (
+  params: IDataVector3 | INamedVector3Constructor
+): params is IDataVector3 => 'className' in params;
+*/
 
-export interface IDataVector3 extends INamedData {
+export interface IDataVector3 {
   x: number;
   y: number;
   z: number;
 }
 
-export interface IDataMatrix3 extends INamedData {
+export interface IDataMatrix3 {
   elements: [
     number,
     number,
@@ -29,139 +31,110 @@ export interface IDataMatrix3 extends INamedData {
   ];
 }
 
-interface IPartialElement {
-  readonly absPath: string;
-}
-
 interface INamedValue {
   readonly className: string;
   name: string;
-  // eslint-disable-next-line no-unused-vars
-  getData(parent: IPartialElement): INamedData;
+  parent: IElement;
+  value: any;
+  getData(): any;
 }
 
-interface IPrimitiveConstructor<T> {
+interface INamedPrimitiveConstructor<T> {
   name: string;
   value: T;
+  parent: IElement;
 }
 
-export class Primitive<T> implements INamedValue {
+export class NamedPrimitive<T> implements INamedValue {
   className: string;
 
   name: string;
 
   value: T;
 
-  private isData = (
-    params: IDataPrimitive<T> | IPrimitiveConstructor<T>
-  ): params is IDataPrimitive<T> => 'absPath' in params;
+  parent: IElement;
 
-  constructor(params: IPrimitiveConstructor<T> | IDataPrimitive<T>) {
-    this.className = typeof params.value;
-    this.value = params.value;
-    if (this.isData(params)) {
-      const path = params.absPath.split('@');
-      this.name = path.pop()!;
-    } else {
-      const {name} = params;
-      this.name = name;
-    }
+  constructor(params: INamedPrimitiveConstructor<T>) {
+    const {name, value, parent} = params;
+    this.className = typeof value;
+    this.value = value;
+    this.name = name;
+    this.parent = parent;
   }
 
-  getData(parent: IPartialElement): IDataPrimitive<T> {
-    return {
-      absPath: `${this.name}@${parent.absPath}`,
-      value: this.value
-    };
+  getData(): T {
+    return this.value;
   }
 }
 
-interface IVector3Constructor {
+interface INamedVector3Constructor {
   name: string;
+  parent: IElement;
+  data?: IDataVector3;
   x?: number;
   y?: number;
   z?: number;
 }
 
-export class Vector3 extends TV3 implements INamedValue {
+export class NamedVector3 implements INamedValue {
   readonly className: string = 'Vector3';
 
   name: string;
 
-  private isData = (
-    params: IDataVector3 | IVector3Constructor
-  ): params is IDataVector3 => 'absPath' in params;
+  value: Vector3;
 
-  constructor(params: IDataVector3 | IVector3Constructor) {
-    const {x, y, z} = params;
-    super(x, y, z);
-    if (this.isData(params)) {
-      const path = params.absPath.split('@');
-      this.name = path.pop()!;
+  parent: IElement;
+
+  constructor(params: INamedVector3Constructor) {
+    const {name, parent, data, x, y, z} = params;
+    this.parent = parent;
+    this.name = name;
+    if (data) {
+      const {x, y, z} = data;
+      this.value = new Vector3(x, y, z);
     } else {
-      const {name} = params;
-      this.name = name;
+      this.value = new Vector3(x, y, z);
     }
   }
 
-  getData(parent: IPartialElement): IDataVector3 {
+  getData(): IDataVector3 {
     return {
-      absPath: `${this.name}@${parent.absPath}`,
-      x: this.x,
-      y: this.y,
-      z: this.z
+      x: this.value.x,
+      y: this.value.y,
+      z: this.value.z
     };
-  }
-
-  clone(): this {
-    const params: IVector3Constructor = {
-      name: this.name,
-      x: this.x,
-      y: this.y,
-      z: this.z
-    };
-    return new Vector3(params) as this;
   }
 }
 
-interface IMatrix3Constructor {
+interface INamedMatrix3Constructor {
   name: string;
+  parent: IElement;
+  data?: IDataMatrix3;
 }
 
-export class Matrix3 extends TM3 implements INamedValue {
+export class NamedMatrix3 implements INamedValue {
   readonly className: string = 'Matrix3';
 
   name: string;
 
-  private isData = (
-    params: IDataMatrix3 | IMatrix3Constructor
-  ): params is IDataMatrix3 => 'absPath' in params;
+  parent: IElement;
 
-  constructor(params: IDataMatrix3 | IMatrix3Constructor) {
-    super();
-    if (this.isData(params)) {
-      this.name = params.absPath.split('@').pop()!;
-      this.elements = {...params.elements};
-    } else {
-      const {name} = params;
-      this.name = name;
+  value: Matrix3;
+
+  constructor(params: INamedMatrix3Constructor) {
+    const {name, parent, data} = params;
+    this.name = name;
+    this.parent = parent;
+    this.value = new Matrix3();
+    if (data) {
+      this.value.elements = {...data.elements};
     }
   }
 
-  getData(parent: IPartialElement): IDataMatrix3 {
-    const e = this.elements;
+  getData(): IDataMatrix3 {
+    const e = this.value.elements;
     return {
-      absPath: `${this.name}@${parent.absPath}`,
       elements: [e[0], e[1], e[2], e[3], e[4], e[5], e[6], e[7], e[8]]
     };
-  }
-
-  clone(): this {
-    const params: IMatrix3Constructor = {
-      name: this.name
-    };
-    const mat = new Matrix3(params);
-    mat.elements = {...this.elements};
-    return mat as this;
   }
 }

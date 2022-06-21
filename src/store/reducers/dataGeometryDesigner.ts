@@ -21,7 +21,6 @@ const initialState: GDState = {
   topAssembly: undefined,
   // eslint-disable-next-line prettier/prettier
   transCoordinateMatrix: {
-    absPath: 'transCoordinateMatrix@global',
     elements: [0, 0, 1, 1, 0, 0, 0, 1, 0]
   }
 };
@@ -54,8 +53,8 @@ export const dataGeometryDesignerSlice = createSlice({
         const element = getElementByPath(assembly, action.payload.absPath);
         if (assembly && element) {
           element.visible = action.payload.visibility;
-          syncVisible(state.topAssembly, assembly);
         }
+        state.topAssembly = assembly.getDataElement();
       }
     }
   }
