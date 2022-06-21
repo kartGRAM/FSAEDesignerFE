@@ -1,6 +1,13 @@
 import {AtLeast1, AtLeast2} from '@app/utils/atLeast';
 import {zip2} from '@app/utils/zip';
-import {Vector3, Matrix3, IDataVector3, IDataMatrix3} from './NamedValues';
+import {Vector3, Matrix3} from 'three';
+import {
+  IDataVector3,
+  IDataMatrix3,
+  NamedVector3,
+  NamedMatrix3,
+  NamedPrimitive
+} from './NamedValues';
 
 export type Radian = number;
 export type ElementID = number;
@@ -9,16 +16,6 @@ export type Millimeter = number;
 export interface Joint {
   lhs: [ElementID, NodeID];
   rhs: [ElementID, NodeID];
-}
-
-export function syncVisible(target: IDataElement, source: IElement) {
-  if (isAssembly(source) && isDataAssembly(target)) {
-    // eslint-disable-next-line no-restricted-syntax
-    for (const [e, d] of zip2(source.children, target.children)) {
-      syncVisible(d, e);
-    }
-  }
-  target.visible = source.visible;
 }
 
 export interface NodeWithPath {
@@ -72,10 +69,10 @@ function getElementByPathCore(
 
 export interface IElement {
   readonly className: string;
-  name: string;
-  inertialTensor: Matrix3;
-  mass: number;
-  centerOfGravity: Vector3;
+  name: NamedPrimitive<string>;
+  inertialTensor: NamedMatrix3;
+  mass: NamedPrimitive<number>;
+  centerOfGravity: NamedVector3;
   visible: boolean | undefined;
   parent: IAssembly | null;
   readonly nodeID: string;
