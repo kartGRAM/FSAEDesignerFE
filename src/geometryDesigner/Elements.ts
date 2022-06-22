@@ -1,6 +1,12 @@
 /* eslint-disable max-classes-per-file */
 /* eslint-disable class-methods-use-this */
-import {Vector3, Matrix3} from '@gd/NamedValues';
+import {Vector3, Matrix3} from 'three';
+import {
+  NamedVector3,
+  NamedMatrix3,
+  NamedPrimitive,
+  INamedValue
+} from '@gd/NamedValues';
 import {AtLeast1, AtLeast2} from '@app/utils/atLeast';
 import {v1 as uuidv1} from 'uuid';
 import {
@@ -98,7 +104,7 @@ export function getAssembly(assembly: IDataAssembly): IAssembly {
 export abstract class Element {
   _nodeID: string;
 
-  name: string;
+  name: NamedPrimitive<string>;
 
   parent: IAssembly | null = null;
 
@@ -110,77 +116,87 @@ export abstract class Element {
     return this._nodeID;
   }
 
-  private isData = (params: any): params is IDataElement => 'absPath' in params;
+  protected isData = (params: any): params is IDataElement =>
+    'absPath' in params;
 
   constructor(params: {name: string} | IDataElement) {
     this._nodeID = uuidv1(); // ⇨ '2c5ea4c0-4067-11e9-8bad-9b1deb4d3b7d'
+
+    this.name = new NamedPrimitive({
+      name: 'name',
+      parent: this,
+      value: ''
+    });
     if (this.isData(params)) {
       const element = params;
-      this.name = element.name;
       this._nodeID = element.nodeID;
+      this.name.value = element.name;
     } else {
       const {name} = params;
-      this.name = name;
+      this.name.value = name;
     }
   }
 
   abstract get className(): string;
 
-  abstract get visible(): boolean | undefined;
+  abstract get visible(): NamedPrimitive<boolean | undefined>;
 
   // eslint-disable-next-line no-unused-vars
-  abstract set visible(b: boolean | undefined);
+  abstract set visible(b: NamedPrimitive<boolean | undefined>);
 
-  abstract get mass(): number;
-
-  // eslint-disable-next-line no-unused-vars
-  abstract set mass(m: number);
-
-  abstract get position(): Vector3;
+  abstract get mass(): NamedPrimitive<number>;
 
   // eslint-disable-next-line no-unused-vars
-  abstract set position(p: Vector3);
+  abstract set mass(m: NamedPrimitive<number>);
 
-  abstract get initialPosition(): Vector3;
-
-  // eslint-disable-next-line no-unused-vars
-  abstract set initialPosition(p: Vector3);
-
-  abstract get centerOfGravity(): Vector3;
+  abstract get position(): NamedVector3;
 
   // eslint-disable-next-line no-unused-vars
-  abstract set centerOfGravity(v: Vector3);
+  abstract set position(p: NamedVector3);
 
-  abstract get inertialTensor(): Matrix3;
+  abstract get initialPosition(): NamedVector3;
 
   // eslint-disable-next-line no-unused-vars
-  abstract set inertialTensor(mat: Matrix3);
+  abstract set initialPosition(p: NamedVector3);
+
+  abstract get centerOfGravity(): NamedVector3;
+
+  // eslint-disable-next-line no-unused-vars
+  abstract set centerOfGravity(v: NamedVector3);
+
+  abstract get inertialTensor(): NamedMatrix3;
+
+  // eslint-disable-next-line no-unused-vars
+  abstract set inertialTensor(mat: NamedMatrix3);
 
   getDataElementBase(): IDataElement {
     return {
       className: this.className,
-      name: this.name,
-      inertialTensor: this.inertialTensor.getData(this),
-      centerOfGravity: this.centerOfGravity.getData(this),
-      mass: this.mass,
+      name: this.name.getData(),
+      inertialTensor: this.inertialTensor.getData(),
+      centerOfGravity: this.centerOfGravity.getData(),
+      mass: this.mass.getData(),
       nodeID: this.nodeID,
       absPath: this.absPath,
 
-      position: this.position.getData(this),
-      initialPosition: this.initialPosition.getData(this),
-      visible: this.visible
+      position: this.position.getData(),
+      initialPosition: this.initialPosition.getData(),
+      visible: this.visible.getData()
     };
   }
 
   setDataAbstracts(element: IDataElement): void {
-    this.position = new Vector3(element.position);
-    this.initialPosition = new Vector3(element.initialPosition);
+    this.position = this.position.clone(element.position);
+    this.initialPosition = this.initialPosition.clone(element.initialPosition);
 
-    this.visible = element.visible;
-    this.inertialTensor = new Matrix3(element.inertialTensor);
-    this.mass = element.mass;
-    this.centerOfGravity = new Vector3(element.centerOfGravity);
+    this.visible = this.visible.clone(element.visible);
+    this.inertialTensor = this.inertialTensor.clone(element.inertialTensor);
+    this.mass = this.mass.clone(element.mass);
+    this.centerOfGravity = this.centerOfGravity.clone(element.centerOfGravity);
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  setData(value: INamedValue): void {}
 }
 
 export class Assembly extends Element implements IAssembly {
@@ -213,13 +229,32 @@ export class Assembly extends Element implements IAssembly {
       allTrue = allTrue && child.visible.value;
       allFalse = allFalse || child.visible.value;
     });
-    if (undef) return undefined;
-    if (allTrue) return true;
-    if (!allFalse) return false;
-    return undefined;
+    if (undef)
+      return new NamedPrimitive<boolean | undefined>({
+        name: 'visible',
+        parent: this,
+        value: undefined
+      });
+    if (allTrue)
+      return new NamedPrimitive<boolean | undefined>({
+        name: 'visible',
+        parent: this,
+        value: true
+      });
+    if (!allFalse)
+      return new NamedPrimitive<boolean | undefined>({
+        name: 'visible',
+        parent: this,
+        value: false
+      });
+    return new NamedPrimitive<boolean | undefined>({
+      name: 'visible',
+      parent: this,
+      value: undefined
+    });
   }
 
-  set visible(visibility: boolean | undefined) {
+  set visible(visibility: NamedPrimitive<boolean | undefined>) {
     this.children.forEach((child) => {
       child.visible = visibility;
     });
@@ -227,13 +262,13 @@ export class Assembly extends Element implements IAssembly {
 
   joints: Joint[];
 
-  initialPosition: Vector3;
+  initialPosition: NamedVector3;
 
-  get position(): Vector3 {
-    return new Vector3();
+  get position(): NamedVector3 {
+    return new NamedVector3({name: 'position', parent: this});
   }
 
-  set position(p: Vector3) {
+  set position(p: NamedVector3) {
     // throw Error('Not Supported Exception');
   }
 
@@ -265,7 +300,7 @@ export class Assembly extends Element implements IAssembly {
   arrange(parentPosition?: Vector3) {
     const pp = parentPosition ?? new Vector3();
     this.children.forEach((child) => {
-      child.arrange(this.initialPosition.clone().add(pp));
+      child.arrange(this.initialPosition.clone().value.add(pp));
     });
   }
 
@@ -277,8 +312,15 @@ export class Assembly extends Element implements IAssembly {
         rhs: [joint.rhs[0], joint.rhs[1]]
       };
     });
+    const initialPosition = this.initialPosition.clone().value;
+    initialPosition.y *= -1;
 
-    return new Assembly(`mirror_${this.name}`, children, joints);
+    return new Assembly({
+      name: `mirror_${this.name}`,
+      children,
+      joints,
+      initialPosition
+    });
   }
 
   getJoints(): NodeWithPath[] {
@@ -296,36 +338,42 @@ export class Assembly extends Element implements IAssembly {
     return points;
   }
 
-  get mass(): number {
+  get mass(): NamedPrimitive<number> {
     let mass = 0;
     this.children.forEach((child) => {
-      mass += child.mass;
+      mass += child.mass.value;
     });
-    return mass;
+    return new NamedPrimitive<number>({
+      name: 'mass',
+      parent: this,
+      value: mass
+    });
   }
 
-  // eslint-disable-next-line no-empty-function
-  set mass(m: number) {}
+  set mass(m: NamedPrimitive<number>) {}
 
-  get centerOfGravity(): Vector3 {
+  get centerOfGravity(): NamedVector3 {
     const center = new Vector3();
     this.children.forEach((child) => {
-      center.add(child.position.clone().multiplyScalar(child.mass));
+      center.add(child.position.clone().value.multiplyScalar(child.mass.value));
     });
-    return center;
+    return new NamedVector3({
+      name: 'centerOfGravity',
+      parent: this,
+      value: center
+    });
+  }
+
+  set centerOfGravity(v: NamedVector3) {}
+
+  get inertialTensor(): NamedMatrix3 {
+    return new NamedMatrix3({name: 'inertialTensor', parent: this});
   }
 
   // eslint-disable-next-line no-empty-function
-  set centerOfGravity(v: Vector3) {}
+  set inertialTensor(mat: NamedMatrix3) {}
 
-  get inertialTensor(): Matrix3 {
-    return new Matrix3();
-  }
-
-  // eslint-disable-next-line no-empty-function
-  set inertialTensor(mat: Matrix3) {}
-
-  private isData = (params: any): params is IDataAssembly =>
+  protected isData = (params: any): params is IDataAssembly =>
     'absPath' in params;
 
   constructor(
@@ -340,9 +388,15 @@ export class Assembly extends Element implements IAssembly {
   ) {
     super(params);
     if (this.isData(params)) {
+      const element = params;
       super.setDataAbstracts(params);
-      this.children = children;
+      this._children = element.children.map((child) => getElement(child));
       this.joints = [...element.joints];
+      this.initialPosition = new NamedVector3({
+        name: 'initialPosition',
+        parent: this,
+        data: element.initialPosition
+      });
     } else {
       const {children, joints, initialPosition} = params;
 
@@ -351,8 +405,11 @@ export class Assembly extends Element implements IAssembly {
         child.parent = this;
       });
       this.joints = joints;
-      this.initialPosition =
-        initialPosition ?? new Vector3({name: 'initialPosition'});
+      this.initialPosition = new NamedVector3({
+        name: 'initialPosition',
+        parent: this,
+        value: initialPosition
+      });
       this.arrange();
     }
   }
@@ -366,8 +423,6 @@ export class Assembly extends Element implements IAssembly {
     };
     return data;
   }
-
-  setDataElement(element: IDataAssembly, children: IElement[]) {}
 }
 
 export class Frame extends Assembly {

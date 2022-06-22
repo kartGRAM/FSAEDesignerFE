@@ -1,6 +1,5 @@
 /* eslint-disable max-classes-per-file */
 import {Vector3, Matrix3} from 'three';
-import {IElement} from '@gd/IElements';
 
 /* export interface IData {
   className: string;
@@ -29,6 +28,10 @@ export interface IDataMatrix3 {
     number,
     number
   ];
+}
+
+interface IElement {
+  readonly absPath: string;
 }
 
 export interface INamedValue {
@@ -117,14 +120,18 @@ export class NamedVector3 implements INamedValue {
     };
   }
 
-  clone(newValue?: Vector3): NamedVector3 {
+  clone(newValue?: Vector3 | IDataVector3): NamedVector3 {
     const tmp = new NamedVector3({
       name: this.name,
       parent: this.parent,
       value: this.value.clone()
     });
     if (newValue) {
-      tmp.value = newValue.clone();
+      if (newValue instanceof Vector3) {
+        tmp.value = newValue.clone();
+      } else {
+        tmp.value = new Vector3(newValue.x, newValue.y, newValue.z);
+      }
     }
     return tmp;
   }
@@ -162,10 +169,15 @@ export class NamedMatrix3 implements INamedValue {
     };
   }
 
-  clone(newValue?: Matrix3): NamedMatrix3 {
+  clone(newValue?: Matrix3 | IDataMatrix3): NamedMatrix3 {
     const tmp = new NamedMatrix3({name: this.name, parent: this.parent});
     if (newValue) {
-      tmp.value = newValue.clone();
+      if (newValue instanceof Matrix3) {
+        tmp.value = newValue.clone();
+      } else {
+        tmp.value = new Matrix3();
+        tmp.value.elements = {...newValue.elements};
+      }
     }
     return tmp;
   }

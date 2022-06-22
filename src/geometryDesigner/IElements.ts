@@ -75,8 +75,8 @@ export interface IElement {
   centerOfGravity: NamedVector3;
   visible: NamedPrimitive<boolean | undefined>;
   parent: IAssembly | null;
-  readonly nodeID: NamedPrimitive<string>;
-  readonly absPath: NamedPrimitive<string>;
+  readonly nodeID: string;
+  readonly absPath: string;
   getNodes(): NodeWithPath[];
   getMirror(): IElement;
   getDataElement(): IDataElement;
