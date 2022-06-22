@@ -201,17 +201,17 @@ export class Assembly extends Element implements IAssembly {
     });
   }
 
-  get visible(): boolean | undefined {
+  get visible(): NamedPrimitive<boolean | undefined> {
     let allTrue = true;
     let allFalse = false;
     let undef = false;
     this.children.forEach((child) => {
-      if (child.visible === undefined) {
+      if (child.visible.value === undefined) {
         undef = true;
         return;
       }
-      allTrue = allTrue && child.visible;
-      allFalse = allFalse || child.visible;
+      allTrue = allTrue && child.visible.value;
+      allFalse = allFalse || child.visible.value;
     });
     if (undef) return undefined;
     if (allTrue) return true;

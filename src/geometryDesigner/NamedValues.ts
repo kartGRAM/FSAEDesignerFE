@@ -31,12 +31,13 @@ export interface IDataMatrix3 {
   ];
 }
 
-interface INamedValue {
+export interface INamedValue {
   readonly className: string;
   name: string;
   parent: IElement;
-  value: any;
-  getData(): any;
+  value: unknown;
+  getData(): unknown;
+  clone(newValue?: unknown): unknown;
 }
 
 interface INamedPrimitiveConstructor<T> {
@@ -65,15 +66,26 @@ export class NamedPrimitive<T> implements INamedValue {
   getData(): T {
     return this.value;
   }
+
+  clone(newValue?: T): NamedPrimitive<T> {
+    const tmp = new NamedPrimitive<T>({
+      name: this.name,
+      parent: this.parent,
+      value: this.value
+    });
+
+    if (newValue) {
+      tmp.value = newValue;
+    }
+    return tmp;
+  }
 }
 
 interface INamedVector3Constructor {
   name: string;
   parent: IElement;
   data?: IDataVector3;
-  x?: number;
-  y?: number;
-  z?: number;
+  value?: Vector3;
 }
 
 export class NamedVector3 implements INamedValue {
@@ -86,14 +98,14 @@ export class NamedVector3 implements INamedValue {
   parent: IElement;
 
   constructor(params: INamedVector3Constructor) {
-    const {name, parent, data, x, y, z} = params;
+    const {name, parent, data, value} = params;
     this.parent = parent;
     this.name = name;
     if (data) {
       const {x, y, z} = data;
       this.value = new Vector3(x, y, z);
     } else {
-      this.value = new Vector3(x, y, z);
+      this.value = value ? value.clone() : new Vector3();
     }
   }
 
@@ -103,6 +115,18 @@ export class NamedVector3 implements INamedValue {
       y: this.value.y,
       z: this.value.z
     };
+  }
+
+  clone(newValue?: Vector3): NamedVector3 {
+    const tmp = new NamedVector3({
+      name: this.name,
+      parent: this.parent,
+      value: this.value.clone()
+    });
+    if (newValue) {
+      tmp.value = newValue.clone();
+    }
+    return tmp;
   }
 }
 
@@ -136,5 +160,13 @@ export class NamedMatrix3 implements INamedValue {
     return {
       elements: [e[0], e[1], e[2], e[3], e[4], e[5], e[6], e[7], e[8]]
     };
+  }
+
+  clone(newValue?: Matrix3): NamedMatrix3 {
+    const tmp = new NamedMatrix3({name: this.name, parent: this.parent});
+    if (newValue) {
+      tmp.value = newValue.clone();
+    }
+    return tmp;
   }
 }

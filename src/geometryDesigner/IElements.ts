@@ -1,9 +1,9 @@
 import {AtLeast1, AtLeast2} from '@app/utils/atLeast';
-import {zip2} from '@app/utils/zip';
-import {Vector3, Matrix3} from 'three';
+import {Vector3} from 'three';
 import {
   IDataVector3,
   IDataMatrix3,
+  INamedValue,
   NamedVector3,
   NamedMatrix3,
   NamedPrimitive
@@ -73,18 +73,18 @@ export interface IElement {
   inertialTensor: NamedMatrix3;
   mass: NamedPrimitive<number>;
   centerOfGravity: NamedVector3;
-  visible: boolean | undefined;
+  visible: NamedPrimitive<boolean | undefined>;
   parent: IAssembly | null;
-  readonly nodeID: string;
-  readonly absPath: string;
+  readonly nodeID: NamedPrimitive<string>;
+  readonly absPath: NamedPrimitive<string>;
   getNodes(): NodeWithPath[];
   getMirror(): IElement;
   getDataElement(): IDataElement;
-  // eslint-disable-next-line no-unused-vars
+  setData(value: INamedValue): void;
   arrange(parentPosition?: Vector3): void;
-  position: Vector3;
-  rotation?: Matrix3;
-  initialPosition: Vector3;
+  position: NamedVector3;
+  rotation?: NamedMatrix3;
+  initialPosition: NamedVector3;
 }
 
 export interface IDataElement {
@@ -114,8 +114,8 @@ export interface IDataAssembly extends IDataElement {
 }
 
 export interface IBar extends IElement {
-  fixedPoint: Vector3;
-  point: Vector3;
+  fixedPoint: NamedVector3;
+  point: NamedVector3;
 }
 
 export interface IDataBar extends IDataElement {
@@ -124,10 +124,10 @@ export interface IDataBar extends IDataElement {
 }
 
 export interface ISpringDumper extends IElement {
-  fixedPoint: Vector3;
-  point: Vector3;
-  dlMin: Millimeter;
-  dlMax: Millimeter;
+  fixedPoint: NamedVector3;
+  point: NamedVector3;
+  dlMin: NamedPrimitive<Millimeter>;
+  dlMax: NamedPrimitive<Millimeter>;
 }
 
 export interface IDataSpringDumper extends IDataElement {
@@ -138,8 +138,8 @@ export interface IDataSpringDumper extends IDataElement {
 }
 
 export interface IBody extends IElement {
-  fixedPoints: Vector3[];
-  points: Vector3[];
+  fixedPoints: NamedVector3[];
+  points: NamedVector3[];
 }
 
 export interface IDataBody extends IDataElement {
@@ -148,8 +148,8 @@ export interface IDataBody extends IDataElement {
 }
 
 export interface IAArm extends IBody {
-  fixedPoints: [Vector3, Vector3];
-  points: AtLeast1<Vector3>;
+  fixedPoints: [NamedVector3, NamedVector3];
+  points: AtLeast1<NamedVector3>;
 }
 
 export interface IDataAArm extends IDataElement {
@@ -159,9 +159,9 @@ export interface IDataAArm extends IDataElement {
 
 export interface IBellCrank extends IBody {
   // Axis
-  fixedPoints: [Vector3, Vector3];
+  fixedPoints: [NamedVector3, NamedVector3];
   // Points
-  points: AtLeast2<Vector3>;
+  points: AtLeast2<NamedVector3>;
 }
 
 export interface IDataBellCrank extends IDataElement {
@@ -170,12 +170,12 @@ export interface IDataBellCrank extends IDataElement {
 }
 
 export interface ITire extends IElement {
-  tireCenter: Vector3;
-  toLeftBearing: number;
-  toRightBearing: number;
-  readonly rightBearing: Vector3;
-  readonly leftBearing: Vector3;
-  readonly diameter: Millimeter;
+  tireCenter: NamedVector3;
+  toLeftBearing: NamedPrimitive<number>;
+  toRightBearing: NamedPrimitive<number>;
+  readonly rightBearing: NamedVector3;
+  readonly leftBearing: NamedVector3;
+  readonly diameter: NamedPrimitive<Millimeter>;
 }
 
 export interface IDataTire extends IDataElement {

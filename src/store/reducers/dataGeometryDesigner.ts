@@ -1,9 +1,5 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
-import {
-  IDataAssembly,
-  syncVisible,
-  getElementByPath
-} from '@app/geometryDesigner/IElements';
+import {IDataAssembly, getElementByPath} from '@app/geometryDesigner/IElements';
 import {IDataMatrix3} from '@gd/NamedValues';
 import {getAssembly} from '@app/geometryDesigner/Elements';
 

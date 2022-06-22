@@ -47,10 +47,11 @@ module.exports = {
         endOfLine: 'auto'
       }
     ],
+    'no-unused-vars': 'off',
+    '@typescript-eslint/no-unused-vars': ['error'],
     'react-hooks/rules-of-hooks': 'error',
     'import/prefer-default-export': 'off',
     'react/function-component-definition': 'off',
-    'no-unused-vars ': ['off'],
     'import/extensions': 'off',
     'no-shadow': 'off',
     'no-use-before-define': 'off',
