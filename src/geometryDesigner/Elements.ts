@@ -185,16 +185,6 @@ export abstract class Element {
     };
   }
 
-  setDataAbstracts(element: IDataElement): void {
-    this.position = this.position.clone(element.position);
-    this.initialPosition = this.initialPosition.clone(element.initialPosition);
-
-    this.visible = this.visible.clone(element.visible);
-    this.inertialTensor = this.inertialTensor.clone(element.inertialTensor);
-    this.mass = this.mass.clone(element.mass);
-    this.centerOfGravity = this.centerOfGravity.clone(element.centerOfGravity);
-  }
-
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   setData(value: INamedValue): void {}
 }
@@ -459,7 +449,9 @@ export class Bar extends Element implements IBar {
 
   arrange(parentPosition?: Vector3) {
     const pp = parentPosition ?? new Vector3();
-    this.position = this.initialPosition.clone().add(pp);
+    this.position = this.position.clone(
+      this.initialPosition.value.clone().add(pp)
+    );
   }
 
   getMirror(): Bar {
@@ -471,7 +463,14 @@ export class Bar extends Element implements IBar {
     ip.setY(-ip.y);
     const cog = this.centerOfGravity.value.clone();
     cog.setY(-cog.y);
-    return new Bar(`mirror_${this.name}`, fp, p, ip, this.mass.value, cog);
+    return new Bar({
+      name: `mirror_${this.name}`,
+      fixedPoint: fp,
+      point: p,
+      initialPosition: ip,
+      mass: this.mass.value,
+      centerOfGravity: cog
+    });
   }
 
   get inertialTensor(): NamedMatrix3 {
@@ -552,112 +551,71 @@ export class Bar extends Element implements IBar {
   }
 }
 
-export class SpringDumper extends Element implements ISpringDumper {
+export class SpringDumper extends Bar implements ISpringDumper {
   get className(): string {
     return 'SpringDumper';
   }
 
-  visible: boolean | undefined = true;
-
-  mass: number;
-
-  centerOfGravity: Vector3;
-
-  fixedPoint: Vector3;
-
-  point: Vector3;
-
-  initialPosition: Vector3;
-
-  position: Vector3;
-
-  rotation: Matrix3 = new Matrix3();
-
-  getNodes(): NodeWithPath[] {
-    return [
-      {p: this.fixedPoint, path: `fixedPoint@${this.nodeID}`},
-      {p: this.point, path: `point@${this.nodeID}`}
-    ];
-  }
-
-  arrange(parentPosition?: Vector3) {
-    const pp = parentPosition ?? new Vector3();
-    this.position = this.initialPosition.clone().add(pp);
-  }
-
   getMirror(): SpringDumper {
-    const fp = this.fixedPoint.clone();
+    const fp = this.fixedPoint.value.clone();
     fp.setY(-fp.y);
-    const p = this.point.clone();
+    const p = this.point.value.clone();
     p.setY(-p.y);
-    const ip = this.initialPosition.clone();
+    const ip = this.initialPosition.value.clone();
     ip.setY(-ip.y);
-    const cog = this.centerOfGravity.clone();
+    const cog = this.centerOfGravity.value.clone();
     cog.setY(-cog.y);
-    return new SpringDumper(
-      `mirror_${this.name}`,
-      fp,
-      p,
-      this.dlMin,
-      this.dlMax,
-      ip,
-      this.mass,
-      cog
-    );
+    return new SpringDumper({
+      name: `mirror_${this.name}`,
+      fixedPoint: fp,
+      point: p,
+      initialPosition: ip,
+      mass: this.mass.value,
+      centerOfGravity: cog,
+      dlMin: this.dlMin.value,
+      dlMax: this.dlMax.value
+    });
   }
 
-  dlMin: Millimeter;
+  dlMin: NamedPrimitive<Millimeter>;
 
-  dlMax: Millimeter;
-
-  get inertialTensor(): Matrix3 {
-    return new Matrix3();
-  }
-
-  set inertialTensor(mat: Matrix3) {
-    // throw Error('Not Supported Exception');
-  }
+  dlMax: NamedPrimitive<Millimeter>;
 
   constructor(
-    name: string,
-    fixedPoint: Vector3,
-    point: Vector3,
-    dlMin: Millimeter,
-    dlMax: Millimeter,
-    initialPosition?: Vector3,
-    mass?: number,
-    centerOfGravity?: Vector3
+    params:
+      | {
+          name: string;
+          fixedPoint: Vector3;
+          point: Vector3;
+          dlMin: Millimeter;
+          dlMax: Millimeter;
+          initialPosition?: Vector3;
+          mass?: number;
+          centerOfGravity?: Vector3;
+        }
+      | IDataSpringDumper
   ) {
-    super(name);
-    this.fixedPoint = fixedPoint;
-    this.point = point;
-    this.dlMin = dlMin;
-    this.dlMax = dlMax;
-    this.initialPosition = initialPosition ?? new Vector3();
-    this.position = this.initialPosition;
-    this.mass = mass ?? 0.001;
-    this.centerOfGravity = centerOfGravity ?? new Vector3();
+    super(params);
+    this.dlMin = new NamedPrimitive<Millimeter>({
+      name: 'dlMin',
+      parent: this,
+      value: params.dlMin
+    });
+    this.dlMax = new NamedPrimitive<Millimeter>({
+      name: 'dlMax',
+      parent: this,
+      value: params.dlMax
+    });
   }
 
   getDataElement(): IDataSpringDumper {
-    const baseData = super.getDataElementBase();
+    const baseData = super.getDataElement();
     const data: IDataSpringDumper = {
       ...baseData,
-      fixedPoint: getDataVector3(this.fixedPoint, 'fixedPoint', this.absPath),
-      point: getDataVector3(this.point, 'point', this.absPath),
-      dlMin: this.dlMin,
-      dlMax: this.dlMax
+      dlMin: this.dlMin.value,
+      dlMax: this.dlMax.value
     };
     return data;
-  }
-
-  setDataElement(element: IDataSpringDumper) {
-    super.setDataElementBase(element);
-    this.fixedPoint = getVector3(element.fixedPoint).v;
-    this.point = getVector3(element.point).v;
-
-    this.dlMin = element.dlMin;
-    this.dlMax = element.dlMax;
   }
 }
 
