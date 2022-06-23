@@ -374,31 +374,25 @@ export class Assembly extends Element implements IAssembly {
       | IDataAssembly
   ) {
     super(params);
-    if (this.isData(params)) {
-      const element = params;
-      super.setDataAbstracts(params);
-      this._children = element.children.map((child) => getElement(child));
-      this.joints = [...element.joints];
-      this.initialPosition = new NamedVector3({
-        name: 'initialPosition',
-        parent: this,
-        data: element.initialPosition
-      });
-    } else {
-      const {children, joints, initialPosition} = params;
 
-      this._children = children;
-      this.children.forEach((child) => {
-        child.parent = this;
-      });
-      this.joints = joints;
-      this.initialPosition = new NamedVector3({
-        name: 'initialPosition',
-        parent: this,
-        value: initialPosition
-      });
-      this.arrange();
+    const {joints, initialPosition} = params;
+
+    this.joints = joints;
+    this.initialPosition = new NamedVector3({
+      name: 'initialPosition',
+      parent: this,
+      data: initialPosition
+    });
+    if (this.isData(params)) {
+      this._children = params.children.map((child) => getElement(child));
+    } else {
+      this._children = params.children;
     }
+
+    this.children.forEach((child) => {
+      child.parent = this;
+    });
+    this.arrange();
   }
 
   getDataElement(): IDataAssembly {
@@ -442,8 +436,8 @@ export class Bar extends Element implements IBar {
 
   getNodes(): NodeWithPath[] {
     return [
-      {p: this.fixedPoint, path: `fixedPoint@${this.nodeID}`},
-      {p: this.point, path: `point@${this.nodeID}`}
+      {p: this.fixedPoint.value, path: `fixedPoint@${this.nodeID}`},
+      {p: this.point.value, path: `point@${this.nodeID}`}
     ];
   }
 
@@ -496,11 +490,6 @@ export class Bar extends Element implements IBar {
     super(params);
     const {fixedPoint, point, initialPosition, mass, centerOfGravity} = params;
 
-    this.visible = new NamedPrimitive<boolean | undefined>({
-      name: 'visible',
-      parent: this,
-      value: true
-    });
     this.fixedPoint = new NamedVector3({
       name: 'fixedPoint',
       parent: this,
@@ -510,6 +499,12 @@ export class Bar extends Element implements IBar {
       name: 'point',
       parent: this,
       data: point
+    });
+
+    this.visible = new NamedPrimitive<boolean | undefined>({
+      name: 'visible',
+      parent: this,
+      value: true
     });
     this.initialPosition = new NamedVector3({
       name: 'initialPosition',
@@ -526,7 +521,6 @@ export class Bar extends Element implements IBar {
       parent: this,
       data: centerOfGravity ?? new Vector3()
     });
-
     this.position = new NamedVector3({
       name: 'position',
       parent: this,
@@ -624,28 +618,28 @@ export class AArm extends Element implements IAArm {
     return 'AArm';
   }
 
-  visible: boolean | undefined = true;
+  visible: NamedPrimitive<boolean | undefined>;
 
-  mass: number;
+  mass: NamedPrimitive<number>;
 
-  centerOfGravity: Vector3;
+  centerOfGravity: NamedVector3;
 
-  fixedPoints: [Vector3, Vector3];
+  initialPosition: NamedVector3;
 
-  points: AtLeast1<Vector3>;
+  position: NamedVector3;
 
-  initialPosition: Vector3;
+  rotation: NamedMatrix3;
 
-  position: Vector3;
+  fixedPoints: [NamedVector3, NamedVector3];
 
-  rotation: Matrix3 = new Matrix3();
+  points: AtLeast1<NamedVector3>;
 
   getNodes(): NodeWithPath[] {
     const fp = this.fixedPoints.map((point, i): NodeWithPath => {
-      return {p: point, path: `fixedPoint:${i}@${this.nodeID}`};
+      return {p: point.value, path: `fixedPoint:${i}@${this.nodeID}`};
     });
     const p = this.points.map((point, i): NodeWithPath => {
-      return {p: point, path: `point:${i}@${this.nodeID}`};
+      return {p: point.value, path: `point:${i}@${this.nodeID}`};
     });
 
     return [...fp, ...p];
@@ -653,24 +647,26 @@ export class AArm extends Element implements IAArm {
 
   arrange(parentPosition?: Vector3) {
     const pp = parentPosition ?? new Vector3();
-    this.position = this.initialPosition.clone().add(pp);
+    this.position = this.position.clone(
+      this.initialPosition.value.clone().add(pp)
+    );
   }
 
   getMirror(): AArm {
     const fp: [Vector3, Vector3] = [
-      this.fixedPoints[0].clone(),
-      this.fixedPoints[1].clone()
+      this.fixedPoints[0].value.clone(),
+      this.fixedPoints[1].value.clone()
     ];
     fp[0].setY(-fp[0].y);
     fp[1].setY(-fp[1].y);
     const points = this.points.map((point) => {
-      const p = point.clone();
+      const p = point.value.clone();
       p.setY(-p.y);
       return p;
     });
-    const ip = this.initialPosition.clone();
+    const ip = this.initialPosition.value.clone();
     ip.setY(-ip.y);
-    const cog = this.centerOfGravity.clone();
+    const cog = this.centerOfGravity.value.clone();
     cog.setY(-cog.y);
     const point0 = points.shift()!;
     return new AArm(
@@ -678,39 +674,71 @@ export class AArm extends Element implements IAArm {
       fp,
       [point0, ...points],
       ip,
-      this.mass,
-      this.centerOfGravity
+      this.mass.value,
+      this.centerOfGravity.value
     );
   }
 
-  get inertialTensor(): Matrix3 {
-    return new Matrix3();
+  get inertialTensor(): NamedMatrix3 {
+    return new NamedMatrix3({name: 'inertialTensor', parent: this});
   }
 
-  set inertialTensor(mat: Matrix3) {
+  set inertialTensor(mat: NamedMatrix3) {
     // throw Error('Not Supported Exception');
-  }
-
-  constructor(
-    name: string,
-    fixedPoints: [Vector3, Vector3],
-    points: AtLeast1<Vector3>,
-    initialPosition?: Vector3,
-    mass?: number,
-    centerOfGravity?: Vector3
-  ) {
-    super(name);
-    this.fixedPoints = fixedPoints;
-    this.points = points;
-    this.initialPosition = initialPosition ?? new Vector3();
-    this.position = this.initialPosition;
-    this.mass = mass ?? 0.001;
-    this.centerOfGravity = centerOfGravity ?? new Vector3();
   }
 
   fixedPointName = ['chassisFore', 'chassisAft'];
 
   pointName = ['upright', 'attachedPoint'];
+
+  constructor(
+    params:
+      | {
+          name: string;
+          fixedPoints: [Vector3, Vector3];
+          points: AtLeast1<Vector3>;
+          initialPosition?: Vector3;
+          mass?: number;
+          centerOfGravity?: Vector3;
+        }
+      | IDataAArm
+  ) {
+    super(params);
+    this.fixedPoints = fixedPoints;
+    this.points = points;
+
+    const {initialPosition, mass, centerOfGravity} = params;
+    this.visible = new NamedPrimitive<boolean | undefined>({
+      name: 'visible',
+      parent: this,
+      value: true
+    });
+    this.initialPosition = new NamedVector3({
+      name: 'initialPosition',
+      parent: this,
+      data: initialPosition ?? new Vector3()
+    });
+    this.mass = new NamedPrimitive<number>({
+      name: 'mass',
+      parent: this,
+      value: mass ?? 0.001
+    });
+    this.centerOfGravity = new NamedVector3({
+      name: 'centerOfGravity',
+      parent: this,
+      data: centerOfGravity ?? new Vector3()
+    });
+    this.position = new NamedVector3({
+      name: 'position',
+      parent: this,
+      value: this.initialPosition.value
+    });
+    this.rotation = new NamedMatrix3({name: 'rotation', parent: this});
+    if (this.isData(params)) {
+      this.position = this.position.clone(params.position);
+      this.rotation = this.rotation.clone(params.rotation);
+    }
+  }
 
   getDataElement(): IDataAArm {
     const baseData = super.getDataElementBase();
@@ -730,15 +758,6 @@ export class AArm extends Element implements IAArm {
       )
     };
     return data;
-  }
-
-  setDataElement(element: IDataAArm) {
-    super.setDataElementBase(element);
-    const fp = element.fixedPoints.map((v) => getVector3(v).v);
-    this.fixedPoints = [fp[0], fp[1]];
-    const p = element.points.map((v) => getVector3(v).v);
-    const point0 = p.shift()!;
-    this.points = [point0, ...p];
   }
 }
 
