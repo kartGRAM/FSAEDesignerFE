@@ -373,9 +373,6 @@ export class Assembly extends Element implements IAssembly {
   // eslint-disable-next-line no-empty-function
   set inertialTensor(mat: NamedMatrix3) {}
 
-  protected isData = (params: any): params is IDataAssembly =>
-    'absPath' in params;
-
   constructor(
     params:
       | {
@@ -428,7 +425,7 @@ export class Assembly extends Element implements IAssembly {
 export class Frame extends Assembly {
   constructor(name: string, children: IElement[]) {
     const joints: Joint[] = [];
-    super(name, children, joints);
+    super({name, children, joints});
   }
 }
 
@@ -437,21 +434,21 @@ export class Bar extends Element implements IBar {
     return 'Bar';
   }
 
-  visible: boolean | undefined = true;
+  visible: NamedPrimitive<boolean | undefined>;
 
-  mass: number;
+  mass: NamedPrimitive<number>;
 
-  centerOfGravity: Vector3;
+  centerOfGravity: NamedVector3;
 
-  fixedPoint: Vector3;
+  fixedPoint: NamedVector3;
 
-  point: Vector3;
+  point: NamedVector3;
 
-  initialPosition: Vector3;
+  initialPosition: NamedVector3;
 
-  position: Vector3;
+  position: NamedVector3;
 
-  rotation: Matrix3 = new Matrix3();
+  rotation: NamedMatrix3;
 
   getNodes(): NodeWithPath[] {
     return [
@@ -466,40 +463,81 @@ export class Bar extends Element implements IBar {
   }
 
   getMirror(): Bar {
-    const fp = this.fixedPoint.clone();
+    const fp = this.fixedPoint.value.clone();
     fp.setY(-fp.y);
-    const p = this.point.clone();
+    const p = this.point.value.clone();
     p.setY(-p.y);
-    const ip = this.initialPosition.clone();
+    const ip = this.initialPosition.value.clone();
     ip.setY(-ip.y);
-    const cog = this.centerOfGravity.clone();
+    const cog = this.centerOfGravity.value.clone();
     cog.setY(-cog.y);
-    return new Bar(`mirror_${this.name}`, fp, p, ip, this.mass, cog);
+    return new Bar(`mirror_${this.name}`, fp, p, ip, this.mass.value, cog);
   }
 
-  get inertialTensor(): Matrix3 {
-    return new Matrix3();
+  get inertialTensor(): NamedMatrix3 {
+    return new NamedMatrix3({name: 'inertialTensor', parent: this});
   }
 
-  set inertialTensor(mat: Matrix3) {
+  set inertialTensor(mat: NamedMatrix3) {
     // throw Error('Not Supported Exception');
   }
 
   constructor(
-    name: string,
-    fixedPoint: Vector3,
-    point: Vector3,
-    initialPosition?: Vector3,
-    mass?: number,
-    centerOfGravity?: Vector3
+    params:
+      | {
+          name: string;
+          fixedPoint: Vector3;
+          point: Vector3;
+          initialPosition?: Vector3;
+          mass?: number;
+          centerOfGravity?: Vector3;
+        }
+      | IDataBar
   ) {
-    super(name);
-    this.fixedPoint = fixedPoint;
-    this.point = point;
-    this.initialPosition = initialPosition ?? new Vector3();
-    this.position = this.initialPosition;
-    this.mass = mass ?? 0.001;
-    this.centerOfGravity = centerOfGravity ?? new Vector3();
+    super(params);
+    const {fixedPoint, point, initialPosition, mass, centerOfGravity} = params;
+
+    this.visible = new NamedPrimitive<boolean | undefined>({
+      name: 'visible',
+      parent: this,
+      value: true
+    });
+    this.fixedPoint = new NamedVector3({
+      name: 'fixedPoint',
+      parent: this,
+      data: fixedPoint
+    });
+    this.point = new NamedVector3({
+      name: 'point',
+      parent: this,
+      data: point
+    });
+    this.initialPosition = new NamedVector3({
+      name: 'initialPosition',
+      parent: this,
+      data: initialPosition ?? new Vector3()
+    });
+    this.mass = new NamedPrimitive<number>({
+      name: 'mass',
+      parent: this,
+      value: mass ?? 0.001
+    });
+    this.centerOfGravity = new NamedVector3({
+      name: 'centerOfGravity',
+      parent: this,
+      data: centerOfGravity ?? new Vector3()
+    });
+
+    this.position = new NamedVector3({
+      name: 'position',
+      parent: this,
+      value: this.initialPosition.value
+    });
+    this.rotation = new NamedMatrix3({name: 'rotation', parent: this});
+    if (this.isData(params)) {
+      this.position = this.position.clone(params.position);
+      this.rotation = this.rotation.clone(params.rotation);
+    }
   }
 
   getDataElement(): IDataBar {
@@ -507,17 +545,10 @@ export class Bar extends Element implements IBar {
 
     const data: IDataBar = {
       ...baseData,
-      fixedPoint: getDataVector3(this.fixedPoint, 'fixedPoint', this.absPath),
-      point: getDataVector3(this.point, 'point', this.absPath)
+      fixedPoint: this.fixedPoint.getData(),
+      point: this.point.getData()
     };
     return data;
-  }
-
-  setDataElement(element: IDataBar) {
-    super.setDataElementBase(element);
-
-    this.fixedPoint = getVector3(element.fixedPoint).v;
-    this.point = getVector3(element.point).v;
   }
 }
 
