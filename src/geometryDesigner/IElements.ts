@@ -172,9 +172,9 @@ export interface ITire extends IElement {
   tireCenter: NamedVector3;
   toLeftBearing: NamedPrimitive<number>;
   toRightBearing: NamedPrimitive<number>;
-  readonly rightBearing: NamedVector3;
-  readonly leftBearing: NamedVector3;
-  readonly diameter: NamedPrimitive<Millimeter>;
+  readonly rightBearing: Vector3;
+  readonly leftBearing: Vector3;
+  readonly diameter: Millimeter;
 }
 
 export interface IDataTire extends IDataElement {

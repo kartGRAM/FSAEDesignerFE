@@ -1097,34 +1097,40 @@ export class Tire extends Element implements ITire {
     return 'Tire';
   }
 
-  visible: boolean | undefined = true;
+  visible: NamedPrimitive<boolean | undefined>;
 
-  mass: number;
+  mass: NamedPrimitive<number>;
 
-  centerOfGravity: Vector3;
+  centerOfGravity: NamedVector3;
 
-  tireCenter: Vector3;
+  tireCenter: NamedVector3;
 
-  toLeftBearing: number;
+  toLeftBearing: NamedPrimitive<number>;
 
-  toRightBearing: number;
+  toRightBearing: NamedPrimitive<number>;
 
-  initialPosition: Vector3;
+  initialPosition: NamedVector3;
 
-  position: Vector3;
+  position: NamedVector3;
 
-  rotation: Matrix3 = new Matrix3();
+  rotation: NamedMatrix3;
 
   get leftBearing(): Vector3 {
-    return this.tireCenter.clone().add(new Vector3(0, this.toLeftBearing, 0));
+    return this.tireCenter.value
+      .clone()
+      .add(new Vector3(0, this.toLeftBearing.value, 0));
   }
 
   get rightBearing(): Vector3 {
-    return this.tireCenter.clone().add(new Vector3(0, this.toRightBearing, 0));
+    return this.tireCenter.value
+      .clone()
+      .add(new Vector3(0, this.toRightBearing.value, 0));
   }
 
   get ground(): Vector3 {
-    return this.tireCenter.clone().add(new Vector3(0, -this.tireCenter.y, 0));
+    return this.tireCenter.value
+      .clone()
+      .add(new Vector3(0, -this.tireCenter.y, 0));
   }
 
   getNodes(): NodeWithPath[] {
@@ -1136,75 +1142,121 @@ export class Tire extends Element implements ITire {
 
   arrange(parentPosition?: Vector3) {
     const pp = parentPosition ?? new Vector3();
-    this.position = this.initialPosition.clone().add(pp);
+    this.position.value = this.initialPosition.value.clone().add(pp);
   }
 
   getMirror(): Tire {
-    const center = this.tireCenter.clone();
+    const center = this.tireCenter.value.clone();
     center.setY(-center.y);
-    const ip = this.initialPosition.clone();
+    const ip = this.initialPosition.value.clone();
     ip.setY(-ip.y);
-    const cog = this.centerOfGravity.clone();
+    const cog = this.centerOfGravity.value.clone();
     cog.setY(-cog.y);
-    return new Tire(
-      `mirror_${this.name}`,
-      center,
-      -this.toRightBearing,
-      -this.toLeftBearing,
-      ip,
-      this.mass,
-      cog
-    );
+    return new Tire({
+      name: `mirror_${this.name}`,
+      tireCenter: center,
+      toLeftBearing: -this.toRightBearing,
+      toRightBearing: -this.toLeftBearing,
+      initialPosition: ip,
+      mass: this.mass.value,
+      centerOfGravity: cog
+    });
   }
 
   get diameter(): Millimeter {
-    return this.tireCenter.z * 2.0;
+    return this.tireCenter.value.z * 2.0;
   }
 
-  get inertialTensor(): Matrix3 {
-    return new Matrix3();
+  get inertialTensor(): NamedMatrix3 {
+    return new NamedMatrix3({name: 'inertialTensor', parent: this});
   }
 
-  set inertialTensor(mat: Matrix3) {
+  set inertialTensor(mat: NamedMatrix3) {
     // throw Error('Not Supported Exception');
   }
 
   constructor(
-    name: string,
-    tireCenter: Vector3,
-    toLeftBearing: number,
-    toRightBearing: number,
-    initialPosition?: Vector3,
-    mass?: number,
-    centerOfGravity?: Vector3
+    params:
+      | {
+          name: string;
+          tireCenter: Vector3;
+          toLeftBearing: number;
+          toRightBearing: number;
+          initialPosition?: Vector3;
+          mass?: number;
+          centerOfGravity?: Vector3;
+        }
+      | IDataTire
   ) {
-    super(name);
-    this.tireCenter = tireCenter;
-    this.toLeftBearing = toLeftBearing;
-    this.toRightBearing = toRightBearing;
-    this.initialPosition = initialPosition ?? new Vector3();
-    this.position = this.initialPosition;
-    this.mass = mass ?? 0.001;
-    this.centerOfGravity = centerOfGravity ?? new Vector3();
+    super(params);
+    const {
+      tireCenter,
+      toLeftBearing,
+      toRightBearing,
+      initialPosition,
+      mass,
+      centerOfGravity
+    } = params;
+
+    this.tireCenter = new NamedVector3({
+      name: 'tireCenter',
+      parent: this,
+      value: tireCenter ?? new Vector3()
+    });
+    this.toLeftBearing = new NamedPrimitive<number>({
+      name: 'toLeftBearing',
+      parent: this,
+      value: toLeftBearing
+    });
+    this.toRightBearing = new NamedPrimitive<number>({
+      name: 'toRightBearing',
+      parent: this,
+      value: toRightBearing
+    });
+
+    this.visible = new NamedPrimitive<boolean | undefined>({
+      name: 'visible',
+      parent: this,
+      value: true
+    });
+    this.initialPosition = new NamedVector3({
+      name: 'initialPosition',
+      parent: this,
+      value: initialPosition ?? new Vector3()
+    });
+    this.mass = new NamedPrimitive<number>({
+      name: 'mass',
+      parent: this,
+      value: mass ?? 0.001
+    });
+    this.centerOfGravity = new NamedVector3({
+      name: 'centerOfGravity',
+      parent: this,
+      value: centerOfGravity ?? new Vector3()
+    });
+    this.position = new NamedVector3({
+      name: 'position',
+      parent: this,
+      value: isDataElement(params)
+        ? params.position
+        : this.initialPosition.value
+    });
+    this.rotation = new NamedMatrix3({
+      name: 'rotation',
+      parent: this,
+      value: isDataElement(params) ? params.rotation : new Matrix3()
+    });
   }
 
   getDataElement(): IDataTire {
     const baseData = super.getDataElementBase();
-    const gd3 = getDataVector3;
 
     const data: IDataTire = {
       ...baseData,
-      tireCenter: gd3(this.tireCenter),
-      toLeftBearing: this.toLeftBearing,
-      toRightBearing: this.toRightBearing
+      tireCenter: this.tireCenter.getData(),
+      toLeftBearing: this.toLeftBearing.getData(),
+      toRightBearing: this.toRightBearing.getData()
     };
     return data;
-  }
-
-  setDataElement(element: IDataTire) {
-    super.setDataElementBase(element);
-    this.tireCenter = getVector3(element.tireCenter).v;
-    this.toLeftBearing = element.toLeftBearing;
-    this.toRightBearing = element.toRightBearing;
   }
 }
