@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import track from '@app/utils/ResourceTracker';
-import {Vector3, Matrix3} from 'three';
+import {Vector3} from 'three';
 import store from '@store/store';
 import {
   IElement,
@@ -12,9 +12,10 @@ import {
   isBellCrank,
   isBody
 } from './IElements';
+import {getMatrix3} from './NamedValues';
 
 export const render = (element: IElement, scene: THREE.Scene): void => {
-  if (element.visible === false) {
+  if (element.visible.value === false) {
     return;
   }
   if (isAssembly(element)) {
@@ -24,15 +25,14 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
     });
     return;
   }
-  const position = element.position ?? new Vector3();
-  const rotation = element.rotation ?? new Matrix3();
+  const position = element.position.value;
+  const rotation = element.rotation.value;
   const coMatrix = store.getState().dgd.transCoordinateMatrix;
   const trans = (p: Vector3) => {
     const tmp = position
       .clone()
       .add(p.clone().applyMatrix3(rotation))
-      .applyMatrix3(new Matrix3(coMatrix));
-    tmp.name = p.name;
+      .applyMatrix3(getMatrix3(coMatrix));
     return tmp;
   };
   // show nodes
@@ -69,9 +69,9 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
     const circle = track(new THREE.Mesh(geometry, material), 'Assembly');
     circle.rotateX(THREE.MathUtils.degToRad(90));
     circle.applyMatrix4(
-      new THREE.Matrix4().setFromMatrix3(new Matrix3(coMatrix))
+      new THREE.Matrix4().setFromMatrix3(getMatrix3(coMatrix))
     );
-    circle.position.add(trans(tire.tireCenter));
+    circle.position.add(trans(tire.tireCenter.value));
     scene.add(circle);
 
     material = track(
@@ -84,7 +84,7 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
     const points = [];
     points.push(trans(tire.rightBearing));
     points.push(trans(tire.leftBearing));
-    points.push(trans(tire.tireCenter));
+    points.push(trans(tire.tireCenter.value));
 
     const lgeometry = track(
       new THREE.BufferGeometry().setFromPoints(points),
@@ -104,8 +104,8 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
       'Assembly'
     );
     const points = [];
-    points.push(trans(bar.point));
-    points.push(trans(bar.fixedPoint));
+    points.push(trans(bar.point.value));
+    points.push(trans(bar.fixedPoint.value));
 
     const geometry = track(
       new THREE.BufferGeometry().setFromPoints(points),
@@ -125,8 +125,8 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
       'Assembly'
     );
     const points = [];
-    points.push(trans(spring.point));
-    points.push(trans(spring.fixedPoint));
+    points.push(trans(spring.point.value));
+    points.push(trans(spring.fixedPoint.value));
 
     const geometry = track(
       new THREE.BufferGeometry().setFromPoints(points),
@@ -146,12 +146,12 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
       'Assembly'
     );
     const points = [];
-    points.push(trans(aArm.fixedPoints[0]));
+    points.push(trans(aArm.fixedPoints[0].value));
     const flexPoints = [...aArm.points];
     // points have at least one point;
     const point0 = flexPoints.shift()!;
-    points.push(trans(point0));
-    points.push(trans(aArm.fixedPoints[1]));
+    points.push(trans(point0.value));
+    points.push(trans(aArm.fixedPoints[1].value));
     const geometry = track(
       new THREE.BufferGeometry().setFromPoints(points),
       'Assembly'
@@ -170,23 +170,23 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
       'Assembly'
     );
     let points: Vector3[] = [];
-    points.push(trans(bellCrank.fixedPoints[0]));
-    points.push(trans(bellCrank.fixedPoints[1]));
+    points.push(trans(bellCrank.fixedPoints[0].value));
+    points.push(trans(bellCrank.fixedPoints[1].value));
     let geometry = track(
       new THREE.BufferGeometry().setFromPoints(points),
       'Assembly'
     );
     let line = track(new THREE.Line(geometry, material), 'Assembly');
     scene.add(line);
-    const center = bellCrank.fixedPoints[0]
+    const center = bellCrank.fixedPoints[0].value
       .clone()
-      .add(bellCrank.fixedPoints[1])
+      .add(bellCrank.fixedPoints[1].value)
       .multiplyScalar(0.5);
     points = [];
     points.push(trans(center));
     // points have at least two points;
-    points.push(trans(bellCrank.points[0]));
-    points.push(trans(bellCrank.points[1]));
+    points.push(trans(bellCrank.points[0].value));
+    points.push(trans(bellCrank.points[1].value));
     points.push(trans(center));
     geometry = track(
       new THREE.BufferGeometry().setFromPoints(points),
