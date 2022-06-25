@@ -1131,10 +1131,10 @@ export class Tire extends Element implements ITire {
     const cog = this.centerOfGravity.value.clone();
     cog.setY(-cog.y);
     return new Tire({
-      name: `mirror_${this.name}`,
+      name: `mirror_${this.name.value}`,
       tireCenter: center,
-      toLeftBearing: -this.toRightBearing,
-      toRightBearing: -this.toLeftBearing,
+      toLeftBearing: -this.toRightBearing.value,
+      toRightBearing: -this.toLeftBearing.value,
       initialPosition: ip,
       mass: this.mass.value,
       centerOfGravity: cog
