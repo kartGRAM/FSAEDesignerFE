@@ -2,7 +2,7 @@ import * as React from 'react';
 import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import InputAdornment from '@mui/material/InputAdornment';
-import {Vector3, Matrix3} from '@gd/NamedValues';
+import {Vector3, Matrix3} from 'three';
 import {IElement} from '@gd/IElements';
 import Typography from '@mui/material/Typography';
 import {useDispatch, useSelector} from 'react-redux';

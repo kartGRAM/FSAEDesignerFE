@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import track from '@app/utils/ResourceTracker';
-import {Vector3, Matrix3} from '@gd/NamedValues';
+import {Vector3, Matrix3} from 'three';
 import store from '@store/store';
 import {
   IElement,
@@ -24,8 +24,8 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
     });
     return;
   }
-  const position = element.position ?? new Vector3({name: 'position'});
-  const rotation = element.rotation ?? new Matrix3({name: 'rotation'});
+  const position = element.position ?? new Vector3();
+  const rotation = element.rotation ?? new Matrix3();
   const coMatrix = store.getState().dgd.transCoordinateMatrix;
   const trans = (p: Vector3) => {
     const tmp = position

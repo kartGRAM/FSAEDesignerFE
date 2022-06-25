@@ -9,20 +9,24 @@ const isData = (
   params: IDataVector3 | INamedVector3Constructor
 ): params is IDataVector3 => 'className' in params;
 */
-export interface IData<T> {
+
+export const isData = (params: any): params is INamedData => 'name' in params;
+
+export interface INamedData {
   name: string;
+}
+
+export interface IData<T> extends INamedData {
   value: T;
 }
 
-export interface IDataVector3 {
-  name: string;
+export interface IDataVector3 extends INamedData {
   x: number;
   y: number;
   z: number;
 }
 
-export interface IDataMatrix3 {
-  name: string;
+export interface IDataMatrix3 extends INamedData {
   elements: [
     number,
     number,
@@ -51,7 +55,7 @@ export interface INamedValue {
 
 interface INamedPrimitiveConstructor<T> {
   name: string;
-  value: T;
+  value: T | IData<T>;
   parent: IElement;
 }
 
@@ -67,8 +71,8 @@ export class NamedPrimitive<T> implements INamedValue {
   constructor(params: INamedPrimitiveConstructor<T>) {
     const {name, value, parent} = params;
     this.className = typeof value;
-    this.value = value;
-    this.name = name;
+    this.value = isData(value) ? value.value : value;
+    this.name = isData(value) ? value.name : name;
     this.parent = parent;
   }
 
@@ -96,8 +100,7 @@ export class NamedPrimitive<T> implements INamedValue {
 interface INamedVector3Constructor {
   name: string;
   parent: IElement;
-  data?: IDataVector3;
-  value?: Vector3;
+  value?: Vector3 | IDataVector3;
 }
 
 export class NamedVector3 implements INamedValue {
@@ -110,14 +113,15 @@ export class NamedVector3 implements INamedValue {
   parent: IElement;
 
   constructor(params: INamedVector3Constructor) {
-    const {name, parent, data, value} = params;
+    const {name, parent, value} = params;
     this.parent = parent;
     this.name = name;
-    if (data) {
-      const {x, y, z} = data;
+    if (value) {
+      const {x, y, z} = value;
       this.value = new Vector3(x, y, z);
+      if (isData(value)) this.name = value.name;
     } else {
-      this.value = value ? value.clone() : new Vector3();
+      this.value = new Vector3();
     }
   }
 
@@ -150,7 +154,7 @@ export class NamedVector3 implements INamedValue {
 interface INamedMatrix3Constructor {
   name: string;
   parent: IElement;
-  data?: IDataMatrix3;
+  value?: IDataMatrix3 | Matrix3;
 }
 
 export class NamedMatrix3 implements INamedValue {
@@ -163,12 +167,13 @@ export class NamedMatrix3 implements INamedValue {
   value: Matrix3;
 
   constructor(params: INamedMatrix3Constructor) {
-    const {name, parent, data} = params;
+    const {name, parent, value} = params;
     this.name = name;
     this.parent = parent;
     this.value = new Matrix3();
-    if (data) {
-      this.value.elements = {...data.elements};
+    if (value) {
+      this.value.elements = {...value.elements};
+      if (isData(value)) this.name = value.name;
     }
   }
 

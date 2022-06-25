@@ -14,13 +14,11 @@ export const checkLoggedIn = async () => {
 
   await axios
     .post(`api/check_logged_in/`, {})
-    // eslint-disable-next-line no-unused-vars
-    .then((response) => {
+    .then(() => {
       // window.history.pushState({}, '', `${new URL(window.location.origin)}`);
       result = true;
     })
-    // eslint-disable-next-line no-unused-vars
-    .catch((error) => {
+    .catch(() => {
       result = false;
     });
   return result;

@@ -1,10 +1,8 @@
 /* eslint-disable no-unused-vars */
 import * as React from 'react';
 import {styled, Theme, CSSObject} from '@mui/material/styles';
-import Box from '@mui/material/Box';
 import MuiDrawer, {DrawerProps} from '@mui/material/Drawer';
 import List from '@mui/material/List';
-import CssBaseline from '@mui/material/CssBaseline';
 import Divider from '@mui/material/Divider';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -109,7 +107,7 @@ export default function MiniDrawer() {
           {text: 'analysis', icon: <AutoGraphIcon />},
           {text: 'style', icon: <BrushIcon />},
           {text: 'visualization', icon: <ComputerIcon />}
-        ].map((item, index) => (
+        ].map((item) => (
           <ListItem key={item.text} disablePadding sx={{display: 'block'}}>
             <ListItemButton
               sx={{
@@ -151,7 +149,7 @@ export default function MiniDrawer() {
           justifyContent: 'bottom'
         }}
       >
-        {[{text: 'settings', icon: <SettingsIcon />}].map((item, index) => (
+        {[{text: 'settings', icon: <SettingsIcon />}].map((item) => (
           <ListItem key={item.text} disablePadding sx={{display: 'block'}}>
             <ListItemButton
               sx={{

@@ -36,8 +36,7 @@ export const GDAppBarMenu: React.VFC<Props> = (props) => {
     setOpen(false);
   };
 
-  // eslint-disable-next-line no-unused-vars
-  const handleToggle = (event: Event | React.SyntheticEvent) => {
+  const handleToggle = () => {
     setOpen((prev) => !prev);
   };
 

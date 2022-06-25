@@ -1,12 +1,7 @@
 /* eslint-disable max-classes-per-file */
 /* eslint-disable class-methods-use-this */
 import {Vector3, Matrix3} from 'three';
-import {
-  NamedVector3,
-  NamedMatrix3,
-  NamedPrimitive,
-  INamedValue
-} from '@gd/NamedValues';
+import {NamedVector3, NamedMatrix3, NamedPrimitive} from '@gd/NamedValues';
 import {AtLeast1, AtLeast2} from '@app/utils/atLeast';
 import {v1 as uuidv1} from 'uuid';
 import {
@@ -101,6 +96,9 @@ export function getAssembly(assembly: IDataAssembly): IAssembly {
   return getElement(assembly) as IAssembly;
 }
 
+const isDataElement = (params: any): params is IDataElement =>
+  'absPath' in params;
+
 export abstract class Element {
   _nodeID: string;
 
@@ -116,24 +114,18 @@ export abstract class Element {
     return this._nodeID;
   }
 
-  protected isData = (params: any): params is IDataElement =>
-    'absPath' in params;
-
   constructor(params: {name: string} | IDataElement) {
     this._nodeID = uuidv1(); // ⇨ '2c5ea4c0-4067-11e9-8bad-9b1deb4d3b7d'
 
+    const {name} = params;
     this.name = new NamedPrimitive({
       name: 'name',
       parent: this,
-      value: ''
+      value: name
     });
-    if (this.isData(params)) {
+    if (isDataElement(params)) {
       const element = params;
       this._nodeID = element.nodeID;
-      this.name.value = element.name;
-    } else {
-      const {name} = params;
-      this.name.value = name;
     }
   }
 
@@ -184,9 +176,6 @@ export abstract class Element {
       visible: this.visible.getData()
     };
   }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  setData(value: INamedValue): void {}
 }
 
 export class Assembly extends Element implements IAssembly {
@@ -340,6 +329,7 @@ export class Assembly extends Element implements IAssembly {
     });
   }
 
+  // eslint-disable-next-line no-empty-function
   set mass(m: NamedPrimitive<number>) {}
 
   get centerOfGravity(): NamedVector3 {
@@ -354,6 +344,7 @@ export class Assembly extends Element implements IAssembly {
     });
   }
 
+  // eslint-disable-next-line no-empty-function
   set centerOfGravity(v: NamedVector3) {}
 
   get inertialTensor(): NamedMatrix3 {
@@ -381,9 +372,9 @@ export class Assembly extends Element implements IAssembly {
     this.initialPosition = new NamedVector3({
       name: 'initialPosition',
       parent: this,
-      data: initialPosition
+      value: initialPosition
     });
-    if (this.isData(params)) {
+    if (isDataElement(params)) {
       this._children = params.children.map((child) => getElement(child));
     } else {
       this._children = params.children;
@@ -443,9 +434,7 @@ export class Bar extends Element implements IBar {
 
   arrange(parentPosition?: Vector3) {
     const pp = parentPosition ?? new Vector3();
-    this.position = this.position.clone(
-      this.initialPosition.value.clone().add(pp)
-    );
+    this.position.value = this.initialPosition.value.clone().add(pp);
   }
 
   getMirror(): Bar {
@@ -493,12 +482,12 @@ export class Bar extends Element implements IBar {
     this.fixedPoint = new NamedVector3({
       name: 'fixedPoint',
       parent: this,
-      data: fixedPoint
+      value: fixedPoint
     });
     this.point = new NamedVector3({
       name: 'point',
       parent: this,
-      data: point
+      value: point
     });
 
     this.visible = new NamedPrimitive<boolean | undefined>({
@@ -509,7 +498,7 @@ export class Bar extends Element implements IBar {
     this.initialPosition = new NamedVector3({
       name: 'initialPosition',
       parent: this,
-      data: initialPosition ?? new Vector3()
+      value: initialPosition ?? new Vector3()
     });
     this.mass = new NamedPrimitive<number>({
       name: 'mass',
@@ -519,18 +508,20 @@ export class Bar extends Element implements IBar {
     this.centerOfGravity = new NamedVector3({
       name: 'centerOfGravity',
       parent: this,
-      data: centerOfGravity ?? new Vector3()
+      value: centerOfGravity ?? new Vector3()
     });
     this.position = new NamedVector3({
       name: 'position',
       parent: this,
-      value: this.initialPosition.value
+      value: isDataElement(params)
+        ? params.position
+        : this.initialPosition.value
     });
-    this.rotation = new NamedMatrix3({name: 'rotation', parent: this});
-    if (this.isData(params)) {
-      this.position = this.position.clone(params.position);
-      this.rotation = this.rotation.clone(params.rotation);
-    }
+    this.rotation = new NamedMatrix3({
+      name: 'rotation',
+      parent: this,
+      value: isDataElement(params) ? params.rotation : new Matrix3()
+    });
   }
 
   getDataElement(): IDataBar {
@@ -606,8 +597,8 @@ export class SpringDumper extends Bar implements ISpringDumper {
     const baseData = super.getDataElement();
     const data: IDataSpringDumper = {
       ...baseData,
-      dlMin: this.dlMin.value,
-      dlMax: this.dlMax.value
+      dlMin: this.dlMin.getData(),
+      dlMax: this.dlMax.getData()
     };
     return data;
   }
@@ -647,9 +638,7 @@ export class AArm extends Element implements IAArm {
 
   arrange(parentPosition?: Vector3) {
     const pp = parentPosition ?? new Vector3();
-    this.position = this.position.clone(
-      this.initialPosition.value.clone().add(pp)
-    );
+    this.position.value = this.initialPosition.value.clone().add(pp);
   }
 
   getMirror(): AArm {
@@ -669,14 +658,14 @@ export class AArm extends Element implements IAArm {
     const cog = this.centerOfGravity.value.clone();
     cog.setY(-cog.y);
     const point0 = points.shift()!;
-    return new AArm(
-      `mirror_${this.name}`,
-      fp,
-      [point0, ...points],
-      ip,
-      this.mass.value,
-      this.centerOfGravity.value
-    );
+    return new AArm({
+      name: `mirror_${this.name}`,
+      fixedPoints: fp,
+      points: [point0, ...points],
+      initialPosition: ip,
+      mass: this.mass.value,
+      centerOfGravity: this.centerOfGravity.value
+    });
   }
 
   get inertialTensor(): NamedMatrix3 {
@@ -687,9 +676,9 @@ export class AArm extends Element implements IAArm {
     // throw Error('Not Supported Exception');
   }
 
-  fixedPointName = ['chassisFore', 'chassisAft'];
+  fixedPointNames = ['chassisFore', 'chassisAft'];
 
-  pointName = ['upright', 'attachedPoint'];
+  pointNames = ['upright', 'attachedPoint'];
 
   constructor(
     params:
@@ -704,10 +693,38 @@ export class AArm extends Element implements IAArm {
       | IDataAArm
   ) {
     super(params);
-    this.fixedPoints = fixedPoints;
-    this.points = points;
+    const {fixedPoints, points, initialPosition, mass, centerOfGravity} =
+      params;
+    this.fixedPoints = [
+      new NamedVector3({
+        name: this.fixedPointNames[0],
+        parent: this,
+        value: fixedPoints[0]
+      }),
 
-    const {initialPosition, mass, centerOfGravity} = params;
+      new NamedVector3({
+        name: this.fixedPointNames[1],
+        parent: this,
+        value: fixedPoints[1]
+      })
+    ];
+    const point0 = points.pop()!;
+    this.points = [
+      new NamedVector3({
+        name: this.pointNames[0],
+        parent: this,
+        value: point0
+      }),
+      ...points.map(
+        (point, i) =>
+          new NamedVector3({
+            name: `${this.pointNames[1]}${i + 1}`,
+            parent: this,
+            value: point
+          })
+      )
+    ];
+
     this.visible = new NamedPrimitive<boolean | undefined>({
       name: 'visible',
       parent: this,
@@ -716,7 +733,7 @@ export class AArm extends Element implements IAArm {
     this.initialPosition = new NamedVector3({
       name: 'initialPosition',
       parent: this,
-      data: initialPosition ?? new Vector3()
+      value: initialPosition ?? new Vector3()
     });
     this.mass = new NamedPrimitive<number>({
       name: 'mass',
@@ -726,34 +743,28 @@ export class AArm extends Element implements IAArm {
     this.centerOfGravity = new NamedVector3({
       name: 'centerOfGravity',
       parent: this,
-      data: centerOfGravity ?? new Vector3()
+      value: centerOfGravity ?? new Vector3()
     });
     this.position = new NamedVector3({
       name: 'position',
       parent: this,
-      value: this.initialPosition.value
+      value: isDataElement(params)
+        ? params.position
+        : this.initialPosition.value
     });
-    this.rotation = new NamedMatrix3({name: 'rotation', parent: this});
-    if (this.isData(params)) {
-      this.position = this.position.clone(params.position);
-      this.rotation = this.rotation.clone(params.rotation);
-    }
+    this.rotation = new NamedMatrix3({
+      name: 'rotation',
+      parent: this,
+      value: isDataElement(params) ? params.rotation : new Matrix3()
+    });
   }
 
   getDataElement(): IDataAArm {
     const baseData = super.getDataElementBase();
     const data: IDataAArm = {
       ...baseData,
-      fixedPoints: this.fixedPoints.map((point, i) =>
-        gd3(point, this.fixedPointName[i], this.absPath)
-      ),
-      points: this.points.map((point, i) =>
-        gd3(
-          point,
-          i < 1 ? this.pointName[i] : `${this.pointName[1]}${i - 1}`,
-          this.absPath
-        )
-      )
+      fixedPoints: this.fixedPoints.map((point) => point.getData()),
+      points: this.points.map((point) => point.getData())
     };
     return data;
   }
@@ -764,28 +775,28 @@ export class BellCrank extends Element implements IBellCrank {
     return 'BellCrank';
   }
 
-  visible: boolean | undefined = true;
+  visible: NamedPrimitive<boolean | undefined>;
 
-  mass: number;
+  mass: NamedPrimitive<number>;
 
-  centerOfGravity: Vector3;
+  centerOfGravity: NamedVector3;
 
-  fixedPoints: [Vector3, Vector3];
+  fixedPoints: [NamedVector3, NamedVector3];
 
-  points: AtLeast2<Vector3>;
+  points: AtLeast2<NamedVector3>;
 
-  initialPosition: Vector3;
+  initialPosition: NamedVector3;
 
-  position: Vector3;
+  position: NamedVector3;
 
-  rotation: Matrix3 = new Matrix3();
+  rotation: NamedMatrix3;
 
   getNodes(): NodeWithPath[] {
     const fp = this.fixedPoints.map((point, i): NodeWithPath => {
-      return {p: point, path: `fixedPoint:${i}@${this.nodeID}`};
+      return {p: point.value, path: `fixedPoint:${i}@${this.nodeID}`};
     });
     const p = this.points.map((point, i): NodeWithPath => {
-      return {p: point, path: `point:${i}@${this.nodeID}`};
+      return {p: point.value, path: `point:${i}@${this.nodeID}`};
     });
 
     return [...fp, ...p];
@@ -793,94 +804,143 @@ export class BellCrank extends Element implements IBellCrank {
 
   arrange(parentPosition?: Vector3) {
     const pp = parentPosition ?? new Vector3();
-    this.position = this.initialPosition.clone().add(pp);
+    this.position.value = this.initialPosition.value.clone().add(pp);
   }
 
   getMirror(): BellCrank {
     const fp: [Vector3, Vector3] = [
-      this.fixedPoints[0].clone(),
-      this.fixedPoints[1].clone()
+      this.fixedPoints[0].value.clone(),
+      this.fixedPoints[1].value.clone()
     ];
     fp[0].setY(-fp[0].y);
     fp[1].setY(-fp[1].y);
     const points = this.points.map((point) => {
-      const p = point.clone();
+      const p = point.value.clone();
       p.setY(-p.y);
       return p;
     });
     const point0 = points.shift()!;
     const point1 = points.shift()!;
-    const ip = this.initialPosition.clone();
+    const ip = this.initialPosition.value.clone();
     ip.setY(-ip.y);
-    const cog = this.centerOfGravity.clone();
+    const cog = this.centerOfGravity.value.clone();
     cog.setY(-cog.y);
-    return new BellCrank(
-      `mirror_${this.name}`,
-      fp,
-      [point0, point1, ...points],
-      ip,
-      this.mass,
-      cog
-    );
+    return new BellCrank({
+      name: `mirror_${this.name}`,
+      fixedPoints: fp,
+      points: [point0, point1, ...points],
+      initialPosition: ip,
+      mass: this.mass,
+      centerOfGrafity: cog
+    });
   }
 
-  get inertialTensor(): Matrix3 {
-    return new Matrix3();
+  get inertialTensor(): NamedMatrix3 {
+    return new NamedMatrix3({name: 'inertialTensor', parent: this});
   }
 
-  set inertialTensor(mat: Matrix3) {
+  set inertialTensor(mat: NamedMatrix3) {
     // throw Error('Not Supported Exception');
   }
 
+  fixedPointNames = ['pivot1', 'pivot2'];
+
+  pointNames = ['coilover', 'rod', 'attachment'];
+
   constructor(
-    name: string,
-    fixedPoints: [Vector3, Vector3],
-    points: AtLeast2<Vector3>,
-    initialPosition?: Vector3,
-    mass?: number,
-    centerOfGravity?: Vector3
+    params:
+      | {
+          name: string;
+          fixedPoints: [Vector3, Vector3];
+          points: AtLeast2<Vector3>;
+          initialPosition?: Vector3;
+          mass?: number;
+          centerOfGravity?: Vector3;
+        }
+      | IDataBellCrank
   ) {
-    super(name);
-    this.fixedPoints = fixedPoints;
-    this.points = points;
-    this.initialPosition = initialPosition ?? new Vector3();
-    this.position = this.initialPosition;
-    this.mass = mass ?? 0.001;
-    this.centerOfGravity = centerOfGravity ?? new Vector3();
+    super(params);
+    const {fixedPoints, points, initialPosition, mass, centerOfGravity} =
+      params;
+    this.fixedPoints = [
+      new NamedVector3({
+        name: this.fixedPointNames[0],
+        parent: this,
+        value: fixedPoints[0]
+      }),
+
+      new NamedVector3({
+        name: this.fixedPointNames[1],
+        parent: this,
+        value: fixedPoints[1]
+      })
+    ];
+    const point0 = points.pop()!;
+    const point1 = points.pop()!;
+    this.points = [
+      new NamedVector3({
+        name: this.pointNames[0],
+        parent: this,
+        value: point0
+      }),
+      new NamedVector3({
+        name: this.pointNames[1],
+        parent: this,
+        value: point1
+      }),
+      ...points.map(
+        (point, i) =>
+          new NamedVector3({
+            name: `${this.pointNames[2]}${i + 1}`,
+            parent: this,
+            value: point
+          })
+      )
+    ];
+
+    this.visible = new NamedPrimitive<boolean | undefined>({
+      name: 'visible',
+      parent: this,
+      value: true
+    });
+    this.initialPosition = new NamedVector3({
+      name: 'initialPosition',
+      parent: this,
+      value: initialPosition ?? new Vector3()
+    });
+    this.mass = new NamedPrimitive<number>({
+      name: 'mass',
+      parent: this,
+      value: mass ?? 0.001
+    });
+    this.centerOfGravity = new NamedVector3({
+      name: 'centerOfGravity',
+      parent: this,
+      value: centerOfGravity ?? new Vector3()
+    });
+    this.position = new NamedVector3({
+      name: 'position',
+      parent: this,
+      value: isDataElement(params)
+        ? params.position
+        : this.initialPosition.value
+    });
+    this.rotation = new NamedMatrix3({
+      name: 'rotation',
+      parent: this,
+      value: isDataElement(params) ? params.rotation : new Matrix3()
+    });
   }
-
-  fixedPointName = ['pivot1', 'pivot2'];
-
-  pointName = ['coilover', 'rod', 'attachment'];
 
   getDataElement(): IDataBellCrank {
     const baseData = super.getDataElementBase();
-    const gd3 = getDataVector3;
 
     const data: IDataBellCrank = {
       ...baseData,
-      fixedPoints: this.fixedPoints.map((point, i) =>
-        gd3(point, this.fixedPointName[i], this.absPath)
-      ),
-      points: this.points.map((point, i) =>
-        gd3(
-          point,
-          i < 2 ? this.pointName[i] : `${this.pointName[2]}${i - 2}`,
-          this.absPath
-        )
-      )
+      fixedPoints: this.fixedPoints.map((point) => point.getData()),
+      points: this.points.map((point) => point.getData())
     };
     return data;
-  }
-
-  setDataElement(element: IDataBellCrank) {
-    super.setDataElementBase(element);
-    const fp = element.fixedPoints.map((v) => getVector3(v).v);
-    this.fixedPoints = [fp[0], fp[1]];
-    const p = element.points.map((v) => getVector3(v).v);
-    const point0 = p.shift()!;
-    const point1 = p.shift()!;
-    this.points = [point0, point1, ...p];
   }
 }
 

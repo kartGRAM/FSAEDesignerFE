@@ -4,7 +4,6 @@ import {
   IDataVector3,
   IDataMatrix3,
   IData,
-  INamedValue,
   NamedVector3,
   NamedMatrix3,
   NamedPrimitive
@@ -81,7 +80,6 @@ export interface IElement {
   getNodes(): NodeWithPath[];
   getMirror(): IElement;
   getDataElement(): IDataElement;
-  setData(value: INamedValue): void;
   arrange(parentPosition?: Vector3): void;
   position: NamedVector3;
   rotation?: NamedMatrix3;

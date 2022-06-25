@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-unused-vars
-import React, {useState, useEffect, useRef} from 'react';
+import React from 'react';
 import SvgIcon, {SvgIconProps} from '@mui/material/SvgIcon';
 import {styled, alpha} from '@mui/material/styles';
 import TreeView from '@app/components/tree-view-base';

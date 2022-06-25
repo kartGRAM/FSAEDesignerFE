@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import {IDataAssembly} from '@gd/IElements';
 import {getAssembly} from '@gd/Elements';
-import {Vector3} from '@gd/NamedValues';
+import {Vector3} from 'three';
 import {render} from '@app/geometryDesigner/ElementsRenderer';
 
 interface HandleCameraAspectParams {
@@ -43,7 +43,7 @@ export default function GDScene() {
     const controls = new OrbitControls(camera, renderer.domElement);
     onResize({camera, renderer});
     const resizeObserver = new ResizeObserver(
-      // eslint-disable-next-line consistent-return,no-unused-vars
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       (entries: ResizeObserverEntry[], observer: ResizeObserver) => {
         onResize({camera, renderer});
       }
