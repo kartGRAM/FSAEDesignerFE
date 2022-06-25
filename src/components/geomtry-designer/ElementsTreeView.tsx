@@ -179,7 +179,7 @@ const ElementsTreeView: React.FC<Props> = (props: Props) => {
                 <MyTreeItem
                   element={child}
                   nodeId={child.absPath}
-                  label={child.name}
+                  label={child.name.value}
                   key={child.nodeID}
                 />
               );
@@ -222,7 +222,7 @@ const ElementsTreeView: React.FC<Props> = (props: Props) => {
           element={assembly}
           key={assembly.nodeID}
           nodeId={assembly.absPath}
-          label={assembly.name}
+          label={assembly.name.value}
         />
       </TreeView>
     </>

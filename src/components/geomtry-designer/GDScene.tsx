@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import {IDataAssembly} from '@gd/IElements';
 import {getAssembly} from '@gd/Elements';
-import {Vector3} from 'three';
+import {getVector3} from '@gd/NamedValues';
 import {render} from '@app/geometryDesigner/ElementsRenderer';
 
 interface HandleCameraAspectParams {
@@ -109,7 +109,7 @@ export default function GDScene() {
     if (scene.current) {
       dispose(resourceType, scene.current);
       if (selectedPoint) {
-        const node = new Vector3(selectedPoint);
+        const node = getVector3(selectedPoint);
         const pm = track(
           new THREE.PointsMaterial({
             size: 30,

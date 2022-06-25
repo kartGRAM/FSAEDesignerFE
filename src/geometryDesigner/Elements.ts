@@ -203,7 +203,7 @@ export class Assembly extends Element implements IAssembly {
 
   set visible(visibility: NamedPrimitive<boolean | undefined>) {
     this.children.forEach((child) => {
-      child.visible = visibility;
+      child.visible = this.visible.clone(visibility.value);
     });
   }
 
@@ -263,7 +263,7 @@ export class Assembly extends Element implements IAssembly {
     initialPosition.y *= -1;
 
     return new Assembly({
-      name: `mirror_${this.name}`,
+      name: `mirror_${this.name.value}`,
       children,
       joints,
       initialPosition
@@ -469,7 +469,7 @@ export class Bar extends Element implements IBar {
     this.visible = new NamedPrimitive<boolean | undefined>({
       name: 'visible',
       parent: this,
-      value: true
+      value: isDataElement(params) ? params.visible : true
     });
     this.initialPosition = new NamedVector3({
       name: 'initialPosition',
@@ -684,14 +684,15 @@ export class AArm extends Element implements IAArm {
         value: fixedPoints[1]
       })
     ];
-    const point0 = points.pop()!;
+    const p = [...points];
+    const point0 = p.shift()!;
     this.points = [
       new NamedVector3({
         name: this.pointNames[0],
         parent: this,
         value: point0
       }),
-      ...points.map(
+      ...p.map(
         (point, i) =>
           new NamedVector3({
             name: `${this.pointNames[1]}${i + 1}`,
@@ -704,7 +705,7 @@ export class AArm extends Element implements IAArm {
     this.visible = new NamedPrimitive<boolean | undefined>({
       name: 'visible',
       parent: this,
-      value: true
+      value: isDataElement(params) ? params.visible : true
     });
     this.initialPosition = new NamedVector3({
       name: 'initialPosition',
@@ -851,8 +852,9 @@ export class BellCrank extends Element implements IBellCrank {
         value: fixedPoints[1]
       })
     ];
-    const point0 = points.pop()!;
-    const point1 = points.pop()!;
+    const p = [...points];
+    const point0 = p.shift()!;
+    const point1 = p.shift()!;
     this.points = [
       new NamedVector3({
         name: this.pointNames[0],
@@ -864,7 +866,7 @@ export class BellCrank extends Element implements IBellCrank {
         parent: this,
         value: point1
       }),
-      ...points.map(
+      ...p.map(
         (point, i) =>
           new NamedVector3({
             name: `${this.pointNames[2]}${i + 1}`,
@@ -877,7 +879,7 @@ export class BellCrank extends Element implements IBellCrank {
     this.visible = new NamedPrimitive<boolean | undefined>({
       name: 'visible',
       parent: this,
-      value: true
+      value: isDataElement(params) ? params.visible : true
     });
     this.initialPosition = new NamedVector3({
       name: 'initialPosition',
@@ -1025,7 +1027,7 @@ export class Body extends Element implements IBody {
     this.visible = new NamedPrimitive<boolean | undefined>({
       name: 'visible',
       parent: this,
-      value: true
+      value: isDataElement(params) ? params.visible : true
     });
     this.initialPosition = new NamedVector3({
       name: 'initialPosition',
@@ -1193,7 +1195,7 @@ export class Tire extends Element implements ITire {
     this.visible = new NamedPrimitive<boolean | undefined>({
       name: 'visible',
       parent: this,
-      value: true
+      value: isDataElement(params) ? params.visible : true
     });
     this.initialPosition = new NamedVector3({
       name: 'initialPosition',

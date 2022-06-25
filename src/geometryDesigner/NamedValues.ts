@@ -10,7 +10,13 @@ const isData = (
 ): params is IDataVector3 => 'className' in params;
 */
 
-export const isData = (params: any): params is INamedData => 'name' in params;
+export const isData = (params: any): params is INamedData => {
+  try {
+    return 'name' in params;
+  } catch (e: any) {
+    return false;
+  }
+};
 
 export const getVector3 = (data: IDataVector3): Vector3 => {
   return new Vector3(data.x, data.y, data.z);
@@ -99,7 +105,7 @@ export class NamedPrimitive<T> implements INamedValue {
       value: this.value
     });
 
-    if (newValue) {
+    if (newValue !== null && newValue !== undefined) {
       tmp.value = newValue;
     }
     return tmp;

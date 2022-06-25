@@ -38,7 +38,7 @@ export default function AArmConfig(params: Params) {
   );
   return (
     <>
-      <Typography variant="h6">{element.name} Parameters</Typography>
+      <Typography variant="h6">{element.name.value} Parameters</Typography>
       <Accordion
         defaultExpanded={kinematicParamsDefaultExpanded}
         onChange={(e, expanded) => {

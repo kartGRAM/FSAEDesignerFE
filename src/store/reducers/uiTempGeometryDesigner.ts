@@ -1,5 +1,5 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
-import {IDataVector3} from '@gd/IElements';
+import {IDataVector3} from '@gd/NamedValues';
 
 export type SidePanelTab =
   | 'elements'

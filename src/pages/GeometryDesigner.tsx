@@ -5,6 +5,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {toggleFullScreen} from '@app/store/reducers/uiTempGeometryDesigner';
 import {RootState} from '@store/store';
 // import {render} from '@app/geometryDesigner/ElementsRenderer';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import ElementsTreeView from '@app/components/geomtry-designer/ElementsTreeView';
 import GDAppBar from '@app/components/geomtry-designer/GDAppBar';
 import MiniDrawer from '@app/components/geomtry-designer/SideBar';
@@ -61,7 +62,6 @@ const GeometryDesigner = () => {
                     className={`fas fa-${isFullScreen ? 'compress' : 'expand'}`}
                   />
                 </button>
-
                 <ElementsTreeView />
               </Box>
             </div>
