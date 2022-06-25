@@ -58,8 +58,8 @@ const getLeftFrontSuspension = (): Assembly => {
 
   const tieRod = new Bar({
     name: 'tieRod',
-    fixedPoints: new Vector3(-65, 213.3, 162.6),
-    points: new Vector3(-65, 530, 175)
+    fixedPoint: new Vector3(-65, 213.3, 162.6),
+    point: new Vector3(-65, 530, 175)
   });
 
   const armsSubAssy = new Assembly({
@@ -196,40 +196,40 @@ const getLeftRearSuspension = (): Assembly => {
     ]
   });
 
-  const coilover = new SpringDumper(
-    'coilover',
-    new Vector3(60, 66.9, 350),
-    new Vector3(60, 240.5, 413.9),
-    -10,
-    10
-  );
+  const coilover = new SpringDumper({
+    name: 'coilover',
+    fixedPoint: new Vector3(60, 66.9, 350),
+    point: new Vector3(60, 240.5, 413.9),
+    dlMin: -10,
+    dlMax: 10
+  });
 
-  const bellCrank = new BellCrank(
-    'bellCrank',
-    [new Vector3(50, 275, 320), new Vector3(70, 275, 320)],
-    [new Vector3(60, 240.5, 413.9), new Vector3(60, 329.7, 371.4)]
-  );
+  const bellCrank = new BellCrank({
+    name: 'bellCrank',
+    fixedPoints: [new Vector3(50, 275, 320), new Vector3(70, 275, 320)],
+    points: [new Vector3(60, 240.5, 413.9), new Vector3(60, 329.7, 371.4)]
+  });
 
-  const pushRod = new Bar(
-    'pushRod',
-    new Vector3(60, 547, 140),
-    new Vector3(60, 329.7, 371.4)
-  );
+  const pushRod = new Bar({
+    name: 'pushRod',
+    fixedPoint: new Vector3(60, 547, 140),
+    point: new Vector3(60, 329.7, 371.4)
+  });
 
-  const pushRodSubAssy = new Assembly(
-    'pushRodSubAssy',
-    [coilover, bellCrank, pushRod],
-    [
+  const pushRodSubAssy = new Assembly({
+    name: 'pushRodSubAssy',
+    children: [coilover, bellCrank, pushRod],
+    joints: [
       {lhs: [0, 1], rhs: [1, 2]},
       {lhs: [1, 3], rhs: [2, 1]}
     ]
-  );
+  });
 
-  const leftRearSuspensionSubAssy = new Assembly(
-    'leftFrontSuspensionSubAssy',
-    [armsSubAssy, pushRodSubAssy],
-    [{lhs: [0, 4], rhs: [1, 3]}]
-  );
+  const leftRearSuspensionSubAssy = new Assembly({
+    name: 'leftFrontSuspensionSubAssy',
+    children: [armsSubAssy, pushRodSubAssy],
+    joints: [{lhs: [0, 4], rhs: [1, 3]}]
+  });
   return leftRearSuspensionSubAssy;
 };
 
@@ -237,12 +237,12 @@ const getRearSuspension = (): Assembly => {
   const leftSuspension = getLeftRearSuspension();
   const rightSuspension = leftSuspension.getMirror();
 
-  const rearSuspensionSubAssy = new Assembly(
-    'rearSuspentionSubAssy',
-    [leftSuspension, rightSuspension],
-    [],
-    new Vector3(-752, 0, 0)
-  );
+  const rearSuspensionSubAssy = new Assembly({
+    name: 'rearSuspentionSubAssy',
+    children: [leftSuspension, rightSuspension],
+    joints: [],
+    initialPosition: new Vector3(-752, 0, 0)
+  });
   return rearSuspensionSubAssy;
 };
 
@@ -250,10 +250,10 @@ export const getSuspension = (): Assembly => {
   const frontSuspension = getFrontSuspension();
   const rearSuspension = getRearSuspension();
 
-  const suspensionAssy = new Assembly(
-    'suspensionAssy',
-    [frontSuspension, rearSuspension],
-    []
-  );
+  const suspensionAssy = new Assembly({
+    name: 'suspensionAssy',
+    children: [frontSuspension, rearSuspension],
+    joints: []
+  });
   return suspensionAssy;
 };
