@@ -949,28 +949,28 @@ export class Body extends Element implements IBody {
     return 'Body';
   }
 
-  visible: boolean | undefined = true;
+  visible: NamedPrimitive<boolean | undefined>;
 
-  mass: number;
+  mass: NamedPrimitive<number>;
 
-  centerOfGravity: Vector3;
+  centerOfGravity: NamedVector3;
 
-  fixedPoints: Array<Vector3>;
+  fixedPoints: Array<NamedVector3>;
 
-  points: Array<Vector3>;
+  points: Array<NamedVector3>;
 
-  initialPosition: Vector3;
+  initialPosition: NamedVector3;
 
-  position: Vector3;
+  position: NamedVector3;
 
-  rotation: Matrix3 = new Matrix3();
+  rotation: NamedMatrix3;
 
   getNodes(): NodeWithPath[] {
     const fp = this.fixedPoints.map((point, i): NodeWithPath => {
-      return {p: point, path: `fixedPoint:${i}@${this.nodeID}`};
+      return {p: point.value, path: `fixedPoint:${i}@${this.nodeID}`};
     });
     const p = this.points.map((point, i): NodeWithPath => {
-      return {p: point, path: `point:${i}@${this.nodeID}`};
+      return {p: point.value, path: `point:${i}@${this.nodeID}`};
     });
 
     return [...fp, ...p];
@@ -978,69 +978,117 @@ export class Body extends Element implements IBody {
 
   arrange(parentPosition?: Vector3) {
     const pp = parentPosition ?? new Vector3();
-    this.position = this.initialPosition.clone().add(pp);
+    this.position.value = this.initialPosition.value.clone().add(pp);
   }
 
   getMirror(): Body {
     const fp = this.fixedPoints.map((point) => {
-      const p = point.clone();
+      const p = point.value.clone();
       p.setY(-p.y);
       return p;
     });
     const points = this.points.map((point) => {
-      const p = point.clone();
+      const p = point.value.clone();
       p.setY(-p.y);
       return p;
     });
-    const ip = this.initialPosition.clone();
+    const ip = this.initialPosition.value.clone();
     ip.setY(-ip.y);
-    const cog = this.centerOfGravity.clone();
+    const cog = this.centerOfGravity.value.clone();
     cog.setY(-cog.y);
-    return new Body(`mirror_${this.name}`, fp, points, ip, this.mass, cog);
+    return new Body({
+      name: `mirror_${this.name}`,
+      fixedPoints: fp,
+      points,
+      initialPosition: ip,
+      mass: this.mass.value,
+      centerOfGravity: cog
+    });
   }
 
-  get inertialTensor(): Matrix3 {
-    return new Matrix3();
+  get inertialTensor(): NamedMatrix3 {
+    return new NamedMatrix3({name: 'inertialTensor', parent: this});
   }
 
-  set inertialTensor(mat: Matrix3) {
+  set inertialTensor(mat: NamedMatrix3) {
     // throw Error('Not Supported Exception');
   }
 
   constructor(
-    name: string,
-    fixedPoints: Array<Vector3>,
-    points: Array<Vector3>,
-    initialPosition?: Vector3,
-    mass?: number,
-    centerOfGravity?: Vector3
+    params:
+      | {
+          name: string;
+          fixedPoints: Array<Vector3>;
+          points: Array<Vector3>;
+          initialPosition?: Vector3;
+          mass?: number;
+          centerOfGravity?: Vector3;
+        }
+      | IDataBody
   ) {
-    super(name);
-    this.fixedPoints = fixedPoints;
-    this.points = points;
+    super(params);
+    const {fixedPoints, points, initialPosition, mass, centerOfGravity} =
+      params;
+    this.fixedPoints = fixedPoints.map(
+      (point, i) =>
+        new NamedVector3({
+          name: `fixedPoint${i + 1}`,
+          parent: this,
+          value: point
+        })
+    );
+    this.points = points.map(
+      (point, i) =>
+        new NamedVector3({
+          name: `point${i + 1}`,
+          parent: this,
+          value: point
+        })
+    );
 
-    this.initialPosition = initialPosition ?? new Vector3();
-    this.position = this.initialPosition;
-    this.mass = mass ?? 0.001;
-    this.centerOfGravity = centerOfGravity ?? new Vector3();
+    this.visible = new NamedPrimitive<boolean | undefined>({
+      name: 'visible',
+      parent: this,
+      value: true
+    });
+    this.initialPosition = new NamedVector3({
+      name: 'initialPosition',
+      parent: this,
+      value: initialPosition ?? new Vector3()
+    });
+    this.mass = new NamedPrimitive<number>({
+      name: 'mass',
+      parent: this,
+      value: mass ?? 0.001
+    });
+    this.centerOfGravity = new NamedVector3({
+      name: 'centerOfGravity',
+      parent: this,
+      value: centerOfGravity ?? new Vector3()
+    });
+    this.position = new NamedVector3({
+      name: 'position',
+      parent: this,
+      value: isDataElement(params)
+        ? params.position
+        : this.initialPosition.value
+    });
+    this.rotation = new NamedMatrix3({
+      name: 'rotation',
+      parent: this,
+      value: isDataElement(params) ? params.rotation : new Matrix3()
+    });
   }
 
   getDataElement(): IDataBody {
     const baseData = super.getDataElementBase();
-    const gd3 = getDataVector3;
 
     const data: IDataBody = {
       ...baseData,
-      fixedPoints: this.fixedPoints.map((point) => gd3(point)),
-      points: this.points.map((point) => gd3(point))
+      fixedPoints: this.fixedPoints.map((point) => point.getData()),
+      points: this.points.map((point) => point.getData())
     };
     return data;
-  }
-
-  setDataElement(element: IDataBellCrank) {
-    super.setDataElementBase(element);
-    this.fixedPoints = element.fixedPoints.map((v) => getVector3(v).v);
-    this.points = element.points.map((v) => getVector3(v).v);
   }
 }
 
