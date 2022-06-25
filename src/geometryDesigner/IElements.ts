@@ -3,6 +3,7 @@ import {Vector3} from 'three';
 import {
   IDataVector3,
   IDataMatrix3,
+  IData,
   INamedValue,
   NamedVector3,
   NamedMatrix3,
@@ -89,13 +90,13 @@ export interface IElement {
 
 export interface IDataElement {
   className: string;
-  name: string;
+  name: IData<string>;
   inertialTensor: IDataMatrix3;
-  mass: number;
+  mass: IData<number>;
   centerOfGravity: IDataVector3;
   nodeID: string;
   absPath: string;
-  visible: boolean | undefined;
+  visible: IData<boolean | undefined>;
   position: IDataVector3;
   rotation?: IDataMatrix3;
   initialPosition: IDataVector3;
@@ -133,8 +134,8 @@ export interface ISpringDumper extends IElement {
 export interface IDataSpringDumper extends IDataElement {
   fixedPoint: IDataVector3;
   point: IDataVector3;
-  dlMin: Millimeter;
-  dlMax: Millimeter;
+  dlMin: IData<Millimeter>;
+  dlMax: IData<Millimeter>;
 }
 
 export interface IBody extends IElement {
@@ -180,8 +181,8 @@ export interface ITire extends IElement {
 
 export interface IDataTire extends IDataElement {
   tireCenter: IDataVector3;
-  toLeftBearing: number;
-  toRightBearing: number;
+  toLeftBearing: IData<number>;
+  toRightBearing: IData<number>;
 }
 
 export interface IRackAndPinion extends IElement {

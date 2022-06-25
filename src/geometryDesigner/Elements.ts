@@ -742,8 +742,6 @@ export class AArm extends Element implements IAArm {
 
   getDataElement(): IDataAArm {
     const baseData = super.getDataElementBase();
-    const gd3 = getDataVector3;
-
     const data: IDataAArm = {
       ...baseData,
       fixedPoints: this.fixedPoints.map((point, i) =>

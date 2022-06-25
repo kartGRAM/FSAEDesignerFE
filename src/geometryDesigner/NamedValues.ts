@@ -9,14 +9,20 @@ const isData = (
   params: IDataVector3 | INamedVector3Constructor
 ): params is IDataVector3 => 'className' in params;
 */
+export interface IData<T> {
+  name: string;
+  value: T;
+}
 
 export interface IDataVector3 {
+  name: string;
   x: number;
   y: number;
   z: number;
 }
 
 export interface IDataMatrix3 {
+  name: string;
   elements: [
     number,
     number,
@@ -66,8 +72,11 @@ export class NamedPrimitive<T> implements INamedValue {
     this.parent = parent;
   }
 
-  getData(): T {
-    return this.value;
+  getData(): IData<T> {
+    return {
+      name: this.name,
+      value: this.value
+    };
   }
 
   clone(newValue?: T): NamedPrimitive<T> {
@@ -114,6 +123,7 @@ export class NamedVector3 implements INamedValue {
 
   getData(): IDataVector3 {
     return {
+      name: this.name,
       x: this.value.x,
       y: this.value.y,
       z: this.value.z
@@ -165,6 +175,7 @@ export class NamedMatrix3 implements INamedValue {
   getData(): IDataMatrix3 {
     const e = this.value.elements;
     return {
+      name: this.name,
       elements: [e[0], e[1], e[2], e[3], e[4], e[5], e[6], e[7], e[8]]
     };
   }
