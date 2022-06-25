@@ -4,8 +4,7 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {IAArm, IDataAArm} from '@gd/IElements';
-import {getElement} from '@gd/Elements';
+import {IAArm} from '@gd/IElements';
 import {useDispatch, useSelector} from 'react-redux';
 import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
 import {RootState} from '@store/store';
@@ -16,13 +15,12 @@ import {
 import Vector from '@gdComponents/Vector';
 
 interface Params {
-  dataElement: IDataAArm;
+  element: IAArm;
 }
 
 export default function AArmConfig(params: Params) {
-  const {dataElement} = params;
+  const {element} = params;
   // eslint-disable-next-line no-unused-vars
-  const element = getElement(dataElement) as IAArm;
 
   useEffect(() => {
     return () => {
@@ -40,7 +38,7 @@ export default function AArmConfig(params: Params) {
   );
   return (
     <>
-      <Typography variant="h6">{dataElement.name} Parameters</Typography>
+      <Typography variant="h6">{element.name} Parameters</Typography>
       <Accordion
         defaultExpanded={kinematicParamsDefaultExpanded}
         onChange={(e, expanded) => {
@@ -56,19 +54,19 @@ export default function AArmConfig(params: Params) {
         </AccordionSummary>
         <AccordionDetails sx={{padding: 0}}>
           <Vector
-            vector={dataElement.fixedPoints[0]}
-            offset={element.position}
-            rotation={element.rotation}
+            vector={element.fixedPoints[0]}
+            offset={element.position.value}
+            rotation={element.rotation.value}
           />
           <Vector
-            vector={dataElement.fixedPoints[1]}
-            offset={element.position}
-            rotation={element.rotation}
+            vector={element.fixedPoints[1]}
+            offset={element.position.value}
+            rotation={element.rotation.value}
           />
           <Vector
-            vector={dataElement.points[0]}
-            offset={element.position}
-            rotation={element.rotation}
+            vector={element.points[0]}
+            offset={element.position.value}
+            rotation={element.rotation.value}
           />
         </AccordionDetails>
       </Accordion>

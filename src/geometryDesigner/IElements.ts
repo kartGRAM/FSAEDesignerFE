@@ -82,7 +82,7 @@ export interface IElement {
   getDataElement(): IDataElement;
   arrange(parentPosition?: Vector3): void;
   position: NamedVector3;
-  rotation?: NamedMatrix3;
+  rotation: NamedMatrix3;
   initialPosition: NamedVector3;
 }
 

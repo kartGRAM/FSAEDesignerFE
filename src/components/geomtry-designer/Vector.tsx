@@ -3,15 +3,14 @@ import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import InputAdornment from '@mui/material/InputAdornment';
 import {Vector3, Matrix3} from 'three';
-import {IElement} from '@gd/IElements';
+import {NamedVector3, getMatrix3} from '@gd/NamedValues';
 import Typography from '@mui/material/Typography';
 import {useDispatch, useSelector} from 'react-redux';
 import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
 import {RootState} from '@store/store';
 
 export interface Props {
-  parent: IElement;
-  vector: Vector3;
+  vector: NamedVector3;
   offset?: Vector3;
   rotation?: Matrix3;
 }
@@ -37,32 +36,31 @@ const ValueField = (props: ValueProps) => {
 };
 
 export default function Vector(props: Props) {
-  const {vector, offset, rotation, parent} = props;
-  const rot = rotation ?? new Matrix3({name: 'rotation'});
-  const ofs = offset ?? new Vector3({name: 'offset'});
+  const {vector, offset, rotation} = props;
+  const rot = rotation ?? new Matrix3();
+  const ofs = offset ?? new Vector3();
   const dispatch = useDispatch();
   const coMatrix = useSelector(
     (state: RootState) => state.dgd.transCoordinateMatrix
   );
 
-  const trans = (p: Vector3) => {
+  const trans = (p: NamedVector3) => {
     const tmp = ofs
       .clone()
-      .add(p.clone().applyMatrix3(rot))
-      .applyMatrix3(new Matrix3(coMatrix));
-    tmp.name = p.name;
-    return tmp;
+      .add(p.value.clone().applyMatrix3(rot))
+      .applyMatrix3(getMatrix3(coMatrix));
+    return p.clone(tmp);
   };
   const handleFocus = () => {
-    dispatch(setSelectedPoint({point: trans(vector).getData(parent)}));
+    dispatch(setSelectedPoint({point: trans(vector).getData()}));
   };
   const handleBlur = () => {};
   return (
     <Box sx={{padding: 1}} onFocus={handleFocus} onBlur={handleBlur}>
       <Typography>{vector.name}</Typography>
-      <ValueField label="X" variant="outlined" value={vector.x} />
-      <ValueField label="Y" variant="outlined" value={vector.y} />
-      <ValueField label="Z" variant="outlined" value={vector.z} />
+      <ValueField label="X" variant="outlined" value={vector.value.x} />
+      <ValueField label="Y" variant="outlined" value={vector.value.y} />
+      <ValueField label="Z" variant="outlined" value={vector.value.z} />
     </Box>
   );
 }

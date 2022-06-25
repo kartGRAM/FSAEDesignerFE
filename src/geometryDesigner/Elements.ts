@@ -37,57 +37,25 @@ import {
 
 export function getElement(element: IDataElement): IElement {
   if (isDataAssembly(element)) {
-    const children = element.children.map((child) => getElement(child));
-    const assembly = new Assembly('', [], [], undefined);
-    assembly.setDataElement(element, children);
-    return assembly;
+    return new Assembly(element);
   }
   if (isDataBar(element)) {
-    const bar = new Bar('', new Vector3(), new Vector3(), undefined);
-    bar.setDataElement(element);
-    return bar;
+    return new Bar(element);
   }
   if (isDataSpringDumper(element)) {
-    const sd = new SpringDumper(
-      '',
-      new Vector3(),
-      new Vector3(),
-      0,
-      0,
-      undefined
-    );
-    sd.setDataElement(element);
-    return sd;
+    return new SpringDumper(element);
   }
   if (isDataAArm(element)) {
-    const aarm = new AArm(
-      '',
-      [new Vector3(), new Vector3()],
-      [new Vector3()],
-      undefined
-    );
-    aarm.setDataElement(element);
-    return aarm;
+    return new AArm(element);
   }
   if (isDataBellCrank(element)) {
-    const bc = new BellCrank(
-      '',
-      [new Vector3(), new Vector3()],
-      [new Vector3(), new Vector3()],
-      undefined
-    );
-    bc.setDataElement(element);
-    return bc;
+    return new BellCrank(element);
   }
   if (isDataBody(element)) {
-    const body = new Body('', [], [], undefined);
-    body.setDataElement(element);
-    return body;
+    return new Body(element);
   }
   if (isDataTire(element)) {
-    const tire = new Tire('', new Vector3(), 0, 0, undefined);
-    tire.setDataElement(element);
-    return tire;
+    return new Tire(element);
   }
   throw Error('Not Supported Exception');
 }
@@ -353,6 +321,14 @@ export class Assembly extends Element implements IAssembly {
 
   // eslint-disable-next-line no-empty-function
   set inertialTensor(mat: NamedMatrix3) {}
+
+  // eslint-disable-next-line no-empty-function
+  get rotation(): NamedMatrix3 {
+    return new NamedMatrix3({name: 'rotation', parent: this});
+  }
+
+  // eslint-disable-next-line no-empty-function
+  set rotation(mat: NamedMatrix3) {}
 
   constructor(
     params:
@@ -830,8 +806,8 @@ export class BellCrank extends Element implements IBellCrank {
       fixedPoints: fp,
       points: [point0, point1, ...points],
       initialPosition: ip,
-      mass: this.mass,
-      centerOfGrafity: cog
+      mass: this.mass.value,
+      centerOfGravity: cog
     });
   }
 
@@ -1130,7 +1106,7 @@ export class Tire extends Element implements ITire {
   get ground(): Vector3 {
     return this.tireCenter.value
       .clone()
-      .add(new Vector3(0, -this.tireCenter.y, 0));
+      .add(new Vector3(0, -this.tireCenter.value.y, 0));
   }
 
   getNodes(): NodeWithPath[] {

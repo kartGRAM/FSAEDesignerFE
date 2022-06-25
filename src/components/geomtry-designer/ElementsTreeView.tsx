@@ -58,7 +58,7 @@ const VisibilityControl = (props: VisibilityControlProps) => {
     if (top) {
       const e = getDataElementByPath(top, element.absPath);
       if (e && isDataElement(e)) {
-        return e.visible;
+        return e.visible.value;
       }
     }
     return undefined;

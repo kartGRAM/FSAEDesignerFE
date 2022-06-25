@@ -12,6 +12,15 @@ const isData = (
 
 export const isData = (params: any): params is INamedData => 'name' in params;
 
+export const getVector3 = (data: IDataVector3): Vector3 => {
+  return new Vector3(data.x, data.y, data.z);
+};
+export const getMatrix3 = (data: IDataMatrix3): Matrix3 => {
+  const tmp = new Matrix3();
+  tmp.elements = [...data.elements];
+  return tmp;
+};
+
 export interface INamedData {
   name: string;
 }
