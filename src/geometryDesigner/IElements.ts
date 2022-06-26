@@ -7,6 +7,7 @@ import {
   NamedVector3,
   NamedMatrix3,
   NamedPrimitive,
+  NamedBooleanOrUndefined,
   INamedValue
 } from './NamedValues';
 
@@ -74,7 +75,7 @@ export interface IElement {
   inertialTensor: NamedMatrix3;
   mass: NamedPrimitive<number>;
   centerOfGravity: NamedVector3;
-  visible: NamedPrimitive<boolean | undefined>;
+  visible: NamedBooleanOrUndefined;
   parent: IAssembly | null;
   readonly nodeID: string;
   readonly absPath: string;
@@ -83,6 +84,7 @@ export interface IElement {
   getDataElement(): IDataElement;
   arrange(parentPosition?: Vector3): void;
   registerNamedValue<T extends INamedValue>(value: T): void;
+  updateValue<T>(name: string, value: T): void;
   position: NamedVector3;
   rotation: NamedMatrix3;
   initialPosition: NamedVector3;

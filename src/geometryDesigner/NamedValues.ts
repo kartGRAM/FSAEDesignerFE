@@ -105,6 +105,31 @@ export class NamedPrimitive<T> implements INamedValue {
   }
 }
 
+export class NamedBooleanOrUndefined implements INamedValue {
+  readonly className: string = 'boolean|undefined';
+
+  name: string;
+
+  value: boolean | undefined;
+
+  parent: IElement;
+
+  constructor(params: INamedPrimitiveConstructor<boolean | undefined>) {
+    const {name, value, parent, override} = params;
+    this.value = isData(value) ? value.value : value;
+    this.name = isData(value) ? value.name : name;
+    this.parent = parent;
+    parent.registerNamedValue(this, override);
+  }
+
+  getData(): IData<boolean | undefined> {
+    return {
+      name: this.name,
+      value: this.value
+    };
+  }
+}
+
 interface INamedVector3Constructor {
   name: string;
   parent: IElement;

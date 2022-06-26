@@ -5,6 +5,7 @@ import {
   NamedVector3,
   NamedMatrix3,
   NamedPrimitive,
+  NamedBooleanOrUndefined,
   INamedValue
 } from '@gd/NamedValues';
 import {AtLeast1, AtLeast2} from '@app/utils/atLeast';
@@ -110,12 +111,22 @@ export abstract class Element {
     this._values[value.name] = value;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  updateValue<T>(name: string, newValue: T): void {
+    if (name in this._values) {
+      return;
+    }
+    // throw new Error(`${this.name}の${name}は${className}型ではない`);
+
+    throw new Error(`${name}は${this.name}に存在しない`);
+  }
+
   abstract get className(): string;
 
-  abstract get visible(): NamedPrimitive<boolean | undefined>;
+  abstract get visible(): NamedBooleanOrUndefined;
 
   // eslint-disable-next-line no-unused-vars
-  abstract set visible(b: NamedPrimitive<boolean | undefined>);
+  abstract set visible(b: NamedBooleanOrUndefined);
 
   abstract get mass(): NamedPrimitive<number>;
 
@@ -177,7 +188,7 @@ export class Assembly extends Element implements IAssembly {
     });
   }
 
-  get visible(): NamedPrimitive<boolean | undefined> {
+  get visible(): NamedBooleanOrUndefined {
     let allTrue = true;
     let allFalse = false;
     let undef = false;
@@ -190,27 +201,27 @@ export class Assembly extends Element implements IAssembly {
       allFalse = allFalse || child.visible.value;
     });
     if (undef)
-      return new NamedPrimitive<boolean | undefined>({
+      return new NamedBooleanOrUndefined({
         name: 'visible',
         parent: this,
         value: undefined,
         override: true
       });
     if (allTrue)
-      return new NamedPrimitive<boolean | undefined>({
+      return new NamedBooleanOrUndefined({
         name: 'visible',
         parent: this,
         value: true,
         override: true
       });
     if (!allFalse)
-      return new NamedPrimitive<boolean | undefined>({
+      return new NamedBooleanOrUndefined({
         name: 'visible',
         parent: this,
         value: false,
         override: true
       });
-    return new NamedPrimitive<boolean | undefined>({
+    return new NamedBooleanOrUndefined({
       name: 'visible',
       parent: this,
       value: undefined,
@@ -218,7 +229,7 @@ export class Assembly extends Element implements IAssembly {
     });
   }
 
-  set visible(visibility: NamedPrimitive<boolean | undefined>) {
+  set visible(visibility: NamedBooleanOrUndefined) {
     this.children.forEach((child) => {
       child.visible = new NamedPrimitive({
         name: 'visible',
@@ -408,7 +419,7 @@ export class Bar extends Element implements IBar {
     return 'Bar';
   }
 
-  visible: NamedPrimitive<boolean | undefined>;
+  visible: NamedBooleanOrUndefined;
 
   mass: NamedPrimitive<number>;
 
@@ -489,7 +500,7 @@ export class Bar extends Element implements IBar {
       value: point
     });
 
-    this.visible = new NamedPrimitive<boolean | undefined>({
+    this.visible = new NamedBooleanOrUndefined({
       name: 'visible',
       parent: this,
       value: isDataElement(params) ? params.visible : true
@@ -608,7 +619,7 @@ export class AArm extends Element implements IAArm {
     return 'AArm';
   }
 
-  visible: NamedPrimitive<boolean | undefined>;
+  visible: NamedBooleanOrUndefined;
 
   mass: NamedPrimitive<number>;
 
@@ -725,7 +736,7 @@ export class AArm extends Element implements IAArm {
       )
     ];
 
-    this.visible = new NamedPrimitive<boolean | undefined>({
+    this.visible = new NamedBooleanOrUndefined({
       name: 'visible',
       parent: this,
       value: isDataElement(params) ? params.visible : true
@@ -775,7 +786,7 @@ export class BellCrank extends Element implements IBellCrank {
     return 'BellCrank';
   }
 
-  visible: NamedPrimitive<boolean | undefined>;
+  visible: NamedBooleanOrUndefined;
 
   mass: NamedPrimitive<number>;
 
@@ -899,7 +910,7 @@ export class BellCrank extends Element implements IBellCrank {
       )
     ];
 
-    this.visible = new NamedPrimitive<boolean | undefined>({
+    this.visible = new NamedBooleanOrUndefined({
       name: 'visible',
       parent: this,
       value: isDataElement(params) ? params.visible : true
@@ -950,7 +961,7 @@ export class Body extends Element implements IBody {
     return 'Body';
   }
 
-  visible: NamedPrimitive<boolean | undefined>;
+  visible: NamedBooleanOrUndefined;
 
   mass: NamedPrimitive<number>;
 
@@ -1047,7 +1058,7 @@ export class Body extends Element implements IBody {
         })
     );
 
-    this.visible = new NamedPrimitive<boolean | undefined>({
+    this.visible = new NamedBooleanOrUndefined({
       name: 'visible',
       parent: this,
       value: isDataElement(params) ? params.visible : true
@@ -1098,7 +1109,7 @@ export class Tire extends Element implements ITire {
     return 'Tire';
   }
 
-  visible: NamedPrimitive<boolean | undefined>;
+  visible: NamedBooleanOrUndefined;
 
   mass: NamedPrimitive<number>;
 
@@ -1215,7 +1226,7 @@ export class Tire extends Element implements ITire {
       value: toRightBearing
     });
 
-    this.visible = new NamedPrimitive<boolean | undefined>({
+    this.visible = new NamedBooleanOrUndefined({
       name: 'visible',
       parent: this,
       value: isDataElement(params) ? params.visible : true
