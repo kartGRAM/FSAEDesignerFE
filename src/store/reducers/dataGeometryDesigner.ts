@@ -1,6 +1,6 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {IDataAssembly, getElementByPath} from '@app/geometryDesigner/IElements';
-import {IDataMatrix3} from '@gd/NamedValues';
+import {IDataMatrix3, NamedPrimitive} from '@gd/NamedValues';
 import {getAssembly} from '@app/geometryDesigner/Elements';
 
 export interface IAssemblyTreeViewState {
@@ -49,7 +49,13 @@ export const dataGeometryDesignerSlice = createSlice({
         const assembly = getAssembly(state.topAssembly);
         const element = getElementByPath(assembly, action.payload.absPath);
         if (assembly && element) {
-          element.visible = element.visible.clone(action.payload.visibility);
+          const tmp = element.visible;
+          element.visible = new NamedPrimitive<boolean | undefined>({
+            name: tmp.name,
+            parent: element,
+            value: action.payload.visibility,
+            override: true
+          });
         }
         state.topAssembly = assembly.getDataElement();
       }

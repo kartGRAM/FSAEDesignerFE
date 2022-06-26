@@ -1,7 +1,12 @@
 /* eslint-disable max-classes-per-file */
 /* eslint-disable class-methods-use-this */
 import {Vector3, Matrix3} from 'three';
-import {NamedVector3, NamedMatrix3, NamedPrimitive} from '@gd/NamedValues';
+import {
+  NamedVector3,
+  NamedMatrix3,
+  NamedPrimitive,
+  INamedValue
+} from '@gd/NamedValues';
 import {AtLeast1, AtLeast2} from '@app/utils/atLeast';
 import {v1 as uuidv1} from 'uuid';
 import {
@@ -97,6 +102,14 @@ export abstract class Element {
     }
   }
 
+  _values: {[index: string]: INamedValue} = {};
+
+  registerNamedValue<T extends INamedValue>(value: T, override = false): void {
+    if (!override && value.name in this._values)
+      throw new Error('Elementの変数名が被っている');
+    this._values[value.name] = value;
+  }
+
   abstract get className(): string;
 
   abstract get visible(): NamedPrimitive<boolean | undefined>;
@@ -180,30 +193,39 @@ export class Assembly extends Element implements IAssembly {
       return new NamedPrimitive<boolean | undefined>({
         name: 'visible',
         parent: this,
-        value: undefined
+        value: undefined,
+        override: true
       });
     if (allTrue)
       return new NamedPrimitive<boolean | undefined>({
         name: 'visible',
         parent: this,
-        value: true
+        value: true,
+        override: true
       });
     if (!allFalse)
       return new NamedPrimitive<boolean | undefined>({
         name: 'visible',
         parent: this,
-        value: false
+        value: false,
+        override: true
       });
     return new NamedPrimitive<boolean | undefined>({
       name: 'visible',
       parent: this,
-      value: undefined
+      value: undefined,
+      override: true
     });
   }
 
   set visible(visibility: NamedPrimitive<boolean | undefined>) {
     this.children.forEach((child) => {
-      child.visible = this.visible.clone(visibility.value);
+      child.visible = new NamedPrimitive({
+        name: 'visible',
+        parent: child,
+        value: visibility.value,
+        override: true
+      });
     });
   }
 
@@ -212,7 +234,7 @@ export class Assembly extends Element implements IAssembly {
   initialPosition: NamedVector3;
 
   get position(): NamedVector3 {
-    return new NamedVector3({name: 'position', parent: this});
+    return new NamedVector3({name: 'position', parent: this, override: true});
   }
 
   set position(p: NamedVector3) {
@@ -247,7 +269,7 @@ export class Assembly extends Element implements IAssembly {
   arrange(parentPosition?: Vector3) {
     const pp = parentPosition ?? new Vector3();
     this.children.forEach((child) => {
-      child.arrange(this.initialPosition.clone().value.add(pp));
+      child.arrange(this.initialPosition.value.clone().add(pp));
     });
   }
 
@@ -259,7 +281,7 @@ export class Assembly extends Element implements IAssembly {
         rhs: [joint.rhs[0], joint.rhs[1]]
       };
     });
-    const initialPosition = this.initialPosition.clone().value;
+    const initialPosition = this.initialPosition.value.clone();
     initialPosition.y *= -1;
 
     return new Assembly({
@@ -293,7 +315,8 @@ export class Assembly extends Element implements IAssembly {
     return new NamedPrimitive<number>({
       name: 'mass',
       parent: this,
-      value: mass
+      value: mass,
+      override: true
     });
   }
 
@@ -303,7 +326,7 @@ export class Assembly extends Element implements IAssembly {
   get centerOfGravity(): NamedVector3 {
     const center = new Vector3();
     this.children.forEach((child) => {
-      center.add(child.position.clone().value.multiplyScalar(child.mass.value));
+      center.add(child.position.value.clone().multiplyScalar(child.mass.value));
     });
     return new NamedVector3({
       name: 'centerOfGravity',

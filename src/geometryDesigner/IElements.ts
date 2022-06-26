@@ -6,7 +6,8 @@ import {
   IData,
   NamedVector3,
   NamedMatrix3,
-  NamedPrimitive
+  NamedPrimitive,
+  INamedValue
 } from './NamedValues';
 
 export type Radian = number;
@@ -81,6 +82,7 @@ export interface IElement {
   getMirror(): IElement;
   getDataElement(): IDataElement;
   arrange(parentPosition?: Vector3): void;
+  registerNamedValue<T extends INamedValue>(value: T): void;
   position: NamedVector3;
   rotation: NamedMatrix3;
   initialPosition: NamedVector3;

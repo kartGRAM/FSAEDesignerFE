@@ -21,6 +21,10 @@ export const isData = (params: any): params is INamedData => {
 export const getVector3 = (data: IDataVector3): Vector3 => {
   return new Vector3(data.x, data.y, data.z);
 };
+export const getDataVector3 = (value: Vector3): IDataVector3 => {
+  const {x, y, z} = value;
+  return {x, y, z, name: 'tempData'};
+};
 export const getMatrix3 = (data: IDataMatrix3): Matrix3 => {
   const tmp = new Matrix3();
   tmp.elements = [...data.elements];
@@ -57,6 +61,7 @@ export interface IDataMatrix3 extends INamedData {
 
 interface IElement {
   readonly absPath: string;
+  registerNamedValue<T extends INamedValue>(value: T, override?: boolean): void;
 }
 
 export interface INamedValue {
@@ -65,13 +70,13 @@ export interface INamedValue {
   parent: IElement;
   value: unknown;
   getData(): unknown;
-  clone(newValue?: unknown): unknown;
 }
 
 interface INamedPrimitiveConstructor<T> {
   name: string;
   value: T | IData<T>;
   parent: IElement;
+  override?: boolean;
 }
 
 export class NamedPrimitive<T> implements INamedValue {
@@ -84,11 +89,12 @@ export class NamedPrimitive<T> implements INamedValue {
   parent: IElement;
 
   constructor(params: INamedPrimitiveConstructor<T>) {
-    const {name, value, parent} = params;
+    const {name, value, parent, override} = params;
     this.className = typeof value;
     this.value = isData(value) ? value.value : value;
     this.name = isData(value) ? value.name : name;
     this.parent = parent;
+    parent.registerNamedValue(this, override);
   }
 
   getData(): IData<T> {
@@ -97,25 +103,13 @@ export class NamedPrimitive<T> implements INamedValue {
       value: this.value
     };
   }
-
-  clone(newValue?: T): NamedPrimitive<T> {
-    const tmp = new NamedPrimitive<T>({
-      name: this.name,
-      parent: this.parent,
-      value: this.value
-    });
-
-    if (newValue !== null && newValue !== undefined) {
-      tmp.value = newValue;
-    }
-    return tmp;
-  }
 }
 
 interface INamedVector3Constructor {
   name: string;
   parent: IElement;
   value?: Vector3 | IDataVector3;
+  override?: boolean;
 }
 
 export class NamedVector3 implements INamedValue {
@@ -128,7 +122,7 @@ export class NamedVector3 implements INamedValue {
   parent: IElement;
 
   constructor(params: INamedVector3Constructor) {
-    const {name, parent, value} = params;
+    const {name, parent, value, override} = params;
     this.parent = parent;
     this.name = name;
     if (value) {
@@ -138,6 +132,7 @@ export class NamedVector3 implements INamedValue {
     } else {
       this.value = new Vector3();
     }
+    parent.registerNamedValue(this, override);
   }
 
   getData(): IDataVector3 {
@@ -148,28 +143,13 @@ export class NamedVector3 implements INamedValue {
       z: this.value.z
     };
   }
-
-  clone(newValue?: Vector3 | IDataVector3): NamedVector3 {
-    const tmp = new NamedVector3({
-      name: this.name,
-      parent: this.parent,
-      value: this.value.clone()
-    });
-    if (newValue) {
-      if (newValue instanceof Vector3) {
-        tmp.value = newValue.clone();
-      } else {
-        tmp.value = new Vector3(newValue.x, newValue.y, newValue.z);
-      }
-    }
-    return tmp;
-  }
 }
 
 interface INamedMatrix3Constructor {
   name: string;
   parent: IElement;
   value?: IDataMatrix3 | Matrix3;
+  override?: boolean;
 }
 
 export class NamedMatrix3 implements INamedValue {
@@ -182,7 +162,7 @@ export class NamedMatrix3 implements INamedValue {
   value: Matrix3;
 
   constructor(params: INamedMatrix3Constructor) {
-    const {name, parent, value} = params;
+    const {name, parent, value, override} = params;
     this.name = name;
     this.parent = parent;
     this.value = new Matrix3();
@@ -190,6 +170,7 @@ export class NamedMatrix3 implements INamedValue {
       this.value.elements = {...value.elements};
       if (isData(value)) this.name = value.name;
     }
+    parent.registerNamedValue(this, override);
   }
 
   getData(): IDataMatrix3 {
@@ -198,18 +179,5 @@ export class NamedMatrix3 implements INamedValue {
       name: this.name,
       elements: [e[0], e[1], e[2], e[3], e[4], e[5], e[6], e[7], e[8]]
     };
-  }
-
-  clone(newValue?: Matrix3 | IDataMatrix3): NamedMatrix3 {
-    const tmp = new NamedMatrix3({name: this.name, parent: this.parent});
-    if (newValue) {
-      if (newValue instanceof Matrix3) {
-        tmp.value = newValue.clone();
-      } else {
-        tmp.value = new Matrix3();
-        tmp.value.elements = {...newValue.elements};
-      }
-    }
-    return tmp;
   }
 }

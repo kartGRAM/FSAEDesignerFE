@@ -3,7 +3,7 @@ import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import InputAdornment from '@mui/material/InputAdornment';
 import {Vector3, Matrix3} from 'three';
-import {NamedVector3, getMatrix3} from '@gd/NamedValues';
+import {NamedVector3, getMatrix3, getDataVector3} from '@gd/NamedValues';
 import Typography from '@mui/material/Typography';
 import {useDispatch, useSelector} from 'react-redux';
 import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
@@ -45,14 +45,13 @@ export default function Vector(props: Props) {
   );
 
   const trans = (p: NamedVector3) => {
-    const tmp = ofs
+    return ofs
       .clone()
       .add(p.value.clone().applyMatrix3(rot))
       .applyMatrix3(getMatrix3(coMatrix));
-    return p.clone(tmp);
   };
   const handleFocus = () => {
-    dispatch(setSelectedPoint({point: trans(vector).getData()}));
+    dispatch(setSelectedPoint({point: getDataVector3(trans(vector))}));
   };
   const handleBlur = () => {};
   return (
