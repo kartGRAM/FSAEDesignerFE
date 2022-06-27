@@ -21,10 +21,12 @@ export const isData = (params: any): params is INamedData => {
 export const getVector3 = (data: IDataVector3): Vector3 => {
   return new Vector3(data.x, data.y, data.z);
 };
+
 export const getDataVector3 = (value: Vector3): IDataVector3 => {
   const {x, y, z} = value;
   return {x, y, z, name: 'tempData'};
 };
+
 export const getMatrix3 = (data: IDataMatrix3): Matrix3 => {
   const tmp = new Matrix3();
   tmp.elements = [...data.elements];
@@ -59,24 +61,18 @@ export interface IDataMatrix3 extends INamedData {
   ];
 }
 
-interface IElement {
-  readonly absPath: string;
-  registerNamedValue<T extends INamedValue>(value: T, override?: boolean): void;
-}
-
 export interface INamedValue {
   readonly className: string;
   name: string;
-  parent: IElement;
   value: unknown;
   getData(): unknown;
+  // update(newValue: unknown): this;
 }
 
 interface INamedPrimitiveConstructor<T> {
   name: string;
   value: T | IData<T>;
-  parent: IElement;
-  override?: boolean;
+  update?: (newValue: T) => void;
 }
 
 export class NamedPrimitive<T> implements INamedValue {
@@ -84,17 +80,28 @@ export class NamedPrimitive<T> implements INamedValue {
 
   name: string;
 
-  value: T;
+  _value: T;
 
-  parent: IElement;
+  private _update: (newValue: T) => void;
+
+  get value(): T {
+    return this._value;
+  }
+
+  set value(newValue: T) {
+    this._update(newValue);
+  }
 
   constructor(params: INamedPrimitiveConstructor<T>) {
-    const {name, value, parent, override} = params;
+    const {name, value, update} = params;
+    this._update =
+      update ??
+      ((newValue: T) => {
+        this._value = newValue;
+      });
     this.className = typeof value;
-    this.value = isData(value) ? value.value : value;
+    this._value = isData(value) ? value.value : value;
     this.name = isData(value) ? value.name : name;
-    this.parent = parent;
-    parent.registerNamedValue(this, override);
   }
 
   getData(): IData<T> {
@@ -105,21 +112,48 @@ export class NamedPrimitive<T> implements INamedValue {
   }
 }
 
+export function isNamedString(
+  value: INamedValue
+): value is NamedPrimitive<string> {
+  return value.className === 'string';
+}
+export function isNamedNumber(
+  value: INamedValue
+): value is NamedPrimitive<number> {
+  return value.className === 'number';
+}
+export function isNamedBoolean(
+  value: INamedValue
+): value is NamedPrimitive<boolean> {
+  return value.className === 'boolean';
+}
+
 export class NamedBooleanOrUndefined implements INamedValue {
   readonly className: string = 'boolean|undefined';
 
   name: string;
 
-  value: boolean | undefined;
+  _value: boolean | undefined;
 
-  parent: IElement;
+  private _update: (newValue: boolean | undefined) => void;
+
+  get value(): boolean | undefined {
+    return this._value;
+  }
+
+  set value(newValue: boolean | undefined) {
+    this._update(newValue);
+  }
 
   constructor(params: INamedPrimitiveConstructor<boolean | undefined>) {
-    const {name, value, parent, override} = params;
-    this.value = isData(value) ? value.value : value;
+    const {name, value, update} = params;
+    this._update =
+      update ??
+      ((newValue: boolean | undefined) => {
+        this._value = newValue;
+      });
+    this._value = isData(value) ? value.value : value;
     this.name = isData(value) ? value.name : name;
-    this.parent = parent;
-    parent.registerNamedValue(this, override);
   }
 
   getData(): IData<boolean | undefined> {
@@ -130,11 +164,16 @@ export class NamedBooleanOrUndefined implements INamedValue {
   }
 }
 
+export function isNamedBooleanOrUndefined(
+  value: INamedValue
+): value is NamedBooleanOrUndefined {
+  return value.className === 'boolean|undefined';
+}
+
 interface INamedVector3Constructor {
   name: string;
-  parent: IElement;
   value?: Vector3 | IDataVector3;
-  override?: boolean;
+  update?: (newValue: Vector3) => this;
 }
 
 export class NamedVector3 implements INamedValue {
@@ -142,22 +181,33 @@ export class NamedVector3 implements INamedValue {
 
   name: string;
 
-  value: Vector3;
+  _value: Vector3;
 
-  parent: IElement;
+  private _update: (newValue: Vector3) => void;
+
+  get value(): Vector3 {
+    return this._value;
+  }
+
+  set value(newValue: Vector3) {
+    this._update(newValue);
+  }
 
   constructor(params: INamedVector3Constructor) {
-    const {name, parent, value, override} = params;
-    this.parent = parent;
+    const {name, update, value} = params;
+    this._update =
+      update ??
+      ((newValue: Vector3) => {
+        this._value = newValue.clone();
+      });
     this.name = name;
     if (value) {
       const {x, y, z} = value;
-      this.value = new Vector3(x, y, z);
+      this._value = new Vector3(x, y, z);
       if (isData(value)) this.name = value.name;
     } else {
-      this.value = new Vector3();
+      this._value = new Vector3();
     }
-    parent.registerNamedValue(this, override);
   }
 
   getData(): IDataVector3 {
@@ -169,12 +219,14 @@ export class NamedVector3 implements INamedValue {
     };
   }
 }
+export function isNamedVector3(value: INamedValue): value is NamedVector3 {
+  return value.className === 'Vector3';
+}
 
 interface INamedMatrix3Constructor {
   name: string;
-  parent: IElement;
   value?: IDataMatrix3 | Matrix3;
-  override?: boolean;
+  update?: (newValue: Matrix3) => this;
 }
 
 export class NamedMatrix3 implements INamedValue {
@@ -182,20 +234,31 @@ export class NamedMatrix3 implements INamedValue {
 
   name: string;
 
-  parent: IElement;
+  private _update: (newValue: Matrix3) => void;
 
-  value: Matrix3;
+  _value: Matrix3;
+
+  get value(): Matrix3 {
+    return this._value;
+  }
+
+  set value(newValue: Matrix3) {
+    this._update(newValue);
+  }
 
   constructor(params: INamedMatrix3Constructor) {
-    const {name, parent, value, override} = params;
+    const {name, update, value} = params;
+    this._update =
+      update ??
+      ((newValue: Matrix3) => {
+        this._value.elements = [...newValue.elements];
+      });
     this.name = name;
-    this.parent = parent;
-    this.value = new Matrix3();
+    this._value = new Matrix3();
     if (value) {
-      this.value.elements = {...value.elements};
+      this._value.elements = {...value.elements};
       if (isData(value)) this.name = value.name;
     }
-    parent.registerNamedValue(this, override);
   }
 
   getData(): IDataMatrix3 {
@@ -205,4 +268,8 @@ export class NamedMatrix3 implements INamedValue {
       elements: [e[0], e[1], e[2], e[3], e[4], e[5], e[6], e[7], e[8]]
     };
   }
+}
+
+export function isNamedMatrix3(value: INamedValue): value is NamedMatrix3 {
+  return value.className === 'Matrix3';
 }

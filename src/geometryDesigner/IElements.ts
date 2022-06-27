@@ -7,8 +7,7 @@ import {
   NamedVector3,
   NamedMatrix3,
   NamedPrimitive,
-  NamedBooleanOrUndefined,
-  INamedValue
+  NamedBooleanOrUndefined
 } from './NamedValues';
 
 export type Radian = number;
@@ -81,10 +80,9 @@ export interface IElement {
   readonly absPath: string;
   getNodes(): NodeWithPath[];
   getMirror(): IElement;
+  getRoot(): IAssembly | null;
   getDataElement(): IDataElement;
   arrange(parentPosition?: Vector3): void;
-  registerNamedValue<T extends INamedValue>(value: T): void;
-  updateValue<T>(name: string, value: T): void;
   position: NamedVector3;
   rotation: NamedMatrix3;
   initialPosition: NamedVector3;

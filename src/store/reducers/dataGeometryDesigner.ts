@@ -1,6 +1,10 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
-import {IDataAssembly, getElementByPath} from '@app/geometryDesigner/IElements';
-import {IDataMatrix3, NamedBooleanOrUndefined} from '@gd/NamedValues';
+import {
+  IDataAssembly,
+  IElement,
+  getElementByPath
+} from '@app/geometryDesigner/IElements';
+import {IDataMatrix3} from '@gd/NamedValues';
 import {getAssembly} from '@app/geometryDesigner/Elements';
 
 export interface IAssemblyTreeViewState {
@@ -38,6 +42,15 @@ export const dataGeometryDesignerSlice = createSlice({
     ) => {
       state.topAssembly = action.payload;
     },
+    updateAssembly: (
+      state: GDState,
+      action: PayloadAction<{
+        element: IElement;
+      }>
+    ) => {
+      const assembly = action.payload.element.getRoot();
+      if (assembly) state.topAssembly = assembly.getDataElement();
+    },
     setVisibility: (
       state: GDState,
       action: PayloadAction<{
@@ -49,13 +62,7 @@ export const dataGeometryDesignerSlice = createSlice({
         const assembly = getAssembly(state.topAssembly);
         const element = getElementByPath(assembly, action.payload.absPath);
         if (assembly && element) {
-          const tmp = element.visible;
-          element.visible = new NamedBooleanOrUndefined({
-            name: tmp.name,
-            parent: element,
-            value: action.payload.visibility,
-            override: true
-          });
+          element.visible.value = action.payload.visibility;
         }
         state.topAssembly = assembly.getDataElement();
       }
@@ -63,7 +70,11 @@ export const dataGeometryDesignerSlice = createSlice({
   }
 });
 
-export const {setCoordinateMatrix, setTopAssembly, setVisibility} =
-  dataGeometryDesignerSlice.actions;
+export const {
+  setCoordinateMatrix,
+  setTopAssembly,
+  setVisibility,
+  updateAssembly
+} = dataGeometryDesignerSlice.actions;
 
 export default dataGeometryDesignerSlice.reducer;

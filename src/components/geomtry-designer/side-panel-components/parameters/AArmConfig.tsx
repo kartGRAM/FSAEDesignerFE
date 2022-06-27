@@ -54,16 +54,19 @@ export default function AArmConfig(params: Params) {
         </AccordionSummary>
         <AccordionDetails sx={{padding: 0}}>
           <Vector
+            element={element}
             vector={element.fixedPoints[0]}
             offset={element.position.value}
             rotation={element.rotation.value}
           />
           <Vector
+            element={element}
             vector={element.fixedPoints[1]}
             offset={element.position.value}
             rotation={element.rotation.value}
           />
           <Vector
+            element={element}
             vector={element.points[0]}
             offset={element.position.value}
             rotation={element.rotation.value}

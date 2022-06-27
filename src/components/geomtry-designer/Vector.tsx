@@ -4,12 +4,15 @@ import Box from '@mui/material/Box';
 import InputAdornment from '@mui/material/InputAdornment';
 import {Vector3, Matrix3} from 'three';
 import {NamedVector3, getMatrix3, getDataVector3} from '@gd/NamedValues';
+import {IElement} from '@gd/IElements';
 import Typography from '@mui/material/Typography';
 import {useDispatch, useSelector} from 'react-redux';
 import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
+import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
 import {RootState} from '@store/store';
 
 export interface Props {
+  element: IElement;
   vector: NamedVector3;
   offset?: Vector3;
   rotation?: Matrix3;
@@ -36,7 +39,7 @@ const ValueField = (props: ValueProps) => {
 };
 
 export default function Vector(props: Props) {
-  const {vector, offset, rotation} = props;
+  const {element, vector, offset, rotation} = props;
   const rot = rotation ?? new Matrix3();
   const ofs = offset ?? new Vector3();
   const dispatch = useDispatch();
@@ -53,11 +56,24 @@ export default function Vector(props: Props) {
   const handleFocus = () => {
     dispatch(setSelectedPoint({point: getDataVector3(trans(vector))}));
   };
+
+  const handleChangeX = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const {value} = event.target;
+    const x = Number(value);
+    vector.value = vector.value.clone().setX(x);
+    dispatch(updateAssembly({element}));
+    handleFocus();
+  };
   const handleBlur = () => {};
   return (
     <Box sx={{padding: 1}} onFocus={handleFocus} onBlur={handleBlur}>
       <Typography>{vector.name}</Typography>
-      <ValueField label="X" variant="outlined" value={vector.value.x} />
+      <ValueField
+        onChange={handleChangeX}
+        label="X"
+        variant="outlined"
+        value={vector.value.x}
+      />
       <ValueField label="Y" variant="outlined" value={vector.value.y} />
       <ValueField label="Z" variant="outlined" value={vector.value.z} />
     </Box>
