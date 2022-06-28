@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, {useEffect, useState} from 'react';
 import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -47,24 +47,49 @@ export default function Vector(props: Props) {
     (state: RootState) => state.dgd.transCoordinateMatrix
   );
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [focused, setFocused] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (focused)
+      dispatch(setSelectedPoint({point: getDataVector3(trans(vector))}));
+    return () => {
+      if (!focused) dispatch(setSelectedPoint({point: null}));
+    };
+  }, [focused, vector]);
+
   const trans = (p: NamedVector3) => {
     return ofs
       .clone()
       .add(p.value.clone().applyMatrix3(rot))
       .applyMatrix3(getMatrix3(coMatrix));
   };
+
   const handleFocus = () => {
-    dispatch(setSelectedPoint({point: getDataVector3(trans(vector))}));
+    setFocused(true);
   };
 
   const handleChangeX = (event: React.ChangeEvent<HTMLInputElement>) => {
     const {value} = event.target;
     const x = Number(value);
-    vector.value = vector.value.clone().setX(x);
+    vector.value = vector.value.setX(x);
     dispatch(updateAssembly({element}));
-    handleFocus();
   };
-  const handleBlur = () => {};
+  const handleChangeY = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const {value} = event.target;
+    const x = Number(value);
+    vector.value = vector.value.setY(x);
+    dispatch(updateAssembly({element}));
+  };
+  const handleChangeZ = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const {value} = event.target;
+    const x = Number(value);
+    vector.value = vector.value.setZ(x);
+    dispatch(updateAssembly({element}));
+  };
+  const handleBlur = () => {
+    setFocused(false);
+  };
   return (
     <Box sx={{padding: 1}} onFocus={handleFocus} onBlur={handleBlur}>
       <Typography>{vector.name}</Typography>
@@ -74,8 +99,18 @@ export default function Vector(props: Props) {
         variant="outlined"
         value={vector.value.x}
       />
-      <ValueField label="Y" variant="outlined" value={vector.value.y} />
-      <ValueField label="Z" variant="outlined" value={vector.value.z} />
+      <ValueField
+        onChange={handleChangeY}
+        label="Y"
+        variant="outlined"
+        value={vector.value.y}
+      />
+      <ValueField
+        onChange={handleChangeZ}
+        label="Z"
+        variant="outlined"
+        value={vector.value.z}
+      />
     </Box>
   );
 }

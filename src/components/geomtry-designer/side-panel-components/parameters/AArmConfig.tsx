@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
@@ -6,7 +6,6 @@ import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {IAArm} from '@gd/IElements';
 import {useDispatch, useSelector} from 'react-redux';
-import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
 import {RootState} from '@store/store';
 import {
   kinematicParamsDefaultExpandedChange,
@@ -21,12 +20,6 @@ interface Params {
 export default function AArmConfig(params: Params) {
   const {element} = params;
   // eslint-disable-next-line no-unused-vars
-
-  useEffect(() => {
-    return () => {
-      dispatch(setSelectedPoint({point: null}));
-    };
-  });
 
   const dispatch = useDispatch();
   const kinematicParamsDefaultExpanded = useSelector(
