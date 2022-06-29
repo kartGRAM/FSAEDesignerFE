@@ -10,6 +10,8 @@ import {useDispatch, useSelector} from 'react-redux';
 import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
 import {RootState} from '@store/store';
+import {useFormik} from 'formik';
+import * as Yup from 'yup';
 
 export interface Props {
   element: IElement;
@@ -18,13 +20,18 @@ export interface Props {
   rotation?: Matrix3;
 }
 
-interface ValueProps extends OutlinedTextFieldProps {}
+interface ValueProps extends OutlinedTextFieldProps {
+  name?: string;
+  id?: string;
+}
 
 const ValueField = (props: ValueProps) => {
+  const {name, id} = props;
   return (
     <TextField
-      id="outlined-basic"
       size="small"
+      name={name}
+      id={id}
       // margin="none"
       {...props}
       InputProps={{
@@ -47,8 +54,24 @@ export default function Vector(props: Props) {
     (state: RootState) => state.dgd.transCoordinateMatrix
   );
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [focused, setFocused] = useState<boolean>(false);
+  const formik = useFormik({
+    enableReinitialize: true,
+    initialValues: {
+      x: vector.value.x,
+      y: vector.value.y,
+      z: vector.value.z
+    },
+    validationSchema: Yup.object({
+      x: Yup.number().typeError('not a number'),
+      y: Yup.number().typeError('not a number'),
+      z: Yup.number().typeError('not a number')
+    }),
+    onSubmit: (values) => {
+      vector.value = new Vector3(values.x, values.y, values.z);
+      dispatch(updateAssembly({element}));
+    }
+  });
 
   useEffect(() => {
     if (focused)
@@ -69,48 +92,45 @@ export default function Vector(props: Props) {
     setFocused(true);
   };
 
-  const handleChangeX = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const {value} = event.target;
-    const x = Number(value);
-    vector.value = vector.value.setX(x);
-    dispatch(updateAssembly({element}));
-  };
-  const handleChangeY = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const {value} = event.target;
-    const x = Number(value);
-    vector.value = vector.value.setY(x);
-    dispatch(updateAssembly({element}));
-  };
-  const handleChangeZ = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const {value} = event.target;
-    const x = Number(value);
-    vector.value = vector.value.setZ(x);
-    dispatch(updateAssembly({element}));
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    formik.handleChange(event);
+    setTimeout(formik.handleSubmit, 0);
   };
   const handleBlur = () => {
     setFocused(false);
   };
   return (
     <Box sx={{padding: 1}} onFocus={handleFocus} onBlur={handleBlur}>
-      <Typography>{vector.name}</Typography>
-      <ValueField
-        onChange={handleChangeX}
-        label="X"
-        variant="outlined"
-        value={vector.value.x}
-      />
-      <ValueField
-        onChange={handleChangeY}
-        label="Y"
-        variant="outlined"
-        value={vector.value.y}
-      />
-      <ValueField
-        onChange={handleChangeZ}
-        label="Z"
-        variant="outlined"
-        value={vector.value.z}
-      />
+      <form onSubmit={formik.handleSubmit}>
+        <Typography>{vector.name}</Typography>
+        <ValueField
+          onChange={handleChange}
+          label="X"
+          name="x"
+          variant="outlined"
+          value={formik.values.x}
+          error={formik.touched.x && Boolean(formik.errors.x)}
+          helperText={formik.touched.x && formik.errors.x}
+        />
+        <ValueField
+          onChange={handleChange}
+          label="Y"
+          name="y"
+          variant="outlined"
+          value={formik.values.y}
+          error={formik.touched.y && Boolean(formik.errors.y)}
+          helperText={formik.touched.y && formik.errors.y}
+        />
+        <ValueField
+          onChange={handleChange}
+          label="Z"
+          name="z"
+          variant="outlined"
+          value={formik.values.z}
+          error={formik.touched.z && Boolean(formik.errors.z)}
+          helperText={formik.touched.z && formik.errors.z}
+        />
+      </form>
     </Box>
   );
 }

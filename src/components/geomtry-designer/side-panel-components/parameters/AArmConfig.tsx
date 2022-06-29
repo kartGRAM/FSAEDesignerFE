@@ -80,11 +80,17 @@ export default function AArmConfig(params: Params) {
           <Typography>Dynamic Parameters</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Typography>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse
-            malesuada lacus ex, sit amet blandit leo lobortis eget.
-          </Typography>
+          <Typography>TBD</Typography>
         </AccordionDetails>
+      </Accordion>
+      <Accordion>
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          aria-controls="panel3a-content"
+          id="panel3a-header"
+        >
+          <Typography>Visualization</Typography>
+        </AccordionSummary>
       </Accordion>
       <Accordion>
         <AccordionSummary

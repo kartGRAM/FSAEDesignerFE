@@ -49,7 +49,7 @@ const Profile = () => {
                       <span className="float-right">13,287</span>
                     </li>
                   </ul>
-                  <Button block>
+                  <Button>
                     {/* @ts-ignore */}
                     {t('main.label.follow')}
                   </Button>
