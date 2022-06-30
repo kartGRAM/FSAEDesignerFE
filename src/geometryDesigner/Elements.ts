@@ -111,7 +111,8 @@ export abstract class Element implements IElement {
     const {name} = params;
     this.name = new NamedPrimitive({
       name: 'name',
-      value: name
+      value: name,
+      parent: this
     });
     if (isDataElement(params)) {
       const element = params;

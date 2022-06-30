@@ -1,5 +1,7 @@
 /* eslint-disable max-classes-per-file */
 import {Vector3, Matrix3} from 'three';
+import {IElement} from '@gd/IElements';
+import {v1 as uuidv1} from 'uuid';
 
 /* export interface IData {
   className: string;
@@ -63,23 +65,54 @@ export interface IDataMatrix3 extends INamedData {
 
 export interface INamedValue {
   readonly className: string;
+  readonly nodeID: string;
+  readonly absPath: string;
   name: string;
   value: unknown;
   getData(): unknown;
   // update(newValue: unknown): this;
 }
 
+interface INamedValueConstructor {
+  parent: IElement;
+  name: string;
+  className: string;
+}
+
+abstract class NamedValue implements INamedValue {
+  readonly className: string;
+
+  readonly parent: IElement;
+
+  readonly nodeID: string;
+
+  name: string;
+
+  get absPath(): string {
+    return `${this.nodeID}@${this.parent.absPath}`;
+  }
+
+  abstract value: unknown;
+
+  abstract getData(): unknown;
+
+  constructor(params: INamedValueConstructor) {
+    const {className, parent, name} = params;
+    this.className = className;
+    this.parent = parent;
+    this.name = name;
+    this.nodeID = uuidv1();
+  }
+}
+
 interface INamedPrimitiveConstructor<T> {
   name: string;
   value: T | IData<T>;
   update?: (newValue: T) => void;
+  parent: IElement;
 }
 
-export class NamedPrimitive<T> implements INamedValue {
-  className: string;
-
-  name: string;
-
+export class NamedPrimitive<T> extends NamedValue {
   _value: T;
 
   private _update: (newValue: T) => void;
@@ -93,15 +126,18 @@ export class NamedPrimitive<T> implements INamedValue {
   }
 
   constructor(params: INamedPrimitiveConstructor<T>) {
-    const {name, value, update} = params;
+    const {name: defaultName, value, update} = params;
+    super({
+      className: typeof value,
+      ...params,
+      name: isData(value) ? value.name : defaultName
+    });
     this._update =
       update ??
       ((newValue: T) => {
         this._value = newValue;
       });
-    this.className = typeof value;
     this._value = isData(value) ? value.value : value;
-    this.name = isData(value) ? value.name : name;
   }
 
   getData(): IData<T> {

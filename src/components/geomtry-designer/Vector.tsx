@@ -4,7 +4,6 @@ import Box from '@mui/material/Box';
 import InputAdornment from '@mui/material/InputAdornment';
 import {Vector3, Matrix3} from 'three';
 import {NamedVector3, getMatrix3, getDataVector3} from '@gd/NamedValues';
-import {IElement} from '@gd/IElements';
 import Typography from '@mui/material/Typography';
 import {useDispatch, useSelector} from 'react-redux';
 import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
@@ -14,7 +13,6 @@ import {useFormik} from 'formik';
 import * as Yup from 'yup';
 
 export interface Props {
-  element: IElement;
   vector: NamedVector3;
   offset?: Vector3;
   rotation?: Matrix3;
