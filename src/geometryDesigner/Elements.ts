@@ -216,29 +216,34 @@ export class Assembly extends Element implements IAssembly {
     const update = (newValue: boolean | undefined) => {
       this.visible = new NamedBooleanOrUndefined({
         name: 'visible',
+        parent: this,
         value: newValue
       });
     };
     if (undef)
       return new NamedBooleanOrUndefined({
         name: 'visible',
+        parent: this,
         value: undefined,
         update
       });
     if (allTrue)
       return new NamedBooleanOrUndefined({
         name: 'visible',
+        parent: this,
         value: true,
         update
       });
     if (!allFalse)
       return new NamedBooleanOrUndefined({
         name: 'visible',
+        parent: this,
         value: false,
         update
       });
     return new NamedBooleanOrUndefined({
       name: 'visible',
+      parent: this,
       value: undefined,
       update
     });
@@ -255,7 +260,7 @@ export class Assembly extends Element implements IAssembly {
   initialPosition: NamedVector3;
 
   get position(): NamedVector3 {
-    return new NamedVector3({name: 'position'});
+    return new NamedVector3({name: 'position', parent: this});
   }
 
   set position(p: NamedVector3) {
@@ -335,6 +340,7 @@ export class Assembly extends Element implements IAssembly {
     });
     return new NamedPrimitive<number>({
       name: 'mass',
+      parent: this,
       value: mass
     });
   }
@@ -349,6 +355,7 @@ export class Assembly extends Element implements IAssembly {
     });
     return new NamedVector3({
       name: 'centerOfGravity',
+      parent: this,
       value: center
     });
   }
@@ -357,7 +364,10 @@ export class Assembly extends Element implements IAssembly {
   set centerOfGravity(v: NamedVector3) {}
 
   get inertialTensor(): NamedMatrix3 {
-    return new NamedMatrix3({name: 'inertialTensor'});
+    return new NamedMatrix3({
+      parent: this,
+      name: 'inertialTensor'
+    });
   }
 
   // eslint-disable-next-line no-empty-function
@@ -365,7 +375,10 @@ export class Assembly extends Element implements IAssembly {
 
   // eslint-disable-next-line no-empty-function
   get rotation(): NamedMatrix3 {
-    return new NamedMatrix3({name: 'rotation'});
+    return new NamedMatrix3({
+      parent: this,
+      name: 'rotation'
+    });
   }
 
   // eslint-disable-next-line no-empty-function
@@ -388,6 +401,7 @@ export class Assembly extends Element implements IAssembly {
     this.joints = joints;
     this.initialPosition = new NamedVector3({
       name: 'initialPosition',
+      parent: this,
       value: initialPosition
     });
     if (isDataElement(params)) {
@@ -473,7 +487,10 @@ export class Bar extends Element implements IBar {
   }
 
   get inertialTensor(): NamedMatrix3 {
-    return new NamedMatrix3({name: 'inertialTensor'});
+    return new NamedMatrix3({
+      parent: this,
+      name: 'inertialTensor'
+    });
   }
 
   set inertialTensor(mat: NamedMatrix3) {
@@ -497,37 +514,45 @@ export class Bar extends Element implements IBar {
 
     this.fixedPoint = new NamedVector3({
       name: 'fixedPoint',
+      parent: this,
       value: fixedPoint
     });
     this.point = new NamedVector3({
       name: 'point',
+      parent: this,
       value: point
     });
 
     this.visible = new NamedBooleanOrUndefined({
       name: 'visible',
+      parent: this,
       value: isDataElement(params) ? params.visible : true
     });
     this.initialPosition = new NamedVector3({
       name: 'initialPosition',
+      parent: this,
       value: initialPosition ?? new Vector3()
     });
     this.mass = new NamedPrimitive<number>({
       name: 'mass',
+      parent: this,
       value: mass ?? 0.001
     });
     this.centerOfGravity = new NamedVector3({
       name: 'centerOfGravity',
+      parent: this,
       value: centerOfGravity ?? new Vector3()
     });
     this.position = new NamedVector3({
       name: 'position',
+      parent: this,
       value: isDataElement(params)
         ? params.position
         : this.initialPosition.value
     });
     this.rotation = new NamedMatrix3({
       name: 'rotation',
+      parent: this,
       value: isDataElement(params) ? params.rotation : new Matrix3()
     });
   }
@@ -591,10 +616,12 @@ export class SpringDumper extends Bar implements ISpringDumper {
     super(params);
     this.dlMin = new NamedPrimitive<Millimeter>({
       name: 'dlMin',
+      parent: this,
       value: params.dlMin
     });
     this.dlMax = new NamedPrimitive<Millimeter>({
       name: 'dlMax',
+      parent: this,
       value: params.dlMax
     });
   }
@@ -675,7 +702,10 @@ export class AArm extends Element implements IAArm {
   }
 
   get inertialTensor(): NamedMatrix3 {
-    return new NamedMatrix3({name: 'inertialTensor'});
+    return new NamedMatrix3({
+      parent: this,
+      name: 'inertialTensor'
+    });
   }
 
   set inertialTensor(mat: NamedMatrix3) {
@@ -704,11 +734,13 @@ export class AArm extends Element implements IAArm {
     this.fixedPoints = [
       new NamedVector3({
         name: this.fixedPointNames[0],
+        parent: this,
         value: fixedPoints[0]
       }),
 
       new NamedVector3({
         name: this.fixedPointNames[1],
+        parent: this,
         value: fixedPoints[1]
       })
     ];
@@ -717,12 +749,14 @@ export class AArm extends Element implements IAArm {
     this.points = [
       new NamedVector3({
         name: this.pointNames[0],
+        parent: this,
         value: point0
       }),
       ...p.map(
         (point, i) =>
           new NamedVector3({
             name: `${this.pointNames[1]}${i + 1}`,
+            parent: this,
             value: point
           })
       )
@@ -730,28 +764,34 @@ export class AArm extends Element implements IAArm {
 
     this.visible = new NamedBooleanOrUndefined({
       name: 'visible',
+      parent: this,
       value: isDataElement(params) ? params.visible : true
     });
     this.initialPosition = new NamedVector3({
       name: 'initialPosition',
+      parent: this,
       value: initialPosition ?? new Vector3()
     });
     this.mass = new NamedPrimitive<number>({
       name: 'mass',
+      parent: this,
       value: mass ?? 0.001
     });
     this.centerOfGravity = new NamedVector3({
       name: 'centerOfGravity',
+      parent: this,
       value: centerOfGravity ?? new Vector3()
     });
     this.position = new NamedVector3({
       name: 'position',
+      parent: this,
       value: isDataElement(params)
         ? params.position
         : this.initialPosition.value
     });
     this.rotation = new NamedMatrix3({
       name: 'rotation',
+      parent: this,
       value: isDataElement(params) ? params.rotation : new Matrix3()
     });
   }
@@ -833,7 +873,10 @@ export class BellCrank extends Element implements IBellCrank {
   }
 
   get inertialTensor(): NamedMatrix3 {
-    return new NamedMatrix3({name: 'inertialTensor'});
+    return new NamedMatrix3({
+      parent: this,
+      name: 'inertialTensor'
+    });
   }
 
   set inertialTensor(mat: NamedMatrix3) {
@@ -862,11 +905,13 @@ export class BellCrank extends Element implements IBellCrank {
     this.fixedPoints = [
       new NamedVector3({
         name: this.fixedPointNames[0],
+        parent: this,
         value: fixedPoints[0]
       }),
 
       new NamedVector3({
         name: this.fixedPointNames[1],
+        parent: this,
         value: fixedPoints[1]
       })
     ];
@@ -876,16 +921,19 @@ export class BellCrank extends Element implements IBellCrank {
     this.points = [
       new NamedVector3({
         name: this.pointNames[0],
+        parent: this,
         value: point0
       }),
       new NamedVector3({
         name: this.pointNames[1],
+        parent: this,
         value: point1
       }),
       ...p.map(
         (point, i) =>
           new NamedVector3({
             name: `${this.pointNames[2]}${i + 1}`,
+            parent: this,
             value: point
           })
       )
@@ -893,28 +941,34 @@ export class BellCrank extends Element implements IBellCrank {
 
     this.visible = new NamedBooleanOrUndefined({
       name: 'visible',
+      parent: this,
       value: isDataElement(params) ? params.visible : true
     });
     this.initialPosition = new NamedVector3({
       name: 'initialPosition',
+      parent: this,
       value: initialPosition ?? new Vector3()
     });
     this.mass = new NamedPrimitive<number>({
       name: 'mass',
+      parent: this,
       value: mass ?? 0.001
     });
     this.centerOfGravity = new NamedVector3({
       name: 'centerOfGravity',
+      parent: this,
       value: centerOfGravity ?? new Vector3()
     });
     this.position = new NamedVector3({
       name: 'position',
+      parent: this,
       value: isDataElement(params)
         ? params.position
         : this.initialPosition.value
     });
     this.rotation = new NamedMatrix3({
       name: 'rotation',
+      parent: this,
       value: isDataElement(params) ? params.rotation : new Matrix3()
     });
   }
@@ -994,7 +1048,10 @@ export class Body extends Element implements IBody {
   }
 
   get inertialTensor(): NamedMatrix3 {
-    return new NamedMatrix3({name: 'inertialTensor'});
+    return new NamedMatrix3({
+      parent: this,
+      name: 'inertialTensor'
+    });
   }
 
   set inertialTensor(mat: NamedMatrix3) {
@@ -1020,6 +1077,7 @@ export class Body extends Element implements IBody {
       (point, i) =>
         new NamedVector3({
           name: `fixedPoint${i + 1}`,
+          parent: this,
           value: point
         })
     );
@@ -1027,34 +1085,41 @@ export class Body extends Element implements IBody {
       (point, i) =>
         new NamedVector3({
           name: `point${i + 1}`,
+          parent: this,
           value: point
         })
     );
 
     this.visible = new NamedBooleanOrUndefined({
       name: 'visible',
+      parent: this,
       value: isDataElement(params) ? params.visible : true
     });
     this.initialPosition = new NamedVector3({
       name: 'initialPosition',
+      parent: this,
       value: initialPosition ?? new Vector3()
     });
     this.mass = new NamedPrimitive<number>({
       name: 'mass',
+      parent: this,
       value: mass ?? 0.001
     });
     this.centerOfGravity = new NamedVector3({
       name: 'centerOfGravity',
+      parent: this,
       value: centerOfGravity ?? new Vector3()
     });
     this.position = new NamedVector3({
       name: 'position',
+      parent: this,
       value: isDataElement(params)
         ? params.position
         : this.initialPosition.value
     });
     this.rotation = new NamedMatrix3({
       name: 'rotation',
+      parent: this,
       value: isDataElement(params) ? params.rotation : new Matrix3()
     });
   }
@@ -1147,7 +1212,7 @@ export class Tire extends Element implements ITire {
   }
 
   get inertialTensor(): NamedMatrix3 {
-    return new NamedMatrix3({name: 'inertialTensor'});
+    return new NamedMatrix3({name: 'inertialTensor', parent: this});
   }
 
   set inertialTensor(mat: NamedMatrix3) {
@@ -1179,41 +1244,50 @@ export class Tire extends Element implements ITire {
 
     this.tireCenter = new NamedVector3({
       name: 'tireCenter',
+      parent: this,
       value: tireCenter ?? new Vector3()
     });
     this.toLeftBearing = new NamedPrimitive<number>({
       name: 'toLeftBearing',
+      parent: this,
       value: toLeftBearing
     });
     this.toRightBearing = new NamedPrimitive<number>({
       name: 'toRightBearing',
+      parent: this,
       value: toRightBearing
     });
 
     this.visible = new NamedBooleanOrUndefined({
       name: 'visible',
+      parent: this,
       value: isDataElement(params) ? params.visible : true
     });
     this.initialPosition = new NamedVector3({
       name: 'initialPosition',
+      parent: this,
       value: initialPosition ?? new Vector3()
     });
     this.mass = new NamedPrimitive<number>({
       name: 'mass',
+      parent: this,
       value: mass ?? 0.001
     });
     this.centerOfGravity = new NamedVector3({
       name: 'centerOfGravity',
+      parent: this,
       value: centerOfGravity ?? new Vector3()
     });
     this.position = new NamedVector3({
       name: 'position',
+      parent: this,
       value: isDataElement(params)
         ? params.position
         : this.initialPosition.value
     });
     this.rotation = new NamedMatrix3({
       name: 'rotation',
+      parent: this,
       value: isDataElement(params) ? params.rotation : new Matrix3()
     });
   }

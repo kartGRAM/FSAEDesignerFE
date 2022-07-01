@@ -44,7 +44,7 @@ const ValueField = (props: ValueProps) => {
 };
 
 export default function Vector(props: Props) {
-  const {element, vector, offset, rotation} = props;
+  const {vector, offset, rotation} = props;
   const rot = rotation ?? new Matrix3();
   const ofs = offset ?? new Vector3();
   const dispatch = useDispatch();
@@ -67,7 +67,7 @@ export default function Vector(props: Props) {
     }),
     onSubmit: (values) => {
       vector.value = new Vector3(values.x, values.y, values.z);
-      dispatch(updateAssembly({element}));
+      dispatch(updateAssembly({element: vector.parent}));
     }
   });
 

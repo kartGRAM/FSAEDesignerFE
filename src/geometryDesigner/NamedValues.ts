@@ -92,7 +92,9 @@ abstract class NamedValue implements INamedValue {
     return `${this.nodeID}@${this.parent.absPath}`;
   }
 
-  abstract value: unknown;
+  abstract get value(): unknown;
+
+  abstract set value(newValue: unknown);
 
   abstract getData(): unknown;
 
@@ -164,11 +166,7 @@ export function isNamedBoolean(
   return value.className === 'boolean';
 }
 
-export class NamedBooleanOrUndefined implements INamedValue {
-  readonly className: string = 'boolean|undefined';
-
-  name: string;
-
+export class NamedBooleanOrUndefined extends NamedValue {
   _value: boolean | undefined;
 
   private _update: (newValue: boolean | undefined) => void;
@@ -182,14 +180,18 @@ export class NamedBooleanOrUndefined implements INamedValue {
   }
 
   constructor(params: INamedPrimitiveConstructor<boolean | undefined>) {
-    const {name, value, update} = params;
+    const {name: defaultName, value, update} = params;
+    super({
+      className: typeof value,
+      ...params,
+      name: isData(value) ? value.name : defaultName
+    });
     this._update =
       update ??
       ((newValue: boolean | undefined) => {
         this._value = newValue;
       });
     this._value = isData(value) ? value.value : value;
-    this.name = isData(value) ? value.name : name;
   }
 
   getData(): IData<boolean | undefined> {
@@ -208,15 +210,12 @@ export function isNamedBooleanOrUndefined(
 
 interface INamedVector3Constructor {
   name: string;
+  parent: IElement;
   value?: Vector3 | IDataVector3;
   update?: (newValue: Vector3) => this;
 }
 
-export class NamedVector3 implements INamedValue {
-  readonly className: string = 'Vector3';
-
-  name: string;
-
+export class NamedVector3 extends NamedValue {
   _value: Vector3;
 
   private _update: (newValue: Vector3) => void;
@@ -230,17 +229,20 @@ export class NamedVector3 implements INamedValue {
   }
 
   constructor(params: INamedVector3Constructor) {
-    const {name, update, value} = params;
+    const {name: defaultName, value, update} = params;
+    super({
+      className: 'Vector3',
+      ...params,
+      name: isData(value) ? value.name : defaultName
+    });
     this._update =
       update ??
       ((newValue: Vector3) => {
         this._value = newValue.clone();
       });
-    this.name = name;
     if (value) {
       const {x, y, z} = value;
       this._value = new Vector3(x, y, z);
-      if (isData(value)) this.name = value.name;
     } else {
       this._value = new Vector3();
     }
@@ -261,15 +263,12 @@ export function isNamedVector3(value: INamedValue): value is NamedVector3 {
 
 interface INamedMatrix3Constructor {
   name: string;
+  parent: IElement;
   value?: IDataMatrix3 | Matrix3;
   update?: (newValue: Matrix3) => this;
 }
 
-export class NamedMatrix3 implements INamedValue {
-  readonly className: string = 'Matrix3';
-
-  name: string;
-
+export class NamedMatrix3 extends NamedValue {
   private _update: (newValue: Matrix3) => void;
 
   _value: Matrix3;
@@ -283,13 +282,17 @@ export class NamedMatrix3 implements INamedValue {
   }
 
   constructor(params: INamedMatrix3Constructor) {
-    const {name, update, value} = params;
+    const {name: defaultName, value, update} = params;
+    super({
+      className: 'Matrix3',
+      ...params,
+      name: isData(value) ? value.name : defaultName
+    });
     this._update =
       update ??
       ((newValue: Matrix3) => {
         this._value.elements = [...newValue.elements];
       });
-    this.name = name;
     this._value = new Matrix3();
     if (value) {
       this._value.elements = {...value.elements};
