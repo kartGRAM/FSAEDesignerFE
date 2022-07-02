@@ -4,7 +4,7 @@ import {useDispatch} from 'react-redux';
 import {setTopAssembly} from '@app/store/reducers/dataGeometryDesigner';
 import {getSuspension} from '@app/geometryDesigner/SampleGeometry';
 
-export default function GDMIOpenFromTemplates() {
+export default function OpenFromTemplates() {
   const dispatch = useDispatch();
   const handleOnClick = () => {
     const sample = getSuspension();

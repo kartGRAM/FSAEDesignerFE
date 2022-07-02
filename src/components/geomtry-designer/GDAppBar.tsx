@@ -11,9 +11,10 @@ import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
 import {NumberToRGB} from '@app/utils/helpers';
 import {GDAppBarMenu} from '@app/components/geomtry-designer/GDAppBarMenu';
-import GDMIOpenFromTemplates from '@gdComponents/app-bar-components/OpenFromTemplates';
-import GDMIClose from '@gdComponents/app-bar-components/Close';
-import GDMIResetUISettings from '@gdComponents/app-bar-components/ResetUISettings';
+import OpenFromTemplates from '@gdComponents/app-bar-components/OpenFromTemplates';
+import Close from '@gdComponents/app-bar-components/Close';
+import Formula from '@gdComponents/app-bar-components/Formula';
+import ResetUISettings from '@gdComponents/app-bar-components/ResetUISettings';
 
 import MenuItem from '@mui/material/MenuItem';
 
@@ -82,7 +83,7 @@ export default function GDAppBar() {
       >
         <GDAppBarMenu name="File">
           <MenuItem>New Empty Assembly</MenuItem>
-          <GDMIOpenFromTemplates />
+          <OpenFromTemplates />
           <Divider />
           <MenuItem>Open</MenuItem>
           <MenuItem>Open Recent</MenuItem>
@@ -90,7 +91,7 @@ export default function GDAppBar() {
           <MenuItem>Save</MenuItem>
           <MenuItem>Save As...</MenuItem>
           <Divider />
-          <GDMIClose />
+          <Close />
         </GDAppBarMenu>
         <GDAppBarMenu name="Edit">
           <MenuItem>Undo</MenuItem>
@@ -100,13 +101,13 @@ export default function GDAppBar() {
           <MenuItem>Copy</MenuItem>
           <MenuItem>Paste</MenuItem>
           <Divider />
-          <GDMIResetUISettings />
+          <ResetUISettings />
         </GDAppBarMenu>
         <GDAppBarMenu name="View">
           <MenuItem>Parspective</MenuItem>
         </GDAppBarMenu>
         <GDAppBarMenu name="Tools">
-          <MenuItem>Formula</MenuItem>
+          <Formula />
         </GDAppBarMenu>
         <Typography
           variant="h6"

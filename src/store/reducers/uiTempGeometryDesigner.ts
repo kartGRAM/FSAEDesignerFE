@@ -19,10 +19,14 @@ export interface GDState {
   selectedElementAbsPath: string;
   sidePanelState: SidePanelState;
   gdSceneState: GDSceneState;
+  gdDialogState: GDDialogState;
 }
 
 export interface GDSceneState {
   selectedPoint: IDataVector3 | null;
+}
+export interface GDDialogState {
+  formulaDialogOpen: boolean;
 }
 
 const initialState: GDState = {
@@ -32,6 +36,9 @@ const initialState: GDState = {
   sidePanelState: {selectedTab: 'elements'},
   gdSceneState: {
     selectedPoint: null
+  },
+  gdDialogState: {
+    formulaDialogOpen: false
   }
 };
 
@@ -60,7 +67,6 @@ export const uitGeometryDesignerSlice = createSlice({
     ) => {
       state.sidePanelState.selectedTab = action.payload.tab;
     },
-
     setSelectedPoint: (
       state: GDState,
       action: PayloadAction<{
@@ -68,6 +74,14 @@ export const uitGeometryDesignerSlice = createSlice({
       }>
     ) => {
       state.gdSceneState.selectedPoint = action.payload.point;
+    },
+    setFormulaDialogOpen: (
+      state: GDState,
+      action: PayloadAction<{
+        open: boolean;
+      }>
+    ) => {
+      state.gdDialogState.formulaDialogOpen = action.payload.open;
     }
   }
 });
@@ -76,7 +90,8 @@ export const {
   toggleFullScreen,
   selectElement,
   selectSidePanelTab,
-  setSelectedPoint
+  setSelectedPoint,
+  setFormulaDialogOpen
 } = uitGeometryDesignerSlice.actions;
 
 export default uitGeometryDesignerSlice.reducer;

@@ -10,7 +10,8 @@ import ElementsTreeView from '@app/components/geomtry-designer/ElementsTreeView'
 import GDAppBar from '@app/components/geomtry-designer/GDAppBar';
 import MiniDrawer from '@app/components/geomtry-designer/SideBar';
 import GDScene from '@app/components/geomtry-designer/GDScene';
-import SidePanel from '@app/components/geomtry-designer/SidePanel';
+import SidePanel from '@gdComponents/SidePanel';
+import DialogRoot from '@gdComponents/dialog-components/DialogRoot';
 import {NumberToRGB} from '@app/utils/helpers';
 import Box from '@mui/material/Box';
 
@@ -38,6 +39,7 @@ const GeometryDesigner = () => {
           `}
           style={{zIndex: fullScreenZ}}
         >
+          <DialogRoot />
           <GDAppBar />
 
           <div className="h-100 w-100 position-relative d-flex">
