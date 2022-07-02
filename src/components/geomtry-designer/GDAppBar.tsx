@@ -11,9 +11,9 @@ import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
 import {NumberToRGB} from '@app/utils/helpers';
 import {GDAppBarMenu} from '@app/components/geomtry-designer/GDAppBarMenu';
-import GDMIOpenFromTemplates from '@app/components/geomtry-designer/GDMIOpenFromTemplates';
-import GDMIClose from '@app/components/geomtry-designer/GDMIClose';
-import GDMIResetUISettings from '@app/components/geomtry-designer/GDMIResetUISettings';
+import GDMIOpenFromTemplates from '@gdComponents/app-bar-components/OpenFromTemplates';
+import GDMIClose from '@gdComponents/app-bar-components/Close';
+import GDMIResetUISettings from '@gdComponents/app-bar-components/ResetUISettings';
 
 import MenuItem from '@mui/material/MenuItem';
 
@@ -104,6 +104,9 @@ export default function GDAppBar() {
         </GDAppBarMenu>
         <GDAppBarMenu name="View">
           <MenuItem>Parspective</MenuItem>
+        </GDAppBarMenu>
+        <GDAppBarMenu name="Tools">
+          <MenuItem>Formula</MenuItem>
         </GDAppBarMenu>
         <Typography
           variant="h6"
