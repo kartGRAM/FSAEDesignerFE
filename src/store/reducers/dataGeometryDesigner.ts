@@ -75,10 +75,11 @@ export const dataGeometryDesignerSlice = createSlice({
       action: PayloadAction<{
         name: string;
         formula: string;
+        absPath: string;
       }>
     ) => {
-      const {name, formula} = action.payload;
-      const tmp = [...state.formulae, {name, formula}];
+      const {name, formula, absPath} = action.payload;
+      const tmp = [...state.formulae, {name, formula, absPath}];
       if (validateAll(tmp) === 'OK') {
         state.formulae = tmp;
       }
