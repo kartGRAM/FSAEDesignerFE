@@ -9,5 +9,7 @@ export default function Formula() {
     dispatch(setFormulaDialogOpen({open: true}));
   };
 
-  return <MenuItem onClick={handleOnClick}>Formula</MenuItem>;
+  return (
+    <MenuItem onClick={handleOnClick}>Formula & Grobal Variables</MenuItem>
+  );
 }
