@@ -64,9 +64,10 @@ const StyledInputBase = styled(InputBase)(({theme}) => ({
 }));
 
 export default function GDAppBar() {
-  const bgColor: number = useSelector(
+  const bgColor = useSelector(
     (state: RootState) => state.uigd.appBarState.backgroundColor
   );
+  const filename = useSelector((state: RootState) => state.dgd.filename);
   return (
     <AppBar
       position="static"
@@ -114,8 +115,15 @@ export default function GDAppBar() {
           variant="h6"
           noWrap
           component="div"
-          sx={{flexGrow: 1, display: {xs: 'none', sm: 'block'}}}
-        />
+          sx={{
+            color: '#cccccc',
+            flexGrow: 1,
+            display: {xs: 'none', sm: 'block'}
+          }}
+          align="center"
+        >
+          {filename}
+        </Typography>
         <Search>
           <SearchIconWrapper>
             <SearchIcon />

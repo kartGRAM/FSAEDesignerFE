@@ -14,14 +14,15 @@ export interface IAssemblyTreeViewState {
 }
 
 export interface GDState {
+  filename: string;
   transCoordinateMatrix: IDataMatrix3;
   topAssembly?: IDataAssembly;
   formulae: IDataFormula[];
 }
 
 const initialState: GDState = {
+  filename: 'untitled',
   topAssembly: undefined,
-  // eslint-disable-next-line prettier/prettier
   transCoordinateMatrix: {
     name: 'coordinameMatrix',
     elements: [0, 0, 1, 1, 0, 0, 0, 1, 0]

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import DialogContentText from '@mui/material/DialogContentText';
 import Dialog, {DialogProps} from '@mui/material/Dialog';
 import {useSelector, useDispatch} from 'react-redux';
@@ -25,7 +26,7 @@ const Item = styled(Paper)(({theme}) => ({
 export function OpenDialog(props: DialogProps) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const formulaDialogOpen: boolean = useSelector(
-    (state: RootState) => state.uitgd.gdDialogState.formulaDialogOpen
+    (state: RootState) => state.uitgd.gdDialogState.openDialogOpen
   );
   const dispatch = useDispatch();
   const {onClose} = props;
@@ -37,9 +38,8 @@ export function OpenDialog(props: DialogProps) {
 
   return (
     <Dialog {...props} onClose={handleClose} open={formulaDialogOpen}>
-      <DialogTitle>Set backup account</DialogTitle>
+      <DialogTitle>Choosed your file..</DialogTitle>
       <DialogContent>
-        <DialogContentText>Choose your file...</DialogContentText>
         <Grid container rowSpacing={1} columnSpacing={{xs: 1, sm: 2, md: 3}}>
           {itemData.map((item) => (
             <Grid item xs={6}>
