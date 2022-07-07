@@ -28,6 +28,7 @@ export interface GDSceneState {
 export interface GDDialogState {
   formulaDialogOpen: boolean;
   openDialogOpen: boolean;
+  saveAsDialogOpen: boolean;
 }
 
 const initialState: GDState = {
@@ -40,7 +41,8 @@ const initialState: GDState = {
   },
   gdDialogState: {
     formulaDialogOpen: false,
-    openDialogOpen: false
+    openDialogOpen: false,
+    saveAsDialogOpen: false
   }
 };
 
@@ -92,6 +94,14 @@ export const uitGeometryDesignerSlice = createSlice({
       }>
     ) => {
       state.gdDialogState.openDialogOpen = action.payload.open;
+    },
+    setSaveAsDialogOpen: (
+      state: GDState,
+      action: PayloadAction<{
+        open: boolean;
+      }>
+    ) => {
+      state.gdDialogState.saveAsDialogOpen = action.payload.open;
     }
   }
 });
@@ -102,7 +112,8 @@ export const {
   selectSidePanelTab,
   setSelectedPoint,
   setFormulaDialogOpen,
-  setOpenDialogOpen
+  setOpenDialogOpen,
+  setSaveAsDialogOpen
 } = uitGeometryDesignerSlice.actions;
 
 export default uitGeometryDesignerSlice.reducer;

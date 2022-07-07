@@ -14,6 +14,7 @@ import {GDAppBarMenu} from '@app/components/geomtry-designer/GDAppBarMenu';
 import OpenFromTemplates from '@gdComponents/app-bar-components/OpenFromTemplates';
 import Close from '@gdComponents/app-bar-components/Close';
 import Open from '@gdComponents/app-bar-components/Open';
+import SaveAs from '@gdComponents/app-bar-components/SaveAs';
 import Formula from '@gdComponents/app-bar-components/Formula';
 import ResetUISettings from '@gdComponents/app-bar-components/ResetUISettings';
 
@@ -91,7 +92,7 @@ export default function GDAppBar() {
           <MenuItem>Open Recent</MenuItem>
           <Divider />
           <MenuItem>Save</MenuItem>
-          <MenuItem>Save As...</MenuItem>
+          <SaveAs />
           <Divider />
           <Close />
         </GDAppBarMenu>

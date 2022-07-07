@@ -7,6 +7,7 @@ import {
 import {IDataMatrix3} from '@gd/NamedValues';
 import {getAssembly} from '@app/geometryDesigner/Elements';
 import {IDataFormula, validateAll, replaceVariable} from '@gd/Formula';
+import {DateTime} from 'luxon';
 
 export interface IAssemblyTreeViewState {
   fontColor: string;
@@ -15,6 +16,7 @@ export interface IAssemblyTreeViewState {
 
 export interface GDState {
   filename: string;
+  lastUpdated: string;
   transCoordinateMatrix: IDataMatrix3;
   topAssembly?: IDataAssembly;
   formulae: IDataFormula[];
@@ -22,6 +24,7 @@ export interface GDState {
 
 const initialState: GDState = {
   filename: 'untitled',
+  lastUpdated: DateTime.local().toString(),
   topAssembly: undefined,
   transCoordinateMatrix: {
     name: 'coordinameMatrix',
@@ -29,6 +32,13 @@ const initialState: GDState = {
   },
   formulae: []
 };
+
+interface ISetTopAssembly {
+  filename: string;
+  lastUpdated: string;
+  topAssembly?: IDataAssembly;
+  formulae: IDataFormula[];
+}
 
 export const dataGeometryDesignerSlice = createSlice({
   name: 'dataGeometryDesigner',
@@ -40,11 +50,20 @@ export const dataGeometryDesignerSlice = createSlice({
     ) => {
       state.transCoordinateMatrix = action.payload;
     },
+    newAssembly: (state: GDState) => {
+      state.filename = 'untitled';
+      state.lastUpdated = DateTime.local().toString();
+      state.formulae = [];
+      state.topAssembly = undefined;
+    },
     setTopAssembly: (
       state: GDState,
-      action: PayloadAction<IDataAssembly | undefined>
+      action: PayloadAction<ISetTopAssembly>
     ) => {
-      state.topAssembly = action.payload;
+      state.filename = action.payload.filename;
+      state.topAssembly = action.payload.topAssembly;
+      state.lastUpdated = action.payload.lastUpdated;
+      state.formulae = action.payload.formulae;
     },
     updateAssembly: (
       state: GDState,
@@ -124,6 +143,7 @@ export const dataGeometryDesignerSlice = createSlice({
 
 export const {
   setCoordinateMatrix,
+  newAssembly,
   setTopAssembly,
   setVisibility,
   updateAssembly

@@ -48,6 +48,7 @@
     "@types/jquery": "^3.5.14",
     "@types/jqueryui": "^1.12.16",
     "axios": "0.27.2",
+    "axios-hooks": "^3.1.4",
     "craco-alias": "3.0.1",
     "formik": "2.2.9",
     "i18next": "21.8.11",

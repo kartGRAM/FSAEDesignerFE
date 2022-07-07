@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {FormulaDialog} from '@gdComponents/dialog-components/FormulaDialog';
 import {OpenDialog} from '@gdComponents/dialog-components/OpenDialog';
+import {SaveAsDialog} from '@gdComponents/dialog-components/SaveAsDialog';
 import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
 
@@ -18,6 +19,13 @@ export default function DialogRoot() {
         }}
       />
       <OpenDialog
+        open
+        sx={{
+          zIndex: `${fullScreenZ + 10000}!important`,
+          backdropFilter: 'blur(3px)'
+        }}
+      />
+      <SaveAsDialog
         open
         sx={{
           zIndex: `${fullScreenZ + 10000}!important`,
