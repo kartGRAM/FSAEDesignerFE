@@ -8,6 +8,8 @@ import {IDataMatrix3} from '@gd/NamedValues';
 import {getAssembly} from '@app/geometryDesigner/Elements';
 import {IDataFormula, validateAll, replaceVariable} from '@gd/Formula';
 import {DateTime} from 'luxon';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import store from '@store/store';
 
 export interface IAssemblyTreeViewState {
   fontColor: string;
@@ -15,7 +17,9 @@ export interface IAssemblyTreeViewState {
 }
 
 export interface GDState {
+  id: number;
   filename: string;
+  note: string;
   lastUpdated: string;
   transCoordinateMatrix: IDataMatrix3;
   topAssembly?: IDataAssembly;
@@ -23,7 +27,9 @@ export interface GDState {
 }
 
 const initialState: GDState = {
+  id: Number.MAX_SAFE_INTEGER,
   filename: 'untitled',
+  note: '',
   lastUpdated: DateTime.local().toString(),
   topAssembly: undefined,
   transCoordinateMatrix: {
@@ -34,7 +40,9 @@ const initialState: GDState = {
 };
 
 interface ISetTopAssembly {
+  id: number;
   filename: string;
+  note: string;
   lastUpdated: string;
   topAssembly?: IDataAssembly;
   formulae: IDataFormula[];
@@ -51,16 +59,20 @@ export const dataGeometryDesignerSlice = createSlice({
       state.transCoordinateMatrix = action.payload;
     },
     newAssembly: (state: GDState) => {
-      state.filename = 'untitled';
+      state.id = initialState.id;
+      state.filename = initialState.filename;
+      state.note = '';
       state.lastUpdated = DateTime.local().toString();
-      state.formulae = [];
+      state.formulae = initialState.formulae;
       state.topAssembly = undefined;
     },
     setTopAssembly: (
       state: GDState,
       action: PayloadAction<ISetTopAssembly>
     ) => {
+      state.id = action.payload.id;
       state.filename = action.payload.filename;
+      state.note = action.payload.note;
       state.topAssembly = action.payload.topAssembly;
       state.lastUpdated = action.payload.lastUpdated;
       state.formulae = action.payload.formulae;

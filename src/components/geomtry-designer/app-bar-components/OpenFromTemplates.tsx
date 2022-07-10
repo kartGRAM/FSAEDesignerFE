@@ -12,8 +12,10 @@ export default function OpenFromTemplates() {
     const sample = getSuspension();
     dispatch(
       setTopAssembly({
+        id: Number.MAX_SAFE_INTEGER,
         filename: 'KZ-RR11',
-        lastUpdated: DateTime.local.toString(),
+        note: '2013年度京都大学優勝車両',
+        lastUpdated: DateTime.local().toString(),
         formulae: [],
         topAssembly: sample.getDataElement()
       })
