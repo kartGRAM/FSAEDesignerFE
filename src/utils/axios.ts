@@ -2,6 +2,7 @@ import axios from 'axios';
 import store from '@store/store';
 import {logoutUser} from '@store/reducers/auth';
 import {configure} from 'axios-hooks';
+import {getScreenShot} from '@gdComponents/GDScene';
 
 const instance = axios.create({
   baseURL: store.getState().auth.apiURLBase!,
@@ -29,14 +30,20 @@ export function getDataToSave(
   filename: string,
   note: string,
   overwrite: boolean = false
-): any {
+): FormData {
   const state = store.getState().dgd;
-  return {
+  const data = new FormData();
+  const values: any = {
     id: state.id,
     name: filename,
     note,
-    clientLastUpdated: state.lastUpdated,
     content: JSON.stringify(state.topAssembly),
+    clientLastUpdated: state.lastUpdated,
     overwrite
   };
+  Object.keys(values).forEach((key) => {
+    data.append(key, values[key]);
+  });
+  data.append('thumbnail', getScreenShot() ?? '', 'image.png');
+  return data;
 }

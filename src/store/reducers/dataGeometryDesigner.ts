@@ -39,13 +39,24 @@ const initialState: GDState = {
   formulae: []
 };
 
-interface ISetTopAssembly {
+interface SetTopAssemblyParams {
   id: number;
   filename: string;
   note: string;
   lastUpdated: string;
-  topAssembly?: IDataAssembly;
+  topAssembly: IDataAssembly;
   formulae: IDataFormula[];
+}
+
+export function getSetTopAssemblyParams(data: any): SetTopAssemblyParams {
+  return {
+    id: data.id as number,
+    filename: data.name as string,
+    note: data.note as string,
+    lastUpdated: data.lastUpdated as string,
+    topAssembly: JSON.parse(data.content) as IDataAssembly,
+    formulae: []
+  };
 }
 
 export const dataGeometryDesignerSlice = createSlice({
@@ -68,7 +79,7 @@ export const dataGeometryDesignerSlice = createSlice({
     },
     setTopAssembly: (
       state: GDState,
-      action: PayloadAction<ISetTopAssembly>
+      action: PayloadAction<SetTopAssemblyParams>
     ) => {
       state.id = action.payload.id;
       state.filename = action.payload.filename;

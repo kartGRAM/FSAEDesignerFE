@@ -13,8 +13,24 @@ interface HandleCameraAspectParams {
   camera: THREE.PerspectiveCamera;
   renderer: THREE.WebGLRenderer;
 }
+
+let canvas: React.RefObject<HTMLCanvasElement>;
+
+export function getScreenShot(): Blob | null {
+  if (canvas.current) {
+    const url: string = canvas.current.toDataURL('image/png');
+    const bin: string = window.atob(url.split(',')[1]);
+    const buffer: any = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) {
+      buffer[i] = bin.charCodeAt(i);
+    }
+    return new Blob([buffer.buffer], {type: 'image/png'});
+  }
+  return null;
+}
+
 export default function GDScene() {
-  const canvas = useRef<HTMLCanvasElement>(null);
+  canvas = useRef<HTMLCanvasElement>(null);
   const scene = useRef<THREE.Scene | null>(null);
 
   const bgColor: number = useSelector(
@@ -32,6 +48,7 @@ export default function GDScene() {
   const init = (): ResizeObserver => {
     // レンダラを作成
     const renderer = new THREE.WebGLRenderer({
+      preserveDrawingBuffer: true,
       canvas: canvas.current!
     });
     renderer.setClearColor(bgColor, 1);

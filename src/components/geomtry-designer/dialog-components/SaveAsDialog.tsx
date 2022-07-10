@@ -4,7 +4,10 @@ import Dialog, {DialogProps} from '@mui/material/Dialog';
 import {useSelector, useDispatch} from 'react-redux';
 import {RootState} from '@store/store';
 import {setSaveAsDialogOpen} from '@store/reducers/uiTempGeometryDesigner';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import {
+  setTopAssembly,
+  getSetTopAssemblyParams
+} from '@store/reducers/dataGeometryDesigner';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import DialogActions from '@mui/material/DialogActions';
@@ -59,13 +62,16 @@ export function SaveAsDialog(props: SaveAsDialogProps) {
         .max(1024 * 4)
         .notRequired()
     }),
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onSubmit: (values) => {
       async function handleUpdate(overwrite: boolean) {
         try {
-          await updateData({
-            data: getDataToSave(values.filename, values.note, overwrite)
+          const res: any = await updateData({
+            data: getDataToSave(values.filename, values.note, overwrite),
+            headers: {
+              'content-type': 'multipart/form-data'
+            }
           });
+          dispatch(setTopAssembly(getSetTopAssemblyParams(res.data)));
           dispatch(setSaveAsDialogOpen({open: false}));
         } catch (err) {
           if (
