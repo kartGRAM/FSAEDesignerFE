@@ -69,6 +69,8 @@ export default function GDAppBar() {
     (state: RootState) => state.uigd.appBarState.backgroundColor
   );
   const filename = useSelector((state: RootState) => state.dgd.filename);
+
+  const changed = useSelector((state: RootState) => state.dgd.changed);
   return (
     <AppBar
       position="static"
@@ -124,6 +126,7 @@ export default function GDAppBar() {
           align="center"
         >
           {filename}
+          {changed ? '(*)' : ''}
         </Typography>
         <Search>
           <SearchIconWrapper>

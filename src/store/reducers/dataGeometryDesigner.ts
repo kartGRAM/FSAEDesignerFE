@@ -24,6 +24,7 @@ export interface GDState {
   transCoordinateMatrix: IDataMatrix3;
   topAssembly?: IDataAssembly;
   formulae: IDataFormula[];
+  changed: boolean;
 }
 
 const initialState: GDState = {
@@ -36,14 +37,17 @@ const initialState: GDState = {
     name: 'coordinameMatrix',
     elements: [0, 0, 1, 1, 0, 0, 0, 1, 0]
   },
-  formulae: []
+  formulae: [],
+  changed: false
 };
 
-interface SetTopAssemblyParams {
+export interface SetTopAssemblyParams {
   id: number;
   filename: string;
+  thumbnail?: string;
   note: string;
   lastUpdated: string;
+  created?: string;
   topAssembly: IDataAssembly;
   formulae: IDataFormula[];
 }
@@ -57,6 +61,24 @@ export function getSetTopAssemblyParams(data: any): SetTopAssemblyParams {
     topAssembly: JSON.parse(data.content) as IDataAssembly,
     formulae: []
   };
+}
+
+export function getListSetTopAssemblyParams(
+  listedData: any
+): SetTopAssemblyParams[] {
+  const ret = listedData.map(
+    (data: any): SetTopAssemblyParams => ({
+      id: data.id as number,
+      filename: data.name as string,
+      note: data.note as string,
+      lastUpdated: data.lastUpdated as string,
+      created: data.created as string,
+      thumbnail: data.thumbnail ? (data.thumbnail as string) : undefined,
+      topAssembly: JSON.parse(data.content) as IDataAssembly,
+      formulae: []
+    })
+  );
+  return ret;
 }
 
 export const dataGeometryDesignerSlice = createSlice({
@@ -76,6 +98,7 @@ export const dataGeometryDesignerSlice = createSlice({
       state.lastUpdated = DateTime.local().toString();
       state.formulae = initialState.formulae;
       state.topAssembly = undefined;
+      state.changed = false;
     },
     setTopAssembly: (
       state: GDState,
@@ -87,6 +110,7 @@ export const dataGeometryDesignerSlice = createSlice({
       state.topAssembly = action.payload.topAssembly;
       state.lastUpdated = action.payload.lastUpdated;
       state.formulae = action.payload.formulae;
+      state.changed = false;
     },
     updateAssembly: (
       state: GDState,
@@ -96,6 +120,7 @@ export const dataGeometryDesignerSlice = createSlice({
     ) => {
       const assembly = action.payload.element.getRoot();
       if (assembly) state.topAssembly = assembly.getDataElement();
+      state.changed = true;
     },
     setVisibility: (
       state: GDState,
@@ -112,6 +137,7 @@ export const dataGeometryDesignerSlice = createSlice({
         }
         state.topAssembly = assembly.getDataElement();
       }
+      state.changed = true;
     },
     setNewFormula: (
       state: GDState,
@@ -126,6 +152,7 @@ export const dataGeometryDesignerSlice = createSlice({
       if (validateAll(tmp) === 'OK') {
         state.formulae = tmp;
       }
+      state.changed = true;
     },
     updateFormula: (
       state: GDState,
@@ -144,6 +171,7 @@ export const dataGeometryDesignerSlice = createSlice({
       if (validateAll(tmp) === 'OK') {
         state.formulae = tmp;
       }
+      state.changed = true;
     },
     removeFormula: (
       state: GDState,
@@ -160,6 +188,7 @@ export const dataGeometryDesignerSlice = createSlice({
       if (validateAll(tmp) === 'OK') {
         state.formulae = tmp;
       }
+      state.changed = true;
     }
   }
 });

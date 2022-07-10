@@ -9,8 +9,8 @@ import DialogTitle from '@mui/material/DialogTitle';
 export type ConfirmDialogProps = {
   zindex: number;
   onClose: (value: string) => void;
-  title?: string;
-  message?: string;
+  title?: string | React.ReactNode;
+  message?: string | React.ReactNode;
   buttons: {text: string; res: string; autoFocus?: boolean}[];
 };
 

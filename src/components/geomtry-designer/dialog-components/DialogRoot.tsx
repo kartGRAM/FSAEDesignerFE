@@ -20,6 +20,7 @@ export default function DialogRoot() {
       />
       <OpenDialog
         open
+        zindex={fullScreenZ + 10000}
         sx={{
           zIndex: `${fullScreenZ + 10000}!important`,
           backdropFilter: 'blur(3px)'
