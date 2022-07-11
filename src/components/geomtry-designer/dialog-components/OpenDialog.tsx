@@ -32,6 +32,7 @@ import ConfirmDialog, {
 } from '@gdComponents/dialog-components/ConfirmDialog';
 import ButtonBase from '@mui/material/ButtonBase';
 import Typography from '@mui/material/Typography';
+import {instance} from '@app/utils/axios';
 
 const Item = styled(Paper)(({theme}) => ({
   backgroundColor: '#111111',
@@ -165,6 +166,8 @@ note: ${params.note}`}
     setConfirmConfig(undefined);
     // eslint-disable-next-line no-empty
     if (ret === 'ok') {
+      await instance.delete(`/api/gd/delete/${params.id}/`);
+      await updateData();
     }
   };
 
