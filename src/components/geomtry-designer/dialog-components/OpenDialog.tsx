@@ -8,14 +8,13 @@ import {useSelector, useDispatch} from 'react-redux';
 import {RootState} from '@store/store';
 import {
   setOpenDialogOpen,
-  setSaveAsDialogOpen,
   setConfirmDialogProps
 } from '@store/reducers/uiTempGeometryDesigner';
 import {
   getListSetTopAssemblyParams,
-  SetTopAssemblyParams,
-  setTopAssembly
+  SetTopAssemblyParams
 } from '@store/reducers/dataGeometryDesigner';
+import confirmIfChanged from '@app/utils/confirmIfChanged';
 import {styled} from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
@@ -63,8 +62,6 @@ export function OpenDialog(props: OpenDialogProps) {
   const open = useSelector(
     (state: RootState) => state.uitgd.gdDialogState.openDialogOpen
   );
-  const changed = useSelector((state: RootState) => state.dgd.changed);
-  const filename = useSelector((state: RootState) => state.dgd.filename);
   const dispatch = useDispatch();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [{data, loading, error}, updateData] = useAxios({
@@ -79,35 +76,8 @@ export function OpenDialog(props: OpenDialogProps) {
     dispatch(setOpenDialogOpen({open: false}));
   };
   const handleFileClick = async (params: SetTopAssemblyParams) => {
-    if (changed) {
-      const ret = await new Promise<string>((resolve) => {
-        dispatch(
-          setConfirmDialogProps({
-            zindex: zindex + 1,
-            onClose: resolve,
-            title: 'Warning!',
-            message: `${filename} is changed. Do you seve the file?`,
-            buttons: [
-              {text: 'Yes', res: 'yes'},
-              {text: 'No', res: 'no'},
-              {text: 'Cancel', res: 'cancel', autoFocus: true}
-            ]
-          })
-        );
-      });
-      dispatch(setConfirmDialogProps(undefined));
-      if (ret === 'yes') {
-        dispatch(setSaveAsDialogOpen({open: true}));
-        dispatch(setOpenDialogOpen({open: false}));
-      }
-      if (ret === 'no') {
-        dispatch(setTopAssembly(params));
-        dispatch(setOpenDialogOpen({open: false}));
-      }
-    } else {
-      dispatch(setTopAssembly(params));
-      dispatch(setOpenDialogOpen({open: false}));
-    }
+    const dialogClose = () => dispatch(setOpenDialogOpen({open: false}));
+    confirmIfChanged(dispatch, params, zindex, dialogClose, dialogClose);
   };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
