@@ -8,7 +8,8 @@ import {useSelector, useDispatch} from 'react-redux';
 import {RootState} from '@store/store';
 import {
   setOpenDialogOpen,
-  setSaveAsDialogOpen
+  setSaveAsDialogOpen,
+  setConfirmDialogProps
 } from '@store/reducers/uiTempGeometryDesigner';
 import {
   getListSetTopAssemblyParams,
@@ -27,9 +28,7 @@ import useAxios from 'axios-hooks';
 import CircularProgress from '@mui/material/CircularProgress';
 import {DateTime} from 'luxon';
 import Box from '@mui/material/Box';
-import ConfirmDialog, {
-  ConfirmDialogProps
-} from '@gdComponents/dialog-components/ConfirmDialog';
+
 import ButtonBase from '@mui/material/ButtonBase';
 import Typography from '@mui/material/Typography';
 import {instance} from '@app/utils/axios';
@@ -60,9 +59,6 @@ interface OpenDialogProps extends DialogProps {
 }
 export function OpenDialog(props: OpenDialogProps) {
   const {zindex} = props;
-  const [confirmConfig, setConfirmConfig] = React.useState<
-    ConfirmDialogProps | undefined
-  >();
   const baseURL = useSelector((state: RootState) => state.auth.apiURLBase);
   const open = useSelector(
     (state: RootState) => state.uitgd.gdDialogState.openDialogOpen
@@ -85,19 +81,21 @@ export function OpenDialog(props: OpenDialogProps) {
   const handleFileClick = async (params: SetTopAssemblyParams) => {
     if (changed) {
       const ret = await new Promise<string>((resolve) => {
-        setConfirmConfig({
-          zindex: zindex + 1,
-          onClose: resolve,
-          title: 'Warning!',
-          message: `${filename} is changed. Do you seve the file?`,
-          buttons: [
-            {text: 'Yes', res: 'yes'},
-            {text: 'No', res: 'no'},
-            {text: 'Cancel', res: 'cancel', autoFocus: true}
-          ]
-        });
+        dispatch(
+          setConfirmDialogProps({
+            zindex: zindex + 1,
+            onClose: resolve,
+            title: 'Warning!',
+            message: `${filename} is changed. Do you seve the file?`,
+            buttons: [
+              {text: 'Yes', res: 'yes'},
+              {text: 'No', res: 'no'},
+              {text: 'Cancel', res: 'cancel', autoFocus: true}
+            ]
+          })
+        );
       });
-      setConfirmConfig(undefined);
+      dispatch(setConfirmDialogProps(undefined));
       if (ret === 'yes') {
         dispatch(setSaveAsDialogOpen({open: true}));
         dispatch(setOpenDialogOpen({open: false}));
@@ -115,55 +113,59 @@ export function OpenDialog(props: OpenDialogProps) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleInfoClick = async (params: SetTopAssemblyParams) => {
     await new Promise<string>((resolve) => {
-      setConfirmConfig({
-        zindex: zindex + 1,
-        onClose: resolve,
-        buttons: [{text: 'OK', res: 'cancel', autoFocus: true}],
-        title: params.filename,
-        message: (
-          <Typography
-            variant="body1"
-            sx={{
-              p: 0,
-              m: 0,
-              '& pre': {
+      dispatch(
+        setConfirmDialogProps({
+          zindex: zindex + 1,
+          onClose: resolve,
+          buttons: [{text: 'OK', res: 'cancel', autoFocus: true}],
+          title: params.filename,
+          message: (
+            <Typography
+              variant="body1"
+              sx={{
                 p: 0,
-                m: 0
-              }
-            }}
-          >
-            <pre style={{fontFamily: 'inherit'}}>
-              {`filename: ${params.filename}
+                m: 0,
+                '& pre': {
+                  p: 0,
+                  m: 0
+                }
+              }}
+            >
+              <pre style={{fontFamily: 'inherit'}}>
+                {`filename: ${params.filename}
 id: ${params.id}
 created: ${DateTime.fromISO(params.created ?? '').toLocaleString({
-                ...DateTime.DATE_SHORT
-              })}
+                  ...DateTime.DATE_SHORT
+                })}
 last updated: ${DateTime.fromISO(params.lastUpdated ?? '').toLocaleString({
-                ...DateTime.DATE_SHORT
-              })}
+                  ...DateTime.DATE_SHORT
+                })}
 note: ${params.note}`}
-            </pre>
-          </Typography>
-        )
-      });
+              </pre>
+            </Typography>
+          )
+        })
+      );
     });
-    setConfirmConfig(undefined);
+    dispatch(setConfirmDialogProps(undefined));
   };
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleDeleteClick = async (params: SetTopAssemblyParams) => {
     const ret = await new Promise<string>((resolve) => {
-      setConfirmConfig({
-        zindex: zindex + 1,
-        onClose: resolve,
-        buttons: [
-          {text: 'Confirm', res: 'ok'},
-          {text: 'Cancel', res: 'cancel', autoFocus: true}
-        ],
-        title: 'Warning!',
-        message: 'Once deleted, it cannot be restored. Are you Sure?'
-      });
+      dispatch(
+        setConfirmDialogProps({
+          zindex: zindex + 1,
+          onClose: resolve,
+          buttons: [
+            {text: 'Confirm', res: 'ok'},
+            {text: 'Cancel', res: 'cancel', autoFocus: true}
+          ],
+          title: 'Warning!',
+          message: 'Once deleted, it cannot be restored. Are you Sure?'
+        })
+      );
     });
-    setConfirmConfig(undefined);
+    dispatch(setConfirmDialogProps(undefined));
     // eslint-disable-next-line no-empty
     if (ret === 'ok') {
       await instance.delete(`/api/gd/delete/${params.id}/`);
@@ -176,89 +178,82 @@ note: ${params.note}`}
   }
 
   return (
-    <>
-      <Dialog {...props} onClose={handleClose} open={open}>
-        <DialogTitle>Choose your file..</DialogTitle>
-        <DialogContent>
-          {loading || !listFiles ? (
-            <CircularProgress />
-          ) : (
-            <Grid
-              container
-              rowSpacing={1}
-              columnSpacing={{xs: 1, sm: 2, md: 3}}
-            >
-              {listFiles.map((item) => (
-                <Grid item xs={6}>
-                  <Item>
-                    <ImageButton
-                      focusRipple
-                      key={item.filename}
-                      onClick={() => {
-                        handleFileClick(item);
-                      }}
-                    >
-                      <ImageListItem key={item.filename}>
-                        <img
-                          src={`${baseURL}${item.thumbnail}`}
-                          // srcSet={`${item.img}?w=248&fit=crop&auto=format&dpr=2 2x`}
-                          alt={item.filename}
-                          loading="lazy"
-                        />
-                        <ImageListItemBar
-                          title={item.filename}
-                          subtitle={
-                            <>
-                              <Box>{item.note}</Box>
-                              <Box sx={{pt: 1, fontSize: 0.3}}>
-                                last updated:&nbsp;
-                                {DateTime.fromISO(
-                                  item.lastUpdated
-                                ).toLocaleString({
-                                  ...DateTime.DATE_SHORT
-                                })}
-                              </Box>
-                            </>
-                          }
-                          actionIcon={
-                            <>
-                              <IconButton
-                                sx={{color: 'rgba(255, 255, 255, 0.54)'}}
-                                aria-label={`info about ${item.filename}`}
-                                size="small"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  handleInfoClick(item);
-                                }}
-                              >
-                                <InfoIcon fontSize="small" />
-                              </IconButton>
-                              <IconButton
-                                sx={{color: 'rgba(255, 255, 255, 0.54)'}}
-                                aria-label={`info about ${item.filename}`}
-                                size="small"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  handleDeleteClick(item);
-                                }}
-                              >
-                                <DeleteIcon fontSize="small" />
-                              </IconButton>
-                            </>
-                          }
-                        />
-                      </ImageListItem>
-                    </ImageButton>
-                  </Item>
-                </Grid>
-              ))}
-            </Grid>
-          )}
-        </DialogContent>
-      </Dialog>
-      {confirmConfig && <ConfirmDialog {...confirmConfig} />}
-    </>
+    <Dialog {...props} onClose={handleClose} open={open}>
+      <DialogTitle>Choose your file..</DialogTitle>
+      <DialogContent>
+        {loading || !listFiles ? (
+          <CircularProgress />
+        ) : (
+          <Grid container rowSpacing={1} columnSpacing={{xs: 1, sm: 2, md: 3}}>
+            {listFiles.map((item) => (
+              <Grid item xs={6} key={item.filename}>
+                <Item>
+                  <ImageButton
+                    focusRipple
+                    key={item.filename}
+                    onClick={() => {
+                      handleFileClick(item);
+                    }}
+                  >
+                    <ImageListItem key={item.filename}>
+                      <img
+                        src={`${baseURL}${item.thumbnail}`}
+                        // srcSet={`${item.img}?w=248&fit=crop&auto=format&dpr=2 2x`}
+                        alt={item.filename}
+                        loading="lazy"
+                      />
+                      <ImageListItemBar
+                        title={item.filename}
+                        subtitle={
+                          <>
+                            <Box>{item.note}</Box>
+                            <Box sx={{pt: 1, fontSize: 0.3}}>
+                              last updated:&nbsp;
+                              {DateTime.fromISO(
+                                item.lastUpdated
+                              ).toLocaleString({
+                                ...DateTime.DATE_SHORT
+                              })}
+                            </Box>
+                          </>
+                        }
+                        actionIcon={
+                          <>
+                            <IconButton
+                              sx={{color: 'rgba(255, 255, 255, 0.54)'}}
+                              aria-label={`info about ${item.filename}`}
+                              size="small"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleInfoClick(item);
+                              }}
+                            >
+                              <InfoIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton
+                              sx={{color: 'rgba(255, 255, 255, 0.54)'}}
+                              aria-label={`info about ${item.filename}`}
+                              size="small"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleDeleteClick(item);
+                              }}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </>
+                        }
+                      />
+                    </ImageListItem>
+                  </ImageButton>
+                </Item>
+              </Grid>
+            ))}
+          </Grid>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {FormulaDialog} from '@gdComponents/dialog-components/FormulaDialog';
 import {OpenDialog} from '@gdComponents/dialog-components/OpenDialog';
+import ConfirmDialog from '@gdComponents/dialog-components/ConfirmDialog';
 import {SaveAsDialog} from '@gdComponents/dialog-components/SaveAsDialog';
 import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
@@ -34,6 +35,7 @@ export default function DialogRoot() {
           backdropFilter: 'blur(3px)'
         }}
       />
+      <ConfirmDialog />
     </>
   );
 }

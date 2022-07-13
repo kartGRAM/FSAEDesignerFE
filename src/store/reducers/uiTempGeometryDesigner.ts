@@ -1,5 +1,6 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {IDataVector3} from '@gd/NamedValues';
+import {ConfirmDialogProps} from '@gdComponents/dialog-components/ConfirmDialog';
 
 export type SidePanelTab =
   | 'elements'
@@ -29,6 +30,7 @@ export interface GDDialogState {
   formulaDialogOpen: boolean;
   openDialogOpen: boolean;
   saveAsDialogOpen: boolean;
+  confirmDialogProps?: ConfirmDialogProps;
 }
 
 const initialState: GDState = {
@@ -42,7 +44,8 @@ const initialState: GDState = {
   gdDialogState: {
     formulaDialogOpen: false,
     openDialogOpen: false,
-    saveAsDialogOpen: false
+    saveAsDialogOpen: false,
+    confirmDialogProps: undefined
   }
 };
 
@@ -102,6 +105,12 @@ export const uitGeometryDesignerSlice = createSlice({
       }>
     ) => {
       state.gdDialogState.saveAsDialogOpen = action.payload.open;
+    },
+    setConfirmDialogProps: (
+      state: GDState,
+      action: PayloadAction<ConfirmDialogProps | undefined>
+    ) => {
+      state.gdDialogState.confirmDialogProps = action.payload;
     }
   }
 });
@@ -113,7 +122,8 @@ export const {
   setSelectedPoint,
   setFormulaDialogOpen,
   setOpenDialogOpen,
-  setSaveAsDialogOpen
+  setSaveAsDialogOpen,
+  setConfirmDialogProps
 } = uitGeometryDesignerSlice.actions;
 
 export default uitGeometryDesignerSlice.reducer;

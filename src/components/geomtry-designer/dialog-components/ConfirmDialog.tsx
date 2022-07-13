@@ -5,6 +5,8 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
+import {useSelector} from 'react-redux';
+import {RootState} from '@store/store';
 
 export type ConfirmDialogProps = {
   zindex: number;
@@ -14,7 +16,12 @@ export type ConfirmDialogProps = {
   buttons: {text: string; res: string; autoFocus?: boolean}[];
 };
 
-export default function ConfirmDialog(props: ConfirmDialogProps) {
+export default function ConfirmDialog() {
+  const props = useSelector(
+    (state: RootState) => state.uitgd.gdDialogState.confirmDialogProps
+  );
+
+  if (!props) return null;
   const {zindex, onClose, title, message, buttons} = props;
 
   return (
