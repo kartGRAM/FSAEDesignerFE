@@ -76,8 +76,10 @@ export function OpenDialog(props: OpenDialogProps) {
     dispatch(setOpenDialogOpen({open: false}));
   };
   const handleFileClick = async (params: SetTopAssemblyParams) => {
-    const dialogClose = () => dispatch(setOpenDialogOpen({open: false}));
-    confirmIfChanged(dispatch, params, zindex, dialogClose, dialogClose);
+    const dialogClose = () => {
+      dispatch(setOpenDialogOpen({open: false}));
+    };
+    confirmIfChanged(dispatch, params, dialogClose, dialogClose, zindex);
   };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

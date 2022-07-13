@@ -5,23 +5,25 @@ import {
 } from '@store/reducers/uiTempGeometryDesigner';
 import {
   setTopAssembly,
-  SetTopAssemblyParams
+  SetTopAssemblyParams,
+  newAssembly
 } from '@store/reducers/dataGeometryDesigner';
 import store from '@store/store';
 
-export default async function cinfirmIfChanged(
+export default async function confirmIfChanged(
   dispatch: Dispatch<AnyAction>,
-  params: SetTopAssemblyParams,
-  zindex: number,
-  ifSave: () => void,
-  ifNotChangedOrNoSave: () => void
+  params: SetTopAssemblyParams | undefined,
+  ifSave: (() => void) | null,
+  ifNotChangedOrNoSave: (() => void) | null,
+  zindex?: number
 ) {
   const {changed, filename} = store.getState().dgd;
+  const {fullScreenZIndex} = store.getState().uitgd;
   if (changed) {
     const ret = await new Promise<string>((resolve) => {
       dispatch(
         setConfirmDialogProps({
-          zindex: zindex + 1,
+          zindex: (zindex ?? fullScreenZIndex + 10000) + 1,
           onClose: resolve,
           title: 'Warning!',
           message: `${filename} is changed. Do you seve the file?`,
@@ -36,10 +38,14 @@ export default async function cinfirmIfChanged(
     dispatch(setConfirmDialogProps(undefined));
     if (ret === 'yes') {
       dispatch(setSaveAsDialogOpen({open: true}));
-      ifSave();
+      if (ifSave) ifSave();
+      return;
+    }
+    if (ret === 'cancel') {
       return;
     }
   }
-  dispatch(setTopAssembly(params));
-  ifNotChangedOrNoSave();
+  if (params) dispatch(setTopAssembly(params));
+  else dispatch(newAssembly());
+  if (ifNotChangedOrNoSave) ifNotChangedOrNoSave();
 }
