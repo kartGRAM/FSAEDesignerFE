@@ -48,7 +48,7 @@ export interface SetTopAssemblyParams {
   note: string;
   lastUpdated: string;
   created?: string;
-  topAssembly: IDataAssembly;
+  topAssembly: IDataAssembly | undefined;
   formulae: IDataFormula[];
 }
 
@@ -58,9 +58,19 @@ export function getSetTopAssemblyParams(data: any): SetTopAssemblyParams {
     filename: data.name as string,
     note: data.note as string,
     lastUpdated: data.lastUpdated as string,
-    topAssembly: JSON.parse(data.content) as IDataAssembly,
+    topAssembly: convertJsonToDataAssembly(data.content as string),
     formulae: []
   };
+}
+
+function convertJsonToDataAssembly(content: string): IDataAssembly | undefined {
+  try {
+    const data = JSON.parse(content) as IDataAssembly;
+    return data;
+  } catch (err) {
+    console.log(err);
+    return undefined;
+  }
 }
 
 export function getListSetTopAssemblyParams(
@@ -74,7 +84,7 @@ export function getListSetTopAssemblyParams(
       lastUpdated: data.lastUpdated as string,
       created: data.created as string,
       thumbnail: data.thumbnail ? (data.thumbnail as string) : undefined,
-      topAssembly: JSON.parse(data.content) as IDataAssembly,
+      topAssembly: convertJsonToDataAssembly(data.content as string),
       formulae: []
     })
   );

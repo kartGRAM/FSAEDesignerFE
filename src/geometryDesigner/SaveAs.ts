@@ -7,7 +7,10 @@ import {
   getSetTopAssemblyParams
 } from '@store/reducers/dataGeometryDesigner';
 import store from '@store/store';
-import {setConfirmDialogProps} from '@store/reducers/uiTempGeometryDesigner';
+import {
+  setConfirmDialogProps,
+  setSaveAsDialogProps
+} from '@store/reducers/uiTempGeometryDesigner';
 
 type Func = (
   config?: AxiosRequestConfig<any> | undefined,
@@ -27,16 +30,27 @@ export default async function saveAs(params: {
     params;
 
   const {fullScreenZIndex} = store.getState().uitgd;
+  const {id} = store.getState().dgd;
   const zindex = (params.zindex ?? fullScreenZIndex + 10000) + 1;
   try {
-    const res: any = await updateDataFuncAxiosHooks({
-      data: getDataToSave(filename, note, overwrite),
-      headers: {
-        'content-type': 'multipart/form-data'
-      }
-    });
-    dispatch(setTopAssembly(getSetTopAssemblyParams(res.data)));
-    if (next) next();
+    if (overwrite && id === Number.MAX_SAFE_INTEGER) {
+      dispatch(
+        setSaveAsDialogProps({
+          onClose: (ret) => {
+            if (ret === 'saved' && next) next();
+          }
+        })
+      );
+    } else {
+      const res: any = await updateDataFuncAxiosHooks({
+        data: getDataToSave(filename, note, overwrite),
+        headers: {
+          'content-type': 'multipart/form-data'
+        }
+      });
+      dispatch(setTopAssembly(getSetTopAssemblyParams(res.data)));
+      if (next) next();
+    }
   } catch (err) {
     if (
       axios.isAxiosError(err) &&
