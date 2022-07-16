@@ -20,10 +20,10 @@ export const GDAppBarMenu: React.VFC<Props> = (props) => {
   const [open, setOpen] = React.useState(false);
   const anchorRef = React.useRef<HTMLButtonElement>(null);
   const enabledColorLight: number = useSelector(
-    (state: RootState) => state.uigd.enabledColorLight
+    (state: RootState) => state.uigd.present.enabledColorLight
   );
   const enabledColorDark: number = useSelector(
-    (state: RootState) => state.uigd.enabledColorDark
+    (state: RootState) => state.uigd.present.enabledColorDark
   );
 
   const handleClose = (event: Event | React.SyntheticEvent) => {

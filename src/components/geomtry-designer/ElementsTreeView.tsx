@@ -46,7 +46,8 @@ const VisibilityControl = (props: VisibilityControlProps) => {
   const nColor = getReversal(
     NumberToRGB(
       useSelector(
-        (state: RootState) => state.uigd.assemblyTreeViewState.selectedColor
+        (state: RootState) =>
+          state.uigd.present.assemblyTreeViewState.selectedColor
       )
     )
   );
@@ -54,7 +55,7 @@ const VisibilityControl = (props: VisibilityControlProps) => {
   const dispatch = useDispatch();
 
   const visible: boolean | undefined = useSelector((state: RootState) => {
-    const top = state.dgd.topAssembly;
+    const top = state.dgd.present.topAssembly;
     if (top) {
       const e = getDataElementByPath(top, element.absPath);
       if (e && isDataElement(e)) {
@@ -122,10 +123,10 @@ interface Props {
 const ElementsTreeView: React.FC<Props> = (props: Props) => {
   const {className} = props;
   const tvState = useSelector(
-    (state: RootState) => state.uigd.assemblyTreeViewState
+    (state: RootState) => state.uigd.present.assemblyTreeViewState
   );
   const nAssembly: IDataAssembly | undefined = useSelector(
-    (state: RootState) => state.dgd.topAssembly
+    (state: RootState) => state.dgd.present.topAssembly
   );
   const dispatch = useDispatch();
   const selectedColor = NumberToRGB(tvState.selectedColor);
@@ -135,6 +136,7 @@ const ElementsTreeView: React.FC<Props> = (props: Props) => {
   }
   const assembly: IDataAssembly = nAssembly;
 
+  // eslint-disable-next-line react/no-unstable-nested-components
   const MyTreeItem = (props: ElementTreeItemProps) => {
     const {element, label} = props;
 
@@ -194,38 +196,36 @@ const ElementsTreeView: React.FC<Props> = (props: Props) => {
   };
 
   return (
-    <>
-      <TreeView
-        className={className}
-        aria-label="customized"
-        defaultExpanded={['1']}
-        defaultCollapseIcon={<MinusSquare />}
-        defaultExpandIcon={<PlusSquare />}
-        onNodeSelect={handleOnSelect}
-        // defaultEndIcon={<Checkbox />}
-        sx={{
-          scrollbarWidth: 'none' /* Firefox対応のスクロールバー非表示コード */,
-          position: 'absolute',
-          height: '100%',
-          left: 0 /* 左からの位置指定 */,
-          top: 0 /* 上からの位置指定 */,
-          flexGrow: 1,
-          maxWidth: 400,
-          overflowY: 'auto',
-          color: NumberToRGB(tvState.fontColor),
-          '&::-webkit-scrollbar': {
-            display: 'none'
-          }
-        }}
-      >
-        <MyTreeItem
-          element={assembly}
-          key={assembly.nodeID}
-          nodeId={assembly.absPath}
-          label={assembly.name.value}
-        />
-      </TreeView>
-    </>
+    <TreeView
+      className={className}
+      aria-label="customized"
+      defaultExpanded={['1']}
+      defaultCollapseIcon={<MinusSquare />}
+      defaultExpandIcon={<PlusSquare />}
+      onNodeSelect={handleOnSelect}
+      // defaultEndIcon={<Checkbox />}
+      sx={{
+        scrollbarWidth: 'none' /* Firefox対応のスクロールバー非表示コード */,
+        position: 'absolute',
+        height: '100%',
+        left: 0 /* 左からの位置指定 */,
+        top: 0 /* 上からの位置指定 */,
+        flexGrow: 1,
+        maxWidth: 400,
+        overflowY: 'auto',
+        color: NumberToRGB(tvState.fontColor),
+        '&::-webkit-scrollbar': {
+          display: 'none'
+        }
+      }}
+    >
+      <MyTreeItem
+        element={assembly}
+        key={assembly.nodeID}
+        nodeId={assembly.absPath}
+        label={assembly.name.value}
+      />
+    </TreeView>
   );
 };
 

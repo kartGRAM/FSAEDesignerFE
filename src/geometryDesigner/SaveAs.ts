@@ -30,7 +30,7 @@ export default async function saveAs(params: {
     params;
 
   const {fullScreenZIndex} = store.getState().uitgd;
-  const {id} = store.getState().dgd;
+  const {id} = store.getState().dgd.present;
   const zindex = (params.zindex ?? fullScreenZIndex + 10000) + 1;
   try {
     if (overwrite && id === Number.MAX_SAFE_INTEGER) {

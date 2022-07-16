@@ -7,8 +7,10 @@ import useAxios from 'axios-hooks';
 
 export default function SaveAs() {
   const dispatch = useDispatch();
-  const filename = useSelector((state: RootState) => state.dgd.filename);
-  const note = useSelector((state: RootState) => state.dgd.note);
+  const filename = useSelector(
+    (state: RootState) => state.dgd.present.filename
+  );
+  const note = useSelector((state: RootState) => state.dgd.present.note);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [{data, loading, error}, updateData] = useAxios(
     {

@@ -10,7 +10,7 @@ export default async function confirmIfChanged(
   next: (() => void) | null,
   zindex?: number
 ) {
-  const {changed, filename} = store.getState().dgd;
+  const {changed, filename} = store.getState().dgd.present;
   const {fullScreenZIndex} = store.getState().uitgd;
   if (changed) {
     const ret = await new Promise<string>((resolve) => {

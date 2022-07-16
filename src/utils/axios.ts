@@ -31,7 +31,7 @@ export function getDataToSave(
   note: string,
   overwrite: boolean = false
 ): FormData {
-  const state = store.getState().dgd;
+  const state = store.getState().dgd.present;
   const data = new FormData();
   const values: any = {
     id: state.id,

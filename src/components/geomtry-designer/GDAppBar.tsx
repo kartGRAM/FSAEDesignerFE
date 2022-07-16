@@ -67,11 +67,13 @@ const StyledInputBase = styled(InputBase)(({theme}) => ({
 
 export default function GDAppBar() {
   const bgColor = useSelector(
-    (state: RootState) => state.uigd.appBarState.backgroundColor
+    (state: RootState) => state.uigd.present.appBarState.backgroundColor
   );
-  const filename = useSelector((state: RootState) => state.dgd.filename);
+  const filename = useSelector(
+    (state: RootState) => state.dgd.present.filename
+  );
 
-  const changed = useSelector((state: RootState) => state.dgd.changed);
+  const changed = useSelector((state: RootState) => state.dgd.present.changed);
   return (
     <AppBar
       position="static"

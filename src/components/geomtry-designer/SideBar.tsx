@@ -79,16 +79,16 @@ const Drawer = styled<(props: MyDrawerProps) => JSX.Element>(MuiDrawer, {
 
 export default function MiniDrawer() {
   const bgColor: number = useSelector(
-    (state: RootState) => state.uigd.sidebarState.backgroundColor
+    (state: RootState) => state.uigd.present.sidebarState.backgroundColor
   );
   const selectedBgColor: number = useSelector(
-    (state: RootState) => state.uigd.sidebarState.selectedBgColor
+    (state: RootState) => state.uigd.present.sidebarState.selectedBgColor
   );
   const selectedTab: string = useSelector(
     (state: RootState) => state.uitgd.sidePanelState.selectedTab
   );
   const iconColor: number = useSelector(
-    (state: RootState) => state.uigd.sidebarState.iconColor
+    (state: RootState) => state.uigd.present.sidebarState.iconColor
   );
   const open = false;
   const dispatch = useDispatch();

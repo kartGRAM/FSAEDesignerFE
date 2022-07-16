@@ -34,7 +34,7 @@ export default function GDScene() {
   const scene = useRef<THREE.Scene | null>(null);
 
   const bgColor: number = useSelector(
-    (state: RootState) => state.uigd.backgroundColor
+    (state: RootState) => state.uigd.present.backgroundColor
   );
 
   const selectedPoint = useSelector(
@@ -42,7 +42,7 @@ export default function GDScene() {
   );
 
   const assembly: IDataAssembly | undefined = useSelector(
-    (state: RootState) => state.dgd.topAssembly
+    (state: RootState) => state.dgd.present.topAssembly
   );
 
   const init = (): ResizeObserver => {

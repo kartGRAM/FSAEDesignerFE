@@ -10,7 +10,7 @@ export default function ParametersRoot() {
     (state: RootState) => state.uitgd.selectedElementAbsPath
   );
   const topAssy = getAssembly(
-    useSelector((state: RootState) => state.dgd.topAssembly)!
+    useSelector((state: RootState) => state.dgd.present.topAssembly)!
   );
   const element = getElementByPath(topAssy, path);
   // eslint-disable-next-line no-undef

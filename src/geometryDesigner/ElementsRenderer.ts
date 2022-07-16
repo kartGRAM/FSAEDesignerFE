@@ -27,7 +27,7 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
   }
   const position = element.position.value;
   const rotation = element.rotation.value;
-  const coMatrix = store.getState().dgd.transCoordinateMatrix;
+  const coMatrix = store.getState().dgd.present.transCoordinateMatrix;
   const trans = (p: Vector3) => {
     const tmp = position
       .clone()

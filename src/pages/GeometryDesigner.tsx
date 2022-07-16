@@ -25,7 +25,7 @@ const GeometryDesigner = () => {
   const dispatch = useDispatch();
 
   const bgColor: number = useSelector(
-    (state: RootState) => state.uigd.backgroundColor
+    (state: RootState) => state.uigd.present.backgroundColor
   );
 
   return (

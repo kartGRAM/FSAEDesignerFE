@@ -9,14 +9,18 @@ import {dataGeometryDesignerSlice} from '@app/store/reducers/dataGeometryDesigne
 import {createLogger} from 'redux-logger';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {save, load} from 'redux-localstorage-simple';
+import undoable from 'redux-undo';
+
+const uigd = undoable(uiGeometryDesignerSlice.reducer);
+const dgd = undoable(dataGeometryDesignerSlice.reducer);
 
 const store = configureStore({
   reducer: {
     auth: authSlice.reducer,
     ui: uiSlice.reducer,
     uitgd: uitGeometryDesignerSlice.reducer,
-    uigd: uiGeometryDesignerSlice.reducer,
-    dgd: dataGeometryDesignerSlice.reducer
+    uigd,
+    dgd
   },
   /*
   preloadedState: load({

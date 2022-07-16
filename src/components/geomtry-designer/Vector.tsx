@@ -49,7 +49,7 @@ export default function Vector(props: Props) {
   const ofs = offset ?? new Vector3();
   const dispatch = useDispatch();
   const coMatrix = useSelector(
-    (state: RootState) => state.dgd.transCoordinateMatrix
+    (state: RootState) => state.dgd.present.transCoordinateMatrix
   );
 
   const [focused, setFocused] = useState<boolean>(false);

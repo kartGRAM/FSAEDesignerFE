@@ -10,7 +10,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import {useFormik} from 'formik';
-import saveAs from '@gd/saveAs';
+import saveAs from '@gd/SaveAs';
 import * as Yup from 'yup';
 import useAxios from 'axios-hooks';
 
@@ -34,8 +34,10 @@ export function SaveAsDialog(props: SaveAsDialogProps) {
   const zindex = useSelector(
     (state: RootState) => state.uitgd.fullScreenZIndex + 10000
   );
-  const filename = useSelector((state: RootState) => state.dgd.filename);
-  const note = useSelector((state: RootState) => state.dgd.note);
+  const filename = useSelector(
+    (state: RootState) => state.dgd.present.filename
+  );
+  const note = useSelector((state: RootState) => state.dgd.present.note);
   const dispatch = useDispatch();
   const formik = useFormik({
     enableReinitialize: true,

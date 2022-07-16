@@ -1,5 +1,7 @@
 /* eslint-disable react/forbid-prop-types */
 /* eslint-disable import/no-extraneous-dependencies */
+
+/* eslint-disable react/jsx-no-constructed-context-values */
 import * as React from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';

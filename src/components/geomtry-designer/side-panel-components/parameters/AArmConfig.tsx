@@ -24,10 +24,11 @@ export default function AArmConfig(params: Params) {
   const dispatch = useDispatch();
   const kinematicParamsDefaultExpanded = useSelector(
     (state: RootState) =>
-      state.uigd.parameterConfigState.kinematicParamsExpanded
+      state.uigd.present.parameterConfigState.kinematicParamsExpanded
   );
   const dynamicParamsDefaultExpanded = useSelector(
-    (state: RootState) => state.uigd.parameterConfigState.dynamicParamsExpanded
+    (state: RootState) =>
+      state.uigd.present.parameterConfigState.dynamicParamsExpanded
   );
   return (
     <>

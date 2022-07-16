@@ -1,4 +1,5 @@
 export const sleep = (time: number) =>
+  // eslint-disable-next-line no-promise-executor-return
   new Promise((res) => setTimeout(res, time));
 
 export const calculateWindowSize = (windowWidth: number) => {
