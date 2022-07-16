@@ -12,6 +12,7 @@ import {
 } from '@store/reducers/uiTempGeometryDesigner';
 import {
   getListSetTopAssemblyParams,
+  setTopAssembly,
   SetTopAssemblyParams
 } from '@store/reducers/dataGeometryDesigner';
 import confirmIfChanged from '@app/utils/confirmIfChanged';
@@ -31,6 +32,7 @@ import Box from '@mui/material/Box';
 import ButtonBase from '@mui/material/ButtonBase';
 import Typography from '@mui/material/Typography';
 import {instance} from '@app/utils/axios';
+// import usePrevious from '@app/hooks/usePrevious';
 
 const Item = styled(Paper)(({theme}) => ({
   backgroundColor: '#111111',
@@ -57,18 +59,28 @@ interface OpenDialogProps extends DialogProps {
   zindex: number;
 }
 export function OpenDialog(props: OpenDialogProps) {
-  const {zindex} = props;
+  const {zindex, onClose} = props;
+
   const baseURL = useSelector((state: RootState) => state.auth.apiURLBase);
   const open = useSelector(
     (state: RootState) => state.uitgd.gdDialogState.openDialogOpen
   );
+  // const openPrev = usePrevious(open, false);
   const dispatch = useDispatch();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [{data, loading, error}, updateData] = useAxios({
-    url: '/api/gd/get_all_user_files/',
-    method: 'GET'
-  });
-  const {onClose} = props;
+  const [{data, loading, error}, updateData] = useAxios(
+    {
+      url: '/api/gd/get_all_user_files/',
+      method: 'GET'
+    },
+    {
+      manual: true
+    }
+  );
+  React.useEffect(() => {
+    if (open) updateData();
+  }, [open]);
+
   const listFiles = data ? getListSetTopAssemblyParams(data) : null;
 
   const handleClose = (e: {}, reason: 'backdropClick' | 'escapeKeyDown') => {
@@ -76,10 +88,11 @@ export function OpenDialog(props: OpenDialogProps) {
     dispatch(setOpenDialogOpen({open: false}));
   };
   const handleFileClick = async (params: SetTopAssemblyParams) => {
-    const dialogClose = () => {
+    const next = () => {
+      dispatch(setTopAssembly(params));
       dispatch(setOpenDialogOpen({open: false}));
     };
-    confirmIfChanged(dispatch, params, dialogClose, dialogClose, zindex);
+    confirmIfChanged(dispatch, next, zindex);
   };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

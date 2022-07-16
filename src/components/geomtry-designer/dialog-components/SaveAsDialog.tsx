@@ -1,10 +1,10 @@
 import * as React from 'react';
 import DialogTitle from '@mui/material/DialogTitle';
-import Dialog, {DialogProps} from '@mui/material/Dialog';
+import Dialog from '@mui/material/Dialog';
 import {useSelector, useDispatch} from 'react-redux';
 import {RootState} from '@store/store';
 import {
-  setSaveAsDialogOpen,
+  setSaveAsDialogProps,
   setConfirmDialogProps
 } from '@store/reducers/uiTempGeometryDesigner';
 import {
@@ -22,12 +22,12 @@ import useAxios from 'axios-hooks';
 import axios from 'axios';
 import {getDataToSave} from '@app/utils/axios';
 
-interface SaveAsDialogProps extends DialogProps {
-  zindex: number;
-}
+export type SaveAsDialogProps = {
+  onClose: (value: string) => void;
+};
 
 export function SaveAsDialog(props: SaveAsDialogProps) {
-  const {zindex} = props;
+  const {onClose} = props;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [{data, loading, error}, updateData] = useAxios(
     {
@@ -38,8 +38,9 @@ export function SaveAsDialog(props: SaveAsDialogProps) {
       manual: true
     }
   );
-  const open: boolean = useSelector(
-    (state: RootState) => state.uitgd.gdDialogState.saveAsDialogOpen
+
+  const zindex = useSelector(
+    (state: RootState) => state.uitgd.fullScreenZIndex + 10000
   );
   const filename = useSelector((state: RootState) => state.dgd.filename);
   const note = useSelector((state: RootState) => state.dgd.note);
@@ -60,7 +61,7 @@ export function SaveAsDialog(props: SaveAsDialogProps) {
         .notRequired()
     }),
     onSubmit: (values) => {
-      async function handleUpdate(overwrite: boolean) {
+      async function save(overwrite: boolean) {
         try {
           const res: any = await updateData({
             data: getDataToSave(values.filename, values.note, overwrite),
@@ -69,7 +70,7 @@ export function SaveAsDialog(props: SaveAsDialogProps) {
             }
           });
           dispatch(setTopAssembly(getSetTopAssemblyParams(res.data)));
-          dispatch(setSaveAsDialogOpen({open: false}));
+          handleClose('saved');
         } catch (err) {
           if (
             axios.isAxiosError(err) &&
@@ -94,18 +95,19 @@ export function SaveAsDialog(props: SaveAsDialogProps) {
               });
               dispatch(setConfirmDialogProps(undefined));
               if (ret === 'ok') {
-                handleUpdate(true);
+                save(true);
               }
             }
           }
         }
       }
-      handleUpdate(false);
+      save(false);
     }
   });
 
-  const handleClose = () => {
-    dispatch(setSaveAsDialogOpen({open: false}));
+  const handleClose = (ret: string) => {
+    dispatch(setSaveAsDialogProps(undefined));
+    onClose(ret);
   };
 
   const handleSave = () => {
@@ -113,7 +115,14 @@ export function SaveAsDialog(props: SaveAsDialogProps) {
   };
 
   return (
-    <Dialog {...props} onClose={handleClose} open={open}>
+    <Dialog
+      sx={{
+        zIndex: `${zindex}!important`,
+        backdropFilter: 'blur(3px)'
+      }}
+      onClose={() => handleClose('cancel')}
+      open
+    >
       <DialogTitle>Save As...</DialogTitle>
       <DialogContent>
         <TextField

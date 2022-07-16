@@ -87,7 +87,7 @@ export default function GDAppBar() {
         }}
       >
         <GDAppBarMenu name="File">
-          <MenuItem>New Empty Assembly</MenuItem>
+          <Close text="New Empty Assembly" />
           <OpenFromTemplates />
           <Divider />
           <Open />

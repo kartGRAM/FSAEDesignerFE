@@ -1,20 +1,13 @@
 import {Dispatch, AnyAction} from 'redux';
 import {
-  setSaveAsDialogOpen,
-  setConfirmDialogProps
+  setConfirmDialogProps,
+  setSaveAsDialogProps
 } from '@store/reducers/uiTempGeometryDesigner';
-import {
-  setTopAssembly,
-  SetTopAssemblyParams,
-  newAssembly
-} from '@store/reducers/dataGeometryDesigner';
 import store from '@store/store';
 
 export default async function confirmIfChanged(
   dispatch: Dispatch<AnyAction>,
-  params: SetTopAssemblyParams | undefined,
-  ifSave: (() => void) | null,
-  ifNotChangedOrNoSave: (() => void) | null,
+  next: (() => void) | null,
   zindex?: number
 ) {
   const {changed, filename} = store.getState().dgd;
@@ -37,15 +30,21 @@ export default async function confirmIfChanged(
     });
     dispatch(setConfirmDialogProps(undefined));
     if (ret === 'yes') {
-      dispatch(setSaveAsDialogOpen({open: true}));
-      if (ifSave) ifSave();
+      const ret = await new Promise<string>((resolve) => {
+        dispatch(
+          setSaveAsDialogProps({
+            onClose: resolve
+          })
+        );
+      });
+      if (ret === 'saved') {
+        if (next) next();
+      }
       return;
     }
     if (ret === 'cancel') {
       return;
     }
   }
-  if (params) dispatch(setTopAssembly(params));
-  else dispatch(newAssembly());
-  if (ifNotChangedOrNoSave) ifNotChangedOrNoSave();
+  if (next) next();
 }

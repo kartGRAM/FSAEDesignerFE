@@ -10,6 +10,10 @@ export default function DialogRoot() {
   const fullScreenZ = useSelector(
     (state: RootState) => state.uitgd.fullScreenZIndex
   );
+
+  const saveAsDialogProps = useSelector(
+    (state: RootState) => state.uitgd.gdDialogState.saveAsDialogProps
+  );
   return (
     <>
       <FormulaDialog
@@ -27,14 +31,7 @@ export default function DialogRoot() {
           backdropFilter: 'blur(3px)'
         }}
       />
-      <SaveAsDialog
-        open
-        zindex={fullScreenZ + 10000}
-        sx={{
-          zIndex: `${fullScreenZ + 10000}!important`,
-          backdropFilter: 'blur(3px)'
-        }}
-      />
+      {saveAsDialogProps ? <SaveAsDialog {...saveAsDialogProps} /> : null}
       <ConfirmDialog />
     </>
   );
