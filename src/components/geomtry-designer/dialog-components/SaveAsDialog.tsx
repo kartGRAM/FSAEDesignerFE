@@ -10,7 +10,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import {useFormik} from 'formik';
-import saveAs from '@gd/SaveAs';
+import saveAs from '@gd/saveAs';
 import * as Yup from 'yup';
 import useAxios from 'axios-hooks';
 
