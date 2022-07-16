@@ -3,24 +3,16 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Dialog from '@mui/material/Dialog';
 import {useSelector, useDispatch} from 'react-redux';
 import {RootState} from '@store/store';
-import {
-  setSaveAsDialogProps,
-  setConfirmDialogProps
-} from '@store/reducers/uiTempGeometryDesigner';
-import {
-  setTopAssembly,
-  getSetTopAssemblyParams
-} from '@store/reducers/dataGeometryDesigner';
+import {setSaveAsDialogProps} from '@store/reducers/uiTempGeometryDesigner';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import {useFormik} from 'formik';
+import saveAs from '@gd/SaveAs';
 import * as Yup from 'yup';
 import useAxios from 'axios-hooks';
-import axios from 'axios';
-import {getDataToSave} from '@app/utils/axios';
 
 export type SaveAsDialogProps = {
   onClose: (value: string) => void;
@@ -61,47 +53,17 @@ export function SaveAsDialog(props: SaveAsDialogProps) {
         .notRequired()
     }),
     onSubmit: (values) => {
-      async function save(overwrite: boolean) {
-        try {
-          const res: any = await updateData({
-            data: getDataToSave(values.filename, values.note, overwrite),
-            headers: {
-              'content-type': 'multipart/form-data'
-            }
-          });
-          dispatch(setTopAssembly(getSetTopAssemblyParams(res.data)));
+      saveAs({
+        dispatch,
+        filename: values.filename,
+        note: values.note,
+        overwrite: false,
+        updateDataFuncAxiosHooks: updateData,
+        zindex,
+        next: () => {
           handleClose('saved');
-        } catch (err) {
-          if (
-            axios.isAxiosError(err) &&
-            err.response &&
-            err.response.status === 409
-          ) {
-            const errorMessage: any = err.response.data;
-            if (errorMessage.error === 'File already exists.') {
-              const ret = await new Promise<string>((resolve) => {
-                dispatch(
-                  setConfirmDialogProps({
-                    zindex: zindex + 1,
-                    onClose: resolve,
-                    title: `${filename} is already exists.`,
-                    message: 'Overwite?',
-                    buttons: [
-                      {text: 'Overwrite', res: 'ok'},
-                      {text: 'Cancel', res: 'cancel', autoFocus: true}
-                    ]
-                  })
-                );
-              });
-              dispatch(setConfirmDialogProps(undefined));
-              if (ret === 'ok') {
-                save(true);
-              }
-            }
-          }
         }
-      }
-      save(false);
+      });
     }
   });
 
