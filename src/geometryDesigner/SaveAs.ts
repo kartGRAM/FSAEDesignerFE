@@ -22,18 +22,26 @@ export default async function saveAs(params: {
   filename: string;
   note: string;
   overwrite: boolean;
+  skipIDCheck?: boolean;
   updateDataFuncAxiosHooks: Func;
   zindex?: number;
   next?: () => void;
 }) {
-  const {dispatch, next, filename, note, overwrite, updateDataFuncAxiosHooks} =
-    params;
+  const {
+    dispatch,
+    next,
+    filename,
+    note,
+    overwrite,
+    skipIDCheck,
+    updateDataFuncAxiosHooks
+  } = params;
 
   const {fullScreenZIndex} = store.getState().uitgd;
   const {id} = store.getState().dgd.present;
   const zindex = (params.zindex ?? fullScreenZIndex + 10000) + 1;
   try {
-    if (overwrite && id === Number.MAX_SAFE_INTEGER) {
+    if (overwrite && id === Number.MAX_SAFE_INTEGER && !skipIDCheck) {
       dispatch(
         setSaveAsDialogProps({
           onClose: (ret) => {
@@ -77,7 +85,8 @@ export default async function saveAs(params: {
         if (ret === 'ok') {
           saveAs({
             ...params,
-            overwrite: true
+            overwrite: true,
+            skipIDCheck: true
           });
         }
       }

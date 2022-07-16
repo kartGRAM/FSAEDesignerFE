@@ -8,8 +8,6 @@ import {IDataMatrix3} from '@gd/NamedValues';
 import {getAssembly} from '@app/geometryDesigner/Elements';
 import {IDataFormula, validateAll, replaceVariable} from '@gd/Formula';
 import {DateTime} from 'luxon';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import store from '@store/store';
 
 export interface IAssemblyTreeViewState {
   fontColor: string;
@@ -102,6 +100,7 @@ export const dataGeometryDesignerSlice = createSlice({
       state.transCoordinateMatrix = action.payload;
     },
     newAssembly: (state: GDState) => {
+      clearHistory();
       state.id = initialState.id;
       state.filename = initialState.filename;
       state.note = '';
@@ -114,6 +113,7 @@ export const dataGeometryDesignerSlice = createSlice({
       state: GDState,
       action: PayloadAction<SetTopAssemblyParams>
     ) => {
+      clearHistory();
       state.id = action.payload.id;
       state.filename = action.payload.filename;
       state.note = action.payload.note;
@@ -212,3 +212,9 @@ export const {
 } = dataGeometryDesignerSlice.actions;
 
 export default dataGeometryDesignerSlice.reducer;
+
+async function clearHistory() {
+  const reduxUndo = await import('redux-undo');
+  const store = await import('@store/store');
+  store.default.dispatch(reduxUndo.ActionCreators.clearHistory());
+}

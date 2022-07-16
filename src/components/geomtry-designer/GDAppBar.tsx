@@ -16,6 +16,9 @@ import Close from '@gdComponents/app-bar-components/Close';
 import Open from '@gdComponents/app-bar-components/Open';
 import SaveAs from '@gdComponents/app-bar-components/SaveAs';
 import Save from '@gdComponents/app-bar-components/Save';
+
+import Undo from '@gdComponents/app-bar-components/Undo';
+import Redo from '@gdComponents/app-bar-components/Redo';
 import Formula from '@gdComponents/app-bar-components/Formula';
 import ResetUISettings from '@gdComponents/app-bar-components/ResetUISettings';
 
@@ -102,8 +105,8 @@ export default function GDAppBar() {
           <Close />
         </GDAppBarMenu>
         <GDAppBarMenu name="Edit">
-          <MenuItem>Undo</MenuItem>
-          <MenuItem>Redo</MenuItem>
+          <Undo />
+          <Redo />
           <Divider />
           <MenuItem>Cut</MenuItem>
           <MenuItem>Copy</MenuItem>
