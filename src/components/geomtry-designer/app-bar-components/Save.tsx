@@ -1,16 +1,11 @@
 import React from 'react';
 import MenuItem from '@mui/material/MenuItem';
-import {useSelector, useDispatch} from 'react-redux';
-import {RootState} from '@store/store';
+import {useDispatch} from 'react-redux';
 import saveAs from '@gd/SaveAs';
 import useAxios from 'axios-hooks';
 
 export default function SaveAs() {
   const dispatch = useDispatch();
-  const filename = useSelector(
-    (state: RootState) => state.dgd.present.filename
-  );
-  const note = useSelector((state: RootState) => state.dgd.present.note);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [{data, loading, error}, updateData] = useAxios(
     {
@@ -25,8 +20,6 @@ export default function SaveAs() {
   const handleOnClick = () => {
     saveAs({
       dispatch,
-      filename,
-      note,
       overwrite: true,
       updateDataFuncAxiosHooks: updateData
     });

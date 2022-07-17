@@ -19,8 +19,8 @@ type Func = (
 
 export default async function saveAs(params: {
   dispatch: Dispatch<AnyAction>;
-  filename: string;
-  note: string;
+  filename?: string;
+  note?: string;
   overwrite: boolean;
   skipIDCheck?: boolean;
   updateDataFuncAxiosHooks: Func;
@@ -30,8 +30,8 @@ export default async function saveAs(params: {
   const {
     dispatch,
     next,
-    filename,
-    note,
+    filename: tfilename,
+    note: tnote,
     overwrite,
     skipIDCheck,
     updateDataFuncAxiosHooks
@@ -40,6 +40,8 @@ export default async function saveAs(params: {
   const {fullScreenZIndex} = store.getState().uitgd;
   const {id} = store.getState().dgd.present;
   const zindex = (params.zindex ?? fullScreenZIndex + 10000) + 1;
+  const filename = tfilename ?? store.getState().dgd.present.filename;
+  const note = tnote ?? store.getState().dgd.present.note;
   try {
     if (overwrite && id === Number.MAX_SAFE_INTEGER && !skipIDCheck) {
       dispatch(
@@ -72,7 +74,7 @@ export default async function saveAs(params: {
             setConfirmDialogProps({
               zindex: zindex + 1,
               onClose: resolve,
-              title: `${filename} is already exists.`,
+              title: `${filename} already exists.`,
               message: 'Overwite?',
               buttons: [
                 {text: 'Overwrite', res: 'ok'},

@@ -477,7 +477,7 @@ export class Bar extends Element implements IBar {
     const cog = this.centerOfGravity.value.clone();
     cog.setY(-cog.y);
     return new Bar({
-      name: `mirror_${this.name}`,
+      name: `mirror_${this.name.value}`,
       fixedPoint: fp,
       point: p,
       initialPosition: ip,
@@ -692,7 +692,7 @@ export class AArm extends Element implements IAArm {
     cog.setY(-cog.y);
     const point0 = points.shift()!;
     return new AArm({
-      name: `mirror_${this.name}`,
+      name: `mirror_${this.name.value}`,
       fixedPoints: fp,
       points: [point0, ...points],
       initialPosition: ip,
@@ -863,7 +863,7 @@ export class BellCrank extends Element implements IBellCrank {
     const cog = this.centerOfGravity.value.clone();
     cog.setY(-cog.y);
     return new BellCrank({
-      name: `mirror_${this.name}`,
+      name: `mirror_${this.name.value}`,
       fixedPoints: fp,
       points: [point0, point1, ...points],
       initialPosition: ip,
@@ -1038,7 +1038,7 @@ export class Body extends Element implements IBody {
     const cog = this.centerOfGravity.value.clone();
     cog.setY(-cog.y);
     return new Body({
-      name: `mirror_${this.name}`,
+      name: `mirror_${this.name.value}`,
       fixedPoints: fp,
       points,
       initialPosition: ip,

@@ -14,6 +14,7 @@ import SidePanel from '@gdComponents/SidePanel';
 import DialogRoot from '@gdComponents/dialog-components/DialogRoot';
 import {NumberToRGB} from '@app/utils/helpers';
 import Box from '@mui/material/Box';
+import shortCutKeys from '@gd/ShortCutKeys';
 
 const GeometryDesigner = () => {
   const isFullScreen = useSelector(
@@ -27,6 +28,14 @@ const GeometryDesigner = () => {
   const bgColor: number = useSelector(
     (state: RootState) => state.uigd.present.backgroundColor
   );
+
+  React.useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    window.addEventListener('keydown', shortCutKeys, true);
+    return () => {
+      window.removeEventListener('keydown', shortCutKeys, true);
+    };
+  });
 
   return (
     <div>
