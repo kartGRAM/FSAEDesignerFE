@@ -16,13 +16,7 @@ export default function DialogRoot() {
   );
   return (
     <>
-      <FormulaDialog
-        open
-        sx={{
-          zIndex: `${fullScreenZ + 10000}!important`,
-          backdropFilter: 'blur(3px)'
-        }}
-      />
+      <FormulaDialog />
       <OpenDialog
         open
         zindex={fullScreenZ + 10000}
