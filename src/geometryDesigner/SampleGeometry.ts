@@ -1,4 +1,6 @@
 import {Vector3} from 'three';
+import {SavedData} from '@store/reducers/dataGeometryDesigner';
+import {DateTime} from 'luxon';
 import {
   Assembly,
   Bar,
@@ -246,7 +248,7 @@ const getRearSuspension = (): Assembly => {
   return rearSuspensionSubAssy;
 };
 
-export const getSuspension = (): Assembly => {
+const getSuspension = (): Assembly => {
   const frontSuspension = getFrontSuspension();
   const rearSuspension = getRearSuspension();
 
@@ -256,4 +258,15 @@ export const getSuspension = (): Assembly => {
     joints: []
   });
   return suspensionAssy;
+};
+
+export const getSampleData = (): SavedData => {
+  return {
+    id: Number.MAX_SAFE_INTEGER,
+    filename: 'KZ-RR11',
+    note: '2013年度京都大学優勝車両',
+    lastUpdated: DateTime.local().toString(),
+    formulae: [],
+    topAssembly: getSuspension().getDataElement()
+  };
 };

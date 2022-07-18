@@ -63,6 +63,7 @@ export interface HeadCell<Data> {
   disablePadding: boolean;
   id: keyof Data;
   label: string;
+  align: 'right' | 'left';
 }
 
 interface TableProps<Data> {
@@ -107,10 +108,10 @@ export function TableHead<Data>(props: TableProps<Data>) {
             }}
           />
         </TableCell>
-        {headCells.map((headCell, i) => (
+        {headCells.map((headCell) => (
           <TableCell
             key={headCell.id as string}
-            align={i !== 0 ? 'right' : 'left'}
+            align={headCell.align}
             padding={headCell.disablePadding ? 'none' : 'normal'}
             sortDirection={orderBy === headCell.id ? order : false}
           >

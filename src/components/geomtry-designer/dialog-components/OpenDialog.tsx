@@ -13,7 +13,7 @@ import {
 import {
   getListSetTopAssemblyParams,
   setTopAssembly,
-  SetTopAssemblyParams
+  SavedData
 } from '@store/reducers/dataGeometryDesigner';
 import confirmIfChanged from '@app/utils/confirmIfChanged';
 import {styled} from '@mui/material/styles';
@@ -87,7 +87,7 @@ export function OpenDialog(props: OpenDialogProps) {
     if (onClose) onClose(e, reason);
     dispatch(setOpenDialogOpen({open: false}));
   };
-  const handleFileClick = async (params: SetTopAssemblyParams) => {
+  const handleFileClick = async (params: SavedData) => {
     const next = () => {
       dispatch(setTopAssembly(params));
       dispatch(setOpenDialogOpen({open: false}));
@@ -96,7 +96,7 @@ export function OpenDialog(props: OpenDialogProps) {
   };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleInfoClick = async (params: SetTopAssemblyParams) => {
+  const handleInfoClick = async (params: SavedData) => {
     await new Promise<string>((resolve) => {
       dispatch(
         setConfirmDialogProps({
@@ -135,7 +135,7 @@ note: ${params.note}`}
     dispatch(setConfirmDialogProps(undefined));
   };
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleDeleteClick = async (params: SetTopAssemblyParams) => {
+  const handleDeleteClick = async (params: SavedData) => {
     const ret = await new Promise<string>((resolve) => {
       dispatch(
         setConfirmDialogProps({

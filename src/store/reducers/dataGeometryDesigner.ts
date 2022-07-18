@@ -39,7 +39,7 @@ const initialState: GDState = {
   changed: false
 };
 
-export interface SetTopAssemblyParams {
+export interface SavedData {
   id: number;
   filename: string;
   thumbnail?: string;
@@ -50,7 +50,7 @@ export interface SetTopAssemblyParams {
   formulae: IDataFormula[];
 }
 
-export function getSetTopAssemblyParams(data: any): SetTopAssemblyParams {
+export function getSetTopAssemblyParams(data: any): SavedData {
   return {
     id: data.id as number,
     filename: data.name as string,
@@ -71,11 +71,9 @@ function convertJsonToDataAssembly(content: string): IDataAssembly | undefined {
   }
 }
 
-export function getListSetTopAssemblyParams(
-  listedData: any
-): SetTopAssemblyParams[] {
+export function getListSetTopAssemblyParams(listedData: any): SavedData[] {
   const ret = listedData.map(
-    (data: any): SetTopAssemblyParams => ({
+    (data: any): SavedData => ({
       id: data.id as number,
       filename: data.name as string,
       note: data.note as string,
@@ -109,10 +107,7 @@ export const dataGeometryDesignerSlice = createSlice({
       state.topAssembly = undefined;
       state.changed = false;
     },
-    setTopAssembly: (
-      state: GDState,
-      action: PayloadAction<SetTopAssemblyParams>
-    ) => {
+    setTopAssembly: (state: GDState, action: PayloadAction<SavedData>) => {
       clearHistory();
       state.id = action.payload.id;
       state.filename = action.payload.filename;

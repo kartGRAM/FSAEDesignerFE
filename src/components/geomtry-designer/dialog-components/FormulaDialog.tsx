@@ -20,6 +20,7 @@ import {
   HeadCell,
   getComparator
 } from '@gdComponents/FormulaTable';
+import Input from '@mui/material/Input';
 
 interface Data {
   name: string;
@@ -41,27 +42,31 @@ const headCells: HeadCell<Data>[] = [
   {
     id: 'name',
     disablePadding: true,
-    label: 'Variable Name'
+    label: 'Variable Name',
+    align: 'left'
   },
   {
     id: 'formula',
     disablePadding: false,
-    label: 'Formula'
+    label: 'Formula',
+    align: 'left'
   },
   {
     id: 'evaluatedValue',
     disablePadding: false,
-    label: 'Evaluated Value'
+    label: 'Evaluated Value',
+    align: 'right'
   },
   {
     id: 'absPath',
     disablePadding: false,
-    label: 'Path'
+    label: 'Path',
+    align: 'right'
   }
 ];
 
 const rows = [
-  createData('Frozen yoghurt', 'x', 6.0, 'xx'),
+  createData('aaa', 'x', 6.0, 'xx'),
   createData('Ice cream sandwich', 'y', 9.0, 'yy'),
   createData('Eclair', 'z', 16.0, 'zz'),
   createData('Cupcake', 'w', 3.7, 'ww"')
@@ -150,7 +155,12 @@ export function FormulaDialog() {
       >
         <TableToolbar numSelected={selected.length} />
         <TableContainer>
-          <Table sx={{minWidth: 750}} aria-labelledby="tableTitle" size="small">
+          <Table
+            sx={{minWidth: 750}}
+            size="small"
+            stickyHeader
+            aria-label="sticky table"
+          >
             <TableHead
               numSelected={selected.length}
               order={order}
@@ -171,7 +181,6 @@ export function FormulaDialog() {
                   return (
                     <TableRow
                       hover
-                      onClick={(event) => handleClick(event, row.name)}
                       role="checkbox"
                       aria-checked={isItemSelected}
                       tabIndex={-1}
@@ -180,6 +189,7 @@ export function FormulaDialog() {
                     >
                       <TableCell padding="checkbox">
                         <Checkbox
+                          onClick={(event) => handleClick(event, row.name)}
                           color="primary"
                           checked={isItemSelected}
                           inputProps={{
@@ -187,15 +197,12 @@ export function FormulaDialog() {
                           }}
                         />
                       </TableCell>
-                      <TableCell
-                        component="th"
-                        id={labelId}
-                        scope="row"
-                        padding="none"
-                      >
-                        {row.name}
+                      <TableCell id={labelId} scope="row" padding="none">
+                        <Input value={row.name} />
                       </TableCell>
-                      <TableCell align="right">{row.formula}</TableCell>
+                      <TableCell align="right">
+                        <Input value={row.formula} />
+                      </TableCell>
                       <TableCell align="right">{row.evaluatedValue}</TableCell>
                       <TableCell align="right">{row.absPath}</TableCell>
                     </TableRow>
