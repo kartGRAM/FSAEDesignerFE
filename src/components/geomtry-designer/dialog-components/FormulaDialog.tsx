@@ -1,16 +1,17 @@
-import * as React from 'react';
+import React from 'react';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import {useSelector, useDispatch} from 'react-redux';
 import {RootState} from '@store/store';
 import {setFormulaDialogOpen} from '@store/reducers/uiTempGeometryDesigner';
+import {setFormulae} from '@store/reducers/dataGeometryDesigner';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableContainer from '@mui/material/TableContainer';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
-import {Formula} from '@gd/Formula';
+import {Formula, validateAll} from '@gd/Formula';
 // import TablePagination from '@mui/material/TablePagination';
 import {
   Order,
@@ -32,9 +33,28 @@ interface Data {
   formula: string;
   evaluatedValue: number;
   absPath: string;
+  id: number;
 }
 
+const createData = (formulae: Formula[]): Data[] => {
+  return formulae.map(
+    (formula, i): Data => ({
+      id: i + 1,
+      name: formula.name,
+      formula: formula.formula,
+      evaluatedValue: formula.evaluatedValue,
+      absPath: formula.absPath
+    })
+  );
+};
+
 const headCells: HeadCell<Data>[] = [
+  {
+    id: 'id',
+    disablePadding: false,
+    label: 'No.',
+    align: 'left'
+  },
   {
     id: 'name',
     disablePadding: true,
@@ -92,6 +112,7 @@ function TableRowExistingFormula(props: TableRowExistingFormulaProps) {
           }}
         />
       </TableCell>
+      <TableCell align="left">{row.id}</TableCell>
       <TableCell id={labelId} scope="row" padding="none">
         <Input value={row.name} />
       </TableCell>
@@ -104,8 +125,16 @@ function TableRowExistingFormula(props: TableRowExistingFormulaProps) {
   );
 }
 
-function TableRowNewFormula() {
+interface TableRowNewFormulaProps {
+  setRows: React.Dispatch<React.SetStateAction<Data[]>>;
+  rows: Data[];
+}
+
+function TableRowNewFormula(props: TableRowNewFormulaProps) {
+  const {rows, setRows} = props;
   const labelId = React.useId();
+  const nameRef = React.useRef<HTMLInputElement>(null);
+  const formulaRef = React.useRef<HTMLInputElement>(null);
 
   const formik = useFormik({
     enableReinitialize: true,
@@ -114,12 +143,46 @@ function TableRowNewFormula() {
       formula: ''
     },
     validationSchema: yup.object({
-      name: yup.string().required('Required').gdVariableNameMustBeUnique(),
-      formula: yup.string().required('Required')
+      name: yup
+        .string()
+        .required('')
+        .variableNameFirstChar()
+        .variableName()
+        .gdVariableNameMustBeUnique(rows),
+      formula: yup.string().required('').gdFormulaIsValid()
     }),
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onSubmit: (values) => {}
+    onSubmit: (values) => {
+      const formula = new Formula({
+        name: values.name,
+        formula: values.formula
+      });
+      formik.resetForm();
+      setRows((prevState) => [
+        ...prevState,
+        {
+          id: rows.length + 1,
+          name: formula.name,
+          formula: formula.formula,
+          evaluatedValue: formula.evaluatedValue,
+          absPath: formula.absPath
+        }
+      ]);
+    }
   });
+
+  const onEnter = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter') {
+      formik.handleSubmit();
+      if (nameRef.current) {
+        if (formik.errors.formula !== undefined && formulaRef.current) {
+          formulaRef.current.focus();
+        } else {
+          nameRef.current.focus();
+        }
+      }
+    }
+  };
 
   return (
     <TableRow hover tabIndex={-1} key="newRow">
@@ -132,20 +195,37 @@ function TableRowNewFormula() {
           }}
         />
       </TableCell>
+      <TableCell align="left" />
       <TableCell id={labelId} scope="row" padding="none">
         <TextField
+          inputRef={nameRef}
+          autoFocus
           hiddenLabel
           name="name"
           variant="standard"
           onBlur={formik.handleBlur}
+          onKeyDown={onEnter}
           onChange={formik.handleChange}
           value={formik.values.name}
-          error={formik.touched.name && Boolean(formik.errors.name)}
+          error={
+            formik.touched.name && Boolean(formik.errors.name !== undefined)
+          }
           helperText={formik.touched.name && formik.errors.name}
         />
       </TableCell>
       <TableCell align="right">
-        <Input value="" />
+        <TextField
+          inputRef={formulaRef}
+          hiddenLabel
+          name="formula"
+          variant="standard"
+          onBlur={formik.handleBlur}
+          onKeyDown={onEnter}
+          onChange={formik.handleChange}
+          value={formik.values.formula}
+          error={formik.touched.formula && formik.errors.formula !== undefined}
+          helperText={formik.touched.formula && formik.errors.formula}
+        />
       </TableCell>
       <TableCell align="right" />
       <TableCell align="right" />
@@ -154,7 +234,7 @@ function TableRowNewFormula() {
 }
 
 export function FormulaDialog() {
-  const formulaDialogOpen: boolean = useSelector(
+  const open: boolean = useSelector(
     (state: RootState) => state.uitgd.gdDialogState.formulaDialogOpen
   );
   const dispatch = useDispatch();
@@ -166,17 +246,21 @@ export function FormulaDialog() {
   const formulae = useSelector(
     (state: RootState) => state.dgd.present.formulae
   );
-  const rows = formulae.map((formula) => new Formula(formula));
+  const [rows, setRows] = React.useState<Data[]>([]);
+  React.useEffect(() => {
+    const rowsOrg = formulae.map((formula) => new Formula(formula));
+    setRows(createData(rowsOrg));
+  }, [formulae, open]);
 
   const [order, setOrder] = React.useState<Order>('asc');
-  const [orderBy, setOrderBy] = React.useState<keyof Data>('name');
+  const [orderBy, setOrderBy] = React.useState<keyof Data>('id');
   const [selected, setSelected] = React.useState<readonly string[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [rowsPerPage, setRowsPerPage] = React.useState(Number.MAX_SAFE_INTEGER);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [page, setPage] = React.useState(0);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleClose = (e: {}, reason: 'backdropClick' | 'escapeKeyDown') => {
+  const handleClose = (e: any, reason?: 'backdropClick' | 'escapeKeyDown') => {
     dispatch(setFormulaDialogOpen({open: false}));
   };
 
@@ -195,6 +279,14 @@ export function FormulaDialog() {
     } else {
       setSelected([]);
     }
+  };
+
+  const handleApply = () => {
+    const ret = validateAll(rows);
+    if (ret === 'OK') {
+      dispatch(setFormulae(rows));
+    }
+    return ret;
   };
 
   /*
@@ -219,8 +311,7 @@ export function FormulaDialog() {
         backdropFilter: 'blur(3px)',
         zIndex: `${zIndex}!important`
       }}
-      onClose={handleClose}
-      open={formulaDialogOpen}
+      open={open}
       maxWidth={false}
     >
       <DialogContent
@@ -259,7 +350,7 @@ export function FormulaDialog() {
                     setSelected={setSelected}
                   />
                 ))}
-              <TableRowNewFormula />
+              <TableRowNewFormula rows={rows} setRows={setRows} />
               {emptyRows > 0 && (
                 <TableRow
                   style={{
@@ -290,7 +381,9 @@ export function FormulaDialog() {
         /> */}
       </DialogContent>
       <DialogActions>
+        <Button onClick={handleApply}>Apply</Button>
         <Button>OK</Button>
+        <Button onClick={(e) => handleClose(e)}>Cancel</Button>
       </DialogActions>
     </Dialog>
   );

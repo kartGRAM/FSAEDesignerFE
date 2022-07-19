@@ -144,6 +144,21 @@ export const dataGeometryDesignerSlice = createSlice({
       }
       state.changed = true;
     },
+    setFormulae: (
+      state: GDState,
+      action: PayloadAction<
+        {
+          name: string;
+          formula: string;
+          absPath: string;
+        }[]
+      >
+    ) => {
+      if (validateAll(action.payload) === 'OK') {
+        state.formulae = action.payload;
+      }
+      state.changed = true;
+    },
     setNewFormula: (
       state: GDState,
       action: PayloadAction<{
@@ -203,7 +218,8 @@ export const {
   newAssembly,
   setTopAssembly,
   setVisibility,
-  updateAssembly
+  updateAssembly,
+  setFormulae
 } = dataGeometryDesignerSlice.actions;
 
 export default dataGeometryDesignerSlice.reducer;

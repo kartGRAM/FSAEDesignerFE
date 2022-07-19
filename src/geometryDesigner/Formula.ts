@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 export interface IFormula {
   name: string;
   formula: string;
@@ -27,11 +28,39 @@ type formulaErrors =
   | 'duplicated name'
   | 'unknown valiable(s) are contained'
   | 'devided by zero'
+  | 'circular reference'
   | 'unexpected Error';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function validateAll(formulae: IDataFormula[]): formulaErrors {
   return 'unexpected Error';
+}
+
+interface Node {
+  nodes: string[];
+  indegree: number;
+}
+
+function getNode(formula: string): Node {
+  const names = getNamesFromFormula(formula) ?? [];
+  return {nodes: names, indegree: 0};
+}
+
+function getNodes(formulae: IDataFormula[]): {[name: string]: Node} {
+  const nodes: {[name: string]: Node} = {};
+  formulae.forEach((formula) => {
+    nodes[formula.name] = getNode(formula.formula);
+  });
+  for (const [, node] of Object.entries(nodes)) {
+    for (const name of node.nodes) {
+      nodes[name].indegree++;
+    }
+  }
+
+  return nodes;
+}
+
+function getNamesFromFormula(formula: string): string[] | null {
+  return /[a-zA-Z_][a-zA-Z0-9_]*/g.exec(formula);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
