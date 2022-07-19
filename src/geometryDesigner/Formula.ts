@@ -1,7 +1,7 @@
 export interface IFormula {
   name: string;
   formula: string;
-  readonly value: number;
+  readonly evaluatedValue: number;
   readonly absPath: string;
   getData(): IDataFormula;
 }
@@ -36,7 +36,8 @@ export function validateAll(formulae: IDataFormula[]): formulaErrors {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function validate(formula: string): formulaErrors {
-  return 'unexpected Error';
+  return 'OK';
+  // return 'unexpected Error';
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -59,7 +60,7 @@ export class Formula implements IFormula {
     if (validate(formula) === 'OK') this._formula = formula;
   }
 
-  get value(): number {
+  get evaluatedValue(): number {
     return evaluate(this.formula);
   }
 

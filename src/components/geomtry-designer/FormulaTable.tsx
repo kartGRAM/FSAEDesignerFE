@@ -19,7 +19,10 @@ export const TableCell = styled(TableCellOrg)(() => ({
     color: '#FFF'
   },
   [`.MuiTableSortLabel-root`]: {
-    color: '#FFF'
+    color: '#FFF!important'
+  },
+  [`.MuiTableSortLabel-icon`]: {
+    color: '#FFF!important'
   },
   [`&.${tableCellClasses.body}`]: {
     fontSize: 14
@@ -32,6 +35,11 @@ export const TableRow = styled(TableRowOrg)(() => ({
   },
   '&:last-child td': {
     opacity: 0.3
+  },
+  '&:focus-within': {
+    '&:last-child td': {
+      opacity: 1
+    }
   }
 }));
 
@@ -171,7 +179,7 @@ export const TableToolbar = (props: TableToolbarProps) => {
           id="tableTitle"
           component="div"
         >
-          Fomula & Global Variables
+          Fomulae & Global Variables
         </Typography>
       )}
       {numSelected > 0 ? (

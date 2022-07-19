@@ -266,7 +266,21 @@ export const getSampleData = (): SavedData => {
     filename: 'KZ-RR11',
     note: '2013年度京都大学優勝車両',
     lastUpdated: DateTime.local().toString(),
-    formulae: [],
+    formulae: [
+      {name: 'tread', formula: '1215', absPath: 'global'},
+      {name: 'wheelBase', formula: '1600', absPath: 'global'},
+      {name: 'frontWeightRatio', formula: '0.47', absPath: 'global'},
+      {
+        name: 'frontSusCenter',
+        formula: '(1-frontWeightRatio)*wheelBase',
+        absPath: 'global'
+      },
+      {
+        name: 'rearSusCenter',
+        formula: 'frontWeightRatio*wheelBase',
+        absPath: 'global'
+      }
+    ],
     topAssembly: getSuspension().getDataElement()
   };
 };
