@@ -2,13 +2,8 @@ import * as yup from 'yup';
 import {RequiredStringSchema} from 'yup/lib/string';
 import {AnyObject, Maybe} from 'yup/lib/types';
 import store from '@store/store';
-
-export interface IFormula {
-  name: string;
-  formula: string;
-  readonly evaluatedValue: number;
-  readonly absPath: string;
-}
+import {IDataFormula} from '@gd/DataFormula';
+import {validate} from '@gd/Formula';
 
 yup.addMethod(yup.string, 'variableNameFirstChar', function () {
   return this.test(
@@ -36,7 +31,7 @@ yup.addMethod(yup.string, 'variableName', function () {
 yup.addMethod(
   yup.string,
   'gdVariableNameMustBeUnique',
-  function (formulae?: IFormula[]) {
+  function (formulae?: IDataFormula[]) {
     return this.test(
       'gdVariableNameMustBeUnique',
       'Variable name must be unique.',
@@ -55,13 +50,27 @@ yup.addMethod(
   }
 );
 
-yup.addMethod(yup.string, 'gdFormulaIsValid', function () {
-  return this.test('gdFormulaIsValid', 'Invalid formula.', (value) => {
-    // value :: string|null
-    if (!value) return true;
-    return true;
-  });
-});
+yup.addMethod(
+  yup.string,
+  'gdFormulaIsValid',
+  function (formulae?: IDataFormula[], temporaryName?: string) {
+    return this.test('gdFormulaIsValid', 'Invalid formula.', (value) => {
+      if (!value) return true;
+      if (!formulae) {
+        formulae = store.getState().dgd.present.formulae;
+      }
+      const ret = validate(
+        {
+          name: temporaryName ?? 'temporary',
+          formula: value,
+          absPath: 'temporary'
+        },
+        formulae
+      );
+      return ret === 'OK';
+    });
+  }
+);
 
 declare module 'yup' {
   interface StringSchema<
@@ -70,9 +79,12 @@ declare module 'yup' {
     TOut extends TType = TType
   > extends yup.BaseSchema<TType, TContext, TOut> {
     gdVariableNameMustBeUnique(
-      formulae?: IFormula[]
+      formulae?: IDataFormula[]
     ): RequiredStringSchema<TType, TContext>;
-    gdFormulaIsValid(): RequiredStringSchema<TType, TContext>;
+    gdFormulaIsValid(
+      formulae?: IDataFormula[],
+      temporaryName?: string
+    ): RequiredStringSchema<TType, TContext>;
     variableNameFirstChar(): RequiredStringSchema<TType, TContext>;
     variableName(): RequiredStringSchema<TType, TContext>;
   }

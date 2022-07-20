@@ -6,7 +6,7 @@ import {
 } from '@app/geometryDesigner/IElements';
 import {IDataMatrix3} from '@gd/NamedValues';
 import {getAssembly} from '@app/geometryDesigner/Elements';
-import {IDataFormula, validateAll, replaceVariable} from '@gd/Formula';
+import {IDataFormula, validateAll, replaceVariable} from '@gd/DataFormula';
 import {DateTime} from 'luxon';
 
 export interface IAssemblyTreeViewState {

@@ -11,7 +11,9 @@ import TableBody from '@mui/material/TableBody';
 import TableContainer from '@mui/material/TableContainer';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
-import {Formula, validateAll} from '@gd/Formula';
+import {evaluate, Formula} from '@gd/Formula';
+import {validateAll} from '@gd/DataFormula';
+
 // import TablePagination from '@mui/material/TablePagination';
 import {
   Order,
@@ -136,36 +138,36 @@ function TableRowNewFormula(props: TableRowNewFormulaProps) {
   const nameRef = React.useRef<HTMLInputElement>(null);
   const formulaRef = React.useRef<HTMLInputElement>(null);
 
-  const formik = useFormik({
-    enableReinitialize: true,
-    initialValues: {
-      name: '',
-      formula: ''
-    },
-    validationSchema: yup.object({
+  const schema = yup.lazy((values) =>
+    yup.object({
       name: yup
         .string()
         .required('')
         .variableNameFirstChar()
         .variableName()
         .gdVariableNameMustBeUnique(rows),
-      formula: yup.string().required('').gdFormulaIsValid()
-    }),
+      formula: yup.string().required('').gdFormulaIsValid(rows, values.name)
+    })
+  );
+
+  const formik = useFormik({
+    enableReinitialize: true,
+    initialValues: {
+      name: '',
+      formula: ''
+    },
+    validationSchema: schema,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onSubmit: (values) => {
-      const formula = new Formula({
-        name: values.name,
-        formula: values.formula
-      });
       formik.resetForm();
       setRows((prevState) => [
         ...prevState,
         {
           id: rows.length + 1,
-          name: formula.name,
-          formula: formula.formula,
-          evaluatedValue: formula.evaluatedValue,
-          absPath: formula.absPath
+          name: values.name,
+          formula: values.formula,
+          evaluatedValue: evaluate(values.formula, rows),
+          absPath: 'global'
         }
       ]);
     }
@@ -348,6 +350,7 @@ export function FormulaDialog() {
                     row={row}
                     selected={selected}
                     setSelected={setSelected}
+                    key={row.name}
                   />
                 ))}
               <TableRowNewFormula rows={rows} setRows={setRows} />

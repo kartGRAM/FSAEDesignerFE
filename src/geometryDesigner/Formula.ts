@@ -1,4 +1,17 @@
 /* eslint-disable no-restricted-syntax */
+import {
+  IDataFormula,
+  FormulaError,
+  Node,
+  Nodes,
+  getNode,
+  getNodes,
+  isFormulaErrors,
+  topologicalSort
+} from '@gd/DataFormula';
+import store from '@store/store';
+import * as math from 'mathjs';
+
 export interface IFormula {
   name: string;
   formula: string;
@@ -7,71 +20,49 @@ export interface IFormula {
   getData(): IDataFormula;
 }
 
-export interface IDataFormula {
-  name: string;
-  formula: string;
-  readonly absPath: string;
-}
-
-export function replaceVariable(
-  formula: string,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  name: string,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  replacement: string
-): string {
-  return formula;
-}
-
-type formulaErrors =
-  | 'OK'
-  | 'duplicated name'
-  | 'unknown valiable(s) are contained'
-  | 'devided by zero'
-  | 'circular reference'
-  | 'unexpected Error';
-
-export function validateAll(formulae: IDataFormula[]): formulaErrors {
-  return 'unexpected Error';
-}
-
-interface Node {
-  nodes: string[];
-  indegree: number;
-}
-
-function getNode(formula: string): Node {
-  const names = getNamesFromFormula(formula) ?? [];
-  return {nodes: names, indegree: 0};
-}
-
-function getNodes(formulae: IDataFormula[]): {[name: string]: Node} {
-  const nodes: {[name: string]: Node} = {};
-  formulae.forEach((formula) => {
-    nodes[formula.name] = getNode(formula.formula);
-  });
-  for (const [, node] of Object.entries(nodes)) {
-    for (const name of node.nodes) {
-      nodes[name].indegree++;
+export function validate(
+  formula: IDataFormula,
+  formulae?: IDataFormula[]
+): FormulaError {
+  try {
+    if (!formulae) {
+      formulae = store.getState().dgd.present.formulae;
     }
+    const ret1 = getNodesFromFormula(formula, formulae);
+    if (isFormulaErrors(ret1)) return ret1;
+    const ret2 = topologicalSort(ret1);
+    if (isFormulaErrors(ret2)) return ret2;
+    try {
+      const scope: object = {};
+      for (const node of ret2) {
+        math.evaluate(`${node.name}=${node.formula}`, scope);
+      }
+    } catch (e) {
+      return 'invalid formula(e)';
+    }
+  } catch (e) {
+    console.log(e);
+    return 'unexpected error';
   }
 
-  return nodes;
-}
-
-function getNamesFromFormula(formula: string): string[] | null {
-  return /[a-zA-Z_][a-zA-Z0-9_]*/g.exec(formula);
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function validate(formula: string): formulaErrors {
   return 'OK';
   // return 'unexpected Error';
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function evaluate(formula: string): number {
-  return 0;
+export function evaluate(formula: string, formulae?: IDataFormula[]): number {
+  if (!formulae) {
+    formulae = store.getState().dgd.present.formulae;
+  }
+  const ret1 = getNodesFromFormula(
+    {name: 'temp', formula, absPath: 'temp'},
+    formulae
+  ) as Node[];
+  const ret2 = topologicalSort(ret1) as Node[];
+  const scope: {[key: string]: number} = {};
+  for (const node of ret2) {
+    math.evaluate(`${node.name}=${node.formula}`, scope);
+  }
+  return scope.temp;
 }
 
 export class Formula implements IFormula {
@@ -86,11 +77,17 @@ export class Formula implements IFormula {
   }
 
   set formula(formula: string) {
-    if (validate(formula) === 'OK') this._formula = formula;
+    if (
+      validate({
+        ...this,
+        formula
+      }) === 'OK'
+    )
+      this._formula = formula;
   }
 
   get evaluatedValue(): number {
-    return evaluate(this.formula);
+    return evaluate(this._formula);
   }
 
   getData(): IDataFormula {
@@ -111,11 +108,6 @@ export class Formula implements IFormula {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function toIFormula(formula: Formula): IFormula {
-  return formula;
-}
-
 export function getAllValiables(formulae: IDataFormula[]): {
   [name: string]: IFormula;
 } {
@@ -124,4 +116,30 @@ export function getAllValiables(formulae: IDataFormula[]): {
     tmp[value.name] = new Formula(value);
   });
   return tmp;
+}
+
+function getNodesFromFormula(
+  formula: IDataFormula,
+  formulae: IDataFormula[]
+): Node[] | FormulaError {
+  try {
+    const endNode = getNode(formula);
+    const nodes = getNodes(formulae);
+    const names = [endNode.name];
+    return getNodesFromNode(endNode, nodes, names);
+  } catch (e) {
+    return 'unknown valiable(s) are contained';
+  }
+}
+
+function getNodesFromNode(root: Node, nodes: Nodes, names: string[]): Node[] {
+  let ret: Node[] = [root];
+  for (const name of root.nodes) {
+    if (!names.includes(name)) {
+      names.push(name);
+      const node = nodes[name];
+      ret = [...ret, ...getNodesFromNode(node, nodes, names)];
+    }
+  }
+  return ret;
 }
