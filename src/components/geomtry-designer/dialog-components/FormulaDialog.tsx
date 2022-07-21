@@ -11,8 +11,9 @@ import TableBody from '@mui/material/TableBody';
 import TableContainer from '@mui/material/TableContainer';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
-import {evaluate, Formula} from '@gd/Formula';
-import {validateAll} from '@gd/DataFormula';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import {evaluate, validate} from '@gd/Formula';
+import {validateAll, getAllEvaluatedValue, IDataFormula} from '@gd/DataFormula';
 
 // import TablePagination from '@mui/material/TablePagination';
 import {
@@ -24,7 +25,6 @@ import {
   HeadCell,
   getComparator
 } from '@gdComponents/FormulaTable';
-import Input from '@mui/material/Input';
 import TextField from '@mui/material/TextField';
 
 import {useFormik} from 'formik';
@@ -38,16 +38,35 @@ interface Data {
   id: number;
 }
 
-const createData = (formulae: Formula[]): Data[] => {
-  return formulae.map(
-    (formula, i): Data => ({
-      id: i + 1,
-      name: formula.name,
-      formula: formula.formula,
-      evaluatedValue: formula.evaluatedValue,
-      absPath: formula.absPath
-    })
-  );
+const createData = (formulae: IDataFormula[]): Data[] => {
+  try {
+    const values = getAllEvaluatedValue(formulae);
+    return formulae.map(
+      (formula, i): Data => ({
+        id: i + 1,
+        name: formula.name,
+        formula: formula.formula,
+        evaluatedValue: values[formula.name],
+        absPath: formula.absPath
+      })
+    );
+  } catch (e) {
+    console.log(e);
+    return [];
+  }
+};
+
+const updateRowsValue = (rows: Data[]) => {
+  try {
+    const values = getAllEvaluatedValue(rows);
+    return rows.map((row) => ({
+      ...row,
+      evaluatedValue: values[row.name]
+    }));
+  } catch (e) {
+    console.log(e);
+    return [];
+  }
 };
 
 const headCells: HeadCell<Data>[] = [
@@ -87,11 +106,90 @@ interface TableRowExistingFormulaProps {
   row: Data;
   selected: readonly string[];
   setSelected: React.Dispatch<React.SetStateAction<readonly string[]>>;
+  setRows: React.Dispatch<React.SetStateAction<Data[]>>;
+  rows: Data[];
 }
 
 function TableRowExistingFormula(props: TableRowExistingFormulaProps) {
-  const {row, selected, setSelected} = props;
+  const {row, selected, setSelected, rows, setRows} = props;
   const isItemSelected = selected.includes(row.name);
+
+  const nameRef = React.useRef<HTMLInputElement>(null);
+  const formulaRef = React.useRef<HTMLInputElement>(null);
+  const [evaluatedValue, setEvaluatedValue] = React.useState<number | null>(
+    row.evaluatedValue
+  );
+  React.useEffect(() => {
+    setEvaluatedValue(row.evaluatedValue);
+  }, [row.evaluatedValue]);
+
+  const onFormulaValidated = (formula: string) => {
+    setEvaluatedValue(evaluate(formula, rows));
+  };
+
+  const schema = yup.lazy((values) =>
+    yup.object({
+      name: yup
+        .string()
+        .required('')
+        .variableNameFirstChar()
+        .variableName()
+        .noMathFunctionsName()
+        .gdVariableNameMustBeUnique(rows, row.name),
+      formula: yup
+        .string()
+        .required('')
+        .gdFormulaIsValid(rows, values.name, onFormulaValidated)
+    })
+  );
+
+  const formik = useFormik({
+    enableReinitialize: true,
+    initialValues: {
+      name: row.name,
+      formula: row.formula
+    },
+    validationSchema: schema,
+    onSubmit: (values) => {
+      if (row.name !== values.name) {
+        reset();
+        return;
+      }
+      const newRows = [
+        ...rows.filter((r) => r.id !== row.id),
+        {
+          id: row.id,
+          name: values.name,
+          formula: values.formula,
+          evaluatedValue: evaluate(values.formula, rows),
+          absPath: 'global'
+        }
+      ];
+      setRows(newRows);
+    }
+  });
+
+  const reset = () => {
+    formik.resetForm();
+  };
+
+  const onEnter = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter') {
+      formik.handleSubmit();
+      if (nameRef.current) {
+        if (formik.errors.formula !== undefined && formulaRef.current) {
+          formulaRef.current.focus();
+        } else if (formik.errors.name !== undefined) {
+          nameRef.current.focus();
+        }
+      }
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEvaluatedValue(null);
+    formik.handleChange(e);
+  };
 
   const handleClick = (event: React.MouseEvent<unknown>, name: string) => {
     if (selected.includes(name)) {
@@ -116,12 +214,37 @@ function TableRowExistingFormula(props: TableRowExistingFormulaProps) {
       </TableCell>
       <TableCell align="left">{row.id}</TableCell>
       <TableCell id={labelId} scope="row" padding="none">
-        <Input value={row.name} />
+        <TextField
+          inputRef={nameRef}
+          autoFocus
+          hiddenLabel
+          name="name"
+          variant="standard"
+          onBlur={formik.handleBlur}
+          onKeyDown={onEnter}
+          onChange={formik.handleChange}
+          value={formik.values.name}
+          error={
+            formik.touched.name && Boolean(formik.errors.name !== undefined)
+          }
+          helperText={formik.touched.name && formik.errors.name}
+        />
       </TableCell>
       <TableCell align="right">
-        <Input value={row.formula} />
+        <TextField
+          inputRef={formulaRef}
+          hiddenLabel
+          name="formula"
+          variant="standard"
+          onBlur={formik.handleBlur}
+          onKeyDown={onEnter}
+          onChange={handleChange}
+          value={formik.values.formula}
+          error={formik.touched.formula && formik.errors.formula !== undefined}
+          helperText={formik.touched.formula && formik.errors.formula}
+        />
       </TableCell>
-      <TableCell align="right">{row.evaluatedValue}</TableCell>
+      <TableCell align="right">{evaluatedValue}</TableCell>
       <TableCell align="right">{row.absPath}</TableCell>
     </TableRow>
   );
@@ -137,6 +260,13 @@ function TableRowNewFormula(props: TableRowNewFormulaProps) {
   const labelId = React.useId();
   const nameRef = React.useRef<HTMLInputElement>(null);
   const formulaRef = React.useRef<HTMLInputElement>(null);
+  const [evaluatedValue, setEvaluatedValue] = React.useState<number | null>(
+    null
+  );
+
+  const onFormulaValidated = (formula: string) => {
+    setEvaluatedValue(evaluate(formula, rows));
+  };
 
   const schema = yup.lazy((values) =>
     yup.object({
@@ -145,8 +275,12 @@ function TableRowNewFormula(props: TableRowNewFormulaProps) {
         .required('')
         .variableNameFirstChar()
         .variableName()
+        .noMathFunctionsName()
         .gdVariableNameMustBeUnique(rows),
-      formula: yup.string().required('').gdFormulaIsValid(rows, values.name)
+      formula: yup
+        .string()
+        .required('')
+        .gdFormulaIsValid(rows, values.name, onFormulaValidated)
     })
   );
 
@@ -157,7 +291,6 @@ function TableRowNewFormula(props: TableRowNewFormulaProps) {
       formula: ''
     },
     validationSchema: schema,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onSubmit: (values) => {
       formik.resetForm();
       setRows((prevState) => [
@@ -170,6 +303,7 @@ function TableRowNewFormula(props: TableRowNewFormulaProps) {
           absPath: 'global'
         }
       ]);
+      setEvaluatedValue(null);
     }
   });
 
@@ -184,6 +318,11 @@ function TableRowNewFormula(props: TableRowNewFormulaProps) {
         }
       }
     }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEvaluatedValue(null);
+    formik.handleChange(e);
   };
 
   return (
@@ -223,13 +362,13 @@ function TableRowNewFormula(props: TableRowNewFormulaProps) {
           variant="standard"
           onBlur={formik.handleBlur}
           onKeyDown={onEnter}
-          onChange={formik.handleChange}
+          onChange={handleChange}
           value={formik.values.formula}
           error={formik.touched.formula && formik.errors.formula !== undefined}
           helperText={formik.touched.formula && formik.errors.formula}
         />
       </TableCell>
-      <TableCell align="right" />
+      <TableCell align="right">{evaluatedValue}</TableCell>
       <TableCell align="right" />
     </TableRow>
   );
@@ -248,10 +387,10 @@ export function FormulaDialog() {
   const formulae = useSelector(
     (state: RootState) => state.dgd.present.formulae
   );
-  const [rows, setRows] = React.useState<Data[]>([]);
+  const [stateRows, setRows] = React.useState<Data[]>(createData(formulae));
+  const rows = updateRowsValue(stateRows);
   React.useEffect(() => {
-    const rowsOrg = formulae.map((formula) => new Formula(formula));
-    setRows(createData(rowsOrg));
+    setRows(createData(formulae));
   }, [formulae, open]);
 
   const [order, setOrder] = React.useState<Order>('asc');
@@ -343,16 +482,20 @@ export function FormulaDialog() {
             />
             <TableBody>
               {rows
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .sort(getComparator(order, orderBy))
-                .map((row) => (
-                  <TableRowExistingFormula
-                    row={row}
-                    selected={selected}
-                    setSelected={setSelected}
-                    key={row.name}
-                  />
-                ))}
+                ? rows
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                    .sort(getComparator(order, orderBy))
+                    .map((row) => (
+                      <TableRowExistingFormula
+                        row={row}
+                        rows={rows}
+                        setRows={setRows}
+                        selected={selected}
+                        setSelected={setSelected}
+                        key={row.name}
+                      />
+                    ))
+                : null}
               <TableRowNewFormula rows={rows} setRows={setRows} />
               {emptyRows > 0 && (
                 <TableRow

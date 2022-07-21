@@ -33,10 +33,13 @@ export function validate(
     const ret2 = topologicalSort(ret1);
     if (isFormulaErrors(ret2)) return ret2;
     try {
-      const scope: object = {};
+      const scope: {[key: string]: unknown} = {};
       for (const node of ret2) {
         math.evaluate(`${node.name}=${node.formula}`, scope);
       }
+      Object.values(scope).forEach((value) => {
+        if (typeof value !== 'number') throw new Error('invalid');
+      });
     } catch (e) {
       return 'invalid formula(e)';
     }
@@ -54,7 +57,7 @@ export function evaluate(formula: string, formulae?: IDataFormula[]): number {
     formulae = store.getState().dgd.present.formulae;
   }
   const ret1 = getNodesFromFormula(
-    {name: 'temp', formula, absPath: 'temp'},
+    {name: '___temp___', formula, absPath: '___temp___'},
     formulae
   ) as Node[];
   const ret2 = topologicalSort(ret1) as Node[];
@@ -62,7 +65,8 @@ export function evaluate(formula: string, formulae?: IDataFormula[]): number {
   for (const node of ret2) {
     math.evaluate(`${node.name}=${node.formula}`, scope);
   }
-  return scope.temp;
+  // eslint-disable-next-line no-underscore-dangle
+  return scope.___temp___;
 }
 
 export class Formula implements IFormula {
@@ -123,6 +127,7 @@ function getNodesFromFormula(
   formulae: IDataFormula[]
 ): Node[] | FormulaError {
   try {
+    // const allNames = formulae.map((formula) => formula.name);
     const endNode = getNode(formula);
     const nodes = getNodes(formulae);
     const names = [endNode.name];

@@ -30,6 +30,9 @@ export function validateAll(formulae: IDataFormula[]): FormulaError {
       for (const node of ret) {
         math.evaluate(`${node.name}=${node.formula}`, scope);
       }
+      Object.values(scope).forEach((value) => {
+        if (typeof value !== 'number') throw new Error('invalid');
+      });
     } catch (e) {
       return 'invalid formula(e)';
     }
@@ -66,6 +69,15 @@ export function isFormulaErrors(
   );
 }
 
+export function getAllEvaluatedValue(formulae: IDataFormula[]) {
+  const ret = topologicalSort(formulae) as Node[];
+  const scope: {[key: string]: number} = {};
+  for (const node of ret) {
+    math.evaluate(`${node.name}=${node.formula}`, scope);
+  }
+  return scope;
+}
+
 export interface Node extends IDataFormula {
   nodes: string[];
   indegree: number;
@@ -73,13 +85,69 @@ export interface Node extends IDataFormula {
 
 export type Nodes = {[name: string]: Node};
 
+export const mathFunctions = [
+  'abs',
+  'acos',
+  'acosh',
+  'asin',
+  'asinh',
+  'atan',
+  'atan2',
+  'atanh',
+  'cbrt',
+  'ceil',
+  'clz32',
+  'cos',
+  'cosh',
+  'E',
+  'exp',
+  'expm1',
+  'floor',
+  'fround',
+  'hypot',
+  'imul',
+  'LN10',
+  'LN2',
+  'log',
+  'log10',
+  'LOG10E',
+  'log1p',
+  'log2',
+  'LOG2E',
+  'Math',
+  'max',
+  'min',
+  'PI',
+  'pow',
+  'random',
+  'round',
+  'sign',
+  'sin',
+  'sinh',
+  'sqrt',
+  'SQRT1_2',
+  'SQRT2',
+  'tan',
+  'tanh',
+  'trunc'
+];
+
+function getNamesFromFormula(formula: string): string[] {
+  const names: string[] = [
+    ...new Set(formula.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) ?? [])
+  ];
+  const namesWOMathFunc = names.filter((name) => !mathFunctions.includes(name));
+
+  return namesWOMathFunc;
+}
 export function getNode(formula: IDataFormula): Node {
-  const names = getNamesFromFormula(formula.formula) ?? [];
+  const names = getNamesFromFormula(formula.formula);
   return {nodes: names, indegree: names.length, ...formula};
 }
 
 export function getNodes(formulae: IDataFormula[]): Nodes {
   const nodes: Nodes = {};
+  // const names = formulae.map((formula) => formula.name);
   formulae.forEach((formula) => {
     nodes[formula.name] = getNode(formula);
   });
@@ -118,8 +186,4 @@ export function topologicalSort(
   } catch (e) {
     return 'unknown valiable(s) are contained';
   }
-}
-
-function getNamesFromFormula(formula: string): string[] | null {
-  return formula.match(/[a-zA-Z_][a-zA-Z0-9_]*/g);
 }

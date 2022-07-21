@@ -2,7 +2,7 @@ import * as yup from 'yup';
 import {RequiredStringSchema} from 'yup/lib/string';
 import {AnyObject, Maybe} from 'yup/lib/types';
 import store from '@store/store';
-import {IDataFormula} from '@gd/DataFormula';
+import {IDataFormula, mathFunctions} from '@gd/DataFormula';
 import {validate} from '@gd/Formula';
 
 yup.addMethod(yup.string, 'variableNameFirstChar', function () {
@@ -28,10 +28,22 @@ yup.addMethod(yup.string, 'variableName', function () {
   );
 });
 
+yup.addMethod(yup.string, 'noMathFunctionsName', function () {
+  return this.test(
+    'noMathFunctionsName',
+    "You can't use the same name as math functions.",
+    (value) => {
+      // value :: string|null
+      if (!value) return true;
+      return !mathFunctions.includes(value);
+    }
+  );
+});
+
 yup.addMethod(
   yup.string,
   'gdVariableNameMustBeUnique',
-  function (formulae?: IDataFormula[]) {
+  function (formulae?: IDataFormula[], except?: string) {
     return this.test(
       'gdVariableNameMustBeUnique',
       'Variable name must be unique.',
@@ -40,11 +52,11 @@ yup.addMethod(
         if (!value) return true;
         if (formulae) {
           const names = formulae.map((f) => f.name);
-          return !names.includes(value);
+          return except === value || !names.includes(value);
         }
         const dataFormulae = store.getState().dgd.present.formulae;
         const names = dataFormulae.map((f) => f.name);
-        return !names.includes(value);
+        return except === value || !names.includes(value);
       }
     );
   }
@@ -53,8 +65,12 @@ yup.addMethod(
 yup.addMethod(
   yup.string,
   'gdFormulaIsValid',
-  function (formulae?: IDataFormula[], temporaryName?: string) {
-    return this.test('gdFormulaIsValid', 'Invalid formula.', (value) => {
+  function (
+    formulae?: IDataFormula[],
+    temporaryName?: string,
+    onValidated?: (formula: string) => void
+  ) {
+    return this.test('gdFormulaIsValid', '', (value, {createError}) => {
       if (!value) return true;
       if (!formulae) {
         formulae = store.getState().dgd.present.formulae;
@@ -67,7 +83,15 @@ yup.addMethod(
         },
         formulae
       );
-      return ret === 'OK';
+      if (ret === 'OK' && onValidated) {
+        onValidated(value);
+      }
+      return (
+        ret === 'OK' ||
+        createError({
+          message: ret
+        })
+      );
     });
   }
 );
@@ -79,14 +103,17 @@ declare module 'yup' {
     TOut extends TType = TType
   > extends yup.BaseSchema<TType, TContext, TOut> {
     gdVariableNameMustBeUnique(
-      formulae?: IDataFormula[]
+      formulae?: IDataFormula[],
+      except?: string
     ): RequiredStringSchema<TType, TContext>;
     gdFormulaIsValid(
       formulae?: IDataFormula[],
-      temporaryName?: string
+      temporaryName?: string,
+      onValidated?: (formula: string) => void
     ): RequiredStringSchema<TType, TContext>;
     variableNameFirstChar(): RequiredStringSchema<TType, TContext>;
     variableName(): RequiredStringSchema<TType, TContext>;
+    noMathFunctionsName(): RequiredStringSchema<TType, TContext>;
   }
 }
 
