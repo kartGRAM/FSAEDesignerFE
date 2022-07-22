@@ -140,6 +140,22 @@ function getNamesFromFormula(formula: string): string[] {
 
   return namesWOMathFunc;
 }
+
+export function hasName(formula: string, name: string): boolean {
+  const re = new RegExp(`[^a-zA-Z_][0-9]*${name}[^a-zA-Z0-9_]*`, '');
+  const ret = formula.match(re);
+  return !!ret;
+}
+
+export function replaceName(
+  formula: string,
+  name: string,
+  newName: string
+): string {
+  const re = new RegExp(`[^a-zA-Z_][0-9]*${name}[^a-zA-Z0-9_]*`, 'g');
+  return formula.replace(re, newName);
+}
+
 export function getNode(formula: IDataFormula): Node {
   const names = getNamesFromFormula(formula.formula);
   return {nodes: names, indegree: names.length, ...formula};

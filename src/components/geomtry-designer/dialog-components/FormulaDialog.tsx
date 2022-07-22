@@ -13,7 +13,13 @@ import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {evaluate, validate} from '@gd/Formula';
-import {validateAll, getAllEvaluatedValue, IDataFormula} from '@gd/DataFormula';
+import {
+  validateAll,
+  getAllEvaluatedValue,
+  IDataFormula,
+  hasName,
+  replaceName
+} from '@gd/DataFormula';
 
 // import TablePagination from '@mui/material/TablePagination';
 import {
@@ -151,21 +157,37 @@ function TableRowExistingFormula(props: TableRowExistingFormulaProps) {
     },
     validationSchema: schema,
     onSubmit: (values) => {
+      const effectedRows: Data[] = [];
       if (row.name !== values.name) {
+        rows.forEach((r) => {
+          if (hasName(r.formula, row.name)) {
+            const newFormula = replaceName(r.formula, row.name, values.name);
+            effectedRows.push({
+              ...r,
+              formula: newFormula
+            });
+          }
+        });
+
         reset();
         return;
       }
+      const effectedRowsIDs = effectedRows.map((row) => row.id);
       const newRows = [
-        ...rows.filter((r) => r.id !== row.id),
+        ...rows.filter(
+          (r) => r.id !== row.id && !effectedRowsIDs.includes(r.id)
+        ),
         {
           id: row.id,
           name: values.name,
           formula: values.formula,
           evaluatedValue: evaluate(values.formula, rows),
           absPath: 'global'
-        }
+        },
+        ...effectedRows
       ];
-      setRows(newRows);
+      const ret = validateAll(newRows);
+      if (ret === 'OK') setRows(newRows);
     }
   });
 
