@@ -20,6 +20,7 @@ import {
   hasName,
   replaceName
 } from '@gd/DataFormula';
+import {toFixedNoZero} from '@app/utils/helpers';
 
 // import TablePagination from '@mui/material/TablePagination';
 import {
@@ -168,9 +169,6 @@ function TableRowExistingFormula(props: TableRowExistingFormulaProps) {
             });
           }
         });
-
-        reset();
-        return;
       }
       const effectedRowsIDs = effectedRows.map((row) => row.id);
       const newRows = [
@@ -186,8 +184,10 @@ function TableRowExistingFormula(props: TableRowExistingFormulaProps) {
         },
         ...effectedRows
       ];
+      newRows.sort((a, b) => a.id - b.id);
       const ret = validateAll(newRows);
       if (ret === 'OK') setRows(newRows);
+      else reset();
     }
   });
 
@@ -197,6 +197,7 @@ function TableRowExistingFormula(props: TableRowExistingFormulaProps) {
 
   const onEnter = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter') {
+      setEvaluatedValue(null);
       formik.handleSubmit();
       if (nameRef.current) {
         if (formik.errors.formula !== undefined && formulaRef.current) {
@@ -266,7 +267,7 @@ function TableRowExistingFormula(props: TableRowExistingFormulaProps) {
           helperText={formik.touched.formula && formik.errors.formula}
         />
       </TableCell>
-      <TableCell align="right">{evaluatedValue}</TableCell>
+      <TableCell align="right">{toFixedNoZero(evaluatedValue)}</TableCell>
       <TableCell align="right">{row.absPath}</TableCell>
     </TableRow>
   );
@@ -325,7 +326,7 @@ function TableRowNewFormula(props: TableRowNewFormulaProps) {
           absPath: 'global'
         }
       ]);
-      setEvaluatedValue(null);
+      setTimeout(() => setEvaluatedValue(null), 0);
     }
   });
 
@@ -390,7 +391,7 @@ function TableRowNewFormula(props: TableRowNewFormulaProps) {
           helperText={formik.touched.formula && formik.errors.formula}
         />
       </TableCell>
-      <TableCell align="right">{evaluatedValue}</TableCell>
+      <TableCell align="right">{toFixedNoZero(evaluatedValue)}</TableCell>
       <TableCell align="right" />
     </TableRow>
   );

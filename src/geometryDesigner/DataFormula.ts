@@ -142,8 +142,15 @@ function getNamesFromFormula(formula: string): string[] {
 }
 
 export function hasName(formula: string, name: string): boolean {
-  const re = new RegExp(`[^a-zA-Z_][0-9]*${name}[^a-zA-Z0-9_]*`, '');
-  const ret = formula.match(re);
+  const re1 = new RegExp(`[^a-zA-Z_]+[0-9]*${name}[^a-zA-Z0-9_]+`, '');
+  const re2 = new RegExp(`^${name}[^a-zA-Z0-9_]+`, '');
+  const re3 = new RegExp(`[^a-zA-Z_]+[0-9]*${name}$`, '');
+  const re4 = new RegExp(`^${name}$`, '');
+  const ret =
+    formula.match(re1) ||
+    formula.match(re2) ||
+    formula.match(re3) ||
+    formula.match(re4);
   return !!ret;
 }
 
@@ -152,8 +159,17 @@ export function replaceName(
   name: string,
   newName: string
 ): string {
-  const re = new RegExp(`[^a-zA-Z_][0-9]*${name}[^a-zA-Z0-9_]*`, 'g');
-  return formula.replace(re, newName);
+  let re = new RegExp(`^${name}([^a-zA-Z0-9_]+)`, '');
+  let ret = formula.replace(re, `${newName}$1`);
+  re = new RegExp(`([^a-zA-Z_]+[0-9]*)${name}$`, '');
+  ret = ret.replace(re, `$1${newName}`);
+  re = new RegExp(`^${name}$`, '');
+  ret = ret.replace(re, `${newName}`);
+  re = new RegExp(`([^a-zA-Z_]+[0-9]*)${name}([^a-zA-Z0-9_]+)`, 'g');
+  let retOld = ret;
+  // eslint-disable-next-line no-cond-assign
+  while (retOld !== (ret = ret.replace(re, `$1${newName}$2`))) retOld = ret;
+  return ret;
 }
 
 export function getNode(formula: IDataFormula): Node {

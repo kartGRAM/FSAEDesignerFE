@@ -76,3 +76,12 @@ export function getReversal(color: string): string | null {
   b = 255 - b;
   return NumberToRGB(r * 256 * 256 + g * 256 + b);
 }
+
+const reToFixedNoZero = /\.?0+$/;
+export function toFixedNoZero(
+  n: number | null | undefined,
+  fractionDigits: number = 10
+): string | null {
+  if (!n) return null;
+  return n.toFixed(fractionDigits).replace(reToFixedNoZero, '');
+}
