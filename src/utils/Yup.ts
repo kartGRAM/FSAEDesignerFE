@@ -5,6 +5,7 @@ import store from '@store/store';
 import {IDataFormula, mathFunctions} from '@gd/DataFormula';
 import {validate} from '@gd/Formula';
 
+// eslint-disable-next-line func-names
 yup.addMethod(yup.string, 'variableNameFirstChar', function () {
   return this.test(
     'variableNameFirstChar',
@@ -16,6 +17,7 @@ yup.addMethod(yup.string, 'variableNameFirstChar', function () {
     }
   );
 });
+// eslint-disable-next-line func-names
 yup.addMethod(yup.string, 'variableName', function () {
   return this.test(
     'variableName',
@@ -28,6 +30,7 @@ yup.addMethod(yup.string, 'variableName', function () {
   );
 });
 
+// eslint-disable-next-line func-names
 yup.addMethod(yup.string, 'noMathFunctionsName', function () {
   return this.test(
     'noMathFunctionsName',
@@ -43,6 +46,7 @@ yup.addMethod(yup.string, 'noMathFunctionsName', function () {
 yup.addMethod(
   yup.string,
   'gdVariableNameMustBeUnique',
+  // eslint-disable-next-line func-names
   function (formulae?: IDataFormula[], except?: string) {
     return this.test(
       'gdVariableNameMustBeUnique',
@@ -65,6 +69,7 @@ yup.addMethod(
 yup.addMethod(
   yup.string,
   'gdFormulaIsValid',
+  // eslint-disable-next-line func-names
   function (
     formulae?: IDataFormula[],
     temporaryName?: string,

@@ -1,10 +1,14 @@
+/* eslint-disable no-restricted-syntax */
 import React from 'react';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import {useSelector, useDispatch} from 'react-redux';
 import {RootState} from '@store/store';
-import {setFormulaDialogOpen} from '@store/reducers/uiTempGeometryDesigner';
+import {
+  setFormulaDialogOpen,
+  setConfirmDialogProps
+} from '@store/reducers/uiTempGeometryDesigner';
 import {setFormulae} from '@store/reducers/dataGeometryDesigner';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -28,11 +32,17 @@ import {
   TableCell,
   TableRow,
   TableHead,
-  TableToolbar,
   HeadCell,
   getComparator
 } from '@gdComponents/FormulaTable';
 import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import {alpha} from '@mui/material/styles';
+
+import Toolbar from '@mui/material/Toolbar';
+import DeleteIcon from '@mui/icons-material/Delete';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
 
 import {useFormik} from 'formik';
 import yup from '@app/utils/Yup';
@@ -58,6 +68,7 @@ const createData = (formulae: IDataFormula[]): Data[] => {
       })
     );
   } catch (e) {
+    // eslint-disable-next-line no-console
     console.log(e);
     return [];
   }
@@ -71,6 +82,7 @@ const updateRowsValue = (rows: Data[]) => {
       evaluatedValue: values[row.name]
     }));
   } catch (e) {
+    // eslint-disable-next-line no-console
     console.log(e);
     return [];
   }
@@ -397,6 +409,101 @@ function TableRowNewFormula(props: TableRowNewFormulaProps) {
   );
 }
 
+interface TableToolbarProps {
+  numSelected: number;
+  zindex: number;
+  selectedRows: Data[];
+  rows: Data[];
+  setRows: React.Dispatch<React.SetStateAction<Data[]>>;
+}
+
+export const TableToolbar = (props: TableToolbarProps) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const {numSelected, selectedRows, rows, setRows, zindex} = props;
+  const dispatch = useDispatch();
+
+  const handleDelete = () => {
+    const confirm = async () => {
+      const deleted: number[] = [];
+      for (const row of selectedRows) {
+        const rowsUsingDisposingValiable = rows.filter((r) =>
+          hasName(r.formula, row.name)
+        );
+        if (rowsUsingDisposingValiable.length > 0) {
+          // eslint-disable-next-line no-await-in-loop
+          const ret = await new Promise<string>((resolve) => {
+            dispatch(
+              setConfirmDialogProps({
+                zindex: zindex + 1,
+                onClose: resolve,
+                buttons: [
+                  {text: 'Confirm', res: 'ok'},
+                  {text: 'Cancel', res: 'cancel', autoFocus: true}
+                ],
+                title: `${row.name} is used in other formulae.`,
+                message: 'Replace with a constant value.'
+              })
+            );
+          });
+          dispatch(setConfirmDialogProps(undefined));
+          // eslint-disable-next-line no-empty
+          if (ret === 'ok') {
+          }
+        } else {
+          deleted.push(row.id);
+        }
+      }
+      const newRows = rows.filter((row) => !deleted.includes(row.id));
+      const ret = validateAll(newRows);
+      if (ret === 'OK') setRows(newRows);
+    };
+    confirm();
+  };
+
+  return (
+    <Toolbar
+      sx={{
+        pl: {sm: 2},
+        pr: {xs: 1, sm: 1},
+        ...(numSelected > 0 && {
+          bgcolor: (theme) =>
+            alpha(
+              theme.palette.primary.main,
+              theme.palette.action.activatedOpacity
+            )
+        })
+      }}
+    >
+      {numSelected > 0 ? (
+        <Typography
+          sx={{flex: '1 1 100%'}}
+          color="inherit"
+          variant="subtitle1"
+          component="div"
+        >
+          {numSelected} selected
+        </Typography>
+      ) : (
+        <Typography
+          sx={{flex: '1 1 100%'}}
+          variant="h6"
+          id="tableTitle"
+          component="div"
+        >
+          Fomulae & Global Variables
+        </Typography>
+      )}
+      {numSelected > 0 ? (
+        <Tooltip title="Delete">
+          <IconButton onClick={handleDelete}>
+            <DeleteIcon />
+          </IconButton>
+        </Tooltip>
+      ) : null}
+    </Toolbar>
+  );
+};
+
 export function FormulaDialog() {
   const open: boolean = useSelector(
     (state: RootState) => state.uitgd.gdDialogState.formulaDialogOpen
@@ -469,6 +576,8 @@ export function FormulaDialog() {
   const emptyRows =
     page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
 
+  const selectedRows = rows.filter((row) => selected.includes(row.name));
+
   return (
     <Dialog
       sx={{
@@ -486,7 +595,13 @@ export function FormulaDialog() {
           }
         }}
       >
-        <TableToolbar numSelected={selected.length} />
+        <TableToolbar
+          rows={rows}
+          zindex={zIndex}
+          numSelected={selected.length}
+          selectedRows={selectedRows}
+          setRows={setRows}
+        />
         <TableContainer>
           <Table
             sx={{minWidth: 750}}

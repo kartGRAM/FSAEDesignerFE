@@ -37,6 +37,7 @@ export function validateAll(formulae: IDataFormula[]): FormulaError {
       return 'invalid formula(e)';
     }
   } catch (e) {
+    // eslint-disable-next-line no-console
     console.log(e);
     return 'unexpected error';
   }
