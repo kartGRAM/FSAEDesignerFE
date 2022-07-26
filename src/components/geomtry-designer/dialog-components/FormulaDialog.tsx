@@ -1,14 +1,13 @@
 /* eslint-disable no-restricted-syntax */
 import React from 'react';
 import Dialog from '@mui/material/Dialog';
-import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
 import {useSelector, useDispatch} from 'react-redux';
 import {RootState} from '@store/store';
-import {
-  setFormulaDialogOpen,
-  setConfirmDialogProps
-} from '@store/reducers/uiTempGeometryDesigner';
+import {setFormulaDialogOpen} from '@store/reducers/uiTempGeometryDesigner';
 import {setFormulae} from '@store/reducers/dataGeometryDesigner';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -41,6 +40,7 @@ import {alpha} from '@mui/material/styles';
 
 import Toolbar from '@mui/material/Toolbar';
 import DeleteIcon from '@mui/icons-material/Delete';
+import SwapVertIcon from '@mui/icons-material/SwapVert';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 
@@ -409,18 +409,93 @@ function TableRowNewFormula(props: TableRowNewFormulaProps) {
   );
 }
 
+type OnDeleteDialogProps = {
+  name: string;
+  zindex: number;
+  onClose: (value: {ret: string; newValue: number}) => void;
+  value: number;
+};
+
+export default function OnDeleteDialog(props: OnDeleteDialogProps) {
+  const {zindex, onClose, name, value} = props;
+
+  const formik = useFormik({
+    enableReinitialize: true,
+    initialValues: {
+      newValue: value
+    },
+    validationSchema: yup.object({
+      newValue: yup.number().required()
+    }),
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onSubmit: (values) => {
+      onClose({ret: 'ok', newValue: values.newValue});
+    }
+  });
+
+  return (
+    <Dialog
+      open
+      aria-labelledby="alert-dialog-title"
+      aria-describedby="alert-dialog-description"
+      sx={{
+        zIndex: `${zindex}!important`,
+        backdropFilter: 'blur(3px)'
+      }}
+    >
+      <DialogTitle id="alert-dialog-title">
+        {`${name} is used in other formulae.`}
+      </DialogTitle>
+      <DialogContent>
+        <DialogContentText id="alert-dialog-description">
+          Replace with a constant value.
+        </DialogContentText>
+
+        <TextField
+          autoFocus
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          label="Value"
+          name="newValue"
+          variant="standard"
+          value={formik.values.newValue}
+          error={formik.touched.newValue && Boolean(formik.errors.newValue)}
+          helperText={formik.touched.newValue && formik.errors.newValue}
+          margin="dense"
+          fullWidth
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => formik.handleSubmit()} key="Replace">
+          Replace
+        </Button>
+        <Button
+          autoFocus
+          key="Cancel"
+          onClick={() => onClose({ret: 'cancel', newValue: Number.NaN})}
+        >
+          Cancel
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
 interface TableToolbarProps {
   numSelected: number;
   zindex: number;
   selectedRows: Data[];
   rows: Data[];
   setRows: React.Dispatch<React.SetStateAction<Data[]>>;
+  resetSelected: () => void;
 }
 
-export const TableToolbar = (props: TableToolbarProps) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const {numSelected, selectedRows, rows, setRows, zindex} = props;
-  const dispatch = useDispatch();
+const TableToolbar = (props: TableToolbarProps) => {
+  const {numSelected, selectedRows, rows, setRows, zindex, resetSelected} =
+    props;
+  const [dialogProps, setDialogProps] = React.useState<
+    OnDeleteDialogProps | undefined
+  >(undefined);
 
   const handleDelete = () => {
     const confirm = async () => {
@@ -431,76 +506,106 @@ export const TableToolbar = (props: TableToolbarProps) => {
         );
         if (rowsUsingDisposingValiable.length > 0) {
           // eslint-disable-next-line no-await-in-loop
-          const ret = await new Promise<string>((resolve) => {
-            dispatch(
-              setConfirmDialogProps({
-                zindex: zindex + 1,
-                onClose: resolve,
-                buttons: [
-                  {text: 'Confirm', res: 'ok'},
-                  {text: 'Cancel', res: 'cancel', autoFocus: true}
-                ],
-                title: `${row.name} is used in other formulae.`,
-                message: 'Replace with a constant value.'
-              })
-            );
+          const {ret, newValue} = await new Promise<{
+            ret: string;
+            newValue: number;
+          }>((resolve) => {
+            setDialogProps({
+              zindex: zindex + 1,
+              onClose: resolve,
+              name: row.name,
+              value: row.evaluatedValue
+            });
           });
-          dispatch(setConfirmDialogProps(undefined));
-          // eslint-disable-next-line no-empty
+          setDialogProps(undefined);
           if (ret === 'ok') {
+            rowsUsingDisposingValiable.forEach((r) => {
+              r.formula = replaceName(r.formula, row.name, newValue.toString());
+            });
+
+            deleted.push(row.id);
           }
         } else {
           deleted.push(row.id);
         }
       }
-      const newRows = rows.filter((row) => !deleted.includes(row.id));
+      const newRowsDeleted = rows
+        .filter((row) => !deleted.includes(row.id))
+        .sort((a, b) => a.id - b.id);
+      const newRows = newRowsDeleted.map((row, i) => ({...row, id: i + 1}));
       const ret = validateAll(newRows);
-      if (ret === 'OK') setRows(newRows);
+      if (ret === 'OK') {
+        setRows(newRows);
+        resetSelected();
+      }
     };
     confirm();
   };
 
+  const handleSwap = () => {
+    const tmpId = selectedRows[0].id;
+    selectedRows[0].id = selectedRows[1].id;
+    selectedRows[1].id = tmpId;
+    const newRowsWOSelected = rows.filter(
+      (row) => row.id !== selectedRows[0].id && row.id !== selectedRows[1].id
+    );
+    const newRows = [...selectedRows, ...newRowsWOSelected].sort(
+      (a, b) => a.id - b.id
+    );
+    setRows(newRows);
+  };
+
   return (
-    <Toolbar
-      sx={{
-        pl: {sm: 2},
-        pr: {xs: 1, sm: 1},
-        ...(numSelected > 0 && {
-          bgcolor: (theme) =>
-            alpha(
-              theme.palette.primary.main,
-              theme.palette.action.activatedOpacity
-            )
-        })
-      }}
-    >
-      {numSelected > 0 ? (
-        <Typography
-          sx={{flex: '1 1 100%'}}
-          color="inherit"
-          variant="subtitle1"
-          component="div"
-        >
-          {numSelected} selected
-        </Typography>
-      ) : (
-        <Typography
-          sx={{flex: '1 1 100%'}}
-          variant="h6"
-          id="tableTitle"
-          component="div"
-        >
-          Fomulae & Global Variables
-        </Typography>
-      )}
-      {numSelected > 0 ? (
-        <Tooltip title="Delete">
-          <IconButton onClick={handleDelete}>
-            <DeleteIcon />
-          </IconButton>
-        </Tooltip>
-      ) : null}
-    </Toolbar>
+    <>
+      <Toolbar
+        sx={{
+          pl: {sm: 2},
+          pr: {xs: 1, sm: 1},
+          ...(numSelected > 0 && {
+            bgcolor: (theme) =>
+              alpha(
+                theme.palette.primary.main,
+                theme.palette.action.activatedOpacity
+              )
+          })
+        }}
+      >
+        {numSelected > 0 ? (
+          <Typography
+            sx={{flex: '1 1 100%'}}
+            color="inherit"
+            variant="subtitle1"
+            component="div"
+          >
+            {numSelected} selected
+          </Typography>
+        ) : (
+          <Typography
+            sx={{flex: '1 1 100%'}}
+            variant="h6"
+            id="tableTitle"
+            component="div"
+          >
+            Fomulae & Global Variables
+          </Typography>
+        )}
+        {numSelected === 2 ? (
+          <Tooltip title="Swap">
+            <IconButton onClick={handleSwap}>
+              <SwapVertIcon />
+            </IconButton>
+          </Tooltip>
+        ) : null}
+        {numSelected > 0 ? (
+          <Tooltip title="Delete">
+            <IconButton onClick={handleDelete}>
+              <DeleteIcon />
+            </IconButton>
+          </Tooltip>
+        ) : null}
+      </Toolbar>
+      {dialogProps ? <OnDeleteDialog {...dialogProps} /> : null}
+    </>
   );
 };
 
@@ -601,6 +706,9 @@ export function FormulaDialog() {
           numSelected={selected.length}
           selectedRows={selectedRows}
           setRows={setRows}
+          resetSelected={() => {
+            setSelected([]);
+          }}
         />
         <TableContainer>
           <Table
