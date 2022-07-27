@@ -7,6 +7,14 @@ export interface IDataFormula {
   readonly absPath: string;
 }
 
+export interface IFormula {
+  name: string;
+  formula: string;
+  get evaluatedValue(): number;
+  readonly absPath: string;
+  getData(): IDataFormula;
+}
+
 export function replaceVariable(
   formula: string,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

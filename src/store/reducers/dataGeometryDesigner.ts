@@ -4,8 +4,9 @@ import {
   IElement,
   getElementByPath
 } from '@app/geometryDesigner/IElements';
-import {IDataMatrix3} from '@gd/NamedValues';
-import {getAssembly} from '@app/geometryDesigner/Elements';
+
+import {getAssembly} from '@gd/Elements';
+import {IDataMatrix3} from '@gd/IDataValues';
 import {IDataFormula, validateAll, replaceVariable} from '@gd/DataFormula';
 import {DateTime} from 'luxon';
 

@@ -2,6 +2,21 @@
 import {Vector3, Matrix3} from 'three';
 import {IElement} from '@gd/IElements';
 import {v1 as uuidv1} from 'uuid';
+import {Formula} from '@gd/Formula';
+import {
+  isData,
+  IDataVector3,
+  IDataMatrix3,
+  IDataNumber,
+  IData,
+  INamedValue,
+  INamedNumber,
+  INamedString,
+  INamedBoolean,
+  INamedBooleanOrUndefined,
+  INamedVector3,
+  INamedMatrix3
+} from '@gd/IDataValues';
 
 /* export interface IData {
   className: string;
@@ -11,14 +26,6 @@ const isData = (
   params: IDataVector3 | INamedVector3Constructor
 ): params is IDataVector3 => 'className' in params;
 */
-
-export const isData = (params: any): params is INamedData => {
-  try {
-    return 'name' in params;
-  } catch (e: any) {
-    return false;
-  }
-};
 
 export const getVector3 = (data: IDataVector3): Vector3 => {
   return new Vector3(data.x, data.y, data.z);
@@ -34,44 +41,6 @@ export const getMatrix3 = (data: IDataMatrix3): Matrix3 => {
   tmp.elements = [...data.elements];
   return tmp;
 };
-
-export interface INamedData {
-  name: string;
-}
-
-export interface IData<T> extends INamedData {
-  value: T;
-}
-
-export interface IDataVector3 extends INamedData {
-  x: number;
-  y: number;
-  z: number;
-}
-
-export interface IDataMatrix3 extends INamedData {
-  elements: [
-    number,
-    number,
-    number,
-    number,
-    number,
-    number,
-    number,
-    number,
-    number
-  ];
-}
-
-export interface INamedValue {
-  readonly className: string;
-  readonly nodeID: string;
-  readonly absPath: string;
-  name: string;
-  value: unknown;
-  getData(): unknown;
-  // update(newValue: unknown): this;
-}
 
 interface INamedValueConstructor {
   parent: IElement;
@@ -150,23 +119,100 @@ export class NamedPrimitive<T> extends NamedValue {
   }
 }
 
-export function isNamedString(
-  value: INamedValue
-): value is NamedPrimitive<string> {
+interface INamedNumberConstructor {
+  name: string;
+  value: string | number | IDataNumber;
+  update?: (valueOrFormula: string | number) => void;
+  parent: IElement;
+}
+
+export class NamedNumber extends NamedValue implements INamedNumber {
+  _value: number;
+
+  formula: Formula | undefined;
+
+  private _update: (valueOrFOrmula: string | number) => void;
+
+  get value(): number {
+    if (this.formula) return this.formula.evaluatedValue;
+    return this._value;
+  }
+
+  set value(newValue: number | string) {
+    this._update(newValue);
+  }
+
+  constructor(params: INamedNumberConstructor) {
+    const {name: defaultName, value, update} = params;
+    super({
+      className: typeof value,
+      ...params,
+      name: isData(value) ? value.name : defaultName
+    });
+    this._update =
+      update ??
+      ((newValue: string | number) => {
+        const formula = typeof newValue === 'string' ? newValue : undefined;
+        this.formula = undefined;
+        if (formula !== undefined) {
+          this.formula = new Formula({
+            name: this.name,
+            formula,
+            absPath: this.absPath
+          });
+        }
+        this._value = this.formula
+          ? this.formula.evaluatedValue
+          : (value as number);
+      });
+    if (isData(value)) {
+      this._value = value.value;
+      this.formula = value.formula ? new Formula(value.formula) : undefined;
+    } else {
+      const formula = typeof value === 'string' ? value : undefined;
+      this.formula = undefined;
+      if (formula !== undefined) {
+        this.formula = new Formula({
+          name: this.name,
+          formula,
+          absPath: this.absPath
+        });
+      }
+      this._value = this.formula
+        ? this.formula.evaluatedValue
+        : (value as number);
+    }
+  }
+
+  getData(): IDataNumber {
+    return {
+      name: this.name,
+      value: this.value,
+      formula: this.formula?.getData()
+    };
+  }
+}
+export class NamedString
+  extends NamedPrimitive<string>
+  implements INamedString {}
+export class NamedBoolean
+  extends NamedPrimitive<boolean>
+  implements INamedBoolean {}
+
+export function isNamedString(value: INamedValue): value is NamedString {
   return value.className === 'string';
 }
-export function isNamedNumber(
-  value: INamedValue
-): value is NamedPrimitive<number> {
+export function isNamedNumber(value: INamedValue): value is NamedNumber {
   return value.className === 'number';
 }
-export function isNamedBoolean(
-  value: INamedValue
-): value is NamedPrimitive<boolean> {
+export function isNamedBoolean(value: INamedValue): value is NamedBoolean {
   return value.className === 'boolean';
 }
 
-export class NamedBooleanOrUndefined extends NamedValue {
+export class NamedBooleanOrUndefined
+  extends NamedValue
+  implements INamedBooleanOrUndefined
+{
   _value: boolean | undefined;
 
   private _update: (newValue: boolean | undefined) => void;
@@ -215,7 +261,7 @@ interface INamedVector3Constructor {
   update?: (newValue: Vector3) => this;
 }
 
-export class NamedVector3 extends NamedValue {
+export class NamedVector3 extends NamedValue implements INamedVector3 {
   _value: Vector3;
 
   private _update: (newValue: Vector3) => void;
@@ -268,7 +314,7 @@ interface INamedMatrix3Constructor {
   update?: (newValue: Matrix3) => this;
 }
 
-export class NamedMatrix3 extends NamedValue {
+export class NamedMatrix3 extends NamedValue implements INamedMatrix3 {
   private _update: (newValue: Matrix3) => void;
 
   _value: Matrix3;

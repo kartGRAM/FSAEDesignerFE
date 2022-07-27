@@ -5,15 +5,9 @@ import {Vector3, Matrix3} from 'three';
 import {
   NamedVector3,
   NamedMatrix3,
-  NamedPrimitive,
-  NamedBooleanOrUndefined,
-  INamedValue,
-  isNamedBoolean,
-  isNamedNumber,
-  isNamedString,
-  isNamedBooleanOrUndefined,
-  isNamedMatrix3,
-  isNamedVector3
+  NamedString,
+  NamedNumber,
+  NamedBooleanOrUndefined
 } from '@gd/NamedValues';
 import {AtLeast1, AtLeast2} from '@app/utils/atLeast';
 import {v1 as uuidv1} from 'uuid';
@@ -48,6 +42,10 @@ import {
   isDataTire
 } from './IElements';
 
+export function getAssembly(assembly: IDataAssembly): IAssembly {
+  return getElement(assembly) as IAssembly;
+}
+
 function getElement(element: IDataElement): IElement {
   if (isDataAssembly(element)) {
     return new Assembly(element);
@@ -73,17 +71,13 @@ function getElement(element: IDataElement): IElement {
   throw Error('Not Supported Exception');
 }
 
-export function getAssembly(assembly: IDataAssembly): IAssembly {
-  return getElement(assembly) as IAssembly;
-}
-
 const isDataElement = (params: any): params is IDataElement =>
   'absPath' in params;
 
 export abstract class Element implements IElement {
   _nodeID: string;
 
-  name: NamedPrimitive<string>;
+  name: NamedString;
 
   parent: IAssembly | null = null;
 
@@ -109,7 +103,7 @@ export abstract class Element implements IElement {
     this._nodeID = uuidv1(); // ⇨ '2c5ea4c0-4067-11e9-8bad-9b1deb4d3b7d'
 
     const {name} = params;
-    this.name = new NamedPrimitive({
+    this.name = new NamedString({
       name: 'name',
       value: name,
       parent: this
@@ -146,9 +140,9 @@ export abstract class Element implements IElement {
 
   abstract set visible(b: NamedBooleanOrUndefined);
 
-  abstract get mass(): NamedPrimitive<number>;
+  abstract get mass(): NamedNumber;
 
-  abstract set mass(m: NamedPrimitive<number>);
+  abstract set mass(m: NamedNumber);
 
   abstract get position(): NamedVector3;
 
@@ -333,12 +327,12 @@ export class Assembly extends Element implements IAssembly {
     return points;
   }
 
-  get mass(): NamedPrimitive<number> {
+  get mass(): NamedNumber {
     let mass = 0;
     this.children.forEach((child) => {
       mass += child.mass.value;
     });
-    return new NamedPrimitive<number>({
+    return new NamedNumber({
       name: 'mass',
       parent: this,
       value: mass
@@ -346,7 +340,7 @@ export class Assembly extends Element implements IAssembly {
   }
 
   // eslint-disable-next-line no-empty-function
-  set mass(m: NamedPrimitive<number>) {}
+  set mass(m: NamedNumber) {}
 
   get centerOfGravity(): NamedVector3 {
     const center = new Vector3();
@@ -441,7 +435,7 @@ export class Bar extends Element implements IBar {
 
   visible: NamedBooleanOrUndefined;
 
-  mass: NamedPrimitive<number>;
+  mass: NamedNumber;
 
   centerOfGravity: NamedVector3;
 
@@ -533,7 +527,7 @@ export class Bar extends Element implements IBar {
       parent: this,
       value: initialPosition ?? new Vector3()
     });
-    this.mass = new NamedPrimitive<number>({
+    this.mass = new NamedNumber({
       name: 'mass',
       parent: this,
       value: mass ?? 0.001
@@ -595,9 +589,9 @@ export class SpringDumper extends Bar implements ISpringDumper {
     });
   }
 
-  dlMin: NamedPrimitive<Millimeter>;
+  dlMin: NamedNumber;
 
-  dlMax: NamedPrimitive<Millimeter>;
+  dlMax: NamedNumber;
 
   constructor(
     params:
@@ -614,12 +608,12 @@ export class SpringDumper extends Bar implements ISpringDumper {
       | IDataSpringDumper
   ) {
     super(params);
-    this.dlMin = new NamedPrimitive<Millimeter>({
+    this.dlMin = new NamedNumber({
       name: 'dlMin',
       parent: this,
       value: params.dlMin
     });
-    this.dlMax = new NamedPrimitive<Millimeter>({
+    this.dlMax = new NamedNumber({
       name: 'dlMax',
       parent: this,
       value: params.dlMax
@@ -644,7 +638,7 @@ export class AArm extends Element implements IAArm {
 
   visible: NamedBooleanOrUndefined;
 
-  mass: NamedPrimitive<number>;
+  mass: NamedNumber;
 
   centerOfGravity: NamedVector3;
 
@@ -772,7 +766,7 @@ export class AArm extends Element implements IAArm {
       parent: this,
       value: initialPosition ?? new Vector3()
     });
-    this.mass = new NamedPrimitive<number>({
+    this.mass = new NamedNumber({
       name: 'mass',
       parent: this,
       value: mass ?? 0.001
@@ -814,7 +808,7 @@ export class BellCrank extends Element implements IBellCrank {
 
   visible: NamedBooleanOrUndefined;
 
-  mass: NamedPrimitive<number>;
+  mass: NamedNumber;
 
   centerOfGravity: NamedVector3;
 
@@ -949,7 +943,7 @@ export class BellCrank extends Element implements IBellCrank {
       parent: this,
       value: initialPosition ?? new Vector3()
     });
-    this.mass = new NamedPrimitive<number>({
+    this.mass = new NamedNumber({
       name: 'mass',
       parent: this,
       value: mass ?? 0.001
@@ -992,7 +986,7 @@ export class Body extends Element implements IBody {
 
   visible: NamedBooleanOrUndefined;
 
-  mass: NamedPrimitive<number>;
+  mass: NamedNumber;
 
   centerOfGravity: NamedVector3;
 
@@ -1100,7 +1094,7 @@ export class Body extends Element implements IBody {
       parent: this,
       value: initialPosition ?? new Vector3()
     });
-    this.mass = new NamedPrimitive<number>({
+    this.mass = new NamedNumber({
       name: 'mass',
       parent: this,
       value: mass ?? 0.001
@@ -1143,15 +1137,15 @@ export class Tire extends Element implements ITire {
 
   visible: NamedBooleanOrUndefined;
 
-  mass: NamedPrimitive<number>;
+  mass: NamedNumber;
 
   centerOfGravity: NamedVector3;
 
   tireCenter: NamedVector3;
 
-  toLeftBearing: NamedPrimitive<number>;
+  toLeftBearing: NamedNumber;
 
-  toRightBearing: NamedPrimitive<number>;
+  toRightBearing: NamedNumber;
 
   initialPosition: NamedVector3;
 
@@ -1247,12 +1241,12 @@ export class Tire extends Element implements ITire {
       parent: this,
       value: tireCenter ?? new Vector3()
     });
-    this.toLeftBearing = new NamedPrimitive<number>({
+    this.toLeftBearing = new NamedNumber({
       name: 'toLeftBearing',
       parent: this,
       value: toLeftBearing
     });
-    this.toRightBearing = new NamedPrimitive<number>({
+    this.toRightBearing = new NamedNumber({
       name: 'toRightBearing',
       parent: this,
       value: toRightBearing
@@ -1268,7 +1262,7 @@ export class Tire extends Element implements ITire {
       parent: this,
       value: initialPosition ?? new Vector3()
     });
-    this.mass = new NamedPrimitive<number>({
+    this.mass = new NamedNumber({
       name: 'mass',
       parent: this,
       value: mass ?? 0.001

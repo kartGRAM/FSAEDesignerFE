@@ -1,6 +1,7 @@
 /* eslint-disable no-restricted-syntax */
 import {
   IDataFormula,
+  IFormula,
   FormulaError,
   Node,
   Nodes,
@@ -9,16 +10,8 @@ import {
   isFormulaErrors,
   topologicalSort
 } from '@gd/DataFormula';
-import store from '@store/store';
 import * as math from 'mathjs';
-
-export interface IFormula {
-  name: string;
-  formula: string;
-  readonly evaluatedValue: number;
-  readonly absPath: string;
-  getData(): IDataFormula;
-}
+import store from '@store/store';
 
 export function validate(
   formula: IDataFormula,
@@ -71,6 +64,8 @@ export function evaluate(formula: string, formulae?: IDataFormula[]): number {
 }
 
 export class Formula implements IFormula {
+  className = 'Formula';
+
   name: string;
 
   private _formula: string;
@@ -112,6 +107,14 @@ export class Formula implements IFormula {
     }
   }
 }
+
+export const isFormula = (params: any): params is Formula => {
+  try {
+    return 'className' in params && params.className === 'Formula';
+  } catch (e: any) {
+    return false;
+  }
+};
 
 export function getAllValiables(formulae: IDataFormula[]): {
   [name: string]: IFormula;

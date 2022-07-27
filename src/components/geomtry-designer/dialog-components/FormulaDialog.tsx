@@ -665,6 +665,12 @@ export function FormulaDialog() {
     return ret;
   };
 
+  const handleOK = () => {
+    if (handleApply() === 'OK') {
+      dispatch(setFormulaDialogOpen({open: false}));
+    }
+  };
+
   /*
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -774,7 +780,7 @@ export function FormulaDialog() {
       </DialogContent>
       <DialogActions>
         <Button onClick={handleApply}>Apply</Button>
-        <Button>OK</Button>
+        <Button onClick={handleOK}>OK</Button>
         <Button onClick={(e) => handleClose(e)}>Cancel</Button>
       </DialogActions>
     </Dialog>

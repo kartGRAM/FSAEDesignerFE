@@ -3,7 +3,8 @@ import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import InputAdornment from '@mui/material/InputAdornment';
 import {Vector3, Matrix3} from 'three';
-import {NamedVector3, getMatrix3, getDataVector3} from '@gd/NamedValues';
+import {getMatrix3, getDataVector3} from '@gd/NamedValues';
+import {INamedVector3} from '@gd/IDataValues';
 import Typography from '@mui/material/Typography';
 import {useDispatch, useSelector} from 'react-redux';
 import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
@@ -13,7 +14,7 @@ import {useFormik} from 'formik';
 import * as Yup from 'yup';
 
 export interface Props {
-  vector: NamedVector3;
+  vector: INamedVector3;
   offset?: Vector3;
   rotation?: Matrix3;
 }
@@ -79,7 +80,7 @@ export default function Vector(props: Props) {
     };
   }, [focused, vector]);
 
-  const trans = (p: NamedVector3) => {
+  const trans = (p: INamedVector3) => {
     return ofs
       .clone()
       .add(p.value.clone().applyMatrix3(rot))
