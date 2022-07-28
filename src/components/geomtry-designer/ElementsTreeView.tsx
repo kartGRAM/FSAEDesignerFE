@@ -6,17 +6,19 @@ import TreeItem, {TreeItemProps, treeItemClasses} from '@mui/lab/TreeItem';
 import Typography from '@mui/material/Typography';
 import Checkbox from '@mui/material/Checkbox';
 import Box from '@mui/material/Box';
-import {RootState} from '@store/store';
+import store, {RootState} from '@store/store';
 import {useSelector, useDispatch} from 'react-redux';
 import {
   IDataAssembly,
   IDataElement,
   isDataAssembly,
   getDataElementByPath,
+  getElementByPath,
   isDataElement
-} from '@app/geometryDesigner/IElements';
+} from '@gd/IElements';
+import {getAssembly} from '@gd/Elements';
 import {NumberToRGB, getReversal} from '@app/utils/helpers';
-import {setVisibility} from '@app/store/reducers/dataGeometryDesigner';
+import {updateAssembly} from '@app/store/reducers/dataGeometryDesigner';
 import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
 
 function MinusSquare(props: SvgIconProps) {
@@ -65,23 +67,24 @@ const VisibilityControl = (props: VisibilityControlProps) => {
     return undefined;
   });
 
-  /* const visible: boolean | undefined = useSelector(
-    // eslint-disable-next-line no-unused-vars
-    (state: RootState) => element.visible
-  ); */
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const {topAssembly} = store.getState().dgd.present;
+    if (topAssembly) {
+      const assembly = getAssembly(topAssembly);
+      const instance = getElementByPath(assembly, element.absPath);
+      if (instance) {
+        instance.visible.value = event.target.checked;
+        dispatch(updateAssembly({element: instance}));
+      }
+    }
+  };
+
   return (
     <Checkbox
       size="small"
       checked={visible}
       indeterminate={visible === undefined}
-      onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-        dispatch(
-          setVisibility({
-            absPath: element.absPath,
-            visibility: event.target.checked
-          })
-        );
-      }}
+      onChange={handleChange}
       sx={{
         padding: 0.3,
         color: alpha(color, 0.7),

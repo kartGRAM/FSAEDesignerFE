@@ -1,11 +1,10 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {
   IDataAssembly,
-  IElement,
-  getElementByPath
+  IElement
+  // getElementByPath
 } from '@app/geometryDesigner/IElements';
 
-import {getAssembly} from '@gd/Elements';
 import {IDataMatrix3} from '@gd/IDataValues';
 import {IDataFormula, validateAll, replaceVariable} from '@gd/DataFormula';
 import {DateTime} from 'luxon';
@@ -72,6 +71,16 @@ function convertJsonToDataAssembly(content: string): IDataAssembly | undefined {
   }
 }
 
+function convertJsonToDataFormula(content: string): IDataFormula[] {
+  try {
+    const data = JSON.parse(content) as IDataFormula[];
+    return data;
+  } catch (err) {
+    console.log(err);
+    return [];
+  }
+}
+
 export function getListSetTopAssemblyParams(listedData: any): SavedData[] {
   const ret = listedData.map(
     (data: any): SavedData => ({
@@ -82,7 +91,7 @@ export function getListSetTopAssemblyParams(listedData: any): SavedData[] {
       created: data.created as string,
       thumbnail: data.thumbnail ? (data.thumbnail as string) : undefined,
       topAssembly: convertJsonToDataAssembly(data.content as string),
-      formulae: []
+      formulae: convertJsonToDataFormula(data.formulae as string)
     })
   );
   return ret;
@@ -128,7 +137,7 @@ export const dataGeometryDesignerSlice = createSlice({
       if (assembly) state.topAssembly = assembly.getDataElement();
       state.changed = true;
     },
-    setVisibility: (
+    /* setVisibility: (
       state: GDState,
       action: PayloadAction<{
         absPath: string;
@@ -144,7 +153,7 @@ export const dataGeometryDesignerSlice = createSlice({
         state.topAssembly = assembly.getDataElement();
       }
       state.changed = true;
-    },
+    }, */
     setFormulae: (
       state: GDState,
       action: PayloadAction<
@@ -218,7 +227,6 @@ export const {
   setCoordinateMatrix,
   newAssembly,
   setTopAssembly,
-  setVisibility,
   updateAssembly,
   setFormulae
 } = dataGeometryDesignerSlice.actions;

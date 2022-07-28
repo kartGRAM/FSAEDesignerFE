@@ -21,6 +21,7 @@ import {
   IDataElement,
   IAssembly,
   IDataAssembly,
+  isAssembly,
   isDataAssembly,
   IBar,
   IDataBar,
@@ -95,7 +96,7 @@ export abstract class Element implements IElement {
       while (assembly.parent !== null) {
         assembly = assembly.parent;
       }
-    }
+    } else if (isAssembly(this)) return this;
     return assembly;
   }
 

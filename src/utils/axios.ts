@@ -38,6 +38,7 @@ export function getDataToSave(
     name: filename,
     note,
     content: JSON.stringify(state.topAssembly),
+    formulae: JSON.stringify(state.formulae),
     clientLastUpdated: state.lastUpdated,
     overwrite
   };
