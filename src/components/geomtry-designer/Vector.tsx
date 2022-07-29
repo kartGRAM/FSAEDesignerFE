@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -52,27 +52,28 @@ export default function Vector(props: Props) {
   const coMatrix = useSelector(
     (state: RootState) => state.dgd.present.transCoordinateMatrix
   );
+  const sVector = vector.getStringValue();
 
   const [focused, setFocused] = useState<boolean>(false);
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      x: vector.value.x,
-      y: vector.value.y,
-      z: vector.value.z
+      x: sVector.x,
+      y: sVector.y,
+      z: sVector.z
     },
     validationSchema: Yup.object({
-      x: Yup.number().typeError('not a number'),
-      y: Yup.number().typeError('not a number'),
-      z: Yup.number().typeError('not a number')
+      x: Yup.string().gdFormulaIsValid().required('required'),
+      y: Yup.string().gdFormulaIsValid().required('required'),
+      z: Yup.string().gdFormulaIsValid().required('required')
     }),
     onSubmit: (values) => {
-      vector.value = new Vector3(values.x, values.y, values.z);
+      vector.setStringValue(values);
       dispatch(updateAssembly({element: vector.parent}));
     }
   });
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (focused)
       dispatch(setSelectedPoint({point: getDataVector3(trans(vector))}));
     return () => {

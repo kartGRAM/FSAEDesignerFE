@@ -1,6 +1,7 @@
 import {Vector3} from 'three';
 import {SavedData} from '@store/reducers/dataGeometryDesigner';
 import {DateTime} from 'luxon';
+import store from '@store/store';
 import {
   Assembly,
   Bar,
@@ -281,6 +282,6 @@ export const getSampleData = (): SavedData => {
         absPath: 'global'
       }
     ],
-    topAssembly: getSuspension().getDataElement()
+    topAssembly: getSuspension().getDataElement(store.getState().dgd.present)
   };
 };

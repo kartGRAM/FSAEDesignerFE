@@ -23,9 +23,9 @@ export interface IDataNumber extends IData<number> {
 }
 
 export interface IDataVector3 extends INamedData {
-  x: number;
-  y: number;
-  z: number;
+  x: IDataNumber;
+  y: IDataNumber;
+  z: IDataNumber;
 }
 
 export interface IDataMatrix3 extends INamedData {
@@ -76,6 +76,16 @@ export interface INamedBooleanOrUndefined extends INamedValue {
 export interface INamedVector3 extends INamedValue {
   value: Vector3;
   getData(): IDataVector3;
+  setStringValue(newValue: {
+    x: number | string;
+    y: number | string;
+    z: number | string;
+  }): void;
+  getStringValue(): {
+    x: number | string;
+    y: number | string;
+    z: number | string;
+  };
 }
 
 export interface INamedMatrix3 extends INamedValue {

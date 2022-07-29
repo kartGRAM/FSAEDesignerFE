@@ -11,6 +11,7 @@ import {
 } from '@gd/NamedValues';
 import {AtLeast1, AtLeast2} from '@app/utils/atLeast';
 import {v1 as uuidv1} from 'uuid';
+import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {
   Millimeter,
   Joint,
@@ -119,7 +120,7 @@ export abstract class Element implements IElement {
 
   abstract getMirror(): IElement;
 
-  abstract getDataElement(): IDataElement;
+  abstract getDataElement(state: GDState): IDataElement;
 
   abstract arrange(parentPosition?: Vector3 | undefined): void;
 
@@ -411,11 +412,11 @@ export class Assembly extends Element implements IAssembly {
     this.arrange();
   }
 
-  getDataElement(): IDataAssembly {
+  getDataElement(state: GDState): IDataAssembly {
     const baseData = super.getDataElementBase();
     const data: IDataAssembly = {
       ...baseData,
-      children: this.children.map((child) => child.getDataElement()),
+      children: this.children.map((child) => child.getDataElement(state)),
       joints: [...this.joints]
     };
     return data;
@@ -552,7 +553,7 @@ export class Bar extends Element implements IBar {
     });
   }
 
-  getDataElement(): IDataBar {
+  getDataElement(state: GDState): IDataBar {
     const baseData = super.getDataElementBase();
 
     const data: IDataBar = {
@@ -621,8 +622,8 @@ export class SpringDumper extends Bar implements ISpringDumper {
     });
   }
 
-  getDataElement(): IDataSpringDumper {
-    const baseData = super.getDataElement();
+  getDataElement(state: GDState): IDataSpringDumper {
+    const baseData = super.getDataElement(state);
     const data: IDataSpringDumper = {
       ...baseData,
       dlMin: this.dlMin.getData(),
@@ -791,7 +792,7 @@ export class AArm extends Element implements IAArm {
     });
   }
 
-  getDataElement(): IDataAArm {
+  getDataElement(state: GDState): IDataAArm {
     const baseData = super.getDataElementBase();
     const data: IDataAArm = {
       ...baseData,
@@ -968,7 +969,7 @@ export class BellCrank extends Element implements IBellCrank {
     });
   }
 
-  getDataElement(): IDataBellCrank {
+  getDataElement(state: GDState): IDataBellCrank {
     const baseData = super.getDataElementBase();
 
     const data: IDataBellCrank = {
@@ -1119,7 +1120,7 @@ export class Body extends Element implements IBody {
     });
   }
 
-  getDataElement(): IDataBody {
+  getDataElement(state: GDState): IDataBody {
     const baseData = super.getDataElementBase();
 
     const data: IDataBody = {
@@ -1287,7 +1288,7 @@ export class Tire extends Element implements ITire {
     });
   }
 
-  getDataElement(): IDataTire {
+  getDataElement(state: GDState): IDataTire {
     const baseData = super.getDataElementBase();
 
     const data: IDataTire = {

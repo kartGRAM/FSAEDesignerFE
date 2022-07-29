@@ -10,6 +10,7 @@ import {
   INamedNumber,
   INamedBooleanOrUndefined
 } from '@gd/IDataValues';
+import {GDState} from '@store/reducers/dataGeometryDesigner';
 
 export type Radian = number;
 export type ElementID = number;
@@ -82,7 +83,7 @@ export interface IElement {
   getNodes(): NodeWithPath[];
   getMirror(): IElement;
   getRoot(): IAssembly | null;
-  getDataElement(): IDataElement;
+  getDataElement(state: GDState): IDataElement;
   arrange(parentPosition?: Vector3): void;
   readonly position: INamedVector3;
   readonly rotation: INamedMatrix3;
@@ -107,7 +108,7 @@ export interface IAssembly extends IElement {
   children: IElement[];
   joints: Joint[];
 
-  getDataElement(): IDataAssembly;
+  getDataElement(state: GDState): IDataAssembly;
 }
 
 export interface IDataAssembly extends IDataElement {

@@ -1,6 +1,7 @@
 /* eslint-disable max-classes-per-file */
 import {Vector3, Matrix3} from 'three';
 import {IElement} from '@gd/IElements';
+import {Assembly} from '@gd/Elements';
 import {v1 as uuidv1} from 'uuid';
 import {Formula} from '@gd/Formula';
 import {
@@ -26,20 +27,41 @@ const isData = (
   params: IDataVector3 | INamedVector3Constructor
 ): params is IDataVector3 => 'className' in params;
 */
-
-export const getVector3 = (data: IDataVector3): Vector3 => {
-  return new Vector3(data.x, data.y, data.z);
-};
-
-export const getDataVector3 = (value: Vector3): IDataVector3 => {
-  const {x, y, z} = value;
-  return {x, y, z, name: 'tempData'};
+export const isVector3 = (value: any): value is Vector3 => {
+  try {
+    return value.isVector3;
+  } catch (e: any) {
+    return false;
+  }
 };
 
 export const getMatrix3 = (data: IDataMatrix3): Matrix3 => {
   const tmp = new Matrix3();
   tmp.elements = [...data.elements];
   return tmp;
+};
+
+export const getVector3 = (data: IDataVector3): Vector3 => {
+  const v = new NamedVector3({
+    name: 'temp',
+    parent: new Assembly({
+      name: 'temp',
+      children: [],
+      joints: []
+    }),
+    value: data
+  });
+
+  return v.value;
+};
+
+export const getDataVector3 = (value: Vector3): IDataVector3 => {
+  return {
+    name: 'temporaryValue',
+    x: {name: 'x', value: value.x},
+    y: {name: 'y', value: value.y},
+    z: {name: 'z', value: value.z}
+  };
 };
 
 interface INamedValueConstructor {
@@ -58,6 +80,7 @@ abstract class NamedValue implements INamedValue {
   name: string;
 
   get absPath(): string {
+    if (!this.parent) return 'undefined';
     return `${this.nodeID}@${this.parent.absPath}`;
   }
 
@@ -126,6 +149,26 @@ interface INamedNumberConstructor {
   parent: IElement;
 }
 
+function isNumber(value: any): value is number {
+  // eslint-disable-next-line radix, no-restricted-globals
+  const ret = value !== null && isFinite(value);
+
+  return ret;
+}
+
+function formulaOrUndef(
+  value: string | number,
+  name: string,
+  absPath: string
+): Formula | undefined {
+  if (isNumber(value)) return undefined;
+  return new Formula({
+    name,
+    formula: value,
+    absPath
+  });
+}
+
 export class NamedNumber extends NamedValue implements INamedNumber {
   _value: number;
 
@@ -134,7 +177,9 @@ export class NamedNumber extends NamedValue implements INamedNumber {
   private _update: (valueOrFOrmula: string | number) => void;
 
   get value(): number {
-    if (this.formula) return this.formula.evaluatedValue;
+    if (this.formula) {
+      return this.formula.evaluatedValue;
+    }
     return this._value;
   }
 
@@ -145,39 +190,23 @@ export class NamedNumber extends NamedValue implements INamedNumber {
   constructor(params: INamedNumberConstructor) {
     const {name: defaultName, value, update} = params;
     super({
-      className: typeof value,
+      className: 'number',
       ...params,
       name: isData(value) ? value.name : defaultName
     });
     this._update =
       update ??
       ((newValue: string | number) => {
-        const formula = typeof newValue === 'string' ? newValue : undefined;
-        this.formula = undefined;
-        if (formula !== undefined) {
-          this.formula = new Formula({
-            name: this.name,
-            formula,
-            absPath: this.absPath
-          });
-        }
+        this.formula = formulaOrUndef(newValue, this.name, this.absPath);
         this._value = this.formula
           ? this.formula.evaluatedValue
-          : (value as number);
+          : (newValue as number);
       });
     if (isData(value)) {
       this._value = value.value;
       this.formula = value.formula ? new Formula(value.formula) : undefined;
     } else {
-      const formula = typeof value === 'string' ? value : undefined;
-      this.formula = undefined;
-      if (formula !== undefined) {
-        this.formula = new Formula({
-          name: this.name,
-          formula,
-          absPath: this.absPath
-        });
-      }
+      this.formula = formulaOrUndef(value, this.name, this.absPath);
       this._value = this.formula
         ? this.formula.evaluatedValue
         : (value as number);
@@ -254,20 +283,140 @@ export function isNamedBooleanOrUndefined(
   return value.className === 'boolean|undefined';
 }
 
+type FVector3 = {
+  x: number | string;
+  y: number | string;
+  z: number | string;
+};
+
 interface INamedVector3Constructor {
   name: string;
   parent: IElement;
-  value?: Vector3 | IDataVector3;
-  update?: (newValue: Vector3) => this;
+  value?: FVector3 | IDataVector3;
+  update?: (newValue: FVector3) => this;
 }
 
 export class NamedVector3 extends NamedValue implements INamedVector3 {
-  _value: Vector3;
+  x: NamedNumber;
 
-  private _update: (newValue: Vector3) => void;
+  y: NamedNumber;
+
+  z: NamedNumber;
+
+  private _update: (newValue: FVector3) => void;
 
   get value(): Vector3 {
-    return this._value;
+    return new Vector3(this.x.value, this.y.value, this.z.value);
+  }
+
+  set value(newValue: Vector3) {
+    this._update(newValue);
+  }
+
+  setStringValue(newValue: FVector3) {
+    this._update(newValue);
+  }
+
+  getStringValue(): {x: string; y: string; z: string} {
+    return {
+      x: this.x.formula ? this.x.formula.formula : this.x.value.toString(),
+      y: this.y.formula ? this.y.formula.formula : this.y.value.toString(),
+      z: this.z.formula ? this.z.formula.formula : this.z.value.toString()
+    };
+  }
+
+  constructor(params: INamedVector3Constructor) {
+    const {name: defaultName, value, update} = params;
+    super({
+      className: 'Vector3',
+      ...params,
+      name: isData(value) ? value.name : defaultName
+    });
+    this._update =
+      update ??
+      ((newValue: FVector3) => {
+        this.x = new NamedNumber({
+          name: `${this.name}_X`,
+          value: newValue.x,
+          parent: this.parent
+        });
+        this.y = new NamedNumber({
+          name: `${this.name}_Y`,
+          value: newValue.y,
+          parent: this.parent
+        });
+        this.z = new NamedNumber({
+          name: `${this.name}_Z`,
+          value: newValue.z,
+          parent: this.parent
+        });
+      });
+    this.x = new NamedNumber({
+      name: `${this.name}_X`,
+      value: 0,
+      parent: this.parent
+    });
+    this.y = new NamedNumber({
+      name: `${this.name}_Y`,
+      value: 0,
+      parent: this.parent
+    });
+    this.z = new NamedNumber({
+      name: `${this.name}_Z`,
+      value: 0,
+      parent: this.parent
+    });
+    if (value) {
+      if (isData(value)) {
+        this.x = new NamedNumber({
+          name: `${this.name}_X`,
+          value: value.x,
+          parent: this.parent
+        });
+        this.y = new NamedNumber({
+          name: `${this.name}_Y`,
+          value: value.y,
+          parent: this.parent
+        });
+        this.z = new NamedNumber({
+          name: `${this.name}_Z`,
+          value: value.z,
+          parent: this.parent
+        });
+      } else {
+        this._update(value);
+      }
+    }
+  }
+
+  getData(): IDataVector3 {
+    return {
+      name: this.name,
+      x: this.x.getData(),
+      y: this.y.getData(),
+      z: this.z.getData()
+    };
+  }
+}
+
+/*
+export class NamedVector3 extends NamedValue implements INamedVector3 {
+  _value: Vector3;
+
+  xFormula: Formula | undefined;
+
+  yFormula: Formula | undefined;
+
+  zFormula: Formula | undefined;
+
+  private _update: (newValue: FVector3) => void;
+
+  get value(): Vector3 {
+    const v = this._value.clone();
+    if (this.xFormula) v.x = this.xFormula.evaluatedValue;
+    if (this.yFormula) v.y = this.yFormula.evaluatedValue;
+    if (this.zFormula) v.z = this.zFormula.evaluatedValue;
+    return v;
   }
 
   set value(newValue: Vector3) {
@@ -283,8 +432,44 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
     });
     this._update =
       update ??
-      ((newValue: Vector3) => {
-        this._value = newValue.clone();
+      ((newValue: FVector3) => {
+        this._value = new Vector3();
+        const xFormula = formulaOrUndef(newValue.x);
+        const yFormula = formulaOrUndef(newValue.y);
+        const zFormula = formulaOrUndef(newValue.z);
+        this.xFormula = undefined;
+        this.yFormula = undefined;
+        this.zFormula = undefined;
+        if (xFormula !== undefined) {
+          this.xFormula = new Formula({
+            name: `${this.name}.X`,
+            formula: xFormula,
+            absPath: this.absPath
+          });
+        }
+        if (yFormula !== undefined) {
+          this.yFormula = new Formula({
+            name: `${this.name}.Y`,
+            formula: yFormula,
+            absPath: this.absPath
+          });
+        }
+        if (zFormula !== undefined) {
+          this.zFormula = new Formula({
+            name: `${this.name}.Z`,
+            formula: zFormula,
+            absPath: this.absPath
+          });
+        }
+        this._value.x = this.xFormula
+          ? this.xFormula.evaluatedValue
+          : (newValue.x as number);
+        this._value.y = this.yFormula
+          ? this.yFormula.evaluatedValue
+          : (newValue.y as number);
+        this._value.z = this.zFormula
+          ? this.zFormula.evaluatedValue
+          : (newValue.z as number);
       });
     if (value) {
       const {x, y, z} = value;
@@ -299,10 +484,15 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
       name: this.name,
       x: this.value.x,
       y: this.value.y,
-      z: this.value.z
+      z: this.value.z,
+      xFormula: this.xFormula?.getData(),
+      yFormula: this.yFormula?.getData(),
+      zFormula: this.zFormula?.getData()
     };
   }
 }
+*/
+
 export function isNamedVector3(value: INamedValue): value is NamedVector3 {
   return value.className === 'Vector3';
 }

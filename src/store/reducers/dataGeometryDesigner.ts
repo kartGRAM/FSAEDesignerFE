@@ -134,26 +134,16 @@ export const dataGeometryDesignerSlice = createSlice({
       }>
     ) => {
       const assembly = action.payload.element.getRoot();
-      if (assembly) state.topAssembly = assembly.getDataElement();
-      state.changed = true;
-    },
-    /* setVisibility: (
-      state: GDState,
-      action: PayloadAction<{
-        absPath: string;
-        visibility: boolean;
-      }>
-    ) => {
-      if (state.topAssembly) {
-        const assembly = getAssembly(state.topAssembly);
-        const element = getElementByPath(assembly, action.payload.absPath);
-        if (assembly && element) {
-          element.visible.value = action.payload.visibility;
+      if (assembly) {
+        try {
+          state.topAssembly = assembly.getDataElement(state);
+        } catch (e: any) {
+          console.log(e);
+          throw e;
         }
-        state.topAssembly = assembly.getDataElement();
       }
       state.changed = true;
-    }, */
+    },
     setFormulae: (
       state: GDState,
       action: PayloadAction<
