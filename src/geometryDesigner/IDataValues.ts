@@ -1,6 +1,7 @@
 import {IDataFormula} from '@gd/DataFormula';
 import {IElement} from '@gd/IElements';
 import {Vector3, Matrix3} from 'three';
+import {GDState} from '@store/reducers/dataGeometryDesigner';
 
 export const isData = (params: any): params is INamedData => {
   try {
@@ -49,33 +50,33 @@ export interface INamedValue {
   readonly absPath: string;
   name: string;
   value: unknown;
-  getData(): unknown;
+  getData(state: GDState): unknown;
   // update(newValue: unknown): this;
 }
 
 export interface INamedNumber extends INamedValue {
   value: number;
-  getData(): IDataNumber;
+  getData(state: GDState): IDataNumber;
 }
 
 export interface INamedString extends INamedValue {
   value: string;
-  getData(): IData<string>;
+  getData(state: GDState): IData<string>;
 }
 
 export interface INamedBoolean extends INamedValue {
   value: boolean;
-  getData(): IData<boolean>;
+  getData(state: GDState): IData<boolean>;
 }
 
 export interface INamedBooleanOrUndefined extends INamedValue {
   value: boolean | undefined;
-  getData(): IData<boolean | undefined>;
+  getData(state: GDState): IData<boolean | undefined>;
 }
 
 export interface INamedVector3 extends INamedValue {
   value: Vector3;
-  getData(): IDataVector3;
+  getData(state: GDState): IDataVector3;
   setStringValue(newValue: {
     x: number | string;
     y: number | string;
@@ -90,5 +91,5 @@ export interface INamedVector3 extends INamedValue {
 
 export interface INamedMatrix3 extends INamedValue {
   value: Matrix3;
-  getData(): IDataMatrix3;
+  getData(state: GDState): IDataMatrix3;
 }

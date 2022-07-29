@@ -162,18 +162,18 @@ export abstract class Element implements IElement {
 
   abstract set inertialTensor(mat: NamedMatrix3);
 
-  getDataElementBase(): IDataElement {
+  getDataElementBase(state: GDState): IDataElement {
     return {
       className: this.className,
-      name: this.name.getData(),
+      name: this.name.getData(state),
       inertialTensor: this.inertialTensor.getData(),
-      centerOfGravity: this.centerOfGravity.getData(),
-      mass: this.mass.getData(),
+      centerOfGravity: this.centerOfGravity.getData(state),
+      mass: this.mass.getData(state),
       nodeID: this.nodeID,
       absPath: this.absPath,
 
-      position: this.position.getData(),
-      initialPosition: this.initialPosition.getData(),
+      position: this.position.getData(state),
+      initialPosition: this.initialPosition.getData(state),
       visible: this.visible.getData()
     };
   }
@@ -413,7 +413,7 @@ export class Assembly extends Element implements IAssembly {
   }
 
   getDataElement(state: GDState): IDataAssembly {
-    const baseData = super.getDataElementBase();
+    const baseData = super.getDataElementBase(state);
     const data: IDataAssembly = {
       ...baseData,
       children: this.children.map((child) => child.getDataElement(state)),
@@ -554,12 +554,12 @@ export class Bar extends Element implements IBar {
   }
 
   getDataElement(state: GDState): IDataBar {
-    const baseData = super.getDataElementBase();
+    const baseData = super.getDataElementBase(state);
 
     const data: IDataBar = {
       ...baseData,
-      fixedPoint: this.fixedPoint.getData(),
-      point: this.point.getData()
+      fixedPoint: this.fixedPoint.getData(state),
+      point: this.point.getData(state)
     };
     return data;
   }
@@ -626,8 +626,8 @@ export class SpringDumper extends Bar implements ISpringDumper {
     const baseData = super.getDataElement(state);
     const data: IDataSpringDumper = {
       ...baseData,
-      dlMin: this.dlMin.getData(),
-      dlMax: this.dlMax.getData()
+      dlMin: this.dlMin.getData(state),
+      dlMax: this.dlMax.getData(state)
     };
     return data;
   }
@@ -793,11 +793,11 @@ export class AArm extends Element implements IAArm {
   }
 
   getDataElement(state: GDState): IDataAArm {
-    const baseData = super.getDataElementBase();
+    const baseData = super.getDataElementBase(state);
     const data: IDataAArm = {
       ...baseData,
-      fixedPoints: this.fixedPoints.map((point) => point.getData()),
-      points: this.points.map((point) => point.getData())
+      fixedPoints: this.fixedPoints.map((point) => point.getData(state)),
+      points: this.points.map((point) => point.getData(state))
     };
     return data;
   }
@@ -970,12 +970,12 @@ export class BellCrank extends Element implements IBellCrank {
   }
 
   getDataElement(state: GDState): IDataBellCrank {
-    const baseData = super.getDataElementBase();
+    const baseData = super.getDataElementBase(state);
 
     const data: IDataBellCrank = {
       ...baseData,
-      fixedPoints: this.fixedPoints.map((point) => point.getData()),
-      points: this.points.map((point) => point.getData())
+      fixedPoints: this.fixedPoints.map((point) => point.getData(state)),
+      points: this.points.map((point) => point.getData(state))
     };
     return data;
   }
@@ -1121,12 +1121,12 @@ export class Body extends Element implements IBody {
   }
 
   getDataElement(state: GDState): IDataBody {
-    const baseData = super.getDataElementBase();
+    const baseData = super.getDataElementBase(state);
 
     const data: IDataBody = {
       ...baseData,
-      fixedPoints: this.fixedPoints.map((point) => point.getData()),
-      points: this.points.map((point) => point.getData())
+      fixedPoints: this.fixedPoints.map((point) => point.getData(state)),
+      points: this.points.map((point) => point.getData(state))
     };
     return data;
   }
@@ -1289,13 +1289,13 @@ export class Tire extends Element implements ITire {
   }
 
   getDataElement(state: GDState): IDataTire {
-    const baseData = super.getDataElementBase();
+    const baseData = super.getDataElementBase(state);
 
     const data: IDataTire = {
       ...baseData,
-      tireCenter: this.tireCenter.getData(),
-      toLeftBearing: this.toLeftBearing.getData(),
-      toRightBearing: this.toRightBearing.getData()
+      tireCenter: this.tireCenter.getData(state),
+      toLeftBearing: this.toLeftBearing.getData(state),
+      toRightBearing: this.toRightBearing.getData(state)
     };
     return data;
   }

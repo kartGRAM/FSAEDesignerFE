@@ -12,6 +12,15 @@ import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
 import {RootState} from '@store/store';
 import {useFormik} from 'formik';
 import * as Yup from 'yup';
+import AddBoxIcon from '@mui/icons-material/AddBox';
+import Toolbar from '@mui/material/Toolbar';
+import DeleteIcon from '@mui/icons-material/Delete';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 export interface Props {
   vector: INamedVector3;
@@ -131,6 +140,35 @@ export default function Vector(props: Props) {
           helperText={formik.touched.z && formik.errors.z}
         />
       </form>
+      <Accordion defaultExpanded={false}>
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          aria-controls="panel1a-content"
+          id="panel1a-header"
+        >
+          <Toolbar sx={{p: 0, minHeight: '40px'}}>
+            <Typography
+              sx={{flex: '1 1 100%'}}
+              color="inherit"
+              variant="subtitle1"
+              component="div"
+            >
+              Point Offset Tools
+            </Typography>
+            <Tooltip title="Swap">
+              <IconButton>
+                <AddBoxIcon />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Delete">
+              <IconButton>
+                <DeleteIcon />
+              </IconButton>
+            </Tooltip>
+          </Toolbar>
+        </AccordionSummary>
+        <AccordionDetails sx={{padding: 0}} />
+      </Accordion>
     </Box>
   );
 }

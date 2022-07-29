@@ -87,7 +87,11 @@ export class Formula implements IFormula {
   }
 
   get evaluatedValue(): number {
-    return evaluate(this._formula);
+    return this.getEvaluatedValue(undefined);
+  }
+
+  getEvaluatedValue(formulae: IDataFormula[] | undefined): number {
+    return evaluate(this._formula, formulae);
   }
 
   getData(): IDataFormula {

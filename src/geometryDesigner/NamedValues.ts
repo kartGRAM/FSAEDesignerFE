@@ -4,6 +4,7 @@ import {IElement} from '@gd/IElements';
 import {Assembly} from '@gd/Elements';
 import {v1 as uuidv1} from 'uuid';
 import {Formula} from '@gd/Formula';
+import {IDataFormula} from '@gd/DataFormula';
 import {
   isData,
   IDataVector3,
@@ -18,6 +19,7 @@ import {
   INamedVector3,
   INamedMatrix3
 } from '@gd/IDataValues';
+import {GDState} from '@store/reducers/dataGeometryDesigner';
 
 /* export interface IData {
   className: string;
@@ -88,7 +90,7 @@ abstract class NamedValue implements INamedValue {
 
   abstract set value(newValue: unknown);
 
-  abstract getData(): unknown;
+  abstract getData(state: GDState): unknown;
 
   constructor(params: INamedValueConstructor) {
     const {className, parent, name} = params;
@@ -134,7 +136,8 @@ export class NamedPrimitive<T> extends NamedValue {
     this._value = isData(value) ? value.value : value;
   }
 
-  getData(): IData<T> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  getData(state: GDState): IData<T> {
     return {
       name: this.name,
       value: this.value
@@ -183,8 +186,15 @@ export class NamedNumber extends NamedValue implements INamedNumber {
     return this._value;
   }
 
-  set value(newValue: number | string) {
+  set value(newValue: number) {
     this._update(newValue);
+  }
+
+  getValueWithFormula(formulae: IDataFormula[]): number {
+    if (this.formula) {
+      return this.formula.getEvaluatedValue(formulae);
+    }
+    return this._value;
   }
 
   constructor(params: INamedNumberConstructor) {
@@ -213,10 +223,10 @@ export class NamedNumber extends NamedValue implements INamedNumber {
     }
   }
 
-  getData(): IDataNumber {
+  getData(state: GDState): IDataNumber {
     return {
       name: this.name,
-      value: this.value,
+      value: this.getValueWithFormula(state.formulae),
       formula: this.formula?.getData()
     };
   }
@@ -389,12 +399,12 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
     }
   }
 
-  getData(): IDataVector3 {
+  getData(state: GDState): IDataVector3 {
     return {
       name: this.name,
-      x: this.x.getData(),
-      y: this.y.getData(),
-      z: this.z.getData()
+      x: this.x.getData(state),
+      y: this.y.getData(state),
+      z: this.z.getData(state)
     };
   }
 }

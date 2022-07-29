@@ -118,8 +118,12 @@ export default function GDScene() {
   }, []);
 
   useEffect(() => {
+    const start = performance.now();
     if (scene.current) dispose('Assembly', scene.current);
     if (assembly && scene.current) render(getAssembly(assembly), scene.current);
+    // 実行時間を計測した処理
+    const end = performance.now();
+    console.log(end - start);
   }, [assembly]);
 
   useEffect(() => {
