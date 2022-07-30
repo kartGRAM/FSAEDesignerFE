@@ -46,8 +46,8 @@ const ValueField = (props: ValueProps) => {
         endAdornment: <InputAdornment position="end">mm</InputAdornment>
       }}
       sx={{
-        margin: 1,
-        width: '15ch'
+        margin: 1
+        // width: '15ch'
       }}
     />
   );
@@ -110,43 +110,76 @@ export default function Vector(props: Props) {
   };
   return (
     <Box sx={{padding: 1}} onFocus={handleFocus} onBlur={handleBlur}>
+      <Typography>{vector.name}</Typography>
       <form onSubmit={formik.handleSubmit}>
-        <Typography>{vector.name}</Typography>
-        <ValueField
-          onChange={handleChange}
-          label="X"
-          name="x"
-          variant="outlined"
-          value={formik.values.x}
-          error={formik.touched.x && Boolean(formik.errors.x)}
-          helperText={formik.touched.x && formik.errors.x}
-        />
-        <ValueField
-          onChange={handleChange}
-          label="Y"
-          name="y"
-          variant="outlined"
-          value={formik.values.y}
-          error={formik.touched.y && Boolean(formik.errors.y)}
-          helperText={formik.touched.y && formik.errors.y}
-        />
-        <ValueField
-          onChange={handleChange}
-          label="Z"
-          name="z"
-          variant="outlined"
-          value={formik.values.z}
-          error={formik.touched.z && Boolean(formik.errors.z)}
-          helperText={formik.touched.z && formik.errors.z}
-        />
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between'
+          }}
+        >
+          <ValueField
+            onChange={handleChange}
+            label="X"
+            name="x"
+            variant="outlined"
+            value={formik.values.x}
+            error={formik.touched.x && Boolean(formik.errors.x)}
+            helperText={formik.touched.x && formik.errors.x}
+          />
+          <ValueField
+            onChange={handleChange}
+            label="Y"
+            name="y"
+            variant="outlined"
+            value={formik.values.y}
+            error={formik.touched.y && Boolean(formik.errors.y)}
+            helperText={formik.touched.y && formik.errors.y}
+          />
+          <ValueField
+            onChange={handleChange}
+            label="Z"
+            name="z"
+            variant="outlined"
+            value={formik.values.z}
+            error={formik.touched.z && Boolean(formik.errors.z)}
+            helperText={formik.touched.z && formik.errors.z}
+          />
+        </Box>
       </form>
-      <Accordion defaultExpanded={false}>
+      <Accordion
+        defaultExpanded={false}
+        sx={{
+          ml: 1,
+          mr: 1,
+          '&.Mui-expanded': {
+            ml: 1,
+            mr: 1,
+            mt: 0,
+            mb: 0
+          }
+        }}
+      >
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="panel1a-content"
           id="panel1a-header"
+          sx={{
+            minHeight: 0,
+            '.Mui-expanded': {
+              mt: 1,
+              mb: 1
+            }
+          }}
         >
-          <Toolbar sx={{p: 0, minHeight: '40px'}}>
+          <Toolbar
+            sx={{
+              pl: '0!important',
+              pr: '1rem!important',
+              minHeight: '40px!important',
+              flex: '1'
+            }}
+          >
             <Typography
               sx={{flex: '1 1 100%'}}
               color="inherit"
@@ -155,12 +188,12 @@ export default function Vector(props: Props) {
             >
               Point Offset Tools
             </Typography>
-            <Tooltip title="Swap">
+            <Tooltip title="Swap" sx={{flex: '1'}}>
               <IconButton>
                 <AddBoxIcon />
               </IconButton>
             </Tooltip>
-            <Tooltip title="Delete">
+            <Tooltip title="Delete" sx={{flex: '1'}}>
               <IconButton>
                 <DeleteIcon />
               </IconButton>
