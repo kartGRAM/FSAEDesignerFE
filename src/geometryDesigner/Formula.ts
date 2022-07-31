@@ -9,7 +9,7 @@ import {
   getNodes,
   isFormulaErrors,
   topologicalSort
-} from '@gd/DataFormula';
+} from '@gd/IFormula';
 import * as math from 'mathjs';
 import store from '@store/store';
 

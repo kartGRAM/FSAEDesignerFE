@@ -1,4 +1,4 @@
-import {IDataFormula} from '@gd/DataFormula';
+import {IDataFormula} from '@gd/IFormula';
 import {IElement} from '@gd/IElements';
 import {Vector3, Matrix3} from 'three';
 import {GDState} from '@store/reducers/dataGeometryDesigner';

@@ -22,7 +22,7 @@ import {
   IDataFormula,
   hasName,
   replaceName
-} from '@gd/DataFormula';
+} from '@gd/IFormula';
 import {toFixedNoZero} from '@app/utils/helpers';
 
 // import TablePagination from '@mui/material/TablePagination';

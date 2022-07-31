@@ -2,7 +2,7 @@ import * as yup from 'yup';
 import {RequiredStringSchema} from 'yup/lib/string';
 import {AnyObject, Maybe} from 'yup/lib/types';
 import store from '@store/store';
-import {IDataFormula, mathFunctions} from '@gd/DataFormula';
+import {IDataFormula, mathFunctions} from '@gd/IFormula';
 import {validate} from '@gd/Formula';
 
 // eslint-disable-next-line func-names

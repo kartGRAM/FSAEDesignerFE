@@ -4,7 +4,7 @@ import {IElement} from '@gd/IElements';
 import {Assembly} from '@gd/Elements';
 import {v1 as uuidv1} from 'uuid';
 import {Formula} from '@gd/Formula';
-import {IDataFormula} from '@gd/DataFormula';
+import {IDataFormula} from '@gd/IFormula';
 import {
   isData,
   IDataVector3,

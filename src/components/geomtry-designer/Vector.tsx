@@ -28,6 +28,9 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
+import {alpha} from '@mui/material/styles';
+
+import {NumberToRGB} from '@app/utils/helpers';
 
 export interface Props {
   vector: INamedVector3;
@@ -70,6 +73,8 @@ export default function Vector(props: Props) {
   );
   const sVector = vector.getStringValue();
 
+  const [expanded, setExpanded] = React.useState<boolean>(false);
+  const [selected, setSelected] = React.useState<string>('');
   const [focused, setFocused] = useState<boolean>(false);
   const formik = useFormik({
     enableReinitialize: true,
@@ -155,7 +160,11 @@ export default function Vector(props: Props) {
         </Box>
       </form>
       <Accordion
-        defaultExpanded={false}
+        expanded={expanded}
+        onChange={() => {
+          if (expanded) setSelected('');
+          setExpanded((prev) => !prev);
+        }}
         sx={{
           backgroundColor: '#eee',
           ml: 1,
@@ -200,20 +209,34 @@ export default function Vector(props: Props) {
             >
               Point Offset Tools
             </Typography>
-            <Tooltip title="Swap" sx={{flex: '1'}}>
-              <IconButton>
-                <AddBoxIcon />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Delete" sx={{flex: '1'}}>
-              <IconButton>
-                <DeleteIcon />
-              </IconButton>
-            </Tooltip>
+            {expanded ? (
+              <>
+                <Tooltip title="Add" sx={{flex: '1'}}>
+                  <IconButton
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                  >
+                    <AddBoxIcon />
+                  </IconButton>
+                </Tooltip>
+                {selected !== '' ? (
+                  <Tooltip title="Delete" sx={{flex: '1'}}>
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                      }}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                ) : null}
+              </>
+            ) : null}
           </Toolbar>
         </AccordionSummary>
         <AccordionDetails sx={{padding: 0}}>
-          <DenseTable />
+          <PointOffsetList selected={selected} setSelected={setSelected} />
         </AccordionDetails>
       </Accordion>
     </Box>
@@ -238,28 +261,59 @@ const rows = [
   createData('Gingerbread', 356, 16.0, 49, 3.9)
 ];
 
-export function DenseTable() {
+export function PointOffsetList(props: {
+  selected: string;
+  setSelected: React.Dispatch<React.SetStateAction<string>>;
+}) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const {selected, setSelected} = props;
+  const enabledColorLight: number = useSelector(
+    (state: RootState) => state.uigd.present.enabledColorLight
+  );
   return (
-    <TableContainer component={Paper}>
-      <Table sx={{minWidth: 650}} size="small" aria-label="a dense table">
+    <TableContainer
+      component={Paper}
+      sx={{
+        '&::-webkit-scrollbar': {
+          height: '10px'
+        },
+        '&::-webkit-scrollbar-thumb': {
+          backgroundColor: NumberToRGB(enabledColorLight),
+          borderRadius: '5px'
+        }
+      }}
+    >
+      <Table
+        sx={{backgroundColor: alpha('#FFF', 0.0)}}
+        size="small"
+        aria-label="a dense table"
+      >
         <TableHead>
-          <TableRow>
-            <TableCell>Dessert (100g serving)</TableCell>
-            <TableCell align="right">Calories</TableCell>
-            <TableCell align="right">Fat&nbsp;(g)</TableCell>
-            <TableCell align="right">Carbs&nbsp;(g)</TableCell>
-            <TableCell align="right">Protein&nbsp;(g)</TableCell>
+          <TableRow onClick={() => setSelected('')}>
+            <TableCell>Order</TableCell>
+            <TableCell>Name</TableCell>
+            <TableCell align="right">Type</TableCell>
+            <TableCell align="right">ΔX</TableCell>
+            <TableCell align="right">ΔY</TableCell>
+            <TableCell align="right">ΔZ</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row) => (
+          {rows.map((row, idx) => (
             <TableRow
               key={row.name}
-              sx={{'&:last-child td, &:last-child th': {border: 0}}}
+              sx={{
+                '&:last-child td, &:last-child th': {border: 0},
+                userSelect: 'none',
+                backgroundColor:
+                  selected === row.name
+                    ? alpha(NumberToRGB(enabledColorLight), 0.5)
+                    : 'unset'
+              }}
+              onClick={() => setSelected(row.name)}
             >
-              <TableCell component="th" scope="row">
-                {row.name}
-              </TableCell>
+              <TableCell>{idx + 1}</TableCell>
+              <TableCell sx={{whiteSpace: 'nowrap'}}>{row.name}</TableCell>
               <TableCell align="right">{row.calories}</TableCell>
               <TableCell align="right">{row.fat}</TableCell>
               <TableCell align="right">{row.carbs}</TableCell>
