@@ -17,18 +17,12 @@ import {
   INamedBoolean,
   INamedBooleanOrUndefined,
   INamedVector3,
-  INamedMatrix3
+  INamedMatrix3,
+  IPointOffsetTool,
+  IDataPointOffsetTool
 } from '@gd/IDataValues';
 import {GDState} from '@store/reducers/dataGeometryDesigner';
 
-/* export interface IData {
-  className: string;
-}
-
-const isData = (
-  params: IDataVector3 | INamedVector3Constructor
-): params is IDataVector3 => 'className' in params;
-*/
 export const isVector3 = (value: any): value is Vector3 => {
   try {
     return value.isVector3;
@@ -145,13 +139,6 @@ export class NamedPrimitive<T> extends NamedValue {
   }
 }
 
-interface INamedNumberConstructor {
-  name: string;
-  value: string | number | IDataNumber;
-  update?: (valueOrFormula: string | number) => void;
-  parent: IElement;
-}
-
 function isNumber(value: any): value is number {
   // eslint-disable-next-line radix, no-restricted-globals
   const ret = value !== null && isFinite(value);
@@ -197,7 +184,12 @@ export class NamedNumber extends NamedValue implements INamedNumber {
     return this._value;
   }
 
-  constructor(params: INamedNumberConstructor) {
+  constructor(params: {
+    name: string;
+    value: string | number | IDataNumber;
+    update?: (valueOrFormula: string | number) => void;
+    parent: IElement;
+  }) {
     const {name: defaultName, value, update} = params;
     super({
       className: 'number',
@@ -313,6 +305,8 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
 
   z: NamedNumber;
 
+  pointOffsetTools: IPointOffsetTool[] = [];
+
   private _update: (newValue: FVector3) => void;
 
   get value(): Vector3 {
@@ -409,100 +403,6 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
   }
 }
 
-/*
-export class NamedVector3 extends NamedValue implements INamedVector3 {
-  _value: Vector3;
-
-  xFormula: Formula | undefined;
-
-  yFormula: Formula | undefined;
-
-  zFormula: Formula | undefined;
-
-  private _update: (newValue: FVector3) => void;
-
-  get value(): Vector3 {
-    const v = this._value.clone();
-    if (this.xFormula) v.x = this.xFormula.evaluatedValue;
-    if (this.yFormula) v.y = this.yFormula.evaluatedValue;
-    if (this.zFormula) v.z = this.zFormula.evaluatedValue;
-    return v;
-  }
-
-  set value(newValue: Vector3) {
-    this._update(newValue);
-  }
-
-  constructor(params: INamedVector3Constructor) {
-    const {name: defaultName, value, update} = params;
-    super({
-      className: 'Vector3',
-      ...params,
-      name: isData(value) ? value.name : defaultName
-    });
-    this._update =
-      update ??
-      ((newValue: FVector3) => {
-        this._value = new Vector3();
-        const xFormula = formulaOrUndef(newValue.x);
-        const yFormula = formulaOrUndef(newValue.y);
-        const zFormula = formulaOrUndef(newValue.z);
-        this.xFormula = undefined;
-        this.yFormula = undefined;
-        this.zFormula = undefined;
-        if (xFormula !== undefined) {
-          this.xFormula = new Formula({
-            name: `${this.name}.X`,
-            formula: xFormula,
-            absPath: this.absPath
-          });
-        }
-        if (yFormula !== undefined) {
-          this.yFormula = new Formula({
-            name: `${this.name}.Y`,
-            formula: yFormula,
-            absPath: this.absPath
-          });
-        }
-        if (zFormula !== undefined) {
-          this.zFormula = new Formula({
-            name: `${this.name}.Z`,
-            formula: zFormula,
-            absPath: this.absPath
-          });
-        }
-        this._value.x = this.xFormula
-          ? this.xFormula.evaluatedValue
-          : (newValue.x as number);
-        this._value.y = this.yFormula
-          ? this.yFormula.evaluatedValue
-          : (newValue.y as number);
-        this._value.z = this.zFormula
-          ? this.zFormula.evaluatedValue
-          : (newValue.z as number);
-      });
-    if (value) {
-      const {x, y, z} = value;
-      this._value = new Vector3(x, y, z);
-    } else {
-      this._value = new Vector3();
-    }
-  }
-
-  getData(): IDataVector3 {
-    return {
-      name: this.name,
-      x: this.value.x,
-      y: this.value.y,
-      z: this.value.z,
-      xFormula: this.xFormula?.getData(),
-      yFormula: this.yFormula?.getData(),
-      zFormula: this.zFormula?.getData()
-    };
-  }
-}
-*/
-
 export function isNamedVector3(value: INamedValue): value is NamedVector3 {
   return value.className === 'Vector3';
 }
@@ -557,4 +457,79 @@ export class NamedMatrix3 extends NamedValue implements INamedMatrix3 {
 
 export function isNamedMatrix3(value: INamedValue): value is NamedMatrix3 {
   return value.className === 'Matrix3';
+}
+
+export function getPointOffsetTool(
+  data: IDataPointOffsetTool
+): PointOffsetTool {
+  throw Error('Not Supported Exception');
+}
+
+export interface IDataDeltaXYZ extends IDataPointOffsetTool {
+  dx: IDataNumber;
+  dy: IDataNumber;
+  dz: IDataNumber;
+}
+
+function getPOTName(
+  name: string,
+  parent: INamedVector3,
+  value: number | string,
+  valueName: string
+) {
+  return new NamedNumber({
+    name: `pointOffsetTool_${name}_${valueName}_${parent.name}`,
+    value,
+    parent: parent.parent
+  });
+}
+
+export class DeltaXYZ implements IPointOffsetTool {
+  isPointOffsetTool = true as const;
+
+  className = 'DeltaXYZ' as const;
+
+  name: string;
+
+  parent: INamedVector3;
+
+  dx: NamedNumber;
+
+  dy: NamedNumber;
+
+  dz: NamedNumber;
+
+  constructor(props: {
+    name: string;
+    dx: number | string;
+    dy: number | string;
+    dz: number | string;
+    parent: INamedVector3;
+  }) {
+    const {name, dx, dy, dz, parent} = props;
+    this.name = name;
+    this.parent = parent;
+    this.dx = getPOTName(name, parent, dx, 'dx');
+    this.dy = getPOTName(name, parent, dy, 'dy');
+    this.dz = getPOTName(name, parent, dz, 'dz');
+  }
+
+  getOffsetVector(): {dx: number; dy: number; dz: number} {
+    return {
+      dx: this.dx.value,
+      dy: this.dy.value,
+      dz: this.dz.value
+    };
+  }
+
+  getData(state: GDState): IDataDeltaXYZ {
+    return {
+      name: this.name,
+      isDataPointOffsetTool: true,
+      className: 'IDataDeltaXYZ',
+      dx: this.dx.getData(state),
+      dy: this.dy.getData(state),
+      dz: this.dz.getData(state)
+    };
+  }
 }

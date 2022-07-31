@@ -27,6 +27,7 @@ export interface IDataVector3 extends INamedData {
   x: IDataNumber;
   y: IDataNumber;
   z: IDataNumber;
+  pointOffsetTools?: IDataPointOffsetTool[];
 }
 
 export interface IDataMatrix3 extends INamedData {
@@ -87,9 +88,25 @@ export interface INamedVector3 extends INamedValue {
     y: number | string;
     z: number | string;
   };
+  pointOffsetTools?: IPointOffsetTool[];
 }
 
 export interface INamedMatrix3 extends INamedValue {
   value: Matrix3;
   getData(state: GDState): IDataMatrix3;
+}
+
+export interface IDataPointOffsetTool {
+  readonly isDataPointOffsetTool: boolean;
+  readonly className: string;
+  name: string;
+}
+
+export interface IPointOffsetTool {
+  readonly isPointOffsetTool: boolean;
+  readonly className: string;
+  name: string;
+  readonly parent: INamedVector3;
+  getOffsetVector(): {dx: number; dy: number; dz: number};
+  getData(state: GDState): IDataPointOffsetTool;
 }

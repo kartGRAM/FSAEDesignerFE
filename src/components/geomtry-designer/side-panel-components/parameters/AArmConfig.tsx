@@ -57,11 +57,13 @@ export default function AArmConfig(params: Params) {
             offset={element.position.value}
             rotation={element.rotation.value}
           />
-          <Vector
-            vector={element.points[0]}
-            offset={element.position.value}
-            rotation={element.rotation.value}
-          />
+          {element.points.map((point) => (
+            <Vector
+              vector={point}
+              offset={element.position.value}
+              rotation={element.rotation.value}
+            />
+          ))}
         </AccordionDetails>
       </Accordion>
       <Accordion
