@@ -460,28 +460,46 @@ export function isNamedMatrix3(value: INamedValue): value is NamedMatrix3 {
 }
 
 export function getPointOffsetTool(
-  data: IDataPointOffsetTool
-): PointOffsetTool {
+  data: IDataPointOffsetTool,
+  parent: INamedVector3
+): IPointOffsetTool {
+  if (isDataDeltaXYZ(data)) {
+    return new DeltaXYZ({value: data, parent});
+  }
+  if (isDataDirectionLength(data)) {
+    return new DirectionLength({value: data, parent});
+  }
   throw Error('Not Supported Exception');
+}
+
+function getPOTName(
+  name: string,
+  parent: INamedVector3,
+  value: number | string | IDataNumber,
+  valueName: string
+) {
+  return new NamedNumber({
+    name: isData(value)
+      ? name
+      : `pointOffsetTool_${name}_${valueName}_${parent.name}`,
+    value,
+    parent: parent.parent
+  });
 }
 
 export interface IDataDeltaXYZ extends IDataPointOffsetTool {
   dx: IDataNumber;
   dy: IDataNumber;
   dz: IDataNumber;
+  className: 'IDataDeltaXYZ';
 }
 
-function getPOTName(
-  name: string,
-  parent: INamedVector3,
-  value: number | string,
-  valueName: string
-) {
-  return new NamedNumber({
-    name: `pointOffsetTool_${name}_${valueName}_${parent.name}`,
-    value,
-    parent: parent.parent
-  });
+export function isDataDeltaXYZ(data: any): data is IDataDeltaXYZ {
+  try {
+    return data.className === 'IDataPointOffsetTool';
+  } catch (e: any) {
+    return false;
+  }
 }
 
 export class DeltaXYZ implements IPointOffsetTool {
@@ -500,13 +518,18 @@ export class DeltaXYZ implements IPointOffsetTool {
   dz: NamedNumber;
 
   constructor(props: {
-    name: string;
-    dx: number | string;
-    dy: number | string;
-    dz: number | string;
+    value:
+      | {
+          name: string;
+          dx: number | string;
+          dy: number | string;
+          dz: number | string;
+        }
+      | IDataDeltaXYZ;
     parent: INamedVector3;
   }) {
-    const {name, dx, dy, dz, parent} = props;
+    const {value, parent} = props;
+    const {name, dx, dy, dz} = value;
     this.name = name;
     this.parent = parent;
     this.dx = getPOTName(name, parent, dx, 'dx');
@@ -530,6 +553,89 @@ export class DeltaXYZ implements IPointOffsetTool {
       dx: this.dx.getData(state),
       dy: this.dy.getData(state),
       dz: this.dz.getData(state)
+    };
+  }
+}
+
+export interface IDataDirectionLength extends IDataPointOffsetTool {
+  nx: IDataNumber;
+  ny: IDataNumber;
+  nz: IDataNumber;
+  l: IDataNumber;
+  className: 'IDataDirectionLength';
+}
+
+export function isDataDirectionLength(
+  data: IDataPointOffsetTool
+): data is IDataDirectionLength {
+  try {
+    return data.className === 'IDataDirectionLength';
+  } catch (e: any) {
+    return false;
+  }
+}
+
+export class DirectionLength implements IPointOffsetTool {
+  isPointOffsetTool = true as const;
+
+  className = 'DirectionLength' as const;
+
+  name: string;
+
+  parent: INamedVector3;
+
+  nx: NamedNumber;
+
+  ny: NamedNumber;
+
+  nz: NamedNumber;
+
+  l: NamedNumber;
+
+  constructor(props: {
+    value:
+      | {
+          name: string;
+          nx: number | string;
+          ny: number | string;
+          nz: number | string;
+          l: number | string;
+        }
+      | IDataDirectionLength;
+    parent: INamedVector3;
+  }) {
+    const {value, parent} = props;
+    const {name, nx, ny, nz, l} = value;
+    this.name = name;
+    this.parent = parent;
+    this.nx = getPOTName(name, parent, nx, 'nx');
+    this.ny = getPOTName(name, parent, ny, 'ny');
+    this.nz = getPOTName(name, parent, nz, 'nz');
+    this.l = getPOTName(name, parent, l, 'l');
+  }
+
+  getOffsetVector(): {dx: number; dy: number; dz: number} {
+    const nx = this.nx.value;
+    const ny = this.nx.value;
+    const nz = this.nx.value;
+    const l = this.l.value;
+    const norm = Math.sqrt(nx * nx + ny * ny + nz * nz);
+    return {
+      dx: (nx * l) / norm,
+      dy: (ny * l) / norm,
+      dz: (nz * l) / norm
+    };
+  }
+
+  getData(state: GDState): IDataDirectionLength {
+    return {
+      name: this.name,
+      isDataPointOffsetTool: true,
+      className: 'IDataDirectionLength',
+      nx: this.nx.getData(state),
+      ny: this.ny.getData(state),
+      nz: this.nz.getData(state),
+      l: this.l.getData(state)
     };
   }
 }

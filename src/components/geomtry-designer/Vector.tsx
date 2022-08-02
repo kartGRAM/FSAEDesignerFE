@@ -4,7 +4,7 @@ import Box from '@mui/material/Box';
 import InputAdornment from '@mui/material/InputAdornment';
 import {Vector3, Matrix3} from 'three';
 import {getMatrix3, getDataVector3} from '@gd/NamedValues';
-import {INamedVector3} from '@gd/IDataValues';
+import {INamedVector3, IPointOffsetTool} from '@gd/IDataValues';
 import Typography from '@mui/material/Typography';
 import {useDispatch, useSelector} from 'react-redux';
 import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
@@ -236,37 +236,24 @@ export default function Vector(props: Props) {
           </Toolbar>
         </AccordionSummary>
         <AccordionDetails sx={{padding: 0}}>
-          <PointOffsetList selected={selected} setSelected={setSelected} />
+          <PointOffsetList
+            selected={selected}
+            setSelected={setSelected}
+            pointOffsetTools={vector.pointOffsetTools}
+          />
         </AccordionDetails>
       </Accordion>
     </Box>
   );
 }
 
-function createData(
-  name: string,
-  calories: number,
-  fat: number,
-  carbs: number,
-  protein: number
-) {
-  return {name, calories, fat, carbs, protein};
-}
-
-const rows = [
-  createData('Frozen yoghurt', 159, 6.0, 24, 4.0),
-  createData('Ice cream sandwich', 237, 9.0, 37, 4.3),
-  createData('Eclair', 262, 16.0, 24, 6.0),
-  createData('Cupcake', 305, 3.7, 67, 4.3),
-  createData('Gingerbread', 356, 16.0, 49, 3.9)
-];
-
 export function PointOffsetList(props: {
   selected: string;
   setSelected: React.Dispatch<React.SetStateAction<string>>;
+  pointOffsetTools?: IPointOffsetTool[];
 }) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const {selected, setSelected} = props;
+  const {pointOffsetTools, selected, setSelected} = props;
   const enabledColorLight: number = useSelector(
     (state: RootState) => state.uigd.present.enabledColorLight
   );
@@ -299,27 +286,30 @@ export function PointOffsetList(props: {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row, idx) => (
-            <TableRow
-              key={row.name}
-              sx={{
-                '&:last-child td, &:last-child th': {border: 0},
-                userSelect: 'none',
-                backgroundColor:
-                  selected === row.name
-                    ? alpha(NumberToRGB(enabledColorLight), 0.5)
-                    : 'unset'
-              }}
-              onClick={() => setSelected(row.name)}
-            >
-              <TableCell>{idx + 1}</TableCell>
-              <TableCell sx={{whiteSpace: 'nowrap'}}>{row.name}</TableCell>
-              <TableCell align="right">{row.calories}</TableCell>
-              <TableCell align="right">{row.fat}</TableCell>
-              <TableCell align="right">{row.carbs}</TableCell>
-              <TableCell align="right">{row.protein}</TableCell>
-            </TableRow>
-          ))}
+          {pointOffsetTools?.map((tool, idx) => {
+            const {dx, dy, dz} = tool.getOffsetVector();
+            return (
+              <TableRow
+                key={tool.name}
+                sx={{
+                  '&:last-child td, &:last-child th': {border: 0},
+                  userSelect: 'none',
+                  backgroundColor:
+                    selected === tool.name
+                      ? alpha(NumberToRGB(enabledColorLight), 0.5)
+                      : 'unset'
+                }}
+                onClick={() => setSelected(tool.name)}
+              >
+                <TableCell>{idx + 1}</TableCell>
+                <TableCell sx={{whiteSpace: 'nowrap'}}>{tool.name}</TableCell>
+                <TableCell align="right">{tool.className}</TableCell>
+                <TableCell align="right">{dx}</TableCell>
+                <TableCell align="right">{dy}</TableCell>
+                <TableCell align="right">{dz}</TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </TableContainer>
