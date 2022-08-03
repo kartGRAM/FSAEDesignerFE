@@ -8,7 +8,8 @@ const instance = axios.create({
   baseURL: store.getState().auth.apiURLBase!,
   withCredentials: true,
   xsrfCookieName: 'csrftoken',
-  xsrfHeaderName: 'X-CSRFTOKEN'
+  xsrfHeaderName: 'X-CSRFTOKEN',
+  timeout: 5000
 });
 
 instance.interceptors.response.use(

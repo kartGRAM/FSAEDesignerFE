@@ -3,7 +3,7 @@ import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import InputAdornment from '@mui/material/InputAdornment';
 import {Vector3, Matrix3} from 'three';
-import {getMatrix3, getDataVector3} from '@gd/NamedValues';
+import {getMatrix3, getDataVector3, DeltaXYZ} from '@gd/NamedValues';
 import {INamedVector3, IPointOffsetTool} from '@gd/IDataValues';
 import Typography from '@mui/material/Typography';
 import {useDispatch, useSelector} from 'react-redux';
@@ -117,9 +117,35 @@ export default function Vector(props: Props) {
     formik.handleChange(event);
     setTimeout(formik.handleSubmit, 0);
   };
+
   const handleBlur = () => {
     setFocused(false);
   };
+
+  const handlePointOffsetToolAdd = () => {
+    const tools = vector.pointOffsetTools ?? [];
+    tools.push(
+      new DeltaXYZ({
+        value: {
+          name: `pointOffsetTool${tools.length}`,
+          dx: 0,
+          dy: 0,
+          dz: 0
+        },
+        parent: vector
+      })
+    );
+    vector.pointOffsetTools = tools;
+    dispatch(updateAssembly({element: vector.parent}));
+  };
+
+  const handlePointOffsetToolDelete = () => {
+    const tools = vector.pointOffsetTools ?? [];
+    vector.pointOffsetTools = tools.filter((tool) => tool.name !== selected);
+    dispatch(updateAssembly({element: vector.parent}));
+    setSelected('');
+  };
+
   return (
     <Box sx={{padding: 1}} onFocus={handleFocus} onBlur={handleBlur}>
       <Typography>{vector.name}</Typography>
@@ -215,6 +241,7 @@ export default function Vector(props: Props) {
                   <IconButton
                     onClick={(e) => {
                       e.stopPropagation();
+                      handlePointOffsetToolAdd();
                     }}
                   >
                     <AddBoxIcon />
@@ -225,6 +252,7 @@ export default function Vector(props: Props) {
                     <IconButton
                       onClick={(e) => {
                         e.stopPropagation();
+                        handlePointOffsetToolDelete();
                       }}
                     >
                       <DeleteIcon />
@@ -257,6 +285,7 @@ export function PointOffsetList(props: {
   const enabledColorLight: number = useSelector(
     (state: RootState) => state.uigd.present.enabledColorLight
   );
+  const onToolDblClick = () => {};
   return (
     <TableContainer
       component={Paper}
@@ -300,6 +329,7 @@ export function PointOffsetList(props: {
                       : 'unset'
                 }}
                 onClick={() => setSelected(tool.name)}
+                onDoubleClick={onToolDblClick}
               >
                 <TableCell>{idx + 1}</TableCell>
                 <TableCell sx={{whiteSpace: 'nowrap'}}>{tool.name}</TableCell>

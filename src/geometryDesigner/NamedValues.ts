@@ -387,6 +387,11 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
           value: value.z,
           parent: this.parent
         });
+        if (value.pointOffsetTools) {
+          this.pointOffsetTools = value.pointOffsetTools.map((tool) =>
+            getPointOffsetTool(tool, this)
+          );
+        }
       } else {
         this._update(value);
       }
@@ -398,7 +403,10 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
       name: this.name,
       x: this.x.getData(state),
       y: this.y.getData(state),
-      z: this.z.getData(state)
+      z: this.z.getData(state),
+      pointOffsetTools: this.pointOffsetTools?.map((tool) =>
+        tool.getData(state)
+      )
     };
   }
 }
@@ -496,7 +504,7 @@ export interface IDataDeltaXYZ extends IDataPointOffsetTool {
 
 export function isDataDeltaXYZ(data: any): data is IDataDeltaXYZ {
   try {
-    return data.className === 'IDataPointOffsetTool';
+    return data.className === 'IDataDeltaXYZ';
   } catch (e: any) {
     return false;
   }

@@ -136,7 +136,8 @@ export const dataGeometryDesignerSlice = createSlice({
       const assembly = action.payload.element.getRoot();
       if (assembly) {
         try {
-          state.topAssembly = assembly.getDataElement(state);
+          const newState = assembly.getDataElement(state);
+          state.topAssembly = newState;
         } catch (e: any) {
           console.log(e);
           throw e;
