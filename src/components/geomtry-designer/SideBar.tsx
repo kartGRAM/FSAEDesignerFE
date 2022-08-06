@@ -90,6 +90,7 @@ export default function MiniDrawer() {
   const iconColor: number = useSelector(
     (state: RootState) => state.uigd.present.sidebarState.iconColor
   );
+  const disabled = useSelector((state: RootState) => state.uitgd.uiDisabled);
   const open = false;
   const dispatch = useDispatch();
 
@@ -110,6 +111,7 @@ export default function MiniDrawer() {
         ].map((item) => (
           <ListItem key={item.text} disablePadding sx={{display: 'block'}}>
             <ListItemButton
+              disabled={disabled}
               sx={{
                 minHeight: 48,
                 justifyContent: open ? 'initial' : 'center',
@@ -152,6 +154,7 @@ export default function MiniDrawer() {
         {[{text: 'settings', icon: <SettingsIcon />}].map((item) => (
           <ListItem key={item.text} disablePadding sx={{display: 'block'}}>
             <ListItemButton
+              disabled={disabled}
               sx={{
                 minHeight: 48,
                 justifyContent: open ? 'initial' : 'center',

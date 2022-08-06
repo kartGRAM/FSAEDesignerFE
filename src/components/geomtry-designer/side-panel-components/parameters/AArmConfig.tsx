@@ -59,6 +59,7 @@ export default function AArmConfig(params: Params) {
           />
           {element.points.map((point) => (
             <Vector
+              key={point.name}
               vector={point}
               offset={element.position.value}
               rotation={element.rotation.value}

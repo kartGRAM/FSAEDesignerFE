@@ -131,6 +131,9 @@ const ElementsTreeView: React.FC<Props> = (props: Props) => {
   const nAssembly: IDataAssembly | undefined = useSelector(
     (state: RootState) => state.dgd.present.topAssembly
   );
+  const disableSelection = useSelector(
+    (state: RootState) => state.uitgd.uiDisabled
+  );
   const dispatch = useDispatch();
   const selectedColor = NumberToRGB(tvState.selectedColor);
 
@@ -205,6 +208,7 @@ const ElementsTreeView: React.FC<Props> = (props: Props) => {
       defaultExpanded={['1']}
       defaultCollapseIcon={<MinusSquare />}
       defaultExpandIcon={<PlusSquare />}
+      disableSelection={disableSelection}
       onNodeSelect={handleOnSelect}
       // defaultEndIcon={<Checkbox />}
       sx={{

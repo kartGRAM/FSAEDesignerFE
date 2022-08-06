@@ -7,7 +7,10 @@ import {getMatrix3, getDataVector3, DeltaXYZ} from '@gd/NamedValues';
 import {INamedVector3, IPointOffsetTool} from '@gd/IDataValues';
 import Typography from '@mui/material/Typography';
 import {useDispatch, useSelector} from 'react-redux';
-import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
+import {
+  setSelectedPoint,
+  setPointOffsetToolDialogOpen
+} from '@store/reducers/uiTempGeometryDesigner';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
 import {RootState} from '@store/store';
 import {useFormik} from 'formik';
@@ -285,7 +288,10 @@ export function PointOffsetList(props: {
   const enabledColorLight: number = useSelector(
     (state: RootState) => state.uigd.present.enabledColorLight
   );
-  const onToolDblClick = () => {};
+  const dispatch = useDispatch();
+  const onToolDblClick = () => {
+    dispatch(setPointOffsetToolDialogOpen(true));
+  };
   return (
     <TableContainer
       component={Paper}

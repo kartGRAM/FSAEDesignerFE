@@ -2,6 +2,7 @@ import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {IDataVector3} from '@gd/IDataValues';
 import {ConfirmDialogProps} from '@gdComponents/dialog-components/ConfirmDialog';
 import {SaveAsDialogProps} from '@gdComponents/dialog-components/SaveAsDialog';
+import {PointOffsetToolDialogProps} from '@gdComponents/dialog-components/PointOffsetToolDialog';
 
 export type SidePanelTab =
   | 'elements'
@@ -16,6 +17,7 @@ export interface SidePanelState {
 }
 
 export interface GDState {
+  uiDisabled: boolean;
   isFullScreen: boolean;
   fullScreenZIndex: number;
   selectedElementAbsPath: string;
@@ -32,11 +34,13 @@ export interface GDDialogState {
   openDialogOpen: boolean;
   saveAsDialogProps?: SaveAsDialogProps;
   confirmDialogProps?: ConfirmDialogProps;
+  pointOffsetToolDialogProps?: PointOffsetToolDialogProps;
 }
 
 const initialState: GDState = {
   isFullScreen: true,
   fullScreenZIndex: 10000000,
+  uiDisabled: false,
   selectedElementAbsPath: '',
   sidePanelState: {selectedTab: 'elements'},
   gdSceneState: {
@@ -46,7 +50,8 @@ const initialState: GDState = {
     formulaDialogOpen: false,
     openDialogOpen: false,
     saveAsDialogProps: undefined,
-    confirmDialogProps: undefined
+    confirmDialogProps: undefined,
+    pointOffsetToolDialogProps: undefined
   }
 };
 
@@ -57,6 +62,9 @@ export const uitGeometryDesignerSlice = createSlice({
     toggleFullScreen: (state: GDState) => {
       state.isFullScreen = !state.isFullScreen;
       state.fullScreenZIndex = state.isFullScreen ? 1000000 : 0;
+    },
+    setUIDisabled: (state: GDState, action: PayloadAction<boolean>) => {
+      state.uiDisabled = action.payload;
     },
     selectElement: (
       state: GDState,
@@ -110,11 +118,27 @@ export const uitGeometryDesignerSlice = createSlice({
       action: PayloadAction<ConfirmDialogProps | undefined>
     ) => {
       state.gdDialogState.confirmDialogProps = action.payload;
+    },
+    setPointOffsetToolDialogProps: (
+      state: GDState,
+      action: PayloadAction<PointOffsetToolDialogProps | undefined>
+    ) => {
+      state.gdDialogState.pointOffsetToolDialogProps = action.payload;
+    },
+    setPointOffsetToolDialogOpen: (
+      state: GDState,
+      action: PayloadAction<boolean>
+    ) => {
+      state.gdDialogState.pointOffsetToolDialogProps = {
+        zindex: state.fullScreenZIndex + 10000,
+        open: action.payload
+      };
     }
   }
 });
 
 export const {
+  setUIDisabled,
   toggleFullScreen,
   selectElement,
   selectSidePanelTab,
@@ -122,7 +146,9 @@ export const {
   setFormulaDialogOpen,
   setOpenDialogOpen,
   setSaveAsDialogProps,
-  setConfirmDialogProps
+  setConfirmDialogProps,
+  setPointOffsetToolDialogProps,
+  setPointOffsetToolDialogOpen
 } = uitGeometryDesignerSlice.actions;
 
 export default uitGeometryDesignerSlice.reducer;

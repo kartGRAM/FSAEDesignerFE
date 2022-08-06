@@ -1,244 +1,91 @@
 import * as React from 'react';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import DialogContentText from '@mui/material/DialogContentText';
-import Dialog, {DialogProps} from '@mui/material/Dialog';
+import Dialog from '@mui/material/Dialog';
 import {useSelector, useDispatch} from 'react-redux';
 import {RootState} from '@store/store';
 import {
-  setOpenDialogOpen,
-  setConfirmDialogProps
+  setPointOffsetToolDialogProps,
+  setUIDisabled
 } from '@store/reducers/uiTempGeometryDesigner';
-import {
-  getListSetTopAssemblyParams,
-  setTopAssembly,
-  SavedData
-} from '@store/reducers/dataGeometryDesigner';
-import confirmIfChanged from '@app/utils/confirmIfChanged';
-import {styled} from '@mui/material/styles';
-import Grid from '@mui/material/Grid';
-import Paper from '@mui/material/Paper';
-import ImageListItem from '@mui/material/ImageListItem';
-import ImageListItemBar from '@mui/material/ImageListItemBar';
-import IconButton from '@mui/material/IconButton';
-import DeleteIcon from '@mui/icons-material/Delete';
-import InfoIcon from '@mui/icons-material/Info';
-import useAxios from 'axios-hooks';
-import CircularProgress from '@mui/material/CircularProgress';
-import {DateTime} from 'luxon';
-import Box from '@mui/material/Box';
+import {setPointOffsetToolDialogInitialPosition} from '@store/reducers/uiGeometryDesigner';
+import Paper, {PaperProps} from '@mui/material/Paper';
+import Draggable from 'react-draggable';
+import DialogActions from '@mui/material/DialogActions';
+import Button from '@mui/material/Button';
 
-import ButtonBase from '@mui/material/ButtonBase';
-import Typography from '@mui/material/Typography';
-import {instance} from '@app/utils/axios';
-// import usePrevious from '@app/hooks/usePrevious';
-
-const Item = styled(Paper)(({theme}) => ({
-  backgroundColor: '#111111',
-  ...theme.typography.body2,
-  padding: theme.spacing(1),
-  textAlign: 'center',
-  color: theme.palette.text.secondary
-}));
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const ImageButton = styled(ButtonBase)(({theme}) => ({
-  '& .MuiImageListItem-root': {
-    opacity: 0.7
-  },
-  '&:hover, &.Mui-focusVisible': {
-    // zIndex: 1,
-    '& .MuiImageListItem-root': {
-      opacity: 1.0
-    }
-  }
-}));
-
-interface OpenDialogProps extends DialogProps {
+export interface PointOffsetToolDialogProps {
   zindex: number;
+  open: boolean;
 }
-export function OpenDialog(props: OpenDialogProps) {
-  const {zindex, onClose} = props;
 
-  const baseURL = useSelector((state: RootState) => state.auth.apiURLBase);
-  const open = useSelector(
-    (state: RootState) => state.uitgd.gdDialogState.openDialogOpen
+export function PointOffsetToolDialog() {
+  const props = useSelector(
+    (state: RootState) => state.uitgd.gdDialogState.pointOffsetToolDialogProps
   );
-  // const openPrev = usePrevious(open, false);
   const dispatch = useDispatch();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [{data, loading, error}, updateData] = useAxios(
-    {
-      url: '/api/gd/get_all_user_files/',
-      method: 'GET'
-    },
-    {
-      manual: true
-    }
-  );
+  const open = props?.open ? props.open : false;
   React.useEffect(() => {
-    if (open) updateData();
-  }, [open]);
-
-  const listFiles = data ? getListSetTopAssemblyParams(data) : null;
-
-  const handleClose = (e: {}, reason: 'backdropClick' | 'escapeKeyDown') => {
-    if (onClose) onClose(e, reason);
-    dispatch(setOpenDialogOpen({open: false}));
-  };
-  const handleFileClick = async (params: SavedData) => {
-    const next = () => {
-      dispatch(setTopAssembly(params));
-      dispatch(setOpenDialogOpen({open: false}));
-    };
-    confirmIfChanged(dispatch, next, zindex);
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleInfoClick = async (params: SavedData) => {
-    await new Promise<string>((resolve) => {
-      dispatch(
-        setConfirmDialogProps({
-          zindex: zindex + 1,
-          onClose: resolve,
-          buttons: [{text: 'OK', res: 'cancel', autoFocus: true}],
-          title: params.filename,
-          message: (
-            <Typography
-              variant="body1"
-              sx={{
-                p: 0,
-                m: 0,
-                '& pre': {
-                  p: 0,
-                  m: 0
-                }
-              }}
-            >
-              <pre style={{fontFamily: 'inherit'}}>
-                {`filename: ${params.filename}
-id: ${params.id}
-created: ${DateTime.fromISO(params.created ?? '').toLocaleString({
-                  ...DateTime.DATE_SHORT
-                })}
-last updated: ${DateTime.fromISO(params.lastUpdated ?? '').toLocaleString({
-                  ...DateTime.DATE_SHORT
-                })}
-note: ${params.note}`}
-              </pre>
-            </Typography>
-          )
-        })
-      );
-    });
-    dispatch(setConfirmDialogProps(undefined));
-  };
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleDeleteClick = async (params: SavedData) => {
-    const ret = await new Promise<string>((resolve) => {
-      dispatch(
-        setConfirmDialogProps({
-          zindex: zindex + 1,
-          onClose: resolve,
-          buttons: [
-            {text: 'Confirm', res: 'ok'},
-            {text: 'Cancel', res: 'cancel', autoFocus: true}
-          ],
-          title: 'Warning!',
-          message: 'Once deleted, it cannot be restored. Are you Sure?'
-        })
-      );
-    });
-    dispatch(setConfirmDialogProps(undefined));
-    // eslint-disable-next-line no-empty
-    if (ret === 'ok') {
-      await instance.delete(`/api/gd/delete/${params.id}/`);
-      await updateData();
+    if (open) {
+      dispatch(setUIDisabled(true));
+    } else {
+      dispatch(setUIDisabled(false));
     }
+  }, [open]);
+  if (!props) return null;
+  const {zindex} = props;
+  const handleClose = () => {
+    dispatch(setPointOffsetToolDialogProps({...props, open: false}));
   };
-
-  if (error) {
-    alert(error);
-  }
-
   return (
-    <Dialog {...props} onClose={handleClose} open={open}>
-      <DialogTitle>Choose your file..</DialogTitle>
-      <DialogContent>
-        {loading || !listFiles ? (
-          <CircularProgress />
-        ) : (
-          <Grid container rowSpacing={1} columnSpacing={{xs: 1, sm: 2, md: 3}}>
-            {listFiles.map((item) => (
-              <Grid item xs={6} key={item.filename}>
-                <Item>
-                  <ImageButton
-                    focusRipple
-                    key={item.filename}
-                    onClick={() => {
-                      handleFileClick(item);
-                    }}
-                  >
-                    <ImageListItem key={item.filename}>
-                      <img
-                        src={`${baseURL}${item.thumbnail}`}
-                        // srcSet={`${item.img}?w=248&fit=crop&auto=format&dpr=2 2x`}
-                        alt={item.filename}
-                        loading="lazy"
-                      />
-                      <ImageListItemBar
-                        title={item.filename}
-                        subtitle={
-                          <>
-                            <Box>{item.note}</Box>
-                            <Box sx={{pt: 1, fontSize: 0.3}}>
-                              last updated:&nbsp;
-                              {DateTime.fromISO(
-                                item.lastUpdated
-                              ).toLocaleString({
-                                ...DateTime.DATE_SHORT
-                              })}
-                            </Box>
-                          </>
-                        }
-                        actionIcon={
-                          <>
-                            <IconButton
-                              sx={{color: 'rgba(255, 255, 255, 0.54)'}}
-                              aria-label={`info about ${item.filename}`}
-                              size="small"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                handleInfoClick(item);
-                              }}
-                            >
-                              <InfoIcon fontSize="small" />
-                            </IconButton>
-                            <IconButton
-                              sx={{color: 'rgba(255, 255, 255, 0.54)'}}
-                              aria-label={`info about ${item.filename}`}
-                              size="small"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                handleDeleteClick(item);
-                              }}
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          </>
-                        }
-                      />
-                    </ImageListItem>
-                  </ImageButton>
-                </Item>
-              </Grid>
-            ))}
-          </Grid>
-        )}
-      </DialogContent>
+    <Dialog
+      open={open}
+      // onClose={onClose}
+      components={{Backdrop: undefined}}
+      PaperComponent={PaperCompornent}
+      aria-labelledby="draggable-dialog-title"
+      sx={{
+        zIndex: `${zindex}!important`,
+        pointerEvents: 'none'
+      }}
+    >
+      <DialogTitle>Point Offset Tool</DialogTitle>
+      <DialogContent />
+
+      <DialogActions>
+        <Button onClick={handleClose}>Cancel</Button>
+      </DialogActions>
     </Dialog>
+  );
+}
+
+function PaperCompornent(props: PaperProps) {
+  const dispatch = useDispatch();
+  const {x, y} = useSelector(
+    (state: RootState) =>
+      state.uigd.present.dialogState.pointOffsetToolDialogInitialPosition
+  );
+  return (
+    <Draggable
+      bounds="parent"
+      handle="#draggable-dialog-title"
+      cancel={'[class*="MuiDialogContent-root"]'}
+      defaultPosition={x && y ? {x, y} : undefined}
+      onStop={(e, data) => {
+        dispatch(
+          setPointOffsetToolDialogInitialPosition({
+            x: data.lastX,
+            y: data.lastY
+          })
+        );
+      }}
+    >
+      <Paper
+        {...props}
+        sx={{
+          pointerEvents: 'auto'
+        }}
+      />
+    </Draggable>
   );
 }

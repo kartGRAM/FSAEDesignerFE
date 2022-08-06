@@ -30,6 +30,13 @@ export interface GDParameterConfigState {
   dynamicParamsExpanded: boolean;
 }
 
+export interface DialogState {
+  pointOffsetToolDialogInitialPosition: {
+    x: number | null;
+    y: number | null;
+  };
+}
+
 export interface GDState {
   backgroundColor: number;
   enabledColorDark: number;
@@ -39,6 +46,7 @@ export interface GDState {
   sidePanelState: ISidePanelState;
   assemblyTreeViewState: IAssemblyTreeViewState;
   parameterConfigState: GDParameterConfigState;
+  dialogState: DialogState;
 }
 
 const initialState: GDState = {
@@ -69,6 +77,12 @@ const initialState: GDState = {
   parameterConfigState: {
     kinematicParamsExpanded: true,
     dynamicParamsExpanded: true
+  },
+  dialogState: {
+    pointOffsetToolDialogInitialPosition: {
+      x: null,
+      y: null
+    }
   }
 };
 
@@ -94,6 +108,12 @@ export const uiGeometryDesignerSlice = createSlice({
       action: PayloadAction<boolean>
     ) => {
       state.parameterConfigState.dynamicParamsExpanded = action.payload;
+    },
+    setPointOffsetToolDialogInitialPosition: (
+      state: GDState,
+      action: PayloadAction<{x: number | null; y: number | null}>
+    ) => {
+      state.dialogState.pointOffsetToolDialogInitialPosition = action.payload;
     }
   }
 });
@@ -101,7 +121,8 @@ export const uiGeometryDesignerSlice = createSlice({
 export const {
   resizePanel,
   kinematicParamsDefaultExpandedChange,
-  dynamicParamsDefaultExpandedChange
+  dynamicParamsDefaultExpandedChange,
+  setPointOffsetToolDialogInitialPosition
 } = uiGeometryDesignerSlice.actions;
 
 export default uiGeometryDesignerSlice.reducer;

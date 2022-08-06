@@ -148,5 +148,5 @@ export default function GDScene() {
       }
     }
   }, [selectedPoint]);
-  return <canvas ref={canvas} className="gd-canvas" />;
+  return <canvas ref={canvas} className="gd-canvas" id="threeCanvas" />;
 }
