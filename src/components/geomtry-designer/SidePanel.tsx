@@ -37,6 +37,7 @@ export default function SidePanel() {
     (state: RootState) => state.uitgd.sidePanelState.selectedTab
   );
 
+  const disabled = useSelector((state: RootState) => state.uitgd.uiDisabled);
   const dispatch = useDispatch();
 
   // ドラッグ中にカーソルがdisabledになるのを防止するため(だけに)、jQueryUIを使用する。
@@ -94,12 +95,24 @@ export default function SidePanel() {
           paddingLeft: 1,
           paddingRight: 1,
           flexShrink: 0,
+          position: 'relative',
           display: collapsed ? 'none' : 'unset',
           color: NumberToRGB(fontColor)
         }}
         ref={boxRef}
       >
         {adContent}
+        <Box
+          sx={{
+            backgroundColor: alpha('#000', 0.3),
+            position: 'absolute',
+            right: 0,
+            bottom: 0,
+            top: 0,
+            left: 0,
+            display: disabled ? 'unset' : 'none'
+          }}
+        />
       </Box>
 
       <Divider

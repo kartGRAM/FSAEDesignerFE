@@ -16,7 +16,7 @@ interface Props {
   children?: React.ReactNode;
 }
 
-export const GDAppBarMenu: React.VFC<Props> = (props) => {
+export const GDAppBarMenu = (props: Props) => {
   const [open, setOpen] = React.useState(false);
   const anchorRef = React.useRef<HTMLButtonElement>(null);
   const enabledColorLight: number = useSelector(
@@ -25,6 +25,8 @@ export const GDAppBarMenu: React.VFC<Props> = (props) => {
   const enabledColorDark: number = useSelector(
     (state: RootState) => state.uigd.present.enabledColorDark
   );
+
+  const disabled = useSelector((state: RootState) => state.uitgd.uiDisabled);
 
   const handleClose = (event: Event | React.SyntheticEvent) => {
     if (
@@ -65,6 +67,7 @@ export const GDAppBarMenu: React.VFC<Props> = (props) => {
   return (
     <>
       <Button
+        disabled={disabled}
         ref={anchorRef}
         // onMouseOver={handleOpen}
         // onMouseLeave={handleClose}
