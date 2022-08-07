@@ -1,7 +1,7 @@
 /* eslint-disable max-classes-per-file */
 import {Vector3, Matrix3} from 'three';
 import {IElement} from '@gd/IElements';
-import {Assembly} from '@gd/Elements';
+import {Assembly, getDummyElement} from '@gd/Elements';
 import {v1 as uuidv1} from 'uuid';
 import {Formula} from '@gd/Formula';
 import {IDataFormula} from '@gd/IFormula';
@@ -177,6 +177,10 @@ export class NamedNumber extends NamedValue implements INamedNumber {
     this._update(newValue);
   }
 
+  setValue(newValue: string | number) {
+    this._update(newValue);
+  }
+
   getValueWithFormula(formulae: IDataFormula[]): number {
     if (this.formula) {
       return this.formula.getEvaluatedValue(formulae);
@@ -202,7 +206,7 @@ export class NamedNumber extends NamedValue implements INamedNumber {
         this.formula = formulaOrUndef(newValue, this.name, this.absPath);
         this._value = this.formula
           ? this.formula.evaluatedValue
-          : (newValue as number);
+          : Number(newValue as number);
       });
     if (isData(value)) {
       this._value = value.value;
@@ -467,18 +471,29 @@ export function isNamedMatrix3(value: INamedValue): value is NamedMatrix3 {
   return value.className === 'Matrix3';
 }
 
+export function getDummyVector3() {
+  return new NamedVector3({
+    name: 'temp',
+    parent: getDummyElement(),
+    value: {x: 0, y: 0, z: 0}
+  });
+}
+
 export function getPointOffsetTool(
   data: IDataPointOffsetTool,
-  parent: INamedVector3
+  parent?: INamedVector3
 ): IPointOffsetTool {
+  const parentVector: INamedVector3 = parent ?? getDummyVector3();
   if (isDataDeltaXYZ(data)) {
-    return new DeltaXYZ({value: data, parent});
+    return new DeltaXYZ({value: data, parent: parentVector});
   }
   if (isDataDirectionLength(data)) {
-    return new DirectionLength({value: data, parent});
+    return new DirectionLength({value: data, parent: parentVector});
   }
   throw Error('Not Supported Exception');
 }
+
+export const listPointOffsetTools = ['DeltaXYZ', 'DirectionLength'] as const;
 
 function getPOTName(
   name: string,
@@ -508,6 +523,10 @@ export function isDataDeltaXYZ(data: any): data is IDataDeltaXYZ {
   } catch (e: any) {
     return false;
   }
+}
+
+export function isDeltaXYZ(tool: IPointOffsetTool): tool is DeltaXYZ {
+  return tool.className === 'DeltaXYZ';
 }
 
 export class DeltaXYZ implements IPointOffsetTool {
@@ -563,6 +582,14 @@ export class DeltaXYZ implements IPointOffsetTool {
       dz: this.dz.getData(state)
     };
   }
+
+  getStringValue(): {dx: string; dy: string; dz: string} {
+    return {
+      dx: this.dx.formula ? this.dx.formula.formula : this.dx.value.toString(),
+      dy: this.dy.formula ? this.dy.formula.formula : this.dy.value.toString(),
+      dz: this.dz.formula ? this.dz.formula.formula : this.dz.value.toString()
+    };
+  }
 }
 
 export interface IDataDirectionLength extends IDataPointOffsetTool {
@@ -581,6 +608,12 @@ export function isDataDirectionLength(
   } catch (e: any) {
     return false;
   }
+}
+
+export function isDirectionLength(
+  tool: IPointOffsetTool
+): tool is DirectionLength {
+  return tool.className === 'DirectionLength';
 }
 
 export class DirectionLength implements IPointOffsetTool {

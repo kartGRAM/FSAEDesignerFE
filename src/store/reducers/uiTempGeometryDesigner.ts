@@ -1,5 +1,5 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
-import {IDataVector3} from '@gd/IDataValues';
+import {IDataVector3, IDataPointOffsetTool} from '@gd/IDataValues';
 import {ConfirmDialogProps} from '@gdComponents/dialog-components/ConfirmDialog';
 import {SaveAsDialogProps} from '@gdComponents/dialog-components/SaveAsDialog';
 import {PointOffsetToolDialogProps} from '@gdComponents/dialog-components/PointOffsetToolDialog';
@@ -34,7 +34,7 @@ export interface GDDialogState {
   openDialogOpen: boolean;
   saveAsDialogProps?: SaveAsDialogProps;
   confirmDialogProps?: ConfirmDialogProps;
-  pointOffsetToolDialogProps?: PointOffsetToolDialogProps;
+  pointOffsetToolDialogProps: PointOffsetToolDialogProps;
 }
 
 const initialState: GDState = {
@@ -51,7 +51,26 @@ const initialState: GDState = {
     openDialogOpen: false,
     saveAsDialogProps: undefined,
     confirmDialogProps: undefined,
-    pointOffsetToolDialogProps: undefined
+    pointOffsetToolDialogProps: {
+      open: false,
+      data: {
+        name: '',
+        isDataPointOffsetTool: true,
+        className: 'IDataDeltaXYZ',
+        dx: {
+          name: 'x',
+          value: 0
+        },
+        dy: {
+          name: 'y',
+          value: 0
+        },
+        dz: {
+          name: 'z',
+          value: 0
+        }
+      } as IDataPointOffsetTool
+    }
   }
 };
 
@@ -121,18 +140,9 @@ export const uitGeometryDesignerSlice = createSlice({
     },
     setPointOffsetToolDialogProps: (
       state: GDState,
-      action: PayloadAction<PointOffsetToolDialogProps | undefined>
+      action: PayloadAction<PointOffsetToolDialogProps>
     ) => {
       state.gdDialogState.pointOffsetToolDialogProps = action.payload;
-    },
-    setPointOffsetToolDialogOpen: (
-      state: GDState,
-      action: PayloadAction<boolean>
-    ) => {
-      state.gdDialogState.pointOffsetToolDialogProps = {
-        zindex: state.fullScreenZIndex + 10000,
-        open: action.payload
-      };
     }
   }
 });
@@ -147,8 +157,7 @@ export const {
   setOpenDialogOpen,
   setSaveAsDialogProps,
   setConfirmDialogProps,
-  setPointOffsetToolDialogProps,
-  setPointOffsetToolDialogOpen
+  setPointOffsetToolDialogProps
 } = uitGeometryDesignerSlice.actions;
 
 export default uitGeometryDesignerSlice.reducer;

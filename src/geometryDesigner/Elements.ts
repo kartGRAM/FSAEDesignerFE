@@ -73,6 +73,14 @@ function getElement(element: IDataElement): IElement {
   throw Error('Not Supported Exception');
 }
 
+export function getDummyElement(): IAssembly {
+  return new Assembly({
+    name: 'temp',
+    children: [],
+    joints: []
+  });
+}
+
 const isDataElement = (params: any): params is IDataElement =>
   'absPath' in params;
 

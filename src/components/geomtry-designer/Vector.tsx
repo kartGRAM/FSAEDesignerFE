@@ -9,10 +9,10 @@ import Typography from '@mui/material/Typography';
 import {useDispatch, useSelector} from 'react-redux';
 import {
   setSelectedPoint,
-  setPointOffsetToolDialogOpen
+  setPointOffsetToolDialogProps
 } from '@store/reducers/uiTempGeometryDesigner';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
-import {RootState} from '@store/store';
+import store, {RootState} from '@store/store';
 import {useFormik} from 'formik';
 import * as Yup from 'yup';
 import AddBoxIcon from '@mui/icons-material/AddBox';
@@ -41,18 +41,10 @@ export interface Props {
   rotation?: Matrix3;
 }
 
-interface ValueProps extends OutlinedTextFieldProps {
-  name?: string;
-  id?: string;
-}
-
-const ValueField = (props: ValueProps) => {
-  const {name, id} = props;
+const ValueField = (props: OutlinedTextFieldProps) => {
   return (
     <TextField
       size="small"
-      name={name}
-      id={id}
       // margin="none"
       {...props}
       InputProps={{
@@ -289,8 +281,14 @@ export function PointOffsetList(props: {
     (state: RootState) => state.uigd.present.enabledColorLight
   );
   const dispatch = useDispatch();
-  const onToolDblClick = () => {
-    dispatch(setPointOffsetToolDialogOpen(true));
+  const onToolDblClick = (tool: IPointOffsetTool) => {
+    const state = store.getState().dgd.present;
+    dispatch(
+      setPointOffsetToolDialogProps({
+        open: true,
+        data: tool.getData(state)
+      })
+    );
   };
   return (
     <TableContainer
@@ -335,7 +333,7 @@ export function PointOffsetList(props: {
                       : 'unset'
                 }}
                 onClick={() => setSelected(tool.name)}
-                onDoubleClick={onToolDblClick}
+                onDoubleClick={() => onToolDblClick(tool)}
               >
                 <TableCell>{idx + 1}</TableCell>
                 <TableCell sx={{whiteSpace: 'nowrap'}}>{tool.name}</TableCell>
