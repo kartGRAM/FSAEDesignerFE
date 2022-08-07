@@ -36,7 +36,10 @@ export function PointOffsetToolDialog(props: PointOffsetToolDialogProps) {
   const {open, setOpen, tool, vector, indexOfTool} = props;
   const [type, setType] = React.useState(tool.className);
   const [isValid, setIsValid] = React.useState(false);
-  const [handleOK, setHandleOK] = React.useState<() => void>(() => {});
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleOK = {
+    callback: () => {}
+  };
 
   const zindex =
     useSelector((state: RootState) => state.uitgd.fullScreenZIndex) + 1000;
@@ -53,6 +56,10 @@ export function PointOffsetToolDialog(props: PointOffsetToolDialogProps) {
   const handleClose = () => {
     setOpen(false);
   };
+
+  const handleOKClick = () => {
+    handleOK.callback();
+  };
   // eslint-disable-next-line no-undef
   let component: JSX.Element | null = null;
   if (type === 'DeltaXYZ') {
@@ -62,7 +69,7 @@ export function PointOffsetToolDialog(props: PointOffsetToolDialogProps) {
         tool={isDeltaXYZ(tool) ? tool : undefined}
         indexOfTool={indexOfTool}
         setIsValid={setIsValid}
-        setHandleOK={setHandleOK}
+        handleOK={handleOK}
         onClose={handleClose}
         vector={vector}
       />
@@ -118,7 +125,7 @@ export function PointOffsetToolDialog(props: PointOffsetToolDialogProps) {
 
       <DialogActions>
         <Button onClick={handleClose}>Cancel</Button>
-        <Button onClick={handleOK} disabled={!isValid}>
+        <Button onClick={handleOKClick} disabled={!isValid}>
           OK
         </Button>
       </DialogActions>

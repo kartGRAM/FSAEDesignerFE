@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
-import {DeltaXYZ as Tool, getDummyVector3} from '@gd/NamedValues';
+import {DeltaXYZ as Tool} from '@gd/NamedValues';
 import InputAdornment from '@mui/material/InputAdornment';
 import {useFormik} from 'formik';
 import * as Yup from 'yup';
@@ -13,15 +12,12 @@ import {INamedVector3} from '@gd/IDataValues';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
 
 import {useDispatch} from 'react-redux';
-import store from '@store/store';
 import {toFixedNoZero} from '@app/utils/helpers';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import FormControlLabel from '@mui/material/FormControlLabel';
 
 interface Props {
   name: string;
   setIsValid: React.Dispatch<React.SetStateAction<boolean>>;
-  setHandleOK: React.Dispatch<React.SetStateAction<() => void>>;
+  handleOK: {callback: () => void};
   onClose: () => void;
   tool?: Tool;
   vector: INamedVector3;
@@ -33,7 +29,7 @@ export const DeltaXYZ = (props: Props) => {
     name,
     tool: toolInProps,
     setIsValid,
-    setHandleOK,
+    handleOK,
     onClose,
     vector,
     indexOfTool
@@ -97,14 +93,8 @@ export const DeltaXYZ = (props: Props) => {
   });
 
   React.useEffect(() => {
-    const handleOK = () => {
-      return () => {
-        formik.values.apply = true;
-        setTimeout(() => formik.handleSubmit(), 0);
-      };
-    };
     setIsValid(formik.isValid);
-    setHandleOK(handleOK);
+
     formik.handleSubmit();
     if (!formik.isValid) {
       setEvaluatedValue({x: '', y: '', z: ''});
@@ -121,6 +111,13 @@ export const DeltaXYZ = (props: Props) => {
     formik.handleChange(e);
     setTimeout(() => formik.handleSubmit(), 0);
   };
+
+  const handleOKCallback = () => {
+    formik.values.apply = true;
+    setTimeout(() => formik.handleSubmit(), 0);
+  };
+
+  handleOK.callback = handleOKCallback;
 
   return (
     <FormControl component="fieldset" variant="standard">
