@@ -9,7 +9,8 @@ import * as Yup from 'yup';
 import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
 import FormGroup from '@mui/material/FormGroup';
-import {setPointOffsetToolDialogProps} from '@store/reducers/uiTempGeometryDesigner';
+import {INamedVector3} from '@gd/IDataValues';
+import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
 
 import {useDispatch} from 'react-redux';
 import store from '@store/store';
@@ -21,13 +22,24 @@ interface Props {
   name: string;
   setIsValid: React.Dispatch<React.SetStateAction<boolean>>;
   setHandleOK: React.Dispatch<React.SetStateAction<() => void>>;
+  onClose: () => void;
   tool?: Tool;
+  vector: INamedVector3;
+  indexOfTool: number;
 }
 
 export const DeltaXYZ = (props: Props) => {
-  const {name, tool: toolProps, setIsValid, setHandleOK} = props;
+  const {
+    name,
+    tool: toolInProps,
+    setIsValid,
+    setHandleOK,
+    onClose,
+    vector,
+    indexOfTool
+  } = props;
   const tool =
-    toolProps ??
+    toolInProps ??
     new Tool({
       value: {
         name,
@@ -35,7 +47,7 @@ export const DeltaXYZ = (props: Props) => {
         dy: 0,
         dz: 0
       },
-      parent: getDummyVector3()
+      parent: vector
     });
   const sDp = tool.getStringValue();
   const [evaluatedValue, setEvaluatedValue] = React.useState({
@@ -66,6 +78,7 @@ export const DeltaXYZ = (props: Props) => {
       apply: Yup.boolean().required()
     }),
     onSubmit: (values) => {
+      tool.name = values.name;
       tool.dx.setValue(values.dx);
       tool.dy.setValue(values.dy);
       tool.dz.setValue(values.dz);
@@ -74,10 +87,11 @@ export const DeltaXYZ = (props: Props) => {
         y: toFixedNoZero(tool.dy.value) as string,
         z: toFixedNoZero(tool.dz.value) as string
       });
+      // eslint-disable-next-line no-empty
       if (values.apply) {
-        const props =
-          store.getState().uitgd.gdDialogState.pointOffsetToolDialogProps;
-        dispatch(setPointOffsetToolDialogProps({...props, open: false}));
+        vector.pointOffsetTools![indexOfTool] = tool;
+        dispatch(updateAssembly({element: vector.parent}));
+        onClose();
       }
     }
   });

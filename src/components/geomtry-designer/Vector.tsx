@@ -7,12 +7,9 @@ import {getMatrix3, getDataVector3, DeltaXYZ} from '@gd/NamedValues';
 import {INamedVector3, IPointOffsetTool} from '@gd/IDataValues';
 import Typography from '@mui/material/Typography';
 import {useDispatch, useSelector} from 'react-redux';
-import {
-  setSelectedPoint,
-  setPointOffsetToolDialogProps
-} from '@store/reducers/uiTempGeometryDesigner';
+import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
-import store, {RootState} from '@store/store';
+import {RootState} from '@store/store';
 import {useFormik} from 'formik';
 import * as Yup from 'yup';
 import AddBoxIcon from '@mui/icons-material/AddBox';
@@ -32,6 +29,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import {alpha} from '@mui/material/styles';
+import {PointOffsetToolDialog} from '@gdComponents/dialog-components/PointOffsetToolDialog';
 
 import {NumberToRGB} from '@app/utils/helpers';
 
@@ -262,7 +260,7 @@ export default function Vector(props: Props) {
           <PointOffsetList
             selected={selected}
             setSelected={setSelected}
-            pointOffsetTools={vector.pointOffsetTools}
+            vector={vector}
           />
         </AccordionDetails>
       </Accordion>
@@ -273,79 +271,90 @@ export default function Vector(props: Props) {
 export function PointOffsetList(props: {
   selected: string;
   setSelected: React.Dispatch<React.SetStateAction<string>>;
-  pointOffsetTools?: IPointOffsetTool[];
+  vector: INamedVector3;
 }) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const {pointOffsetTools, selected, setSelected} = props;
+  const {vector, selected, setSelected} = props;
+  const {pointOffsetTools} = vector;
   const enabledColorLight: number = useSelector(
     (state: RootState) => state.uigd.present.enabledColorLight
   );
-  const dispatch = useDispatch();
-  const onToolDblClick = (tool: IPointOffsetTool) => {
-    const state = store.getState().dgd.present;
-    dispatch(
-      setPointOffsetToolDialogProps({
-        open: true,
-        data: tool.getData(state)
-      })
-    );
+  const [open, setOpen] = useState(false);
+  const [toolAndIdx, setToolAndIdx] = useState<{
+    tool: IPointOffsetTool;
+    idx: number;
+  } | null>(null);
+  const onToolDblClick = (tool: IPointOffsetTool, idx: number) => {
+    setOpen(true);
+    setToolAndIdx({tool, idx});
   };
   return (
-    <TableContainer
-      component={Paper}
-      sx={{
-        '&::-webkit-scrollbar': {
-          height: '10px'
-        },
-        '&::-webkit-scrollbar-thumb': {
-          backgroundColor: NumberToRGB(enabledColorLight),
-          borderRadius: '5px'
-        }
-      }}
-    >
-      <Table
-        sx={{backgroundColor: alpha('#FFF', 0.0)}}
-        size="small"
-        aria-label="a dense table"
+    <>
+      <TableContainer
+        component={Paper}
+        sx={{
+          '&::-webkit-scrollbar': {
+            height: '10px'
+          },
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: NumberToRGB(enabledColorLight),
+            borderRadius: '5px'
+          }
+        }}
       >
-        <TableHead>
-          <TableRow onClick={() => setSelected('')}>
-            <TableCell>Order</TableCell>
-            <TableCell>Name</TableCell>
-            <TableCell align="right">Type</TableCell>
-            <TableCell align="right">ΔX</TableCell>
-            <TableCell align="right">ΔY</TableCell>
-            <TableCell align="right">ΔZ</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {pointOffsetTools?.map((tool, idx) => {
-            const {dx, dy, dz} = tool.getOffsetVector();
-            return (
-              <TableRow
-                key={tool.name}
-                sx={{
-                  '&:last-child td, &:last-child th': {border: 0},
-                  userSelect: 'none',
-                  backgroundColor:
-                    selected === tool.name
-                      ? alpha(NumberToRGB(enabledColorLight), 0.5)
-                      : 'unset'
-                }}
-                onClick={() => setSelected(tool.name)}
-                onDoubleClick={() => onToolDblClick(tool)}
-              >
-                <TableCell>{idx + 1}</TableCell>
-                <TableCell sx={{whiteSpace: 'nowrap'}}>{tool.name}</TableCell>
-                <TableCell align="right">{tool.className}</TableCell>
-                <TableCell align="right">{dx}</TableCell>
-                <TableCell align="right">{dy}</TableCell>
-                <TableCell align="right">{dz}</TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-    </TableContainer>
+        <Table
+          sx={{backgroundColor: alpha('#FFF', 0.0)}}
+          size="small"
+          aria-label="a dense table"
+        >
+          <TableHead>
+            <TableRow onClick={() => setSelected('')}>
+              <TableCell>Order</TableCell>
+              <TableCell>Name</TableCell>
+              <TableCell align="right">Type</TableCell>
+              <TableCell align="right">ΔX</TableCell>
+              <TableCell align="right">ΔY</TableCell>
+              <TableCell align="right">ΔZ</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {pointOffsetTools?.map((tool, idx) => {
+              const {dx, dy, dz} = tool.getOffsetVector();
+              return (
+                <TableRow
+                  key={tool.name}
+                  sx={{
+                    '&:last-child td, &:last-child th': {border: 0},
+                    userSelect: 'none',
+                    backgroundColor:
+                      selected === tool.name
+                        ? alpha(NumberToRGB(enabledColorLight), 0.5)
+                        : 'unset'
+                  }}
+                  onClick={() => setSelected(tool.name)}
+                  onDoubleClick={() => onToolDblClick(tool, idx)}
+                >
+                  <TableCell>{idx + 1}</TableCell>
+                  <TableCell sx={{whiteSpace: 'nowrap'}}>{tool.name}</TableCell>
+                  <TableCell align="right">{tool.className}</TableCell>
+                  <TableCell align="right">{dx}</TableCell>
+                  <TableCell align="right">{dy}</TableCell>
+                  <TableCell align="right">{dz}</TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      {toolAndIdx ? (
+        <PointOffsetToolDialog
+          open={open}
+          setOpen={setOpen}
+          tool={toolAndIdx.tool}
+          indexOfTool={toolAndIdx.idx}
+          vector={vector}
+        />
+      ) : null}
+    </>
   );
 }

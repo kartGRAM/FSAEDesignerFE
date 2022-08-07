@@ -4,10 +4,7 @@ import DialogContent from '@mui/material/DialogContent';
 import Dialog from '@mui/material/Dialog';
 import {useSelector, useDispatch} from 'react-redux';
 import {RootState} from '@store/store';
-import {
-  setPointOffsetToolDialogProps,
-  setUIDisabled
-} from '@store/reducers/uiTempGeometryDesigner';
+import {setUIDisabled} from '@store/reducers/uiTempGeometryDesigner';
 import {setPointOffsetToolDialogInitialPosition} from '@store/reducers/uiGeometryDesigner';
 import Paper, {PaperProps} from '@mui/material/Paper';
 import Draggable from 'react-draggable';
@@ -19,26 +16,24 @@ import FormControl from '@mui/material/FormControl';
 import Select, {SelectChangeEvent} from '@mui/material/Select';
 import {
   listPointOffsetTools,
-  getPointOffsetTool,
   isDeltaXYZ,
   isDirectionLength
 } from '@gd/NamedValues';
-import {IDataPointOffsetTool} from '@gd/IDataValues';
+import {INamedVector3, IPointOffsetTool} from '@gd/IDataValues';
 import {DeltaXYZ} from '@gdComponents/dialog-components/PointOffsetToolDialogComponents/DeltaXYZ';
 import {DirectionLength} from '@gdComponents/dialog-components/PointOffsetToolDialogComponents/DirectionLength';
 import Divider from '@mui/material/Divider';
 
 export interface PointOffsetToolDialogProps {
   open: boolean;
-  data: IDataPointOffsetTool;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  tool: IPointOffsetTool;
+  vector: INamedVector3;
+  indexOfTool: number;
 }
 
-export function PointOffsetToolDialog() {
-  const props = useSelector(
-    (state: RootState) => state.uitgd.gdDialogState.pointOffsetToolDialogProps
-  );
-  const {open, data} = props;
-  const tool = getPointOffsetTool(data);
+export function PointOffsetToolDialog(props: PointOffsetToolDialogProps) {
+  const {open, setOpen, tool, vector, indexOfTool} = props;
   const [type, setType] = React.useState(tool.className);
   const [isValid, setIsValid] = React.useState(false);
   const [handleOK, setHandleOK] = React.useState<() => void>(() => {});
@@ -49,11 +44,15 @@ export function PointOffsetToolDialog() {
   React.useEffect(() => {
     if (open) {
       dispatch(setUIDisabled(true));
+      setType(tool.className);
     } else {
       dispatch(setUIDisabled(false));
     }
   }, [open]);
 
+  const handleClose = () => {
+    setOpen(false);
+  };
   // eslint-disable-next-line no-undef
   let component: JSX.Element | null = null;
   if (type === 'DeltaXYZ') {
@@ -61,8 +60,11 @@ export function PointOffsetToolDialog() {
       <DeltaXYZ
         name={tool.name}
         tool={isDeltaXYZ(tool) ? tool : undefined}
+        indexOfTool={indexOfTool}
         setIsValid={setIsValid}
         setHandleOK={setHandleOK}
+        onClose={handleClose}
+        vector={vector}
       />
     );
   } else if (type === 'DirectionLength') {
@@ -76,9 +78,6 @@ export function PointOffsetToolDialog() {
 
   const handleChange = (event: SelectChangeEvent) => {
     setType(event.target.value);
-  };
-  const handleClose = () => {
-    dispatch(setPointOffsetToolDialogProps({...props, open: false}));
   };
   return (
     <Dialog

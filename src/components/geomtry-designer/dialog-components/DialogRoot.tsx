@@ -3,7 +3,6 @@ import {FormulaDialog} from '@gdComponents/dialog-components/FormulaDialog';
 import {OpenDialog} from '@gdComponents/dialog-components/OpenDialog';
 import ConfirmDialog from '@gdComponents/dialog-components/ConfirmDialog';
 import {SaveAsDialog} from '@gdComponents/dialog-components/SaveAsDialog';
-import {PointOffsetToolDialog} from '@gdComponents/dialog-components/PointOffsetToolDialog';
 import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
 
@@ -28,7 +27,6 @@ export default function DialogRoot() {
       />
       {saveAsDialogProps ? <SaveAsDialog {...saveAsDialogProps} /> : null}
       <ConfirmDialog />
-      <PointOffsetToolDialog />
     </>
   );
 }
