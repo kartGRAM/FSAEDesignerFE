@@ -1,9 +1,18 @@
 import * as React from 'react';
 import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
-import {getElementByPath, isAArm} from '@gd/IElements';
+import {
+  getElementByPath,
+  isAArm,
+  isBar,
+  isBellCrank,
+  isBody
+} from '@gd/IElements';
 import {getAssembly} from '@gd/Elements';
 import AArmConfig from './AArmConfig';
+import BarConfig from './BarConfig';
+import BellCrankConfig from './BellCrankConfig';
+import BodyConfig from './BodyConfig';
 
 export default function ParametersRoot() {
   const path = useSelector(
@@ -17,6 +26,12 @@ export default function ParametersRoot() {
   let component: JSX.Element | null = null;
   if (element && isAArm(element)) {
     component = <AArmConfig element={element} />;
+  } else if (element && isBar(element)) {
+    component = <BarConfig element={element} />;
+  } else if (element && isBellCrank(element)) {
+    component = <BellCrankConfig element={element} />;
+  } else if (element && isBody(element)) {
+    component = <BodyConfig element={element} />;
   }
 
   return component;
