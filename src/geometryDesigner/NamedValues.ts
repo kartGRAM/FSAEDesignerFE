@@ -657,8 +657,8 @@ export class DirectionLength implements IPointOffsetTool {
 
   getOffsetVector(): {dx: number; dy: number; dz: number} {
     const nx = this.nx.value;
-    const ny = this.nx.value;
-    const nz = this.nx.value;
+    const ny = this.ny.value;
+    const nz = this.nz.value;
     const l = this.l.value;
     const norm = Math.sqrt(nx * nx + ny * ny + nz * nz);
     return {
@@ -677,6 +677,15 @@ export class DirectionLength implements IPointOffsetTool {
       ny: this.ny.getData(state),
       nz: this.nz.getData(state),
       l: this.l.getData(state)
+    };
+  }
+
+  getStringValue(): {nx: string; ny: string; nz: string; l: string} {
+    return {
+      nx: this.nx.formula ? this.nx.formula.formula : this.nx.value.toString(),
+      ny: this.ny.formula ? this.ny.formula.formula : this.ny.value.toString(),
+      nz: this.nz.formula ? this.nz.formula.formula : this.nz.value.toString(),
+      l: this.l.formula ? this.l.formula.formula : this.l.value.toString()
     };
   }
 }

@@ -79,6 +79,11 @@ export function PointOffsetToolDialog(props: PointOffsetToolDialogProps) {
       <DirectionLength
         name={tool.name}
         tool={isDirectionLength(tool) ? tool : undefined}
+        indexOfTool={indexOfTool}
+        setIsValid={setIsValid}
+        handleOK={handleOK}
+        onClose={handleClose}
+        vector={vector}
       />
     );
   }

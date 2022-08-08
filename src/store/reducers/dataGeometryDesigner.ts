@@ -57,7 +57,7 @@ export function getSetTopAssemblyParams(data: any): SavedData {
     note: data.note as string,
     lastUpdated: data.lastUpdated as string,
     topAssembly: convertJsonToDataAssembly(data.content as string),
-    formulae: []
+    formulae: convertJsonToDataFormula(data.formulae as string)
   };
 }
 
