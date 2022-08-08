@@ -209,13 +209,13 @@ export class NamedNumber extends NamedValue implements INamedNumber {
           : Number(newValue as number);
       });
     if (isData(value)) {
-      this._value = value.value;
+      this._value = Number(value.value);
       this.formula = value.formula ? new Formula(value.formula) : undefined;
     } else {
       this.formula = formulaOrUndef(value, this.name, this.absPath);
       this._value = this.formula
         ? this.formula.evaluatedValue
-        : (value as number);
+        : Number(value as number);
     }
   }
 
@@ -314,11 +314,20 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
   private _update: (newValue: FVector3) => void;
 
   get value(): Vector3 {
-    return new Vector3(this.x.value, this.y.value, this.z.value);
+    const org = this.originalValue;
+    this.pointOffsetTools.forEach((tool) => {
+      const {dx, dy, dz} = tool.getOffsetVector();
+      org.add(new Vector3(dx, dy, dz));
+    });
+    return org;
   }
 
   set value(newValue: Vector3) {
     this._update(newValue);
+  }
+
+  get originalValue(): Vector3 {
+    return new Vector3(this.x.value, this.y.value, this.z.value);
   }
 
   setStringValue(newValue: FVector3) {

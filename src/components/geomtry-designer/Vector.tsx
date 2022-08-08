@@ -31,33 +31,18 @@ import Paper from '@mui/material/Paper';
 import {alpha} from '@mui/material/styles';
 import {PointOffsetToolDialog} from '@gdComponents/dialog-components/PointOffsetToolDialog';
 
-import {NumberToRGB} from '@app/utils/helpers';
+import {NumberToRGB, toFixedNoZero} from '@app/utils/helpers';
 
 export interface Props {
   vector: INamedVector3;
   offset?: Vector3;
   rotation?: Matrix3;
+  removable?: boolean;
+  onRemove?: () => void;
 }
 
-const ValueField = (props: OutlinedTextFieldProps) => {
-  return (
-    <TextField
-      size="small"
-      // margin="none"
-      {...props}
-      InputProps={{
-        endAdornment: <InputAdornment position="end">mm</InputAdornment>
-      }}
-      sx={{
-        margin: 1
-        // width: '15ch'
-      }}
-    />
-  );
-};
-
 export default function Vector(props: Props) {
-  const {vector, offset, rotation} = props;
+  const {vector, offset, rotation, removable, onRemove} = props;
   const rot = rotation ?? new Matrix3();
   const ofs = offset ?? new Vector3();
   const dispatch = useDispatch();
@@ -67,8 +52,29 @@ export default function Vector(props: Props) {
   const sVector = vector.getStringValue();
 
   const [expanded, setExpanded] = React.useState<boolean>(false);
+  const [rename, setRename] = React.useState<boolean>(false);
   const [selected, setSelected] = React.useState<string>('');
   const [focused, setFocused] = useState<boolean>(false);
+
+  const nameFormik = useFormik({
+    enableReinitialize: true,
+    initialValues: {
+      name: vector.name
+    },
+    validationSchema: Yup.object({
+      name: Yup.string()
+        .variableNameFirstChar()
+        .variableName()
+        .noMathFunctionsName()
+        .required('required')
+    }),
+    onSubmit: (values) => {
+      vector.name = values.name;
+      dispatch(updateAssembly({element: vector.parent}));
+      setRename(false);
+    }
+  });
+
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
@@ -94,6 +100,14 @@ export default function Vector(props: Props) {
       if (!focused) dispatch(setSelectedPoint({point: null}));
     };
   }, [focused, vector]);
+
+  const ref = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    if (rename) {
+      ref.current?.focus();
+    }
+  }, [rename]);
 
   const trans = (p: INamedVector3) => {
     return ofs
@@ -139,9 +153,77 @@ export default function Vector(props: Props) {
     setSelected('');
   };
 
+  const handleNameDblClick = () => {
+    nameFormik.resetForm();
+    setRename(true);
+  };
+
+  const onNameEnter = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter') {
+      nameFormik.handleSubmit();
+    }
+  };
+
+  const onNameBlur = (
+    e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement, Element>
+  ) => {
+    setRename(false);
+    nameFormik.handleBlur(e);
+  };
+
   return (
     <Box sx={{padding: 1}} onFocus={handleFocus} onBlur={handleBlur}>
-      <Typography>{vector.name}</Typography>
+      <Toolbar
+        sx={{
+          pl: '0.3rem!important',
+          pr: '0.3rem!important',
+          pb: '0rem!important',
+          minHeight: '40px!important',
+          flex: '1'
+        }}
+      >
+        {!rename ? (
+          <Typography
+            sx={{flex: '1 1 100%'}}
+            color="inherit"
+            variant="subtitle1"
+            component="div"
+            onDoubleClick={handleNameDblClick}
+          >
+            {vector.name}
+          </Typography>
+        ) : (
+          <TextField
+            inputRef={ref}
+            onChange={nameFormik.handleChange}
+            // label="name"
+            name="name"
+            variant="outlined"
+            size="small"
+            onKeyDown={onNameEnter}
+            value={nameFormik.values.name}
+            onBlur={onNameBlur}
+            error={nameFormik.touched.name && Boolean(nameFormik.errors.name)}
+            helperText={nameFormik.touched.name && nameFormik.errors.name}
+            sx={{
+              '& legend': {display: 'none'},
+              '& fieldset': {top: 0}
+            }}
+          />
+        )}
+
+        {removable ? (
+          <Tooltip title="Delete" sx={{flex: '1'}}>
+            <IconButton
+              onClick={() => {
+                if (onRemove) onRemove();
+              }}
+            >
+              <DeleteIcon />
+            </IconButton>
+          </Tooltip>
+        ) : null}
+      </Toolbar>
       <form onSubmit={formik.handleSubmit}>
         <Box
           sx={{
@@ -157,9 +239,11 @@ export default function Vector(props: Props) {
             value={formik.values.x}
             error={formik.touched.x && Boolean(formik.errors.x)}
             helperText={formik.touched.x && formik.errors.x}
+            onBlur={formik.handleBlur}
           />
           <ValueField
             onChange={handleChange}
+            onBlur={formik.handleBlur}
             label="Y"
             name="y"
             variant="outlined"
@@ -169,6 +253,7 @@ export default function Vector(props: Props) {
           />
           <ValueField
             onChange={handleChange}
+            onBlur={formik.handleBlur}
             label="Z"
             name="z"
             variant="outlined"
@@ -337,9 +422,9 @@ export function PointOffsetList(props: {
                   <TableCell>{idx + 1}</TableCell>
                   <TableCell sx={{whiteSpace: 'nowrap'}}>{tool.name}</TableCell>
                   <TableCell align="right">{tool.className}</TableCell>
-                  <TableCell align="right">{dx}</TableCell>
-                  <TableCell align="right">{dy}</TableCell>
-                  <TableCell align="right">{dz}</TableCell>
+                  <TableCell align="right">{toFixedNoZero(dx, 3)}</TableCell>
+                  <TableCell align="right">{toFixedNoZero(dy, 3)}</TableCell>
+                  <TableCell align="right">{toFixedNoZero(dz, 3)}</TableCell>
                 </TableRow>
               );
             })}
@@ -358,3 +443,20 @@ export function PointOffsetList(props: {
     </>
   );
 }
+
+const ValueField = (props: OutlinedTextFieldProps) => {
+  return (
+    <TextField
+      size="small"
+      // margin="none"
+      {...props}
+      InputProps={{
+        endAdornment: <InputAdornment position="end">mm</InputAdornment>
+      }}
+      sx={{
+        margin: 1
+        // width: '15ch'
+      }}
+    />
+  );
+};
