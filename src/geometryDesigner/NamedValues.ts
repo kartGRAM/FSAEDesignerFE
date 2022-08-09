@@ -181,6 +181,10 @@ export class NamedNumber extends NamedValue implements INamedNumber {
     this._update(newValue);
   }
 
+  getStringValue(): string {
+    return this.formula ? this.formula.formula : this.value.toString();
+  }
+
   getValueWithFormula(formulae: IDataFormula[]): number {
     if (this.formula) {
       return this.formula.getEvaluatedValue(formulae);

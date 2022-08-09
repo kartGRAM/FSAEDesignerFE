@@ -58,6 +58,8 @@ export interface INamedValue {
 export interface INamedNumber extends INamedValue {
   value: number;
   getData(state: GDState): IDataNumber;
+  getStringValue(): string;
+  setValue(newValue: string | number): void;
 }
 
 export interface INamedString extends INamedValue {

@@ -2,6 +2,7 @@ import React from 'react';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
+import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {IBody} from '@gd/IElements';
@@ -53,6 +54,11 @@ export default function AArmConfig(params: Params) {
           <Typography>Kinematic Parameters</Typography>
         </AccordionSummary>
         <AccordionDetails sx={{padding: 0}}>
+          <Divider textAlign="left">Fixed Points</Divider>
+          <Typography variant="caption" display="block" sx={{pl: 2}}>
+            List here the fixed points for unit testing, such as I/F with the
+            parent component.
+          </Typography>
           {element.fixedPoints.map((point, i) => (
             <Vector
               key={point.name}
@@ -66,6 +72,45 @@ export default function AArmConfig(params: Params) {
               }}
             />
           ))}
+          <Toolbar
+            sx={{
+              pr: '0.7rem!important',
+              pl: '1rem!important',
+              minHeight: '40px!important',
+              flex: '1'
+            }}
+          >
+            <Typography
+              sx={{flex: '1 1 100%'}}
+              color="inherit"
+              variant="subtitle1"
+              component="div"
+            >
+              Additional Fixed Points
+            </Typography>
+            <Tooltip title="Add" sx={{flex: '1'}}>
+              <IconButton
+                onClick={() => {
+                  const l = element.fixedPoints.length + 1;
+                  element.fixedPoints.push(
+                    new NamedVector3({
+                      name: `fixedPoints${l}`,
+                      parent: element,
+                      value: {x: 0, y: 0, z: 0}
+                    })
+                  );
+                  dispatch(updateAssembly({element}));
+                }}
+              >
+                <AddBoxIcon />
+              </IconButton>
+            </Tooltip>
+          </Toolbar>
+          <Divider textAlign="left">Non Fixed Points</Divider>
+          <Typography variant="caption" display="block" sx={{pl: 2}}>
+            List here the points that are I/F with the child components or the
+            points to use to drive the unit.
+          </Typography>
           {element.points.map((point, i) => (
             <Vector
               key={point.name}
@@ -93,15 +138,15 @@ export default function AArmConfig(params: Params) {
               variant="subtitle1"
               component="div"
             >
-              Additional Points
+              Additional Non Fixed Points
             </Typography>
             <Tooltip title="Add" sx={{flex: '1'}}>
               <IconButton
                 onClick={() => {
-                  const l = element.points.length;
+                  const l = element.points.length + 1;
                   element.points.push(
                     new NamedVector3({
-                      name: `attachedPoint${l}`,
+                      name: `point${l}`,
                       parent: element,
                       value: {x: 0, y: 0, z: 0}
                     })

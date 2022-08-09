@@ -97,7 +97,18 @@ export default function SidePanel() {
           flexShrink: 0,
           position: 'relative',
           display: collapsed ? 'none' : 'unset',
-          color: NumberToRGB(fontColor)
+          color: NumberToRGB(fontColor),
+          overflow: 'scroll',
+          '&::-webkit-scrollbar': {
+            width: '10px'
+          },
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: alpha(NumberToRGB(enabledColorLight), 0.3),
+            borderRadius: '5px'
+          },
+          '&::-webkit-scrollbar-track': {
+            backgroundColor: NumberToRGB(bgColor)
+          }
         }}
         ref={boxRef}
       >
