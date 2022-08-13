@@ -29,7 +29,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import {DateTime} from 'luxon';
 import Box from '@mui/material/Box';
 
-import ButtonBase from '@mui/material/ButtonBase';
+// import ButtonBase from '@mui/material/ButtonBase';
 import Typography from '@mui/material/Typography';
 import {instance} from '@app/utils/axios';
 // import usePrevious from '@app/hooks/usePrevious';
@@ -43,7 +43,7 @@ const Item = styled(Paper)(({theme}) => ({
 }));
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const ImageButton = styled(ButtonBase)(({theme}) => ({
+const ImageSelectable = styled(Box)(({theme}) => ({
   '& .MuiImageListItem-root': {
     opacity: 0.7
   },
@@ -173,12 +173,19 @@ note: ${params.note}`}
             {listFiles.map((item) => (
               <Grid item xs={6} key={item.filename}>
                 <Item>
-                  <ImageButton
-                    focusRipple
+                  <ImageSelectable
+                    // focusRipple
                     key={item.filename}
                     onClick={() => {
                       handleFileClick(item);
                     }}
+                    onKeyDown={(e) => {
+                      if (e.keyCode === 13) {
+                        handleFileClick(item);
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
                   >
                     <ImageListItem key={item.filename}>
                       <img
@@ -232,7 +239,7 @@ note: ${params.note}`}
                         }
                       />
                     </ImageListItem>
-                  </ImageButton>
+                  </ImageSelectable>
                 </Item>
               </Grid>
             ))}

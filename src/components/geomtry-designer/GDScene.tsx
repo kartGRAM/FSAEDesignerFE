@@ -56,7 +56,7 @@ export default function GDScene() {
     // シーンを作成
     scene.current = new THREE.Scene();
     // カメラを作成
-    const camera = new THREE.PerspectiveCamera(45, 1, 100, 100000);
+    const camera = new THREE.PerspectiveCamera(45, 1, 500, 100000);
     // コントロールを作成
     const controls = new OrbitControls(camera, renderer.domElement);
     onResize({camera, renderer});

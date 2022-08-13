@@ -7,12 +7,16 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {ITire} from '@gd/IElements';
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '@store/store';
+import {Vector3, Matrix3} from 'three';
 import {
   kinematicParamsDefaultExpandedChange,
   dynamicParamsDefaultExpandedChange
 } from '@store/reducers/uiGeometryDesigner';
 import Vector from '@gdComponents/Vector';
 import Scalar from '@gdComponents/Scalar';
+import {getMatrix3, getDataVector3} from '@gd/NamedValues';
+import {IDataMatrix3} from '@gd/IDataValues';
+import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
 
 interface Params {
   element: ITire;
@@ -30,6 +34,10 @@ export default function TireConfig(params: Params) {
   const dynamicParamsDefaultExpanded = useSelector(
     (state: RootState) =>
       state.uigd.present.parameterConfigState.dynamicParamsExpanded
+  );
+
+  const coMatrix = useSelector(
+    (state: RootState) => state.dgd.present.transCoordinateMatrix
   );
   return (
     <>
@@ -53,7 +61,29 @@ export default function TireConfig(params: Params) {
             offset={element.position.value}
             rotation={element.rotation.value}
           />
-          <Scalar value={element.toLeftBearing} unit="mm" />
+          <Scalar
+            onFocusChanged={(focus) => {
+              if (focus)
+                dispatch(
+                  setSelectedPoint({
+                    point: getDataVector3(
+                      trans(
+                        element.leftBearing,
+                        element.position.value,
+                        element.rotation.value,
+                        coMatrix
+                      )
+                    )
+                  })
+                );
+              return () => {
+                if (!focus) dispatch(setSelectedPoint({point: null}));
+              };
+            }}
+            value={element.toLeftBearing}
+            unit="mm"
+          />
+          <Scalar value={element.toRightBearing} unit="mm" />
         </AccordionDetails>
       </Accordion>
       <Accordion
@@ -93,4 +123,11 @@ export default function TireConfig(params: Params) {
       </Accordion>
     </>
   );
+}
+
+function trans(p: Vector3, ofs: Vector3, rot: Matrix3, coMatrix: IDataMatrix3) {
+  return ofs
+    .clone()
+    .add(p.clone().applyMatrix3(rot))
+    .applyMatrix3(getMatrix3(coMatrix));
 }

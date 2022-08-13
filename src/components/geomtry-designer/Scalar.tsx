@@ -18,10 +18,11 @@ export interface Props {
   unit: string;
   removable?: boolean;
   onRemove?: () => void;
+  onFocusChanged?: (focus: boolean) => void;
 }
 
 export default function Scalar(props: Props) {
-  const {value, unit, removable, onRemove} = props;
+  const {value, unit, removable, onRemove, onFocusChanged} = props;
   const dispatch = useDispatch();
   const sValue = value.getStringValue();
 
@@ -62,13 +63,7 @@ export default function Scalar(props: Props) {
   });
 
   React.useEffect(() => {
-    /*
-    if (focused)
-      dispatch(setSelectedPoint({point: getDataVector3(trans(vector))}));
-    return () => {
-      if (!focused) dispatch(setSelectedPoint({point: null}));
-    };
-    */
+    if (onFocusChanged) onFocusChanged(focused);
   }, [focused, value]);
 
   const ref = React.useRef<HTMLInputElement>(null);
@@ -173,7 +168,7 @@ export default function Scalar(props: Props) {
           <ValueField
             onChange={handleChange}
             label="value"
-            name="x"
+            name="value"
             variant="outlined"
             value={formik.values.value}
             error={formik.touched.value && Boolean(formik.errors.value)}
