@@ -14,22 +14,16 @@ import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {INode, IBidirectionalNode} from './INode';
 
 export type Radian = number;
-export type ElementID = number;
-export type NodeID = number;
+export type ElementID = string;
+export type NodeID = string;
 export type Millimeter = number;
 export interface Joint {
-  lhs: [ElementID, NodeID];
-  rhs: [ElementID, NodeID];
+  lhs: INamedVector3;
+  rhs: INamedVector3;
 }
-
-export interface NodeWithPath {
-  p: Vector3;
-  path: string;
-}
-
-export interface INodeWithPath {
-  p: IDataVector3;
-  path: string;
+export interface DataJoint {
+  lhs: NodeID;
+  rhs: NodeID;
 }
 
 export function getElementByPath(
@@ -82,7 +76,7 @@ export interface IElement extends IBidirectionalNode {
   parent: IAssembly | null;
   readonly nodeID: string;
   readonly absPath: string;
-  getNodes(): NodeWithPath[];
+  getPoints(): INamedVector3[];
   getMirror(): IElement;
   getRoot(): IAssembly | null;
   getDataElement(state: GDState): IDataElement;
@@ -110,13 +104,14 @@ export interface IDataElement extends INode {
 export interface IAssembly extends IElement {
   children: IElement[];
   joints: Joint[];
+  getJoints(): INamedVector3[];
 
   getDataElement(state: GDState): IDataAssembly;
 }
 
 export interface IDataAssembly extends IDataElement {
   children: IDataElement[];
-  joints: Joint[];
+  joints: DataJoint[];
 }
 
 export interface IBar extends IElement {
@@ -179,8 +174,8 @@ export interface ITire extends IElement {
   readonly tireCenter: INamedVector3;
   readonly toLeftBearing: INamedNumber;
   readonly toRightBearing: INamedNumber;
-  readonly rightBearing: Vector3;
-  readonly leftBearing: Vector3;
+  readonly rightBearing: INamedVector3;
+  readonly leftBearing: INamedVector3;
   readonly diameter: Millimeter;
 }
 
@@ -188,6 +183,8 @@ export interface IDataTire extends IDataElement {
   tireCenter: IDataVector3;
   toLeftBearing: IData<number>;
   toRightBearing: IData<number>;
+  leftBearingNodeID: string;
+  rightBearingNodeID: string;
 }
 
 export interface IRackAndPinion extends IElement {

@@ -38,8 +38,8 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
   // show nodes
   {
     const nodes: Vector3[] = [];
-    element.getNodes().forEach((nodeWI) => {
-      nodes.push(trans(nodeWI.p));
+    element.getPoints().forEach((p) => {
+      nodes.push(trans(p.value));
     });
     const pm = track(
       new THREE.PointsMaterial({
@@ -82,8 +82,8 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
       'Assembly'
     );
     const points = [];
-    points.push(trans(tire.rightBearing));
-    points.push(trans(tire.leftBearing));
+    points.push(trans(tire.rightBearing.value));
+    points.push(trans(tire.leftBearing.value));
     points.push(trans(tire.tireCenter.value));
 
     const lgeometry = track(
@@ -206,8 +206,8 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
     );
 
     const nodes: Vector3[] = [];
-    body.getNodes().forEach((nodeWI) => {
-      nodes.push(trans(nodeWI.p));
+    body.getPoints().forEach((p) => {
+      nodes.push(trans(p.value));
     });
     nodes.forEach((node, i) => {
       nodes.slice(i + 1).forEach((otherNode) => {

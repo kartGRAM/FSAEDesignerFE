@@ -1,6 +1,6 @@
 /* eslint-disable max-classes-per-file */
 import {Vector3, Matrix3} from 'three';
-import {IBidirectionalNode} from '@gd/INode';
+import {IBidirectionalNode, INode} from '@gd/INode';
 import {Assembly, getDummyElement} from '@gd/Elements';
 import {v1 as uuidv1} from 'uuid';
 import {Formula} from '@gd/Formula';
@@ -113,12 +113,19 @@ abstract class NamedValue implements INamedValue {
     parent: IBidirectionalNode;
     name: string;
     className: string;
+    value?: INode | unknown;
+    nodeID?: string;
   }) {
-    const {className, parent, name} = params;
+    const {className, parent, name, value, nodeID} = params;
     this.className = className;
     this.parent = parent;
     this.name = name;
-    this.nodeID = uuidv1();
+    if (value && isNamedData(value)) {
+      this.nodeID = value.nodeID;
+    } else {
+      this.nodeID = uuidv1();
+    }
+    if (nodeID) this.nodeID = nodeID;
   }
 }
 
@@ -375,6 +382,7 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
     parent: IBidirectionalNode;
     value?: FunctionVector3 | IDataVector3;
     update?: (newValue: FunctionVector3) => void;
+    nodeID?: string;
   }) {
     const {name: defaultName, value, update} = params;
     super({
@@ -417,29 +425,27 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
       parent: this
     });
     if (value) {
+      this.x = new NamedNumber({
+        name: `${this.name}_X`,
+        value: value.x,
+        parent: this
+      });
+      this.y = new NamedNumber({
+        name: `${this.name}_Y`,
+        value: value.y,
+        parent: this
+      });
+      this.z = new NamedNumber({
+        name: `${this.name}_Z`,
+        value: value.z,
+        parent: this
+      });
       if (isNamedData(value)) {
-        this.x = new NamedNumber({
-          name: `${this.name}_X`,
-          value: value.x,
-          parent: this
-        });
-        this.y = new NamedNumber({
-          name: `${this.name}_Y`,
-          value: value.y,
-          parent: this
-        });
-        this.z = new NamedNumber({
-          name: `${this.name}_Z`,
-          value: value.z,
-          parent: this
-        });
         if (value.pointOffsetTools) {
           this.pointOffsetTools = value.pointOffsetTools.map((tool) =>
             getPointOffsetTool(tool, this)
           );
         }
-      } else {
-        this._update(value);
       }
     }
   }

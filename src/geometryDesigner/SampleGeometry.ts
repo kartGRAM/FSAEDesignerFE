@@ -41,22 +41,28 @@ const getLeftFrontSuspension = (): Assembly => {
     name: 'uprightSubAssy',
     children: [tire, upright],
     joints: [
-      {lhs: [0, 0], rhs: [1, 3]},
-      {lhs: [0, 1], rhs: [1, 4]}
+      {
+        lhs: tire.leftBearing,
+        rhs: upright.points[1]
+      },
+      {
+        lhs: tire.rightBearing,
+        rhs: upright.points[2]
+      }
     ]
   });
 
   const upperArm = new AArm({
     name: 'upperArm',
     fixedPoints: [new Vector3(35, 260, 283.8), new Vector3(-200, 260, 283.8)],
-    points: [new Vector3(-19.12, 521.93, 310)]
+    points: [new Vector3(-19.12, 521.93, 310), new Vector3(-20, 490.3, 284.2)]
   });
 
   const lowerArm = new AArm({
     name: 'lowerArm',
     fixedPoints: [new Vector3(35, 215, 132.2), new Vector3(-200, 215, 132.2)],
     // upright & pushRodPivod
-    points: [new Vector3(-4.25, 545.82, 140), new Vector3(-20, 490.3, 284.2)]
+    points: [new Vector3(-4.25, 545.82, 140)]
   });
 
   const tieRod = new Bar({
@@ -69,9 +75,9 @@ const getLeftFrontSuspension = (): Assembly => {
     name: 'armsSubAssy',
     children: [uprightSubAssy, upperArm, lowerArm, tieRod],
     joints: [
-      {lhs: [0, 0], rhs: [1, 2]},
-      {lhs: [0, 1], rhs: [2, 2]},
-      {lhs: [0, 2], rhs: [3, 1]}
+      {lhs: upright.fixedPoints[0], rhs: upperArm.points[0]},
+      {lhs: upright.fixedPoints[1], rhs: lowerArm.points[0]},
+      {lhs: upright.points[0], rhs: tieRod.point}
     ]
   });
 
@@ -92,25 +98,25 @@ const getLeftFrontSuspension = (): Assembly => {
     points: [new Vector3(-20, 355.6, 193.3), new Vector3(-20, 316.5, 98.4)]
   });
 
-  const pushRod = new Bar({
+  const pullRod = new Bar({
     name: 'pullRod',
     fixedPoint: new Vector3(-20, 490.3, 284.2),
     point: new Vector3(-20, 316.5, 98.4)
   });
 
-  const pushRodSubAssy = new Assembly({
+  const pullRodSubAssy = new Assembly({
     name: 'pullRodSubAssy',
-    children: [coilover, bellCrank, pushRod],
+    children: [coilover, bellCrank, pullRod],
     joints: [
-      {lhs: [0, 1], rhs: [1, 2]},
-      {lhs: [1, 3], rhs: [2, 1]}
+      {lhs: coilover.point, rhs: bellCrank.points[0]},
+      {lhs: bellCrank.points[1], rhs: pullRod.point}
     ]
   });
 
   const leftFrontSuspensionSubAssy = new Assembly({
     name: 'leftFrontSuspensionSubAssy',
-    children: [armsSubAssy, pushRodSubAssy],
-    joints: [{lhs: [0, 4], rhs: [1, 3]}]
+    children: [armsSubAssy, pullRodSubAssy],
+    joints: [{lhs: upperArm.points[1], rhs: pullRod.fixedPoint}]
   });
   return leftFrontSuspensionSubAssy;
 };
@@ -160,8 +166,8 @@ const getLeftRearSuspension = (): Assembly => {
     name: 'uprightSubAssy',
     children: [tire, upright],
     joints: [
-      {lhs: [0, 0], rhs: [1, 4]},
-      {lhs: [0, 1], rhs: [1, 5]}
+      {lhs: tire.leftBearing, rhs: upright.points[0]},
+      {lhs: tire.rightBearing, rhs: upright.points[1]}
     ]
   });
 
@@ -192,10 +198,10 @@ const getLeftRearSuspension = (): Assembly => {
     name: 'armsSubAssy',
     children: [uprightSubAssy, upperArm, toeControlRod, lowerLink1, lowerLink2],
     joints: [
-      {lhs: [0, 0], rhs: [1, 2]},
-      {lhs: [0, 1], rhs: [2, 1]},
-      {lhs: [0, 2], rhs: [3, 1]},
-      {lhs: [0, 3], rhs: [4, 1]}
+      {lhs: upright.fixedPoints[0], rhs: upperArm.points[0]},
+      {lhs: upright.fixedPoints[1], rhs: toeControlRod.point},
+      {lhs: upright.fixedPoints[2], rhs: lowerLink1.point},
+      {lhs: upright.fixedPoints[3], rhs: lowerLink2.point}
     ]
   });
 
@@ -223,15 +229,15 @@ const getLeftRearSuspension = (): Assembly => {
     name: 'pushRodSubAssy',
     children: [coilover, bellCrank, pushRod],
     joints: [
-      {lhs: [0, 1], rhs: [1, 2]},
-      {lhs: [1, 3], rhs: [2, 1]}
+      {lhs: coilover.point, rhs: bellCrank.points[0]},
+      {lhs: bellCrank.points[1], rhs: pushRod.point}
     ]
   });
 
   const leftRearSuspensionSubAssy = new Assembly({
     name: 'leftFrontSuspensionSubAssy',
     children: [armsSubAssy, pushRodSubAssy],
-    joints: [{lhs: [0, 4], rhs: [1, 3]}]
+    joints: [{lhs: upright.fixedPoints[4], rhs: pushRod.fixedPoint}]
   });
   return leftRearSuspensionSubAssy;
 };

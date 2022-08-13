@@ -68,7 +68,7 @@ export default function TireConfig(params: Params) {
                   setSelectedPoint({
                     point: getDataVector3(
                       trans(
-                        element.leftBearing,
+                        element.leftBearing.value,
                         element.position.value,
                         element.rotation.value,
                         coMatrix
@@ -90,7 +90,7 @@ export default function TireConfig(params: Params) {
                   setSelectedPoint({
                     point: getDataVector3(
                       trans(
-                        element.rightBearing,
+                        element.rightBearing.value,
                         element.position.value,
                         element.rotation.value,
                         coMatrix

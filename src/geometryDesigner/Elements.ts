@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable max-classes-per-file */
 /* eslint-disable class-methods-use-this */
 import {Vector3, Matrix3} from 'three';
@@ -9,6 +8,7 @@ import {
   NamedNumber,
   NamedBooleanOrUndefined
 } from '@gd/NamedValues';
+import {INamedVector3} from '@gd/INamedValues';
 import {AtLeast1, AtLeast2} from '@app/utils/atLeast';
 import {v1 as uuidv1} from 'uuid';
 import {GDState} from '@store/reducers/dataGeometryDesigner';
@@ -16,9 +16,7 @@ import {getRootNode} from './INode';
 import {
   Millimeter,
   Joint,
-  ElementID,
   NodeID,
-  NodeWithPath,
   IElement,
   isElement,
   IDataElement,
@@ -133,7 +131,7 @@ export abstract class Element implements IElement {
     }
   }
 
-  abstract getNodes(): NodeWithPath[];
+  abstract getPoints(): INamedVector3[];
 
   abstract getMirror(): IElement;
 
@@ -273,27 +271,37 @@ export class Assembly extends Element implements IAssembly {
     // throw Error('Not Supported Exception');
   }
 
-  getJointedNodeIDs(id: ElementID): NodeID[] {
+  getJointedNodeIDs(element: IElement): NodeID[] {
     const joints = this.joints.filter(
-      (joint) => joint.lhs[0] === id || joint.rhs[0] === id
+      (joint) =>
+        joint.lhs.parent.nodeID === element.nodeID ||
+        joint.rhs.parent.nodeID === element.nodeID
     );
     const jointedPoints = joints.map((joint) =>
-      joint.lhs[0] === id ? joint.lhs[1] : joint.rhs[1]
+      joint.lhs.parent.nodeID === element.nodeID
+        ? joint.lhs.nodeID
+        : joint.rhs.nodeID
     );
     return jointedPoints;
   }
 
-  getNodes(): NodeWithPath[] {
-    // eslint-disable-next-line no-array-constructor
-    let points = new Array<NodeWithPath>();
-    this.children.forEach((element, elementID) => {
-      let pis = element.getNodes();
-      const jointedNodeIDs = this.getJointedNodeIDs(elementID);
-      pis = pis.filter((_, i) => !jointedNodeIDs.includes(i));
-      pis = pis.map((pi) => {
-        return {p: pi.p, path: `${pi.path}@${this.nodeID}`};
-      });
-      points = [...points, ...pis];
+  getAllPointsOfChildren(): INamedVector3[] {
+    let points: INamedVector3[] = [];
+    this._children.forEach((child) => {
+      points = [...points, ...child.getPoints()];
+    });
+    return points;
+  }
+
+  getPoints(): INamedVector3[] {
+    let points: INamedVector3[] = [];
+    this._children.forEach((child) => {
+      const pointsOfChild = child.getPoints();
+      const jointedNodeIDs = this.getJointedNodeIDs(child);
+      const notJointed = pointsOfChild.filter(
+        (p) => !jointedNodeIDs.includes(p.nodeID)
+      );
+      points = [...points, ...notJointed];
     });
     return points;
   }
@@ -307,10 +315,16 @@ export class Assembly extends Element implements IAssembly {
 
   getMirror(): Assembly {
     const children = this.children.map((child) => child.getMirror());
+    let mirPoints: INamedVector3[] = [];
+    children.forEach((child) => {
+      mirPoints = [...mirPoints, ...child.getPoints()];
+    });
+    const points = this.getAllPointsOfChildren();
+
     const joints: Joint[] = this.joints.map((joint) => {
       return {
-        lhs: [joint.lhs[0], joint.lhs[1]],
-        rhs: [joint.rhs[0], joint.rhs[1]]
+        lhs: mirPoints[points.findIndex((p) => p.nodeID === joint.lhs.nodeID)],
+        rhs: mirPoints[points.findIndex((p) => p.nodeID === joint.rhs.nodeID)]
       };
     });
     const initialPosition = this.initialPosition.value.clone();
@@ -324,17 +338,15 @@ export class Assembly extends Element implements IAssembly {
     });
   }
 
-  getJoints(): NodeWithPath[] {
-    // eslint-disable-next-line no-array-constructor
-    let points = new Array<NodeWithPath>();
-    this.children.forEach((element, elementID) => {
-      let pis = element.getNodes();
-      const jointedNodeIDs = this.getJointedNodeIDs(elementID);
-      pis = pis.filter((_, i) => jointedNodeIDs.includes(i));
-      pis = pis.map((pi) => {
-        return {p: pi.p, path: pi.path};
-      });
-      points = [...points, ...pis];
+  getJoints(): INamedVector3[] {
+    let points: INamedVector3[] = [];
+    this._children.forEach((child) => {
+      const pointsOfChild = child.getPoints();
+      const jointedNodeIDs = this.getJointedNodeIDs(child);
+      const jointedPoints = pointsOfChild.filter((p) =>
+        jointedNodeIDs.includes(p.nodeID)
+      );
+      points = [...points, ...jointedPoints];
     });
     return points;
   }
@@ -402,9 +414,8 @@ export class Assembly extends Element implements IAssembly {
   ) {
     super(params);
 
-    const {joints, initialPosition} = params;
+    const {initialPosition} = params;
 
-    this.joints = joints;
     this.initialPosition = new NamedVector3({
       name: 'initialPosition',
       parent: this,
@@ -412,13 +423,24 @@ export class Assembly extends Element implements IAssembly {
     });
     if (isDataElement(params)) {
       this._children = params.children.map((child) => getElement(child));
+      this._children.forEach((child) => {
+        child.parent = this;
+      });
+      const allPoints = this.getAllPointsOfChildren();
+      this.joints = params.joints.map((joint) => {
+        return {
+          lhs: allPoints.find((p) => p.nodeID === joint.lhs) as INamedVector3,
+          rhs: allPoints.find((p) => p.nodeID === joint.rhs) as INamedVector3
+        };
+      });
     } else {
       this._children = params.children;
+      this._children.forEach((child) => {
+        child.parent = this;
+      });
+      this.joints = params.joints;
     }
 
-    this.children.forEach((child) => {
-      child.parent = this;
-    });
     this.arrange();
   }
 
@@ -427,7 +449,9 @@ export class Assembly extends Element implements IAssembly {
     const data: IDataAssembly = {
       ...baseData,
       children: this.children.map((child) => child.getDataElement(state)),
-      joints: [...this.joints]
+      joints: this.joints.map((joint) => {
+        return {lhs: joint.lhs.nodeID, rhs: joint.rhs.nodeID};
+      })
     };
     return data;
   }
@@ -465,11 +489,8 @@ export class Bar extends Element implements IBar {
 
   rotation: NamedMatrix3;
 
-  getNodes(): NodeWithPath[] {
-    return [
-      {p: this.fixedPoint.value, path: `fixedPoint@${this.nodeID}`},
-      {p: this.point.value, path: `point@${this.nodeID}`}
-    ];
+  getPoints(): INamedVector3[] {
+    return [this.fixedPoint, this.point];
   }
 
   arrange(parentPosition?: Vector3) {
@@ -668,15 +689,8 @@ export class AArm extends Element implements IAArm {
 
   points: AtLeast1<NamedVector3>;
 
-  getNodes(): NodeWithPath[] {
-    const fp = this.fixedPoints.map((point, i): NodeWithPath => {
-      return {p: point.value, path: `fixedPoint:${i}@${this.nodeID}`};
-    });
-    const p = this.points.map((point, i): NodeWithPath => {
-      return {p: point.value, path: `point:${i}@${this.nodeID}`};
-    });
-
-    return [...fp, ...p];
+  getPoints(): INamedVector3[] {
+    return [...this.fixedPoints, ...this.points];
   }
 
   arrange(parentPosition?: Vector3) {
@@ -838,15 +852,8 @@ export class BellCrank extends Element implements IBellCrank {
 
   rotation: NamedMatrix3;
 
-  getNodes(): NodeWithPath[] {
-    const fp = this.fixedPoints.map((point, i): NodeWithPath => {
-      return {p: point.value, path: `fixedPoint:${i}@${this.nodeID}`};
-    });
-    const p = this.points.map((point, i): NodeWithPath => {
-      return {p: point.value, path: `point:${i}@${this.nodeID}`};
-    });
-
-    return [...fp, ...p];
+  getPoints(): INamedVector3[] {
+    return [...this.fixedPoints, ...this.points];
   }
 
   arrange(parentPosition?: Vector3) {
@@ -1016,15 +1023,8 @@ export class Body extends Element implements IBody {
 
   rotation: NamedMatrix3;
 
-  getNodes(): NodeWithPath[] {
-    const fp = this.fixedPoints.map((point, i): NodeWithPath => {
-      return {p: point.value, path: `fixedPoint:${i}@${this.nodeID}`};
-    });
-    const p = this.points.map((point, i): NodeWithPath => {
-      return {p: point.value, path: `point:${i}@${this.nodeID}`};
-    });
-
-    return [...fp, ...p];
+  getPoints(): INamedVector3[] {
+    return [...this.fixedPoints, ...this.points];
   }
 
   arrange(parentPosition?: Vector3) {
@@ -1151,6 +1151,10 @@ export class Tire extends Element implements ITire {
     return 'Tire';
   }
 
+  leftBearingNodeID: string;
+
+  rightBearingNodeID: string;
+
   visible: NamedBooleanOrUndefined;
 
   mass: NamedNumber;
@@ -1169,16 +1173,30 @@ export class Tire extends Element implements ITire {
 
   rotation: NamedMatrix3;
 
-  get leftBearing(): Vector3 {
-    return this.tireCenter.value
-      .clone()
-      .add(new Vector3(0, this.toLeftBearing.value, 0));
+  /* 直す必要あり */
+  get leftBearing(): NamedVector3 {
+    return new NamedVector3({
+      name: 'leftBaring',
+      parent: this,
+      value: this.tireCenter.value
+        .clone()
+        .add(new Vector3(0, this.toLeftBearing.value, 0)),
+      update: () => {},
+      nodeID: this.leftBearingNodeID
+    });
   }
 
-  get rightBearing(): Vector3 {
-    return this.tireCenter.value
-      .clone()
-      .add(new Vector3(0, this.toRightBearing.value, 0));
+  /* 直す必要あり */
+  get rightBearing(): NamedVector3 {
+    return new NamedVector3({
+      name: 'rightBaring',
+      parent: this,
+      value: this.tireCenter.value
+        .clone()
+        .add(new Vector3(0, this.toRightBearing.value, 0)),
+      update: () => {},
+      nodeID: this.rightBearingNodeID
+    });
   }
 
   get ground(): Vector3 {
@@ -1187,11 +1205,8 @@ export class Tire extends Element implements ITire {
       .add(new Vector3(0, -this.tireCenter.value.y, 0));
   }
 
-  getNodes(): NodeWithPath[] {
-    return [
-      {p: this.leftBearing, path: `leftBearing@${this.nodeID}`},
-      {p: this.rightBearing, path: `rightBearing@${this.nodeID}`}
-    ];
+  getPoints(): INamedVector3[] {
+    return [this.leftBearing, this.rightBearing];
   }
 
   arrange(parentPosition?: Vector3) {
@@ -1252,6 +1267,13 @@ export class Tire extends Element implements ITire {
       centerOfGravity
     } = params;
 
+    this.leftBearingNodeID = uuidv1();
+    this.rightBearingNodeID = uuidv1();
+    if (isDataElement(params)) {
+      this.leftBearingNodeID = params.leftBearingNodeID;
+      this.rightBearingNodeID = params.rightBearingNodeID;
+    }
+
     this.tireCenter = new NamedVector3({
       name: 'tireCenter',
       parent: this,
@@ -1309,7 +1331,9 @@ export class Tire extends Element implements ITire {
       ...baseData,
       tireCenter: this.tireCenter.getData(state),
       toLeftBearing: this.toLeftBearing.getData(state),
-      toRightBearing: this.toRightBearing.getData(state)
+      toRightBearing: this.toRightBearing.getData(state),
+      leftBearingNodeID: this.leftBearingNodeID,
+      rightBearingNodeID: this.rightBearingNodeID
     };
     return data;
   }
