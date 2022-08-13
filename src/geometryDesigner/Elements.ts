@@ -427,12 +427,18 @@ export class Assembly extends Element implements IAssembly {
         child.parent = this;
       });
       const allPoints = this.getAllPointsOfChildren();
-      this.joints = params.joints.map((joint) => {
-        return {
-          lhs: allPoints.find((p) => p.nodeID === joint.lhs) as INamedVector3,
-          rhs: allPoints.find((p) => p.nodeID === joint.rhs) as INamedVector3
-        };
-      });
+      this.joints = params.joints
+        .filter((joint) => {
+          const lhs = allPoints.find((p) => p.nodeID === joint.lhs);
+          const rhs = allPoints.find((p) => p.nodeID === joint.rhs);
+          return lhs && rhs;
+        })
+        .map((joint) => {
+          return {
+            lhs: allPoints.find((p) => p.nodeID === joint.lhs) as INamedVector3,
+            rhs: allPoints.find((p) => p.nodeID === joint.rhs) as INamedVector3
+          };
+        });
     } else {
       this._children = params.children;
       this._children.forEach((child) => {

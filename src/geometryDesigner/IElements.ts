@@ -14,7 +14,6 @@ import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {INode, IBidirectionalNode} from './INode';
 
 export type Radian = number;
-export type ElementID = string;
 export type NodeID = string;
 export type Millimeter = number;
 export interface Joint {
