@@ -5,7 +5,7 @@ import {
   // getElementByPath
 } from '@app/geometryDesigner/IElements';
 
-import {IDataMatrix3} from '@gd/IDataValues';
+import {IDataMatrix3} from '@gd/INamedValues';
 import {IDataFormula, validateAll, replaceVariable} from '@gd/IFormula';
 import {DateTime} from 'luxon';
 

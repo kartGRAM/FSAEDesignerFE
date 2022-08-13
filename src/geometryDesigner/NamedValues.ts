@@ -20,7 +20,7 @@ import {
   INamedMatrix3,
   IPointOffsetTool,
   IDataPointOffsetTool
-} from '@gd/IDataValues';
+} from '@gd/INamedValues';
 import {GDState} from '@store/reducers/dataGeometryDesigner';
 
 export const isVector3 = (value: any): value is Vector3 => {

@@ -15,7 +15,7 @@ import {
 import Vector from '@gdComponents/Vector';
 import Scalar from '@gdComponents/Scalar';
 import {getMatrix3, getDataVector3} from '@gd/NamedValues';
-import {IDataMatrix3} from '@gd/IDataValues';
+import {IDataMatrix3} from '@gd/INamedValues';
 import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
 
 interface Params {

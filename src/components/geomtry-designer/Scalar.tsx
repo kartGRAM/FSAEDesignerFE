@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import InputAdornment from '@mui/material/InputAdornment';
-import {INamedNumber} from '@gd/IDataValues';
+import {INamedNumber} from '@gd/INamedValues';
 import Typography from '@mui/material/Typography';
 import {useDispatch} from 'react-redux';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';

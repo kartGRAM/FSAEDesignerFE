@@ -19,7 +19,7 @@ import {
   isDeltaXYZ,
   isDirectionLength
 } from '@gd/NamedValues';
-import {INamedVector3, IPointOffsetTool} from '@gd/IDataValues';
+import {INamedVector3, IPointOffsetTool} from '@gd/INamedValues';
 import {DeltaXYZ} from '@gdComponents/dialog-components/PointOffsetToolDialogComponents/DeltaXYZ';
 import {DirectionLength} from '@gdComponents/dialog-components/PointOffsetToolDialogComponents/DirectionLength';
 import Divider from '@mui/material/Divider';

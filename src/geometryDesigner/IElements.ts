@@ -9,7 +9,7 @@ import {
   INamedString,
   INamedNumber,
   INamedBooleanOrUndefined
-} from '@gd/IDataValues';
+} from '@gd/INamedValues';
 import {GDState} from '@store/reducers/dataGeometryDesigner';
 
 export type Radian = number;

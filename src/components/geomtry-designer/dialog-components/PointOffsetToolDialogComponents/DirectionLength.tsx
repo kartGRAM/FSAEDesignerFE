@@ -8,7 +8,7 @@ import * as Yup from 'yup';
 import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
 import FormGroup from '@mui/material/FormGroup';
-import {INamedVector3} from '@gd/IDataValues';
+import {INamedVector3} from '@gd/INamedValues';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
 
 import {useDispatch} from 'react-redux';

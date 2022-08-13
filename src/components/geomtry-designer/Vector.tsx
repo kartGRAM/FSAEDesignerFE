@@ -4,7 +4,7 @@ import Box from '@mui/material/Box';
 import InputAdornment from '@mui/material/InputAdornment';
 import {Vector3, Matrix3} from 'three';
 import {getMatrix3, getDataVector3, DeltaXYZ} from '@gd/NamedValues';
-import {INamedVector3, IPointOffsetTool} from '@gd/IDataValues';
+import {INamedVector3, IPointOffsetTool} from '@gd/INamedValues';
 import Typography from '@mui/material/Typography';
 import {useDispatch, useSelector} from 'react-redux';
 import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';

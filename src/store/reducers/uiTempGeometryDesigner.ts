@@ -1,5 +1,5 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
-import {IDataVector3} from '@gd/IDataValues';
+import {IDataVector3} from '@gd/INamedValues';
 import {ConfirmDialogProps} from '@gdComponents/dialog-components/ConfirmDialog';
 import {SaveAsDialogProps} from '@gdComponents/dialog-components/SaveAsDialog';
 // import {PointOffsetToolDialogProps} from '@gdComponents/dialog-components/PointOffsetToolDialog';
