@@ -1,9 +1,12 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {
   IDataAssembly,
-  IElement
+  isElement,
+  isAssembly
+  // IElement
   // getElementByPath
 } from '@app/geometryDesigner/IElements';
+import {IBidirectionalNode, getRootNode} from '@gd/INode';
 
 import {IDataMatrix3} from '@gd/INamedValues';
 import {IDataFormula, validateAll, replaceVariable} from '@gd/IFormula';
@@ -32,6 +35,10 @@ const initialState: GDState = {
   lastUpdated: DateTime.local().toString(),
   topAssembly: undefined,
   transCoordinateMatrix: {
+    isNamedData: true,
+    className: 'NamedMatrix3',
+    absPath: 'global',
+    nodeID: '',
     name: 'coordinameMatrix',
     elements: [0, 0, 1, 1, 0, 0, 0, 1, 0]
   },
@@ -129,10 +136,21 @@ export const dataGeometryDesignerSlice = createSlice({
     },
     updateAssembly: (
       state: GDState,
-      action: PayloadAction<{
-        element: IElement;
-      }>
+      action: PayloadAction<IBidirectionalNode>
     ) => {
+      const node = action.payload;
+      const root = getRootNode(node);
+      if (root && isElement(root) && isAssembly(root)) {
+        try {
+          const newState = root.getDataElement(state);
+          state.topAssembly = newState;
+        } catch (e: any) {
+          console.log(e);
+          throw e;
+        }
+      }
+      state.changed = true;
+      /*
       const assembly = action.payload.element.getRoot();
       if (assembly) {
         try {
@@ -144,6 +162,7 @@ export const dataGeometryDesignerSlice = createSlice({
         }
       }
       state.changed = true;
+      */
     },
     setFormulae: (
       state: GDState,

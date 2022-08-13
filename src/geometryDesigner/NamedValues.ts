@@ -1,12 +1,12 @@
 /* eslint-disable max-classes-per-file */
 import {Vector3, Matrix3} from 'three';
-import {IElement} from '@gd/IElements';
+import {IBidirectionalNode} from '@gd/INode';
 import {Assembly, getDummyElement} from '@gd/Elements';
 import {v1 as uuidv1} from 'uuid';
 import {Formula} from '@gd/Formula';
 import {IDataFormula} from '@gd/IFormula';
 import {
-  isData,
+  isNamedData,
   IDataVector3,
   IDataMatrix3,
   IDataNumber,
@@ -22,14 +22,7 @@ import {
   IDataPointOffsetTool
 } from '@gd/INamedValues';
 import {GDState} from '@store/reducers/dataGeometryDesigner';
-
-export const isVector3 = (value: any): value is Vector3 => {
-  try {
-    return value.isVector3;
-  } catch (e: any) {
-    return false;
-  }
-};
+import {capitalize} from '@app/utils/helpers';
 
 export const getMatrix3 = (data: IDataMatrix3): Matrix3 => {
   const tmp = new Matrix3();
@@ -54,29 +47,49 @@ export const getVector3 = (data: IDataVector3): Vector3 => {
 export const getDataVector3 = (value: Vector3): IDataVector3 => {
   return {
     name: 'temporaryValue',
-    x: {name: 'x', value: value.x},
-    y: {name: 'y', value: value.y},
-    z: {name: 'z', value: value.z}
+    className: 'NamedVector3',
+    absPath: 'temporaryPath',
+    nodeID: '',
+    isNamedData: true,
+    x: {
+      name: 'x',
+      value: value.x,
+      absPath: 'temporaryPath',
+      nodeID: '',
+      className: 'NamedNumber',
+      isNamedData: true
+    },
+    y: {
+      name: 'y',
+      value: value.y,
+      absPath: 'temporaryPath',
+      nodeID: '',
+      className: 'NamedNumber',
+      isNamedData: true
+    },
+    z: {
+      name: 'z',
+      value: value.z,
+      absPath: 'temporaryPath',
+      nodeID: '',
+      className: 'NamedNumber',
+      isNamedData: true
+    }
   };
 };
 
-interface INamedValueConstructor {
-  parent: IElement;
-  name: string;
-  className: string;
-}
-
 abstract class NamedValue implements INamedValue {
+  readonly isNamedValue = true;
+
   readonly className: string;
 
-  readonly parent: IElement;
+  readonly parent: IBidirectionalNode;
 
   readonly nodeID: string;
 
   name: string;
 
   get absPath(): string {
-    if (!this.parent) return 'undefined';
     return `${this.nodeID}@${this.parent.absPath}`;
   }
 
@@ -86,20 +99,27 @@ abstract class NamedValue implements INamedValue {
 
   abstract getData(state: GDState): unknown;
 
-  constructor(params: INamedValueConstructor) {
+  getDataBase() {
+    return {
+      isNamedData: true,
+      className: this.className,
+      name: this.name,
+      absPath: this.absPath,
+      nodeID: this.nodeID
+    };
+  }
+
+  constructor(params: {
+    parent: IBidirectionalNode;
+    name: string;
+    className: string;
+  }) {
     const {className, parent, name} = params;
     this.className = className;
     this.parent = parent;
     this.name = name;
     this.nodeID = uuidv1();
   }
-}
-
-interface INamedPrimitiveConstructor<T> {
-  name: string;
-  value: T | IData<T>;
-  update?: (newValue: T) => void;
-  parent: IElement;
 }
 
 export class NamedPrimitive<T> extends NamedValue {
@@ -115,25 +135,30 @@ export class NamedPrimitive<T> extends NamedValue {
     this._update(newValue);
   }
 
-  constructor(params: INamedPrimitiveConstructor<T>) {
+  constructor(params: {
+    name: string;
+    value: T | IData<T>;
+    update?: (newValue: T) => void;
+    parent: IBidirectionalNode;
+  }) {
     const {name: defaultName, value, update} = params;
     super({
-      className: typeof value,
+      className: `Named${capitalize(typeof value)}`,
       ...params,
-      name: isData(value) ? value.name : defaultName
+      name: isNamedData(value) ? value.name : defaultName
     });
     this._update =
       update ??
       ((newValue: T) => {
         this._value = newValue;
       });
-    this._value = isData(value) ? value.value : value;
+    this._value = isNamedData(value) ? value.value : value;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   getData(state: GDState): IData<T> {
     return {
-      name: this.name,
+      ...super.getDataBase(),
       value: this.value
     };
   }
@@ -196,13 +221,13 @@ export class NamedNumber extends NamedValue implements INamedNumber {
     name: string;
     value: string | number | IDataNumber;
     update?: (valueOrFormula: string | number) => void;
-    parent: IElement;
+    parent: IBidirectionalNode;
   }) {
     const {name: defaultName, value, update} = params;
     super({
-      className: 'number',
+      className: 'NamedNumber',
       ...params,
-      name: isData(value) ? value.name : defaultName
+      name: isNamedData(value) ? value.name : defaultName
     });
     this._update =
       update ??
@@ -212,7 +237,7 @@ export class NamedNumber extends NamedValue implements INamedNumber {
           ? this.formula.evaluatedValue
           : Number(newValue as number);
       });
-    if (isData(value)) {
+    if (isNamedData(value)) {
       this._value = Number(value.value);
       this.formula = value.formula ? new Formula(value.formula) : undefined;
     } else {
@@ -225,12 +250,13 @@ export class NamedNumber extends NamedValue implements INamedNumber {
 
   getData(state: GDState): IDataNumber {
     return {
-      name: this.name,
+      ...super.getDataBase(),
       value: this.getValueWithFormula(state.formulae),
       formula: this.formula?.getData()
     };
   }
 }
+
 export class NamedString
   extends NamedPrimitive<string>
   implements INamedString {}
@@ -239,13 +265,13 @@ export class NamedBoolean
   implements INamedBoolean {}
 
 export function isNamedString(value: INamedValue): value is NamedString {
-  return value.className === 'string';
+  return value.className === 'NamedString';
 }
 export function isNamedNumber(value: INamedValue): value is NamedNumber {
-  return value.className === 'number';
+  return value.className === 'NamedNumber';
 }
 export function isNamedBoolean(value: INamedValue): value is NamedBoolean {
-  return value.className === 'boolean';
+  return value.className === 'NamedBoolean';
 }
 
 export class NamedBooleanOrUndefined
@@ -264,24 +290,29 @@ export class NamedBooleanOrUndefined
     this._update(newValue);
   }
 
-  constructor(params: INamedPrimitiveConstructor<boolean | undefined>) {
+  constructor(params: {
+    name: string;
+    value: boolean | undefined | IData<boolean | undefined>;
+    update?: (newValue: boolean | undefined) => void;
+    parent: IBidirectionalNode;
+  }) {
     const {name: defaultName, value, update} = params;
     super({
-      className: typeof value,
+      className: 'NamedBooleanOrUndefined',
       ...params,
-      name: isData(value) ? value.name : defaultName
+      name: isNamedData(value) ? value.name : defaultName
     });
     this._update =
       update ??
       ((newValue: boolean | undefined) => {
         this._value = newValue;
       });
-    this._value = isData(value) ? value.value : value;
+    this._value = isNamedData(value) ? value.value : value;
   }
 
   getData(): IData<boolean | undefined> {
     return {
-      name: this.name,
+      ...super.getDataBase(),
       value: this.value
     };
   }
@@ -290,21 +321,14 @@ export class NamedBooleanOrUndefined
 export function isNamedBooleanOrUndefined(
   value: INamedValue
 ): value is NamedBooleanOrUndefined {
-  return value.className === 'boolean|undefined';
+  return value.className === 'NamedBooleanOrUndefined';
 }
 
-type FVector3 = {
+type FunctionVector3 = {
   x: number | string;
   y: number | string;
   z: number | string;
 };
-
-interface INamedVector3Constructor {
-  name: string;
-  parent: IElement;
-  value?: FVector3 | IDataVector3;
-  update?: (newValue: FVector3) => this;
-}
 
 export class NamedVector3 extends NamedValue implements INamedVector3 {
   x: NamedNumber;
@@ -315,7 +339,7 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
 
   pointOffsetTools: IPointOffsetTool[] = [];
 
-  private _update: (newValue: FVector3) => void;
+  private _update: (newValue: FunctionVector3) => void;
 
   get value(): Vector3 {
     const org = this.originalValue;
@@ -334,7 +358,7 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
     return new Vector3(this.x.value, this.y.value, this.z.value);
   }
 
-  setStringValue(newValue: FVector3) {
+  setStringValue(newValue: FunctionVector3) {
     this._update(newValue);
   }
 
@@ -346,63 +370,68 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
     };
   }
 
-  constructor(params: INamedVector3Constructor) {
+  constructor(params: {
+    name: string;
+    parent: IBidirectionalNode;
+    value?: FunctionVector3 | IDataVector3;
+    update?: (newValue: FunctionVector3) => void;
+  }) {
     const {name: defaultName, value, update} = params;
     super({
-      className: 'Vector3',
+      className: 'NamedVector3',
       ...params,
-      name: isData(value) ? value.name : defaultName
+      name: isNamedData(value) ? value.name : defaultName
     });
     this._update =
       update ??
-      ((newValue: FVector3) => {
+      ((newValue: FunctionVector3) => {
         this.x = new NamedNumber({
           name: `${this.name}_X`,
           value: newValue.x,
-          parent: this.parent
+          parent: this
         });
         this.y = new NamedNumber({
           name: `${this.name}_Y`,
           value: newValue.y,
-          parent: this.parent
+          parent: this
         });
         this.z = new NamedNumber({
           name: `${this.name}_Z`,
           value: newValue.z,
-          parent: this.parent
+          parent: this
         });
       });
     this.x = new NamedNumber({
       name: `${this.name}_X`,
       value: 0,
-      parent: this.parent
+      parent: this
     });
     this.y = new NamedNumber({
       name: `${this.name}_Y`,
       value: 0,
-      parent: this.parent
+      parent: this
     });
     this.z = new NamedNumber({
       name: `${this.name}_Z`,
       value: 0,
-      parent: this.parent
+      parent: this
     });
     if (value) {
-      if (isData(value)) {
+      if (isNamedData(value)) {
         this.x = new NamedNumber({
           name: `${this.name}_X`,
           value: value.x,
-          parent: this.parent
+          parent: this
         });
         this.y = new NamedNumber({
           name: `${this.name}_Y`,
           value: value.y,
-          parent: this.parent
+          parent: this
         });
         this.z = new NamedNumber({
           name: `${this.name}_Z`,
           value: value.z,
-          parent: this.parent
+          parent: this
         });
         if (value.pointOffsetTools) {
           this.pointOffsetTools = value.pointOffsetTools.map((tool) =>
@@ -417,7 +446,7 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
 
   getData(state: GDState): IDataVector3 {
     return {
-      name: this.name,
+      ...super.getDataBase(),
       x: this.x.getData(state),
       y: this.y.getData(state),
       z: this.z.getData(state),
@@ -429,14 +458,15 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
 }
 
 export function isNamedVector3(value: INamedValue): value is NamedVector3 {
-  return value.className === 'Vector3';
+  return value.className === 'NamedVector3';
 }
 
-interface INamedMatrix3Constructor {
-  name: string;
-  parent: IElement;
-  value?: IDataMatrix3 | Matrix3;
-  update?: (newValue: Matrix3) => this;
+export function getDummyVector3() {
+  return new NamedVector3({
+    name: 'temp',
+    parent: getDummyElement(),
+    value: {x: 0, y: 0, z: 0}
+  });
 }
 
 export class NamedMatrix3 extends NamedValue implements INamedMatrix3 {
@@ -452,12 +482,17 @@ export class NamedMatrix3 extends NamedValue implements INamedMatrix3 {
     this._update(newValue);
   }
 
-  constructor(params: INamedMatrix3Constructor) {
+  constructor(params: {
+    name: string;
+    parent: IBidirectionalNode;
+    value?: IDataMatrix3 | Matrix3;
+    update?: (newValue: Matrix3) => void;
+  }) {
     const {name: defaultName, value, update} = params;
     super({
       className: 'Matrix3',
       ...params,
-      name: isData(value) ? value.name : defaultName
+      name: isNamedData(value) ? value.name : defaultName
     });
     this._update =
       update ??
@@ -467,14 +502,14 @@ export class NamedMatrix3 extends NamedValue implements INamedMatrix3 {
     this._value = new Matrix3();
     if (value) {
       this._value.elements = {...value.elements};
-      if (isData(value)) this.name = value.name;
+      if (isNamedData(value)) this.name = value.name;
     }
   }
 
   getData(): IDataMatrix3 {
     const e = this.value.elements;
     return {
-      name: this.name,
+      ...super.getDataBase(),
       elements: [e[0], e[1], e[2], e[3], e[4], e[5], e[6], e[7], e[8]]
     };
   }
@@ -482,14 +517,6 @@ export class NamedMatrix3 extends NamedValue implements INamedMatrix3 {
 
 export function isNamedMatrix3(value: INamedValue): value is NamedMatrix3 {
   return value.className === 'Matrix3';
-}
-
-export function getDummyVector3() {
-  return new NamedVector3({
-    name: 'temp',
-    parent: getDummyElement(),
-    value: {x: 0, y: 0, z: 0}
-  });
 }
 
 export function getPointOffsetTool(
@@ -509,17 +536,14 @@ export function getPointOffsetTool(
 export const listPointOffsetTools = ['DeltaXYZ', 'DirectionLength'] as const;
 
 function getPOTName(
-  name: string,
-  parent: INamedVector3,
+  parent: IPointOffsetTool,
   value: number | string | IDataNumber,
   valueName: string
 ) {
   return new NamedNumber({
-    name: isData(value)
-      ? name
-      : `pointOffsetTool_${name}_${valueName}_${parent.name}`,
+    name: isNamedData(value) ? value.name : `${parent.name}_${valueName}`,
     value,
-    parent: parent.parent
+    parent
   });
 }
 
@@ -527,12 +551,11 @@ export interface IDataDeltaXYZ extends IDataPointOffsetTool {
   dx: IDataNumber;
   dy: IDataNumber;
   dz: IDataNumber;
-  className: 'IDataDeltaXYZ';
 }
 
 export function isDataDeltaXYZ(data: any): data is IDataDeltaXYZ {
   try {
-    return data.className === 'IDataDeltaXYZ';
+    return data.isDataPointOffsetTool && data.className === 'DeltaXYZ';
   } catch (e: any) {
     return false;
   }
@@ -542,15 +565,54 @@ export function isDeltaXYZ(tool: IPointOffsetTool): tool is DeltaXYZ {
   return tool.className === 'DeltaXYZ';
 }
 
-export class DeltaXYZ implements IPointOffsetTool {
-  isPointOffsetTool = true as const;
+abstract class PointOffsetTool implements IPointOffsetTool {
+  readonly isPointOffsetTool = true as const;
 
-  className = 'DeltaXYZ' as const;
+  readonly className: string;
+
+  readonly parent: INamedVector3;
+
+  readonly nodeID: string;
 
   name: string;
 
-  parent: INamedVector3;
+  get absPath(): string {
+    return `${this.nodeID}@${this.parent.absPath}`;
+  }
 
+  abstract getData(state: GDState): IDataPointOffsetTool;
+
+  abstract getOffsetVector(): {dx: number; dy: number; dz: number};
+
+  getDataBase() {
+    return {
+      className: this.className,
+      isDataPointOffsetTool: true,
+      name: this.name,
+      absPath: this.absPath,
+      nodeID: this.nodeID
+    };
+  }
+
+  constructor(params: {
+    value:
+      | {
+          name: string;
+        }
+      | IDataPointOffsetTool;
+    parent: INamedVector3;
+    className: string;
+  }) {
+    const {className, parent, value} = params;
+    const {name} = value;
+    this.className = className;
+    this.parent = parent;
+    this.name = name;
+    this.nodeID = uuidv1();
+  }
+}
+
+export class DeltaXYZ extends PointOffsetTool implements IPointOffsetTool {
   dx: NamedNumber;
 
   dy: NamedNumber;
@@ -568,13 +630,15 @@ export class DeltaXYZ implements IPointOffsetTool {
       | IDataDeltaXYZ;
     parent: INamedVector3;
   }) {
-    const {value, parent} = props;
-    const {name, dx, dy, dz} = value;
-    this.name = name;
-    this.parent = parent;
-    this.dx = getPOTName(name, parent, dx, 'dx');
-    this.dy = getPOTName(name, parent, dy, 'dy');
-    this.dz = getPOTName(name, parent, dz, 'dz');
+    super({
+      ...props,
+      className: 'DeltaXYZ'
+    });
+    const {value} = props;
+    const {dx, dy, dz} = value;
+    this.dx = getPOTName(this, dx, 'dx');
+    this.dy = getPOTName(this, dy, 'dy');
+    this.dz = getPOTName(this, dz, 'dz');
   }
 
   getOffsetVector(): {dx: number; dy: number; dz: number} {
@@ -587,9 +651,7 @@ export class DeltaXYZ implements IPointOffsetTool {
 
   getData(state: GDState): IDataDeltaXYZ {
     return {
-      name: this.name,
-      isDataPointOffsetTool: true,
-      className: 'IDataDeltaXYZ',
+      ...super.getDataBase(),
       dx: this.dx.getData(state),
       dy: this.dy.getData(state),
       dz: this.dz.getData(state)
@@ -610,14 +672,11 @@ export interface IDataDirectionLength extends IDataPointOffsetTool {
   ny: IDataNumber;
   nz: IDataNumber;
   l: IDataNumber;
-  className: 'IDataDirectionLength';
 }
 
-export function isDataDirectionLength(
-  data: IDataPointOffsetTool
-): data is IDataDirectionLength {
+export function isDataDirectionLength(data: any): data is IDataDirectionLength {
   try {
-    return data.className === 'IDataDirectionLength';
+    return data.isDataPointOffsetTool && data.className === 'DirectionLength';
   } catch (e: any) {
     return false;
   }
@@ -629,15 +688,10 @@ export function isDirectionLength(
   return tool.className === 'DirectionLength';
 }
 
-export class DirectionLength implements IPointOffsetTool {
-  isPointOffsetTool = true as const;
-
-  className = 'DirectionLength' as const;
-
-  name: string;
-
-  parent: INamedVector3;
-
+export class DirectionLength
+  extends PointOffsetTool
+  implements IPointOffsetTool
+{
   nx: NamedNumber;
 
   ny: NamedNumber;
@@ -658,14 +712,17 @@ export class DirectionLength implements IPointOffsetTool {
       | IDataDirectionLength;
     parent: INamedVector3;
   }) {
-    const {value, parent} = props;
-    const {name, nx, ny, nz, l} = value;
-    this.name = name;
-    this.parent = parent;
-    this.nx = getPOTName(name, parent, nx, 'nx');
-    this.ny = getPOTName(name, parent, ny, 'ny');
-    this.nz = getPOTName(name, parent, nz, 'nz');
-    this.l = getPOTName(name, parent, l, 'l');
+    super({
+      ...props,
+      className: 'DirectionLength'
+    });
+
+    const {value} = props;
+    const {nx, ny, nz, l} = value;
+    this.nx = getPOTName(this, nx, 'nx');
+    this.ny = getPOTName(this, ny, 'ny');
+    this.nz = getPOTName(this, nz, 'nz');
+    this.l = getPOTName(this, l, 'l');
   }
 
   getOffsetVector(): {dx: number; dy: number; dz: number} {
@@ -683,9 +740,7 @@ export class DirectionLength implements IPointOffsetTool {
 
   getData(state: GDState): IDataDirectionLength {
     return {
-      name: this.name,
-      isDataPointOffsetTool: true,
-      className: 'IDataDirectionLength',
+      ...super.getDataBase(),
       nx: this.nx.getData(state),
       ny: this.ny.getData(state),
       nz: this.nz.getData(state),

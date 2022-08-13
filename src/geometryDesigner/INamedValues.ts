@@ -1,51 +1,11 @@
 import {IDataFormula} from '@gd/IFormula';
-import {IElement} from '@gd/IElements';
 import {Vector3, Matrix3} from 'three';
 import {GDState} from '@store/reducers/dataGeometryDesigner';
+import {INode, IBidirectionalNode} from './INode';
 
-export const isData = (params: any): params is INamedData => {
-  try {
-    return 'name' in params;
-  } catch (e: any) {
-    return false;
-  }
-};
-
-export interface INamedData {
-  name: string;
-}
-
-export interface IData<T> extends INamedData {
-  value: T;
-}
-
-export interface IDataNumber extends IData<number> {
-  formula?: IDataFormula;
-}
-
-export interface IDataVector3 extends INamedData {
-  x: IDataNumber;
-  y: IDataNumber;
-  z: IDataNumber;
-  pointOffsetTools?: IDataPointOffsetTool[];
-}
-
-export interface IDataMatrix3 extends INamedData {
-  elements: [
-    number,
-    number,
-    number,
-    number,
-    number,
-    number,
-    number,
-    number,
-    number
-  ];
-}
-
-export interface INamedValue {
-  readonly parent: IElement;
+export interface INamedValue extends IBidirectionalNode {
+  isNamedValue: boolean;
+  readonly parent: IBidirectionalNode;
   readonly className: string;
   readonly nodeID: string;
   readonly absPath: string;
@@ -55,12 +15,26 @@ export interface INamedValue {
   // update(newValue: unknown): this;
 }
 
-export interface INamedNumber extends INamedValue {
-  value: number;
-  getData(state: GDState): IDataNumber;
-  getStringValue(): string;
-  setValue(newValue: string | number): void;
+export const isNameValue = (params: any): params is INamedValue => {
+  try {
+    return 'isNamedValue' in params;
+  } catch (e) {
+    return false;
+  }
+};
+
+export interface INamedData extends INode {
+  isNamedData: boolean;
+  name: string;
 }
+
+export const isNamedData = (params: any): params is INamedData => {
+  try {
+    return 'isNamedData' in params;
+  } catch (e) {
+    return false;
+  }
+};
 
 export interface INamedString extends INamedValue {
   value: string;
@@ -75,6 +49,21 @@ export interface INamedBoolean extends INamedValue {
 export interface INamedBooleanOrUndefined extends INamedValue {
   value: boolean | undefined;
   getData(state: GDState): IData<boolean | undefined>;
+}
+
+export interface IData<T> extends INamedData {
+  value: T;
+}
+
+export interface INamedNumber extends INamedValue {
+  value: number;
+  getData(state: GDState): IDataNumber;
+  getStringValue(): string;
+  setValue(newValue: string | number): void;
+}
+
+export interface IDataNumber extends IData<number> {
+  formula?: IDataFormula;
 }
 
 export interface INamedVector3 extends INamedValue {
@@ -93,21 +82,46 @@ export interface INamedVector3 extends INamedValue {
   pointOffsetTools?: IPointOffsetTool[];
 }
 
+export interface IDataVector3 extends INamedData {
+  x: IDataNumber;
+  y: IDataNumber;
+  z: IDataNumber;
+  pointOffsetTools?: IDataPointOffsetTool[];
+}
+
 export interface INamedMatrix3 extends INamedValue {
   value: Matrix3;
   getData(state: GDState): IDataMatrix3;
 }
 
-export interface IDataPointOffsetTool {
+export interface IDataMatrix3 extends INamedData {
+  elements: [
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number
+  ];
+}
+
+export interface IDataPointOffsetTool extends INode {
   readonly isDataPointOffsetTool: boolean;
   readonly className: string;
+  readonly absPath: string;
+  readonly nodeID: string;
   name: string;
 }
 
-export interface IPointOffsetTool {
+export interface IPointOffsetTool extends IBidirectionalNode {
+  name: string;
   readonly isPointOffsetTool: boolean;
   readonly className: string;
-  name: string;
+  readonly absPath: string;
+  readonly nodeID: string;
   readonly parent: INamedVector3;
   getOffsetVector(): {dx: number; dy: number; dz: number};
   getData(state: GDState): IDataPointOffsetTool;

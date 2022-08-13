@@ -70,7 +70,7 @@ export default function Vector(props: Props) {
     }),
     onSubmit: (values) => {
       vector.name = values.name;
-      dispatch(updateAssembly({element: vector.parent}));
+      dispatch(updateAssembly(vector));
       setRename(false);
     }
   });
@@ -89,7 +89,7 @@ export default function Vector(props: Props) {
     }),
     onSubmit: (values) => {
       vector.setStringValue(values);
-      dispatch(updateAssembly({element: vector.parent}));
+      dispatch(updateAssembly(vector));
     }
   });
 
@@ -143,13 +143,13 @@ export default function Vector(props: Props) {
       })
     );
     vector.pointOffsetTools = tools;
-    dispatch(updateAssembly({element: vector.parent}));
+    dispatch(updateAssembly(vector));
   };
 
   const handlePointOffsetToolDelete = () => {
     const tools = vector.pointOffsetTools ?? [];
     vector.pointOffsetTools = tools.filter((tool) => tool.name !== selected);
-    dispatch(updateAssembly({element: vector.parent}));
+    dispatch(updateAssembly(vector));
     setSelected('');
   };
 

@@ -74,7 +74,7 @@ const VisibilityControl = (props: VisibilityControlProps) => {
       const instance = getElementByPath(assembly, element.absPath);
       if (instance) {
         instance.visible.value = event.target.checked;
-        dispatch(updateAssembly({element: instance}));
+        dispatch(updateAssembly(instance));
       }
     }
   };

@@ -68,7 +68,7 @@ export default function AArmConfig(params: Params) {
               removable
               onRemove={() => {
                 element.fixedPoints.splice(i, 1);
-                dispatch(updateAssembly({element}));
+                dispatch(updateAssembly(element));
               }}
             />
           ))}
@@ -99,7 +99,7 @@ export default function AArmConfig(params: Params) {
                       value: {x: 0, y: 0, z: 0}
                     })
                   );
-                  dispatch(updateAssembly({element}));
+                  dispatch(updateAssembly(element));
                 }}
               >
                 <AddBoxIcon />
@@ -120,7 +120,7 @@ export default function AArmConfig(params: Params) {
               removable
               onRemove={() => {
                 element.points.splice(i, 1);
-                dispatch(updateAssembly({element}));
+                dispatch(updateAssembly(element));
               }}
             />
           ))}
@@ -151,7 +151,7 @@ export default function AArmConfig(params: Params) {
                       value: {x: 0, y: 0, z: 0}
                     })
                   );
-                  dispatch(updateAssembly({element}));
+                  dispatch(updateAssembly(element));
                 }}
               >
                 <AddBoxIcon />

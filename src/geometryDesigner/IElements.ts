@@ -11,6 +11,7 @@ import {
   INamedBooleanOrUndefined
 } from '@gd/INamedValues';
 import {GDState} from '@store/reducers/dataGeometryDesigner';
+import {INode, IBidirectionalNode} from './INode';
 
 export type Radian = number;
 export type ElementID = number;
@@ -70,7 +71,8 @@ function getElementByPathCore(
   return element;
 }
 
-export interface IElement {
+export interface IElement extends IBidirectionalNode {
+  readonly isElement: boolean;
   readonly className: string;
   readonly name: INamedString;
   readonly inertialTensor: INamedMatrix3;
@@ -90,7 +92,8 @@ export interface IElement {
   readonly initialPosition: INamedVector3;
 }
 
-export interface IDataElement {
+export interface IDataElement extends INode {
+  isDataElement: boolean;
   className: string;
   name: IData<string>;
   inertialTensor: IDataMatrix3;
@@ -194,13 +197,11 @@ export interface IRackAndPinion extends IElement {
   dlPerRad: Radian;
 }
 
-export const isElement = (
-  element: IElement | IDataElement
-): element is IElement => 'getNodes' in element;
+export const isElement = (element: INode): element is IElement =>
+  'isElement' in element;
 
-export const isDataElement = (
-  element: IElement | IDataElement
-): element is IDataElement => !('getNodes' in element);
+export const isDataElement = (element: INode): element is IDataElement =>
+  'isDataElement' in element;
 
 export const isBar = (element: IElement): element is IBar =>
   element.className === 'Bar';

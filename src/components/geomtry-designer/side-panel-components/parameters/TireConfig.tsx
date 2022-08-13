@@ -83,7 +83,29 @@ export default function TireConfig(params: Params) {
             value={element.toLeftBearing}
             unit="mm"
           />
-          <Scalar value={element.toRightBearing} unit="mm" />
+          <Scalar
+            onFocusChanged={(focus) => {
+              if (focus)
+                dispatch(
+                  setSelectedPoint({
+                    point: getDataVector3(
+                      trans(
+                        element.rightBearing,
+                        element.position.value,
+                        element.rotation.value,
+                        coMatrix
+                      )
+                    )
+                  })
+                );
+
+              return () => {
+                if (!focus) dispatch(setSelectedPoint({point: null}));
+              };
+            }}
+            value={element.toRightBearing}
+            unit="mm"
+          />
         </AccordionDetails>
       </Accordion>
       <Accordion

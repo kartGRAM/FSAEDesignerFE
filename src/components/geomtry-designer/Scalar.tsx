@@ -18,7 +18,7 @@ export interface Props {
   unit: string;
   removable?: boolean;
   onRemove?: () => void;
-  onFocusChanged?: (focus: boolean) => void;
+  onFocusChanged?: (focus: boolean) => () => void;
 }
 
 export default function Scalar(props: Props) {
@@ -43,7 +43,7 @@ export default function Scalar(props: Props) {
     }),
     onSubmit: (values) => {
       value.name = values.name;
-      dispatch(updateAssembly({element: value.parent}));
+      dispatch(updateAssembly(value));
       setRename(false);
     }
   });
@@ -58,12 +58,13 @@ export default function Scalar(props: Props) {
     }),
     onSubmit: (values) => {
       value.setValue(values.value);
-      dispatch(updateAssembly({element: value.parent}));
+      dispatch(updateAssembly(value));
     }
   });
 
+  // eslint-disable-next-line consistent-return
   React.useEffect(() => {
-    if (onFocusChanged) onFocusChanged(focused);
+    if (onFocusChanged) return onFocusChanged(focused);
   }, [focused, value]);
 
   const ref = React.useRef<HTMLInputElement>(null);

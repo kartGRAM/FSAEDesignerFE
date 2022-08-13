@@ -110,7 +110,7 @@ export const DirectionLength = (props: Props) => {
       // eslint-disable-next-line no-empty
       if (values.apply) {
         vector.pointOffsetTools![indexOfTool] = tool;
-        dispatch(updateAssembly({element: vector.parent}));
+        dispatch(updateAssembly(vector));
         onClose();
       }
     }

@@ -12,6 +12,7 @@ import {
 import {AtLeast1, AtLeast2} from '@app/utils/atLeast';
 import {v1 as uuidv1} from 'uuid';
 import {GDState} from '@store/reducers/dataGeometryDesigner';
+import {getRootNode} from './INode';
 import {
   Millimeter,
   Joint,
@@ -19,6 +20,7 @@ import {
   NodeID,
   NodeWithPath,
   IElement,
+  isElement,
   IDataElement,
   IAssembly,
   IDataAssembly,
@@ -85,6 +87,8 @@ const isDataElement = (params: any): params is IDataElement =>
   'absPath' in params;
 
 export abstract class Element implements IElement {
+  isElement = true;
+
   _nodeID: string;
 
   name: NamedString;
@@ -100,13 +104,18 @@ export abstract class Element implements IElement {
   }
 
   getRoot(): IAssembly | null {
-    let assembly: IAssembly | null = this.parent;
-    if (assembly) {
-      while (assembly.parent !== null) {
-        assembly = assembly.parent;
-      }
-    } else if (isAssembly(this)) return this;
-    return assembly;
+    const root = getRootNode(this);
+    if (root) {
+      if (isElement(root) && isAssembly(root)) return root;
+    }
+    return null;
+    // let assembly: IAssembly | null = this.parent;
+    // if (assembly) {
+    // while (assembly.parent !== null) {
+    // assembly = assembly.parent;
+    // }
+    // } else if (isAssembly(this)) return this;
+    // return assembly;
   }
 
   constructor(params: {name: string} | IDataElement) {
@@ -136,14 +145,6 @@ export abstract class Element implements IElement {
 
   abstract set rotation(mat: NamedMatrix3);
 
-  /* _values: {[index: string]: INamedValue} = {};
-
-  registerNamedValue<T extends INamedValue>(value: T, override = false): void {
-    if (!override && value.name in this._values)
-      throw new Error('Elementの変数名が被っている');
-    this._values[value.name] = value;
-  } */
-
   abstract get className(): string;
 
   abstract get visible(): NamedBooleanOrUndefined;
@@ -172,6 +173,7 @@ export abstract class Element implements IElement {
 
   getDataElementBase(state: GDState): IDataElement {
     return {
+      isDataElement: true,
       className: this.className,
       name: this.name.getData(state),
       inertialTensor: this.inertialTensor.getData(),
@@ -432,6 +434,10 @@ export class Assembly extends Element implements IAssembly {
 }
 
 export class Frame extends Assembly {
+  get className(): string {
+    return 'Frame';
+  }
+
   constructor(name: string, children: IElement[]) {
     const joints: Joint[] = [];
     super({name, children, joints});
