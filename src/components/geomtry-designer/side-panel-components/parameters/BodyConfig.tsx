@@ -56,8 +56,8 @@ export default function AArmConfig(params: Params) {
         <AccordionDetails sx={{padding: 0}}>
           <Divider textAlign="left">Fixed Points</Divider>
           <Typography variant="caption" display="block" sx={{pl: 2}}>
-            List here the fixed points for unit testing, such as I/F with the
-            parent component.
+            List here the fixed points for component testing, such as I/F with
+            the parent component.
           </Typography>
           {element.fixedPoints.map((point, i) => (
             <Vector
@@ -108,8 +108,8 @@ export default function AArmConfig(params: Params) {
           </Toolbar>
           <Divider textAlign="left">Non Fixed Points</Divider>
           <Typography variant="caption" display="block" sx={{pl: 2}}>
-            List here the points that are I/F with the child components or the
-            points to use to drive the unit.
+            List here points that are I/F with child components or points to use
+            actuating this component.
           </Typography>
           {element.points.map((point, i) => (
             <Vector
