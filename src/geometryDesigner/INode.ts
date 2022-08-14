@@ -5,6 +5,7 @@ export interface INode {
 }
 
 export interface IBidirectionalNode extends INode {
+  getName(): string;
   readonly parent: IBidirectionalNode | null;
 }
 

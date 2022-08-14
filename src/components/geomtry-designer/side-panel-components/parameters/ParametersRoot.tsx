@@ -7,7 +7,8 @@ import {
   isBar,
   isBellCrank,
   isBody,
-  isTire
+  isTire,
+  isAssembly
 } from '@gd/IElements';
 import {getAssembly} from '@gd/Elements';
 import AArmConfig from './AArmConfig';
@@ -15,6 +16,7 @@ import BarConfig from './BarConfig';
 import BellCrankConfig from './BellCrankConfig';
 import BodyConfig from './BodyConfig';
 import TireConfig from './TireConfig';
+import AssemblyConfig from './AssemblyConfig';
 
 export default function ParametersRoot() {
   const path = useSelector(
@@ -36,6 +38,8 @@ export default function ParametersRoot() {
     component = <BodyConfig element={element} key={element.absPath} />;
   } else if (element && isTire(element)) {
     component = <TireConfig element={element} key={element.absPath} />;
+  } else if (element && isAssembly(element)) {
+    component = <AssemblyConfig assembly={element} key={element.absPath} />;
   }
 
   return component;

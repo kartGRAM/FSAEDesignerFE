@@ -89,6 +89,10 @@ abstract class NamedValue implements INamedValue {
 
   name: string;
 
+  getName(): string {
+    return this.name;
+  }
+
   get absPath(): string {
     return `${this.nodeID}@${this.parent.absPath}`;
   }
@@ -581,6 +585,10 @@ abstract class PointOffsetTool implements IPointOffsetTool {
   readonly nodeID: string;
 
   name: string;
+
+  getName(): string {
+    return this.name;
+  }
 
   get absPath(): string {
     return `${this.nodeID}@${this.parent.absPath}`;

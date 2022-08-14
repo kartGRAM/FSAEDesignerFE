@@ -89,6 +89,10 @@ export abstract class Element implements IElement {
 
   _nodeID: string;
 
+  getName(): string {
+    return this.name.value;
+  }
+
   name: NamedString;
 
   parent: IAssembly | null = null;
@@ -271,7 +275,17 @@ export class Assembly extends Element implements IAssembly {
     // throw Error('Not Supported Exception');
   }
 
-  getJointedNodeIDs(element: IElement): NodeID[] {
+  getJointsRecursive(): Joint[] {
+    let joints: Joint[] = [...this.joints];
+    this.children.forEach((child) => {
+      if (isAssembly(child)) {
+        joints = [...joints, ...child.getJointsRecursive()];
+      }
+    });
+    return joints;
+  }
+
+  private getJointedNodeIDs(element: IElement): NodeID[] {
     const joints = this.joints.filter(
       (joint) =>
         joint.lhs.parent.nodeID === element.nodeID ||
@@ -338,7 +352,7 @@ export class Assembly extends Element implements IAssembly {
     });
   }
 
-  getJoints(): INamedVector3[] {
+  getJointedPoints(): INamedVector3[] {
     let points: INamedVector3[] = [];
     this._children.forEach((child) => {
       const pointsOfChild = child.getPoints();

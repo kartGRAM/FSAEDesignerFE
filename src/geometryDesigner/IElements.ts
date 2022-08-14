@@ -103,7 +103,8 @@ export interface IDataElement extends INode {
 export interface IAssembly extends IElement {
   children: IElement[];
   joints: Joint[];
-  getJoints(): INamedVector3[];
+  getJointedPoints(): INamedVector3[];
+  getJointsRecursive(): Joint[];
 
   getDataElement(state: GDState): IDataAssembly;
 }
