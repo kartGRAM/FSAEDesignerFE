@@ -10,7 +10,7 @@ import {
 } from '@gd/NamedValues';
 import {INamedVector3} from '@gd/INamedValues';
 import {AtLeast1, AtLeast2} from '@app/utils/atLeast';
-import {v1 as uuidv1} from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {getRootNode} from './INode';
 import {
@@ -81,8 +81,13 @@ export function getDummyElement(): IAssembly {
   });
 }
 
-const isDataElement = (params: any): params is IDataElement =>
-  'absPath' in params;
+const isDataElement = (params: any): params is IDataElement => {
+  try {
+    return 'isDataElement' in params;
+  } catch {
+    return false;
+  }
+};
 
 export abstract class Element implements IElement {
   isElement = true;
@@ -91,6 +96,12 @@ export abstract class Element implements IElement {
 
   getName(): string {
     return this.name.value;
+  }
+
+  getNamedAbsPath(): string {
+    return `${this.getName()}${
+      this.parent ? `@${this.parent.getNamedAbsPath()}` : ''
+    }`;
   }
 
   name: NamedString;
@@ -121,7 +132,7 @@ export abstract class Element implements IElement {
   }
 
   constructor(params: {name: string} | IDataElement) {
-    this._nodeID = uuidv1(); // ⇨ '2c5ea4c0-4067-11e9-8bad-9b1deb4d3b7d'
+    this._nodeID = uuidv4(); // ⇨ '2c5ea4c0-4067-11e9-8bad-9b1deb4d3b7d'
 
     const {name} = params;
     this.name = new NamedString({
@@ -285,18 +296,11 @@ export class Assembly extends Element implements IAssembly {
     return joints;
   }
 
-  private getJointedNodeIDs(element: IElement): NodeID[] {
-    const joints = this.joints.filter(
-      (joint) =>
-        joint.lhs.parent.nodeID === element.nodeID ||
-        joint.rhs.parent.nodeID === element.nodeID
-    );
-    const jointedPoints = joints.map((joint) =>
-      joint.lhs.parent.nodeID === element.nodeID
-        ? joint.lhs.nodeID
-        : joint.rhs.nodeID
-    );
-    return jointedPoints;
+  private getJointedNodeIDs(): NodeID[] {
+    return this.joints.reduce((prev, current): NodeID[] => {
+      prev.push(current.lhs.nodeID, current.rhs.nodeID);
+      return prev;
+    }, [] as NodeID[]);
   }
 
   getAllPointsOfChildren(): INamedVector3[] {
@@ -309,12 +313,23 @@ export class Assembly extends Element implements IAssembly {
 
   getPoints(): INamedVector3[] {
     let points: INamedVector3[] = [];
+    const jointedNodeIDs = this.getJointedNodeIDs();
     this._children.forEach((child) => {
-      const pointsOfChild = child.getPoints();
-      const jointedNodeIDs = this.getJointedNodeIDs(child);
-      const notJointed = pointsOfChild.filter(
-        (p) => !jointedNodeIDs.includes(p.nodeID)
-      );
+      const notJointed = child
+        .getPoints()
+        .filter((p) => !jointedNodeIDs.includes(p.nodeID));
+      points = [...points, ...notJointed];
+    });
+    return points;
+  }
+
+  getJointedPoints(): INamedVector3[] {
+    let points: INamedVector3[] = [];
+    const jointedNodeIDs = this.getJointedNodeIDs();
+    this._children.forEach((child) => {
+      const notJointed = child
+        .getPoints()
+        .filter((p) => jointedNodeIDs.includes(p.nodeID));
       points = [...points, ...notJointed];
     });
     return points;
@@ -350,19 +365,6 @@ export class Assembly extends Element implements IAssembly {
       joints,
       initialPosition
     });
-  }
-
-  getJointedPoints(): INamedVector3[] {
-    let points: INamedVector3[] = [];
-    this._children.forEach((child) => {
-      const pointsOfChild = child.getPoints();
-      const jointedNodeIDs = this.getJointedNodeIDs(child);
-      const jointedPoints = pointsOfChild.filter((p) =>
-        jointedNodeIDs.includes(p.nodeID)
-      );
-      points = [...points, ...jointedPoints];
-    });
-    return points;
   }
 
   get mass(): NamedNumber {
@@ -1287,8 +1289,8 @@ export class Tire extends Element implements ITire {
       centerOfGravity
     } = params;
 
-    this.leftBearingNodeID = uuidv1();
-    this.rightBearingNodeID = uuidv1();
+    this.leftBearingNodeID = uuidv4();
+    this.rightBearingNodeID = uuidv4();
     if (isDataElement(params)) {
       this.leftBearingNodeID = params.leftBearingNodeID;
       this.rightBearingNodeID = params.rightBearingNodeID;

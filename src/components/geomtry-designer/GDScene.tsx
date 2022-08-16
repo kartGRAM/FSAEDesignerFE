@@ -56,7 +56,7 @@ export default function GDScene() {
     // シーンを作成
     scene.current = new THREE.Scene();
     // カメラを作成
-    const camera = new THREE.PerspectiveCamera(45, 1, 500, 100000);
+    const camera = new THREE.PerspectiveCamera(45, 1, 100, 100000);
     // コントロールを作成
     const controls = new OrbitControls(camera, renderer.domElement);
     onResize({camera, renderer});
@@ -130,21 +130,39 @@ export default function GDScene() {
     const resourceType = 'Helpers' as const;
     if (scene.current) {
       dispose(resourceType, scene.current);
-      if (selectedPoint) {
-        const node = getVector3(selectedPoint);
-        const pm = track(
-          new THREE.PointsMaterial({
-            size: 30,
-            color: 0xff0000
-          }),
-          resourceType
+      if (selectedPoint && selectedPoint.length) {
+        const points = [...selectedPoint];
+        // 色でグルーピング
+        const colors: (number | undefined)[] = points.reduce(
+          (prev, current) => {
+            if (!prev.length) {
+              prev.push(current.color);
+            } else if (prev[prev.length - 1] !== current.color) {
+              prev.push(current.color);
+            }
+            return prev;
+          },
+          [] as (number | undefined)[]
         );
-        const geometry = track(
-          new THREE.BufferGeometry().setFromPoints([node]),
-          resourceType
-        );
-        const mesh = track(new THREE.Points(geometry, pm), resourceType);
-        scene.current.add(mesh);
+        // 色ごとに描写
+        colors.forEach((color) => {
+          const node = points
+            .filter((point) => point.color === color)
+            .map((point) => getVector3(point));
+          const pm = track(
+            new THREE.PointsMaterial({
+              size: 15,
+              color: color ?? 0xff0000
+            }),
+            resourceType
+          );
+          const geometry = track(
+            new THREE.BufferGeometry().setFromPoints(node),
+            resourceType
+          );
+          const mesh = track(new THREE.Points(geometry, pm), resourceType);
+          if (scene.current) scene.current.add(mesh);
+        });
       }
     }
   }, [selectedPoint]);

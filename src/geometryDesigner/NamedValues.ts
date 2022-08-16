@@ -2,7 +2,7 @@
 import {Vector3, Matrix3} from 'three';
 import {IBidirectionalNode, INode} from '@gd/INode';
 import {Assembly, getDummyElement} from '@gd/Elements';
-import {v1 as uuidv1} from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 import {Formula} from '@gd/Formula';
 import {IDataFormula} from '@gd/IFormula';
 import {
@@ -93,6 +93,10 @@ abstract class NamedValue implements INamedValue {
     return this.name;
   }
 
+  getNamedAbsPath(): string {
+    return `${this.getName()}@${this.parent.getNamedAbsPath()}`;
+  }
+
   get absPath(): string {
     return `${this.nodeID}@${this.parent.absPath}`;
   }
@@ -127,7 +131,7 @@ abstract class NamedValue implements INamedValue {
     if (value && isNamedData(value)) {
       this.nodeID = value.nodeID;
     } else {
-      this.nodeID = uuidv1();
+      this.nodeID = uuidv4();
     }
     if (nodeID) this.nodeID = nodeID;
   }
@@ -590,6 +594,10 @@ abstract class PointOffsetTool implements IPointOffsetTool {
     return this.name;
   }
 
+  getNamedAbsPath(): string {
+    return `${this.getName()}@${this.parent.getNamedAbsPath()}`;
+  }
+
   get absPath(): string {
     return `${this.nodeID}@${this.parent.absPath}`;
   }
@@ -622,7 +630,7 @@ abstract class PointOffsetTool implements IPointOffsetTool {
     this.className = className;
     this.parent = parent;
     this.name = name;
-    this.nodeID = uuidv1();
+    this.nodeID = uuidv4();
   }
 }
 

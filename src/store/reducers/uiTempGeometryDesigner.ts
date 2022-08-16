@@ -25,10 +25,14 @@ export interface GDState {
   gdSceneState: GDSceneState;
   gdDialogState: GDDialogState;
 }
+interface IDataVector3WithColor extends IDataVector3 {
+  color?: number;
+}
 
 export interface GDSceneState {
-  selectedPoint: IDataVector3 | null;
+  selectedPoint: IDataVector3WithColor[] | null;
 }
+
 export interface GDDialogState {
   formulaDialogOpen: boolean;
   openDialogOpen: boolean;
@@ -84,10 +88,15 @@ export const uitGeometryDesignerSlice = createSlice({
     setSelectedPoint: (
       state: GDState,
       action: PayloadAction<{
-        point: IDataVector3 | null;
+        point: IDataVector3WithColor[] | IDataVector3WithColor | null;
       }>
     ) => {
-      state.gdSceneState.selectedPoint = action.payload.point;
+      const {point} = action.payload;
+      if (!point) {
+        state.gdSceneState.selectedPoint = null;
+      } else if (Array.isArray(point))
+        state.gdSceneState.selectedPoint = [...point];
+      else state.gdSceneState.selectedPoint = [point];
     },
     setFormulaDialogOpen: (
       state: GDState,

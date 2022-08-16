@@ -11,12 +11,10 @@ import {createLogger} from 'redux-logger';
 import {save, load} from 'redux-localstorage-simple';
 import undoable from 'redux-undo';
 
-const uigd = undoable(
-  uiGeometryDesignerSlice.reducer /* , {
+const uigd = undoable(uiGeometryDesignerSlice.reducer, {
   undoType: 'GD_UNDO',
   redoType: 'GD_REDO'
-} */
-);
+});
 const dgd = undoable(
   dataGeometryDesignerSlice.reducer /* , {
   undoType: 'GD_UNDO',
@@ -29,6 +27,7 @@ const store = configureStore({
     auth: authSlice.reducer,
     ui: uiSlice.reducer,
     uitgd: uitGeometryDesignerSlice.reducer,
+    // uigd: uiGeometryDesignerSlice.reducer,
     uigd,
     dgd
   },

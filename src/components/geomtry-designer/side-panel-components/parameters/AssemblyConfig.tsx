@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
+import {Vector3, Matrix3} from 'three';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {IAssembly, IElement, Joint} from '@gd/IElements';
-import {INamedVector3} from '@gd/INamedValues';
+import {IAssembly, IElement, Joint, isElement} from '@gd/IElements';
+import {INamedVector3, IDataMatrix3, IDataVector3} from '@gd/INamedValues';
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '@store/store';
 import {
@@ -22,12 +23,29 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
+import AddBoxIcon from '@mui/icons-material/AddBox';
+import IndeterminateCheckBoxIcon from '@mui/icons-material/IndeterminateCheckBox';
+import Toolbar from '@mui/material/Toolbar';
+import DeleteIcon from '@mui/icons-material/Delete';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
 import {alpha} from '@mui/material/styles';
-
+import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
+// import {getNode} from '@gd/INode';
+import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
 import {NumberToRGB, toFixedNoZero} from '@app/utils/helpers';
+import {getMatrix3, getDataVector3} from '@gd/NamedValues';
 
 interface Params {
   assembly: IAssembly;
+}
+type PointPair = {
+  lhs: {parentNodeID: string; selected: number; nodeID: string} | null;
+  rhs: {parentNodeID: string; selected: number; nodeID: string} | null;
+};
+
+interface IDataVector3WithColor extends IDataVector3 {
+  color: number;
 }
 
 export default function AssemblyConfig(params: Params) {
@@ -46,6 +64,13 @@ export default function AssemblyConfig(params: Params) {
       {}
     );
 
+  const [jointsListSelected, setJointsListSelected] = React.useState<
+    number | null
+  >(null);
+  const [pointSelected, setPointSelected] = React.useState<PointPair>({
+    lhs: null,
+    rhs: null
+  });
   const dispatch = useDispatch();
   const kinematicParamsDefaultExpanded = useSelector(
     (state: RootState) =>
@@ -55,6 +80,62 @@ export default function AssemblyConfig(params: Params) {
     (state: RootState) =>
       state.uigd.present.parameterConfigState.dynamicParamsExpanded
   );
+
+  React.useEffect(() => {
+    setJointsListSelected(null);
+    setPointSelected({lhs: null, rhs: null});
+  }, [assembly.joints.length]);
+
+  const coMatrix = useSelector(
+    (state: RootState) => state.dgd.present.transCoordinateMatrix
+  );
+
+  const trans = (p: INamedVector3): Vector3 => {
+    const {parent} = p;
+    if (isElement(parent)) {
+      return parent.position.value
+        .clone()
+        .add(p.value.clone().applyMatrix3(parent.rotation.value))
+        .applyMatrix3(getMatrix3(coMatrix));
+    }
+    return p.value;
+  };
+
+  dispatch(setSelectedPoint({point: null}));
+
+  let points: IDataVector3WithColor[] = [
+    ...assembly
+      .getPoints()
+      .map((p) => ({...getDataVector3(trans(p)), color: 0x0000ff})),
+    ...assembly
+      .getJointedPoints()
+      .map((p) => ({...getDataVector3(trans(p)), color: 0xff00ff}))
+  ];
+  if (jointsListSelected !== null) {
+    const joint = assembly.joints.find(
+      (joint, idx) => idx === jointsListSelected
+    );
+    if (joint) {
+      points = [
+        ...points,
+        {...getDataVector3(trans(joint.lhs)), color: 0xff0000},
+        {...getDataVector3(trans(joint.rhs)), color: 0xff0000}
+      ];
+    }
+  }
+  if (pointSelected !== null) {
+    const tmp = assembly.getPoints();
+    const lhs = tmp.find((point) => point.nodeID === pointSelected.lhs?.nodeID);
+    const rhs = tmp.find((point) => point.nodeID === pointSelected.rhs?.nodeID);
+    if (lhs) {
+      points = [...points, {...getDataVector3(trans(lhs)), color: 0xff0000}];
+    }
+    if (rhs) {
+      points = [...points, {...getDataVector3(trans(rhs)), color: 0xff0000}];
+    }
+  }
+
+  dispatch(setSelectedPoint({point: points}));
 
   return (
     <>
@@ -78,12 +159,25 @@ export default function AssemblyConfig(params: Params) {
             offset={assembly.position.value}
             rotation={assembly.rotation.value}
           />
-          <JointsList joints={assembly.joints} />
+          <JointsList
+            assembly={assembly}
+            selected={jointsListSelected}
+            setSelected={(value) => {
+              setJointsListSelected(value);
+              setPointSelected({lhs: null, rhs: null});
+            }}
+            selectedPair={pointSelected}
+          />
           {children.map((child) => {
             return (
               <RestOfPoints
                 element={child}
                 points={restOfPointsChildren[child.nodeID]}
+                selected={pointSelected}
+                setSelected={(value) => {
+                  setPointSelected(value);
+                  setJointsListSelected(null);
+                }}
               />
             );
           })}
@@ -128,28 +222,78 @@ export default function AssemblyConfig(params: Params) {
   );
 }
 
-export function JointsList(props: {joints: Joint[]}) {
-  const {joints} = props;
+export function JointsList(props: {
+  assembly: IAssembly;
+  selected: number | null;
+  setSelected: (value: number | null) => void;
+  selectedPair: PointPair;
+}) {
+  const {assembly, selected, setSelected, selectedPair} = props;
+  const pairSelected = Boolean(selectedPair.lhs && selectedPair.rhs);
+  const {joints} = assembly;
   const enabledColorLight: number = useSelector(
     (state: RootState) => state.uigd.present.enabledColorLight
   );
+  const dispatch = useDispatch();
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
+  React.useEffect(() => {
+    if (pairSelected) buttonRef.current?.focus();
+  }, [pairSelected]);
 
-  const [selected, setSelected] = React.useState<number | null>(null);
   return (
     <Box>
-      <Typography
+      <Toolbar
         sx={{
-          flex: '1 1 100%',
-          pl: 1.5,
-          pr: 1.5,
-          pb: 0.5
+          pl: '0.8rem!important',
+          pr: '0.3rem!important',
+          pb: '0rem!important',
+          minHeight: '40px!important',
+          flex: '1'
         }}
-        color="inherit"
-        variant="subtitle1"
-        component="div"
       >
-        Jointed Points
-      </Typography>
+        <Typography
+          sx={{flex: '1 1 100%'}}
+          color="inherit"
+          variant="subtitle1"
+          component="div"
+        >
+          Jointed Points
+        </Typography>
+        {selected !== null ? (
+          <Tooltip title="Delete" sx={{flex: '1'}}>
+            <IconButton
+              onClick={() => {
+                assembly.joints = joints.filter((joint, i) => i !== selected);
+                dispatch(updateAssembly(assembly));
+              }}
+            >
+              <DeleteIcon />
+            </IconButton>
+          </Tooltip>
+        ) : null}
+        {pairSelected ? (
+          <Tooltip title="Add" sx={{flex: '1'}}>
+            <IconButton
+              onClick={() => {
+                const points = assembly.getPoints();
+                const lhs = points.find(
+                  (point) => point.nodeID === selectedPair.lhs?.nodeID
+                );
+                const rhs = points.find(
+                  (point) => point.nodeID === selectedPair.rhs?.nodeID
+                );
+                if (lhs && rhs) {
+                  assembly.joints.push({lhs, rhs});
+                  dispatch(updateAssembly(assembly));
+                }
+              }}
+              ref={buttonRef}
+            >
+              <AddBoxIcon />
+            </IconButton>
+          </Tooltip>
+        ) : null}
+      </Toolbar>
       <Paper
         elevation={6}
         sx={{
@@ -189,7 +333,7 @@ export function JointsList(props: {joints: Joint[]}) {
               {joints?.map((joint, idx) => {
                 return (
                   <TableRow
-                    key={joint.lhs.name}
+                    key={joint.lhs.nodeID}
                     sx={{
                       '&:last-child td, &:last-child th': {border: 0},
                       userSelect: 'none',
@@ -228,28 +372,59 @@ export function JointsList(props: {joints: Joint[]}) {
 export function RestOfPoints(props: {
   element: IElement;
   points: INamedVector3[];
+  selected: PointPair;
+  setSelected: (value: PointPair) => void;
 }) {
-  const {element, points} = props;
+  const {element, points, selected, setSelected} = props;
   const enabledColorLight: number = useSelector(
     (state: RootState) => state.uigd.present.enabledColorLight
   );
+  const cancel = () => {
+    if (selected.lhs?.parentNodeID === element.nodeID) {
+      selected.lhs = null;
+      setSelected({...selected});
+    }
+    if (selected.rhs?.parentNodeID === element.nodeID) {
+      selected.rhs = null;
+      setSelected({...selected});
+    }
+  };
+  const isSelected = (idx: number = -1) => {
+    return (
+      (selected.lhs?.parentNodeID === element.nodeID &&
+        (idx === -1 || selected.lhs?.selected === idx)) ||
+      (selected.rhs?.parentNodeID === element.nodeID &&
+        (idx === -1 || selected.rhs?.selected === idx))
+    );
+  };
 
-  const [selected, setSelected] = React.useState<number | null>(null);
   return (
     <Box>
-      <Typography
+      <Toolbar
         sx={{
-          flex: '1 1 100%',
-          pl: 1.5,
-          pr: 1.5,
-          pb: 0.5
+          pl: '0.8rem!important',
+          pr: '0.3rem!important',
+          pb: '0rem!important',
+          minHeight: '40px!important',
+          flex: '1'
         }}
-        color="inherit"
-        variant="subtitle1"
-        component="div"
       >
-        {element.name.value}&apos;s Points
-      </Typography>
+        <Typography
+          sx={{flex: '1 1 100%'}}
+          color="inherit"
+          variant="subtitle1"
+          component="div"
+        >
+          {element.name.value}&apos;s Points
+        </Typography>
+        {isSelected() ? (
+          <Tooltip title="Delete" sx={{flex: '1'}}>
+            <IconButton onClick={cancel}>
+              <IndeterminateCheckBoxIcon />
+            </IconButton>
+          </Tooltip>
+        ) : null}
+      </Toolbar>
       <Paper
         elevation={6}
         sx={{
@@ -277,7 +452,7 @@ export function RestOfPoints(props: {
             size="small"
             aria-label="a dense table"
           >
-            <TableHead onClick={() => setSelected(null)}>
+            <TableHead onClick={cancel}>
               <TableRow>
                 <TableCell>Name</TableCell>
                 <TableCell>Parent</TableCell>
@@ -288,17 +463,34 @@ export function RestOfPoints(props: {
               {points?.map((point, idx) => {
                 return (
                   <TableRow
-                    key={point.name}
+                    key={point.nodeID}
                     sx={{
                       '&:last-child td, &:last-child th': {border: 0},
                       userSelect: 'none',
-                      backgroundColor:
-                        selected === idx
-                          ? alpha(NumberToRGB(enabledColorLight), 0.5)
-                          : 'unset'
+                      backgroundColor: isSelected(idx)
+                        ? alpha(NumberToRGB(enabledColorLight), 0.5)
+                        : 'unset'
                     }}
                     onClick={() => {
-                      setSelected(idx);
+                      if (
+                        (!selected.lhs &&
+                          selected.rhs?.parentNodeID !== element.nodeID) ||
+                        selected.lhs?.parentNodeID === element.nodeID
+                      ) {
+                        selected.lhs = {
+                          parentNodeID: element.nodeID,
+                          selected: idx,
+                          nodeID: point.nodeID
+                        };
+                        setSelected({...selected});
+                      } else {
+                        selected.rhs = {
+                          parentNodeID: element.nodeID,
+                          selected: idx,
+                          nodeID: point.nodeID
+                        };
+                        setSelected({...selected});
+                      }
                     }}
                   >
                     <TableCell sx={{whiteSpace: 'nowrap'}}>
@@ -308,7 +500,7 @@ export function RestOfPoints(props: {
                       {point.parent.getName()}
                     </TableCell>
                     <TableCell sx={{whiteSpace: 'nowrap'}}>
-                      {point.absPath}
+                      {point.getNamedAbsPath()}
                     </TableCell>
                   </TableRow>
                 );
