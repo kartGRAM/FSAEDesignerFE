@@ -8,6 +8,7 @@ import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {IAssembly, IElement, Joint, isElement} from '@gd/IElements';
 import {INamedVector3, IDataMatrix3, IDataVector3} from '@gd/INamedValues';
+import {trans} from '@gd/Elements';
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '@store/store';
 import {
@@ -86,30 +87,21 @@ export default function AssemblyConfig(params: Params) {
     setPointSelected({lhs: null, rhs: null});
   }, [assembly.joints.length]);
 
-  const coMatrix = useSelector(
-    (state: RootState) => state.dgd.present.transCoordinateMatrix
+  const coMatrix = getMatrix3(
+    useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
   );
-
-  const trans = (p: INamedVector3): Vector3 => {
-    const {parent} = p;
-    if (isElement(parent)) {
-      return parent.position.value
-        .clone()
-        .add(p.value.clone().applyMatrix3(parent.rotation.value))
-        .applyMatrix3(getMatrix3(coMatrix));
-    }
-    return p.value;
-  };
 
   dispatch(setSelectedPoint({point: null}));
 
   let points: IDataVector3WithColor[] = [
-    ...assembly
-      .getPoints()
-      .map((p) => ({...getDataVector3(trans(p)), color: 0x0000ff})),
-    ...assembly
-      .getJointedPoints()
-      .map((p) => ({...getDataVector3(trans(p)), color: 0xff00ff}))
+    ...assembly.getPoints().map((p) => ({
+      ...getDataVector3(trans(p).applyMatrix3(coMatrix)),
+      color: 0x0000ff
+    })),
+    ...assembly.getJointedPoints().map((p) => ({
+      ...getDataVector3(trans(p).applyMatrix3(coMatrix)),
+      color: 0xff00ff
+    }))
   ];
   if (jointsListSelected !== null) {
     const joint = assembly.joints.find(
@@ -118,8 +110,14 @@ export default function AssemblyConfig(params: Params) {
     if (joint) {
       points = [
         ...points,
-        {...getDataVector3(trans(joint.lhs)), color: 0xff0000},
-        {...getDataVector3(trans(joint.rhs)), color: 0xff0000}
+        {
+          ...getDataVector3(trans(joint.lhs).applyMatrix3(coMatrix)),
+          color: 0xff0000
+        },
+        {
+          ...getDataVector3(trans(joint.rhs).applyMatrix3(coMatrix)),
+          color: 0xff0000
+        }
       ];
     }
   }
@@ -128,10 +126,16 @@ export default function AssemblyConfig(params: Params) {
     const lhs = tmp.find((point) => point.nodeID === pointSelected.lhs?.nodeID);
     const rhs = tmp.find((point) => point.nodeID === pointSelected.rhs?.nodeID);
     if (lhs) {
-      points = [...points, {...getDataVector3(trans(lhs)), color: 0xff0000}];
+      points = [
+        ...points,
+        {...getDataVector3(trans(lhs).applyMatrix3(coMatrix)), color: 0xff0000}
+      ];
     }
     if (rhs) {
-      points = [...points, {...getDataVector3(trans(rhs)), color: 0xff0000}];
+      points = [
+        ...points,
+        {...getDataVector3(trans(rhs).applyMatrix3(coMatrix)), color: 0xff0000}
+      ];
     }
   }
 

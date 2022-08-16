@@ -65,7 +65,7 @@ function getElementByPathCore(
 }
 
 export interface IElement extends IBidirectionalNode {
-  readonly isElement: boolean;
+  readonly isElement: true;
   readonly className: string;
   readonly name: INamedString;
   readonly inertialTensor: INamedMatrix3;
@@ -86,7 +86,7 @@ export interface IElement extends IBidirectionalNode {
 }
 
 export interface IDataElement extends INode {
-  isDataElement: boolean;
+  isDataElement: true;
   className: string;
   name: IData<string>;
   inertialTensor: IDataMatrix3;
@@ -101,6 +101,7 @@ export interface IDataElement extends INode {
 }
 
 export interface IAssembly extends IElement {
+  isAssembly: true;
   children: IElement[];
   joints: Joint[];
   getJointedPoints(): INamedVector3[];
@@ -110,6 +111,7 @@ export interface IAssembly extends IElement {
 }
 
 export interface IDataAssembly extends IDataElement {
+  isDataAssembly: true;
   children: IDataElement[];
   joints: DataJoint[];
 }
@@ -194,11 +196,23 @@ export interface IRackAndPinion extends IElement {
   dlPerRad: Radian;
 }
 
+export interface IFrame extends IAssembly {}
+
+export interface IDataFrame extends IDataAssembly {
+  bodyID: string;
+}
+
 export const isElement = (element: INode): element is IElement =>
   'isElement' in element;
+export const isAssembly = (element: IElement): element is IAssembly =>
+  'isAssembly' in element;
 
 export const isDataElement = (element: INode): element is IDataElement =>
   'isDataElement' in element;
+
+export const isDataAssembly = (
+  element: IDataElement
+): element is IDataAssembly => 'isDataAssembly' in element;
 
 export const isBar = (element: IElement): element is IBar =>
   element.className === 'Bar';
@@ -212,8 +226,8 @@ export const isBody = (element: IElement): element is IBody =>
   element.className === 'Body';
 export const isBellCrank = (element: IElement): element is IBellCrank =>
   element.className === 'BellCrank';
-export const isAssembly = (element: IElement): element is IAssembly =>
-  element.className === 'Assembly';
+export const isFrame = (element: IAssembly): element is IFrame =>
+  element.className === 'Frame';
 
 export const isDataBar = (element: IDataElement): element is IDataBar =>
   element.className === 'Bar';
@@ -229,6 +243,6 @@ export const isDataBody = (element: IDataElement): element is IDataBody =>
 export const isDataBellCrank = (
   element: IDataElement
 ): element is IDataBellCrank => element.className === 'BellCrank';
-export const isDataAssembly = (
-  element: IDataElement
-): element is IDataAssembly => element.className === 'Assembly';
+
+export const isDataFrame = (element: IDataAssembly): element is IDataFrame =>
+  element.className === 'Frame';

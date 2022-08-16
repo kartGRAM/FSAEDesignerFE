@@ -9,7 +9,8 @@ import {
   BellCrank,
   Body,
   Tire,
-  SpringDumper
+  SpringDumper,
+  Frame
 } from './Elements';
 
 const getLeftFrontSuspension = (): Assembly => {
@@ -259,10 +260,9 @@ const getSuspension = (): Assembly => {
   const frontSuspension = getFrontSuspension();
   const rearSuspension = getRearSuspension();
 
-  const suspensionAssy = new Assembly({
+  const suspensionAssy = new Frame({
     name: 'suspensionAssy',
-    children: [frontSuspension, rearSuspension],
-    joints: []
+    children: [frontSuspension, rearSuspension]
   });
   return suspensionAssy;
 };

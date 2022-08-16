@@ -19,11 +19,14 @@ import {
   NodeID,
   IElement,
   isElement,
+  isBody,
   IDataElement,
   IAssembly,
   IDataAssembly,
   isAssembly,
   isDataAssembly,
+  isDataFrame,
+  IDataFrame,
   IBar,
   IDataBar,
   isDataBar,
@@ -44,12 +47,25 @@ import {
   isDataTire
 } from './IElements';
 
+export const trans = (p: INamedVector3): Vector3 => {
+  const {parent} = p;
+  if (isElement(parent)) {
+    return parent.position.value
+      .clone()
+      .add(p.value.clone().applyMatrix3(parent.rotation.value));
+  }
+  return p.value;
+};
+
 export function getAssembly(assembly: IDataAssembly): IAssembly {
   return getElement(assembly) as IAssembly;
 }
 
 function getElement(element: IDataElement): IElement {
   if (isDataAssembly(element)) {
+    if (isDataFrame(element)) {
+      return new Frame(element);
+    }
     return new Assembly(element);
   }
   if (isDataBar(element)) {
@@ -90,7 +106,7 @@ const isDataElement = (params: any): params is IDataElement => {
 };
 
 export abstract class Element implements IElement {
-  isElement = true;
+  isElement = true as const;
 
   _nodeID: string;
 
@@ -133,7 +149,6 @@ export abstract class Element implements IElement {
 
   constructor(params: {name: string} | IDataElement) {
     this._nodeID = uuidv4(); // ⇨ '2c5ea4c0-4067-11e9-8bad-9b1deb4d3b7d'
-
     const {name} = params;
     this.name = new NamedString({
       name: 'name',
@@ -203,8 +218,10 @@ export abstract class Element implements IElement {
 }
 
 export class Assembly extends Element implements IAssembly {
+  isAssembly = true as const;
+
   get className(): string {
-    return 'Assembly';
+    return 'Assembly' as const;
   }
 
   _children: IElement[];
@@ -470,6 +487,7 @@ export class Assembly extends Element implements IAssembly {
     const baseData = super.getDataElementBase(state);
     const data: IDataAssembly = {
       ...baseData,
+      isDataAssembly: true,
       children: this.children.map((child) => child.getDataElement(state)),
       joints: this.joints.map((joint) => {
         return {lhs: joint.lhs.nodeID, rhs: joint.rhs.nodeID};
@@ -481,12 +499,82 @@ export class Assembly extends Element implements IAssembly {
 
 export class Frame extends Assembly {
   get className(): string {
-    return 'Frame';
+    return 'Frame' as const;
   }
 
-  constructor(name: string, children: IElement[]) {
-    const joints: Joint[] = [];
-    super({name, children, joints});
+  readonly frameBody: IBody;
+
+  constructor(
+    params:
+      | {
+          name: string;
+          children: IElement[];
+          initialPosition?: Vector3;
+          mass?: number;
+          centerOfGravity?: Vector3;
+        }
+      | IDataFrame
+  ) {
+    if (!isDataElement(params)) {
+      const {name, children, initialPosition, mass, centerOfGravity} = params;
+      const namedPoints = children.reduce((prev: INamedVector3[], child) => {
+        prev = [...prev, ...child.getPoints()];
+        return prev;
+      }, [] as INamedVector3[]);
+      const points = namedPoints.map((p) => trans(p));
+      const body = new Body({
+        name: `bodyObject${name}`,
+        fixedPoints: points,
+        points: [],
+        initialPosition,
+        mass,
+        centerOfGravity
+      });
+      const joints = namedPoints.map((p, i) => ({
+        lhs: p,
+        rhs: body.fixedPoints[i]
+      }));
+      super({name, children: [...children, body], joints});
+      this.frameBody = body;
+    } else {
+      super(params);
+      const body = this.children.find(
+        (child) => child.nodeID === params.bodyID
+      );
+      if (body && isBody(body)) {
+        this.frameBody = body;
+        const namedPoints = this.children.reduce(
+          (prev: INamedVector3[], child) => {
+            if (child === body) return prev;
+            prev = [...prev, ...child.getPoints()];
+            return prev;
+          },
+          [] as INamedVector3[]
+        );
+        body.fixedPoints.splice(0);
+        body.fixedPoints.push(
+          ...namedPoints.map(
+            (p, i) =>
+              new NamedVector3({
+                name: `fixedPoint${i + 1}`,
+                parent: body,
+                value: trans(p)
+              })
+          )
+        );
+        this.joints = namedPoints.map((p, i) => ({
+          lhs: p,
+          rhs: body.fixedPoints[i]
+        }));
+      } else {
+        throw new Error('FrameのChildrenにBodyデータがない');
+      }
+    }
+  }
+
+  getDataElement(state: GDState): IDataFrame {
+    const data = super.getDataElement(state);
+    return {...data, bodyID: this.frameBody.nodeID};
   }
 }
 

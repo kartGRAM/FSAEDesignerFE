@@ -4,7 +4,7 @@ import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {INode, IBidirectionalNode} from './INode';
 
 export interface INamedValue extends IBidirectionalNode {
-  isNamedValue: boolean;
+  isNamedValue: true;
   readonly parent: IBidirectionalNode;
   readonly className: string;
   readonly nodeID: string;
@@ -24,7 +24,7 @@ export const isNameValue = (params: any): params is INamedValue => {
 };
 
 export interface INamedData extends INode {
-  isNamedData: boolean;
+  isNamedData: true;
   name: string;
 }
 
@@ -109,7 +109,7 @@ export interface IDataMatrix3 extends INamedData {
 }
 
 export interface IDataPointOffsetTool extends INode {
-  readonly isDataPointOffsetTool: boolean;
+  readonly isDataPointOffsetTool: true;
   readonly className: string;
   readonly absPath: string;
   readonly nodeID: string;
@@ -118,7 +118,7 @@ export interface IDataPointOffsetTool extends INode {
 
 export interface IPointOffsetTool extends IBidirectionalNode {
   name: string;
-  readonly isPointOffsetTool: boolean;
+  readonly isPointOffsetTool: true;
   readonly className: string;
   readonly absPath: string;
   readonly nodeID: string;

@@ -79,7 +79,7 @@ export const getDataVector3 = (value: Vector3): IDataVector3 => {
 };
 
 abstract class NamedValue implements INamedValue {
-  readonly isNamedValue = true;
+  readonly isNamedValue = true as const;
 
   readonly className: string;
 
@@ -109,7 +109,7 @@ abstract class NamedValue implements INamedValue {
 
   getDataBase() {
     return {
-      isNamedData: true,
+      isNamedData: true as const,
       className: this.className,
       name: this.name,
       absPath: this.absPath,
@@ -609,7 +609,7 @@ abstract class PointOffsetTool implements IPointOffsetTool {
   getDataBase() {
     return {
       className: this.className,
-      isDataPointOffsetTool: true,
+      isDataPointOffsetTool: true as const,
       name: this.name,
       absPath: this.absPath,
       nodeID: this.nodeID
