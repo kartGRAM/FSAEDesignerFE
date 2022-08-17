@@ -49,11 +49,14 @@ class ResourceTracker {
   }
 
   dispose(index: ResourceType, scene: Scene) {
-    this.resources[index].forEach((resource: DisposableObject) =>
-      resource.dispose()
-    );
     this.threeObjects[index].forEach((resource) => scene.remove(resource));
-    this.resources[index].clear();
+
+    if (getRandomInt(50) === 0) {
+      this.resources[index].forEach((resource: DisposableObject) =>
+        resource.dispose()
+      );
+      this.resources[index].clear();
+    }
   }
 
   disposeAll(scene: Scene) {
@@ -69,3 +72,7 @@ export const disposeAll = resTracker.disposeAll.bind(resTracker);
 export const untrack = resTracker.untrack.bind(resTracker);
 
 export default track;
+
+function getRandomInt(max: number) {
+  return Math.floor(Math.random() * max);
+}

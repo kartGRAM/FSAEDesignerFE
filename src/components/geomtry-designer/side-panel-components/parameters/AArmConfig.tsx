@@ -18,6 +18,7 @@ import {
   dynamicParamsDefaultExpandedChange
 } from '@store/reducers/uiGeometryDesigner';
 import Vector from '@gdComponents/Vector';
+import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
 
 interface Params {
   element: IAArm;
@@ -36,6 +37,12 @@ export default function AArmConfig(params: Params) {
     (state: RootState) =>
       state.uigd.present.parameterConfigState.dynamicParamsExpanded
   );
+
+  React.useEffect(() => {
+    return () => {
+      dispatch(setSelectedPoint({point: null}));
+    };
+  }, []);
   return (
     <>
       <Typography variant="h6">{element.name.value} Parameters</Typography>

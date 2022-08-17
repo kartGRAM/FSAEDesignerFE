@@ -91,3 +91,7 @@ export const capitalize = (
 ) =>
   first.toUpperCase() +
   (lowerRest ? rest.join('').toLowerCase() : rest.join(''));
+
+export function unique<T>(array: T[]): T[] {
+  return Array.from(new Set(array));
+}

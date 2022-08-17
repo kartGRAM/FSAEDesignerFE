@@ -39,6 +39,11 @@ export default function TireConfig(params: Params) {
   const coMatrix = useSelector(
     (state: RootState) => state.dgd.present.transCoordinateMatrix
   );
+  React.useEffect(() => {
+    return () => {
+      dispatch(setSelectedPoint({point: null}));
+    };
+  }, []);
   return (
     <>
       <Typography variant="h6">{element.name.value} Parameters</Typography>

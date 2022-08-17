@@ -96,9 +96,6 @@ export default function Vector(props: Props) {
   React.useEffect(() => {
     if (focused)
       dispatch(setSelectedPoint({point: getDataVector3(trans(vector))}));
-    return () => {
-      if (!focused) dispatch(setSelectedPoint({point: null}));
-    };
   }, [focused, vector]);
 
   const ref = React.useRef<HTMLInputElement>(null);

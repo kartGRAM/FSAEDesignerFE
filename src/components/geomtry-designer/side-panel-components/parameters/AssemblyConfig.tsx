@@ -37,6 +37,7 @@ import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
 import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
 import {NumberToRGB, toFixedNoZero} from '@app/utils/helpers';
 import {getMatrix3, getDataVector3} from '@gd/NamedValues';
+import usePrevious from '@app/hooks/usePrevious';
 
 interface Params {
   assembly: IAssembly;
@@ -84,15 +85,25 @@ export default function AssemblyConfig(params: Params) {
   );
 
   React.useEffect(() => {
-    setJointsListSelected(null);
-    setPointSelected({lhs: null, rhs: null});
-  }, [assembly.joints.length]);
+    return () => {
+      dispatch(setSelectedPoint({point: null}));
+    };
+  }, []);
 
   const coMatrix = getMatrix3(
     useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
   );
 
-  dispatch(setSelectedPoint({point: null}));
+  const jointLength = usePrevious(
+    assembly.joints.length,
+    assembly.joints.length
+  );
+
+  if (jointLength !== assembly.joints.length) {
+    setJointsListSelected(null);
+    setPointSelected({lhs: null, rhs: null});
+    return null;
+  }
 
   let points: IDataVector3WithColor[] = [
     ...assembly.getPoints().map((p) => ({
@@ -242,10 +253,6 @@ export function JointsList(props: {
   const {assembly, selected, setSelected, selectedPair} = props;
   let pairSelected = Boolean(selectedPair.lhs && selectedPair.rhs);
   let varidatedSelected = selected;
-  if (isFrame(assembly)) {
-    pairSelected = false;
-    varidatedSelected = null;
-  }
 
   const {joints} = assembly;
   const enabledColorLight: number = useSelector(
@@ -256,6 +263,10 @@ export function JointsList(props: {
   React.useEffect(() => {
     if (pairSelected) buttonRef.current?.focus();
   }, [pairSelected]);
+  if (isFrame(assembly)) {
+    pairSelected = false;
+    varidatedSelected = null;
+  }
 
   return (
     <Box>

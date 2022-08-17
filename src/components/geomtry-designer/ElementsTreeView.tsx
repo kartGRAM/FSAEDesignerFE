@@ -17,7 +17,7 @@ import {
   isDataElement
 } from '@gd/IElements';
 import {getAssembly} from '@gd/Elements';
-import {NumberToRGB, getReversal} from '@app/utils/helpers';
+import {NumberToRGB, getReversal, unique} from '@app/utils/helpers';
 import {updateAssembly} from '@app/store/reducers/dataGeometryDesigner';
 import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
 
@@ -116,6 +116,7 @@ const ElementsTreeView = (props: Props) => {
   const path = useSelector(
     (state: RootState) => state.uitgd.selectedElementAbsPath
   );
+  const [expanded, setExpanded] = React.useState<string[]>([]);
 
   if (!nAssembly) {
     return <div />;
@@ -125,17 +126,34 @@ const ElementsTreeView = (props: Props) => {
   const handleOnSelect = (e: React.SyntheticEvent, path: string) => {
     dispatch(selectElement({absPath: path}));
   };
+  const handleToggle = (event: React.SyntheticEvent, nodeIds: string[]) => {
+    setExpanded(nodeIds);
+  };
+
+  const expanded2 = path
+    .split('@')
+    .reverse()
+    .reduce((prev: string[], current: string) => {
+      if (prev.length > 0) {
+        return [...prev, [current, prev[prev.length - 1]].join('@')];
+      }
+      return [current];
+    }, [] as string[]);
+  expanded2.pop();
+  const expandedWithSelected = unique([...expanded, ...expanded2]);
 
   return (
     <TreeView
       className={className}
-      aria-label="customized"
-      defaultExpanded={['1']}
+      // aria-label="customized"
+      // defaultExpanded={[path]}
       defaultCollapseIcon={<MinusSquare />}
       defaultExpandIcon={<PlusSquare />}
       disableSelection={disableSelection}
       onNodeSelect={handleOnSelect}
+      onNodeToggle={handleToggle}
       selected={path}
+      expanded={expandedWithSelected}
       // defaultEndIcon={<Checkbox />}
       sx={{
         scrollbarWidth: 'none' /* Firefox対応のスクロールバー非表示コード */,
