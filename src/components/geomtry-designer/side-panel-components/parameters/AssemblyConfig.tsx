@@ -34,6 +34,7 @@ import {alpha} from '@mui/material/styles';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
 // import {getNode} from '@gd/INode';
 import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
+import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
 import {NumberToRGB, toFixedNoZero} from '@app/utils/helpers';
 import {getMatrix3, getDataVector3} from '@gd/NamedValues';
 
@@ -140,6 +141,8 @@ export default function AssemblyConfig(params: Params) {
   }
 
   dispatch(setSelectedPoint({point: points}));
+  let isFrameObject = false;
+  if (isFrame(assembly)) isFrameObject = true;
 
   return (
     <>
@@ -158,11 +161,13 @@ export default function AssemblyConfig(params: Params) {
           <Typography>Kinematic Parameters</Typography>
         </AccordionSummary>
         <AccordionDetails sx={{padding: 0}}>
-          <Vector
-            vector={assembly.initialPosition}
-            offset={assembly.position.value}
-            rotation={assembly.rotation.value}
-          />
+          {!isFrameObject ? (
+            <Vector
+              vector={assembly.initialPosition}
+              offset={assembly.position.value}
+              rotation={assembly.rotation.value}
+            />
+          ) : null}
           <JointsList
             assembly={assembly}
             selected={jointsListSelected}
@@ -172,19 +177,21 @@ export default function AssemblyConfig(params: Params) {
             }}
             selectedPair={pointSelected}
           />
-          {children.map((child) => {
-            return (
-              <RestOfPoints
-                element={child}
-                points={restOfPointsChildren[child.nodeID]}
-                selected={pointSelected}
-                setSelected={(value) => {
-                  setPointSelected(value);
-                  setJointsListSelected(null);
-                }}
-              />
-            );
-          })}
+          {!isFrameObject
+            ? children.map((child) => {
+                return (
+                  <RestOfPoints
+                    element={child}
+                    points={restOfPointsChildren[child.nodeID]}
+                    selected={pointSelected}
+                    setSelected={(value) => {
+                      setPointSelected(value);
+                      setJointsListSelected(null);
+                    }}
+                  />
+                );
+              })
+            : null}
         </AccordionDetails>
       </Accordion>
       <Accordion
@@ -407,6 +414,7 @@ export function RestOfPoints(props: {
         (idx === -1 || selected.rhs?.selected === idx))
     );
   };
+  const dispatch = useDispatch();
 
   return (
     <Box>
@@ -501,6 +509,9 @@ export function RestOfPoints(props: {
                         };
                         setSelected({...selected});
                       }
+                    }}
+                    onDoubleClick={() => {
+                      dispatch(selectElement({absPath: point.parent.absPath}));
                     }}
                   >
                     <TableCell sx={{whiteSpace: 'nowrap'}}>
