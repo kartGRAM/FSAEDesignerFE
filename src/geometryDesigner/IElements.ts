@@ -83,6 +83,7 @@ export interface IElement extends IBidirectionalNode {
   readonly position: INamedVector3;
   readonly rotation: INamedMatrix3;
   readonly initialPosition: INamedVector3;
+  meta?: Meta;
 }
 
 export interface IDataElement extends INode {
@@ -200,6 +201,14 @@ export interface IFrame extends IAssembly {}
 
 export interface IDataFrame extends IDataAssembly {
   bodyID: string;
+}
+
+export interface Meta {
+  isBodyOfFrame?: true;
+}
+
+export function assignMeta(to: IElement, meta: Meta) {
+  to.meta = to.meta ? {...to.meta, ...meta} : {...meta};
 }
 
 export const isElement = (element: INode): element is IElement =>

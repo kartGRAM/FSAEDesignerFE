@@ -6,7 +6,7 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {IAssembly, IElement, Joint, isElement} from '@gd/IElements';
+import {IAssembly, IElement, Joint, isElement, isFrame} from '@gd/IElements';
 import {INamedVector3, IDataMatrix3, IDataVector3} from '@gd/INamedValues';
 import {trans} from '@gd/Elements';
 import {useDispatch, useSelector} from 'react-redux';
@@ -100,7 +100,7 @@ export default function AssemblyConfig(params: Params) {
     })),
     ...assembly.getJointedPoints().map((p) => ({
       ...getDataVector3(trans(p).applyMatrix3(coMatrix)),
-      color: 0xff00ff
+      color: 0xffff00
     }))
   ];
   if (jointsListSelected !== null) {
@@ -233,7 +233,13 @@ export function JointsList(props: {
   selectedPair: PointPair;
 }) {
   const {assembly, selected, setSelected, selectedPair} = props;
-  const pairSelected = Boolean(selectedPair.lhs && selectedPair.rhs);
+  let pairSelected = Boolean(selectedPair.lhs && selectedPair.rhs);
+  let varidatedSelected = selected;
+  if (isFrame(assembly)) {
+    pairSelected = false;
+    varidatedSelected = null;
+  }
+
   const {joints} = assembly;
   const enabledColorLight: number = useSelector(
     (state: RootState) => state.uigd.present.enabledColorLight
@@ -263,7 +269,7 @@ export function JointsList(props: {
         >
           Jointed Points
         </Typography>
-        {selected !== null ? (
+        {varidatedSelected !== null ? (
           <Tooltip title="Delete" sx={{flex: '1'}}>
             <IconButton
               onClick={() => {

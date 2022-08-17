@@ -54,110 +54,119 @@ export default function AArmConfig(params: Params) {
           <Typography>Kinematic Parameters</Typography>
         </AccordionSummary>
         <AccordionDetails sx={{padding: 0}}>
-          <Divider textAlign="left">Fixed Points</Divider>
-          <Typography variant="caption" display="block" sx={{pl: 2}}>
-            List here the fixed points for component testing, such as I/F with
-            the parent component.
-          </Typography>
-          {element.fixedPoints.map((point, i) => (
-            <Vector
-              key={point.name}
-              vector={point}
-              offset={element.position.value}
-              rotation={element.rotation.value}
-              removable
-              onRemove={() => {
-                element.fixedPoints.splice(i, 1);
-                dispatch(updateAssembly(element));
-              }}
-            />
-          ))}
-          <Toolbar
-            sx={{
-              pr: '0.7rem!important',
-              pl: '1rem!important',
-              minHeight: '40px!important',
-              flex: '1'
-            }}
-          >
-            <Typography
-              sx={{flex: '1 1 100%'}}
-              color="inherit"
-              variant="subtitle1"
-              component="div"
-            >
-              Additional Fixed Points
-            </Typography>
-            <Tooltip title="Add" sx={{flex: '1'}}>
-              <IconButton
-                onClick={() => {
-                  const l = element.fixedPoints.length + 1;
-                  element.fixedPoints.push(
-                    new NamedVector3({
-                      name: `fixedPoints${l}`,
-                      parent: element,
-                      value: {x: 0, y: 0, z: 0}
-                    })
-                  );
-                  dispatch(updateAssembly(element));
+          {!element.meta?.isBodyOfFrame ? (
+            <>
+              <Divider textAlign="left">Fixed Points</Divider>
+              <Typography variant="caption" display="block" sx={{pl: 2}}>
+                List here the fixed points for component testing, such as I/F
+                with the parent component.
+              </Typography>
+              {element.fixedPoints.map((point, i) => (
+                <Vector
+                  key={point.name}
+                  vector={point}
+                  offset={element.position.value}
+                  rotation={element.rotation.value}
+                  removable
+                  onRemove={() => {
+                    element.fixedPoints.splice(i, 1);
+                    dispatch(updateAssembly(element));
+                  }}
+                />
+              ))}
+              <Toolbar
+                sx={{
+                  pr: '0.7rem!important',
+                  pl: '1rem!important',
+                  minHeight: '40px!important',
+                  flex: '1'
                 }}
               >
-                <AddBoxIcon />
-              </IconButton>
-            </Tooltip>
-          </Toolbar>
-          <Divider textAlign="left">Non Fixed Points</Divider>
-          <Typography variant="caption" display="block" sx={{pl: 2}}>
-            List here points that are I/F with child components or points to use
-            actuating this component.
-          </Typography>
-          {element.points.map((point, i) => (
-            <Vector
-              key={point.name}
-              vector={point}
-              offset={element.position.value}
-              rotation={element.rotation.value}
-              removable
-              onRemove={() => {
-                element.points.splice(i, 1);
-                dispatch(updateAssembly(element));
-              }}
-            />
-          ))}
-          <Toolbar
-            sx={{
-              pr: '0.7rem!important',
-              pl: '1rem!important',
-              minHeight: '40px!important',
-              flex: '1'
-            }}
-          >
-            <Typography
-              sx={{flex: '1 1 100%'}}
-              color="inherit"
-              variant="subtitle1"
-              component="div"
-            >
-              Additional Non Fixed Points
-            </Typography>
-            <Tooltip title="Add" sx={{flex: '1'}}>
-              <IconButton
-                onClick={() => {
-                  const l = element.points.length + 1;
-                  element.points.push(
-                    new NamedVector3({
-                      name: `point${l}`,
-                      parent: element,
-                      value: {x: 0, y: 0, z: 0}
-                    })
-                  );
-                  dispatch(updateAssembly(element));
+                <Typography
+                  sx={{flex: '1 1 100%'}}
+                  color="inherit"
+                  variant="subtitle1"
+                  component="div"
+                >
+                  Additional Fixed Points
+                </Typography>
+                <Tooltip title="Add" sx={{flex: '1'}}>
+                  <IconButton
+                    onClick={() => {
+                      const l = element.fixedPoints.length + 1;
+                      element.fixedPoints.push(
+                        new NamedVector3({
+                          name: `fixedPoints${l}`,
+                          parent: element,
+                          value: {x: 0, y: 0, z: 0}
+                        })
+                      );
+                      dispatch(updateAssembly(element));
+                    }}
+                  >
+                    <AddBoxIcon />
+                  </IconButton>
+                </Tooltip>
+              </Toolbar>
+              <Divider textAlign="left">Non Fixed Points</Divider>
+              <Typography variant="caption" display="block" sx={{pl: 2}}>
+                List here points that are I/F with child components or points to
+                use actuating this component.
+              </Typography>
+              {element.points.map((point, i) => (
+                <Vector
+                  key={point.name}
+                  vector={point}
+                  offset={element.position.value}
+                  rotation={element.rotation.value}
+                  removable
+                  onRemove={() => {
+                    element.points.splice(i, 1);
+                    dispatch(updateAssembly(element));
+                  }}
+                />
+              ))}
+              <Toolbar
+                sx={{
+                  pr: '0.7rem!important',
+                  pl: '1rem!important',
+                  minHeight: '40px!important',
+                  flex: '1'
                 }}
               >
-                <AddBoxIcon />
-              </IconButton>
-            </Tooltip>
-          </Toolbar>
+                <Typography
+                  sx={{flex: '1 1 100%'}}
+                  color="inherit"
+                  variant="subtitle1"
+                  component="div"
+                >
+                  Additional Non Fixed Points
+                </Typography>
+                <Tooltip title="Add" sx={{flex: '1'}}>
+                  <IconButton
+                    onClick={() => {
+                      const l = element.points.length + 1;
+                      element.points.push(
+                        new NamedVector3({
+                          name: `point${l}`,
+                          parent: element,
+                          value: {x: 0, y: 0, z: 0}
+                        })
+                      );
+                      dispatch(updateAssembly(element));
+                    }}
+                  >
+                    <AddBoxIcon />
+                  </IconButton>
+                </Tooltip>
+              </Toolbar>
+            </>
+          ) : (
+            <Typography variant="caption" display="block" sx={{pl: 2}}>
+              This is a component of Frame Object. The component points are
+              generated automatically.
+            </Typography>
+          )}
         </AccordionDetails>
       </Accordion>
       <Accordion

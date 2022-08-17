@@ -44,7 +44,9 @@ import {
   isDataBody,
   ITire,
   IDataTire,
-  isDataTire
+  isDataTire,
+  Meta,
+  assignMeta
 } from './IElements';
 
 export const trans = (p: INamedVector3): Vector3 => {
@@ -106,6 +108,8 @@ const isDataElement = (params: any): params is IDataElement => {
 };
 
 export abstract class Element implements IElement {
+  meta?: Meta;
+
   isElement = true as const;
 
   _nodeID: string;
@@ -523,13 +527,14 @@ export class Frame extends Assembly {
       }, [] as INamedVector3[]);
       const points = namedPoints.map((p) => trans(p));
       const body = new Body({
-        name: `bodyObject${name}`,
+        name: `bodyObject_${name}`,
         fixedPoints: points,
         points: [],
         initialPosition,
         mass,
         centerOfGravity
       });
+      assignMeta(body, {isBodyOfFrame: true});
       const joints = namedPoints.map((p, i) => ({
         lhs: p,
         rhs: body.fixedPoints[i]
@@ -542,6 +547,7 @@ export class Frame extends Assembly {
         (child) => child.nodeID === params.bodyID
       );
       if (body && isBody(body)) {
+        assignMeta(body, {isBodyOfFrame: true});
         this.frameBody = body;
         const namedPoints = this.children.reduce(
           (prev: INamedVector3[], child) => {
