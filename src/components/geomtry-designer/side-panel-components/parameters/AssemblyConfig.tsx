@@ -84,12 +84,6 @@ export default function AssemblyConfig(params: Params) {
       state.uigd.present.parameterConfigState.dynamicParamsExpanded
   );
 
-  React.useEffect(() => {
-    return () => {
-      dispatch(setSelectedPoint({point: null}));
-    };
-  }, []);
-
   const coMatrix = getMatrix3(
     useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
   );
@@ -98,12 +92,6 @@ export default function AssemblyConfig(params: Params) {
     assembly.joints.length,
     assembly.joints.length
   );
-
-  if (jointLength !== assembly.joints.length) {
-    setJointsListSelected(null);
-    setPointSelected({lhs: null, rhs: null});
-    return null;
-  }
 
   let points: IDataVector3WithColor[] = [
     ...assembly.getPoints().map((p) => ({
@@ -115,6 +103,17 @@ export default function AssemblyConfig(params: Params) {
       color: 0xffff00
     }))
   ];
+
+  React.useEffect(() => {
+    dispatch(setSelectedPoint({point: points}));
+  }, []);
+
+  // 最初の再レンダリングを回避
+  React.useEffect(() => {
+    setJointsListSelected(null);
+    setPointSelected({lhs: null, rhs: null});
+  }, [jointLength !== assembly.joints.length]);
+
   if (jointsListSelected !== null) {
     const joint = assembly.joints.find(
       (joint, idx) => idx === jointsListSelected
@@ -151,7 +150,6 @@ export default function AssemblyConfig(params: Params) {
     }
   }
 
-  dispatch(setSelectedPoint({point: points}));
   let isFrameObject = false;
   if (isFrame(assembly)) isFrameObject = true;
 
@@ -192,6 +190,7 @@ export default function AssemblyConfig(params: Params) {
             ? children.map((child) => {
                 return (
                   <RestOfPoints
+                    key={child.nodeID}
                     element={child}
                     points={restOfPointsChildren[child.nodeID]}
                     selected={pointSelected}

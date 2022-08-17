@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import SvgIcon, {SvgIconProps} from '@mui/material/SvgIcon';
-import {styled, alpha} from '@mui/material/styles';
+import {alpha} from '@mui/material/styles';
 import TreeView from '@app/components/tree-view-base';
 import TreeItem, {TreeItemProps, treeItemClasses} from '@mui/lab/TreeItem';
 import Typography from '@mui/material/Typography';
@@ -20,6 +21,12 @@ import {getAssembly} from '@gd/Elements';
 import {NumberToRGB, getReversal, unique} from '@app/utils/helpers';
 import {updateAssembly} from '@app/store/reducers/dataGeometryDesigner';
 import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import usePrevious from '@app/hooks/usePrevious';
+import Collapse from '@mui/material/Collapse';
+// web.cjs is required for IE11 support
+import {useSpring, animated} from 'react-spring';
+import {TransitionProps} from '@mui/material/transitions';
 
 const VisibilityControl = (props: {element: IDataElement}) => {
   const {element} = props;
@@ -93,44 +100,46 @@ function MyLabel(props: MyLabelProps) {
   );
 }
 
-interface Props {
-  className?: string;
-}
+// setSelectedPointsがかかるとなぜか更新される。理由不明
+const ElementsTreeView = () => {
+  const [expanded, setExpanded] = React.useState<string[]>([]);
+  const [nodeID, setNodeID] = React.useState<string>('');
+  const dispatch = useDispatch();
 
-const ElementsTreeView = (props: Props) => {
-  const {className} = props;
-  const fontColor = NumberToRGB(
-    useSelector(
-      (state: RootState) => state.uigd.present.assemblyTreeViewState.fontColor
-    )
+  const fontColor = useSelector(
+    (state: RootState) => state.uigd.present.assemblyTreeViewState.fontColor
   );
-  const nAssembly: IDataAssembly | undefined = useSelector(
+
+  const nAssembly = useSelector(
     (state: RootState) => state.dgd.present.topAssembly
   );
+
   const disableSelection = useSelector(
     (state: RootState) => state.uitgd.uiDisabled
   );
-  const dispatch = useDispatch();
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const path = useSelector(
-    (state: RootState) => state.uitgd.selectedElementAbsPath
+  // console.log('rerendered');
+  const handleOnSelect = React.useCallback(
+    (e: React.SyntheticEvent, path: string) => {
+      dispatch(selectElement({absPath: path}));
+      setNodeID(path);
+    },
+    []
   );
-  const [expanded, setExpanded] = React.useState<string[]>([]);
+
+  const handleToggle = React.useCallback(
+    (event: React.SyntheticEvent, nodeIds: string[]) => {
+      setExpanded(nodeIds);
+    },
+    []
+  );
 
   if (!nAssembly) {
     return <div />;
   }
   const assembly: IDataAssembly = nAssembly;
 
-  const handleOnSelect = (e: React.SyntheticEvent, path: string) => {
-    dispatch(selectElement({absPath: path}));
-  };
-  const handleToggle = (event: React.SyntheticEvent, nodeIds: string[]) => {
-    setExpanded(nodeIds);
-  };
-
-  const expanded2 = path
+  const expanded2 = nodeID
     .split('@')
     .reverse()
     .reduce((prev: string[], current: string) => {
@@ -144,17 +153,14 @@ const ElementsTreeView = (props: Props) => {
 
   return (
     <TreeView
-      className={className}
-      // aria-label="customized"
-      // defaultExpanded={[path]}
+      aria-label="controlled"
       defaultCollapseIcon={<MinusSquare />}
       defaultExpandIcon={<PlusSquare />}
       disableSelection={disableSelection}
       onNodeSelect={handleOnSelect}
       onNodeToggle={handleToggle}
-      selected={path}
+      selected={nodeID}
       expanded={expandedWithSelected}
-      // defaultEndIcon={<Checkbox />}
       sx={{
         scrollbarWidth: 'none' /* Firefox対応のスクロールバー非表示コード */,
         position: 'absolute',
@@ -164,7 +170,7 @@ const ElementsTreeView = (props: Props) => {
         flexGrow: 1,
         maxWidth: 400,
         overflowY: 'auto',
-        color: fontColor,
+        color: NumberToRGB(fontColor),
         '&::-webkit-scrollbar': {
           display: 'none'
         }
@@ -196,54 +202,52 @@ const MyTreeItem = (props: ElementTreeItemProps) => {
     (state: RootState) => state.uigd.present.assemblyTreeViewState.borderLeft
   );
 
-  const StyledTreeItem = styled((props: TreeItemProps) => (
-    <TreeItem {...props} />
-  ))(() => ({
-    [`& .${treeItemClasses.iconContainer}`]: {
-      '& .close': {
-        opacity: 0.3
-      }
-    },
-    [`& .${treeItemClasses.group}`]: {
-      marginLeft: 15,
-      paddingLeft: 5,
-      borderLeft
-    },
-    [`& .Mui-focused`]: {
-      backgroundColor: `${alpha(selectedColor, 0.2)}!important`,
-      transition: 'all 0.3s 0s ease'
-    },
-    [`& .${treeItemClasses.selected}`]: {
-      backgroundColor: `${alpha(selectedColor, 0.8)}!important`,
-      transition: 'all 0.3s 0s ease',
-      '&:hover': {
-        backgroundColor: `${alpha(selectedColor, 0.8)}!important`
-      },
-      [`& .${treeItemClasses.focused}`]: {
-        backgroundColor: `${alpha(selectedColor, 0.8)}!important`
-      }
-    }
-  }));
+  const children: IDataElement[] = isDataAssembly(element)
+    ? element.children
+    : [];
 
   return (
-    // eslint-disable-next-line react/destructuring-assignment
-    <StyledTreeItem
+    <TreeItem
       {...props}
       label={<MyLabel label={label} element={element} />}
+      sx={{
+        [`& .${treeItemClasses.iconContainer}`]: {
+          '& .close': {
+            opacity: 0.3
+          }
+        },
+        [`& .${treeItemClasses.group}`]: {
+          marginLeft: 2,
+          paddingLeft: 1,
+          borderLeft
+        },
+        [`& .Mui-focused`]: {
+          backgroundColor: `${alpha(selectedColor, 0.2)}!important`,
+          transition: 'all 0.3s 0s ease'
+        },
+        [`& .${treeItemClasses.selected}`]: {
+          backgroundColor: `${alpha(selectedColor, 0.8)}!important`,
+          transition: 'all 0.3s 0s ease',
+          '&:hover': {
+            backgroundColor: `${alpha(selectedColor, 0.8)}!important`
+          },
+          [`& .${treeItemClasses.focused}`]: {
+            backgroundColor: `${alpha(selectedColor, 0.8)}!important`
+          }
+        }
+      }}
     >
-      {isDataAssembly(element)
-        ? element.children.map((child) => {
-            return (
-              <MyTreeItem
-                element={child}
-                nodeId={child.absPath}
-                label={child.name.value}
-                key={child.nodeID}
-              />
-            );
-          })
-        : null}
-    </StyledTreeItem>
+      {children.map((child) => {
+        return (
+          <MyTreeItem
+            element={child}
+            nodeId={child.absPath}
+            label={child.name.value}
+            key={child.nodeID}
+          />
+        );
+      })}
+    </TreeItem>
   );
 };
 
@@ -264,5 +268,27 @@ function PlusSquare(props: SvgIconProps) {
       {/* tslint:disable-next-line: max-line-length */}
       <path d="M22.047 22.074v0 0-20.147 0h-20.12v0 20.147 0h20.12zM22.047 24h-20.12q-.803 0-1.365-.562t-.562-1.365v-20.147q0-.776.562-1.351t1.365-.575h20.147q.776 0 1.351.575t.575 1.351v20.147q0 .803-.575 1.365t-1.378.562v0zM17.873 12.977h-4.923v4.896q0 .401-.281.682t-.682.281v0q-.375 0-.669-.281t-.294-.682v-4.896h-4.923q-.401 0-.682-.294t-.281-.669v0q0-.401.281-.682t.682-.281h4.923v-4.896q0-.401.294-.682t.669-.281v0q.401 0 .682.281t.281.682v4.896h4.923q.401 0 .682.281t.281.682v0q0 .375-.281.669t-.682.294z" />
     </SvgIcon>
+  );
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function TransitionComponent(props: TransitionProps) {
+  const style = useSpring({
+    from: {
+      opacity: 0,
+      transform: 'translate3d(0px,0,0)'
+    },
+    to: {
+      // eslint-disable-next-line react/destructuring-assignment
+      opacity: props.in ? 1 : 0,
+      // eslint-disable-next-line react/destructuring-assignment
+      transform: `translate3d(${props.in ? 0 : 20}px,0,0)`
+    }
+  });
+
+  return (
+    <animated.div style={style}>
+      <Collapse {...props} />
+    </animated.div>
   );
 }

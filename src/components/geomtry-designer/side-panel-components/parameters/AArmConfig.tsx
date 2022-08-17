@@ -39,10 +39,9 @@ export default function AArmConfig(params: Params) {
   );
 
   React.useEffect(() => {
-    return () => {
-      dispatch(setSelectedPoint({point: null}));
-    };
+    dispatch(setSelectedPoint({point: null}));
   }, []);
+
   return (
     <>
       <Typography variant="h6">{element.name.value} Parameters</Typography>

@@ -36,14 +36,57 @@ export default function TireConfig(params: Params) {
       state.uigd.present.parameterConfigState.dynamicParamsExpanded
   );
 
+  const onLeftBearingFocusChanged = React.useCallback(
+    (focus: boolean) => {
+      if (focus)
+        dispatch(
+          setSelectedPoint({
+            point: getDataVector3(
+              trans(
+                element.leftBearing.value,
+                element.position.value,
+                element.rotation.value,
+                coMatrix
+              )
+            )
+          })
+        );
+      return () => {
+        // if (!focus) dispatch(setSelectedPoint({point: null}));
+      };
+    },
+    [element]
+  );
+  const onRightBearingFocusChanged = React.useCallback(
+    (focus: boolean) => {
+      if (focus)
+        dispatch(
+          setSelectedPoint({
+            point: getDataVector3(
+              trans(
+                element.rightBearing.value,
+                element.position.value,
+                element.rotation.value,
+                coMatrix
+              )
+            )
+          })
+        );
+      return () => {
+        // if (!focus) dispatch(setSelectedPoint({point: null}));
+      };
+    },
+    [element]
+  );
+
   const coMatrix = useSelector(
     (state: RootState) => state.dgd.present.transCoordinateMatrix
   );
+
   React.useEffect(() => {
-    return () => {
-      dispatch(setSelectedPoint({point: null}));
-    };
+    dispatch(setSelectedPoint({point: null}));
   }, []);
+
   return (
     <>
       <Typography variant="h6">{element.name.value} Parameters</Typography>
@@ -67,47 +110,12 @@ export default function TireConfig(params: Params) {
             rotation={element.rotation.value}
           />
           <Scalar
-            onFocusChanged={(focus) => {
-              if (focus)
-                dispatch(
-                  setSelectedPoint({
-                    point: getDataVector3(
-                      trans(
-                        element.leftBearing.value,
-                        element.position.value,
-                        element.rotation.value,
-                        coMatrix
-                      )
-                    )
-                  })
-                );
-              return () => {
-                if (!focus) dispatch(setSelectedPoint({point: null}));
-              };
-            }}
+            onFocusChanged={onLeftBearingFocusChanged}
             value={element.toLeftBearing}
             unit="mm"
           />
           <Scalar
-            onFocusChanged={(focus) => {
-              if (focus)
-                dispatch(
-                  setSelectedPoint({
-                    point: getDataVector3(
-                      trans(
-                        element.rightBearing.value,
-                        element.position.value,
-                        element.rotation.value,
-                        coMatrix
-                      )
-                    )
-                  })
-                );
-
-              return () => {
-                if (!focus) dispatch(setSelectedPoint({point: null}));
-              };
-            }}
+            onFocusChanged={onRightBearingFocusChanged}
             value={element.toRightBearing}
             unit="mm"
           />

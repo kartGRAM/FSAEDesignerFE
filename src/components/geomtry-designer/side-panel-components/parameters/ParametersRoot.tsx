@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useSelector} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 import {RootState} from '@store/store';
 import {
   getElementByPath,
@@ -11,6 +11,7 @@ import {
   isAssembly
 } from '@gd/IElements';
 import {getAssembly} from '@gd/Elements';
+import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
 import AArmConfig from './AArmConfig';
 import BarConfig from './BarConfig';
 import BellCrankConfig from './BellCrankConfig';
@@ -25,6 +26,14 @@ export default function ParametersRoot() {
   const topAssy = getAssembly(
     useSelector((state: RootState) => state.dgd.present.topAssembly)!
   );
+
+  const dispatch = useDispatch();
+  React.useEffect(() => {
+    return () => {
+      dispatch(setSelectedPoint({point: null}));
+    };
+  }, []);
+
   const element = getElementByPath(topAssy, path);
   // eslint-disable-next-line no-undef
   let component: JSX.Element | null = null;
