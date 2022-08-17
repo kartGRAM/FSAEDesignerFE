@@ -106,7 +106,11 @@ export default function AssemblyConfig(params: Params) {
 
   React.useEffect(() => {
     dispatch(setSelectedPoint({point: points}));
-  }, []);
+  }, [
+    jointsListSelected,
+    pointSelected.lhs?.nodeID,
+    pointSelected.rhs?.nodeID
+  ]);
 
   // 最初の再レンダリングを回避
   React.useEffect(() => {
@@ -132,22 +136,20 @@ export default function AssemblyConfig(params: Params) {
       ];
     }
   }
-  if (pointSelected !== null) {
-    const tmp = assembly.getPoints();
-    const lhs = tmp.find((point) => point.nodeID === pointSelected.lhs?.nodeID);
-    const rhs = tmp.find((point) => point.nodeID === pointSelected.rhs?.nodeID);
-    if (lhs) {
-      points = [
-        ...points,
-        {...getDataVector3(trans(lhs).applyMatrix3(coMatrix)), color: 0xff0000}
-      ];
-    }
-    if (rhs) {
-      points = [
-        ...points,
-        {...getDataVector3(trans(rhs).applyMatrix3(coMatrix)), color: 0xff0000}
-      ];
-    }
+  const tmp = assembly.getPoints();
+  const lhs = tmp.find((point) => point.nodeID === pointSelected.lhs?.nodeID);
+  const rhs = tmp.find((point) => point.nodeID === pointSelected.rhs?.nodeID);
+  if (lhs) {
+    points = [
+      ...points,
+      {...getDataVector3(trans(lhs).applyMatrix3(coMatrix)), color: 0xff0000}
+    ];
+  }
+  if (rhs) {
+    points = [
+      ...points,
+      {...getDataVector3(trans(rhs).applyMatrix3(coMatrix)), color: 0xff0000}
+    ];
   }
 
   let isFrameObject = false;
