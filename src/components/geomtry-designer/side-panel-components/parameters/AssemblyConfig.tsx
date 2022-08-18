@@ -104,6 +104,7 @@ export default function AssemblyConfig(params: Params) {
     }))
   ];
 
+  // 選択状態が変化したらポイントを再描写ただし初回も実施
   React.useEffect(() => {
     dispatch(setSelectedPoint({point: points}));
   }, [
@@ -172,13 +173,7 @@ export default function AssemblyConfig(params: Params) {
           <Typography>Kinematic Parameters</Typography>
         </AccordionSummary>
         <AccordionDetails sx={{padding: 0}}>
-          {!isFrameObject ? (
-            <Vector
-              vector={assembly.initialPosition}
-              offset={assembly.position.value}
-              rotation={assembly.rotation.value}
-            />
-          ) : null}
+          {!isFrameObject ? <Vector vector={assembly.initialPosition} /> : null}
           <JointsList
             assembly={assembly}
             selected={jointsListSelected}

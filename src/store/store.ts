@@ -31,21 +31,20 @@ const store = configureStore({
     uigd,
     dgd
   },
-  /*
+
   preloadedState: load({
     states: ['uigd'],
     namespace: 'FSAEDesigner'
   }),
-  */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   middleware: (getDefaultMiddleware) => [
     // ...getDefaultMiddleware().concat(createLogger()),
-    /* ...getDefaultMiddleware().concat(
+    ...getDefaultMiddleware().concat(
       save({
         states: ['uigd'],
         namespace: 'FSAEDesigner'
       })
-    ) */
+    )
   ]
 });
 

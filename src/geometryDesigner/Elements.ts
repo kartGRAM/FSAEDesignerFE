@@ -731,7 +731,7 @@ export class SpringDumper extends Bar implements ISpringDumper {
     const cog = this.centerOfGravity.value.clone();
     cog.setY(-cog.y);
     return new SpringDumper({
-      name: `mirror_${this.name}`,
+      name: `mirror_${this.name.value}`,
       fixedPoint: fp,
       point: p,
       initialPosition: ip,

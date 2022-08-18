@@ -104,11 +104,7 @@ export default function TireConfig(params: Params) {
           <Typography>Kinematic Parameters</Typography>
         </AccordionSummary>
         <AccordionDetails sx={{padding: 0}}>
-          <Vector
-            vector={element.tireCenter}
-            offset={element.position.value}
-            rotation={element.rotation.value}
-          />
+          <Vector vector={element.tireCenter} />
           <Scalar
             onFocusChanged={onLeftBearingFocusChanged}
             value={element.toLeftBearing}

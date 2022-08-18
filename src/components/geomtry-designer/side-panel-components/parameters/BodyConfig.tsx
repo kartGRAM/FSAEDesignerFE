@@ -71,8 +71,6 @@ export default function AArmConfig(params: Params) {
                 <Vector
                   key={point.name}
                   vector={point}
-                  offset={element.position.value}
-                  rotation={element.rotation.value}
                   removable
                   onRemove={() => {
                     element.fixedPoints.splice(i, 1);
@@ -123,8 +121,6 @@ export default function AArmConfig(params: Params) {
                 <Vector
                   key={point.name}
                   vector={point}
-                  offset={element.position.value}
-                  rotation={element.rotation.value}
                   removable
                   onRemove={() => {
                     element.points.splice(i, 1);

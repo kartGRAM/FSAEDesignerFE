@@ -53,16 +53,8 @@ export default function BarConfig(params: Params) {
           <Typography>Kinematic Parameters</Typography>
         </AccordionSummary>
         <AccordionDetails sx={{padding: 0}}>
-          <Vector
-            vector={element.fixedPoint}
-            offset={element.position.value}
-            rotation={element.rotation.value}
-          />
-          <Vector
-            vector={element.point}
-            offset={element.position.value}
-            rotation={element.rotation.value}
-          />
+          <Vector vector={element.fixedPoint} />
+          <Vector vector={element.point} />
         </AccordionDetails>
       </Accordion>
       <Accordion

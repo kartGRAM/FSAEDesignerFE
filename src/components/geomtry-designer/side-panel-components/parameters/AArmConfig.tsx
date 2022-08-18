@@ -59,22 +59,12 @@ export default function AArmConfig(params: Params) {
           <Typography>Kinematic Parameters</Typography>
         </AccordionSummary>
         <AccordionDetails sx={{padding: 0}}>
-          <Vector
-            vector={element.fixedPoints[0]}
-            offset={element.position.value}
-            rotation={element.rotation.value}
-          />
-          <Vector
-            vector={element.fixedPoints[1]}
-            offset={element.position.value}
-            rotation={element.rotation.value}
-          />
+          <Vector vector={element.fixedPoints[0]} />
+          <Vector vector={element.fixedPoints[1]} />
           {element.points.map((point, i) => (
             <Vector
               key={point.name}
               vector={point}
-              offset={element.position.value}
-              rotation={element.rotation.value}
               removable={i > 0}
               onRemove={() => {
                 element.points.splice(i, 1);

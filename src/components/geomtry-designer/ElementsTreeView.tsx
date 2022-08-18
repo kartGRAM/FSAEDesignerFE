@@ -28,89 +28,25 @@ import Collapse from '@mui/material/Collapse';
 import {useSpring, animated} from 'react-spring';
 import {TransitionProps} from '@mui/material/transitions';
 
-const VisibilityControl = (props: {element: IDataElement}) => {
-  const {element} = props;
-  const nColor = getReversal(
-    NumberToRGB(
-      useSelector(
-        (state: RootState) =>
-          state.uigd.present.assemblyTreeViewState.selectedColor
-      )
-    )
-  );
-  const color: string = nColor ?? '#fe6049';
-  const dispatch = useDispatch();
-
-  const visible: boolean | undefined = useSelector((state: RootState) => {
-    const top = state.dgd.present.topAssembly;
-    if (top) {
-      const e = getDataElementByPath(top, element.absPath);
-      if (e && isDataElement(e)) {
-        return e.visible.value;
-      }
-    }
-    return undefined;
-  });
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const {topAssembly} = store.getState().dgd.present;
-    if (topAssembly) {
-      const assembly = getAssembly(topAssembly);
-      const instance = getElementByPath(assembly, element.absPath);
-      if (instance) {
-        instance.visible.value = event.target.checked;
-        dispatch(updateAssembly(instance));
-      }
-    }
-  };
-
-  return (
-    <Checkbox
-      size="small"
-      checked={visible}
-      indeterminate={visible === undefined}
-      onChange={handleChange}
-      sx={{
-        padding: 0.3,
-        color: alpha(color, 0.7),
-        '&.Mui-checked': {
-          color: alpha(color, 0.8)
-        },
-        '&.MuiCheckbox-indeterminate': {
-          color: alpha(color, 0.8)
-        }
-      }}
-    />
-  );
-};
-
-interface MyLabelProps {
-  label: React.ReactNode;
-  element: IDataElement;
-}
-
-function MyLabel(props: MyLabelProps) {
-  const {label, element} = props;
-
-  return (
-    <Box display="flex">
-      <VisibilityControl element={element} />
-      <Typography>{label}</Typography>
-    </Box>
-  );
-}
-
-// setSelectedPointsがかかるとなぜか更新される。理由不明
 const ElementsTreeView = () => {
   const [expanded, setExpanded] = React.useState<string[]>([]);
   const [nodeID, setNodeID] = React.useState<string>('');
   const dispatch = useDispatch();
 
+  const nodeIDState = useSelector(
+    (state: RootState) => state.uitgd.selectedElementAbsPath
+  );
+
+  // 苦肉の策（nodeIDStateをそのまま使用するとアニメーションがカクつく）
+  React.useEffect(() => {
+    setNodeID(nodeIDState);
+  }, [nodeIDState]);
+
   const fontColor = useSelector(
     (state: RootState) => state.uigd.present.assemblyTreeViewState.fontColor
   );
 
-  const nAssembly = useSelector(
+  const assembly = useSelector(
     (state: RootState) => state.dgd.present.topAssembly
   );
 
@@ -118,11 +54,14 @@ const ElementsTreeView = () => {
     (state: RootState) => state.uitgd.uiDisabled
   );
 
+  const bgColor: number = useSelector(
+    (state: RootState) => state.uigd.present.backgroundColor
+  );
+
   // console.log('rerendered');
   const handleOnSelect = React.useCallback(
     (e: React.SyntheticEvent, path: string) => {
       dispatch(selectElement({absPath: path}));
-      setNodeID(path);
     },
     []
   );
@@ -134,10 +73,11 @@ const ElementsTreeView = () => {
     []
   );
 
-  if (!nAssembly) {
+  const propsTree = React.useMemo(() => getPropsTree(assembly), [assembly]);
+
+  if (!assembly) {
     return <div />;
   }
-  const assembly: IDataAssembly = nAssembly;
 
   const expanded2 = nodeID
     .split('@')
@@ -164,7 +104,7 @@ const ElementsTreeView = () => {
       sx={{
         scrollbarWidth: 'none' /* Firefox対応のスクロールバー非表示コード */,
         position: 'absolute',
-        height: '100%',
+        // height: '100%',
         left: 0 /* 左からの位置指定 */,
         top: 0 /* 上からの位置指定 */,
         flexGrow: 1,
@@ -173,25 +113,43 @@ const ElementsTreeView = () => {
         color: NumberToRGB(fontColor),
         '&::-webkit-scrollbar': {
           display: 'none'
-        }
+        },
+        backgroundColor: alpha(NumberToRGB(bgColor), 0.9),
+        backdropFilter: 'blur(3px)'
       }}
     >
-      <MyTreeItem
-        element={assembly}
-        key={assembly.nodeID}
-        nodeId={assembly.absPath}
-        label={assembly.name.value}
-      />
+      <MyTreeItem {...propsTree} key={assembly.nodeID} />
     </TreeView>
   );
 };
 
-interface ElementTreeItemProps extends TreeItemProps {
-  element: IDataElement;
+interface MyTreeItemProps {
+  nodeId: string;
+  label: string;
+  children: MyTreeItemProps[];
 }
 
-const MyTreeItem = (props: ElementTreeItemProps) => {
-  const {element, label} = props;
+function getPropsTree(element: IDataElement | undefined): MyTreeItemProps {
+  if (!element) {
+    return {
+      nodeId: 'none',
+      label: '',
+      children: []
+    };
+  }
+  let children: MyTreeItemProps[] = [];
+  if (isDataAssembly(element)) {
+    children = element.children.map((child) => getPropsTree(child));
+  }
+  return {
+    nodeId: element.absPath,
+    label: element.name.value,
+    children
+  };
+}
+
+const MyTreeItem = React.memo((props: MyTreeItemProps) => {
+  const {nodeId, label, children} = props;
   const selectedColor = NumberToRGB(
     useSelector(
       (state: RootState) =>
@@ -202,14 +160,10 @@ const MyTreeItem = (props: ElementTreeItemProps) => {
     (state: RootState) => state.uigd.present.assemblyTreeViewState.borderLeft
   );
 
-  const children: IDataElement[] = isDataAssembly(element)
-    ? element.children
-    : [];
-
   return (
     <TreeItem
       {...props}
-      label={<MyLabel label={label} element={element} />}
+      label={<MyLabel label={label} absPath={nodeId} />}
       sx={{
         [`& .${treeItemClasses.iconContainer}`]: {
           '& .close': {
@@ -238,18 +192,81 @@ const MyTreeItem = (props: ElementTreeItemProps) => {
       }}
     >
       {children.map((child) => {
-        return (
-          <MyTreeItem
-            element={child}
-            nodeId={child.absPath}
-            label={child.name.value}
-            key={child.nodeID}
-          />
-        );
+        return <MyTreeItem {...child} key={child.nodeId} />;
       })}
     </TreeItem>
   );
-};
+});
+
+const MyLabel = React.memo((props: {label: string; absPath: string}) => {
+  const {label, absPath} = props;
+
+  return (
+    <Box display="flex">
+      <VisibilityControl absPath={absPath} />
+      <Typography>{label}</Typography>
+    </Box>
+  );
+});
+
+const VisibilityControl = React.memo((props: {absPath: string}) => {
+  const {absPath} = props;
+  const nColor = getReversal(
+    NumberToRGB(
+      useSelector(
+        (state: RootState) =>
+          state.uigd.present.assemblyTreeViewState.selectedColor
+      )
+    )
+  );
+  const color: string = nColor ?? '#fe6049';
+  const dispatch = useDispatch();
+
+  const visible: boolean | undefined = useSelector((state: RootState) => {
+    const top = state.dgd.present.topAssembly;
+    if (top) {
+      const e = getDataElementByPath(top, absPath);
+      if (e && isDataElement(e)) {
+        return e.visible.value;
+      }
+    }
+    return undefined;
+  });
+
+  const handleChange = React.useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const {topAssembly} = store.getState().dgd.present;
+      if (topAssembly) {
+        const assembly = getAssembly(topAssembly);
+        const instance = getElementByPath(assembly, absPath);
+        if (instance) {
+          instance.visible.value = event.target.checked;
+          dispatch(updateAssembly(instance));
+        }
+      }
+    },
+    [absPath]
+  );
+
+  return (
+    <Checkbox
+      size="small"
+      checked={visible}
+      indeterminate={visible === undefined}
+      onChange={handleChange}
+      sx={{
+        padding: 0.3,
+        color: alpha(color, 0.7),
+        '&.Mui-checked': {
+          color: alpha(color, 0.8)
+        },
+        '&.MuiCheckbox-indeterminate': {
+          color: alpha(color, 0.8)
+        }
+      }}
+    />
+  );
+});
 
 export default ElementsTreeView;
 
@@ -282,7 +299,7 @@ function TransitionComponent(props: TransitionProps) {
       // eslint-disable-next-line react/destructuring-assignment
       opacity: props.in ? 1 : 0,
       // eslint-disable-next-line react/destructuring-assignment
-      transform: `translate3d(${props.in ? 0 : 20}px,0,0)`
+      transform: `translate3d(0px,0,0)`
     }
   });
 

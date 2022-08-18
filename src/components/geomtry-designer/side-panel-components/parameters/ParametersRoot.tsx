@@ -38,17 +38,47 @@ export default function ParametersRoot() {
   // eslint-disable-next-line no-undef
   let component: JSX.Element | null = null;
   if (element && isAArm(element)) {
-    component = <AArmConfig element={element} key={element.absPath} />;
+    component = (
+      <AArmConfig
+        element={element}
+        // key={element.absPath}
+      />
+    );
   } else if (element && isBar(element)) {
-    component = <BarConfig element={element} key={element.absPath} />;
+    component = (
+      <BarConfig
+        element={element}
+        // key={element.absPath}
+      />
+    );
   } else if (element && isBellCrank(element)) {
-    component = <BellCrankConfig element={element} key={element.absPath} />;
+    component = (
+      <BellCrankConfig
+        element={element}
+        // key={element.absPath}
+      />
+    );
   } else if (element && isBody(element)) {
-    component = <BodyConfig element={element} key={element.absPath} />;
+    component = (
+      <BodyConfig
+        element={element}
+        // key={element.absPath}
+      />
+    );
   } else if (element && isTire(element)) {
-    component = <TireConfig element={element} key={element.absPath} />;
+    component = (
+      <TireConfig
+        element={element}
+        // key={element.absPath}
+      />
+    );
   } else if (element && isAssembly(element)) {
-    component = <AssemblyConfig assembly={element} key={element.absPath} />;
+    component = (
+      <AssemblyConfig
+        assembly={element}
+        // key={element.absPath}
+      />
+    );
   }
 
   return component;

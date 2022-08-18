@@ -2,9 +2,8 @@ import React, {useState} from 'react';
 import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import InputAdornment from '@mui/material/InputAdornment';
-import {Vector3, Matrix3} from 'three';
 import {getMatrix3, getDataVector3, DeltaXYZ} from '@gd/NamedValues';
-import {INamedVector3, IPointOffsetTool} from '@gd/INamedValues';
+import {INamedVector3, IPointOffsetTool, IDataMatrix3} from '@gd/INamedValues';
 import Typography from '@mui/material/Typography';
 import {useDispatch, useSelector} from 'react-redux';
 import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
@@ -30,21 +29,18 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import {alpha} from '@mui/material/styles';
 import {PointOffsetToolDialog} from '@gdComponents/dialog-components/PointOffsetToolDialog';
+import {IElement} from '@gd/IElements';
 
 import {NumberToRGB, toFixedNoZero} from '@app/utils/helpers';
 
 export interface Props {
   vector: INamedVector3;
-  offset?: Vector3;
-  rotation?: Matrix3;
   removable?: boolean;
   onRemove?: () => void;
 }
 
 export default function Vector(props: Props) {
-  const {vector, offset, rotation, removable, onRemove} = props;
-  const rot = rotation ?? new Matrix3();
-  const ofs = offset ?? new Vector3();
+  const {vector, removable, onRemove} = props;
   const dispatch = useDispatch();
   const coMatrix = useSelector(
     (state: RootState) => state.dgd.present.transCoordinateMatrix
@@ -53,8 +49,11 @@ export default function Vector(props: Props) {
 
   const [expanded, setExpanded] = React.useState<boolean>(false);
   const [rename, setRename] = React.useState<boolean>(false);
-  const [selected, setSelected] = React.useState<string>('');
+  const [selected, setSelectedOrg] = React.useState<string>('');
   const [focused, setFocused] = useState<boolean>(false);
+  const setSelected = React.useCallback((value: string) => {
+    setSelectedOrg(value);
+  }, []);
 
   const nameFormik = useFormik({
     enableReinitialize: true,
@@ -95,7 +94,9 @@ export default function Vector(props: Props) {
 
   React.useEffect(() => {
     if (focused)
-      dispatch(setSelectedPoint({point: getDataVector3(trans(vector))}));
+      dispatch(
+        setSelectedPoint({point: getDataVector3(trans(vector, coMatrix))})
+      );
   }, [focused, vector]);
 
   const ref = React.useRef<HTMLInputElement>(null);
@@ -105,13 +106,6 @@ export default function Vector(props: Props) {
       ref.current?.focus();
     }
   }, [rename]);
-
-  const trans = (p: INamedVector3) => {
-    return ofs
-      .clone()
-      .add(p.value.clone().applyMatrix3(rot))
-      .applyMatrix3(getMatrix3(coMatrix));
-  };
 
   const handleFocus = () => {
     setFocused(true);
@@ -126,29 +120,37 @@ export default function Vector(props: Props) {
     setFocused(false);
   };
 
-  const handlePointOffsetToolAdd = () => {
-    const tools = vector.pointOffsetTools ?? [];
-    tools.push(
-      new DeltaXYZ({
-        value: {
-          name: `pointOffsetTool${tools.length}`,
-          dx: 0,
-          dy: 0,
-          dz: 0
-        },
-        parent: vector
-      })
-    );
-    vector.pointOffsetTools = tools;
-    dispatch(updateAssembly(vector));
-  };
+  const handlePointOffsetToolAdd = React.useCallback(
+    (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+      e.stopPropagation();
+      const tools = vector.pointOffsetTools ?? [];
+      tools.push(
+        new DeltaXYZ({
+          value: {
+            name: `pointOffsetTool${tools.length}`,
+            dx: 0,
+            dy: 0,
+            dz: 0
+          },
+          parent: vector
+        })
+      );
+      vector.pointOffsetTools = tools;
+      dispatch(updateAssembly(vector));
+    },
+    [vector]
+  );
 
-  const handlePointOffsetToolDelete = () => {
-    const tools = vector.pointOffsetTools ?? [];
-    vector.pointOffsetTools = tools.filter((tool) => tool.name !== selected);
-    dispatch(updateAssembly(vector));
-    setSelected('');
-  };
+  const handlePointOffsetToolDelete = React.useCallback(
+    (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+      e.stopPropagation();
+      const tools = vector.pointOffsetTools ?? [];
+      vector.pointOffsetTools = tools.filter((tool) => tool.name !== selected);
+      dispatch(updateAssembly(vector));
+      setSelected('');
+    },
+    [vector]
+  );
 
   const handleNameDblClick = () => {
     nameFormik.resetForm();
@@ -313,23 +315,13 @@ export default function Vector(props: Props) {
             {expanded ? (
               <>
                 <Tooltip title="Add" sx={{flex: '1'}}>
-                  <IconButton
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handlePointOffsetToolAdd();
-                    }}
-                  >
+                  <IconButton onClick={handlePointOffsetToolAdd}>
                     <AddBoxIcon />
                   </IconButton>
                 </Tooltip>
                 {selected !== '' ? (
                   <Tooltip title="Delete" sx={{flex: '1'}}>
-                    <IconButton
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handlePointOffsetToolDelete();
-                      }}
-                    >
+                    <IconButton onClick={handlePointOffsetToolDelete}>
                       <DeleteIcon />
                     </IconButton>
                   </Tooltip>
@@ -350,98 +342,102 @@ export default function Vector(props: Props) {
   );
 }
 
-export function PointOffsetList(props: {
-  selected: string;
-  setSelected: React.Dispatch<React.SetStateAction<string>>;
-  vector: INamedVector3;
-}) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const {vector, selected, setSelected} = props;
-  const {pointOffsetTools} = vector;
-  const enabledColorLight: number = useSelector(
-    (state: RootState) => state.uigd.present.enabledColorLight
-  );
-  const [open, setOpen] = useState(false);
-  const [toolAndIdx, setToolAndIdx] = useState<{
-    tool: IPointOffsetTool;
-    idx: number;
-  } | null>(null);
-  const onToolDblClick = (tool: IPointOffsetTool, idx: number) => {
-    setOpen(true);
-    setToolAndIdx({tool, idx});
-  };
-  return (
-    <>
-      <TableContainer
-        component={Paper}
-        sx={{
-          '&::-webkit-scrollbar': {
-            height: '10px'
-          },
-          '&::-webkit-scrollbar-thumb': {
-            backgroundColor: NumberToRGB(enabledColorLight),
-            borderRadius: '5px'
-          }
-        }}
-      >
-        <Table
-          sx={{backgroundColor: alpha('#FFF', 0.0)}}
-          size="small"
-          aria-label="a dense table"
+const PointOffsetList = React.memo(
+  (props: {
+    selected: string;
+    setSelected: (value: string) => void;
+    vector: INamedVector3;
+  }) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const {vector, selected, setSelected} = props;
+    const {pointOffsetTools} = vector;
+    const enabledColorLight: number = useSelector(
+      (state: RootState) => state.uigd.present.enabledColorLight
+    );
+    const [open, setOpen] = useState(false);
+    const [toolAndIdx, setToolAndIdx] = useState<{
+      tool: IPointOffsetTool;
+      idx: number;
+    } | null>(null);
+    const onToolDblClick = (tool: IPointOffsetTool, idx: number) => {
+      setOpen(true);
+      setToolAndIdx({tool, idx});
+    };
+    return (
+      <>
+        <TableContainer
+          component={Paper}
+          sx={{
+            '&::-webkit-scrollbar': {
+              height: '10px'
+            },
+            '&::-webkit-scrollbar-thumb': {
+              backgroundColor: NumberToRGB(enabledColorLight),
+              borderRadius: '5px'
+            }
+          }}
         >
-          <TableHead>
-            <TableRow onClick={() => setSelected('')}>
-              <TableCell>Order</TableCell>
-              <TableCell>Name</TableCell>
-              <TableCell align="right">Type</TableCell>
-              <TableCell align="right">ΔX</TableCell>
-              <TableCell align="right">ΔY</TableCell>
-              <TableCell align="right">ΔZ</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {pointOffsetTools?.map((tool, idx) => {
-              const {dx, dy, dz} = tool.getOffsetVector();
-              return (
-                <TableRow
-                  key={tool.name}
-                  sx={{
-                    '&:last-child td, &:last-child th': {border: 0},
-                    userSelect: 'none',
-                    backgroundColor:
-                      selected === tool.name
-                        ? alpha(NumberToRGB(enabledColorLight), 0.5)
-                        : 'unset'
-                  }}
-                  onClick={() => setSelected(tool.name)}
-                  onDoubleClick={() => onToolDblClick(tool, idx)}
-                >
-                  <TableCell>{idx + 1}</TableCell>
-                  <TableCell sx={{whiteSpace: 'nowrap'}}>{tool.name}</TableCell>
-                  <TableCell align="right">{tool.className}</TableCell>
-                  <TableCell align="right">{toFixedNoZero(dx, 3)}</TableCell>
-                  <TableCell align="right">{toFixedNoZero(dy, 3)}</TableCell>
-                  <TableCell align="right">{toFixedNoZero(dz, 3)}</TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      {toolAndIdx ? (
-        <PointOffsetToolDialog
-          open={open}
-          setOpen={setOpen}
-          tool={toolAndIdx.tool}
-          indexOfTool={toolAndIdx.idx}
-          vector={vector}
-        />
-      ) : null}
-    </>
-  );
-}
+          <Table
+            sx={{backgroundColor: alpha('#FFF', 0.0)}}
+            size="small"
+            aria-label="a dense table"
+          >
+            <TableHead>
+              <TableRow onClick={() => setSelected('')}>
+                <TableCell>Order</TableCell>
+                <TableCell>Name</TableCell>
+                <TableCell align="right">Type</TableCell>
+                <TableCell align="right">ΔX</TableCell>
+                <TableCell align="right">ΔY</TableCell>
+                <TableCell align="right">ΔZ</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {pointOffsetTools?.map((tool, idx) => {
+                const {dx, dy, dz} = tool.getOffsetVector();
+                return (
+                  <TableRow
+                    key={tool.name}
+                    sx={{
+                      '&:last-child td, &:last-child th': {border: 0},
+                      userSelect: 'none',
+                      backgroundColor:
+                        selected === tool.name
+                          ? alpha(NumberToRGB(enabledColorLight), 0.5)
+                          : 'unset'
+                    }}
+                    onClick={() => setSelected(tool.name)}
+                    onDoubleClick={() => onToolDblClick(tool, idx)}
+                  >
+                    <TableCell>{idx + 1}</TableCell>
+                    <TableCell sx={{whiteSpace: 'nowrap'}}>
+                      {tool.name}
+                    </TableCell>
+                    <TableCell align="right">{tool.className}</TableCell>
+                    <TableCell align="right">{toFixedNoZero(dx, 3)}</TableCell>
+                    <TableCell align="right">{toFixedNoZero(dy, 3)}</TableCell>
+                    <TableCell align="right">{toFixedNoZero(dz, 3)}</TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        {toolAndIdx ? (
+          <PointOffsetToolDialog
+            open={open}
+            setOpen={setOpen}
+            tool={toolAndIdx.tool}
+            indexOfTool={toolAndIdx.idx}
+            vector={vector}
+          />
+        ) : null}
+      </>
+    );
+  }
+);
 
-const ValueField = (props: OutlinedTextFieldProps) => {
+const ValueField = React.memo((props: OutlinedTextFieldProps) => {
   return (
     <TextField
       size="small"
@@ -456,4 +452,12 @@ const ValueField = (props: OutlinedTextFieldProps) => {
       }}
     />
   );
+});
+
+const trans = (p: INamedVector3, coMatrix: IDataMatrix3) => {
+  const element = p.parent as IElement;
+  return element.position.value
+    .clone()
+    .add(p.value.clone().applyMatrix3(element.rotation.value))
+    .applyMatrix3(getMatrix3(coMatrix));
 };
