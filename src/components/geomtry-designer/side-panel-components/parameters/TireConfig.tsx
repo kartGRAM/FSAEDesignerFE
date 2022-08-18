@@ -4,7 +4,7 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {ITire} from '@gd/IElements';
+import {ITire, isMirrorElement} from '@gd/IElements';
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '@store/store';
 import {Vector3, Matrix3} from 'three';
@@ -24,6 +24,7 @@ interface Params {
 
 export default function TireConfig(params: Params) {
   const {element} = params;
+  const isMirror = isMirrorElement(element);
   // eslint-disable-next-line no-unused-vars
 
   const dispatch = useDispatch();
@@ -89,9 +90,11 @@ export default function TireConfig(params: Params) {
 
   return (
     <>
-      <Typography variant="h6">{element.name.value} Parameters</Typography>
+      <Typography variant="h6">
+        {element.name.value} Parameters {isMirror ? '(Mirror)' : ''}
+      </Typography>
       <Accordion
-        defaultExpanded={kinematicParamsDefaultExpanded}
+        expanded={kinematicParamsDefaultExpanded}
         onChange={(e, expanded) => {
           dispatch(kinematicParamsDefaultExpandedChange(expanded));
         }}
@@ -101,24 +104,28 @@ export default function TireConfig(params: Params) {
           aria-controls="panel1a-content"
           id="panel1a-header"
         >
-          <Typography>Kinematic Parameters</Typography>
+          <Typography>
+            Kinematic Parameters {isMirror ? '(Readonly)' : ''}
+          </Typography>
         </AccordionSummary>
         <AccordionDetails sx={{padding: 0}}>
-          <Vector vector={element.tireCenter} />
+          <Vector vector={element.tireCenter} disabled={isMirror} />
           <Scalar
             onFocusChanged={onLeftBearingFocusChanged}
             value={element.toLeftBearing}
             unit="mm"
+            disabled={isMirror}
           />
           <Scalar
             onFocusChanged={onRightBearingFocusChanged}
             value={element.toRightBearing}
             unit="mm"
+            disabled={isMirror}
           />
         </AccordionDetails>
       </Accordion>
       <Accordion
-        defaultExpanded={dynamicParamsDefaultExpanded}
+        expanded={dynamicParamsDefaultExpanded}
         onChange={(e, expanded) => {
           dispatch(dynamicParamsDefaultExpandedChange(expanded));
         }}

@@ -4,7 +4,7 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {IBellCrank} from '@gd/IElements';
+import {IBellCrank, isMirrorElement} from '@gd/IElements';
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '@store/store';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
@@ -26,6 +26,7 @@ interface Params {
 
 export default function AArmConfig(params: Params) {
   const {element} = params;
+  const isMirror = isMirrorElement(element);
   // eslint-disable-next-line no-unused-vars
 
   const dispatch = useDispatch();
@@ -44,9 +45,11 @@ export default function AArmConfig(params: Params) {
 
   return (
     <>
-      <Typography variant="h6">{element.name.value} Parameters</Typography>
+      <Typography variant="h6">
+        {element.name.value} Parameters {isMirror ? '(Mirror)' : ''}
+      </Typography>
       <Accordion
-        defaultExpanded={kinematicParamsDefaultExpanded}
+        expanded={kinematicParamsDefaultExpanded}
         onChange={(e, expanded) => {
           dispatch(kinematicParamsDefaultExpandedChange(expanded));
         }}
@@ -56,13 +59,16 @@ export default function AArmConfig(params: Params) {
           aria-controls="panel1a-content"
           id="panel1a-header"
         >
-          <Typography>Kinematic Parameters</Typography>
+          <Typography>
+            Kinematic Parameters {isMirror ? '(Readonly)' : ''}
+          </Typography>
         </AccordionSummary>
         <AccordionDetails sx={{padding: 0}}>
-          <Vector vector={element.fixedPoints[0]} />
-          <Vector vector={element.fixedPoints[1]} />
+          <Vector vector={element.fixedPoints[0]} disabled={isMirror} />
+          <Vector vector={element.fixedPoints[1]} disabled={isMirror} />
           {element.points.map((point, i) => (
             <Vector
+              disabled={isMirror}
               key={point.name}
               vector={point}
               removable={i > 1}
@@ -72,44 +78,46 @@ export default function AArmConfig(params: Params) {
               }}
             />
           ))}
-          <Toolbar
-            sx={{
-              pr: '0.7rem!important',
-              pl: '1rem!important',
-              minHeight: '40px!important',
-              flex: '1'
-            }}
-          >
-            <Typography
-              sx={{flex: '1 1 100%'}}
-              color="inherit"
-              variant="subtitle1"
-              component="div"
+          {!isMirror ? (
+            <Toolbar
+              sx={{
+                pr: '0.7rem!important',
+                pl: '1rem!important',
+                minHeight: '40px!important',
+                flex: '1'
+              }}
             >
-              Additional Points
-            </Typography>
-            <Tooltip title="Add" sx={{flex: '1'}}>
-              <IconButton
-                onClick={() => {
-                  const l = element.points.length;
-                  element.points.push(
-                    new NamedVector3({
-                      name: `attachedPoint${l}`,
-                      parent: element,
-                      value: {x: 0, y: 0, z: 0}
-                    })
-                  );
-                  dispatch(updateAssembly(element));
-                }}
+              <Typography
+                sx={{flex: '1 1 100%'}}
+                color="inherit"
+                variant="subtitle1"
+                component="div"
               >
-                <AddBoxIcon />
-              </IconButton>
-            </Tooltip>
-          </Toolbar>
+                Additional Points
+              </Typography>
+              <Tooltip title="Add" sx={{flex: '1'}}>
+                <IconButton
+                  onClick={() => {
+                    const l = element.points.length;
+                    element.points.push(
+                      new NamedVector3({
+                        name: `attachedPoint${l}`,
+                        parent: element,
+                        value: {x: 0, y: 0, z: 0}
+                      })
+                    );
+                    dispatch(updateAssembly(element));
+                  }}
+                >
+                  <AddBoxIcon />
+                </IconButton>
+              </Tooltip>
+            </Toolbar>
+          ) : null}
         </AccordionDetails>
       </Accordion>
       <Accordion
-        defaultExpanded={dynamicParamsDefaultExpanded}
+        expanded={dynamicParamsDefaultExpanded}
         onChange={(e, expanded) => {
           dispatch(dynamicParamsDefaultExpandedChange(expanded));
         }}

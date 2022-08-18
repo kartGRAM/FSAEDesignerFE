@@ -127,7 +127,6 @@ const Vector = React.memo((props: Props) => {
   const handlePointOffsetToolAdd = React.useCallback(
     (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
       e.stopPropagation();
-      if (disabled) return;
       const tools = vector.pointOffsetTools ?? [];
       tools.push(
         new DeltaXYZ({
@@ -143,7 +142,7 @@ const Vector = React.memo((props: Props) => {
       vector.pointOffsetTools = tools;
       dispatch(updateAssembly(vector));
     },
-    [vector, disabled]
+    [vector]
   );
 
   const handlePointOffsetToolDelete = React.useCallback(
@@ -225,7 +224,7 @@ const Vector = React.memo((props: Props) => {
           />
         )}
 
-        {removable ? (
+        {removable && !disabled ? (
           <Tooltip title="Delete" sx={{flex: '1'}}>
             <IconButton
               onClick={() => {
@@ -328,11 +327,13 @@ const Vector = React.memo((props: Props) => {
             </Typography>
             {expanded ? (
               <>
-                <Tooltip title="Add" sx={{flex: '1'}}>
-                  <IconButton onClick={handlePointOffsetToolAdd}>
-                    <AddBoxIcon />
-                  </IconButton>
-                </Tooltip>
+                {!disabled ? (
+                  <Tooltip title="Add" sx={{flex: '1'}}>
+                    <IconButton onClick={handlePointOffsetToolAdd}>
+                      <AddBoxIcon />
+                    </IconButton>
+                  </Tooltip>
+                ) : null}
                 {selected !== '' && !disabled ? (
                   <Tooltip title="Delete" sx={{flex: '1'}}>
                     <IconButton onClick={handlePointOffsetToolDelete}>

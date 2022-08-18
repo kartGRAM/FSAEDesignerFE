@@ -53,6 +53,7 @@ interface IDataVector3WithColor extends IDataVector3 {
 
 export default function AssemblyConfig(params: Params) {
   const {assembly} = params;
+  const isMirror = !!assembly.meta?.mirror;
 
   const {children} = assembly;
   const jointedNodeIDs = assembly.getJointedPoints().map((p) => p.nodeID);
@@ -83,6 +84,16 @@ export default function AssemblyConfig(params: Params) {
     (state: RootState) =>
       state.uigd.present.parameterConfigState.dynamicParamsExpanded
   );
+
+  const jointsListSetSelected = React.useCallback((value: number | null) => {
+    setJointsListSelected(value);
+    setPointSelected({lhs: null, rhs: null});
+  }, []);
+
+  const restOfPointsSetSelected = React.useCallback((value: PointPair) => {
+    setPointSelected(value);
+    setJointsListSelected(null);
+  }, []);
 
   const coMatrix = getMatrix3(
     useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
@@ -159,9 +170,11 @@ export default function AssemblyConfig(params: Params) {
 
   return (
     <>
-      <Typography variant="h6">{assembly.name.value} Parameters</Typography>
+      <Typography variant="h6">
+        {assembly.name.value} Parameters {isMirror ? '(Mirror)' : ''}
+      </Typography>
       <Accordion
-        defaultExpanded={kinematicParamsDefaultExpanded}
+        expanded={kinematicParamsDefaultExpanded}
         onChange={(e, expanded) => {
           dispatch(kinematicParamsDefaultExpandedChange(expanded));
         }}
@@ -171,17 +184,18 @@ export default function AssemblyConfig(params: Params) {
           aria-controls="panel1a-content"
           id="panel1a-header"
         >
-          <Typography>Kinematic Parameters</Typography>
+          <Typography>
+            Kinematic Parameters {isMirror ? '(Readonly)' : ''}
+          </Typography>
         </AccordionSummary>
         <AccordionDetails sx={{padding: 0}}>
-          {!isFrameObject ? <Vector vector={assembly.initialPosition} /> : null}
+          {!isFrameObject ? (
+            <Vector vector={assembly.initialPosition} disabled={isMirror} />
+          ) : null}
           <JointsList
             assembly={assembly}
             selected={jointsListSelected}
-            setSelected={(value) => {
-              setJointsListSelected(value);
-              setPointSelected({lhs: null, rhs: null});
-            }}
+            setSelected={jointsListSetSelected}
             selectedPair={pointSelected}
           />
           {!isFrameObject
@@ -192,10 +206,7 @@ export default function AssemblyConfig(params: Params) {
                     element={child}
                     points={restOfPointsChildren[child.nodeID]}
                     selected={pointSelected}
-                    setSelected={(value) => {
-                      setPointSelected(value);
-                      setJointsListSelected(null);
-                    }}
+                    setSelected={restOfPointsSetSelected}
                   />
                 );
               })
@@ -203,7 +214,7 @@ export default function AssemblyConfig(params: Params) {
         </AccordionDetails>
       </Accordion>
       <Accordion
-        defaultExpanded={dynamicParamsDefaultExpanded}
+        expanded={dynamicParamsDefaultExpanded}
         onChange={(e, expanded) => {
           dispatch(dynamicParamsDefaultExpandedChange(expanded));
         }}
@@ -260,7 +271,10 @@ export function JointsList(props: {
   React.useEffect(() => {
     if (pairSelected) buttonRef.current?.focus();
   }, [pairSelected]);
-  if (isFrame(assembly)) {
+
+  const resetSelected = React.useCallback(() => setSelected(null), []);
+
+  if (!!assembly.meta?.mirror || isFrame(assembly)) {
     pairSelected = false;
     varidatedSelected = null;
   }
@@ -346,7 +360,7 @@ export function JointsList(props: {
             size="small"
             aria-label="a dense table"
           >
-            <TableHead onClick={() => setSelected(null)}>
+            <TableHead onClick={resetSelected}>
               <TableRow>
                 <TableCell>LHS Name</TableCell>
                 <TableCell>LHS Parent</TableCell>

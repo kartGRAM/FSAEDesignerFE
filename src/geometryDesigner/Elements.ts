@@ -62,6 +62,10 @@ export const trans = (p: INamedVector3, coMatrix?: Matrix3): Vector3 => {
   return v;
 };
 
+export const isMirror = (element: IElement): boolean => {
+  return !!element.meta?.mirror;
+};
+
 function getMirrorVec(v: FunctionVector3) {
   v.y = minus(v.y);
   return v;
@@ -228,8 +232,8 @@ export abstract class Element implements IElement {
       position: this.position.getData(state),
       rotation: this.rotation.getData(state),
       initialPosition: this.initialPosition.getData(state),
-      visible: this.visible.getData()
-      // mirrorTo: this.meta?.mirror?.to
+      visible: this.visible.getData(),
+      mirrorTo: this.meta?.mirror?.to
     };
   }
 }

@@ -105,7 +105,7 @@ export function isNumber(value: any): value is number {
 
 export function minus(value: string | number): string | number {
   if (isNumber(value)) {
-    return Number(`-${value.toString()}`);
+    return value * -1;
   }
   return `-(${value})`;
 }

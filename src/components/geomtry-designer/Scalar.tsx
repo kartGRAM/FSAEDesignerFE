@@ -19,10 +19,11 @@ export interface Props {
   removable?: boolean;
   onRemove?: () => void;
   onFocusChanged?: (focus: boolean) => () => void;
+  disabled?: boolean;
 }
 
 export default function Scalar(props: Props) {
-  const {value, unit, removable, onRemove, onFocusChanged} = props;
+  const {value, unit, removable, onRemove, onFocusChanged, disabled} = props;
   const dispatch = useDispatch();
   const sValue = value.getStringValue();
 
@@ -167,6 +168,7 @@ export default function Scalar(props: Props) {
           }}
         >
           <ValueField
+            disabled={disabled}
             onChange={handleChange}
             label="value"
             name="value"

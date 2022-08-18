@@ -64,6 +64,10 @@ function getElementByPathCore(
   return element;
 }
 
+export const isMirrorElement = (element: IElement): boolean => {
+  return !!element.meta?.mirror;
+};
+
 export interface IElement extends IBidirectionalNode {
   readonly isElement: true;
   readonly className: string;
