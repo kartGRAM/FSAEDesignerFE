@@ -39,7 +39,13 @@ const store = configureStore({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   middleware: (getDefaultMiddleware) => [
     // ...getDefaultMiddleware().concat(createLogger()),
-    ...getDefaultMiddleware().concat(
+    ...getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: ['dataGeometryDesigner/updateAssembly'],
+        warnAfter: 128
+      },
+      immutableCheck: {warnAfter: 128}
+    }).concat(
       save({
         states: ['uigd'],
         namespace: 'FSAEDesigner'

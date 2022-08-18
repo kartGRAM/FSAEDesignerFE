@@ -37,10 +37,11 @@ export interface Props {
   vector: INamedVector3;
   removable?: boolean;
   onRemove?: () => void;
+  disabled?: boolean;
 }
 
-export default function Vector(props: Props) {
-  const {vector, removable, onRemove} = props;
+const Vector = React.memo((props: Props) => {
+  const {vector, removable, onRemove, disabled} = props;
   const dispatch = useDispatch();
   const coMatrix = getMatrix3(
     useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
@@ -107,22 +108,26 @@ export default function Vector(props: Props) {
     }
   }, [rename]);
 
-  const handleFocus = () => {
+  const handleFocus = React.useCallback(() => {
     setFocused(true);
-  };
+  }, []);
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    formik.handleChange(event);
-    setTimeout(formik.handleSubmit, 0);
-  };
+  const handleChange = React.useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      formik.handleChange(event);
+      setTimeout(formik.handleSubmit, 0);
+    },
+    [formik]
+  );
 
-  const handleBlur = () => {
+  const handleBlur = React.useCallback(() => {
     setFocused(false);
-  };
+  }, []);
 
   const handlePointOffsetToolAdd = React.useCallback(
     (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
       e.stopPropagation();
+      if (disabled) return;
       const tools = vector.pointOffsetTools ?? [];
       tools.push(
         new DeltaXYZ({
@@ -138,7 +143,7 @@ export default function Vector(props: Props) {
       vector.pointOffsetTools = tools;
       dispatch(updateAssembly(vector));
     },
-    [vector]
+    [vector, disabled]
   );
 
   const handlePointOffsetToolDelete = React.useCallback(
@@ -152,23 +157,32 @@ export default function Vector(props: Props) {
     [vector]
   );
 
-  const handleNameDblClick = () => {
+  const handleNameDblClick = React.useCallback(() => {
     nameFormik.resetForm();
     setRename(true);
-  };
+  }, [nameFormik]);
 
-  const onNameEnter = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Enter') {
-      nameFormik.handleSubmit();
-    }
-  };
+  const onNameEnter = React.useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === 'Enter') {
+        nameFormik.handleSubmit();
+      }
+    },
+    [nameFormik]
+  );
 
-  const onNameBlur = (
-    e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement, Element>
-  ) => {
-    setRename(false);
-    nameFormik.handleBlur(e);
-  };
+  const onNameBlur = React.useCallback(
+    (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement, Element>) => {
+      setRename(false);
+      nameFormik.handleBlur(e);
+    },
+    [nameFormik]
+  );
+
+  const handleAccordionOpen = React.useCallback(() => {
+    if (expanded) setSelected('');
+    setExpanded((prev) => !prev);
+  }, [expanded]);
 
   return (
     <Box sx={{padding: 1}} onFocus={handleFocus} onBlur={handleBlur}>
@@ -231,6 +245,7 @@ export default function Vector(props: Props) {
           }}
         >
           <ValueField
+            disabled={disabled}
             onChange={handleChange}
             label="X"
             name="x"
@@ -241,6 +256,7 @@ export default function Vector(props: Props) {
             onBlur={formik.handleBlur}
           />
           <ValueField
+            disabled={disabled}
             onChange={handleChange}
             onBlur={formik.handleBlur}
             label="Y"
@@ -251,6 +267,7 @@ export default function Vector(props: Props) {
             helperText={formik.touched.y && formik.errors.y}
           />
           <ValueField
+            disabled={disabled}
             onChange={handleChange}
             onBlur={formik.handleBlur}
             label="Z"
@@ -264,10 +281,7 @@ export default function Vector(props: Props) {
       </form>
       <Accordion
         expanded={expanded}
-        onChange={() => {
-          if (expanded) setSelected('');
-          setExpanded((prev) => !prev);
-        }}
+        onChange={handleAccordionOpen}
         sx={{
           backgroundColor: '#eee',
           ml: 1,
@@ -319,7 +333,7 @@ export default function Vector(props: Props) {
                     <AddBoxIcon />
                   </IconButton>
                 </Tooltip>
-                {selected !== '' ? (
+                {selected !== '' && !disabled ? (
                   <Tooltip title="Delete" sx={{flex: '1'}}>
                     <IconButton onClick={handlePointOffsetToolDelete}>
                       <DeleteIcon />
@@ -335,21 +349,24 @@ export default function Vector(props: Props) {
             selected={selected}
             setSelected={setSelected}
             vector={vector}
+            disabled={disabled}
           />
         </AccordionDetails>
       </Accordion>
     </Box>
   );
-}
+});
+export default Vector;
 
 const PointOffsetList = React.memo(
   (props: {
     selected: string;
     setSelected: (value: string) => void;
     vector: INamedVector3;
+    disabled?: boolean;
   }) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {vector, selected, setSelected} = props;
+    const {vector, selected, setSelected, disabled} = props;
     const {pointOffsetTools} = vector;
     const enabledColorLight: number = useSelector(
       (state: RootState) => state.uigd.present.enabledColorLight
@@ -360,6 +377,7 @@ const PointOffsetList = React.memo(
       idx: number;
     } | null>(null);
     const onToolDblClick = (tool: IPointOffsetTool, idx: number) => {
+      if (disabled) return;
       setOpen(true);
       setToolAndIdx({tool, idx});
     };

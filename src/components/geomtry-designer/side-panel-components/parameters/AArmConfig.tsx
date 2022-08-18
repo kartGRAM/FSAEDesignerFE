@@ -26,7 +26,8 @@ interface Params {
 
 export default function AArmConfig(params: Params) {
   const {element} = params;
-  // eslint-disable-next-line no-unused-vars
+
+  const isMirror = !!element.meta?.mirror;
 
   const dispatch = useDispatch();
   const kinematicParamsDefaultExpanded = useSelector(
@@ -44,7 +45,9 @@ export default function AArmConfig(params: Params) {
 
   return (
     <>
-      <Typography variant="h6">{element.name.value} Parameters</Typography>
+      <Typography variant="h6">
+        {element.name.value} Parameters {isMirror ? '(Mirror)' : ''}
+      </Typography>
       <Accordion
         defaultExpanded={kinematicParamsDefaultExpanded}
         onChange={(e, expanded) => {
@@ -56,7 +59,9 @@ export default function AArmConfig(params: Params) {
           aria-controls="panel1a-content"
           id="panel1a-header"
         >
-          <Typography>Kinematic Parameters</Typography>
+          <Typography>
+            Kinematic Parameters {isMirror ? '(Readonly)' : ''}
+          </Typography>
         </AccordionSummary>
         <AccordionDetails sx={{padding: 0}}>
           <Vector vector={element.fixedPoints[0]} />

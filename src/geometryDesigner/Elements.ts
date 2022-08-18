@@ -170,6 +170,9 @@ export abstract class Element implements IElement {
     if (isDataElement(params)) {
       const element = params;
       this._nodeID = element.nodeID;
+      if (params.mirrorTo) {
+        assignMeta(this, {mirror: {to: params.mirrorTo}});
+      }
     }
   }
 
@@ -226,6 +229,7 @@ export abstract class Element implements IElement {
       rotation: this.rotation.getData(state),
       initialPosition: this.initialPosition.getData(state),
       visible: this.visible.getData()
+      // mirrorTo: this.meta?.mirror?.to
     };
   }
 }
@@ -389,12 +393,14 @@ export class Assembly extends Element implements IAssembly {
 
     const initialPosition = getMirrorVec(this.initialPosition.getStringValue());
 
-    return new Assembly({
+    const ret = new Assembly({
       name: `mirror_${this.name.value}`,
       children,
       joints,
       initialPosition
     });
+    assignMeta(ret, {mirror: {to: this.absPath}});
+    return ret;
   }
 
   get mass(): NamedNumber {
@@ -632,7 +638,7 @@ export class Bar extends Element implements IBar {
     const cog: FunctionVector3 = getMirrorVec(
       this.centerOfGravity.getStringValue()
     );
-    return new Bar({
+    const ret = new Bar({
       name: `mirror_${this.name.value}`,
       fixedPoint: fp,
       point: p,
@@ -640,6 +646,8 @@ export class Bar extends Element implements IBar {
       mass: this.mass.value,
       centerOfGravity: cog
     });
+    assignMeta(ret, {mirror: {to: this.absPath}});
+    return ret;
   }
 
   get inertialTensor(): NamedMatrix3 {
@@ -735,7 +743,7 @@ export class SpringDumper extends Bar implements ISpringDumper {
     const p = getMirrorVec(this.point.getStringValue());
     const ip = getMirrorVec(this.initialPosition.getStringValue());
     const cog = getMirrorVec(this.centerOfGravity.getStringValue());
-    return new SpringDumper({
+    const ret = new SpringDumper({
       name: `mirror_${this.name.value}`,
       fixedPoint: fp,
       point: p,
@@ -745,6 +753,8 @@ export class SpringDumper extends Bar implements ISpringDumper {
       dlMin: this.dlMin.value,
       dlMax: this.dlMax.value
     });
+    assignMeta(ret, {mirror: {to: this.absPath}});
+    return ret;
   }
 
   dlMin: NamedNumber;
@@ -828,7 +838,7 @@ export class AArm extends Element implements IAArm {
     const ip = getMirrorVec(this.initialPosition.getStringValue());
     const cog = getMirrorVec(this.centerOfGravity.getStringValue());
     const point0 = points.shift()!;
-    return new AArm({
+    const ret = new AArm({
       name: `mirror_${this.name.value}`,
       fixedPoints: fp,
       points: [point0, ...points],
@@ -836,6 +846,8 @@ export class AArm extends Element implements IAArm {
       mass: this.mass.value,
       centerOfGravity: cog
     });
+    assignMeta(ret, {mirror: {to: this.absPath}});
+    return ret;
   }
 
   get inertialTensor(): NamedMatrix3 {
@@ -984,7 +996,7 @@ export class BellCrank extends Element implements IBellCrank {
     const point1 = points.shift()!;
     const ip = getMirrorVec(this.initialPosition.getStringValue());
     const cog = getMirrorVec(this.centerOfGravity.getStringValue());
-    return new BellCrank({
+    const ret = new BellCrank({
       name: `mirror_${this.name.value}`,
       fixedPoints: fp,
       points: [point0, point1, ...points],
@@ -992,6 +1004,8 @@ export class BellCrank extends Element implements IBellCrank {
       mass: this.mass.value,
       centerOfGravity: cog
     });
+    assignMeta(ret, {mirror: {to: this.absPath}});
+    return ret;
   }
 
   get inertialTensor(): NamedMatrix3 {
@@ -1142,7 +1156,7 @@ export class Body extends Element implements IBody {
     const points = this.points.map((p) => getMirrorVec(p.getStringValue()));
     const ip = getMirrorVec(this.initialPosition.getStringValue());
     const cog = getMirrorVec(this.centerOfGravity.getStringValue());
-    return new Body({
+    const ret = new Body({
       name: `mirror_${this.name.value}`,
       fixedPoints: fp,
       points,
@@ -1150,6 +1164,8 @@ export class Body extends Element implements IBody {
       mass: this.mass.value,
       centerOfGravity: cog
     });
+    assignMeta(ret, {mirror: {to: this.absPath}});
+    return ret;
   }
 
   get inertialTensor(): NamedMatrix3 {
@@ -1313,7 +1329,7 @@ export class Tire extends Element implements ITire {
     const center = getMirrorVec(this.tireCenter.getStringValue());
     const ip = getMirrorVec(this.initialPosition.getStringValue());
     const cog = getMirrorVec(this.centerOfGravity.getStringValue());
-    return new Tire({
+    const ret = new Tire({
       name: `mirror_${this.name.value}`,
       tireCenter: center,
       toLeftBearing: minus(this.toRightBearing.getStringValue()),
@@ -1322,6 +1338,8 @@ export class Tire extends Element implements ITire {
       mass: this.mass.value,
       centerOfGravity: cog
     });
+    assignMeta(ret, {mirror: {to: this.absPath}});
+    return ret;
   }
 
   get diameter(): Millimeter {
