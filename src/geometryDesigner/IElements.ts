@@ -29,10 +29,12 @@ export function getElementByPath(
   root: IAssembly | undefined | null,
   path: string
 ): IElement | null {
+  if (root?.parent) throw new Error('root以外が使用してはいけない');
   return getElementByPathCore(root, path) as IElement | null;
 }
 
-export function getDataElementByPath(
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function getDataElementByPath(
   root: IDataAssembly | undefined | null,
   path: string
 ): IDataElement | null {

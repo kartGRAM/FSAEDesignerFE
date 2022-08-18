@@ -8,11 +8,12 @@ import {
   NamedNumber,
   NamedBooleanOrUndefined
 } from '@gd/NamedValues';
-import {INamedVector3, FunctionVector3} from '@gd/INamedValues';
+import {IDataVector3, INamedVector3, FunctionVector3} from '@gd/INamedValues';
 import {AtLeast1, AtLeast2} from '@app/utils/atLeast';
 import {v4 as uuidv4} from 'uuid';
 import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {minus} from '@app/utils/helpers';
+import store from '@store/store';
 import {getRootNode} from './INode';
 import {
   Millimeter,
@@ -65,11 +66,6 @@ export const trans = (p: INamedVector3, coMatrix?: Matrix3): Vector3 => {
 export const isMirror = (element: IElement): boolean => {
   return !!element.meta?.mirror;
 };
-
-function getMirrorVec(v: FunctionVector3) {
-  v.y = minus(v.y);
-  return v;
-}
 
 export function getAssembly(assembly: IDataAssembly): IAssembly {
   return getElement(assembly) as IAssembly;
@@ -381,6 +377,7 @@ export class Assembly extends Element implements IAssembly {
   }
 
   getMirror(): Assembly {
+    const state = store.getState().dgd.present;
     const children = this.children.map((child) => child.getMirror());
     let mirPoints: INamedVector3[] = [];
     children.forEach((child) => {
@@ -395,7 +392,7 @@ export class Assembly extends Element implements IAssembly {
       };
     });
 
-    const initialPosition = getMirrorVec(this.initialPosition.getStringValue());
+    const initialPosition = this.initialPosition.getMirrorData(state);
 
     const ret = new Assembly({
       name: `mirror_${this.name.value}`,
@@ -464,7 +461,7 @@ export class Assembly extends Element implements IAssembly {
           name: string;
           children: IElement[];
           joints: Joint[];
-          initialPosition?: FunctionVector3;
+          initialPosition?: FunctionVector3 | IDataVector3;
         }
       | IDataAssembly
   ) {
@@ -634,14 +631,11 @@ export class Bar extends Element implements IBar {
   }
 
   getMirror(): Bar {
-    const fp: FunctionVector3 = getMirrorVec(this.fixedPoint.getStringValue());
-    const p: FunctionVector3 = getMirrorVec(this.point.getStringValue());
-    const ip: FunctionVector3 = getMirrorVec(
-      this.initialPosition.getStringValue()
-    );
-    const cog: FunctionVector3 = getMirrorVec(
-      this.centerOfGravity.getStringValue()
-    );
+    const state = store.getState().dgd.present;
+    const fp = this.fixedPoint.getMirrorData(state);
+    const p = this.point.getMirrorData(state);
+    const ip = this.initialPosition.getStringValue();
+    const cog = this.centerOfGravity.getStringValue();
     const ret = new Bar({
       name: `mirror_${this.name.value}`,
       fixedPoint: fp,
@@ -669,11 +663,11 @@ export class Bar extends Element implements IBar {
     params:
       | {
           name: string;
-          fixedPoint: FunctionVector3;
-          point: FunctionVector3;
-          initialPosition?: FunctionVector3;
+          fixedPoint: FunctionVector3 | IDataVector3;
+          point: FunctionVector3 | IDataVector3;
+          initialPosition?: FunctionVector3 | IDataVector3;
           mass?: number;
-          centerOfGravity?: FunctionVector3;
+          centerOfGravity?: FunctionVector3 | IDataVector3;
         }
       | IDataBar
   ) {
@@ -743,10 +737,11 @@ export class SpringDumper extends Bar implements ISpringDumper {
   }
 
   getMirror(): SpringDumper {
-    const fp = getMirrorVec(this.fixedPoint.getStringValue());
-    const p = getMirrorVec(this.point.getStringValue());
-    const ip = getMirrorVec(this.initialPosition.getStringValue());
-    const cog = getMirrorVec(this.centerOfGravity.getStringValue());
+    const state = store.getState().dgd.present;
+    const fp = this.fixedPoint.getMirrorData(state);
+    const p = this.point.getMirrorData(state);
+    const ip = this.initialPosition.getMirrorData(state);
+    const cog = this.centerOfGravity.getMirrorData(state);
     const ret = new SpringDumper({
       name: `mirror_${this.name.value}`,
       fixedPoint: fp,
@@ -769,13 +764,13 @@ export class SpringDumper extends Bar implements ISpringDumper {
     params:
       | {
           name: string;
-          fixedPoint: FunctionVector3;
-          point: FunctionVector3;
+          fixedPoint: FunctionVector3 | IDataVector3;
+          point: FunctionVector3 | IDataVector3;
           dlMin: Millimeter;
           dlMax: Millimeter;
-          initialPosition?: FunctionVector3;
+          initialPosition?: FunctionVector3 | IDataVector3;
           mass?: number;
-          centerOfGravity?: FunctionVector3;
+          centerOfGravity?: FunctionVector3 | IDataVector3;
         }
       | IDataSpringDumper
   ) {
@@ -834,13 +829,15 @@ export class AArm extends Element implements IAArm {
   }
 
   getMirror(): AArm {
-    const fp: [FunctionVector3, FunctionVector3] = [
-      getMirrorVec(this.fixedPoints[0].getStringValue()),
-      getMirrorVec(this.fixedPoints[1].getStringValue())
-    ];
-    const points = this.points.map((p) => getMirrorVec(p.getStringValue()));
-    const ip = getMirrorVec(this.initialPosition.getStringValue());
-    const cog = getMirrorVec(this.centerOfGravity.getStringValue());
+    const state = store.getState().dgd.present;
+    const fp: [FunctionVector3 | IDataVector3, FunctionVector3 | IDataVector3] =
+      [
+        this.fixedPoints[0].getMirrorData(state),
+        this.fixedPoints[1].getMirrorData(state)
+      ];
+    const points = this.points.map((p) => p.getMirrorData(state));
+    const ip = this.initialPosition.getMirrorData(state);
+    const cog = this.centerOfGravity.getMirrorData(state);
     const point0 = points.shift()!;
     const ret = new AArm({
       name: `mirror_${this.name.value}`,
@@ -873,11 +870,14 @@ export class AArm extends Element implements IAArm {
     params:
       | {
           name: string;
-          fixedPoints: [FunctionVector3, FunctionVector3];
-          points: AtLeast1<FunctionVector3>;
-          initialPosition?: FunctionVector3;
+          fixedPoints: [
+            FunctionVector3 | IDataVector3,
+            FunctionVector3 | IDataVector3
+          ];
+          points: AtLeast1<FunctionVector3 | IDataVector3>;
+          initialPosition?: FunctionVector3 | IDataVector3;
           mass?: number;
-          centerOfGravity?: FunctionVector3;
+          centerOfGravity?: FunctionVector3 | IDataVector3;
         }
       | IDataAArm
   ) {
@@ -991,15 +991,16 @@ export class BellCrank extends Element implements IBellCrank {
   }
 
   getMirror(): BellCrank {
-    const fp: [FunctionVector3, FunctionVector3] = [
-      getMirrorVec(this.fixedPoints[0].getStringValue()),
-      getMirrorVec(this.fixedPoints[1].getStringValue())
+    const state = store.getState().dgd.present;
+    const fp: [IDataVector3, IDataVector3] = [
+      this.fixedPoints[0].getMirrorData(state),
+      this.fixedPoints[1].getMirrorData(state)
     ];
-    const points = this.points.map((p) => getMirrorVec(p.getStringValue()));
+    const points = this.points.map((p) => p.getMirrorData(state));
     const point0 = points.shift()!;
     const point1 = points.shift()!;
-    const ip = getMirrorVec(this.initialPosition.getStringValue());
-    const cog = getMirrorVec(this.centerOfGravity.getStringValue());
+    const ip = this.initialPosition.getMirrorData(state);
+    const cog = this.centerOfGravity.getMirrorData(state);
     const ret = new BellCrank({
       name: `mirror_${this.name.value}`,
       fixedPoints: fp,
@@ -1031,11 +1032,14 @@ export class BellCrank extends Element implements IBellCrank {
     params:
       | {
           name: string;
-          fixedPoints: [FunctionVector3, FunctionVector3];
-          points: AtLeast2<FunctionVector3>;
-          initialPosition?: FunctionVector3;
+          fixedPoints: [
+            FunctionVector3 | IDataVector3,
+            FunctionVector3 | IDataVector3
+          ];
+          points: AtLeast2<FunctionVector3 | IDataVector3>;
+          initialPosition?: FunctionVector3 | IDataVector3;
           mass?: number;
-          centerOfGravity?: FunctionVector3;
+          centerOfGravity?: FunctionVector3 | IDataVector3;
         }
       | IDataBellCrank
   ) {
@@ -1156,10 +1160,11 @@ export class Body extends Element implements IBody {
   }
 
   getMirror(): Body {
-    const fp = this.fixedPoints.map((p) => getMirrorVec(p.getStringValue()));
-    const points = this.points.map((p) => getMirrorVec(p.getStringValue()));
-    const ip = getMirrorVec(this.initialPosition.getStringValue());
-    const cog = getMirrorVec(this.centerOfGravity.getStringValue());
+    const state = store.getState().dgd.present;
+    const fp = this.fixedPoints.map((p) => p.getMirrorData(state));
+    const points = this.points.map((p) => p.getMirrorData(state));
+    const ip = this.initialPosition.getMirrorData(state);
+    const cog = this.centerOfGravity.getMirrorData(state);
     const ret = new Body({
       name: `mirror_${this.name.value}`,
       fixedPoints: fp,
@@ -1187,11 +1192,11 @@ export class Body extends Element implements IBody {
     params:
       | {
           name: string;
-          fixedPoints: Array<FunctionVector3>;
-          points: Array<FunctionVector3>;
-          initialPosition?: FunctionVector3;
+          fixedPoints: Array<FunctionVector3 | IDataVector3>;
+          points: Array<FunctionVector3 | IDataVector3>;
+          initialPosition?: FunctionVector3 | IDataVector3;
           mass?: number;
-          centerOfGravity?: FunctionVector3;
+          centerOfGravity?: FunctionVector3 | IDataVector3;
         }
       | IDataBody
   ) {
@@ -1293,9 +1298,9 @@ export class Tire extends Element implements ITire {
     return new NamedVector3({
       name: 'leftBaring',
       parent: this,
-      value: this.tireCenter.value
-        .clone()
-        .add(new Vector3(0, this.toLeftBearing.value, 0)),
+      value: this.tireCenter.originalValue.add(
+        new Vector3(0, this.toLeftBearing.value, 0)
+      ),
       update: () => {},
       nodeID: this.leftBearingNodeID
     });
@@ -1306,9 +1311,9 @@ export class Tire extends Element implements ITire {
     return new NamedVector3({
       name: 'rightBaring',
       parent: this,
-      value: this.tireCenter.value
-        .clone()
-        .add(new Vector3(0, this.toRightBearing.value, 0)),
+      value: this.tireCenter.originalValue.add(
+        new Vector3(0, this.toRightBearing.value, 0)
+      ),
       update: () => {},
       nodeID: this.rightBearingNodeID
     });
@@ -1330,9 +1335,10 @@ export class Tire extends Element implements ITire {
   }
 
   getMirror(): Tire {
-    const center = getMirrorVec(this.tireCenter.getStringValue());
-    const ip = getMirrorVec(this.initialPosition.getStringValue());
-    const cog = getMirrorVec(this.centerOfGravity.getStringValue());
+    const state = store.getState().dgd.present;
+    const center = this.tireCenter.getMirrorData(state);
+    const ip = this.initialPosition.getMirrorData(state);
+    const cog = this.centerOfGravity.getMirrorData(state);
     const ret = new Tire({
       name: `mirror_${this.name.value}`,
       tireCenter: center,
@@ -1362,12 +1368,12 @@ export class Tire extends Element implements ITire {
     params:
       | {
           name: string;
-          tireCenter: FunctionVector3;
+          tireCenter: FunctionVector3 | IDataVector3;
           toLeftBearing: number | string;
           toRightBearing: number | string;
-          initialPosition?: FunctionVector3;
+          initialPosition?: FunctionVector3 | IDataVector3;
           mass?: number;
-          centerOfGravity?: FunctionVector3;
+          centerOfGravity?: FunctionVector3 | IDataVector3;
         }
       | IDataTire
   ) {

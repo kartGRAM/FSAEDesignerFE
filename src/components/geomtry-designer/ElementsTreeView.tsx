@@ -13,7 +13,6 @@ import {
   IDataAssembly,
   IDataElement,
   isDataAssembly,
-  getDataElementByPath,
   getElementByPath,
   isDataElement
 } from '@gd/IElements';
@@ -128,6 +127,7 @@ const ElementsTreeView = () => {
 interface MyTreeItemProps {
   nodeId: string;
   label: string;
+  visible: boolean | undefined;
   children: MyTreeItemProps[];
 }
 
@@ -136,6 +136,7 @@ function getPropsTree(element: IDataElement | undefined): MyTreeItemProps {
     return {
       nodeId: 'none',
       label: '',
+      visible: undefined,
       children: []
     };
   }
@@ -146,12 +147,13 @@ function getPropsTree(element: IDataElement | undefined): MyTreeItemProps {
   return {
     nodeId: element.absPath,
     label: element.name.value,
+    visible: element.visible.value,
     children
   };
 }
 
 const MyTreeItem = React.memo((props: MyTreeItemProps) => {
-  const {nodeId, label, children} = props;
+  const {nodeId, label, children, visible} = props;
   const selectedColor = NumberToRGB(
     useSelector(
       (state: RootState) =>
@@ -165,7 +167,7 @@ const MyTreeItem = React.memo((props: MyTreeItemProps) => {
   return (
     <TreeItem
       {...props}
-      label={<MyLabel label={label} absPath={nodeId} />}
+      label={<MyLabel label={label} absPath={nodeId} visible={visible} />}
       sx={{
         [`& .${treeItemClasses.iconContainer}`]: {
           '& .close': {
@@ -200,75 +202,79 @@ const MyTreeItem = React.memo((props: MyTreeItemProps) => {
   );
 });
 
-const MyLabel = React.memo((props: {label: string; absPath: string}) => {
-  const {label, absPath} = props;
+const MyLabel = React.memo(
+  (props: {label: string; absPath: string; visible: boolean | undefined}) => {
+    const {label, absPath, visible} = props;
 
-  return (
-    <Box display="flex">
-      <VisibilityControl absPath={absPath} />
-      <Typography>{label}</Typography>
-    </Box>
-  );
-});
+    return (
+      <Box display="flex">
+        <VisibilityControl absPath={absPath} visible={visible} />
+        <Typography>{label}</Typography>
+      </Box>
+    );
+  }
+);
 
-const VisibilityControl = React.memo((props: {absPath: string}) => {
-  const {absPath} = props;
-  const nColor = getReversal(
-    NumberToRGB(
-      useSelector(
-        (state: RootState) =>
-          state.uigd.present.assemblyTreeViewState.selectedColor
+const VisibilityControl = React.memo(
+  (props: {absPath: string; visible: boolean | undefined}) => {
+    const {absPath, visible} = props;
+    const nColor = getReversal(
+      NumberToRGB(
+        useSelector(
+          (state: RootState) =>
+            state.uigd.present.assemblyTreeViewState.selectedColor
+        )
       )
-    )
-  );
-  const color: string = nColor ?? '#fe6049';
-  const dispatch = useDispatch();
+    );
+    const color: string = nColor ?? '#fe6049';
+    const dispatch = useDispatch();
 
-  const visible: boolean | undefined = useSelector((state: RootState) => {
-    const top = state.dgd.present.topAssembly;
-    if (top) {
-      const e = getDataElementByPath(top, absPath);
-      if (e && isDataElement(e)) {
-        return e.visible.value;
-      }
-    }
-    return undefined;
-  });
-
-  const handleChange = React.useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const {topAssembly} = store.getState().dgd.present;
-      if (topAssembly) {
-        const assembly = getAssembly(topAssembly);
-        const instance = getElementByPath(assembly, absPath);
-        if (instance) {
-          instance.visible.value = event.target.checked;
-          dispatch(updateAssembly(instance));
+    /* const visible: boolean | undefined = useSelector((state: RootState) => {
+      const top = state.dgd.present.topAssembly;
+      if (top) {
+        const e = getDataElementByPath(top, absPath);
+        if (e && isDataElement(e)) {
+          return e.visible.value;
         }
       }
-    },
-    [absPath]
-  );
+      return undefined;
+    }); */
 
-  return (
-    <Checkbox
-      size="small"
-      checked={!!visible}
-      indeterminate={visible === undefined}
-      onChange={handleChange}
-      sx={{
-        padding: 0.3,
-        color: alpha(color, 0.7),
-        '&.Mui-checked': {
-          color: alpha(color, 0.8)
-        },
-        '&.MuiCheckbox-indeterminate': {
-          color: alpha(color, 0.8)
+    const handleChange = React.useCallback(
+      (event: React.ChangeEvent<HTMLInputElement>) => {
+        const {topAssembly} = store.getState().dgd.present;
+        if (topAssembly) {
+          const assembly = getAssembly(topAssembly);
+          const instance = getElementByPath(assembly, absPath);
+          if (instance) {
+            instance.visible.value = event.target.checked;
+            dispatch(updateAssembly(instance));
+          }
         }
-      }}
-    />
-  );
-});
+      },
+      [absPath]
+    );
+
+    return (
+      <Checkbox
+        size="small"
+        checked={!!visible}
+        indeterminate={visible === undefined}
+        onChange={handleChange}
+        sx={{
+          padding: 0.3,
+          color: alpha(color, 0.7),
+          '&.Mui-checked': {
+            color: alpha(color, 0.8)
+          },
+          '&.MuiCheckbox-indeterminate': {
+            color: alpha(color, 0.8)
+          }
+        }}
+      />
+    );
+  }
+);
 
 export default ElementsTreeView;
 

@@ -7,6 +7,7 @@ import {Formula} from '@gd/Formula';
 import {IDataFormula} from '@gd/IFormula';
 import {
   isNamedData,
+  isDataPointOffsetTool,
   IDataVector3,
   IDataMatrix3,
   IDataNumber,
@@ -333,6 +334,31 @@ export function isNamedBooleanOrUndefined(
   return value.className === 'NamedBooleanOrUndefined';
 }
 
+function minusDataNumber(i: IDataNumber): IDataNumber {
+  const nodeID = uuidv4();
+  const tmp = i.absPath.split('@').shift();
+  let absPath = nodeID;
+  if (tmp) absPath = [nodeID, ...tmp].join('@');
+
+  let formula: IDataFormula | undefined;
+  if (i.formula) {
+    formula = {
+      name: i.formula.name,
+      absPath,
+      formula: `-(${i.formula.formula})`
+    };
+  }
+  return {
+    isNamedData: true,
+    name: i.name,
+    className: i.className,
+    value: -i.value,
+    nodeID,
+    absPath,
+    formula
+  };
+}
+
 export class NamedVector3 extends NamedValue implements INamedVector3 {
   x: NamedNumber;
 
@@ -454,6 +480,19 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
       z: this.z.getData(state),
       pointOffsetTools: this.pointOffsetTools?.map((tool) =>
         tool.getData(state)
+      )
+    };
+  }
+
+  getMirrorData(state: GDState): IDataVector3 {
+    return {
+      ...super.getDataBase(),
+      nodeID: uuidv4(),
+      x: {...this.x.getData(state), nodeID: uuidv4()},
+      y: minusDataNumber(this.y.getData(state)),
+      z: {...this.z.getData(state), nodeID: uuidv4()},
+      pointOffsetTools: this.pointOffsetTools?.map((tool) =>
+        tool.getMirrorData(state)
       )
     };
   }
@@ -593,6 +632,8 @@ abstract class PointOffsetTool implements IPointOffsetTool {
 
   abstract getData(state: GDState): IDataPointOffsetTool;
 
+  abstract getMirrorData(state: GDState): IDataPointOffsetTool;
+
   abstract getOffsetVector(): {dx: number; dy: number; dz: number};
 
   getDataBase() {
@@ -619,7 +660,12 @@ abstract class PointOffsetTool implements IPointOffsetTool {
     this.className = className;
     this.parent = parent;
     this.name = name;
-    this.nodeID = uuidv4();
+
+    if (isDataPointOffsetTool(value)) {
+      this.nodeID = value.nodeID;
+    } else {
+      this.nodeID = uuidv4();
+    }
   }
 }
 
@@ -666,6 +712,16 @@ export class DeltaXYZ extends PointOffsetTool implements IPointOffsetTool {
       dx: this.dx.getData(state),
       dy: this.dy.getData(state),
       dz: this.dz.getData(state)
+    };
+  }
+
+  getMirrorData(state: GDState): IDataDeltaXYZ {
+    return {
+      ...super.getDataBase(),
+      nodeID: uuidv4(),
+      dx: {...this.dx.getData(state), nodeID: uuidv4()},
+      dy: minusDataNumber(this.dy.getData(state)),
+      dz: {...this.dz.getData(state), nodeID: uuidv4()}
     };
   }
 
@@ -755,6 +811,17 @@ export class DirectionLength
       nx: this.nx.getData(state),
       ny: this.ny.getData(state),
       nz: this.nz.getData(state),
+      l: this.l.getData(state)
+    };
+  }
+
+  getMirrorData(state: GDState): IDataDirectionLength {
+    return {
+      ...super.getDataBase(),
+      nodeID: uuidv4(),
+      nx: {...this.nx.getData(state), nodeID: uuidv4()},
+      ny: minusDataNumber(this.ny.getData(state)),
+      nz: {...this.nz.getData(state), nodeID: uuidv4()},
       l: this.l.getData(state)
     };
   }

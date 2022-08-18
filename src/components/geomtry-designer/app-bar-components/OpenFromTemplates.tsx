@@ -6,8 +6,9 @@ import {getSampleData} from '@app/geometryDesigner/SampleGeometry';
 
 export default function OpenFromTemplates() {
   const dispatch = useDispatch();
-  const handleOnClick = () => {
-    dispatch(setTopAssembly(getSampleData()));
+  const handleOnClick = async () => {
+    const data = await getSampleData();
+    dispatch(setTopAssembly(data));
   };
 
   /* とりあえずテスト用に入れる

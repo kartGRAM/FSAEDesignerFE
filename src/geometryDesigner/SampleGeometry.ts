@@ -1,7 +1,9 @@
 import {Vector3} from 'three';
-import {SavedData} from '@store/reducers/dataGeometryDesigner';
+import {SavedData, setFormulae} from '@store/reducers/dataGeometryDesigner';
 import {DateTime} from 'luxon';
 import store from '@store/store';
+
+import {DeltaXYZ} from '@gd/NamedValues';
 import {
   Assembly,
   Bar,
@@ -18,10 +20,22 @@ const getLeftFrontSuspension = (): Assembly => {
 
   const tire = new Tire({
     name: 'leftTire',
-    tireCenter,
+    tireCenter: {...tireCenter, y: 'baseTread/2'},
     toLeftBearing: -30,
     toRightBearing: -60
   });
+
+  tire.tireCenter.pointOffsetTools.push(
+    new DeltaXYZ({
+      value: {
+        name: 'wheelOffset',
+        dx: 0,
+        dy: 'wheelOffset',
+        dz: 0
+      },
+      parent: tire.tireCenter
+    })
+  );
 
   const upright = new Body({
     name: 'upright',
@@ -130,7 +144,7 @@ const getFrontSuspension = (): Assembly => {
     name: 'frontSuspentionSubAssy',
     children: [leftSuspension, rightSuspension],
     joints: [],
-    initialPosition: new Vector3(848, 0, 0)
+    initialPosition: {x: 'frontSusCenter', y: 0, z: 0}
   });
   return frontSuspensionSubAssy;
 };
@@ -140,7 +154,7 @@ const getLeftRearSuspension = (): Assembly => {
 
   const tire = new Tire({
     name: 'leftTire',
-    tireCenter,
+    tireCenter: {...tireCenter, y: 'baseTread/2'},
     toLeftBearing: -30,
     toRightBearing: -60
   });
@@ -251,7 +265,11 @@ const getRearSuspension = (): Assembly => {
     name: 'rearSuspentionSubAssy',
     children: [leftSuspension, rightSuspension],
     joints: [],
-    initialPosition: new Vector3(-752, 0, 0)
+    initialPosition: {
+      x: 'rearSusCenter',
+      y: 0,
+      z: 0
+    }
   });
   return rearSuspensionSubAssy;
 };
@@ -267,27 +285,32 @@ const getSuspension = (): Assembly => {
   return suspensionAssy;
 };
 
-export const getSampleData = (): SavedData => {
+export const getSampleData = async (): Promise<SavedData> => {
+  const formulae = [
+    {name: 'baseTread', formula: '1215', absPath: 'global'},
+    {name: 'wheelOffset', formula: '0', absPath: 'global'},
+    {name: 'wheelBase', formula: '1600', absPath: 'global'},
+    {name: 'frontWeightRatio', formula: '0.47', absPath: 'global'},
+    {
+      name: 'frontSusCenter',
+      formula: '(1-frontWeightRatio)*wheelBase',
+      absPath: 'global'
+    },
+    {
+      name: 'rearSusCenter',
+      formula: '-frontWeightRatio*wheelBase',
+      absPath: 'global'
+    }
+  ];
+
+  await store.dispatch(setFormulae(formulae));
+
   return {
     id: Number.MAX_SAFE_INTEGER,
     filename: 'KZ-RR11',
     note: '2013年度京都大学優勝車両',
     lastUpdated: DateTime.local().toString(),
-    formulae: [
-      {name: 'tread', formula: '1215', absPath: 'global'},
-      {name: 'wheelBase', formula: '1600', absPath: 'global'},
-      {name: 'frontWeightRatio', formula: '0.47', absPath: 'global'},
-      {
-        name: 'frontSusCenter',
-        formula: '(1-frontWeightRatio)*wheelBase',
-        absPath: 'global'
-      },
-      {
-        name: 'rearSusCenter',
-        formula: 'frontWeightRatio*wheelBase',
-        absPath: 'global'
-      }
-    ],
+    formulae,
     topAssembly: getSuspension().getDataElement(store.getState().dgd.present)
   };
 };

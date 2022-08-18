@@ -85,6 +85,7 @@ export interface INamedVector3 extends INamedValue {
     y: number | string;
     z: number | string;
   };
+  getMirrorData(state: GDState): IDataVector3;
   pointOffsetTools?: IPointOffsetTool[];
 }
 
@@ -122,6 +123,14 @@ export interface IDataPointOffsetTool extends INode {
   name: string;
 }
 
+export function isDataPointOffsetTool(tool: any): tool is IDataPointOffsetTool {
+  try {
+    return 'isDataPointOffsetTool' in tool;
+  } catch (e) {
+    return false;
+  }
+}
+
 export interface IPointOffsetTool extends IBidirectionalNode {
   name: string;
   readonly isPointOffsetTool: true;
@@ -131,4 +140,5 @@ export interface IPointOffsetTool extends IBidirectionalNode {
   readonly parent: INamedVector3;
   getOffsetVector(): {dx: number; dy: number; dz: number};
   getData(state: GDState): IDataPointOffsetTool;
+  getMirrorData(state: GDState): IDataPointOffsetTool;
 }
