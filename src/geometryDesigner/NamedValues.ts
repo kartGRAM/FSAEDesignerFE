@@ -19,10 +19,11 @@ import {
   INamedVector3,
   INamedMatrix3,
   IPointOffsetTool,
-  IDataPointOffsetTool
+  IDataPointOffsetTool,
+  FunctionVector3
 } from '@gd/INamedValues';
 import {GDState} from '@store/reducers/dataGeometryDesigner';
-import {capitalize} from '@app/utils/helpers';
+import {capitalize, isNumber} from '@app/utils/helpers';
 
 export const getMatrix3 = (data: IDataMatrix3): Matrix3 => {
   const tmp = new Matrix3();
@@ -179,13 +180,6 @@ export class NamedPrimitive<T> extends NamedValue {
   }
 }
 
-function isNumber(value: any): value is number {
-  // eslint-disable-next-line radix, no-restricted-globals
-  const ret = value !== null && isFinite(value);
-
-  return ret;
-}
-
 function formulaOrUndef(
   value: string | number,
   name: string,
@@ -338,12 +332,6 @@ export function isNamedBooleanOrUndefined(
 ): value is NamedBooleanOrUndefined {
   return value.className === 'NamedBooleanOrUndefined';
 }
-
-type FunctionVector3 = {
-  x: number | string;
-  y: number | string;
-  z: number | string;
-};
 
 export class NamedVector3 extends NamedValue implements INamedVector3 {
   x: NamedNumber;
@@ -520,7 +508,8 @@ export class NamedMatrix3 extends NamedValue implements INamedMatrix3 {
     }
   }
 
-  getData(): IDataMatrix3 {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  getData(state: GDState): IDataMatrix3 {
     const e = this.value.elements;
     return {
       ...super.getDataBase(),

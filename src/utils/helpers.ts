@@ -95,3 +95,17 @@ export const capitalize = (
 export function unique<T>(array: T[]): T[] {
   return Array.from(new Set(array));
 }
+
+export function isNumber(value: any): value is number {
+  // eslint-disable-next-line radix, no-restricted-globals
+  const ret = value !== null && isFinite(value);
+
+  return ret;
+}
+
+export function minus(value: string | number): string | number {
+  if (isNumber(value)) {
+    return Number(`-${value.toString()}`);
+  }
+  return `-(${value})`;
+}

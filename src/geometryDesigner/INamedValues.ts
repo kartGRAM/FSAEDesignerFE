@@ -3,6 +3,12 @@ import {Vector3, Matrix3} from 'three';
 import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {INode, IBidirectionalNode} from './INode';
 
+export type FunctionVector3 = {
+  x: number | string;
+  y: number | string;
+  z: number | string;
+};
+
 export interface INamedValue extends IBidirectionalNode {
   isNamedValue: true;
   readonly parent: IBidirectionalNode;

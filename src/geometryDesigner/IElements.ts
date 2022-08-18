@@ -90,15 +90,18 @@ export interface IDataElement extends INode {
   isDataElement: true;
   className: string;
   name: IData<string>;
-  inertialTensor: IDataMatrix3;
-  mass: IData<number>;
-  centerOfGravity: IDataVector3;
   nodeID: string;
   absPath: string;
   visible: IData<boolean | undefined>;
+
+  mass: IData<number>;
+  centerOfGravity: IDataVector3;
+  inertialTensor: IDataMatrix3;
   position: IDataVector3;
-  rotation?: IDataMatrix3;
+  rotation: IDataMatrix3;
   initialPosition: IDataVector3;
+
+  mirrorTo?: string;
 }
 
 export interface IAssembly extends IElement {
@@ -205,7 +208,11 @@ export interface IDataFrame extends IDataAssembly {
 
 export interface Meta {
   isBodyOfFrame?: true;
-  isMirror?: true;
+  mirror?: MetaMirror;
+}
+
+export interface MetaMirror {
+  to: string;
 }
 
 export function assignMeta(to: IElement, meta: Meta) {

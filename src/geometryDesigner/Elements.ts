@@ -8,10 +8,11 @@ import {
   NamedNumber,
   NamedBooleanOrUndefined
 } from '@gd/NamedValues';
-import {INamedVector3} from '@gd/INamedValues';
+import {INamedVector3, FunctionVector3} from '@gd/INamedValues';
 import {AtLeast1, AtLeast2} from '@app/utils/atLeast';
 import {v4 as uuidv4} from 'uuid';
 import {GDState} from '@store/reducers/dataGeometryDesigner';
+import {minus} from '@app/utils/helpers';
 import {getRootNode} from './INode';
 import {
   Millimeter,
@@ -60,6 +61,11 @@ export const trans = (p: INamedVector3, coMatrix?: Matrix3): Vector3 => {
   if (coMatrix) v.applyMatrix3(coMatrix);
   return v;
 };
+
+function getMirrorVec(v: FunctionVector3) {
+  v.y = minus(v.y);
+  return v;
+}
 
 export function getAssembly(assembly: IDataAssembly): IAssembly {
   return getElement(assembly) as IAssembly;
@@ -210,13 +216,14 @@ export abstract class Element implements IElement {
       isDataElement: true,
       className: this.className,
       name: this.name.getData(state),
-      inertialTensor: this.inertialTensor.getData(),
-      centerOfGravity: this.centerOfGravity.getData(state),
-      mass: this.mass.getData(state),
       nodeID: this.nodeID,
       absPath: this.absPath,
 
+      inertialTensor: this.inertialTensor.getData(state),
+      centerOfGravity: this.centerOfGravity.getData(state),
+      mass: this.mass.getData(state),
       position: this.position.getData(state),
+      rotation: this.rotation.getData(state),
       initialPosition: this.initialPosition.getData(state),
       visible: this.visible.getData()
     };
@@ -379,8 +386,8 @@ export class Assembly extends Element implements IAssembly {
         rhs: mirPoints[points.findIndex((p) => p.nodeID === joint.rhs.nodeID)]
       };
     });
-    const initialPosition = this.initialPosition.value.clone();
-    initialPosition.y *= -1;
+
+    const initialPosition = getMirrorVec(this.initialPosition.getStringValue());
 
     return new Assembly({
       name: `mirror_${this.name.value}`,
@@ -447,7 +454,7 @@ export class Assembly extends Element implements IAssembly {
           name: string;
           children: IElement[];
           joints: Joint[];
-          initialPosition?: Vector3;
+          initialPosition?: FunctionVector3;
         }
       | IDataAssembly
   ) {
@@ -515,9 +522,9 @@ export class Frame extends Assembly {
       | {
           name: string;
           children: IElement[];
-          initialPosition?: Vector3;
+          initialPosition?: FunctionVector3;
           mass?: number;
-          centerOfGravity?: Vector3;
+          centerOfGravity?: FunctionVector3;
         }
       | IDataFrame
   ) {
@@ -617,14 +624,14 @@ export class Bar extends Element implements IBar {
   }
 
   getMirror(): Bar {
-    const fp = this.fixedPoint.value.clone();
-    fp.setY(-fp.y);
-    const p = this.point.value.clone();
-    p.setY(-p.y);
-    const ip = this.initialPosition.value.clone();
-    ip.setY(-ip.y);
-    const cog = this.centerOfGravity.value.clone();
-    cog.setY(-cog.y);
+    const fp: FunctionVector3 = getMirrorVec(this.fixedPoint.getStringValue());
+    const p: FunctionVector3 = getMirrorVec(this.point.getStringValue());
+    const ip: FunctionVector3 = getMirrorVec(
+      this.initialPosition.getStringValue()
+    );
+    const cog: FunctionVector3 = getMirrorVec(
+      this.centerOfGravity.getStringValue()
+    );
     return new Bar({
       name: `mirror_${this.name.value}`,
       fixedPoint: fp,
@@ -650,11 +657,11 @@ export class Bar extends Element implements IBar {
     params:
       | {
           name: string;
-          fixedPoint: Vector3;
-          point: Vector3;
-          initialPosition?: Vector3;
+          fixedPoint: FunctionVector3;
+          point: FunctionVector3;
+          initialPosition?: FunctionVector3;
           mass?: number;
-          centerOfGravity?: Vector3;
+          centerOfGravity?: FunctionVector3;
         }
       | IDataBar
   ) {
@@ -724,14 +731,10 @@ export class SpringDumper extends Bar implements ISpringDumper {
   }
 
   getMirror(): SpringDumper {
-    const fp = this.fixedPoint.value.clone();
-    fp.setY(-fp.y);
-    const p = this.point.value.clone();
-    p.setY(-p.y);
-    const ip = this.initialPosition.value.clone();
-    ip.setY(-ip.y);
-    const cog = this.centerOfGravity.value.clone();
-    cog.setY(-cog.y);
+    const fp = getMirrorVec(this.fixedPoint.getStringValue());
+    const p = getMirrorVec(this.point.getStringValue());
+    const ip = getMirrorVec(this.initialPosition.getStringValue());
+    const cog = getMirrorVec(this.centerOfGravity.getStringValue());
     return new SpringDumper({
       name: `mirror_${this.name.value}`,
       fixedPoint: fp,
@@ -752,13 +755,13 @@ export class SpringDumper extends Bar implements ISpringDumper {
     params:
       | {
           name: string;
-          fixedPoint: Vector3;
-          point: Vector3;
+          fixedPoint: FunctionVector3;
+          point: FunctionVector3;
           dlMin: Millimeter;
           dlMax: Millimeter;
-          initialPosition?: Vector3;
+          initialPosition?: FunctionVector3;
           mass?: number;
-          centerOfGravity?: Vector3;
+          centerOfGravity?: FunctionVector3;
         }
       | IDataSpringDumper
   ) {
@@ -817,21 +820,13 @@ export class AArm extends Element implements IAArm {
   }
 
   getMirror(): AArm {
-    const fp: [Vector3, Vector3] = [
-      this.fixedPoints[0].value.clone(),
-      this.fixedPoints[1].value.clone()
+    const fp: [FunctionVector3, FunctionVector3] = [
+      getMirrorVec(this.fixedPoints[0].getStringValue()),
+      getMirrorVec(this.fixedPoints[1].getStringValue())
     ];
-    fp[0].setY(-fp[0].y);
-    fp[1].setY(-fp[1].y);
-    const points = this.points.map((point) => {
-      const p = point.value.clone();
-      p.setY(-p.y);
-      return p;
-    });
-    const ip = this.initialPosition.value.clone();
-    ip.setY(-ip.y);
-    const cog = this.centerOfGravity.value.clone();
-    cog.setY(-cog.y);
+    const points = this.points.map((p) => getMirrorVec(p.getStringValue()));
+    const ip = getMirrorVec(this.initialPosition.getStringValue());
+    const cog = getMirrorVec(this.centerOfGravity.getStringValue());
     const point0 = points.shift()!;
     return new AArm({
       name: `mirror_${this.name.value}`,
@@ -839,7 +834,7 @@ export class AArm extends Element implements IAArm {
       points: [point0, ...points],
       initialPosition: ip,
       mass: this.mass.value,
-      centerOfGravity: this.centerOfGravity.value
+      centerOfGravity: cog
     });
   }
 
@@ -862,11 +857,11 @@ export class AArm extends Element implements IAArm {
     params:
       | {
           name: string;
-          fixedPoints: [Vector3, Vector3];
-          points: AtLeast1<Vector3>;
-          initialPosition?: Vector3;
+          fixedPoints: [FunctionVector3, FunctionVector3];
+          points: AtLeast1<FunctionVector3>;
+          initialPosition?: FunctionVector3;
           mass?: number;
-          centerOfGravity?: Vector3;
+          centerOfGravity?: FunctionVector3;
         }
       | IDataAArm
   ) {
@@ -980,23 +975,15 @@ export class BellCrank extends Element implements IBellCrank {
   }
 
   getMirror(): BellCrank {
-    const fp: [Vector3, Vector3] = [
-      this.fixedPoints[0].value.clone(),
-      this.fixedPoints[1].value.clone()
+    const fp: [FunctionVector3, FunctionVector3] = [
+      getMirrorVec(this.fixedPoints[0].getStringValue()),
+      getMirrorVec(this.fixedPoints[1].getStringValue())
     ];
-    fp[0].setY(-fp[0].y);
-    fp[1].setY(-fp[1].y);
-    const points = this.points.map((point) => {
-      const p = point.value.clone();
-      p.setY(-p.y);
-      return p;
-    });
+    const points = this.points.map((p) => getMirrorVec(p.getStringValue()));
     const point0 = points.shift()!;
     const point1 = points.shift()!;
-    const ip = this.initialPosition.value.clone();
-    ip.setY(-ip.y);
-    const cog = this.centerOfGravity.value.clone();
-    cog.setY(-cog.y);
+    const ip = getMirrorVec(this.initialPosition.getStringValue());
+    const cog = getMirrorVec(this.centerOfGravity.getStringValue());
     return new BellCrank({
       name: `mirror_${this.name.value}`,
       fixedPoints: fp,
@@ -1026,11 +1013,11 @@ export class BellCrank extends Element implements IBellCrank {
     params:
       | {
           name: string;
-          fixedPoints: [Vector3, Vector3];
-          points: AtLeast2<Vector3>;
-          initialPosition?: Vector3;
+          fixedPoints: [FunctionVector3, FunctionVector3];
+          points: AtLeast2<FunctionVector3>;
+          initialPosition?: FunctionVector3;
           mass?: number;
-          centerOfGravity?: Vector3;
+          centerOfGravity?: FunctionVector3;
         }
       | IDataBellCrank
   ) {
@@ -1151,20 +1138,10 @@ export class Body extends Element implements IBody {
   }
 
   getMirror(): Body {
-    const fp = this.fixedPoints.map((point) => {
-      const p = point.value.clone();
-      p.setY(-p.y);
-      return p;
-    });
-    const points = this.points.map((point) => {
-      const p = point.value.clone();
-      p.setY(-p.y);
-      return p;
-    });
-    const ip = this.initialPosition.value.clone();
-    ip.setY(-ip.y);
-    const cog = this.centerOfGravity.value.clone();
-    cog.setY(-cog.y);
+    const fp = this.fixedPoints.map((p) => getMirrorVec(p.getStringValue()));
+    const points = this.points.map((p) => getMirrorVec(p.getStringValue()));
+    const ip = getMirrorVec(this.initialPosition.getStringValue());
+    const cog = getMirrorVec(this.centerOfGravity.getStringValue());
     return new Body({
       name: `mirror_${this.name.value}`,
       fixedPoints: fp,
@@ -1190,11 +1167,11 @@ export class Body extends Element implements IBody {
     params:
       | {
           name: string;
-          fixedPoints: Array<Vector3>;
-          points: Array<Vector3>;
-          initialPosition?: Vector3;
+          fixedPoints: Array<FunctionVector3>;
+          points: Array<FunctionVector3>;
+          initialPosition?: FunctionVector3;
           mass?: number;
-          centerOfGravity?: Vector3;
+          centerOfGravity?: FunctionVector3;
         }
       | IDataBody
   ) {
@@ -1291,7 +1268,7 @@ export class Tire extends Element implements ITire {
 
   rotation: NamedMatrix3;
 
-  /* 直す必要あり */
+  /* UpdateMethodが適当。直す必要あり */
   get leftBearing(): NamedVector3 {
     return new NamedVector3({
       name: 'leftBaring',
@@ -1333,17 +1310,14 @@ export class Tire extends Element implements ITire {
   }
 
   getMirror(): Tire {
-    const center = this.tireCenter.value.clone();
-    center.setY(-center.y);
-    const ip = this.initialPosition.value.clone();
-    ip.setY(-ip.y);
-    const cog = this.centerOfGravity.value.clone();
-    cog.setY(-cog.y);
+    const center = getMirrorVec(this.tireCenter.getStringValue());
+    const ip = getMirrorVec(this.initialPosition.getStringValue());
+    const cog = getMirrorVec(this.centerOfGravity.getStringValue());
     return new Tire({
       name: `mirror_${this.name.value}`,
       tireCenter: center,
-      toLeftBearing: -this.toRightBearing.value,
-      toRightBearing: -this.toLeftBearing.value,
+      toLeftBearing: minus(this.toRightBearing.getStringValue()),
+      toRightBearing: minus(this.toLeftBearing.getStringValue()),
       initialPosition: ip,
       mass: this.mass.value,
       centerOfGravity: cog
@@ -1366,12 +1340,12 @@ export class Tire extends Element implements ITire {
     params:
       | {
           name: string;
-          tireCenter: Vector3;
-          toLeftBearing: number;
-          toRightBearing: number;
-          initialPosition?: Vector3;
+          tireCenter: FunctionVector3;
+          toLeftBearing: number | string;
+          toRightBearing: number | string;
+          initialPosition?: FunctionVector3;
           mass?: number;
-          centerOfGravity?: Vector3;
+          centerOfGravity?: FunctionVector3;
         }
       | IDataTire
   ) {
