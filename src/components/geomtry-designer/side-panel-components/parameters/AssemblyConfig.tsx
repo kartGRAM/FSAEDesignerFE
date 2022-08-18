@@ -95,11 +95,11 @@ export default function AssemblyConfig(params: Params) {
 
   let points: IDataVector3WithColor[] = [
     ...assembly.getPoints().map((p) => ({
-      ...getDataVector3(trans(p).applyMatrix3(coMatrix)),
+      ...getDataVector3(trans(p, coMatrix)),
       color: 0x0000ff
     })),
     ...assembly.getJointedPoints().map((p) => ({
-      ...getDataVector3(trans(p).applyMatrix3(coMatrix)),
+      ...getDataVector3(trans(p, coMatrix)),
       color: 0xffff00
     }))
   ];
@@ -110,7 +110,8 @@ export default function AssemblyConfig(params: Params) {
   }, [
     jointsListSelected,
     pointSelected.lhs?.nodeID,
-    pointSelected.rhs?.nodeID
+    pointSelected.rhs?.nodeID,
+    assembly
   ]);
 
   // 最初の再レンダリングを回避
@@ -127,11 +128,11 @@ export default function AssemblyConfig(params: Params) {
       points = [
         ...points,
         {
-          ...getDataVector3(trans(joint.lhs).applyMatrix3(coMatrix)),
+          ...getDataVector3(trans(joint.lhs, coMatrix)),
           color: 0xff0000
         },
         {
-          ...getDataVector3(trans(joint.rhs).applyMatrix3(coMatrix)),
+          ...getDataVector3(trans(joint.rhs, coMatrix)),
           color: 0xff0000
         }
       ];
@@ -143,13 +144,13 @@ export default function AssemblyConfig(params: Params) {
   if (lhs) {
     points = [
       ...points,
-      {...getDataVector3(trans(lhs).applyMatrix3(coMatrix)), color: 0xff0000}
+      {...getDataVector3(trans(lhs, coMatrix)), color: 0xff0000}
     ];
   }
   if (rhs) {
     points = [
       ...points,
-      {...getDataVector3(trans(rhs).applyMatrix3(coMatrix)), color: 0xff0000}
+      {...getDataVector3(trans(rhs, coMatrix)), color: 0xff0000}
     ];
   }
 

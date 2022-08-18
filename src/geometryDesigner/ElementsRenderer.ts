@@ -27,12 +27,14 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
   }
   const position = element.position.value;
   const rotation = element.rotation.value;
-  const coMatrix = store.getState().dgd.present.transCoordinateMatrix;
+  const coMatrix = getMatrix3(
+    store.getState().dgd.present.transCoordinateMatrix
+  );
   const trans = (p: Vector3) => {
     const tmp = position
       .clone()
       .add(p.clone().applyMatrix3(rotation))
-      .applyMatrix3(getMatrix3(coMatrix));
+      .applyMatrix3(coMatrix);
     return tmp;
   };
   // show nodes
@@ -68,9 +70,7 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
     );
     const circle = track(new THREE.Mesh(geometry, material), 'Assembly');
     circle.rotateX(THREE.MathUtils.degToRad(90));
-    circle.applyMatrix4(
-      new THREE.Matrix4().setFromMatrix3(getMatrix3(coMatrix))
-    );
+    circle.applyMatrix4(new THREE.Matrix4().setFromMatrix3(coMatrix));
     circle.position.add(trans(tire.tireCenter.value));
     scene.add(circle);
 

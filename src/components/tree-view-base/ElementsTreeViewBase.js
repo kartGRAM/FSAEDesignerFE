@@ -405,19 +405,22 @@ const TreeView = React.forwardRef(function TreeView(inProps, ref) {
     ) {
       return;
     }
-    let newExpanded;
+    // 追加 toggle中にSelectedが入ると、アニメーションがカタつくため、ディレイを入れる
+    setTimeout(() => {
+      let newExpanded;
 
-    if (expanded.indexOf(value) !== -1) {
-      newExpanded = expanded.filter((id) => id !== value);
-    } else {
-      newExpanded = [value].concat(expanded);
-    }
+      if (expanded.indexOf(value) !== -1) {
+        newExpanded = expanded.filter((id) => id !== value);
+      } else {
+        newExpanded = [value].concat(expanded);
+      }
 
-    if (onNodeToggle) {
-      onNodeToggle(event, newExpanded);
-    }
+      if (onNodeToggle) {
+        onNodeToggle(event, newExpanded);
+      }
 
-    setExpandedState(newExpanded);
+      setExpandedState(newExpanded);
+    }, 100);
   };
 
   const expandAllSiblings = (event, id) => {

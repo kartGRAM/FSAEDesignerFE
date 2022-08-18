@@ -3,7 +3,7 @@ import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import InputAdornment from '@mui/material/InputAdornment';
 import {getMatrix3, getDataVector3, DeltaXYZ} from '@gd/NamedValues';
-import {INamedVector3, IPointOffsetTool, IDataMatrix3} from '@gd/INamedValues';
+import {INamedVector3, IPointOffsetTool} from '@gd/INamedValues';
 import Typography from '@mui/material/Typography';
 import {useDispatch, useSelector} from 'react-redux';
 import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
@@ -29,7 +29,7 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import {alpha} from '@mui/material/styles';
 import {PointOffsetToolDialog} from '@gdComponents/dialog-components/PointOffsetToolDialog';
-import {IElement} from '@gd/IElements';
+import {trans} from '@gd/Elements';
 
 import {NumberToRGB, toFixedNoZero} from '@app/utils/helpers';
 
@@ -42,8 +42,8 @@ export interface Props {
 export default function Vector(props: Props) {
   const {vector, removable, onRemove} = props;
   const dispatch = useDispatch();
-  const coMatrix = useSelector(
-    (state: RootState) => state.dgd.present.transCoordinateMatrix
+  const coMatrix = getMatrix3(
+    useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
   );
   const sVector = vector.getStringValue();
 
@@ -453,11 +453,3 @@ const ValueField = React.memo((props: OutlinedTextFieldProps) => {
     />
   );
 });
-
-const trans = (p: INamedVector3, coMatrix: IDataMatrix3) => {
-  const element = p.parent as IElement;
-  return element.position.value
-    .clone()
-    .add(p.value.clone().applyMatrix3(element.rotation.value))
-    .applyMatrix3(getMatrix3(coMatrix));
-};

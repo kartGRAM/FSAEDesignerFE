@@ -236,7 +236,7 @@ const getLeftRearSuspension = (): Assembly => {
   });
 
   const leftRearSuspensionSubAssy = new Assembly({
-    name: 'leftFrontSuspensionSubAssy',
+    name: 'leftRearSuspensionSubAssy',
     children: [armsSubAssy, pushRodSubAssy],
     joints: [{lhs: upright.fixedPoints[4], rhs: pushRod.fixedPoint}]
   });

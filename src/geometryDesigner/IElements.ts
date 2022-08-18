@@ -205,6 +205,7 @@ export interface IDataFrame extends IDataAssembly {
 
 export interface Meta {
   isBodyOfFrame?: true;
+  isMirror?: true;
 }
 
 export function assignMeta(to: IElement, meta: Meta) {

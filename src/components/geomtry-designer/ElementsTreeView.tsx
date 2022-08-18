@@ -30,17 +30,19 @@ import {TransitionProps} from '@mui/material/transitions';
 
 const ElementsTreeView = () => {
   const [expanded, setExpanded] = React.useState<string[]>([]);
-  const [nodeID, setNodeID] = React.useState<string>('');
+  // const [nodeID, setNodeID] = React.useState<string>('');
   const dispatch = useDispatch();
 
-  const nodeIDState = useSelector(
+  const nodeID = useSelector(
     (state: RootState) => state.uitgd.selectedElementAbsPath
   );
 
   // 苦肉の策（nodeIDStateをそのまま使用するとアニメーションがカクつく）
+  /*
   React.useEffect(() => {
     setNodeID(nodeIDState);
   }, [nodeIDState]);
+  */
 
   const fontColor = useSelector(
     (state: RootState) => state.uigd.present.assemblyTreeViewState.fontColor
@@ -60,8 +62,8 @@ const ElementsTreeView = () => {
 
   // console.log('rerendered');
   const handleOnSelect = React.useCallback(
-    (e: React.SyntheticEvent, path: string) => {
-      dispatch(selectElement({absPath: path}));
+    async (e: React.SyntheticEvent, path: string) => {
+      await dispatch(selectElement({absPath: path}));
     },
     []
   );
