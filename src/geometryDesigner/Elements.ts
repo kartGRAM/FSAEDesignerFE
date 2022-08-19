@@ -171,6 +171,10 @@ export abstract class Element implements IElement {
     }
   }
 
+  getPointsNodeIDs(): string[] {
+    return this.getPoints().map((p) => p.nodeID);
+  }
+
   abstract getPoints(): INamedVector3[];
 
   abstract getMirror(): IElement;
@@ -373,6 +377,14 @@ export class Assembly extends Element implements IAssembly {
     return points;
   }
 
+  getAllPointsNodeIDsOfChildren(): string[] {
+    let points: string[] = [];
+    this._children.forEach((child) => {
+      points = [...points, ...child.getPointsNodeIDs()];
+    });
+    return points;
+  }
+
   getPoints(): INamedVector3[] {
     let points: INamedVector3[] = [];
     const jointedNodeIDs = this.getJointedNodeIDs();
@@ -380,6 +392,18 @@ export class Assembly extends Element implements IAssembly {
       const notJointed = child
         .getPoints()
         .filter((p) => !jointedNodeIDs.includes(p.nodeID));
+      points = [...points, ...notJointed];
+    });
+    return points;
+  }
+
+  getPointsNodeIDs(): string[] {
+    let points: string[] = [];
+    const jointedNodeIDs = this.getJointedNodeIDs();
+    this._children.forEach((child) => {
+      const notJointed = child
+        .getPointsNodeIDs()
+        .filter((p) => !jointedNodeIDs.includes(p));
       points = [...points, ...notJointed];
     });
     return points;
@@ -545,34 +569,34 @@ export class Assembly extends Element implements IAssembly {
       );
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const points: INamedVector3[] = [];
+      let pointsNodeIDs: string[] = [];
       const children = mir.children.map((child) => {
         if (Object.keys(myChildren).includes(child.nodeID)) {
           const myChild = myChildren[child.nodeID];
-          // points = [...points, ...myChild.getPoints()];
+          pointsNodeIDs = [...pointsNodeIDs, ...myChild.getPointsNodeIDs()];
           return myChild.getDataElement(state);
         }
         const myChild = child.getMirror();
-        // points = [...points, ...myChild.getPoints()];
+        pointsNodeIDs = [...pointsNodeIDs, ...myChild.getPointsNodeIDs()];
         return myChild.getDataElement(state);
       });
 
-      /* const mirPoints = mir.getAllPointsOfChildren();
+      const mirPoints = mir.getAllPointsNodeIDsOfChildren();
 
       const joints = mir.joints.map((joint) => {
         return {
-          lhs: points[mirPoints.findIndex((p) => p.nodeID === joint.lhs.nodeID)]
-            .nodeID,
-          rhs: points[mirPoints.findIndex((p) => p.nodeID === joint.rhs.nodeID)]
-            .nodeID
+          lhs: pointsNodeIDs[
+            mirPoints.findIndex((p) => p === joint.lhs.nodeID)
+          ],
+          rhs: pointsNodeIDs[mirPoints.findIndex((p) => p === joint.rhs.nodeID)]
         };
-      }); */
+      });
       return {
         ...baseData,
         isDataAssembly: true,
         children,
-        // joints
-        joints: []
+        joints
+        // joints: []
       };
     }
     return {
@@ -1439,6 +1463,10 @@ export class Tire extends Element implements ITire {
 
   getPoints(): INamedVector3[] {
     return [this.leftBearing, this.rightBearing];
+  }
+
+  getPointsNodeIDs(): string[] {
+    return [this.leftBearingNodeID, this.rightBearingNodeID];
   }
 
   arrange(parentPosition?: Vector3) {

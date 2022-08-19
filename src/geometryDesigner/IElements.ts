@@ -93,6 +93,7 @@ export interface IElement extends IBidirectionalNode {
   readonly nodeID: string;
   readonly absPath: string;
   getPoints(): INamedVector3[];
+  getPointsNodeIDs(): string[];
   getMirror(): IElement;
   getRoot(): IAssembly | null;
   getDataElement(state: GDState): IDataElement;
@@ -128,6 +129,7 @@ export interface IAssembly extends IElement {
   getJointedPoints(): INamedVector3[];
   getJointsRecursive(): Joint[];
   getAllPointsOfChildren(): INamedVector3[];
+  getAllPointsNodeIDsOfChildren(): string[];
   flatten(noAssembly: boolean): IElement[];
 
   getDataElement(state: GDState): IDataAssembly;
