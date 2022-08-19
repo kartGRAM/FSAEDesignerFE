@@ -9,7 +9,7 @@ import {
   isNamedData,
   isNamedValue,
   isNamedVector3,
-  isNamedNumber,
+  // isNamedNumber,
   isDataPointOffsetTool,
   IDataVector3,
   IDataMatrix3,
@@ -28,7 +28,7 @@ import {
   // isNamedVector3
 } from '@gd/INamedValues';
 import {GDState} from '@store/reducers/dataGeometryDesigner';
-import {capitalize, isNumber} from '@app/utils/helpers';
+import {capitalize} from '@app/utils/helpers';
 
 export const getMatrix3 = (data: IDataMatrix3): Matrix3 => {
   const tmp = new Matrix3();
@@ -59,7 +59,7 @@ export const getDataVector3 = (value: Vector3): IDataVector3 => {
     isNamedData: true,
     x: {
       name: 'x',
-      value: value.x,
+      value: {name: 'x', absPath: 'temporaryPath', formula: value.x.toString()},
       absPath: 'temporaryPath',
       nodeID: '',
       className: 'NamedNumber',
@@ -67,7 +67,7 @@ export const getDataVector3 = (value: Vector3): IDataVector3 => {
     },
     y: {
       name: 'y',
-      value: value.y,
+      value: {name: 'y', absPath: 'temporaryPath', formula: value.y.toString()},
       absPath: 'temporaryPath',
       nodeID: '',
       className: 'NamedNumber',
@@ -75,7 +75,7 @@ export const getDataVector3 = (value: Vector3): IDataVector3 => {
     },
     z: {
       name: 'z',
-      value: value.z,
+      value: {name: 'z', absPath: 'temporaryPath', formula: value.z.toString()},
       absPath: 'temporaryPath',
       nodeID: '',
       className: 'NamedNumber',
@@ -187,34 +187,13 @@ export class NamedPrimitive<T> extends NamedValue {
   }
 }
 
-function formulaOrUndef(
-  value: string | number | INamedNumber,
-  name: string,
-  absPath: string
-): IFormula | undefined {
-  if (isNamedNumber(value)) {
-    return value.formula?.copy(absPath);
-  }
-  if (isNumber(value)) return undefined;
-  return new Formula({
-    name,
-    formula: value,
-    absPath
-  });
-}
-
 export class NamedNumber extends NamedValue implements INamedNumber {
-  _value: number;
-
-  formula: IFormula | undefined;
+  formula: IFormula;
 
   private _update: (valueOrFOrmula: string | number | INamedNumber) => void;
 
   get value(): number {
-    if (this.formula) {
-      return this.formula.evaluatedValue;
-    }
-    return this._value;
+    return this.formula.evaluatedValue;
   }
 
   set value(newValue: number) {
@@ -231,10 +210,7 @@ export class NamedNumber extends NamedValue implements INamedNumber {
   }
 
   getValueWithFormula(formulae: IDataFormula[]): number {
-    if (this.formula) {
-      return this.formula.getEvaluatedValue(formulae);
-    }
-    return this._value;
+    return this.formula.getEvaluatedValue(formulae);
   }
 
   constructor(params: {
@@ -255,33 +231,31 @@ export class NamedNumber extends NamedValue implements INamedNumber {
     this._update =
       update ??
       ((newValue: string | number | INamedNumber) => {
-        this.formula = formulaOrUndef(newValue, this.name, this.absPath);
         // eslint-disable-next-line no-nested-ternary
-        this._value = this.formula
-          ? this.formula.evaluatedValue
-          : isNamedValue(newValue)
-          ? Number(newValue.value)
-          : Number(newValue);
+        if (isNamedValue(newValue)) {
+          this.formula.formula = newValue.formula.formula;
+        } else {
+          this.formula.formula = newValue.toString();
+        }
       });
     if (isNamedData(value)) {
-      this._value = Number(value.value);
-      this.formula = value.formula ? new Formula(value.formula) : undefined;
+      this.formula = new Formula(value.value);
     } else if (isNamedValue(value)) {
-      this._value = Number(value.value);
-      this.formula = value.formula?.copy(this.absPath);
+      this.formula = value.formula.copy(this.absPath);
     } else {
-      this.formula = formulaOrUndef(value, this.name, this.absPath);
-      this._value = this.formula
-        ? this.formula.evaluatedValue
-        : Number(value as number);
+      this.formula = new Formula({
+        name: this.name,
+        formula: value,
+        absPath: this.absPath
+      });
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   getData(state: GDState): IDataNumber {
     return {
       ...super.getDataBase(),
-      value: this.getValueWithFormula(state.formulae),
-      formula: this.formula?.getData()
+      value: this.formula.getData()
     };
   }
 }
@@ -296,6 +270,7 @@ export class NamedBoolean
 export function isNamedString(value: INamedValue): value is NamedString {
   return value.className === 'NamedString';
 }
+
 export function isNamedBoolean(value: INamedValue): value is NamedBoolean {
   return value.className === 'NamedBoolean';
 }

@@ -245,7 +245,7 @@ export abstract class Element implements IElement {
       rotation: this.rotation.getData(state),
       initialPosition: mirrorVec(this.initialPosition).getData(state),
       visible: this.visible.getData(),
-      mirrorTo: mirrorElement.absPath
+      mirrorTo: mirrorElement.nodeID
     };
   }
 }
@@ -544,19 +544,20 @@ export class Assembly extends Element implements IAssembly {
         {} as {[name: string]: IElement}
       );
 
-      let points: INamedVector3[] = [];
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const points: INamedVector3[] = [];
       const children = mir.children.map((child) => {
         if (Object.keys(myChildren).includes(child.nodeID)) {
           const myChild = myChildren[child.nodeID];
-          points = [...points, ...myChild.getPoints()];
+          // points = [...points, ...myChild.getPoints()];
           return myChild.getDataElement(state);
         }
         const myChild = child.getMirror();
-        points = [...points, ...myChild.getPoints()];
+        // points = [...points, ...myChild.getPoints()];
         return myChild.getDataElement(state);
       });
 
-      const mirPoints = mir.getAllPointsOfChildren();
+      /* const mirPoints = mir.getAllPointsOfChildren();
 
       const joints = mir.joints.map((joint) => {
         return {
@@ -565,12 +566,13 @@ export class Assembly extends Element implements IAssembly {
           rhs: points[mirPoints.findIndex((p) => p.nodeID === joint.rhs.nodeID)]
             .nodeID
         };
-      });
+      }); */
       return {
         ...baseData,
         isDataAssembly: true,
         children,
-        joints
+        // joints
+        joints: []
       };
     }
     return {
@@ -1561,7 +1563,9 @@ export class Tire extends Element implements ITire {
     if (mir && isTire(mir)) {
       return {
         ...baseData,
-        tireCenter: this.tireCenter.getData(state),
+        tireCenter: this.tireCenter
+          .setValue(mirrorVec(mir.tireCenter))
+          .getData(state),
         toLeftBearing: this.toLeftBearing
           .setValue(minus(mir.toLeftBearing.getStringValue()))
           .getData(state),
@@ -1622,7 +1626,7 @@ const mirrorVec = (
   const v = inplace ? vec : new NamedVector3({value: vec});
   v.mirrorTo = vec.nodeID;
 
-  v.y.setValue(minus(v.y.getStringValue()));
+  (v.y as NamedNumber).setValue(minus(v.y.getStringValue()));
   v.pointOffsetTools?.forEach((tool) => getMirrorPOT(tool));
   return v;
 };

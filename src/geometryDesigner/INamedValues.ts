@@ -63,7 +63,7 @@ export interface IData<T> extends INamedData {
 
 export interface INamedNumber extends INamedValue {
   value: number;
-  formula?: IFormula;
+  formula: IFormula;
   getData(state: GDState): IDataNumber;
   getStringValue(): string;
   setValue(newValue: string | number): INamedValue;
@@ -76,9 +76,7 @@ export function isNamedNumber(value: any): value is INamedNumber {
   return false;
 }
 
-export interface IDataNumber extends IData<number> {
-  formula?: IDataFormula;
-}
+export interface IDataNumber extends IData<IDataFormula> {}
 
 export interface INamedVector3 extends INamedValue {
   readonly x: INamedNumber;

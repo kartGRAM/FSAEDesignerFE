@@ -4,6 +4,7 @@ import {
   IDataVector3,
   IDataMatrix3,
   IData,
+  IDataNumber,
   INamedVector3,
   INamedMatrix3,
   INamedString,
@@ -110,7 +111,7 @@ export interface IDataElement extends INode {
   absPath: string;
   visible: IData<boolean | undefined>;
 
-  mass: IData<number>;
+  mass: IDataNumber;
   centerOfGravity: IDataVector3;
   inertialTensor: IDataMatrix3;
   position: IDataVector3;
@@ -158,8 +159,8 @@ export interface ISpringDumper extends IElement {
 export interface IDataSpringDumper extends IDataElement {
   fixedPoint: IDataVector3;
   point: IDataVector3;
-  dlMin: IData<Millimeter>;
-  dlMax: IData<Millimeter>;
+  dlMin: IDataNumber;
+  dlMax: IDataNumber;
 }
 
 export interface IBody extends IElement {
@@ -205,8 +206,8 @@ export interface ITire extends IElement {
 
 export interface IDataTire extends IDataElement {
   tireCenter: IDataVector3;
-  toLeftBearing: IData<number>;
-  toRightBearing: IData<number>;
+  toLeftBearing: IDataNumber;
+  toRightBearing: IDataNumber;
   leftBearingNodeID: string;
   rightBearingNodeID: string;
 }

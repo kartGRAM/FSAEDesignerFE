@@ -12,6 +12,7 @@ import {
 } from '@gd/IFormula';
 import * as math from 'mathjs';
 import store from '@store/store';
+import {isNumber} from '@app/utils/helpers';
 
 export function validate(
   formula: IDataFormula,
@@ -77,13 +78,13 @@ export class Formula implements IFormula {
   }
 
   set formula(formula: string) {
-    if (
+    /* if (
       validate({
         ...this,
         formula
       }) === 'OK'
-    )
-      this._formula = formula;
+    ) */
+    this._formula = formula;
   }
 
   get evaluatedValue(): number {
@@ -91,6 +92,9 @@ export class Formula implements IFormula {
   }
 
   getEvaluatedValue(formulae: IDataFormula[] | undefined): number {
+    if (isNumber(this._formula)) {
+      return Number(this._formula);
+    }
     return evaluate(this._formula, formulae);
   }
 
@@ -99,15 +103,16 @@ export class Formula implements IFormula {
   }
 
   constructor(
-    params: {name: string; formula?: string; absPath?: string} | IDataFormula
+    params:
+      | {name: string; formula?: string | number; absPath?: string}
+      | IDataFormula
   ) {
     const {name, formula, absPath} = params;
     this.name = name;
     this._formula = '0';
     this.absPath = absPath ?? 'global';
     if (formula) {
-      // with Validation
-      this.formula = formula;
+      this._formula = formula.toString();
     }
   }
 
