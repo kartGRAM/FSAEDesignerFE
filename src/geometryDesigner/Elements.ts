@@ -242,12 +242,16 @@ export abstract class Element implements IElement {
       nodeID: this.nodeID,
       absPath: this.absPath,
 
-      inertialTensor: mirrorMat(this.inertialTensor).getData(state),
-      centerOfGravity: mirrorVec(this.centerOfGravity).getData(state),
-      mass: this.mass.getData(state),
+      inertialTensor: mirrorMat(mirrorElement.inertialTensor).getData(state),
+      centerOfGravity: this.centerOfGravity
+        .setValue(mirrorVec(mirrorElement.centerOfGravity))
+        .getData(state),
+      mass: this.mass.setValue(mirrorElement.mass).getData(state),
       position: this.position.getData(state),
       rotation: this.rotation.getData(state),
-      initialPosition: mirrorVec(this.initialPosition).getData(state),
+      initialPosition: this.initialPosition
+        .setValue(mirrorVec(mirrorElement.initialPosition))
+        .getData(state),
       visible: this.visible.getData(),
       mirrorTo: mirrorElement.nodeID
     };
