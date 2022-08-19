@@ -127,6 +127,7 @@ export interface IAssembly extends IElement {
   getJointedPoints(): INamedVector3[];
   getJointsRecursive(): Joint[];
   getAllPointsOfChildren(): INamedVector3[];
+  flatten(noAssembly: boolean): IElement[];
 
   getDataElement(state: GDState): IDataAssembly;
 }

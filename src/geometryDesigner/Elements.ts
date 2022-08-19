@@ -62,8 +62,7 @@ import {
   IDataTire,
   isDataTire,
   Meta,
-  assignMeta,
-  getElementByPath
+  assignMeta
 } from './IElements';
 
 export function getAssembly(assembly: IDataAssembly): IAssembly {
@@ -143,9 +142,15 @@ export abstract class Element implements IElement {
   }
 
   protected getAnotherElement(
-    path: string | undefined | null
+    nodeID: string | undefined | null
   ): IElement | null {
-    if (path) return getElementByPath(this.getRoot(), path);
+    if (nodeID) {
+      const root = this.getRoot();
+      const element = root
+        ?.flatten(false)
+        .find((child) => child.nodeID === nodeID);
+      return element ?? null;
+    }
     return null;
   }
 
@@ -341,6 +346,18 @@ export class Assembly extends Element implements IAssembly {
     return joints;
   }
 
+  flatten(noAssembly: boolean = false): IElement[] {
+    const ret: IElement[] = noAssembly ? [] : [this];
+    this.children.forEach((child) => {
+      if (isAssembly(child)) {
+        ret.push(...child.flatten(noAssembly));
+      } else {
+        ret.push(child);
+      }
+    });
+    return ret;
+  }
+
   private getJointedNodeIDs(): NodeID[] {
     return this.joints.reduce((prev, current): NodeID[] => {
       prev.push(current.lhs.nodeID, current.rhs.nodeID);
@@ -410,7 +427,7 @@ export class Assembly extends Element implements IAssembly {
       joints,
       initialPosition
     });
-    assignMeta(ret, {mirror: {to: this.absPath}});
+    assignMeta(ret, {mirror: {to: this.nodeID}});
     return ret;
   }
 
@@ -693,7 +710,7 @@ export class Bar extends Element implements IBar {
       mass: this.mass.value,
       centerOfGravity: cog
     });
-    assignMeta(ret, {mirror: {to: this.absPath}});
+    assignMeta(ret, {mirror: {to: this.nodeID}});
     return ret;
   }
 
@@ -810,7 +827,7 @@ export class SpringDumper extends Bar implements ISpringDumper {
       dlMin: this.dlMin.value,
       dlMax: this.dlMax.value
     });
-    assignMeta(ret, {mirror: {to: this.absPath}});
+    assignMeta(ret, {mirror: {to: this.nodeID}});
     return ret;
   }
 
@@ -903,7 +920,7 @@ export class AArm extends Element implements IAArm {
       mass: this.mass.value,
       centerOfGravity: cog
     });
-    assignMeta(ret, {mirror: {to: this.absPath}});
+    assignMeta(ret, {mirror: {to: this.nodeID}});
     return ret;
   }
 
@@ -1011,12 +1028,12 @@ export class AArm extends Element implements IAArm {
     const baseData = super.getDataElementBase(state, mir);
 
     if (mir && isAArm(mir)) {
+      const fp = this.fixedPoints[0];
+      const fp2 = fp.setValue(mirrorVec(mir.fixedPoints[0]));
       return {
         ...baseData,
         fixedPoints: [
-          this.fixedPoints[0]
-            .setValue(mirrorVec(mir.fixedPoints[0]))
-            .getData(state),
+          fp2.getData(state),
           this.fixedPoints[1]
             .setValue(mirrorVec(mir.fixedPoints[1]))
             .getData(state)
@@ -1080,7 +1097,7 @@ export class BellCrank extends Element implements IBellCrank {
       mass: this.mass.value,
       centerOfGravity: cog
     });
-    assignMeta(ret, {mirror: {to: this.absPath}});
+    assignMeta(ret, {mirror: {to: this.nodeID}});
     return ret;
   }
 
@@ -1258,7 +1275,7 @@ export class Body extends Element implements IBody {
       mass: this.mass.value,
       centerOfGravity: cog
     });
-    assignMeta(ret, {mirror: {to: this.absPath}});
+    assignMeta(ret, {mirror: {to: this.nodeID}});
     return ret;
   }
 
@@ -1440,7 +1457,7 @@ export class Tire extends Element implements ITire {
       mass: this.mass.value,
       centerOfGravity: cog
     });
-    assignMeta(ret, {mirror: {to: this.absPath}});
+    assignMeta(ret, {mirror: {to: this.nodeID}});
     return ret;
   }
 

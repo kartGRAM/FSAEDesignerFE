@@ -256,9 +256,12 @@ export class NamedNumber extends NamedValue implements INamedNumber {
       update ??
       ((newValue: string | number | INamedNumber) => {
         this.formula = formulaOrUndef(newValue, this.name, this.absPath);
+        // eslint-disable-next-line no-nested-ternary
         this._value = this.formula
           ? this.formula.evaluatedValue
-          : Number(newValue as number);
+          : isNamedValue(newValue)
+          ? Number(newValue.value)
+          : Number(newValue);
       });
     if (isNamedData(value)) {
       this._value = Number(value.value);
@@ -401,7 +404,10 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
     super({
       className: 'NamedVector3',
       ...params,
-      name: isNamedData(value) ? value.name : defaultName ?? 'temporary'
+      name:
+        isNamedData(value) || isNamedValue(value)
+          ? value.name
+          : defaultName ?? 'temporary'
     });
     this._update =
       update ??
