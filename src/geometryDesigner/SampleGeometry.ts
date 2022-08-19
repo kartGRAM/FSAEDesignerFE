@@ -288,7 +288,7 @@ const getSuspension = (): Assembly => {
 export const getSampleData = async (): Promise<SavedData> => {
   const formulae = [
     {name: 'baseTread', formula: '1215', absPath: 'global'},
-    {name: 'wheelOffset', formula: '0', absPath: 'global'},
+    {name: 'wheelOffset', formula: '5', absPath: 'global'},
     {name: 'wheelBase', formula: '1600', absPath: 'global'},
     {name: 'frontWeightRatio', formula: '0.47', absPath: 'global'},
     {

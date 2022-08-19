@@ -127,7 +127,7 @@ const ElementsTreeView = () => {
 interface MyTreeItemProps {
   nodeId: string;
   label: string;
-  visible: boolean | undefined;
+  visibility: boolean | null;
   children: MyTreeItemProps[];
 }
 
@@ -136,7 +136,7 @@ function getPropsTree(element: IDataElement | undefined): MyTreeItemProps {
     return {
       nodeId: 'none',
       label: '',
-      visible: undefined,
+      visibility: null,
       children: []
     };
   }
@@ -147,13 +147,13 @@ function getPropsTree(element: IDataElement | undefined): MyTreeItemProps {
   return {
     nodeId: element.absPath,
     label: element.name.value,
-    visible: element.visible.value,
+    visibility: element.visible.value ?? null,
     children
   };
 }
 
 const MyTreeItem = React.memo((props: MyTreeItemProps) => {
-  const {nodeId, label, children, visible} = props;
+  const {nodeId, label, children, visibility} = props;
   const selectedColor = NumberToRGB(
     useSelector(
       (state: RootState) =>
@@ -166,8 +166,8 @@ const MyTreeItem = React.memo((props: MyTreeItemProps) => {
 
   return (
     <TreeItem
-      {...props}
-      label={<MyLabel label={label} absPath={nodeId} visible={visible} />}
+      nodeId={nodeId}
+      label={<MyLabel label={label} absPath={nodeId} visibility={visibility} />}
       sx={{
         [`& .${treeItemClasses.iconContainer}`]: {
           '& .close': {
@@ -203,12 +203,12 @@ const MyTreeItem = React.memo((props: MyTreeItemProps) => {
 });
 
 const MyLabel = React.memo(
-  (props: {label: string; absPath: string; visible: boolean | undefined}) => {
-    const {label, absPath, visible} = props;
+  (props: {label: string; absPath: string; visibility: boolean | null}) => {
+    const {label, absPath, visibility} = props;
 
     return (
       <Box display="flex">
-        <VisibilityControl absPath={absPath} visible={visible} />
+        <VisibilityControl absPath={absPath} visibility={visibility} />
         <Typography>{label}</Typography>
       </Box>
     );
@@ -216,8 +216,8 @@ const MyLabel = React.memo(
 );
 
 const VisibilityControl = React.memo(
-  (props: {absPath: string; visible: boolean | undefined}) => {
-    const {absPath, visible} = props;
+  (props: {absPath: string; visibility: boolean | null}) => {
+    const {absPath, visibility} = props;
     const nColor = getReversal(
       NumberToRGB(
         useSelector(
@@ -258,8 +258,8 @@ const VisibilityControl = React.memo(
     return (
       <Checkbox
         size="small"
-        checked={!!visible}
-        indeterminate={visible === undefined}
+        checked={!!visibility}
+        indeterminate={visibility === null}
         onChange={handleChange}
         sx={{
           padding: 0.3,

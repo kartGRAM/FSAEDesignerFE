@@ -13,6 +13,9 @@ export interface IFormula {
   get evaluatedValue(): number;
   readonly absPath: string;
   getData(): IDataFormula;
+  copy(newAbsPath: string): IFormula;
+
+  getEvaluatedValue(formulae: IDataFormula[] | undefined): number;
 }
 
 export function replaceVariable(

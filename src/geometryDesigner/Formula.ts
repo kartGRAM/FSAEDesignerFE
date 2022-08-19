@@ -110,6 +110,14 @@ export class Formula implements IFormula {
       this.formula = formula;
     }
   }
+
+  copy(newAbsPath: string): Formula {
+    return new Formula({
+      name: this.name,
+      formula: this.formula,
+      absPath: newAbsPath
+    });
+  }
 }
 
 export const isFormula = (params: any): params is Formula => {

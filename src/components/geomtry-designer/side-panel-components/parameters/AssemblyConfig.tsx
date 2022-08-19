@@ -389,13 +389,13 @@ export function JointsList(props: {
                       {joint.lhs.name}
                     </TableCell>
                     <TableCell sx={{whiteSpace: 'nowrap'}}>
-                      {joint.lhs.parent.getName()}
+                      {joint.lhs.parent?.getName()}
                     </TableCell>
                     <TableCell sx={{whiteSpace: 'nowrap'}}>
                       {joint.rhs.name}
                     </TableCell>
                     <TableCell sx={{whiteSpace: 'nowrap'}}>
-                      {joint.rhs.parent.getName()}
+                      {joint.rhs.parent?.getName()}
                     </TableCell>
                   </TableRow>
                 );
@@ -533,14 +533,17 @@ export function RestOfPoints(props: {
                       }
                     }}
                     onDoubleClick={() => {
-                      dispatch(selectElement({absPath: point.parent.absPath}));
+                      if (point.parent)
+                        dispatch(
+                          selectElement({absPath: point.parent.absPath})
+                        );
                     }}
                   >
                     <TableCell sx={{whiteSpace: 'nowrap'}}>
                       {point.name}
                     </TableCell>
                     <TableCell sx={{whiteSpace: 'nowrap'}}>
-                      {point.parent.getName()}
+                      {point.parent?.getName()}
                     </TableCell>
                     <TableCell sx={{whiteSpace: 'nowrap'}}>
                       {point.getNamedAbsPath()}

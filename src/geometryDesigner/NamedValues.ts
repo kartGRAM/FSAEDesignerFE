@@ -4,9 +4,10 @@ import {IBidirectionalNode, INode} from '@gd/INode';
 import {Assembly, getDummyElement} from '@gd/Elements';
 import {v4 as uuidv4} from 'uuid';
 import {Formula} from '@gd/Formula';
-import {IDataFormula} from '@gd/IFormula';
+import {IDataFormula, IFormula} from '@gd/IFormula';
 import {
   isNamedData,
+  isNamedValue,
   isDataPointOffsetTool,
   IDataVector3,
   IDataMatrix3,
@@ -22,6 +23,7 @@ import {
   IPointOffsetTool,
   IDataPointOffsetTool,
   FunctionVector3
+  // isNamedVector3
 } from '@gd/INamedValues';
 import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {capitalize, isNumber} from '@app/utils/helpers';
@@ -85,7 +87,7 @@ abstract class NamedValue implements INamedValue {
 
   readonly className: string;
 
-  readonly parent: IBidirectionalNode;
+  parent: IBidirectionalNode | null;
 
   readonly nodeID: string;
 
@@ -96,11 +98,13 @@ abstract class NamedValue implements INamedValue {
   }
 
   getNamedAbsPath(): string {
-    return `${this.getName()}@${this.parent.getNamedAbsPath()}`;
+    return `${this.getName()}${
+      this.parent ? `@${this.parent.getNamedAbsPath()}` : ''
+    }`;
   }
 
   get absPath(): string {
-    return `${this.nodeID}@${this.parent.absPath}`;
+    return `${this.nodeID}${this.parent ? `@${this.parent.absPath}` : ''}`;
   }
 
   abstract get value(): unknown;
@@ -120,7 +124,7 @@ abstract class NamedValue implements INamedValue {
   }
 
   constructor(params: {
-    parent: IBidirectionalNode;
+    parent?: IBidirectionalNode;
     name: string;
     className: string;
     value?: INode | unknown;
@@ -128,7 +132,7 @@ abstract class NamedValue implements INamedValue {
   }) {
     const {className, parent, name, value, nodeID} = params;
     this.className = className;
-    this.parent = parent;
+    this.parent = parent ?? null;
     this.name = name;
     if (value && isNamedData(value)) {
       this.nodeID = value.nodeID;
@@ -156,7 +160,7 @@ export class NamedPrimitive<T> extends NamedValue {
     name: string;
     value: T | IData<T>;
     update?: (newValue: T) => void;
-    parent: IBidirectionalNode;
+    parent?: IBidirectionalNode;
   }) {
     const {name: defaultName, value, update} = params;
     super({
@@ -197,7 +201,7 @@ function formulaOrUndef(
 export class NamedNumber extends NamedValue implements INamedNumber {
   _value: number;
 
-  formula: Formula | undefined;
+  formula: IFormula | undefined;
 
   private _update: (valueOrFOrmula: string | number) => void;
 
@@ -228,16 +232,19 @@ export class NamedNumber extends NamedValue implements INamedNumber {
   }
 
   constructor(params: {
-    name: string;
-    value: string | number | IDataNumber;
+    name?: string;
+    value: string | number | IDataNumber | INamedNumber;
     update?: (valueOrFormula: string | number) => void;
-    parent: IBidirectionalNode;
+    parent?: IBidirectionalNode;
   }) {
     const {name: defaultName, value, update} = params;
     super({
       className: 'NamedNumber',
       ...params,
-      name: isNamedData(value) ? value.name : defaultName
+      name:
+        isNamedData(value) || isNamedValue(value)
+          ? value.name
+          : defaultName ?? 'temporary'
     });
     this._update =
       update ??
@@ -250,6 +257,9 @@ export class NamedNumber extends NamedValue implements INamedNumber {
     if (isNamedData(value)) {
       this._value = Number(value.value);
       this.formula = value.formula ? new Formula(value.formula) : undefined;
+    } else if (isNamedValue(value)) {
+      this._value = Number(value.value);
+      this.formula = value.formula?.copy(this.absPath);
     } else {
       this.formula = formulaOrUndef(value, this.name, this.absPath);
       this._value = this.formula
@@ -304,7 +314,7 @@ export class NamedBooleanOrUndefined
     name: string;
     value: boolean | undefined | IData<boolean | undefined>;
     update?: (newValue: boolean | undefined) => void;
-    parent: IBidirectionalNode;
+    parent?: IBidirectionalNode;
   }) {
     const {name: defaultName, value, update} = params;
     super({
@@ -334,37 +344,12 @@ export function isNamedBooleanOrUndefined(
   return value.className === 'NamedBooleanOrUndefined';
 }
 
-function minusDataNumber(i: IDataNumber): IDataNumber {
-  const nodeID = uuidv4();
-  const tmp = i.absPath.split('@').shift();
-  let absPath = nodeID;
-  if (tmp) absPath = [nodeID, ...tmp].join('@');
-
-  let formula: IDataFormula | undefined;
-  if (i.formula) {
-    formula = {
-      name: i.formula.name,
-      absPath,
-      formula: `-(${i.formula.formula})`
-    };
-  }
-  return {
-    isNamedData: true,
-    name: i.name,
-    className: i.className,
-    value: -i.value,
-    nodeID,
-    absPath,
-    formula
-  };
-}
-
 export class NamedVector3 extends NamedValue implements INamedVector3 {
-  x: NamedNumber;
+  readonly x: NamedNumber;
 
-  y: NamedNumber;
+  readonly y: NamedNumber;
 
-  z: NamedNumber;
+  readonly z: NamedNumber;
 
   pointOffsetTools: IPointOffsetTool[] = [];
 
@@ -400,9 +385,9 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
   }
 
   constructor(params: {
-    name: string;
-    parent: IBidirectionalNode;
-    value?: FunctionVector3 | IDataVector3;
+    name?: string;
+    parent?: IBidirectionalNode;
+    value?: FunctionVector3 | IDataVector3 | INamedVector3;
     update?: (newValue: FunctionVector3) => void;
     nodeID?: string;
   }) {
@@ -410,64 +395,41 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
     super({
       className: 'NamedVector3',
       ...params,
-      name: isNamedData(value) ? value.name : defaultName
+      name: isNamedData(value) ? value.name : defaultName ?? 'temporary'
     });
     this._update =
       update ??
       ((newValue: FunctionVector3) => {
-        this.x = new NamedNumber({
-          name: `${this.name}_X`,
-          value: newValue.x,
-          parent: this
-        });
-        this.y = new NamedNumber({
-          name: `${this.name}_Y`,
-          value: newValue.y,
-          parent: this
-        });
-        this.z = new NamedNumber({
-          name: `${this.name}_Z`,
-          value: newValue.z,
-          parent: this
-        });
+        this.x.setValue(newValue.x);
+        this.y.setValue(newValue.y);
+        this.z.setValue(newValue.z);
       });
     this.x = new NamedNumber({
       name: `${this.name}_X`,
-      value: 0,
+      value: value?.x ?? 0,
       parent: this
     });
     this.y = new NamedNumber({
       name: `${this.name}_Y`,
-      value: 0,
+      value: value?.y ?? 0,
       parent: this
     });
     this.z = new NamedNumber({
       name: `${this.name}_Z`,
-      value: 0,
+      value: value?.z ?? 0,
       parent: this
     });
-    if (value) {
-      this.x = new NamedNumber({
-        name: `${this.name}_X`,
-        value: value.x,
-        parent: this
-      });
-      this.y = new NamedNumber({
-        name: `${this.name}_Y`,
-        value: value.y,
-        parent: this
-      });
-      this.z = new NamedNumber({
-        name: `${this.name}_Z`,
-        value: value.z,
-        parent: this
-      });
-      if (isNamedData(value)) {
-        if (value.pointOffsetTools) {
-          this.pointOffsetTools = value.pointOffsetTools.map((tool) =>
-            getPointOffsetTool(tool, this)
-          );
-        }
+    if (isNamedData(value)) {
+      if (value.pointOffsetTools) {
+        this.pointOffsetTools = value.pointOffsetTools.map((tool) =>
+          getPointOffsetTool(tool, this)
+        );
+      }
+    } else if (isNamedValue(value)) {
+      if (value.pointOffsetTools) {
+        this.pointOffsetTools = value.pointOffsetTools.map((tool) =>
+          tool.copy(this)
+        );
       }
     }
   }
@@ -483,23 +445,6 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
       )
     };
   }
-
-  getMirrorData(state: GDState): IDataVector3 {
-    return {
-      ...super.getDataBase(),
-      nodeID: uuidv4(),
-      x: {...this.x.getData(state), nodeID: uuidv4()},
-      y: minusDataNumber(this.y.getData(state)),
-      z: {...this.z.getData(state), nodeID: uuidv4()},
-      pointOffsetTools: this.pointOffsetTools?.map((tool) =>
-        tool.getMirrorData(state)
-      )
-    };
-  }
-}
-
-export function isNamedVector3(value: INamedValue): value is NamedVector3 {
-  return value.className === 'NamedVector3';
 }
 
 export function getDummyVector3() {
@@ -525,7 +470,7 @@ export class NamedMatrix3 extends NamedValue implements INamedMatrix3 {
 
   constructor(params: {
     name: string;
-    parent: IBidirectionalNode;
+    parent?: IBidirectionalNode;
     value?: IDataMatrix3 | Matrix3;
     update?: (newValue: Matrix3) => void;
   }) {
@@ -579,11 +524,14 @@ export const listPointOffsetTools = ['DeltaXYZ', 'DirectionLength'] as const;
 
 function getPOTName(
   parent: IPointOffsetTool,
-  value: number | string | IDataNumber,
+  value: number | string | IDataNumber | INamedNumber,
   valueName: string
 ) {
   return new NamedNumber({
-    name: isNamedData(value) ? value.name : `${parent.name}_${valueName}`,
+    name:
+      isNamedData(value) || isNamedValue(value)
+        ? value.name
+        : `${parent.name}_${valueName}`,
     value,
     parent
   });
@@ -630,9 +578,9 @@ abstract class PointOffsetTool implements IPointOffsetTool {
     return `${this.nodeID}@${this.parent.absPath}`;
   }
 
-  abstract getData(state: GDState): IDataPointOffsetTool;
+  abstract copy(newParent: INamedVector3): IPointOffsetTool;
 
-  abstract getMirrorData(state: GDState): IDataPointOffsetTool;
+  abstract getData(state: GDState): IDataPointOffsetTool;
 
   abstract getOffsetVector(): {dx: number; dy: number; dz: number};
 
@@ -680,9 +628,9 @@ export class DeltaXYZ extends PointOffsetTool implements IPointOffsetTool {
     value:
       | {
           name: string;
-          dx: number | string;
-          dy: number | string;
-          dz: number | string;
+          dx: number | string | INamedNumber;
+          dy: number | string | INamedNumber;
+          dz: number | string | INamedNumber;
         }
       | IDataDeltaXYZ;
     parent: INamedVector3;
@@ -706,22 +654,19 @@ export class DeltaXYZ extends PointOffsetTool implements IPointOffsetTool {
     };
   }
 
+  copy(newParent: INamedVector3): DeltaXYZ {
+    return new DeltaXYZ({
+      value: {name: this.name, dx: this.dx, dy: this.dy, dz: this.dz},
+      parent: newParent
+    });
+  }
+
   getData(state: GDState): IDataDeltaXYZ {
     return {
       ...super.getDataBase(),
       dx: this.dx.getData(state),
       dy: this.dy.getData(state),
       dz: this.dz.getData(state)
-    };
-  }
-
-  getMirrorData(state: GDState): IDataDeltaXYZ {
-    return {
-      ...super.getDataBase(),
-      nodeID: uuidv4(),
-      dx: {...this.dx.getData(state), nodeID: uuidv4()},
-      dy: minusDataNumber(this.dy.getData(state)),
-      dz: {...this.dz.getData(state), nodeID: uuidv4()}
     };
   }
 
@@ -771,10 +716,10 @@ export class DirectionLength
     value:
       | {
           name: string;
-          nx: number | string;
-          ny: number | string;
-          nz: number | string;
-          l: number | string;
+          nx: number | string | INamedNumber;
+          ny: number | string | INamedNumber;
+          nz: number | string | INamedNumber;
+          l: number | string | INamedNumber;
         }
       | IDataDirectionLength;
     parent: INamedVector3;
@@ -805,23 +750,25 @@ export class DirectionLength
     };
   }
 
+  copy(newParent: INamedVector3): DirectionLength {
+    return new DirectionLength({
+      value: {
+        name: this.name,
+        nx: this.nx,
+        ny: this.ny,
+        nz: this.nz,
+        l: this.l
+      },
+      parent: newParent
+    });
+  }
+
   getData(state: GDState): IDataDirectionLength {
     return {
       ...super.getDataBase(),
       nx: this.nx.getData(state),
       ny: this.ny.getData(state),
       nz: this.nz.getData(state),
-      l: this.l.getData(state)
-    };
-  }
-
-  getMirrorData(state: GDState): IDataDirectionLength {
-    return {
-      ...super.getDataBase(),
-      nodeID: uuidv4(),
-      nx: {...this.nx.getData(state), nodeID: uuidv4()},
-      ny: minusDataNumber(this.ny.getData(state)),
-      nz: {...this.nz.getData(state), nodeID: uuidv4()},
       l: this.l.getData(state)
     };
   }

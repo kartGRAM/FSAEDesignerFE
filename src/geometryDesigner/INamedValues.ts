@@ -1,4 +1,4 @@
-import {IDataFormula} from '@gd/IFormula';
+import {IDataFormula, IFormula} from '@gd/IFormula';
 import {Vector3, Matrix3} from 'three';
 import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {INode, IBidirectionalNode} from './INode';
@@ -11,7 +11,7 @@ export type FunctionVector3 = {
 
 export interface INamedValue extends IBidirectionalNode {
   isNamedValue: true;
-  readonly parent: IBidirectionalNode;
+  parent: IBidirectionalNode | null;
   readonly className: string;
   readonly nodeID: string;
   readonly absPath: string;
@@ -21,7 +21,7 @@ export interface INamedValue extends IBidirectionalNode {
   // update(newValue: unknown): this;
 }
 
-export const isNameValue = (params: any): params is INamedValue => {
+export const isNamedValue = (params: any): params is INamedValue => {
   try {
     return 'isNamedValue' in params;
   } catch (e) {
@@ -63,6 +63,7 @@ export interface IData<T> extends INamedData {
 
 export interface INamedNumber extends INamedValue {
   value: number;
+  formula?: IFormula;
   getData(state: GDState): IDataNumber;
   getStringValue(): string;
   setValue(newValue: string | number): void;
@@ -73,6 +74,9 @@ export interface IDataNumber extends IData<number> {
 }
 
 export interface INamedVector3 extends INamedValue {
+  readonly x: INamedNumber;
+  readonly y: INamedNumber;
+  readonly z: INamedNumber;
   value: Vector3;
   getData(state: GDState): IDataVector3;
   setStringValue(newValue: {
@@ -85,8 +89,12 @@ export interface INamedVector3 extends INamedValue {
     y: number | string;
     z: number | string;
   };
-  getMirrorData(state: GDState): IDataVector3;
   pointOffsetTools?: IPointOffsetTool[];
+}
+
+export function isNamedVector3(value: any): value is INamedVector3 {
+  if (isNamedValue(value)) return value.className === 'NamedVector3';
+  return false;
 }
 
 export interface IDataVector3 extends INamedData {
@@ -139,6 +147,6 @@ export interface IPointOffsetTool extends IBidirectionalNode {
   readonly nodeID: string;
   readonly parent: INamedVector3;
   getOffsetVector(): {dx: number; dy: number; dz: number};
+  copy(newParent: INamedVector3): IPointOffsetTool;
   getData(state: GDState): IDataPointOffsetTool;
-  getMirrorData(state: GDState): IDataPointOffsetTool;
 }

@@ -225,8 +225,12 @@ export function assignMeta(to: IElement, meta: Meta) {
   to.meta = to.meta ? {...to.meta, ...meta} : {...meta};
 }
 
-export const isElement = (element: INode): element is IElement =>
-  'isElement' in element;
+export const isElement = (
+  element: INode | null | undefined
+): element is IElement => {
+  if (!element) return false;
+  return 'isElement' in element;
+};
 export const isAssembly = (element: IElement): element is IAssembly =>
   'isAssembly' in element;
 
