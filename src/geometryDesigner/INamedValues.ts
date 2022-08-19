@@ -66,7 +66,14 @@ export interface INamedNumber extends INamedValue {
   formula?: IFormula;
   getData(state: GDState): IDataNumber;
   getStringValue(): string;
-  setValue(newValue: string | number): void;
+  setValue(newValue: string | number): INamedValue;
+}
+
+export function isNamedNumber(value: any): value is INamedNumber {
+  if (isNamedValue(value)) {
+    return value.className === 'NamedNumber';
+  }
+  return false;
 }
 
 export interface IDataNumber extends IData<number> {
@@ -78,18 +85,23 @@ export interface INamedVector3 extends INamedValue {
   readonly y: INamedNumber;
   readonly z: INamedNumber;
   value: Vector3;
+  mirrorTo?: string;
   getData(state: GDState): IDataVector3;
-  setStringValue(newValue: {
-    x: number | string;
-    y: number | string;
-    z: number | string;
-  }): void;
+  setValue(
+    newValue:
+      | {
+          x: number | string;
+          y: number | string;
+          z: number | string;
+        }
+      | INamedVector3
+  ): INamedVector3;
   getStringValue(): {
     x: number | string;
     y: number | string;
     z: number | string;
   };
-  pointOffsetTools?: IPointOffsetTool[];
+  pointOffsetTools: IPointOffsetTool[];
 }
 
 export function isNamedVector3(value: any): value is INamedVector3 {
@@ -102,6 +114,7 @@ export interface IDataVector3 extends INamedData {
   y: IDataNumber;
   z: IDataNumber;
   pointOffsetTools?: IDataPointOffsetTool[];
+  mirrorTo?: string;
 }
 
 export interface INamedMatrix3 extends INamedValue {

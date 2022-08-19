@@ -30,36 +30,46 @@ export function getElementByPath(
   path: string
 ): IElement | null {
   if (root?.parent) throw new Error('root以外が使用してはいけない');
-  return getElementByPathCore(root, path) as IElement | null;
+  const pathSplited = path.split('@');
+  return getElementByPathCore(root, pathSplited) as IElement | null;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function getDataElementByPath(
+/* function getDataElementByPath(
   root: IDataAssembly | undefined | null,
   path: string
 ): IDataElement | null {
-  return getElementByPathCore(root, path) as IDataElement | null;
-}
+  const pathSplited = path.split('@');
+  return getElementByPathCore(root, pathSplited) as IDataElement | null;
+} */
 
 function getElementByPathCore(
-  root: IAssembly | IDataAssembly | undefined | null,
-  path: string
+  root: IAssembly /* | IDataAssembly */ | undefined | null,
+  path: string[]
 ): IElement | IDataElement | null {
-  if (!root) return null;
-  const idx = path.indexOf(root.nodeID);
-  if (idx === -1) return null;
-  if (idx === 0) return root;
-  const fromThis = path.slice(0, idx - 1);
+  if (!root || !path.length) return null;
+
+  // rootノードが異なる
+  if (path[path.length - 1] !== root.nodeID) return null;
+
+  // 自分自身が探索対象
+  if (path.length === 1) {
+    if (root.nodeID === path[0]) return root;
+    return null;
+  }
+
+  const childrenPath = path.slice(0, -1);
+
   let element: IElement | IDataElement | null = null;
   // eslint-disable-next-line no-restricted-syntax
   for (const child of root.children) {
     if (isElement(child) && isAssembly(child)) {
-      element = getElementByPathCore(child, fromThis);
+      element = getElementByPathCore(child, childrenPath);
       if (element != null) return element;
-    } else if (isDataElement(child) && isDataAssembly(child)) {
-      element = getElementByPathCore(child, fromThis);
-      if (element != null) return element;
-    } else if (child.nodeID === fromThis) {
+      /* } else if (isDataElement(child) && isDataAssembly(child)) {
+      element = getElementByPathCore(child, childrenPath);
+      if (element != null) return element; */
+    } else if (childrenPath.length === 1 && child.nodeID === childrenPath[0]) {
       return child;
     }
   }
@@ -116,6 +126,7 @@ export interface IAssembly extends IElement {
   joints: Joint[];
   getJointedPoints(): INamedVector3[];
   getJointsRecursive(): Joint[];
+  getAllPointsOfChildren(): INamedVector3[];
 
   getDataElement(state: GDState): IDataAssembly;
 }

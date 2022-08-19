@@ -8,6 +8,8 @@ import {IDataFormula, IFormula} from '@gd/IFormula';
 import {
   isNamedData,
   isNamedValue,
+  isNamedVector3,
+  isNamedNumber,
   isDataPointOffsetTool,
   IDataVector3,
   IDataMatrix3,
@@ -186,10 +188,13 @@ export class NamedPrimitive<T> extends NamedValue {
 }
 
 function formulaOrUndef(
-  value: string | number,
+  value: string | number | INamedNumber,
   name: string,
   absPath: string
-): Formula | undefined {
+): IFormula | undefined {
+  if (isNamedNumber(value)) {
+    return value.formula?.copy(absPath);
+  }
   if (isNumber(value)) return undefined;
   return new Formula({
     name,
@@ -203,7 +208,7 @@ export class NamedNumber extends NamedValue implements INamedNumber {
 
   formula: IFormula | undefined;
 
-  private _update: (valueOrFOrmula: string | number) => void;
+  private _update: (valueOrFOrmula: string | number | INamedNumber) => void;
 
   get value(): number {
     if (this.formula) {
@@ -216,8 +221,9 @@ export class NamedNumber extends NamedValue implements INamedNumber {
     this._update(newValue);
   }
 
-  setValue(newValue: string | number) {
+  setValue(newValue: string | number | INamedNumber): INamedNumber {
     this._update(newValue);
+    return this;
   }
 
   getStringValue(): string {
@@ -234,7 +240,7 @@ export class NamedNumber extends NamedValue implements INamedNumber {
   constructor(params: {
     name?: string;
     value: string | number | IDataNumber | INamedNumber;
-    update?: (valueOrFormula: string | number) => void;
+    update?: (valueOrFormula: string | number | INamedNumber) => void;
     parent?: IBidirectionalNode;
   }) {
     const {name: defaultName, value, update} = params;
@@ -248,7 +254,7 @@ export class NamedNumber extends NamedValue implements INamedNumber {
     });
     this._update =
       update ??
-      ((newValue: string | number) => {
+      ((newValue: string | number | INamedNumber) => {
         this.formula = formulaOrUndef(newValue, this.name, this.absPath);
         this._value = this.formula
           ? this.formula.evaluatedValue
@@ -286,9 +292,6 @@ export class NamedBoolean
 
 export function isNamedString(value: INamedValue): value is NamedString {
   return value.className === 'NamedString';
-}
-export function isNamedNumber(value: INamedValue): value is NamedNumber {
-  return value.className === 'NamedNumber';
 }
 export function isNamedBoolean(value: INamedValue): value is NamedBoolean {
   return value.className === 'NamedBoolean';
@@ -351,9 +354,11 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
 
   readonly z: NamedNumber;
 
+  mirrorTo: string | undefined;
+
   pointOffsetTools: IPointOffsetTool[] = [];
 
-  private _update: (newValue: FunctionVector3) => void;
+  private _update: (newValue: FunctionVector3 | INamedVector3) => void;
 
   get value(): Vector3 {
     const org = this.originalValue;
@@ -372,8 +377,9 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
     return new Vector3(this.x.value, this.y.value, this.z.value);
   }
 
-  setStringValue(newValue: FunctionVector3) {
+  setValue(newValue: FunctionVector3 | INamedVector3): INamedVector3 {
     this._update(newValue);
+    return this;
   }
 
   getStringValue(): {x: string; y: string; z: string} {
@@ -388,7 +394,7 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
     name?: string;
     parent?: IBidirectionalNode;
     value?: FunctionVector3 | IDataVector3 | INamedVector3;
-    update?: (newValue: FunctionVector3) => void;
+    update?: (newValue: FunctionVector3 | INamedVector3) => void;
     nodeID?: string;
   }) {
     const {name: defaultName, value, update} = params;
@@ -399,10 +405,15 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
     });
     this._update =
       update ??
-      ((newValue: FunctionVector3) => {
+      ((newValue: FunctionVector3 | INamedVector3) => {
         this.x.setValue(newValue.x);
         this.y.setValue(newValue.y);
         this.z.setValue(newValue.z);
+        if (isNamedVector3(newValue)) {
+          this.pointOffsetTools = newValue.pointOffsetTools.map((tool) =>
+            tool.copy(this)
+          );
+        }
       });
     this.x = new NamedNumber({
       name: `${this.name}_X`,
@@ -442,7 +453,8 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
       z: this.z.getData(state),
       pointOffsetTools: this.pointOffsetTools?.map((tool) =>
         tool.getData(state)
-      )
+      ),
+      mirrorTo: this.mirrorTo
     };
   }
 }
@@ -456,7 +468,7 @@ export function getDummyVector3() {
 }
 
 export class NamedMatrix3 extends NamedValue implements INamedMatrix3 {
-  private _update: (newValue: Matrix3) => void;
+  private _update: (newValue: Matrix3 | INamedMatrix3) => void;
 
   _value: Matrix3;
 
@@ -469,26 +481,35 @@ export class NamedMatrix3 extends NamedValue implements INamedMatrix3 {
   }
 
   constructor(params: {
-    name: string;
+    name?: string;
     parent?: IBidirectionalNode;
-    value?: IDataMatrix3 | Matrix3;
-    update?: (newValue: Matrix3) => void;
+    value?: IDataMatrix3 | Matrix3 | INamedMatrix3;
+    update?: (newValue: Matrix3 | INamedMatrix3) => void;
   }) {
     const {name: defaultName, value, update} = params;
     super({
       className: 'Matrix3',
       ...params,
-      name: isNamedData(value) ? value.name : defaultName
+      name:
+        isNamedData(value) || isNamedValue(value)
+          ? value.name
+          : defaultName ?? 'temporary'
     });
     this._update =
       update ??
-      ((newValue: Matrix3) => {
-        this._value.elements = [...newValue.elements];
+      ((newValue: Matrix3 | INamedMatrix3) => {
+        if (isNamedValue(newValue)) {
+          this._value.elements = [...newValue.value.elements];
+        } else {
+          this._value.elements = [...newValue.elements];
+        }
       });
+
     this._value = new Matrix3();
-    if (value) {
+    if (isNamedValue(value)) {
+      this._value.elements = {...value.value.elements};
+    } else if (value) {
       this._value.elements = {...value.elements};
-      if (isNamedData(value)) this.name = value.name;
     }
   }
 

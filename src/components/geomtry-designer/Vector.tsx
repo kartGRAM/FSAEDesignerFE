@@ -88,7 +88,7 @@ const Vector = React.memo((props: Props) => {
       z: Yup.string().gdFormulaIsValid().required('required')
     }),
     onSubmit: (values) => {
-      vector.setStringValue(values);
+      vector.setValue(values);
       dispatch(updateAssembly(vector));
     }
   });

@@ -13,6 +13,7 @@ import {
 import {
   IDataVector3,
   INamedVector3,
+  INamedMatrix3,
   FunctionVector3,
   IPointOffsetTool,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -31,6 +32,10 @@ import {
   IElement,
   isElement,
   isBody,
+  isTire,
+  isBellCrank,
+  isAArm,
+  isBar,
   IDataElement,
   IAssembly,
   IDataAssembly,
@@ -57,7 +62,8 @@ import {
   IDataTire,
   isDataTire,
   Meta,
-  assignMeta
+  assignMeta,
+  getElementByPath
 } from './IElements';
 
 export function getAssembly(assembly: IDataAssembly): IAssembly {
@@ -136,6 +142,13 @@ export abstract class Element implements IElement {
     // return assembly;
   }
 
+  protected getAnotherElement(
+    path: string | undefined | null
+  ): IElement | null {
+    if (path) return getElementByPath(this.getRoot(), path);
+    return null;
+  }
+
   constructor(params: {name: string} | IDataElement) {
     this._nodeID = uuidv4(); // ⇨ '2c5ea4c0-4067-11e9-8bad-9b1deb4d3b7d'
     const {name} = params;
@@ -191,7 +204,28 @@ export abstract class Element implements IElement {
 
   abstract set inertialTensor(mat: NamedMatrix3);
 
-  getDataElementBase(state: GDState): IDataElement {
+  getDataElementBase(
+    state: GDState,
+    mirrorElement: IElement | null
+  ): IDataElement {
+    if (!mirrorElement) {
+      return {
+        isDataElement: true,
+        className: this.className,
+        name: this.name.getData(state),
+        nodeID: this.nodeID,
+        absPath: this.absPath,
+
+        inertialTensor: this.inertialTensor.getData(state),
+        centerOfGravity: this.centerOfGravity.getData(state),
+        mass: this.mass.getData(state),
+        position: this.position.getData(state),
+        rotation: this.rotation.getData(state),
+        initialPosition: this.initialPosition.getData(state),
+        visible: this.visible.getData()
+        // mirrorTo: this.meta?.mirror?.to
+      };
+    }
     return {
       isDataElement: true,
       className: this.className,
@@ -199,14 +233,14 @@ export abstract class Element implements IElement {
       nodeID: this.nodeID,
       absPath: this.absPath,
 
-      inertialTensor: this.inertialTensor.getData(state),
-      centerOfGravity: this.centerOfGravity.getData(state),
+      inertialTensor: mirrorMat(this.inertialTensor).getData(state),
+      centerOfGravity: mirrorVec(this.centerOfGravity).getData(state),
       mass: this.mass.getData(state),
       position: this.position.getData(state),
       rotation: this.rotation.getData(state),
-      initialPosition: this.initialPosition.getData(state),
+      initialPosition: mirrorVec(this.initialPosition).getData(state),
       visible: this.visible.getData(),
-      mirrorTo: this.meta?.mirror?.to
+      mirrorTo: mirrorElement.absPath
     };
   }
 }
@@ -479,8 +513,50 @@ export class Assembly extends Element implements IAssembly {
   }
 
   getDataElement(state: GDState): IDataAssembly {
-    const baseData = super.getDataElementBase(state);
-    const data: IDataAssembly = {
+    const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
+    const mir = this.getAnotherElement(mirror);
+    const baseData = super.getDataElementBase(state, mir);
+
+    if (mir && isAssembly(mir)) {
+      const myChildren = this.children.reduce(
+        (obj, x) =>
+          Object.assign(obj, {
+            [x.meta?.mirror?.to.split('@')[0] ??
+            'なぜかミラー設定されていない']: x
+          }),
+        {} as {[name: string]: IElement}
+      );
+
+      let points: INamedVector3[] = [];
+      const children = mir.children.map((child) => {
+        if (Object.keys(myChildren).includes(child.nodeID)) {
+          const myChild = myChildren[child.nodeID];
+          points = [...points, ...myChild.getPoints()];
+          return myChild.getDataElement(state);
+        }
+        const myChild = child.getMirror();
+        points = [...points, ...myChild.getPoints()];
+        return myChild.getDataElement(state);
+      });
+
+      const mirPoints = mir.getAllPointsOfChildren();
+
+      const joints = mir.joints.map((joint) => {
+        return {
+          lhs: points[mirPoints.findIndex((p) => p.nodeID === joint.lhs.nodeID)]
+            .nodeID,
+          rhs: points[mirPoints.findIndex((p) => p.nodeID === joint.rhs.nodeID)]
+            .nodeID
+        };
+      });
+      return {
+        ...baseData,
+        isDataAssembly: true,
+        children,
+        joints
+      };
+    }
+    return {
       ...baseData,
       isDataAssembly: true,
       children: this.children.map((child) => child.getDataElement(state)),
@@ -488,7 +564,6 @@ export class Assembly extends Element implements IAssembly {
         return {lhs: joint.lhs.nodeID, rhs: joint.rhs.nodeID};
       })
     };
-    return data;
   }
 }
 
@@ -694,14 +769,24 @@ export class Bar extends Element implements IBar {
   }
 
   getDataElement(state: GDState): IDataBar {
-    const baseData = super.getDataElementBase(state);
+    const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
+    const mir = this.getAnotherElement(mirror);
+    const baseData = super.getDataElementBase(state, mir);
 
-    const data: IDataBar = {
+    if (mir && isBar(mir)) {
+      return {
+        ...baseData,
+        fixedPoint: this.fixedPoint
+          .setValue(mirrorVec(mir.fixedPoint))
+          .getData(state),
+        point: this.point.setValue(mirrorVec(mir.point)).getData(state)
+      };
+    }
+    return {
       ...baseData,
       fixedPoint: this.fixedPoint.getData(state),
       point: this.point.getData(state)
     };
-    return data;
   }
 }
 
@@ -921,13 +1006,29 @@ export class AArm extends Element implements IAArm {
   }
 
   getDataElement(state: GDState): IDataAArm {
-    const baseData = super.getDataElementBase(state);
-    const data: IDataAArm = {
+    const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
+    const mir = this.getAnotherElement(mirror);
+    const baseData = super.getDataElementBase(state, mir);
+
+    if (mir && isAArm(mir)) {
+      return {
+        ...baseData,
+        fixedPoints: [
+          this.fixedPoints[0]
+            .setValue(mirrorVec(mir.fixedPoints[0]))
+            .getData(state),
+          this.fixedPoints[1]
+            .setValue(mirrorVec(mir.fixedPoints[1]))
+            .getData(state)
+        ],
+        points: syncPointsMirror(this.points, mir.points, state)
+      };
+    }
+    return {
       ...baseData,
       fixedPoints: this.fixedPoints.map((point) => point.getData(state)),
       points: this.points.map((point) => point.getData(state))
     };
-    return data;
   }
 }
 
@@ -1088,14 +1189,29 @@ export class BellCrank extends Element implements IBellCrank {
   }
 
   getDataElement(state: GDState): IDataBellCrank {
-    const baseData = super.getDataElementBase(state);
+    const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
+    const mir = this.getAnotherElement(mirror);
+    const baseData = super.getDataElementBase(state, mir);
 
-    const data: IDataBellCrank = {
+    if (mir && isBellCrank(mir)) {
+      return {
+        ...baseData,
+        fixedPoints: [
+          this.fixedPoints[0]
+            .setValue(mirrorVec(mir.fixedPoints[0]))
+            .getData(state),
+          this.fixedPoints[1]
+            .setValue(mirrorVec(mir.fixedPoints[1]))
+            .getData(state)
+        ],
+        points: syncPointsMirror(this.points, mir.points, state)
+      };
+    }
+    return {
       ...baseData,
       fixedPoints: this.fixedPoints.map((point) => point.getData(state)),
       points: this.points.map((point) => point.getData(state))
     };
-    return data;
   }
 }
 
@@ -1224,14 +1340,22 @@ export class Body extends Element implements IBody {
   }
 
   getDataElement(state: GDState): IDataBody {
-    const baseData = super.getDataElementBase(state);
+    const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
+    const mir = this.getAnotherElement(mirror);
+    const baseData = super.getDataElementBase(state, mir);
 
-    const data: IDataBody = {
+    if (mir && isBody(mir)) {
+      return {
+        ...baseData,
+        fixedPoints: syncPointsMirror(this.fixedPoints, mir.fixedPoints, state),
+        points: syncPointsMirror(this.points, mir.points, state)
+      };
+    }
+    return {
       ...baseData,
       fixedPoints: this.fixedPoints.map((point) => point.getData(state)),
       points: this.points.map((point) => point.getData(state))
     };
-    return data;
   }
 }
 
@@ -1413,9 +1537,25 @@ export class Tire extends Element implements ITire {
   }
 
   getDataElement(state: GDState): IDataTire {
-    const baseData = super.getDataElementBase(state);
+    const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
+    const mir = this.getAnotherElement(mirror);
+    const baseData = super.getDataElementBase(state, mir);
 
-    const data: IDataTire = {
+    if (mir && isTire(mir)) {
+      return {
+        ...baseData,
+        tireCenter: this.tireCenter.getData(state),
+        toLeftBearing: this.toLeftBearing
+          .setValue(minus(mir.toLeftBearing.getStringValue()))
+          .getData(state),
+        toRightBearing: this.toRightBearing
+          .setValue(minus(mir.toRightBearing.getStringValue()))
+          .getData(state),
+        leftBearingNodeID: this.leftBearingNodeID,
+        rightBearingNodeID: this.rightBearingNodeID
+      };
+    }
+    return {
       ...baseData,
       tireCenter: this.tireCenter.getData(state),
       toLeftBearing: this.toLeftBearing.getData(state),
@@ -1423,7 +1563,6 @@ export class Tire extends Element implements ITire {
       leftBearingNodeID: this.leftBearingNodeID,
       rightBearingNodeID: this.rightBearingNodeID
     };
-    return data;
   }
 }
 
@@ -1459,11 +1598,27 @@ const isDataElement = (params: any): params is IDataElement => {
   }
 };
 
-const mirrorVec = (v: INamedVector3): INamedVector3 => {
-  v = new NamedVector3({value: v});
+const mirrorVec = (
+  vec: INamedVector3,
+  inplace: boolean = false
+): INamedVector3 => {
+  const v = inplace ? vec : new NamedVector3({value: vec});
+  v.mirrorTo = vec.nodeID;
+
   v.y.setValue(minus(v.y.getStringValue()));
   v.pointOffsetTools?.forEach((tool) => getMirrorPOT(tool));
   return v;
+};
+
+const mirrorMat = (
+  mat: INamedMatrix3,
+  inplace: boolean = false
+): INamedMatrix3 => {
+  const m = inplace ? mat : new NamedMatrix3({value: mat});
+  m.value.elements[1] *= -1;
+  m.value.elements[4] *= -1;
+  m.value.elements[7] *= -1;
+  return m;
 };
 
 const getMirrorPOT = (tool: IPointOffsetTool): void => {
@@ -1476,4 +1631,24 @@ const getMirrorPOT = (tool: IPointOffsetTool): void => {
     return;
   }
   throw Error('Not Supported Exception');
+};
+
+const syncPointsMirror = (
+  mirTo: NamedVector3[],
+  mirFrom: INamedVector3[],
+  state: GDState
+): IDataVector3[] => {
+  const listP = mirTo.reduce(
+    (obj, x) =>
+      Object.assign(obj, {
+        [x.mirrorTo ?? 'なぜかミラー設定されていない']: x
+      }),
+    {} as {[name: string]: INamedVector3}
+  );
+  return mirFrom.map((v) => {
+    if (Object.keys(listP).includes(v.nodeID)) {
+      return listP[v.nodeID].setValue(mirrorVec(v)).getData(state);
+    }
+    return mirrorVec(v).getData(state);
+  });
 };
