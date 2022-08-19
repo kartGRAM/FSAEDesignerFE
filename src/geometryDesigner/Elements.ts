@@ -530,18 +530,18 @@ export class Assembly extends Element implements IAssembly {
         child.parent = this;
       });
       const allPoints = this.getAllPointsOfChildren();
-      this.joints = params.joints
-        .filter((joint) => {
-          const lhs = allPoints.find((p) => p.nodeID === joint.lhs);
-          const rhs = allPoints.find((p) => p.nodeID === joint.rhs);
-          return lhs && rhs;
-        })
-        .map((joint) => {
-          return {
-            lhs: allPoints.find((p) => p.nodeID === joint.lhs) as INamedVector3,
-            rhs: allPoints.find((p) => p.nodeID === joint.rhs) as INamedVector3
-          };
-        });
+      const joints = params.joints.filter((joint) => {
+        const lhs = allPoints.find((p) => p.nodeID === joint.lhs);
+        const rhs = allPoints.find((p) => p.nodeID === joint.rhs);
+        return lhs && rhs;
+      });
+      const joints2 = joints.map((joint) => {
+        return {
+          lhs: allPoints.find((p) => p.nodeID === joint.lhs) as INamedVector3,
+          rhs: allPoints.find((p) => p.nodeID === joint.rhs) as INamedVector3
+        };
+      });
+      this.joints = joints2;
     } else {
       this._children = params.children;
       this._children.forEach((child) => {
@@ -562,8 +562,7 @@ export class Assembly extends Element implements IAssembly {
       const myChildren = this.children.reduce(
         (obj, x) =>
           Object.assign(obj, {
-            [x.meta?.mirror?.to.split('@')[0] ??
-            'なぜかミラー設定されていない']: x
+            [x.meta?.mirror?.to ?? 'なぜかミラー設定されていない']: x
           }),
         {} as {[name: string]: IElement}
       );

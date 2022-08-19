@@ -412,12 +412,14 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
       parent: this
     });
     if (isNamedData(value)) {
+      this.mirrorTo = value.mirrorTo;
       if (value.pointOffsetTools) {
         this.pointOffsetTools = value.pointOffsetTools.map((tool) =>
           getPointOffsetTool(tool, this)
         );
       }
     } else if (isNamedValue(value)) {
+      this.mirrorTo = value.mirrorTo;
       if (value.pointOffsetTools) {
         this.pointOffsetTools = value.pointOffsetTools.map((tool) =>
           tool.copy(this)
