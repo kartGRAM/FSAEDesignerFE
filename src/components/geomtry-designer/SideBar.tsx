@@ -98,6 +98,10 @@ export default function MiniDrawer() {
     dispatch(selectSidePanelTab({tab: selectedTab}));
   };
 
+  const selectedNodeID = useSelector(
+    (state: RootState) => state.uitgd.selectedElementAbsPath
+  );
+
   return (
     <Drawer variant="permanent" open={false} bgColor={bgColor}>
       <Divider />
@@ -111,7 +115,9 @@ export default function MiniDrawer() {
         ].map((item) => (
           <ListItem key={item.text} disablePadding sx={{display: 'block'}}>
             <ListItemButton
-              disabled={disabled}
+              disabled={
+                disabled || (item.text === 'parameters' && !selectedNodeID)
+              }
               sx={{
                 minHeight: 48,
                 justifyContent: open ? 'initial' : 'center',

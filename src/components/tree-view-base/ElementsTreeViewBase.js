@@ -523,6 +523,13 @@ const TreeView = React.forwardRef(function TreeView(inProps, ref) {
   };
 
   const handleSingleSelect = (event, value) => {
+    /* if (
+      event.type === 'click' &&
+      (event.target.nodeName === 'path' || event.target.nodeName === 'svg')
+    ) {
+      return;
+    } */
+
     const newSelected = multiSelect ? [value] : value;
 
     if (onNodeSelect) {
