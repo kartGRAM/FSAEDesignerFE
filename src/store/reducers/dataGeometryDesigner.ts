@@ -9,7 +9,7 @@ import {
 import {IBidirectionalNode, getRootNode} from '@gd/INode';
 
 import {IDataMatrix3} from '@gd/INamedValues';
-import {IDataFormula, validateAll, replaceVariable} from '@gd/IFormula';
+import {IDataFormula, validateAll /* , replaceVariable */} from '@gd/IFormula';
 import {DateTime} from 'luxon';
 
 export interface IAssemblyTreeViewState {
@@ -176,10 +176,11 @@ export const dataGeometryDesignerSlice = createSlice({
     ) => {
       if (validateAll(action.payload) === 'OK') {
         state.formulae = action.payload;
+        if (state.topAssembly) state.topAssembly = {...state.topAssembly};
       }
       state.changed = true;
-    },
-    setNewFormula: (
+    }
+    /* setNewFormula: (
       state: GDState,
       action: PayloadAction<{
         name: string;
@@ -193,7 +194,7 @@ export const dataGeometryDesignerSlice = createSlice({
         state.formulae = tmp;
       }
       state.changed = true;
-    },
+    }
     updateFormula: (
       state: GDState,
       action: PayloadAction<{
@@ -229,7 +230,7 @@ export const dataGeometryDesignerSlice = createSlice({
         state.formulae = tmp;
       }
       state.changed = true;
-    }
+    } */
   }
 });
 

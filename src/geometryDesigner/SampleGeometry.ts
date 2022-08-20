@@ -337,12 +337,12 @@ const getRearSuspension = (): Assembly => {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const getSuspension = (): Assembly => {
+const getKZRR11Assy = (): Assembly => {
   const frontSuspension = getFrontSuspension();
   const rearSuspension = getRearSuspension();
 
   const suspensionAssy = new Frame({
-    name: 'suspensionAssy',
+    name: 'KZRR11Assy',
     children: [frontSuspension, rearSuspension]
   });
   return suspensionAssy;
@@ -374,7 +374,7 @@ export const getSampleData = async (): Promise<SavedData> => {
     note: '2013年度京都大学優勝車両',
     lastUpdated: DateTime.local().toString(),
     formulae,
-    topAssembly: getSuspension().getDataElement(store.getState().dgd.present)
+    topAssembly: getKZRR11Assy().getDataElement(store.getState().dgd.present)
     // topAssembly: getUprightAssy().getDataElement(store.getState().dgd.present)
   };
 };

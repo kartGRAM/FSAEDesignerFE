@@ -15,6 +15,7 @@ const uigd = undoable(uiGeometryDesignerSlice.reducer, {
   undoType: 'GD_UNDO',
   redoType: 'GD_REDO'
 });
+
 const dgd = undoable(
   dataGeometryDesignerSlice.reducer /* , {
   undoType: 'GD_UNDO',
@@ -41,7 +42,11 @@ const store = configureStore({
     // ...getDefaultMiddleware().concat(createLogger()),
     ...getDefaultMiddleware({
       serializableCheck: {
-        ignoredActions: ['dataGeometryDesigner/updateAssembly'],
+        ignoredActions: [
+          'dataGeometryDesigner/updateAssembly',
+          'uitGeometryDesigner/setAssembly'
+        ],
+        ignoredPaths: [`uitgd.assembly`],
         warnAfter: 128
       },
       immutableCheck: {warnAfter: 128}

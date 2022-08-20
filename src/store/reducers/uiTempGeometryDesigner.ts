@@ -2,6 +2,7 @@ import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {IDataVector3} from '@gd/INamedValues';
 import {ConfirmDialogProps} from '@gdComponents/dialog-components/ConfirmDialog';
 import {SaveAsDialogProps} from '@gdComponents/dialog-components/SaveAsDialog';
+import {IAssembly} from '@gd/IElements';
 // import {PointOffsetToolDialogProps} from '@gdComponents/dialog-components/PointOffsetToolDialog';
 
 export type SidePanelTab =
@@ -24,6 +25,7 @@ export interface GDState {
   sidePanelState: SidePanelState;
   gdSceneState: GDSceneState;
   gdDialogState: GDDialogState;
+  assembly: IAssembly | undefined;
 }
 interface IDataVector3WithColor extends IDataVector3 {
   color?: number;
@@ -54,13 +56,20 @@ const initialState: GDState = {
     openDialogOpen: false,
     saveAsDialogProps: undefined,
     confirmDialogProps: undefined
-  }
+  },
+  assembly: undefined
 };
 
 export const uitGeometryDesignerSlice = createSlice({
   name: 'uitGeometryDesigner',
   initialState,
   reducers: {
+    setAssembly: (
+      state: GDState,
+      action: PayloadAction<IAssembly | undefined>
+    ) => {
+      state.assembly = action.payload;
+    },
     toggleFullScreen: (state: GDState) => {
       state.isFullScreen = !state.isFullScreen;
       state.fullScreenZIndex = state.isFullScreen ? 1000000 : 0;
@@ -136,6 +145,7 @@ export const uitGeometryDesignerSlice = createSlice({
 });
 
 export const {
+  setAssembly,
   setUIDisabled,
   toggleFullScreen,
   selectElement,

@@ -1,10 +1,10 @@
 import React, {useEffect, useRef} from 'react';
-import {useSelector} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 import {RootState} from '@store/store';
 import track, {dispose, disposeAll} from '@app/utils/ResourceTracker';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
-import {IDataAssembly} from '@gd/IElements';
+import {setAssembly} from '@store/reducers/uiTempGeometryDesigner';
 
 import {getAssembly} from '@gd/Elements';
 import {getVector3} from '@gd/NamedValues';
@@ -42,9 +42,11 @@ export default function GDScene() {
     (state: RootState) => state.uitgd.gdSceneState.selectedPoint
   );
 
-  const assembly: IDataAssembly | undefined = useSelector(
+  const assembly = useSelector(
     (state: RootState) => state.dgd.present.topAssembly
   );
+
+  const dispatch = useDispatch();
 
   const init = (): ResizeObserver => {
     // レンダラを作成
@@ -120,7 +122,12 @@ export default function GDScene() {
   useEffect(() => {
     const start = performance.now();
     if (scene.current) dispose('Assembly', scene.current);
-    if (assembly && scene.current) render(getAssembly(assembly), scene.current);
+    if (assembly && scene.current) {
+      const iAssembly = getAssembly(assembly);
+      dispatch(setAssembly(iAssembly));
+
+      render(iAssembly, scene.current);
+    }
     // 実行時間を計測した処理
     const end = performance.now();
     console.log(end - start);

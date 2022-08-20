@@ -246,6 +246,7 @@ export const isElement = (
   if (!element) return false;
   return 'isElement' in element;
 };
+
 export const isAssembly = (element: IElement): element is IAssembly =>
   'isAssembly' in element;
 

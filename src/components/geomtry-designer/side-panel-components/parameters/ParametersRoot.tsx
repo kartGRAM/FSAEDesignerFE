@@ -10,7 +10,6 @@ import {
   isTire,
   isAssembly
 } from '@gd/IElements';
-import {getAssembly} from '@gd/Elements';
 import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
 import AArmConfig from './AArmConfig';
 import BarConfig from './BarConfig';
@@ -23,9 +22,7 @@ export default function ParametersRoot() {
   const path = useSelector(
     (state: RootState) => state.uitgd.selectedElementAbsPath
   );
-  const topAssy = getAssembly(
-    useSelector((state: RootState) => state.dgd.present.topAssembly)!
-  );
+  const topAssy = useSelector((state: RootState) => state.uitgd.assembly);
 
   const dispatch = useDispatch();
   React.useEffect(() => {

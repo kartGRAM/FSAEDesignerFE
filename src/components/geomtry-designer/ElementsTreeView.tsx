@@ -229,22 +229,10 @@ const VisibilityControl = React.memo(
     const color: string = nColor ?? '#fe6049';
     const dispatch = useDispatch();
 
-    /* const visible: boolean | undefined = useSelector((state: RootState) => {
-      const top = state.dgd.present.topAssembly;
-      if (top) {
-        const e = getDataElementByPath(top, absPath);
-        if (e && isDataElement(e)) {
-          return e.visible.value;
-        }
-      }
-      return undefined;
-    }); */
-
     const handleChange = React.useCallback(
       (event: React.ChangeEvent<HTMLInputElement>) => {
-        const {topAssembly} = store.getState().dgd.present;
-        if (topAssembly) {
-          const assembly = getAssembly(topAssembly);
+        const {assembly} = store.getState().uitgd;
+        if (assembly) {
           const instance = getElementByPath(assembly, absPath);
           if (instance) {
             instance.visible.value = event.target.checked;
