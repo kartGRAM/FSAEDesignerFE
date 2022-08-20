@@ -26,6 +26,8 @@ export interface GDState {
   gdSceneState: GDSceneState;
   gdDialogState: GDDialogState;
   assembly: IAssembly | undefined;
+
+  treeViewDragExpanded: string[];
 }
 interface IDataVector3WithColor extends IDataVector3 {
   color?: number;
@@ -57,7 +59,8 @@ const initialState: GDState = {
     saveAsDialogProps: undefined,
     confirmDialogProps: undefined
   },
-  assembly: undefined
+  assembly: undefined,
+  treeViewDragExpanded: []
 };
 
 export const uitGeometryDesignerSlice = createSlice({
@@ -69,6 +72,9 @@ export const uitGeometryDesignerSlice = createSlice({
       action: PayloadAction<IAssembly | undefined>
     ) => {
       state.assembly = action.payload;
+    },
+    treeViewDragExpanded: (state: GDState, action: PayloadAction<string[]>) => {
+      state.treeViewDragExpanded = action.payload;
     },
     toggleFullScreen: (state: GDState) => {
       state.isFullScreen = !state.isFullScreen;
@@ -154,7 +160,8 @@ export const {
   setFormulaDialogOpen,
   setOpenDialogOpen,
   setSaveAsDialogProps,
-  setConfirmDialogProps
+  setConfirmDialogProps,
+  treeViewDragExpanded
   // setPointOffsetToolDialogProps
 } = uitGeometryDesignerSlice.actions;
 

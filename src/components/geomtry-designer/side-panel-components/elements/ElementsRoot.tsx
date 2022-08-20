@@ -4,6 +4,8 @@ import {styled} from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
+import {useDispatch} from 'react-redux';
+import {treeViewDragExpanded} from '@store/reducers/uiTempGeometryDesigner';
 
 const createElement = (name: string) => {
   return {
@@ -23,6 +25,18 @@ const elements = [
 ];
 
 export default function ElementsRoot() {
+  const handleDragStart = React.useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.dataTransfer.effectAllowed = 'move';
+    },
+    []
+  );
+  const dispatch = useDispatch();
+
+  const handleDragEnd = React.useCallback(() => {
+    dispatch(treeViewDragExpanded([]));
+  }, []);
+
   return (
     <>
       <Typography variant="h6">Components</Typography>
@@ -35,7 +49,12 @@ export default function ElementsRoot() {
         {elements.map((item) => (
           <Grid item xs={4} key={item.name} sx={{paddingLeft: '8px!important'}}>
             <Item>
-              <Element tabIndex={0}>
+              <Element
+                tabIndex={0}
+                draggable
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+              >
                 <Typography
                   component="span"
                   variant="subtitle1"

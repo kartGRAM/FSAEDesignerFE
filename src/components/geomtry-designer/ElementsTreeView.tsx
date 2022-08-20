@@ -26,15 +26,24 @@ import Collapse from '@mui/material/Collapse';
 // web.cjs is required for IE11 support
 import {useSpring, animated} from 'react-spring';
 import {TransitionProps} from '@mui/material/transitions';
+import {treeViewDragExpanded} from '@store/reducers/uiTempGeometryDesigner';
 
 const ElementsTreeView = () => {
   const [expanded, setExpanded] = React.useState<string[]>([]);
+
+  const dragExpanded = useSelector(
+    (state: RootState) => state.uitgd.treeViewDragExpanded
+  );
   // const [nodeID, setNodeID] = React.useState<string>('');
   const dispatch = useDispatch();
 
   const nodeID = useSelector(
     (state: RootState) => state.uitgd.selectedElementAbsPath
   );
+
+  const dragTo = dragExpanded.length
+    ? dragExpanded[dragExpanded.length - 1]
+    : '';
 
   // 苦肉の策（nodeIDStateをそのまま使用するとアニメーションがカクつく）
   /*
@@ -90,7 +99,11 @@ const ElementsTreeView = () => {
       return [current];
     }, [] as string[]);
   expanded2.pop();
-  const expandedWithSelected = unique([...expanded, ...expanded2]);
+  const expandedWithSelected = unique([
+    ...expanded,
+    ...expanded2,
+    ...dragExpanded
+  ]);
 
   return (
     <TreeView
@@ -119,7 +132,7 @@ const ElementsTreeView = () => {
         backdropFilter: 'blur(3px)'
       }}
     >
-      <MyTreeItem {...propsTree} key={assembly.nodeID} />
+      <MyTreeItem {...propsTree} key={assembly.nodeID} dragTo={dragTo} />
     </TreeView>
   );
 };
@@ -128,32 +141,46 @@ interface MyTreeItemProps {
   nodeId: string;
   label: string;
   visibility: boolean | null;
-  children: MyTreeItemProps[];
+  children: PropsTreeNode[];
+  dragTo: string;
+  isAssembly: boolean;
 }
 
-function getPropsTree(element: IDataElement | undefined): MyTreeItemProps {
+type PropsTreeNode = {
+  nodeId: string;
+  label: string;
+  visibility: boolean | null;
+  children: PropsTreeNode[];
+  isAssembly: boolean;
+};
+
+function getPropsTree(element: IDataElement | undefined): PropsTreeNode {
   if (!element) {
     return {
       nodeId: 'none',
       label: '',
       visibility: null,
-      children: []
+      children: [] as PropsTreeNode[],
+      isAssembly: false
     };
   }
-  let children: MyTreeItemProps[] = [];
+  let children: PropsTreeNode[] = [];
+  let isAssembly = false;
   if (isDataAssembly(element)) {
     children = element.children.map((child) => getPropsTree(child));
+    isAssembly = true;
   }
   return {
     nodeId: element.absPath,
     label: element.name.value,
     visibility: element.visible.value ?? null,
-    children
+    children,
+    isAssembly
   };
 }
 
 const MyTreeItem = React.memo((props: MyTreeItemProps) => {
-  const {nodeId, label, children, visibility} = props;
+  const {nodeId, label, children, visibility, isAssembly, dragTo} = props;
   const selectedColor = NumberToRGB(
     useSelector(
       (state: RootState) =>
@@ -163,11 +190,25 @@ const MyTreeItem = React.memo((props: MyTreeItemProps) => {
   const borderLeft = useSelector(
     (state: RootState) => state.uigd.present.assemblyTreeViewState.borderLeft
   );
+  // if (nodeId === dragTo) console.log(dragTo);
+
+  const childNodes = children.map((child) => {
+    return <MyTreeItem {...child} key={child.nodeId} dragTo={dragTo} />;
+  });
+
+  if (nodeId === dragTo) childNodes.push(<TemporaryNode name="" />);
 
   return (
     <TreeItem
       nodeId={nodeId}
-      label={<MyLabel label={label} absPath={nodeId} visibility={visibility} />}
+      label={
+        <MyLabel
+          label={label}
+          absPath={nodeId}
+          visibility={visibility}
+          isAssembly={isAssembly}
+        />
+      }
       sx={{
         [`& .${treeItemClasses.iconContainer}`]: {
           '& .close': {
@@ -195,19 +236,103 @@ const MyTreeItem = React.memo((props: MyTreeItemProps) => {
         }
       }}
     >
-      {children.map((child) => {
-        return <MyTreeItem {...child} key={child.nodeId} />;
-      })}
+      {childNodes}
     </TreeItem>
   );
 });
 
+const TemporaryNode = React.memo((props: {name: string}) => {
+  const {name} = props;
+  const selectedColor = NumberToRGB(
+    useSelector(
+      (state: RootState) =>
+        state.uigd.present.assemblyTreeViewState.selectedColor
+    )
+  );
+  const borderLeft = useSelector(
+    (state: RootState) => state.uigd.present.assemblyTreeViewState.borderLeft
+  );
+
+  return (
+    <TreeItem
+      nodeId={name}
+      label="temp"
+      sx={{
+        backgroundColor: `${alpha(selectedColor, 0.2)}!important`,
+        [`& .${treeItemClasses.iconContainer}`]: {
+          '& .close': {
+            opacity: 0.3
+          }
+        },
+        [`& .${treeItemClasses.group}`]: {
+          marginLeft: 2,
+          paddingLeft: 1,
+          borderLeft
+        },
+        [`& .Mui-focused`]: {
+          backgroundColor: `${alpha(selectedColor, 0.2)}!important`,
+          transition: 'all 0.3s 0s ease'
+        },
+        [`& .${treeItemClasses.selected}`]: {
+          backgroundColor: `${alpha(selectedColor, 0.8)}!important`,
+          transition: 'all 0.3s 0s ease',
+          '&:hover': {
+            backgroundColor: `${alpha(selectedColor, 0.8)}!important`
+          },
+          [`& .${treeItemClasses.focused}`]: {
+            backgroundColor: `${alpha(selectedColor, 0.8)}!important`
+          }
+        }
+      }}
+    />
+  );
+});
+
 const MyLabel = React.memo(
-  (props: {label: string; absPath: string; visibility: boolean | null}) => {
-    const {label, absPath, visibility} = props;
+  (props: {
+    isAssembly: boolean;
+    label: string;
+    absPath: string;
+    visibility: boolean | null;
+  }) => {
+    const {label, absPath, visibility, isAssembly} = props;
+    const dispatch = useDispatch();
+    const handleDragEnter = React.useCallback(() => {
+      const paths = absPath
+        .split('@')
+        .reverse()
+        .reduce((prev, nodeID) => {
+          if (prev.length) {
+            prev.push([nodeID, prev[prev.length - 1]].join('@'));
+            return prev;
+          }
+          return [nodeID];
+        }, [] as string[]);
+
+      dispatch(treeViewDragExpanded(paths));
+    }, [absPath]);
 
     return (
-      <Box display="flex">
+      <Box
+        display="flex"
+        onDragEnter={isAssembly ? handleDragEnter : undefined}
+        onDrop={
+          isAssembly
+            ? (e) => {
+                e.preventDefault();
+                dispatch(selectElement({absPath}));
+                dispatch(treeViewDragExpanded([]));
+              }
+            : undefined
+        }
+        onDragOver={
+          isAssembly
+            ? (e) => {
+                e.preventDefault();
+              }
+            : undefined
+        }
+      >
         <VisibilityControl absPath={absPath} visibility={visibility} />
         <Typography>{label}</Typography>
       </Box>
