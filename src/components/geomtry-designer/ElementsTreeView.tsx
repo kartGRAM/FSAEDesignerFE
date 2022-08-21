@@ -77,6 +77,17 @@ const ElementsTreeView = () => {
   // console.log('rerendered');
   const handleOnSelect = React.useCallback(
     async (e: React.SyntheticEvent, path: string) => {
+      /* const expanded = path
+        .split('@')
+        .reverse()
+        .reduce((prev: string[], current: string) => {
+          if (prev.length > 0) {
+            return [...prev, [current, prev[prev.length - 1]].join('@')];
+          }
+          return [current];
+        }, [] as string[]);
+      setExpanded((prev) => unique([...prev, ...expanded])); */
+
       await dispatch(selectElement({absPath: path}));
     },
     []
@@ -95,7 +106,10 @@ const ElementsTreeView = () => {
     return <div />;
   }
 
-  const expanded2 = nodeID
+  const splitedPath = nodeID.split('@');
+  splitedPath.shift();
+  const parent = splitedPath.join('@');
+  const toExpanded = parent
     .split('@')
     .reverse()
     .reduce((prev: string[], current: string) => {
@@ -104,10 +118,13 @@ const ElementsTreeView = () => {
       }
       return [current];
     }, [] as string[]);
-  expanded2.pop();
-  const expandedWithSelected = unique([
-    ...expanded,
-    ...expanded2,
+
+  if (parent && toExpanded.filter((x) => !expanded.includes(x)).length) {
+    setExpanded((prev) => unique([...prev, ...toExpanded]));
+  }
+
+  const expandedWithDrag = unique([
+    ...expanded, // ...expanded2,
     ...dragExpanded
   ]);
 
@@ -120,7 +137,7 @@ const ElementsTreeView = () => {
       onNodeSelect={handleOnSelect}
       onNodeToggle={handleToggle}
       selected={nodeID}
-      expanded={expandedWithSelected}
+      expanded={expandedWithDrag}
       sx={{
         scrollbarWidth: 'none' /* Firefox対応のスクロールバー非表示コード */,
         position: 'absolute',
