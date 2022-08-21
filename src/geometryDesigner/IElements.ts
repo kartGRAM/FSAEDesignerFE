@@ -26,6 +26,16 @@ export interface DataJoint {
   rhs: NodeID;
 }
 
+export type Elements =
+  | 'Assembly'
+  | 'Bar'
+  | 'Frame'
+  | 'SpringDumper'
+  | 'AArm'
+  | 'BellCrank'
+  | 'Body'
+  | 'Tire';
+
 export function getElementByPath(
   root: IAssembly | undefined | null,
   path: string
@@ -83,7 +93,7 @@ export const isMirrorElement = (element: IElement): boolean => {
 
 export interface IElement extends IBidirectionalNode {
   readonly isElement: true;
-  readonly className: string;
+  readonly className: Elements;
   readonly name: INamedString;
   readonly inertialTensor: INamedMatrix3;
   readonly mass: INamedNumber;
@@ -124,8 +134,9 @@ export interface IDataElement extends INode {
 
 export interface IAssembly extends IElement {
   isAssembly: true;
-  children: IElement[];
+  readonly children: IElement[];
   joints: Joint[];
+  appendChild(children: IElement | IElement[]): void;
   getJointedPoints(): INamedVector3[];
   getJointsRecursive(): Joint[];
   getAllPointsOfChildren(): INamedVector3[];
@@ -240,11 +251,16 @@ export function assignMeta(to: IElement, meta: Meta) {
   to.meta = to.meta ? {...to.meta, ...meta} : {...meta};
 }
 
-export const isElement = (
-  element: INode | null | undefined
-): element is IElement => {
-  if (!element) return false;
-  return 'isElement' in element;
+export const isMirrorData = (element: IDataElement) => {
+  return 'mirrorTo' in element;
+};
+
+export const isElement = (element: any): element is IElement => {
+  try {
+    return 'isElement' in element;
+  } catch (e) {
+    return false;
+  }
 };
 
 export const isAssembly = (element: IElement): element is IAssembly =>

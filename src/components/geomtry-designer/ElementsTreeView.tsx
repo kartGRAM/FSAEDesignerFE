@@ -14,9 +14,11 @@ import {
   IDataElement,
   isDataAssembly,
   getElementByPath,
-  isDataElement
+  isDataElement,
+  isAssembly as isAssemblyCheck,
+  isMirrorData
 } from '@gd/IElements';
-import {getAssembly} from '@gd/Elements';
+import {getAssembly, getNewElement} from '@gd/Elements';
 import {NumberToRGB, getReversal, unique} from '@app/utils/helpers';
 import {updateAssembly} from '@app/store/reducers/dataGeometryDesigner';
 import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
@@ -26,7 +28,11 @@ import Collapse from '@mui/material/Collapse';
 // web.cjs is required for IE11 support
 import {useSpring, animated} from 'react-spring';
 import {TransitionProps} from '@mui/material/transitions';
-import {treeViewDragExpanded} from '@store/reducers/uiTempGeometryDesigner';
+import {
+  treeViewDragExpanded,
+  setDraggingNewElement
+} from '@store/reducers/uiTempGeometryDesigner';
+import {v4 as uuidv4} from 'uuid';
 
 const ElementsTreeView = () => {
   const [expanded, setExpanded] = React.useState<string[]>([]);
@@ -168,7 +174,7 @@ function getPropsTree(element: IDataElement | undefined): PropsTreeNode {
   let isAssembly = false;
   if (isDataAssembly(element)) {
     children = element.children.map((child) => getPropsTree(child));
-    isAssembly = true;
+    isAssembly = !isMirrorData(element);
   }
   return {
     nodeId: element.absPath,
@@ -196,7 +202,7 @@ const MyTreeItem = React.memo((props: MyTreeItemProps) => {
     return <MyTreeItem {...child} key={child.nodeId} dragTo={dragTo} />;
   });
 
-  if (nodeId === dragTo) childNodes.push(<TemporaryNode name="" />);
+  if (nodeId === dragTo) childNodes.push(<TemporaryNode />);
 
   return (
     <TreeItem
@@ -241,8 +247,7 @@ const MyTreeItem = React.memo((props: MyTreeItemProps) => {
   );
 });
 
-const TemporaryNode = React.memo((props: {name: string}) => {
-  const {name} = props;
+const TemporaryNode = React.memo(() => {
   const selectedColor = NumberToRGB(
     useSelector(
       (state: RootState) =>
@@ -255,8 +260,8 @@ const TemporaryNode = React.memo((props: {name: string}) => {
 
   return (
     <TreeItem
-      nodeId={name}
-      label="temp"
+      nodeId={uuidv4()}
+      label={`new${store.getState().uitgd.draggingNewElement}`}
       sx={{
         backgroundColor: `${alpha(selectedColor, 0.2)}!important`,
         [`& .${treeItemClasses.iconContainer}`]: {
@@ -297,34 +302,53 @@ const MyLabel = React.memo(
   }) => {
     const {label, absPath, visibility, isAssembly} = props;
     const dispatch = useDispatch();
-    const handleDragEnter = React.useCallback(() => {
-      const paths = absPath
-        .split('@')
-        .reverse()
-        .reduce((prev, nodeID) => {
-          if (prev.length) {
-            prev.push([nodeID, prev[prev.length - 1]].join('@'));
-            return prev;
-          }
-          return [nodeID];
-        }, [] as string[]);
 
-      dispatch(treeViewDragExpanded(paths));
+    const handleDragEnter = React.useCallback(() => {
+      const elementType = store.getState().uitgd.draggingNewElement;
+      if (elementType) {
+        const paths = absPath
+          .split('@')
+          .reverse()
+          .reduce((prev, nodeID) => {
+            if (prev.length) {
+              prev.push([nodeID, prev[prev.length - 1]].join('@'));
+              return prev;
+            }
+            return [nodeID];
+          }, [] as string[]);
+
+        dispatch(treeViewDragExpanded(paths));
+      }
     }, [absPath]);
+
+    const handleDrop = React.useCallback(
+      (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+
+        dispatch(treeViewDragExpanded([]));
+        const elementType = store.getState().uitgd.draggingNewElement;
+        dispatch(setDraggingNewElement(null));
+        const {assembly} = store.getState().uitgd;
+        if (assembly && elementType) {
+          const newElement = getNewElement(elementType);
+          const to = getElementByPath(assembly, absPath);
+          if (to && isAssemblyCheck(to)) {
+            to.appendChild(newElement);
+            dispatch(updateAssembly(assembly));
+            dispatch(selectElement({absPath: newElement.absPath}));
+            return;
+          }
+        }
+        dispatch(selectElement({absPath}));
+      },
+      [absPath]
+    );
 
     return (
       <Box
         display="flex"
         onDragEnter={isAssembly ? handleDragEnter : undefined}
-        onDrop={
-          isAssembly
-            ? (e) => {
-                e.preventDefault();
-                dispatch(selectElement({absPath}));
-                dispatch(treeViewDragExpanded([]));
-              }
-            : undefined
-        }
+        onDrop={isAssembly ? handleDrop : undefined}
         onDragOver={
           isAssembly
             ? (e) => {

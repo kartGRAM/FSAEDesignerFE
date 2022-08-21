@@ -2,7 +2,7 @@ import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {IDataVector3} from '@gd/INamedValues';
 import {ConfirmDialogProps} from '@gdComponents/dialog-components/ConfirmDialog';
 import {SaveAsDialogProps} from '@gdComponents/dialog-components/SaveAsDialog';
-import {IAssembly} from '@gd/IElements';
+import {IAssembly, Elements} from '@gd/IElements';
 // import {PointOffsetToolDialogProps} from '@gdComponents/dialog-components/PointOffsetToolDialog';
 
 export type SidePanelTab =
@@ -28,6 +28,7 @@ export interface GDState {
   assembly: IAssembly | undefined;
 
   treeViewDragExpanded: string[];
+  draggingNewElement: Elements | null;
 }
 interface IDataVector3WithColor extends IDataVector3 {
   color?: number;
@@ -60,7 +61,8 @@ const initialState: GDState = {
     confirmDialogProps: undefined
   },
   assembly: undefined,
-  treeViewDragExpanded: []
+  treeViewDragExpanded: [],
+  draggingNewElement: null
 };
 
 export const uitGeometryDesignerSlice = createSlice({
@@ -72,6 +74,12 @@ export const uitGeometryDesignerSlice = createSlice({
       action: PayloadAction<IAssembly | undefined>
     ) => {
       state.assembly = action.payload;
+    },
+    setDraggingNewElement: (
+      state: GDState,
+      action: PayloadAction<Elements | null>
+    ) => {
+      state.draggingNewElement = action.payload;
     },
     treeViewDragExpanded: (state: GDState, action: PayloadAction<string[]>) => {
       state.treeViewDragExpanded = action.payload;
@@ -161,7 +169,8 @@ export const {
   setOpenDialogOpen,
   setSaveAsDialogProps,
   setConfirmDialogProps,
-  treeViewDragExpanded
+  treeViewDragExpanded,
+  setDraggingNewElement
   // setPointOffsetToolDialogProps
 } = uitGeometryDesignerSlice.actions;
 

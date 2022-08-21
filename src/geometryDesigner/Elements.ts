@@ -26,6 +26,7 @@ import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {minus} from '@app/utils/helpers';
 import {getRootNode} from './INode';
 import {
+  Elements,
   Millimeter,
   Joint,
   NodeID,
@@ -67,6 +68,61 @@ import {
 
 export function getAssembly(assembly: IDataAssembly): IAssembly {
   return getElement(assembly) as IAssembly;
+}
+
+export function getNewElement(name: Elements): IElement {
+  if (name === 'Assembly') {
+    return new Assembly({name: 'newAssembly', children: [], joints: []});
+  }
+  if (name === 'Frame') {
+    return new Frame({name: 'newFrame', children: []});
+  }
+  if (name === 'Bar') {
+    return new Bar({
+      name: 'newBar',
+      fixedPoint: new Vector3(0, 0, 0),
+      point: new Vector3(0, 200, 0)
+    });
+  }
+  if (name === 'SpringDumper') {
+    return new SpringDumper({
+      name: 'newSpringDumper',
+      fixedPoint: new Vector3(0, 0, 0),
+      point: new Vector3(0, 200, 0),
+      dlMin: 0,
+      dlMax: 50
+    });
+  }
+  if (name === 'AArm') {
+    return new AArm({
+      name: 'newAArm',
+      fixedPoints: [new Vector3(0, 0, 0), new Vector3(200, 0, 0)],
+      points: [new Vector3(0, 200, 0)]
+    });
+  }
+  if (name === 'BellCrank') {
+    return new BellCrank({
+      name: 'newBellCrank',
+      fixedPoints: [new Vector3(-50, 0, 0), new Vector3(50, 0, 0)],
+      points: [new Vector3(0, 100, 0), new Vector3(0, 0, 100)]
+    });
+  }
+  if (name === 'Body') {
+    return new Body({
+      name: 'newBody',
+      fixedPoints: [],
+      points: []
+    });
+  }
+  if (name === 'Tire') {
+    return new Tire({
+      name: 'newTire',
+      tireCenter: new Vector3(0, 0, 220),
+      toLeftBearing: -30,
+      toRightBearing: -60
+    });
+  }
+  throw Error('Not Supported Exception');
 }
 
 function getElement(element: IDataElement): IElement {
@@ -187,7 +243,7 @@ export abstract class Element implements IElement {
 
   abstract set rotation(mat: NamedMatrix3);
 
-  abstract get className(): string;
+  abstract get className(): Elements;
 
   abstract get visible(): NamedBooleanOrUndefined;
 
@@ -261,7 +317,7 @@ export abstract class Element implements IElement {
 export class Assembly extends Element implements IAssembly {
   isAssembly = true as const;
 
-  get className(): string {
+  get className(): Elements {
     return 'Assembly' as const;
   }
 
@@ -276,6 +332,15 @@ export class Assembly extends Element implements IAssembly {
     this._children.forEach((child) => {
       child.parent = this;
     });
+  }
+
+  appendChild(children: IElement | IElement[]): void {
+    if (isElement(children)) children = [children];
+    children.forEach((child) => {
+      child.parent = this;
+    });
+
+    this._children = [...this._children, ...children];
   }
 
   get visible(): NamedBooleanOrUndefined {
@@ -580,6 +645,7 @@ export class Assembly extends Element implements IAssembly {
           return myChild.getDataElement(state);
         }
         const myChild = child.getMirror();
+        myChild.parent = this;
         pointsNodeIDs = [...pointsNodeIDs, ...myChild.getPointsNodeIDs()];
         return myChild.getDataElement(state);
       });
@@ -596,6 +662,7 @@ export class Assembly extends Element implements IAssembly {
       });
       return {
         ...baseData,
+        visible: this.visible.getData(),
         isDataAssembly: true,
         children,
         joints
@@ -614,7 +681,7 @@ export class Assembly extends Element implements IAssembly {
 }
 
 export class Frame extends Assembly {
-  get className(): string {
+  get className(): Elements {
     return 'Frame' as const;
   }
 
@@ -697,7 +764,7 @@ export class Frame extends Assembly {
 }
 
 export class Bar extends Element implements IBar {
-  get className(): string {
+  get className(): Elements {
     return 'Bar';
   }
 
@@ -837,7 +904,7 @@ export class Bar extends Element implements IBar {
 }
 
 export class SpringDumper extends Bar implements ISpringDumper {
-  get className(): string {
+  get className(): Elements {
     return 'SpringDumper';
   }
 
@@ -903,7 +970,7 @@ export class SpringDumper extends Bar implements ISpringDumper {
 }
 
 export class AArm extends Element implements IAArm {
-  get className(): string {
+  get className(): Elements {
     return 'AArm';
   }
 
@@ -1079,7 +1146,7 @@ export class AArm extends Element implements IAArm {
 }
 
 export class BellCrank extends Element implements IBellCrank {
-  get className(): string {
+  get className(): Elements {
     return 'BellCrank';
   }
 
@@ -1262,7 +1329,7 @@ export class BellCrank extends Element implements IBellCrank {
 }
 
 export class Body extends Element implements IBody {
-  get className(): string {
+  get className(): Elements {
     return 'Body';
   }
 
@@ -1406,7 +1473,7 @@ export class Body extends Element implements IBody {
 }
 
 export class Tire extends Element implements ITire {
-  get className(): string {
+  get className(): Elements {
     return 'Tire';
   }
 
