@@ -69,8 +69,6 @@ export default function ElementsRoot() {
                   sx={{
                     width: '100%',
                     position: 'relative',
-                    p: 4,
-                    pt: 2,
                     color: '#FFFFFF'
                   }}
                 >

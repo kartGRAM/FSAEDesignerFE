@@ -206,6 +206,8 @@ const MyTreeItem = React.memo((props: MyTreeItemProps) => {
 
   return (
     <TreeItem
+      // キーボード操作が不可能になる。将来的には調整
+      onFocusCapture={(e) => e.stopPropagation()}
       nodeId={nodeId}
       label={
         <MyLabel
@@ -303,6 +305,15 @@ const MyLabel = React.memo(
     const {label, absPath, visibility, isAssembly} = props;
     const dispatch = useDispatch();
 
+    const handleDragStart = React.useCallback(
+      (e: React.DragEvent<HTMLDivElement>) => {
+        console.log('bbb');
+        e.dataTransfer.effectAllowed = 'move';
+        // dispatch(setDraggingNewElement(name));
+      },
+      []
+    );
+
     const handleDragEnter = React.useCallback(() => {
       const elementType = store.getState().uitgd.draggingNewElement;
       if (elementType) {
@@ -347,6 +358,8 @@ const MyLabel = React.memo(
     return (
       <Box
         display="flex"
+        draggable
+        onDragStart={handleDragStart}
         onDragEnter={isAssembly ? handleDragEnter : undefined}
         onDrop={isAssembly ? handleDrop : undefined}
         onDragOver={
