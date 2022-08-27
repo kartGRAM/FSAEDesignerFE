@@ -29,6 +29,7 @@ import {
   Elements,
   Millimeter,
   Joint,
+  JointAsVector3,
   NodeID,
   IElement,
   isElement,
@@ -409,6 +410,22 @@ export class Assembly extends Element implements IAssembly {
     // throw Error('Not Supported Exception');
   }
 
+  getJointsAsVector3(): JointAsVector3[] {
+    const points = this.getAllPointsOfChildren();
+    const joints = this.joints.reduce(
+      (prev: JointAsVector3[], joint): JointAsVector3[] => {
+        const lhs = points.find((p) => p.nodeID === joint.lhs);
+        const rhs = points.find((p) => p.nodeID === joint.rhs);
+        if (lhs && rhs) {
+          return [...prev, {lhs, rhs}];
+        }
+        return prev;
+      },
+      [] as JointAsVector3[]
+    );
+    return joints;
+  }
+
   getJointsRecursive(): Joint[] {
     let joints: Joint[] = [...this.joints];
     this.children.forEach((child) => {
@@ -433,7 +450,7 @@ export class Assembly extends Element implements IAssembly {
 
   private getJointedNodeIDs(): NodeID[] {
     return this.joints.reduce((prev, current): NodeID[] => {
-      prev.push(current.lhs.nodeID, current.rhs.nodeID);
+      prev.push(current.lhs, current.rhs);
       return prev;
     }, [] as NodeID[]);
   }
@@ -507,8 +524,8 @@ export class Assembly extends Element implements IAssembly {
 
     const joints: Joint[] = this.joints.map((joint) => {
       return {
-        lhs: mirPoints[points.findIndex((p) => p === joint.lhs.nodeID)],
-        rhs: mirPoints[points.findIndex((p) => p === joint.rhs.nodeID)]
+        lhs: mirPoints[points.findIndex((p) => p === joint.lhs)],
+        rhs: mirPoints[points.findIndex((p) => p === joint.rhs)]
       };
     });
 
@@ -598,16 +615,16 @@ export class Assembly extends Element implements IAssembly {
       this._children.forEach((child) => {
         child.parent = this;
       });
-      const allPoints = this.getAllPointsOfChildren();
+      const allPoints = this.getAllPointsNodeIDsOfChildren();
       const joints = params.joints.filter((joint) => {
-        const lhs = allPoints.find((p) => p.nodeID === joint.lhs);
-        const rhs = allPoints.find((p) => p.nodeID === joint.rhs);
+        const lhs = allPoints.find((p) => p === joint.lhs);
+        const rhs = allPoints.find((p) => p === joint.rhs);
         return lhs && rhs;
       });
       const joints2 = joints.map((joint) => {
         return {
-          lhs: allPoints.find((p) => p.nodeID === joint.lhs) as INamedVector3,
-          rhs: allPoints.find((p) => p.nodeID === joint.rhs) as INamedVector3
+          lhs: allPoints.find((p) => p === joint.lhs)!,
+          rhs: allPoints.find((p) => p === joint.rhs)!
         };
       });
       this.joints = joints2;
@@ -654,10 +671,8 @@ export class Assembly extends Element implements IAssembly {
 
       const joints = mir.joints.map((joint) => {
         return {
-          lhs: pointsNodeIDs[
-            mirPoints.findIndex((p) => p === joint.lhs.nodeID)
-          ],
-          rhs: pointsNodeIDs[mirPoints.findIndex((p) => p === joint.rhs.nodeID)]
+          lhs: pointsNodeIDs[mirPoints.findIndex((p) => p === joint.lhs)],
+          rhs: pointsNodeIDs[mirPoints.findIndex((p) => p === joint.rhs)]
         };
       });
       return {
@@ -674,7 +689,7 @@ export class Assembly extends Element implements IAssembly {
       isDataAssembly: true,
       children: this.children.map((child) => child.getDataElement(state)),
       joints: this.joints.map((joint) => {
-        return {lhs: joint.lhs.nodeID, rhs: joint.rhs.nodeID};
+        return {lhs: joint.lhs, rhs: joint.rhs};
       })
     };
   }
@@ -715,8 +730,8 @@ export class Frame extends Assembly {
       });
       assignMeta(body, {isBodyOfFrame: true});
       const joints = namedPoints.map((p, i) => ({
-        lhs: p,
-        rhs: body.fixedPoints[i]
+        lhs: p.nodeID,
+        rhs: body.fixedPoints[i].nodeID
       }));
       super({name, children: [...children, body], joints});
       this.frameBody = body;
@@ -748,8 +763,8 @@ export class Frame extends Assembly {
           )
         );
         this.joints = namedPoints.map((p, i) => ({
-          lhs: p,
-          rhs: body.fixedPoints[i]
+          lhs: p.nodeID,
+          rhs: body.fixedPoints[i].nodeID
         }));
       } else {
         throw new Error('FrameのChildrenにBodyデータがない');

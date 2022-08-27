@@ -58,12 +58,12 @@ const getUprightAssy = (): Assembly => {
     children: [tire, upright],
     joints: [
       {
-        lhs: tire.leftBearing,
-        rhs: upright.points[1]
+        lhs: tire.leftBearing.nodeID,
+        rhs: upright.points[1].nodeID
       },
       {
-        lhs: tire.rightBearing,
-        rhs: upright.points[2]
+        lhs: tire.rightBearing.nodeID,
+        rhs: upright.points[2].nodeID
       }
     ]
   });
@@ -119,12 +119,12 @@ const getLeftFrontSuspension = (): Assembly => {
     children: [tire, upright],
     joints: [
       {
-        lhs: tire.leftBearing,
-        rhs: upright.points[1]
+        lhs: tire.leftBearing.nodeID,
+        rhs: upright.points[1].nodeID
       },
       {
-        lhs: tire.rightBearing,
-        rhs: upright.points[2]
+        lhs: tire.rightBearing.nodeID,
+        rhs: upright.points[2].nodeID
       }
     ]
   });
@@ -152,9 +152,9 @@ const getLeftFrontSuspension = (): Assembly => {
     name: 'armsSubAssy',
     children: [uprightSubAssy, upperArm, lowerArm, tieRod],
     joints: [
-      {lhs: upright.fixedPoints[0], rhs: upperArm.points[0]},
-      {lhs: upright.fixedPoints[1], rhs: lowerArm.points[0]},
-      {lhs: upright.points[0], rhs: tieRod.point}
+      {lhs: upright.fixedPoints[0].nodeID, rhs: upperArm.points[0].nodeID},
+      {lhs: upright.fixedPoints[1].nodeID, rhs: lowerArm.points[0].nodeID},
+      {lhs: upright.points[0].nodeID, rhs: tieRod.point.nodeID}
     ]
   });
 
@@ -185,15 +185,15 @@ const getLeftFrontSuspension = (): Assembly => {
     name: 'pullRodSubAssy',
     children: [coilover, bellCrank, pullRod],
     joints: [
-      {lhs: coilover.point, rhs: bellCrank.points[0]},
-      {lhs: bellCrank.points[1], rhs: pullRod.point}
+      {lhs: coilover.point.nodeID, rhs: bellCrank.points[0].nodeID},
+      {lhs: bellCrank.points[1].nodeID, rhs: pullRod.point.nodeID}
     ]
   });
 
   const leftFrontSuspensionSubAssy = new Assembly({
     name: 'leftFrontSuspensionSubAssy',
     children: [armsSubAssy, pullRodSubAssy],
-    joints: [{lhs: upperArm.points[1], rhs: pullRod.fixedPoint}]
+    joints: [{lhs: upperArm.points[1].nodeID, rhs: pullRod.fixedPoint.nodeID}]
   });
   return leftFrontSuspensionSubAssy;
 };
@@ -243,8 +243,8 @@ const getLeftRearSuspension = (): Assembly => {
     name: 'uprightSubAssy',
     children: [tire, upright],
     joints: [
-      {lhs: tire.leftBearing, rhs: upright.points[0]},
-      {lhs: tire.rightBearing, rhs: upright.points[1]}
+      {lhs: tire.leftBearing.nodeID, rhs: upright.points[0].nodeID},
+      {lhs: tire.rightBearing.nodeID, rhs: upright.points[1].nodeID}
     ]
   });
 
@@ -275,10 +275,10 @@ const getLeftRearSuspension = (): Assembly => {
     name: 'armsSubAssy',
     children: [uprightSubAssy, upperArm, toeControlRod, lowerLink1, lowerLink2],
     joints: [
-      {lhs: upright.fixedPoints[0], rhs: upperArm.points[0]},
-      {lhs: upright.fixedPoints[1], rhs: toeControlRod.point},
-      {lhs: upright.fixedPoints[2], rhs: lowerLink1.point},
-      {lhs: upright.fixedPoints[3], rhs: lowerLink2.point}
+      {lhs: upright.fixedPoints[0].nodeID, rhs: upperArm.points[0].nodeID},
+      {lhs: upright.fixedPoints[1].nodeID, rhs: toeControlRod.point.nodeID},
+      {lhs: upright.fixedPoints[2].nodeID, rhs: lowerLink1.point.nodeID},
+      {lhs: upright.fixedPoints[3].nodeID, rhs: lowerLink2.point.nodeID}
     ]
   });
 
@@ -306,15 +306,17 @@ const getLeftRearSuspension = (): Assembly => {
     name: 'pushRodSubAssy',
     children: [coilover, bellCrank, pushRod],
     joints: [
-      {lhs: coilover.point, rhs: bellCrank.points[0]},
-      {lhs: bellCrank.points[1], rhs: pushRod.point}
+      {lhs: coilover.point.nodeID, rhs: bellCrank.points[0].nodeID},
+      {lhs: bellCrank.points[1].nodeID, rhs: pushRod.point.nodeID}
     ]
   });
 
   const leftRearSuspensionSubAssy = new Assembly({
     name: 'leftRearSuspensionSubAssy',
     children: [armsSubAssy, pushRodSubAssy],
-    joints: [{lhs: upright.fixedPoints[4], rhs: pushRod.fixedPoint}]
+    joints: [
+      {lhs: upright.fixedPoints[4].nodeID, rhs: pushRod.fixedPoint.nodeID}
+    ]
   });
   return leftRearSuspensionSubAssy;
 };

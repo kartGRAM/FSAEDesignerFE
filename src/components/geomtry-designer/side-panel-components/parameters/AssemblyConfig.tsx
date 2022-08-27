@@ -132,9 +132,9 @@ export default function AssemblyConfig(params: Params) {
   }, [jointLength !== assembly.joints.length]);
 
   if (jointsListSelected !== null) {
-    const joint = assembly.joints.find(
-      (joint, idx) => idx === jointsListSelected
-    );
+    const joint = assembly
+      .getJointsAsVector3()
+      .find((joint, idx) => idx === jointsListSelected);
     if (joint) {
       points = [
         ...points,
@@ -262,7 +262,7 @@ export function JointsList(props: {
   let pairSelected = Boolean(selectedPair.lhs && selectedPair.rhs);
   let varidatedSelected = selected;
 
-  const {joints} = assembly;
+  const joints = assembly.getJointsAsVector3();
   const enabledColorLight: number = useSelector(
     (state: RootState) => state.uigd.present.enabledColorLight
   );
@@ -302,7 +302,9 @@ export function JointsList(props: {
           <Tooltip title="Delete" sx={{flex: '1'}}>
             <IconButton
               onClick={() => {
-                assembly.joints = joints.filter((joint, i) => i !== selected);
+                assembly.joints = assembly.joints.filter(
+                  (joint, i) => i !== selected
+                );
                 dispatch(updateAssembly(assembly));
               }}
             >
@@ -322,7 +324,7 @@ export function JointsList(props: {
                   (point) => point.nodeID === selectedPair.rhs?.nodeID
                 );
                 if (lhs && rhs) {
-                  assembly.joints.push({lhs, rhs});
+                  assembly.joints.push({lhs: lhs.nodeID, rhs: rhs.nodeID});
                   dispatch(updateAssembly(assembly));
                 }
               }}

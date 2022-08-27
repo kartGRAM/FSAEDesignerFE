@@ -18,6 +18,10 @@ export type Radian = number;
 export type NodeID = string;
 export type Millimeter = number;
 export interface Joint {
+  lhs: NodeID;
+  rhs: NodeID;
+}
+export interface JointAsVector3 {
   lhs: INamedVector3;
   rhs: INamedVector3;
 }
@@ -137,6 +141,7 @@ export interface IAssembly extends IElement {
   children: IElement[];
   joints: Joint[];
   appendChild(children: IElement | IElement[]): void;
+  getJointsAsVector3(): JointAsVector3[];
   getJointedPoints(): INamedVector3[];
   getJointsRecursive(): Joint[];
   getAllPointsOfChildren(): INamedVector3[];
