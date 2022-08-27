@@ -109,8 +109,9 @@ export interface IElement extends IBidirectionalNode {
   getPoints(): INamedVector3[];
   getPointsNodeIDs(): string[];
   getMirror(): IElement;
+  unlinkMirror(): void;
   getRoot(): IAssembly | null;
-  getDataElement(state: GDState): IDataElement;
+  getDataElement(state: GDState): IDataElement | undefined;
   arrange(parentPosition?: Vector3): void;
   readonly position: INamedVector3;
   readonly rotation: INamedMatrix3;
@@ -148,7 +149,7 @@ export interface IAssembly extends IElement {
   getAllPointsNodeIDsOfChildren(): string[];
   flatten(noAssembly: boolean): IElement[];
 
-  getDataElement(state: GDState): IDataAssembly;
+  getDataElement(state: GDState): IDataAssembly | undefined;
 }
 
 export interface IDataAssembly extends IDataElement {
@@ -267,6 +268,7 @@ export const isElement = (element: any): element is IElement => {
     return false;
   }
 };
+export class MirrorError extends Error {}
 
 export const isAssembly = (element: IElement): element is IAssembly =>
   'isAssembly' in element;

@@ -26,6 +26,7 @@ import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {minus} from '@app/utils/helpers';
 import {getRootNode} from './INode';
 import {
+  MirrorError,
   Elements,
   Millimeter,
   Joint,
@@ -236,7 +237,25 @@ export abstract class Element implements IElement {
 
   abstract getMirror(): IElement;
 
-  abstract getDataElement(state: GDState): IDataElement;
+  unlinkMirror(): void {
+    if (!isMirror(this)) return;
+    if (this.parent && isMirror(this.parent)) {
+      this.parent.unlinkMirror();
+      return;
+    }
+    this.unlinkMirrorHelper();
+  }
+
+  private unlinkMirrorHelper(): void {
+    if (this.meta?.mirror) {
+      this.meta.mirror = undefined;
+      if (isAssembly(this)) {
+        this.children.forEach((child) => child.unlinkMirror());
+      }
+    }
+  }
+
+  abstract getDataElement(state: GDState): IDataElement | undefined;
 
   abstract arrange(parentPosition?: Vector3 | undefined): void;
 
@@ -515,6 +534,7 @@ export class Assembly extends Element implements IAssembly {
   }
 
   getMirror(): Assembly {
+    if (isMirror(this)) throw new MirrorError('ミラーはミラーできない');
     const children = this.children.map((child) => child.getMirror());
     let mirPoints: string[] = [];
     children.forEach((child) => {
@@ -639,12 +659,14 @@ export class Assembly extends Element implements IAssembly {
     this.arrange();
   }
 
-  getDataElement(state: GDState): IDataAssembly {
+  getDataElement(state: GDState): IDataAssembly | undefined {
     const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
     const mir = this.getAnotherElement(mirror);
     const baseData = super.getDataElementBase(state, mir);
 
     if (mir && isAssembly(mir)) {
+      if (!isMirror(this.parent) && mir.parent !== this.parent)
+        return undefined;
       const myChildren = this.children.reduce(
         (obj, x) =>
           Object.assign(obj, {
@@ -655,17 +677,19 @@ export class Assembly extends Element implements IAssembly {
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       let pointsNodeIDs: string[] = [];
-      const children = mir.children.map((child) => {
-        if (Object.keys(myChildren).includes(child.nodeID)) {
-          const myChild = myChildren[child.nodeID];
+      const children = mir.children
+        .map((child) => {
+          if (Object.keys(myChildren).includes(child.nodeID)) {
+            const myChild = myChildren[child.nodeID];
+            pointsNodeIDs = [...pointsNodeIDs, ...myChild.getPointsNodeIDs()];
+            return myChild.getDataElement(state);
+          }
+          const myChild = child.getMirror();
+          myChild.parent = this;
           pointsNodeIDs = [...pointsNodeIDs, ...myChild.getPointsNodeIDs()];
           return myChild.getDataElement(state);
-        }
-        const myChild = child.getMirror();
-        myChild.parent = this;
-        pointsNodeIDs = [...pointsNodeIDs, ...myChild.getPointsNodeIDs()];
-        return myChild.getDataElement(state);
-      });
+        })
+        .filter((child) => child !== undefined) as IDataElement[];
 
       const mirPoints = mir.getAllPointsNodeIDsOfChildren();
 
@@ -687,7 +711,9 @@ export class Assembly extends Element implements IAssembly {
     return {
       ...baseData,
       isDataAssembly: true,
-      children: this.children.map((child) => child.getDataElement(state)),
+      children: this.children
+        .map((child) => child.getDataElement(state))
+        .filter((child) => child !== undefined) as IDataElement[],
       joints: this.joints.map((joint) => {
         return {lhs: joint.lhs, rhs: joint.rhs};
       })
@@ -772,8 +798,9 @@ export class Frame extends Assembly {
     }
   }
 
-  getDataElement(state: GDState): IDataFrame {
+  getDataElement(state: GDState): IDataFrame | undefined {
     const data = super.getDataElement(state);
+    if (!data) return undefined;
     return {...data, bodyID: this.frameBody.nodeID};
   }
 }
@@ -809,6 +836,7 @@ export class Bar extends Element implements IBar {
   }
 
   getMirror(): Bar {
+    if (isMirror(this)) throw new MirrorError('ミラーはミラーできない');
     const fp = mirrorVec(this.fixedPoint);
     const p = mirrorVec(this.point);
     const ip = mirrorVec(this.initialPosition);
@@ -924,6 +952,7 @@ export class SpringDumper extends Bar implements ISpringDumper {
   }
 
   getMirror(): SpringDumper {
+    if (isMirror(this)) throw new MirrorError('ミラーはミラーできない');
     const fp = mirrorVec(this.fixedPoint);
     const p = mirrorVec(this.point);
     const ip = mirrorVec(this.initialPosition);
@@ -1015,6 +1044,7 @@ export class AArm extends Element implements IAArm {
   }
 
   getMirror(): AArm {
+    if (isMirror(this)) throw new MirrorError('ミラーはミラーできない');
     const fp: [INamedVector3, INamedVector3] = [
       mirrorVec(this.fixedPoints[0]),
       mirrorVec(this.fixedPoints[1])
@@ -1191,6 +1221,7 @@ export class BellCrank extends Element implements IBellCrank {
   }
 
   getMirror(): BellCrank {
+    if (isMirror(this)) throw new MirrorError('ミラーはミラーできない');
     const fp: [INamedVector3, INamedVector3] = [
       mirrorVec(this.fixedPoints[0]),
       mirrorVec(this.fixedPoints[1])
@@ -1374,6 +1405,7 @@ export class Body extends Element implements IBody {
   }
 
   getMirror(): Body {
+    if (isMirror(this)) throw new MirrorError('ミラーはミラーできない');
     const fp = this.fixedPoints.map((p) => mirrorVec(p));
     const points = this.points.map((p) => mirrorVec(p));
     const ip = mirrorVec(this.initialPosition);
@@ -1560,6 +1592,7 @@ export class Tire extends Element implements ITire {
   }
 
   getMirror(): Tire {
+    if (isMirror(this)) throw new MirrorError('ミラーはミラーできない');
     const center = mirrorVec(this.tireCenter);
     const ip = mirrorVec(this.initialPosition);
     const cog = mirrorVec(this.centerOfGravity);
@@ -1720,7 +1753,8 @@ export const trans = (p: INamedVector3, coMatrix?: Matrix3): Vector3 => {
   return v;
 };
 
-export const isMirror = (element: IElement): boolean => {
+export const isMirror = (element: IElement | null | undefined): boolean => {
+  if (!element) return false;
   return !!element.meta?.mirror;
 };
 

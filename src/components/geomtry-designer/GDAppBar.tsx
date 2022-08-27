@@ -20,6 +20,8 @@ import Save from '@gdComponents/app-bar-components/Save';
 import Undo from '@gdComponents/app-bar-components/Undo';
 import Redo from '@gdComponents/app-bar-components/Redo';
 import Formula from '@gdComponents/app-bar-components/Formula';
+import CreateMirror from '@gdComponents/app-bar-components/CreateMirror';
+import UnlinkMirror from '@gdComponents/app-bar-components/UnlinkMirror';
 import ResetUISettings from '@gdComponents/app-bar-components/ResetUISettings';
 
 import MenuItem from '@mui/material/MenuItem';
@@ -119,6 +121,8 @@ export default function GDAppBar() {
         </GDAppBarMenu>
         <GDAppBarMenu name="Tools">
           <Formula />
+          <CreateMirror />
+          <UnlinkMirror />
         </GDAppBarMenu>
         <Typography
           variant="h6"
