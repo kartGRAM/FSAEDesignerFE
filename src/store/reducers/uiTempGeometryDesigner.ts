@@ -17,6 +17,19 @@ export interface SidePanelState {
   selectedTab: SidePanelTab;
 }
 
+export type CopyOrCut = 'cut' | 'copy';
+
+export interface ClipboardObject {
+  mode: CopyOrCut;
+  dataType: 'IElement';
+  data: any;
+}
+
+export interface GlobalSelected {
+  toClipboard: (mode: CopyOrCut) => ClipboardObject;
+  onPaste: (object: ClipboardObject) => void;
+}
+
 export interface GDState {
   uiDisabled: boolean;
   isFullScreen: boolean;
@@ -30,6 +43,8 @@ export interface GDState {
   treeViewDragExpanded: string[];
   draggingNewElement: Elements | null;
   draggingElementAbsPath: string;
+  globalSelected: GlobalSelected | null;
+  clipbord: ClipboardObject | null;
 }
 
 interface IDataVector3WithColor extends IDataVector3 {
@@ -65,7 +80,9 @@ const initialState: GDState = {
   assembly: undefined,
   treeViewDragExpanded: [],
   draggingNewElement: null,
-  draggingElementAbsPath: ''
+  draggingElementAbsPath: '',
+  globalSelected: null,
+  clipbord: null
 };
 
 export const uitGeometryDesignerSlice = createSlice({
@@ -108,6 +125,18 @@ export const uitGeometryDesignerSlice = createSlice({
     ) => {
       state.selectedElementAbsPath = action.payload.absPath;
       state.sidePanelState.selectedTab = 'parameters';
+    },
+    setGlobalSelected: (
+      state: GDState,
+      action: PayloadAction<GlobalSelected | null>
+    ) => {
+      state.globalSelected = action.payload;
+    },
+    setClipboard: (
+      state: GDState,
+      action: PayloadAction<ClipboardObject | null>
+    ) => {
+      state.clipbord = action.payload;
     },
     selectSidePanelTab: (
       state: GDState,

@@ -108,9 +108,9 @@ export default function GDAppBar() {
           <Undo />
           <Redo />
           <Divider />
-          <MenuItem>Cut</MenuItem>
-          <MenuItem>Copy</MenuItem>
-          <MenuItem>Paste</MenuItem>
+          <MenuItem disabled>Cut</MenuItem>
+          <MenuItem disabled>Copy</MenuItem>
+          <MenuItem disabled>Paste</MenuItem>
           <Divider />
           <ResetUISettings />
         </GDAppBarMenu>

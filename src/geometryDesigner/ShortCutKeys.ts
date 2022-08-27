@@ -9,8 +9,8 @@ import {RefetchOptions} from 'axios-hooks';
 export default function shortCutKeys(e: KeyboardEvent) {
   if (e.ctrlKey) {
     if (e.key === 'z') store.dispatch(ActionCreators.undo());
-    if (e.key === 'y') store.dispatch(ActionCreators.redo());
-    if (e.key === 's') {
+    else if (e.key === 'y') store.dispatch(ActionCreators.redo());
+    else if (e.key === 's') {
       e.preventDefault();
       const func = (
         config?: AxiosRequestConfig<any> | undefined,
@@ -24,6 +24,15 @@ export default function shortCutKeys(e: KeyboardEvent) {
         overwrite: true,
         updateDataFuncAxiosHooks: func
       });
+    } else if (e.key === 'c') {
+      console.log('ctrl-c');
+      // e.preventDefault();
+    } else if (e.key === 'x') {
+      console.log('ctrl-x');
+      // e.preventDefault();
+    } else if (e.key === 'v') {
+      console.log('ctrl-v');
+      // e.preventDefault();
     }
   }
 }

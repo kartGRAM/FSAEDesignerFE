@@ -435,6 +435,8 @@ const MyLabel = React.memo(
 
     return (
       <Box
+        onFocus={() => console.log('focus')}
+        onBlur={() => console.log('blur')}
         display="flex"
         draggable={!isMirror}
         onDragStart={handleDragStart}
