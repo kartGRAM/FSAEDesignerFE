@@ -1,24 +1,21 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import SvgIcon, {SvgIconProps} from '@mui/material/SvgIcon';
 import {alpha} from '@mui/material/styles';
 import TreeView from '@app/components/tree-view-base';
-import TreeItem, {TreeItemProps, treeItemClasses} from '@mui/lab/TreeItem';
+import TreeItem, {treeItemClasses} from '@mui/lab/TreeItem';
 import Typography from '@mui/material/Typography';
 import Checkbox from '@mui/material/Checkbox';
 import Box from '@mui/material/Box';
 import store, {RootState} from '@store/store';
 import {useSelector, useDispatch} from 'react-redux';
 import {
-  IDataAssembly,
   IDataElement,
   isDataAssembly,
   getElementByPath,
-  isDataElement,
   isAssembly as isAssemblyCheck,
   isMirrorData
 } from '@gd/IElements';
-import {getAssembly, getNewElement} from '@gd/Elements';
+import {getNewElement} from '@gd/Elements';
 import {NumberToRGB, getReversal, unique} from '@app/utils/helpers';
 import {updateAssembly} from '@app/store/reducers/dataGeometryDesigner';
 import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
@@ -31,9 +28,11 @@ import {TransitionProps} from '@mui/material/transitions';
 import {
   treeViewDragExpanded,
   setDraggingNewElement,
-  setDraggingElementAbsPath
+  setDraggingElementAbsPath,
+  setConfirmDialogProps
 } from '@store/reducers/uiTempGeometryDesigner';
 import {v4 as uuidv4} from 'uuid';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 
 const ElementsTreeView = () => {
   const [expanded, setExpanded] = React.useState<string[]>([]);
@@ -73,6 +72,10 @@ const ElementsTreeView = () => {
 
   const bgColor: number = useSelector(
     (state: RootState) => state.uigd.present.backgroundColor
+  );
+
+  const movingElement = useSelector(
+    (state: RootState) => state.uitgd.draggingElementAbsPath
   );
 
   // console.log('rerendered');
@@ -146,6 +149,7 @@ const ElementsTreeView = () => {
       }}
     >
       <MyTreeItem {...propsTree} key={assembly.nodeID} dragTo={dragTo} />
+      {movingElement !== '' ? <TrashNode /> : null}
     </TreeView>
   );
 };
@@ -314,6 +318,83 @@ const TemporaryNode = React.memo(() => {
           [`& .${treeItemClasses.focused}`]: {
             backgroundColor: `${alpha(selectedColor, 0.8)}!important`
           }
+        }
+      }}
+    />
+  );
+});
+
+const TrashNode = React.memo(() => {
+  const borderLeft = useSelector(
+    (state: RootState) => state.uigd.present.assemblyTreeViewState.borderLeft
+  );
+
+  const label = 'Trash';
+  const [opacity, setOpacity] = React.useState<number>(0.2);
+  const dispatch = useDispatch();
+
+  const handleDragLeave = React.useCallback(() => {
+    setOpacity(0.2);
+  }, []);
+
+  const handleDrop = React.useCallback(
+    async (e: React.DragEvent<HTMLLIElement>) => {
+      e.preventDefault();
+      setOpacity(0.2);
+      dispatch(treeViewDragExpanded([]));
+      const movingElement = store.getState().uitgd.draggingElementAbsPath;
+      dispatch(setDraggingElementAbsPath(''));
+      if (!movingElement) return;
+      const {assembly} = store.getState().uitgd;
+      const element = getElementByPath(assembly, movingElement);
+      if (!element || !element.parent) return;
+      const {fullScreenZIndex} = store.getState().uitgd;
+      const ret = await new Promise<string>((resolve) => {
+        dispatch(
+          setConfirmDialogProps({
+            zindex: fullScreenZIndex + 10000 + 1,
+            onClose: resolve,
+            title: 'Warning',
+            message: `Once deleted and saved, it cannot be restored.`,
+            buttons: [
+              {text: 'OK', res: 'ok'},
+              {text: 'Cancel', res: 'cancel', autoFocus: true}
+            ]
+          })
+        );
+      });
+      dispatch(setConfirmDialogProps(undefined));
+      if (ret === 'ok') {
+        element.parent.children = element.parent.children.filter(
+          (child) => child.nodeID !== element.nodeID
+        );
+        dispatch(updateAssembly(element.parent));
+      }
+    },
+    []
+  );
+
+  return (
+    <TreeItem
+      nodeId={uuidv4()}
+      label={
+        <Box display="flex">
+          <DeleteForeverIcon /* fontSize="large" */ />
+          <Typography>{label}</Typography>
+        </Box>
+      }
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      onDragOver={(e) => {
+        e.preventDefault();
+        if (opacity !== 1) setOpacity(1);
+      }}
+      sx={{
+        backgroundColor: `${alpha('#ff6347', opacity)}`,
+        [`& .${treeItemClasses.group}`]: {
+          marginLeft: 2,
+          paddingLeft: 1,
+          borderLeft
         }
       }}
     />
