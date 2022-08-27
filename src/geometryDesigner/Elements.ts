@@ -499,16 +499,16 @@ export class Assembly extends Element implements IAssembly {
 
   getMirror(): Assembly {
     const children = this.children.map((child) => child.getMirror());
-    let mirPoints: INamedVector3[] = [];
+    let mirPoints: string[] = [];
     children.forEach((child) => {
-      mirPoints = [...mirPoints, ...child.getPoints()];
+      mirPoints = [...mirPoints, ...child.getPointsNodeIDs()];
     });
-    const points = this.getAllPointsOfChildren();
+    const points = this.getAllPointsNodeIDsOfChildren();
 
     const joints: Joint[] = this.joints.map((joint) => {
       return {
-        lhs: mirPoints[points.findIndex((p) => p.nodeID === joint.lhs.nodeID)],
-        rhs: mirPoints[points.findIndex((p) => p.nodeID === joint.rhs.nodeID)]
+        lhs: mirPoints[points.findIndex((p) => p === joint.lhs.nodeID)],
+        rhs: mirPoints[points.findIndex((p) => p === joint.rhs.nodeID)]
       };
     });
 

@@ -29,7 +29,9 @@ export interface GDState {
 
   treeViewDragExpanded: string[];
   draggingNewElement: Elements | null;
+  draggingElementAbsPath: string;
 }
+
 interface IDataVector3WithColor extends IDataVector3 {
   color?: number;
 }
@@ -62,7 +64,8 @@ const initialState: GDState = {
   },
   assembly: undefined,
   treeViewDragExpanded: [],
-  draggingNewElement: null
+  draggingNewElement: null,
+  draggingElementAbsPath: ''
 };
 
 export const uitGeometryDesignerSlice = createSlice({
@@ -80,6 +83,12 @@ export const uitGeometryDesignerSlice = createSlice({
       action: PayloadAction<Elements | null>
     ) => {
       state.draggingNewElement = action.payload;
+    },
+    setDraggingElementAbsPath: (
+      state: GDState,
+      action: PayloadAction<string>
+    ) => {
+      state.draggingElementAbsPath = action.payload;
     },
     treeViewDragExpanded: (state: GDState, action: PayloadAction<string[]>) => {
       state.treeViewDragExpanded = action.payload;
@@ -170,7 +179,8 @@ export const {
   setSaveAsDialogProps,
   setConfirmDialogProps,
   treeViewDragExpanded,
-  setDraggingNewElement
+  setDraggingNewElement,
+  setDraggingElementAbsPath
   // setPointOffsetToolDialogProps
 } = uitGeometryDesignerSlice.actions;
 

@@ -145,24 +145,11 @@ export const dataGeometryDesignerSlice = createSlice({
           const newState = root.getDataElement(state);
           state.topAssembly = newState;
         } catch (e: any) {
+          if (state.topAssembly) state.topAssembly = {...state.topAssembly};
           console.log(e);
-          throw e;
         }
       }
       state.changed = true;
-      /*
-      const assembly = action.payload.element.getRoot();
-      if (assembly) {
-        try {
-          const newState = assembly.getDataElement(state);
-          state.topAssembly = newState;
-        } catch (e: any) {
-          console.log(e);
-          throw e;
-        }
-      }
-      state.changed = true;
-      */
     },
     setFormulae: (
       state: GDState,

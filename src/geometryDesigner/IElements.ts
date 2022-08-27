@@ -134,7 +134,7 @@ export interface IDataElement extends INode {
 
 export interface IAssembly extends IElement {
   isAssembly: true;
-  readonly children: IElement[];
+  children: IElement[];
   joints: Joint[];
   appendChild(children: IElement | IElement[]): void;
   getJointedPoints(): INamedVector3[];

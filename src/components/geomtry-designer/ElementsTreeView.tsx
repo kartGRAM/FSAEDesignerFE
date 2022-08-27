@@ -30,7 +30,8 @@ import {useSpring, animated} from 'react-spring';
 import {TransitionProps} from '@mui/material/transitions';
 import {
   treeViewDragExpanded,
-  setDraggingNewElement
+  setDraggingNewElement,
+  setDraggingElementAbsPath
 } from '@store/reducers/uiTempGeometryDesigner';
 import {v4 as uuidv4} from 'uuid';
 
@@ -77,17 +78,6 @@ const ElementsTreeView = () => {
   // console.log('rerendered');
   const handleOnSelect = React.useCallback(
     async (e: React.SyntheticEvent, path: string) => {
-      /* const expanded = path
-        .split('@')
-        .reverse()
-        .reduce((prev: string[], current: string) => {
-          if (prev.length > 0) {
-            return [...prev, [current, prev[prev.length - 1]].join('@')];
-          }
-          return [current];
-        }, [] as string[]);
-      setExpanded((prev) => unique([...prev, ...expanded])); */
-
       await dispatch(selectElement({absPath: path}));
     },
     []
@@ -167,6 +157,7 @@ interface MyTreeItemProps {
   children: PropsTreeNode[];
   dragTo: string;
   isAssembly: boolean;
+  isMirror: boolean;
 }
 
 type PropsTreeNode = {
@@ -175,6 +166,7 @@ type PropsTreeNode = {
   visibility: boolean | null;
   children: PropsTreeNode[];
   isAssembly: boolean;
+  isMirror: boolean;
 };
 
 function getPropsTree(element: IDataElement | undefined): PropsTreeNode {
@@ -184,7 +176,8 @@ function getPropsTree(element: IDataElement | undefined): PropsTreeNode {
       label: '',
       visibility: null,
       children: [] as PropsTreeNode[],
-      isAssembly: false
+      isAssembly: false,
+      isMirror: true
     };
   }
   let children: PropsTreeNode[] = [];
@@ -198,12 +191,14 @@ function getPropsTree(element: IDataElement | undefined): PropsTreeNode {
     label: element.name.value,
     visibility: element.visible.value ?? null,
     children,
-    isAssembly
+    isAssembly,
+    isMirror: isMirrorData(element)
   };
 }
 
 const MyTreeItem = React.memo((props: MyTreeItemProps) => {
-  const {nodeId, label, children, visibility, isAssembly, dragTo} = props;
+  const {nodeId, label, children, visibility, isAssembly, dragTo, isMirror} =
+    props;
   const selectedColor = NumberToRGB(
     useSelector(
       (state: RootState) =>
@@ -219,7 +214,7 @@ const MyTreeItem = React.memo((props: MyTreeItemProps) => {
     return <MyTreeItem {...child} key={child.nodeId} dragTo={dragTo} />;
   });
 
-  if (nodeId === dragTo) childNodes.push(<TemporaryNode />);
+  if (nodeId === dragTo) childNodes.push(<TemporaryNode key="temporary" />);
 
   return (
     <TreeItem
@@ -232,6 +227,7 @@ const MyTreeItem = React.memo((props: MyTreeItemProps) => {
           absPath={nodeId}
           visibility={visibility}
           isAssembly={isAssembly}
+          isMirror={isMirror}
         />
       }
       sx={{
@@ -277,10 +273,22 @@ const TemporaryNode = React.memo(() => {
     (state: RootState) => state.uigd.present.assemblyTreeViewState.borderLeft
   );
 
+  let label = 'temporaryNode';
+  const newElement = store.getState().uitgd.draggingNewElement;
+  if (newElement) label = `new${newElement}`;
+  const movingElement = store.getState().uitgd.draggingElementAbsPath;
+  if (movingElement) {
+    const {assembly} = store.getState().uitgd;
+    const element = getElementByPath(assembly, movingElement);
+    if (element) {
+      label = element.name.value;
+    }
+  }
+
   return (
     <TreeItem
       nodeId={uuidv4()}
-      label={`new${store.getState().uitgd.draggingNewElement}`}
+      label={label}
       sx={{
         backgroundColor: `${alpha(selectedColor, 0.2)}!important`,
         [`& .${treeItemClasses.iconContainer}`]: {
@@ -318,36 +326,60 @@ const MyLabel = React.memo(
     label: string;
     absPath: string;
     visibility: boolean | null;
+    isMirror: boolean;
   }) => {
-    const {label, absPath, visibility, isAssembly} = props;
+    const {label, absPath, visibility, isAssembly, isMirror} = props;
     const dispatch = useDispatch();
 
     const handleDragStart = React.useCallback(
       (e: React.DragEvent<HTMLDivElement>) => {
-        console.log('bbb');
         e.dataTransfer.effectAllowed = 'move';
-        // dispatch(setDraggingNewElement(name));
+        dispatch(setDraggingElementAbsPath(absPath));
       },
-      []
+      [absPath]
     );
+
+    const handleDragEnd = React.useCallback(() => {
+      dispatch(setDraggingElementAbsPath(''));
+    }, []);
+
+    const paths = React.useMemo(() => {
+      return absPath
+        .split('@')
+        .reverse()
+        .reduce((prev, nodeID) => {
+          if (prev.length) {
+            prev.push([nodeID, prev[prev.length - 1]].join('@'));
+            return prev;
+          }
+          return [nodeID];
+        }, [] as string[]);
+    }, [absPath]);
 
     const handleDragEnter = React.useCallback(() => {
       const elementType = store.getState().uitgd.draggingNewElement;
       if (elementType) {
-        const paths = absPath
-          .split('@')
-          .reverse()
-          .reduce((prev, nodeID) => {
-            if (prev.length) {
-              prev.push([nodeID, prev[prev.length - 1]].join('@'));
-              return prev;
-            }
-            return [nodeID];
-          }, [] as string[]);
+        dispatch(treeViewDragExpanded(paths));
+      }
+      const movingElement = store.getState().uitgd.draggingElementAbsPath;
+      if (movingElement !== '') {
+        const parent = movingElement.split('@').slice(1).join('@');
+        if (movingElement === absPath) {
+          dispatch(treeViewDragExpanded([]));
+          return;
+        }
+        if (parent === absPath) {
+          dispatch(treeViewDragExpanded([]));
+          return;
+        }
+        if (absPath.indexOf(movingElement) !== -1) {
+          dispatch(treeViewDragExpanded([]));
+          return;
+        }
 
         dispatch(treeViewDragExpanded(paths));
       }
-    }, [absPath]);
+    }, [absPath, paths]);
 
     const handleDrop = React.useCallback(
       (e: React.DragEvent<HTMLDivElement>) => {
@@ -356,6 +388,8 @@ const MyLabel = React.memo(
         dispatch(treeViewDragExpanded([]));
         const elementType = store.getState().uitgd.draggingNewElement;
         dispatch(setDraggingNewElement(null));
+        const movingElement = store.getState().uitgd.draggingElementAbsPath;
+        dispatch(setDraggingElementAbsPath(''));
         const {assembly} = store.getState().uitgd;
         if (assembly && elementType) {
           const newElement = getNewElement(elementType);
@@ -367,6 +401,33 @@ const MyLabel = React.memo(
             return;
           }
         }
+        if (assembly && movingElement) {
+          const parentPath = movingElement.split('@').slice(1).join('@');
+          if (movingElement === absPath) {
+            dispatch(treeViewDragExpanded([]));
+            return;
+          }
+          if (parentPath === absPath) {
+            dispatch(treeViewDragExpanded([]));
+            return;
+          }
+          if (absPath.indexOf(movingElement) !== -1) {
+            dispatch(treeViewDragExpanded([]));
+            return;
+          }
+          const element = getElementByPath(assembly, movingElement);
+          const parent = element?.parent;
+          const to = getElementByPath(assembly, absPath);
+          if (element && parent && to && isAssemblyCheck(to)) {
+            parent.children = parent.children.filter(
+              (child) => child.nodeID !== element.nodeID
+            );
+            to.appendChild(element);
+            dispatch(updateAssembly(assembly));
+            dispatch(selectElement({absPath: to.absPath}));
+            return;
+          }
+        }
         dispatch(selectElement({absPath}));
       },
       [absPath]
@@ -375,8 +436,9 @@ const MyLabel = React.memo(
     return (
       <Box
         display="flex"
-        draggable
+        draggable={!isMirror}
         onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
         onDragEnter={isAssembly ? handleDragEnter : undefined}
         onDrop={isAssembly ? handleDrop : undefined}
         onDragOver={
