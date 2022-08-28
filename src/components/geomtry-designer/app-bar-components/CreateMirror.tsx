@@ -3,7 +3,7 @@ import * as React from 'react';
 import MenuItem from '@mui/material/MenuItem';
 import {useDispatch, useSelector} from 'react-redux';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
-import {getElementByPath, MirrorError} from '@gd/IElements';
+import {getElementByPath, MirrorError, isBodyOfFrame} from '@gd/IElements';
 import store from '@app/store/store';
 
 import {setConfirmDialogProps} from '@store/reducers/uiTempGeometryDesigner';
@@ -22,6 +22,22 @@ export default function CreateMirror(props: Props) {
     const element = getElementByPath(assembly, selectedElement);
     const parent = element?.parent;
     const {fullScreenZIndex} = store.getState().uitgd;
+    if (element && isBodyOfFrame(element)) {
+      const ret = await new Promise<string>((resolve) => {
+        dispatch(
+          setConfirmDialogProps({
+            zindex: fullScreenZIndex + 10000 + 1,
+            onClose: resolve,
+            title: 'Notice',
+            message: `You can't mirror the body of a frame.`,
+            buttons: [{text: 'OK', res: 'ok', autoFocus: true}]
+          })
+        );
+      });
+      dispatch(setConfirmDialogProps(undefined));
+      return;
+    }
+
     if (!parent) {
       const ret = await new Promise<string>((resolve) => {
         dispatch(
@@ -35,6 +51,7 @@ export default function CreateMirror(props: Props) {
         );
       });
       dispatch(setConfirmDialogProps(undefined));
+      return;
     }
     if (!element || !parent) return;
     try {
