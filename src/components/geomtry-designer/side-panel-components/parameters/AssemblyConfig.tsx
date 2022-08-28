@@ -38,6 +38,7 @@ import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
 import {NumberToRGB, toFixedNoZero} from '@app/utils/helpers';
 import {getMatrix3, getDataVector3} from '@gd/NamedValues';
 import usePrevious from '@app/hooks/usePrevious';
+import ElementName from './ElementName';
 
 interface Params {
   assembly: IAssembly;
@@ -170,9 +171,7 @@ export default function AssemblyConfig(params: Params) {
 
   return (
     <>
-      <Typography variant="h6">
-        {assembly.name.value} Parameters {isMirror ? '(Mirror)' : ''}
-      </Typography>
+      <ElementName element={assembly} />
       <Accordion
         expanded={kinematicParamsDefaultExpanded}
         onChange={(e, expanded) => {

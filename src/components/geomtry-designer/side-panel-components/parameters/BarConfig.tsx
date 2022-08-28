@@ -13,6 +13,7 @@ import {
 } from '@store/reducers/uiGeometryDesigner';
 import Vector from '@gdComponents/Vector';
 import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
+import ElementName from './ElementName';
 
 interface Params {
   element: IBar;
@@ -39,9 +40,7 @@ export default function BarConfig(params: Params) {
 
   return (
     <>
-      <Typography variant="h6">
-        {element.name.value} Parameters {isMirror ? '(Mirror)' : ''}
-      </Typography>
+      <ElementName element={element} />
       <Accordion
         expanded={kinematicParamsDefaultExpanded}
         onChange={(e, expanded) => {

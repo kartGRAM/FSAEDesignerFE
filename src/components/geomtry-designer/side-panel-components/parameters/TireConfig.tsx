@@ -17,6 +17,7 @@ import Scalar from '@gdComponents/Scalar';
 import {getMatrix3, getDataVector3} from '@gd/NamedValues';
 import {IDataMatrix3} from '@gd/INamedValues';
 import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
+import ElementName from './ElementName';
 
 interface Params {
   element: ITire;
@@ -90,9 +91,7 @@ export default function TireConfig(params: Params) {
 
   return (
     <>
-      <Typography variant="h6">
-        {element.name.value} Parameters {isMirror ? '(Mirror)' : ''}
-      </Typography>
+      <ElementName element={element} />
       <Accordion
         expanded={kinematicParamsDefaultExpanded}
         onChange={(e, expanded) => {

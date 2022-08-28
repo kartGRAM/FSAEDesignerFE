@@ -312,6 +312,7 @@ export abstract class Element implements IElement {
         // mirrorTo: this.meta?.mirror?.to
       };
     }
+    this.name.value = `mirror_${mirrorElement.name.value}`;
     return {
       isDataElement: true,
       className: this.className,
@@ -1501,6 +1502,10 @@ export class Body extends Element implements IBody {
   }
 
   getDataElement(state: GDState): IDataBody {
+    const bIsBodyOfFrame = isBodyOfFrame(this);
+    if (bIsBodyOfFrame) {
+      this.name.value = `bodyObject_${this.parent?.name.value}`;
+    }
     const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
     const mir = this.getAnotherElement(mirror);
     const baseData = super.getDataElementBase(state, mir);
@@ -1510,14 +1515,14 @@ export class Body extends Element implements IBody {
         ...baseData,
         fixedPoints: syncPointsMirror(this.fixedPoints, mir.fixedPoints, state),
         points: syncPointsMirror(this.points, mir.points, state),
-        isBodyOfFrame: isBodyOfFrame(this)
+        isBodyOfFrame: bIsBodyOfFrame
       };
     }
     return {
       ...baseData,
       fixedPoints: this.fixedPoints.map((point) => point.getData(state)),
       points: this.points.map((point) => point.getData(state)),
-      isBodyOfFrame: isBodyOfFrame(this)
+      isBodyOfFrame: bIsBodyOfFrame
     };
   }
 }
