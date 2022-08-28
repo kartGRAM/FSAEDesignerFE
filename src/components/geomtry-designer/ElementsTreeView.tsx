@@ -15,7 +15,8 @@ import {
   isAssembly as isAssemblyCheck,
   isMirrorData
 } from '@gd/IElements';
-import {getNewElement} from '@gd/Elements';
+import {getNewElement, isMirror as isMirrorCheck} from '@gd/Elements';
+
 import {NumberToRGB, getReversal, unique} from '@app/utils/helpers';
 import {updateAssembly} from '@app/store/reducers/dataGeometryDesigner';
 import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
@@ -162,6 +163,7 @@ interface MyTreeItemProps {
   dragTo: string;
   isAssembly: boolean;
   isMirror: boolean;
+  isBodyOfFrame: boolean;
 }
 
 type PropsTreeNode = {
@@ -171,6 +173,7 @@ type PropsTreeNode = {
   children: PropsTreeNode[];
   isAssembly: boolean;
   isMirror: boolean;
+  isBodyOfFrame: boolean;
 };
 
 function getPropsTree(element: IDataElement | undefined): PropsTreeNode {
@@ -181,7 +184,8 @@ function getPropsTree(element: IDataElement | undefined): PropsTreeNode {
       visibility: null,
       children: [] as PropsTreeNode[],
       isAssembly: false,
-      isMirror: true
+      isMirror: true,
+      isBodyOfFrame: true
     };
   }
   let children: PropsTreeNode[] = [];
@@ -196,13 +200,22 @@ function getPropsTree(element: IDataElement | undefined): PropsTreeNode {
     visibility: element.visible.value ?? null,
     children,
     isAssembly,
-    isMirror: isMirrorData(element)
+    isMirror: isMirrorData(element),
+    isBodyOfFrame: Boolean(element.isBodyOfFrame)
   };
 }
 
 const MyTreeItem = React.memo((props: MyTreeItemProps) => {
-  const {nodeId, label, children, visibility, isAssembly, dragTo, isMirror} =
-    props;
+  const {
+    nodeId,
+    label,
+    children,
+    visibility,
+    isAssembly,
+    dragTo,
+    isMirror,
+    isBodyOfFrame
+  } = props;
   const selectedColor = NumberToRGB(
     useSelector(
       (state: RootState) =>
@@ -232,6 +245,7 @@ const MyTreeItem = React.memo((props: MyTreeItemProps) => {
           visibility={visibility}
           isAssembly={isAssembly}
           isMirror={isMirror}
+          isBodyOfFrame={isBodyOfFrame}
         />
       }
       sx={{
@@ -408,8 +422,11 @@ const MyLabel = React.memo(
     absPath: string;
     visibility: boolean | null;
     isMirror: boolean;
+    isBodyOfFrame: boolean;
   }) => {
-    const {label, absPath, visibility, isAssembly, isMirror} = props;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const {label, absPath, visibility, isAssembly, isMirror, isBodyOfFrame} =
+      props;
     const dispatch = useDispatch();
 
     const handleDragStart = React.useCallback(
@@ -457,6 +474,11 @@ const MyLabel = React.memo(
           dispatch(treeViewDragExpanded([]));
           return;
         }
+        const {assembly} = store.getState().uitgd;
+        if (assembly && movingElement) {
+          const element = getElementByPath(assembly, movingElement);
+          if (isMirrorCheck(element)) return;
+        }
 
         dispatch(treeViewDragExpanded(paths));
       }
@@ -497,6 +519,7 @@ const MyLabel = React.memo(
             return;
           }
           const element = getElementByPath(assembly, movingElement);
+          if (isMirrorCheck(element)) return;
           const parent = element?.parent;
           const to = getElementByPath(assembly, absPath);
           if (element && parent && to && isAssemblyCheck(to)) {
@@ -514,12 +537,14 @@ const MyLabel = React.memo(
       [absPath]
     );
 
+    const isRoot = absPath.indexOf('@') === -1;
+
     return (
       <Box
         onFocus={() => console.log('focus')}
         onBlur={() => console.log('blur')}
         display="flex"
-        draggable={!isMirror}
+        draggable={!isRoot && !isBodyOfFrame}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
         onDragEnter={isAssembly ? handleDragEnter : undefined}

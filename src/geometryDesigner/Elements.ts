@@ -26,6 +26,7 @@ import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {minus} from '@app/utils/helpers';
 import {getRootNode} from './INode';
 import {
+  isBodyOfFrame,
   MirrorError,
   Elements,
   Millimeter,
@@ -1508,13 +1509,15 @@ export class Body extends Element implements IBody {
       return {
         ...baseData,
         fixedPoints: syncPointsMirror(this.fixedPoints, mir.fixedPoints, state),
-        points: syncPointsMirror(this.points, mir.points, state)
+        points: syncPointsMirror(this.points, mir.points, state),
+        isBodyOfFrame: isBodyOfFrame(this)
       };
     }
     return {
       ...baseData,
       fixedPoints: this.fixedPoints.map((point) => point.getData(state)),
-      points: this.points.map((point) => point.getData(state))
+      points: this.points.map((point) => point.getData(state)),
+      isBodyOfFrame: isBodyOfFrame(this)
     };
   }
 }

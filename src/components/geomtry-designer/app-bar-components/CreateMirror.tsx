@@ -10,9 +10,10 @@ import {setConfirmDialogProps} from '@store/reducers/uiTempGeometryDesigner';
 
 interface Props {
   text?: string;
+  disabled?: boolean;
 }
 export default function CreateMirror(props: Props) {
-  const {text} = props;
+  const {text, disabled} = props;
   const dispatch = useDispatch();
 
   const handleOnClick = React.useCallback(async () => {
@@ -62,5 +63,9 @@ export default function CreateMirror(props: Props) {
     }
   }, []);
 
-  return <MenuItem onClick={handleOnClick}>{text ?? 'CreateMirror'}</MenuItem>;
+  return (
+    <MenuItem disabled={disabled} onClick={handleOnClick}>
+      {text ?? 'CreateMirror'}
+    </MenuItem>
+  );
 }

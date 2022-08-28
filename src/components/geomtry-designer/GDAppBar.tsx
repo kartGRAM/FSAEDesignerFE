@@ -77,6 +77,9 @@ export default function GDAppBar() {
   const filename = useSelector(
     (state: RootState) => state.dgd.present.filename
   );
+  const nodata = useSelector(
+    (state: RootState) => state.dgd.present.topAssembly === undefined
+  );
 
   const changed = useSelector((state: RootState) => state.dgd.present.changed);
   return (
@@ -101,10 +104,10 @@ export default function GDAppBar() {
           <Open />
           <MenuItem>Open Recent</MenuItem>
           <Divider />
-          <Save />
-          <SaveAs />
+          <Save disabled={nodata} />
+          <SaveAs disabled={nodata} />
           <Divider />
-          <Close />
+          <Close disabled={nodata} />
         </GDAppBarMenu>
         <GDAppBarMenu name="Edit">
           <Undo />
@@ -120,8 +123,8 @@ export default function GDAppBar() {
           <MenuItem>Parspective</MenuItem>
         </GDAppBarMenu>
         <GDAppBarMenu name="Tools">
-          <Formula />
-          <CreateMirror />
+          <Formula disabled={nodata} />
+          <CreateMirror disabled={nodata} />
           <UnlinkMirror />
         </GDAppBarMenu>
         <Typography

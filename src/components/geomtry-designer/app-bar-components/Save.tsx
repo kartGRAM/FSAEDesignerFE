@@ -6,7 +6,8 @@ import saveAs from '@gd/SaveAs';
 import {instance} from '@app/utils/axios';
 import {AxiosRequestConfig, AxiosPromise} from 'axios';
 
-export default function SaveAs() {
+export default function SaveAs(props: {disabled?: boolean}) {
+  const {disabled} = props;
   const dispatch = useDispatch();
   const sendData = (
     config: AxiosRequestConfig<any> | undefined
@@ -24,6 +25,7 @@ export default function SaveAs() {
 
   return (
     <MenuItem
+      disabled={disabled}
       onClick={() => {
         handleOnClick();
       }}

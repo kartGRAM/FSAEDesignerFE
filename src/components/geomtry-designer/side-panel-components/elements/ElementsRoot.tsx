@@ -23,7 +23,7 @@ const elements = [
   createElement('Bar'),
   createElement('BellCrank'),
   createElement('Body'),
-  createElement('Frame'),
+  // createElement('Frame'),
   createElement('SpringDumper'),
   createElement('Tire')
 ];

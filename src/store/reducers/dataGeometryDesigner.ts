@@ -1,6 +1,7 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {
   IDataAssembly,
+  IAssembly,
   isElement,
   isAssembly
   // IElement
@@ -114,14 +115,17 @@ export const dataGeometryDesignerSlice = createSlice({
     ) => {
       state.transCoordinateMatrix = action.payload;
     },
-    newAssembly: (state: GDState) => {
+    newAssembly: (
+      state: GDState,
+      action: PayloadAction<IAssembly | undefined>
+    ) => {
       clearHistory();
       state.id = initialState.id;
       state.filename = initialState.filename;
       state.note = '';
       state.lastUpdated = DateTime.local().toString();
       state.formulae = initialState.formulae;
-      state.topAssembly = undefined;
+      state.topAssembly = action.payload?.getDataElement(state);
       state.changed = false;
     },
     setTopAssembly: (state: GDState, action: PayloadAction<SavedData>) => {

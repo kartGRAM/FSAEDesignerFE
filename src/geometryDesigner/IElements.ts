@@ -135,6 +135,7 @@ export interface IDataElement extends INode {
   initialPosition: IDataVector3;
 
   mirrorTo?: string;
+  isBodyOfFrame?: boolean;
 }
 
 export interface IAssembly extends IElement {
@@ -252,6 +253,10 @@ export interface Meta {
 export interface MetaMirror {
   to: string;
 }
+
+export const isBodyOfFrame = (element: IElement) => {
+  return Boolean(element.meta?.isBodyOfFrame);
+};
 
 export function assignMeta(to: IElement, meta: Meta) {
   to.meta = to.meta ? {...to.meta, ...meta} : {...meta};
