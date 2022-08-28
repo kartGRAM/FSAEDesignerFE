@@ -75,6 +75,7 @@ export default function CreateMirror(props: Props) {
         });
         dispatch(setConfirmDialogProps(undefined));
       } else {
+        // eslint-disable-next-line no-console
         console.log('未知のエラー');
       }
     }

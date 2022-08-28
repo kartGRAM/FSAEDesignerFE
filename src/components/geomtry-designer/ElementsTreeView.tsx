@@ -34,9 +34,15 @@ import {
 } from '@store/reducers/uiTempGeometryDesigner';
 import {v4 as uuidv4} from 'uuid';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import {
+  RenameDialog,
+  RenameDialogProps
+} from '@gdComponents/dialog-components/RenameDialog';
 
 const ElementsTreeView = () => {
   const [expanded, setExpanded] = React.useState<string[]>([]);
+  const [renameDialogProps, setRenameDialogProps] =
+    React.useState<RenameDialogProps | null>(null);
 
   const dragExpanded = useSelector(
     (state: RootState) => state.uitgd.treeViewDragExpanded
@@ -122,36 +128,54 @@ const ElementsTreeView = () => {
     ...dragExpanded
   ]);
 
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLUListElement>) => {
+    if (e.key === 'F2') {
+      e.preventDefault();
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const ret = await new Promise<string>((resolve) => {
+        setRenameDialogProps({
+          onClose: resolve,
+          absPath: nodeID
+        });
+      });
+      setRenameDialogProps(null);
+    }
+  };
+
   return (
-    <TreeView
-      aria-label="controlled"
-      defaultCollapseIcon={<MinusSquare />}
-      defaultExpandIcon={<PlusSquare />}
-      disableSelection={disableSelection}
-      onNodeSelect={handleOnSelect}
-      onNodeToggle={handleToggle}
-      selected={nodeID}
-      expanded={expandedWithDrag}
-      sx={{
-        scrollbarWidth: 'none' /* Firefox対応のスクロールバー非表示コード */,
-        position: 'absolute',
-        // height: '100%',
-        left: 0 /* 左からの位置指定 */,
-        top: 0 /* 上からの位置指定 */,
-        flexGrow: 1,
-        maxWidth: 400,
-        overflowY: 'auto',
-        color: NumberToRGB(fontColor),
-        '&::-webkit-scrollbar': {
-          display: 'none'
-        },
-        backgroundColor: alpha(NumberToRGB(bgColor), 0.9),
-        backdropFilter: 'blur(3px)'
-      }}
-    >
-      <MyTreeItem {...propsTree} key={assembly.nodeID} dragTo={dragTo} />
-      {movingElement !== '' ? <TrashNode /> : null}
-    </TreeView>
+    <>
+      <TreeView
+        aria-label="controlled"
+        defaultCollapseIcon={<MinusSquare />}
+        defaultExpandIcon={<PlusSquare />}
+        disableSelection={disableSelection}
+        onNodeSelect={handleOnSelect}
+        onNodeToggle={handleToggle}
+        selected={nodeID}
+        expanded={expandedWithDrag}
+        onKeyDown={handleKeyDown}
+        sx={{
+          scrollbarWidth: 'none' /* Firefox対応のスクロールバー非表示コード */,
+          position: 'absolute',
+          // height: '100%',
+          left: 0 /* 左からの位置指定 */,
+          top: 0 /* 上からの位置指定 */,
+          flexGrow: 1,
+          maxWidth: 400,
+          overflowY: 'auto',
+          color: NumberToRGB(fontColor),
+          '&::-webkit-scrollbar': {
+            display: 'none'
+          },
+          backgroundColor: alpha(NumberToRGB(bgColor), 0.9),
+          backdropFilter: 'blur(3px)'
+        }}
+      >
+        <MyTreeItem {...propsTree} key={assembly.nodeID} dragTo={dragTo} />
+        {movingElement !== '' ? <TrashNode /> : null}
+      </TreeView>
+      {renameDialogProps ? <RenameDialog {...renameDialogProps} /> : null}
+    </>
   );
 };
 
@@ -541,8 +565,6 @@ const MyLabel = React.memo(
 
     return (
       <Box
-        onFocus={() => console.log('focus')}
-        onBlur={() => console.log('blur')}
         display="flex"
         draggable={!isRoot && !isBodyOfFrame}
         onDragStart={handleDragStart}

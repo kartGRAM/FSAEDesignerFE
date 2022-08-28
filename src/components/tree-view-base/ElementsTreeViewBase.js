@@ -699,7 +699,7 @@ const TreeView = React.forwardRef(function TreeView(inProps, ref) {
     // If the tree is empty there will be no focused node
     if (
       event.altKey ||
-      event.currentTarget !== event.target ||
+      // event.currentTarget !== event.target ||
       !focusedNodeId
     ) {
       return;

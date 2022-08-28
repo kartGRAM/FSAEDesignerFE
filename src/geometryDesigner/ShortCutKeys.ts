@@ -24,7 +24,7 @@ export default function shortCutKeys(e: KeyboardEvent) {
         overwrite: true,
         updateDataFuncAxiosHooks: func
       });
-    } else if (e.key === 'c') {
+    } /* else if (e.key === 'c') {
       console.log('ctrl-c');
       // e.preventDefault();
     } else if (e.key === 'x') {
@@ -33,6 +33,6 @@ export default function shortCutKeys(e: KeyboardEvent) {
     } else if (e.key === 'v') {
       console.log('ctrl-v');
       // e.preventDefault();
-    }
+    } */
   }
 }

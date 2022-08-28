@@ -74,6 +74,7 @@ function convertJsonToDataAssembly(content: string): IDataAssembly | undefined {
     const data = JSON.parse(content) as IDataAssembly;
     return data;
   } catch (err) {
+    // eslint-disable-next-line no-console
     console.log(err);
     return undefined;
   }
@@ -84,6 +85,7 @@ function convertJsonToDataFormula(content: string): IDataFormula[] {
     const data = JSON.parse(content) as IDataFormula[];
     return data;
   } catch (err) {
+    // eslint-disable-next-line no-console
     console.log(err);
     return [];
   }
@@ -150,6 +152,7 @@ export const dataGeometryDesignerSlice = createSlice({
           state.topAssembly = newState;
         } catch (e: any) {
           if (state.topAssembly) state.topAssembly = {...state.topAssembly};
+          // eslint-disable-next-line no-console
           console.log(e);
         }
       }
