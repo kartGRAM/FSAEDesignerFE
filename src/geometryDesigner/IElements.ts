@@ -142,6 +142,7 @@ export interface IAssembly extends IElement {
   isAssembly: true;
   children: IElement[];
   joints: Joint[];
+  collectElements(): IAssembly;
   appendChild(children: IElement | IElement[]): void;
   getJointsAsVector3(): JointAsVector3[];
   getJointedPoints(): INamedVector3[];

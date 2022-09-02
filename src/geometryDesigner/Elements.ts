@@ -431,6 +431,26 @@ export class Assembly extends Element implements IAssembly {
     // throw Error('Not Supported Exception');
   }
 
+  collectElements(): IAssembly {
+    const joints = [...this.joints];
+    const children: IElement[] = [];
+    this.children.forEach((child) => {
+      if (isAssembly(child)) {
+        const asm = child.collectElements();
+        joints.push(...asm.joints);
+        children.push(...asm.children);
+      } else {
+        children.push(child);
+      }
+    });
+    return new Assembly({
+      name: 'collectedAssembly',
+      joints,
+      children,
+      ignoreArrange: true
+    });
+  }
+
   getJointsAsVector3(): JointAsVector3[] {
     const points = this.getAllPointsOfChildren();
     const joints = this.joints.reduce(
@@ -621,6 +641,7 @@ export class Assembly extends Element implements IAssembly {
           children: IElement[];
           joints: Joint[];
           initialPosition?: FunctionVector3 | IDataVector3 | INamedVector3;
+          ignoreArrange?: boolean;
         }
       | IDataAssembly
   ) {
@@ -650,15 +671,15 @@ export class Assembly extends Element implements IAssembly {
         };
       });
       this.joints = joints2;
+      this.arrange();
     } else {
       this._children = params.children;
       this._children.forEach((child) => {
         child.parent = this;
       });
       this.joints = params.joints;
+      if (!params.ignoreArrange) this.arrange();
     }
-
-    this.arrange();
   }
 
   getDataElement(state: GDState): IDataAssembly | undefined {

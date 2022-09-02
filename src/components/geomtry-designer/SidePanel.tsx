@@ -111,6 +111,7 @@ export default function SidePanel() {
           }
         }}
         ref={boxRef}
+        id="gdSidePanel"
       >
         {adContent}
         <Box

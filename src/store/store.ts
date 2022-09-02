@@ -44,9 +44,10 @@ const store = configureStore({
       serializableCheck: {
         ignoredActions: [
           'dataGeometryDesigner/updateAssembly',
-          'uitGeometryDesigner/setAssembly'
+          'uitGeometryDesigner/setAssembly',
+          'uitGeometryDesigner/setCollectedAssembly'
         ],
-        ignoredPaths: [`uitgd.assembly`],
+        ignoredPaths: [`uitgd.assembly`, 'uitgd.collectedAssembly'],
         warnAfter: 128
       },
       immutableCheck: {warnAfter: 128}

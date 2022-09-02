@@ -103,7 +103,7 @@ export default function MiniDrawer() {
   );
 
   return (
-    <Drawer variant="permanent" open={false} bgColor={bgColor}>
+    <Drawer variant="permanent" open={false} bgColor={bgColor} id="gdSideBar">
       <Divider />
       <List>
         {[

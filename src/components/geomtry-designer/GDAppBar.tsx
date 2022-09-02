@@ -85,6 +85,7 @@ export default function GDAppBar() {
   return (
     <AppBar
       position="static"
+      id="gdAppBar"
       sx={{
         backgroundColor: NumberToRGB(bgColor)
       }}

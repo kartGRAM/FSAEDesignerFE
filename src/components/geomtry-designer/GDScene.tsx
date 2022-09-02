@@ -1,14 +1,19 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, {useEffect, useRef} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
-import {RootState} from '@store/store';
+import store, {RootState} from '@store/store';
 import track, {dispose, disposeAll} from '@app/utils/ResourceTracker';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
-import {setAssembly} from '@store/reducers/uiTempGeometryDesigner';
+import {
+  setAssembly,
+  setCollectedAssembly
+} from '@store/reducers/uiTempGeometryDesigner';
 
 import {getAssembly} from '@gd/Elements';
 import {getVector3} from '@gd/NamedValues';
 import {render} from '@app/geometryDesigner/ElementsRenderer';
+import {Canvas} from '@react-three/fiber';
 
 interface HandleCameraAspectParams {
   camera: THREE.PerspectiveCamera;
@@ -31,6 +36,57 @@ export function getScreenShot(): Blob | null {
 }
 
 export default function GDScene() {
+  const dispatch = useDispatch();
+  const assembly = useSelector(
+    (state: RootState) => state.dgd.present.topAssembly
+  );
+
+  useEffect(() => {
+    const window = document.getElementById('gdAppBar');
+    const sidePanel = document.getElementById('gdSidePanel');
+    const resizeObserver = new ResizeObserver(() => {
+      const appBar = document.getElementById('gdAppBar')!;
+      const sideBar = document.getElementById('gdSideBar')!;
+      const sidePanel = document.getElementById('gdSidePanel')!;
+      const width =
+        appBar.clientWidth - sideBar.clientWidth - sidePanel.clientWidth - 14;
+      const container = document.getElementById('gdCanvasContainer')!;
+      container.style.width = `${width}px`;
+    });
+    resizeObserver.observe(window!);
+    resizeObserver.observe(sidePanel!);
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    const start = performance.now();
+    if (assembly) {
+      const iAssembly = getAssembly(assembly);
+      dispatch(setAssembly(iAssembly));
+      dispatch(setCollectedAssembly(iAssembly.collectElements()));
+    }
+    // 実行時間を計測した処理
+    const end = performance.now();
+    // eslint-disable-next-line no-console
+    console.log(end - start);
+  }, [assembly]);
+
+  return (
+    <div id="gdCanvasContainer" className="h-100">
+      <Canvas>
+        <pointLight position={[10, 10, 10]} />
+        <mesh>
+          <sphereGeometry />
+          <meshStandardMaterial color="hotpink" />
+        </mesh>
+      </Canvas>
+    </div>
+  );
+}
+
+/* export default function GDScene() {
   canvas = useRef<HTMLCanvasElement>(null);
   const scene = useRef<THREE.Scene | null>(null);
 
@@ -97,10 +153,6 @@ export default function GDScene() {
     // サイズを取得
     const width = canvas.current!.clientWidth;
     const height = canvas.current!.clientHeight;
-    /* if (isFullScreen) {
-      width = window.innerWidth;
-      height = window.innerHeight;
-    } */
 
     // レンダラーのサイズを調整する
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -125,11 +177,13 @@ export default function GDScene() {
     if (assembly && scene.current) {
       const iAssembly = getAssembly(assembly);
       dispatch(setAssembly(iAssembly));
+      dispatch(setCollectedAssembly(iAssembly.collectElements()));
 
       render(iAssembly, scene.current);
     }
     // 実行時間を計測した処理
     const end = performance.now();
+    // eslint-disable-next-line no-console
     console.log(end - start);
   }, [assembly]);
 
@@ -174,4 +228,4 @@ export default function GDScene() {
     }
   }, [selectedPoint]);
   return <canvas ref={canvas} className="gd-canvas" id="threeCanvas" />;
-}
+} */

@@ -54,7 +54,10 @@ const GeometryDesigner = () => {
           <div className="h-100 w-100 position-relative d-flex">
             <MiniDrawer />
 
-            <div className="h-100 w-100 position-relative d-flex">
+            <div
+              className="h-100 w-100 position-relative d-flex"
+              id="gdMainWindow"
+            >
               <SidePanel />
               <Box
                 className="h-100 w-100 position-relative"

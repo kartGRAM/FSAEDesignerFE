@@ -22,10 +22,6 @@ import {updateAssembly} from '@app/store/reducers/dataGeometryDesigner';
 import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import usePrevious from '@app/hooks/usePrevious';
-import Collapse from '@mui/material/Collapse';
-// web.cjs is required for IE11 support
-import {useSpring, animated} from 'react-spring';
-import {TransitionProps} from '@mui/material/transitions';
 import {
   treeViewDragExpanded,
   setDraggingNewElement,
@@ -654,25 +650,3 @@ const PlusSquare = React.memo((props: SvgIconProps) => {
     </SvgIcon>
   );
 });
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function TransitionComponent(props: TransitionProps) {
-  const style = useSpring({
-    from: {
-      opacity: 0,
-      transform: 'translate3d(0px,0,0)'
-    },
-    to: {
-      // eslint-disable-next-line react/destructuring-assignment
-      opacity: props.in ? 1 : 0,
-      // eslint-disable-next-line react/destructuring-assignment
-      transform: `translate3d(0px,0,0)`
-    }
-  });
-
-  return (
-    <animated.div style={style}>
-      <Collapse {...props} />
-    </animated.div>
-  );
-}

@@ -39,6 +39,7 @@ export interface GDState {
   gdSceneState: GDSceneState;
   gdDialogState: GDDialogState;
   assembly: IAssembly | undefined;
+  collectedAssembly: IAssembly | undefined;
 
   treeViewDragExpanded: string[];
   draggingNewElement: Elements | null;
@@ -78,6 +79,7 @@ const initialState: GDState = {
     confirmDialogProps: undefined
   },
   assembly: undefined,
+  collectedAssembly: undefined,
   treeViewDragExpanded: [],
   draggingNewElement: null,
   draggingElementAbsPath: '',
@@ -94,6 +96,12 @@ export const uitGeometryDesignerSlice = createSlice({
       action: PayloadAction<IAssembly | undefined>
     ) => {
       state.assembly = action.payload;
+    },
+    setCollectedAssembly: (
+      state: GDState,
+      action: PayloadAction<IAssembly | undefined>
+    ) => {
+      state.collectedAssembly = action.payload;
     },
     setDraggingNewElement: (
       state: GDState,
@@ -198,6 +206,7 @@ export const uitGeometryDesignerSlice = createSlice({
 
 export const {
   setAssembly,
+  setCollectedAssembly,
   setUIDisabled,
   toggleFullScreen,
   selectElement,
