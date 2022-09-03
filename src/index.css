@@ -46,8 +46,10 @@
     position:fixed;
     left:  0px;                /* 左からの位置指定 */
     top: 0px;                  /* 上からの位置指定 */
-    height: calc(100vh - 20px);
-    width: 100vw;
+    right:  0px;                /* 左からの位置指定 */
+    bottom: 0px;                  /* 上からの位置指定 */
+    height: 100vh!important;
+    width: 100vw!important;
 }
 
 

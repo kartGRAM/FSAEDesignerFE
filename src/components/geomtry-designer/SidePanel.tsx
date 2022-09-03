@@ -98,7 +98,8 @@ export default function SidePanel() {
           position: 'relative',
           display: collapsed ? 'none' : 'unset',
           color: NumberToRGB(fontColor),
-          overflow: 'scroll',
+          // 単にオーバーフローとした場合、横スクロールバーのスペース分空白ができてしまう
+          overflowY: 'scroll',
           '&::-webkit-scrollbar': {
             width: '10px'
           },

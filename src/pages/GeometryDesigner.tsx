@@ -51,7 +51,12 @@ const GeometryDesigner = () => {
           <DialogRoot />
           <GDAppBar />
 
-          <div className="h-100 w-100 position-relative d-flex">
+          <Box
+            className="position-relative w-100 d-flex"
+            sx={{
+              height: 'calc(100% - 36px)'
+            }}
+          >
             <MiniDrawer />
 
             <div
@@ -79,7 +84,7 @@ const GeometryDesigner = () => {
                 <ElementsTreeView />
               </Box>
             </div>
-          </div>
+          </Box>
         </div>
       </section>
     </div>
