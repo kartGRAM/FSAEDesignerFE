@@ -15,7 +15,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import AutoGraphIcon from '@mui/icons-material/AutoGraph';
 import ComputerIcon from '@mui/icons-material/Computer';
 import {useSelector, useDispatch} from 'react-redux';
-import {NumberToRGB} from '@app/utils/helpers';
+import {numberToRgb} from '@app/utils/helpers';
 import {RootState} from '@store/store';
 import {
   SidePanelTab,
@@ -58,12 +58,12 @@ const Drawer = styled<(props: MyDrawerProps) => JSX.Element>(MuiDrawer, {
   whiteSpace: 'nowrap',
   boxSizing: 'border-box',
   '& .MuiDrawer-root': {
-    backgroundColor: NumberToRGB(bgColor),
+    backgroundColor: numberToRgb(bgColor),
     position: 'static',
     height: '100%'
   },
   '& .MuiPaper-root': {
-    backgroundColor: NumberToRGB(bgColor),
+    backgroundColor: numberToRgb(bgColor),
     position: 'static',
     height: '100%'
   },
@@ -124,7 +124,7 @@ export default function MiniDrawer() {
                 px: 2.5,
                 backgroundColor:
                   item.text === selectedTab
-                    ? `${NumberToRGB(selectedBgColor)}!important`
+                    ? `${numberToRgb(selectedBgColor)}!important`
                     : undefined
               }}
               onClick={() => {
@@ -141,7 +141,7 @@ export default function MiniDrawer() {
                   minWidth: 0,
                   mr: open ? 3 : 'auto',
                   justifyContent: 'center',
-                  color: NumberToRGB(iconColor)
+                  color: numberToRgb(iconColor)
                 }}
               >
                 {item.icon}
@@ -167,7 +167,7 @@ export default function MiniDrawer() {
                 px: 2.5,
                 backgroundColor:
                   item.text === selectedTab
-                    ? `${NumberToRGB(selectedBgColor)}!important`
+                    ? `${numberToRgb(selectedBgColor)}!important`
                     : undefined
               }}
               onClick={() => {
@@ -184,7 +184,7 @@ export default function MiniDrawer() {
                   minWidth: 0,
                   mr: open ? 3 : 'auto',
                   justifyContent: 'center',
-                  color: NumberToRGB(iconColor)
+                  color: numberToRgb(iconColor)
                 }}
               >
                 {item.icon}

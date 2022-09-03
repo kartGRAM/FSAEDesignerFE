@@ -14,6 +14,7 @@ import {getAssembly} from '@gd/Elements';
 import {getVector3} from '@gd/NamedValues';
 import {render} from '@app/geometryDesigner/ElementsRenderer';
 import {Canvas} from '@react-three/fiber';
+import {hexToRgb, numberToRgb} from '@app/utils/helpers';
 
 interface HandleCameraAspectParams {
   camera: THREE.PerspectiveCamera;
@@ -36,9 +37,14 @@ export function getScreenShot(): Blob | null {
 }
 
 export default function GDScene() {
+  canvas = useRef<HTMLCanvasElement>(null);
   const dispatch = useDispatch();
   const assembly = useSelector(
     (state: RootState) => state.dgd.present.topAssembly
+  );
+
+  const bgColor = useSelector(
+    (state: RootState) => state.uigd.present.backgroundColor
   );
 
   useEffect(() => {
@@ -75,7 +81,13 @@ export default function GDScene() {
 
   return (
     <div id="gdCanvasContainer" className="h-100">
-      <Canvas>
+      <Canvas
+        ref={canvas}
+        gl={{
+          preserveDrawingBuffer: true
+        }}
+      >
+        <color attach="background" args={[bgColor]} />
         <pointLight position={[10, 10, 10]} />
         <mesh>
           <sphereGeometry />

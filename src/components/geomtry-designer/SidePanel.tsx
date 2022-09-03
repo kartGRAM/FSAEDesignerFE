@@ -1,7 +1,7 @@
 import React from 'react';
 import Box from '@mui/material/Box';
 import {useSelector, useDispatch} from 'react-redux';
-import {NumberToRGB} from '@app/utils/helpers';
+import {numberToRgb} from '@app/utils/helpers';
 import {RootState} from '@store/store';
 import Divider from '@mui/material/Divider';
 import {alpha} from '@mui/material/styles';
@@ -89,7 +89,7 @@ export default function SidePanel() {
     <>
       <Box
         sx={{
-          backgroundColor: NumberToRGB(bgColor),
+          backgroundColor: numberToRgb(bgColor),
           height: '100%',
           width: `${panelWidth}px`,
           paddingLeft: 1,
@@ -97,18 +97,18 @@ export default function SidePanel() {
           flexShrink: 0,
           position: 'relative',
           display: collapsed ? 'none' : 'unset',
-          color: NumberToRGB(fontColor),
+          color: numberToRgb(fontColor),
           // 単にオーバーフローとした場合、横スクロールバーのスペース分空白ができてしまう
           overflowY: 'scroll',
           '&::-webkit-scrollbar': {
             width: '10px'
           },
           '&::-webkit-scrollbar-thumb': {
-            backgroundColor: alpha(NumberToRGB(enabledColorLight), 0.3),
+            backgroundColor: alpha(numberToRgb(enabledColorLight), 0.3),
             borderRadius: '5px'
           },
           '&::-webkit-scrollbar-track': {
-            backgroundColor: NumberToRGB(bgColor)
+            backgroundColor: numberToRgb(bgColor)
           }
         }}
         ref={boxRef}
@@ -148,11 +148,11 @@ export default function SidePanel() {
 
           transition: 'background-color 0.15s ease 0s',
           '&:hover': {
-            backgroundColor: NumberToRGB(enabledColorLight)
+            backgroundColor: numberToRgb(enabledColorLight)
           },
           '&:active': {
             cursor: 'col-resize',
-            backgroundColor: NumberToRGB(enabledColorLight)
+            backgroundColor: numberToRgb(enabledColorLight)
           }
         }}
       />

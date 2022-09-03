@@ -35,7 +35,7 @@ import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
 // import {getNode} from '@gd/INode';
 import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
 import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
-import {NumberToRGB, toFixedNoZero} from '@app/utils/helpers';
+import {numberToRgb, toFixedNoZero} from '@app/utils/helpers';
 import {getMatrix3, getDataVector3} from '@gd/NamedValues';
 import usePrevious from '@app/hooks/usePrevious';
 import ElementName from './ElementName';
@@ -351,7 +351,7 @@ export function JointsList(props: {
               height: '10px'
             },
             '&::-webkit-scrollbar-thumb': {
-              backgroundColor: NumberToRGB(enabledColorLight),
+              backgroundColor: numberToRgb(enabledColorLight),
               borderRadius: '5px'
             }
           }}
@@ -379,7 +379,7 @@ export function JointsList(props: {
                       userSelect: 'none',
                       backgroundColor:
                         selected === idx
-                          ? alpha(NumberToRGB(enabledColorLight), 0.5)
+                          ? alpha(numberToRgb(enabledColorLight), 0.5)
                           : 'unset'
                     }}
                     onClick={() => {
@@ -483,7 +483,7 @@ export function RestOfPoints(props: {
               height: '10px'
             },
             '&::-webkit-scrollbar-thumb': {
-              backgroundColor: NumberToRGB(enabledColorLight),
+              backgroundColor: numberToRgb(enabledColorLight),
               borderRadius: '5px'
             }
           }}
@@ -509,7 +509,7 @@ export function RestOfPoints(props: {
                       '&:last-child td, &:last-child th': {border: 0},
                       userSelect: 'none',
                       backgroundColor: isSelected(idx)
-                        ? alpha(NumberToRGB(enabledColorLight), 0.5)
+                        ? alpha(numberToRgb(enabledColorLight), 0.5)
                         : 'unset'
                     }}
                     onClick={() => {

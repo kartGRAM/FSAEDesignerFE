@@ -17,7 +17,7 @@ import {
 } from '@gd/IElements';
 import {getNewElement, isMirror as isMirrorCheck} from '@gd/Elements';
 
-import {NumberToRGB, getReversal, unique} from '@app/utils/helpers';
+import {numberToRgb, getReversal, unique} from '@app/utils/helpers';
 import {updateAssembly} from '@app/store/reducers/dataGeometryDesigner';
 import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -159,11 +159,11 @@ const ElementsTreeView = () => {
           flexGrow: 1,
           maxWidth: 400,
           overflowY: 'auto',
-          color: NumberToRGB(fontColor),
+          color: numberToRgb(fontColor),
           '&::-webkit-scrollbar': {
             display: 'none'
           },
-          backgroundColor: alpha(NumberToRGB(bgColor), 0.9),
+          backgroundColor: alpha(numberToRgb(bgColor), 0.9),
           backdropFilter: 'blur(3px)'
         }}
       >
@@ -236,7 +236,7 @@ const MyTreeItem = React.memo((props: MyTreeItemProps) => {
     isMirror,
     isBodyOfFrame
   } = props;
-  const selectedColor = NumberToRGB(
+  const selectedColor = numberToRgb(
     useSelector(
       (state: RootState) =>
         state.uigd.present.assemblyTreeViewState.selectedColor
@@ -301,7 +301,7 @@ const MyTreeItem = React.memo((props: MyTreeItemProps) => {
 });
 
 const TemporaryNode = React.memo(() => {
-  const selectedColor = NumberToRGB(
+  const selectedColor = numberToRgb(
     useSelector(
       (state: RootState) =>
         state.uigd.present.assemblyTreeViewState.selectedColor
@@ -586,7 +586,7 @@ const VisibilityControl = React.memo(
   (props: {absPath: string; visibility: boolean | null}) => {
     const {absPath, visibility} = props;
     const nColor = getReversal(
-      NumberToRGB(
+      numberToRgb(
         useSelector(
           (state: RootState) =>
             state.uigd.present.assemblyTreeViewState.selectedColor

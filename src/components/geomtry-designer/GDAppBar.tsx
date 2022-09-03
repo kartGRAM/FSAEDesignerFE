@@ -9,7 +9,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import Divider from '@mui/material/Divider';
 import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
-import {NumberToRGB} from '@app/utils/helpers';
+import {numberToRgb} from '@app/utils/helpers';
 import {GDAppBarMenu} from '@app/components/geomtry-designer/GDAppBarMenu';
 import OpenFromTemplates from '@gdComponents/app-bar-components/OpenFromTemplates';
 import Close from '@gdComponents/app-bar-components/Close';
@@ -87,7 +87,7 @@ export default function GDAppBar() {
       position="static"
       id="gdAppBar"
       sx={{
-        backgroundColor: NumberToRGB(bgColor)
+        backgroundColor: numberToRgb(bgColor)
       }}
     >
       <Toolbar

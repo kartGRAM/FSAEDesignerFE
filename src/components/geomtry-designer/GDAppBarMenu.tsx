@@ -9,7 +9,7 @@ import ClickAwayListener from '@mui/material/ClickAwayListener';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
-import {NumberToRGB} from '@app/utils/helpers';
+import {numberToRgb} from '@app/utils/helpers';
 
 interface Props {
   name: string;
@@ -81,7 +81,7 @@ export const GDAppBarMenu = (props: Props) => {
             content: '""',
             width: '100%',
             height: '0.2rem',
-            borderBottom: `0.2rem solid ${NumberToRGB(enabledColorLight)}`,
+            borderBottom: `0.2rem solid ${numberToRgb(enabledColorLight)}`,
             display: 'block',
             bottom: '0px',
             position: 'absolute',
@@ -139,11 +139,11 @@ export const GDAppBarMenu = (props: Props) => {
                   sx={{
                     color: '#cccccc',
                     '&& .Mui-focusVisible': {
-                      backgroundColor: NumberToRGB(enabledColorDark),
+                      backgroundColor: numberToRgb(enabledColorDark),
                       color: '#ffffff'
                     },
                     '&& :hover': {
-                      backgroundColor: NumberToRGB(enabledColorDark),
+                      backgroundColor: numberToRgb(enabledColorDark),
                       color: '#ffffff'
                     },
                     '&& .MuiMenuItem-root': {

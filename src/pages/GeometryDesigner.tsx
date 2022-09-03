@@ -12,7 +12,7 @@ import MiniDrawer from '@app/components/geomtry-designer/SideBar';
 import GDScene from '@app/components/geomtry-designer/GDScene';
 import SidePanel from '@gdComponents/SidePanel';
 import DialogRoot from '@gdComponents/dialog-components/DialogRoot';
-import {NumberToRGB} from '@app/utils/helpers';
+import {numberToRgb} from '@app/utils/helpers';
 import Box from '@mui/material/Box';
 import shortCutKeys from '@gd/ShortCutKeys';
 
@@ -68,7 +68,7 @@ const GeometryDesigner = () => {
                 className="h-100 w-100 position-relative"
                 sx={{
                   paddingLeft: '2px',
-                  backgroundColor: NumberToRGB(bgColor)
+                  backgroundColor: numberToRgb(bgColor)
                 }}
               >
                 <GDScene />

@@ -43,7 +43,7 @@ export const removeWindowClass = (classList: string) => {
   }
 };
 
-export const NumberToRGB = (code: number) => {
+export const numberToRgb = (code: number) => {
   let rgb = code.toString(16);
 
   if (rgb.length === 5) rgb = `0${rgb}`;
@@ -74,7 +74,7 @@ export function getReversal(color: string): string | null {
   r = 255 - r;
   g = 255 - g;
   b = 255 - b;
-  return NumberToRGB(r * 256 * 256 + g * 256 + b);
+  return numberToRgb(r * 256 * 256 + g * 256 + b);
 }
 
 const reToFixedNoZero = /\.?0+$/;

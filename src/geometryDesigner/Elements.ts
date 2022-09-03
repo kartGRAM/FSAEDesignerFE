@@ -674,11 +674,13 @@ export class Assembly extends Element implements IAssembly {
       this.arrange();
     } else {
       this._children = params.children;
-      this._children.forEach((child) => {
-        child.parent = this;
-      });
       this.joints = params.joints;
-      if (!params.ignoreArrange) this.arrange();
+      if (!params.ignoreArrange) {
+        this._children.forEach((child) => {
+          child.parent = this;
+        });
+        this.arrange();
+      }
     }
   }
 

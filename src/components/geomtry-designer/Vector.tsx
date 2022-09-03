@@ -31,7 +31,7 @@ import {alpha} from '@mui/material/styles';
 import {PointOffsetToolDialog} from '@gdComponents/dialog-components/PointOffsetToolDialog';
 import {trans} from '@gd/Elements';
 
-import {NumberToRGB, toFixedNoZero} from '@app/utils/helpers';
+import {numberToRgb, toFixedNoZero} from '@app/utils/helpers';
 
 export interface Props {
   vector: INamedVector3;
@@ -391,7 +391,7 @@ const PointOffsetList = React.memo(
               height: '10px'
             },
             '&::-webkit-scrollbar-thumb': {
-              backgroundColor: NumberToRGB(enabledColorLight),
+              backgroundColor: numberToRgb(enabledColorLight),
               borderRadius: '5px'
             }
           }}
@@ -422,7 +422,7 @@ const PointOffsetList = React.memo(
                       userSelect: 'none',
                       backgroundColor:
                         selected === tool.name
-                          ? alpha(NumberToRGB(enabledColorLight), 0.5)
+                          ? alpha(numberToRgb(enabledColorLight), 0.5)
                           : 'unset'
                     }}
                     onClick={() => setSelected(tool.name)}
