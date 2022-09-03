@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, {useEffect, useRef} from 'react';
+import React, {useRef, useEffect} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 import store, {RootState} from '@store/store';
 import track, {dispose, disposeAll} from '@app/utils/ResourceTracker';
 import * as THREE from 'three';
-import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import {
   setAssembly,
   setCollectedAssembly
@@ -13,8 +12,8 @@ import {
 import {getAssembly} from '@gd/Elements';
 import {getVector3} from '@gd/NamedValues';
 import {render} from '@app/geometryDesigner/ElementsRenderer';
-import {Canvas} from '@react-three/fiber';
-import {hexToRgb, numberToRgb} from '@app/utils/helpers';
+import {Canvas, useThree, useFrame} from '@react-three/fiber';
+import {OrbitControls} from '@react-three/drei';
 
 interface HandleCameraAspectParams {
   camera: THREE.PerspectiveCamera;
@@ -90,8 +89,8 @@ export default function GDScene() {
         <color attach="background" args={[bgColor]} />
         <pointLight position={[10, 10, 10]} />
         <mesh>
-          <sphereGeometry />
-          <meshStandardMaterial color="hotpink" />
+          <boxGeometry />
+          <meshNormalMaterial />
         </mesh>
       </Canvas>
     </div>

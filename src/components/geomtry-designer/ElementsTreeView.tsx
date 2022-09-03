@@ -412,7 +412,7 @@ const TrashNode = React.memo(() => {
     <TreeItem
       nodeId={uuidv4()}
       label={
-        <Box display="flex">
+        <Box display="flex" component="div">
           <DeleteForeverIcon /* fontSize="large" */ />
           <Typography>{label}</Typography>
         </Box>
@@ -561,6 +561,7 @@ const MyLabel = React.memo(
 
     return (
       <Box
+        component="div"
         display="flex"
         draggable={!isRoot && !isBodyOfFrame}
         onDragStart={handleDragStart}
