@@ -122,6 +122,7 @@ export const DeltaXYZ = (props: Props) => {
   return (
     <FormControl component="fieldset" variant="standard">
       <Box
+        component="div"
         sx={{
           display: 'flex',
           justifyContent: 'space-between',
@@ -151,6 +152,7 @@ export const DeltaXYZ = (props: Props) => {
       >
         <FormLabel component="legend">Delta XYZ</FormLabel>
         <Box
+          component="div"
           sx={{
             display: 'flex',
             justifyContent: 'space-between'
@@ -198,6 +200,7 @@ export const DeltaXYZ = (props: Props) => {
       >
         <FormLabel component="legend">Outputs</FormLabel>
         <Box
+          component="div"
           sx={{
             display: 'flex',
             justifyContent: 'space-between'

@@ -88,6 +88,7 @@ export default function SidePanel() {
   return (
     <>
       <Box
+        component="div"
         sx={{
           backgroundColor: numberToRgb(bgColor),
           height: '100%',
@@ -116,6 +117,7 @@ export default function SidePanel() {
       >
         {adContent}
         <Box
+          component="div"
           sx={{
             backgroundColor: alpha('#000', 0.3),
             position: 'absolute',

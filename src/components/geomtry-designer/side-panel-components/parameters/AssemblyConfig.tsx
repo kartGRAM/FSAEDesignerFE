@@ -279,7 +279,7 @@ export function JointsList(props: {
   }
 
   return (
-    <Box>
+    <Box component="div">
       <Toolbar
         sx={{
           pl: '0.8rem!important',
@@ -440,7 +440,7 @@ export function RestOfPoints(props: {
   const dispatch = useDispatch();
 
   return (
-    <Box>
+    <Box component="div">
       <Toolbar
         sx={{
           pl: '0.8rem!important',

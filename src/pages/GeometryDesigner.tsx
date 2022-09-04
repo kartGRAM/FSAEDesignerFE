@@ -10,6 +10,7 @@ import ElementsTreeView from '@app/components/geomtry-designer/ElementsTreeView'
 import GDAppBar from '@app/components/geomtry-designer/GDAppBar';
 import MiniDrawer from '@app/components/geomtry-designer/SideBar';
 import GDScene from '@app/components/geomtry-designer/GDScene';
+import AssemblyCreactor from '@gdComponents/AssemblyCreator';
 import SidePanel from '@gdComponents/SidePanel';
 import DialogRoot from '@gdComponents/dialog-components/DialogRoot';
 import {numberToRgb} from '@app/utils/helpers';
@@ -52,6 +53,7 @@ const GeometryDesigner = () => {
           <GDAppBar />
 
           <Box
+            component="div"
             className="position-relative w-100 d-flex"
             sx={{
               height: 'calc(100% - 36px)'
@@ -65,6 +67,7 @@ const GeometryDesigner = () => {
             >
               <SidePanel />
               <Box
+                component="div"
                 className="h-100 w-100 position-relative"
                 sx={{
                   paddingLeft: '2px',
@@ -82,6 +85,7 @@ const GeometryDesigner = () => {
                   />
                 </button>
                 <ElementsTreeView />
+                <AssemblyCreactor />
               </Box>
             </div>
           </Box>

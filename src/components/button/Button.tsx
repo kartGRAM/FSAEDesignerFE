@@ -1,5 +1,7 @@
 import React from 'react';
-import Button, {ButtonProps} from 'react-bootstrap/Button';
+import {Button} from '@mui/material';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import BB, {ButtonProps} from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
 
 const icons: any = {
@@ -20,8 +22,10 @@ const AppButton = ({
   children,
   isLoading,
   icon,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   theme = 'primary',
   disabled,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   ...otherProps
 }: AppButtonProps) => {
   let spinnerTemplate;
@@ -46,7 +50,10 @@ const AppButton = ({
 
   return (
     // eslint-disable-next-line react/button-has-type
-    <Button {...otherProps} variant={theme} disabled={isLoading || disabled}>
+    <Button
+      // {...otherProps}
+      disabled={isLoading || disabled}
+    >
       {iconTemplate}
       {children}
       {spinnerTemplate}

@@ -29,10 +29,7 @@ module.exports = {
     }
   },
   rules: {
-    'react/jsx-filename-extension': [
-      2,
-      {extensions: ['.js', '.jsx', '.ts', '.tsx']}
-    ],
+    'react/jsx-filename-extension': [2, {extensions: ['.jsx', '.tsx']}],
     'react/jsx-props-no-spreading': ['off'],
     'jsx-a11y/label-has-associated-control': ['error', {assert: 'either'}],
     'react/jsx-indent': 'off',

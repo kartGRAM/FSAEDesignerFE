@@ -184,7 +184,12 @@ const Vector = React.memo((props: Props) => {
   }, [expanded]);
 
   return (
-    <Box sx={{padding: 1}} onFocus={handleFocus} onBlur={handleBlur}>
+    <Box
+      component="div"
+      sx={{padding: 1}}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+    >
       <Toolbar
         sx={{
           pl: '0.3rem!important',
@@ -238,6 +243,7 @@ const Vector = React.memo((props: Props) => {
       </Toolbar>
       <form onSubmit={formik.handleSubmit}>
         <Box
+          component="div"
           sx={{
             display: 'flex',
             justifyContent: 'space-between'

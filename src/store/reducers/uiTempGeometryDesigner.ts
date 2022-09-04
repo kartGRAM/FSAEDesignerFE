@@ -48,7 +48,7 @@ export interface GDState {
   clipbord: ClipboardObject | null;
 }
 
-interface IDataVector3WithColor extends IDataVector3 {
+export interface IDataVector3WithColor extends IDataVector3 {
   color?: number;
 }
 

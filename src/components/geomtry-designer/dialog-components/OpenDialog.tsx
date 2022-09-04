@@ -198,8 +198,8 @@ note: ${params.note}`}
                         title={item.filename}
                         subtitle={
                           <>
-                            <Box>{item.note}</Box>
-                            <Box sx={{pt: 1, fontSize: 0.3}}>
+                            <Box component="div">{item.note}</Box>
+                            <Box component="div" sx={{pt: 1, fontSize: 0.3}}>
                               last updated:&nbsp;
                               {DateTime.fromISO(
                                 item.lastUpdated

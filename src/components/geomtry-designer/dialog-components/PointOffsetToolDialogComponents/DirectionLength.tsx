@@ -150,6 +150,7 @@ export const DirectionLength = (props: Props) => {
   return (
     <FormControl component="fieldset" variant="standard">
       <Box
+        component="div"
         sx={{
           display: 'flex',
           justifyContent: 'space-between',
@@ -179,6 +180,7 @@ export const DirectionLength = (props: Props) => {
       >
         <FormLabel component="legend">Direction Vector</FormLabel>
         <Box
+          component="div"
           sx={{
             display: 'flex',
             justifyContent: 'space-between'
@@ -226,6 +228,7 @@ export const DirectionLength = (props: Props) => {
       >
         <FormLabel component="legend">Length</FormLabel>
         <Box
+          component="div"
           sx={{
             display: 'flex',
             justifyContent: 'space-between'
@@ -254,6 +257,7 @@ export const DirectionLength = (props: Props) => {
       >
         <FormLabel component="legend">Outputs</FormLabel>
         <Box
+          component="div"
           sx={{
             display: 'flex',
             justifyContent: 'space-between'
