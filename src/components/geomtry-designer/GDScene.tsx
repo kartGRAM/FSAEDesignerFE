@@ -52,6 +52,8 @@ export default function GDScene() {
   return (
     <div id="gdCanvasContainer" className="h-100">
       <Canvas
+        linear
+        flat
         ref={canvas}
         gl={{
           preserveDrawingBuffer: true

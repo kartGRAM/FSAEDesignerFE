@@ -22,7 +22,7 @@ const Body = (props: {element: IBody}) => {
     .map((node, i) => {
       return nodes.slice(i + 1).map((otherNode) => {
         return (
-          <Line points={[node, otherNode]} color={0x00ffff} lineWidth={2} />
+          <Line points={[node, otherNode]} color={0x00ffff} lineWidth={1} />
         );
       });
     })
