@@ -6,9 +6,16 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {IAssembly, IElement, Joint, isElement, isFrame} from '@gd/IElements';
+import {
+  IAssembly,
+  IElement,
+  Joint,
+  isElement,
+  isFrame,
+  trans
+} from '@gd/IElements';
 import {INamedVector3, IDataMatrix3, IDataVector3} from '@gd/INamedValues';
-import {trans} from '@gd/Elements';
+
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '@store/store';
 import {

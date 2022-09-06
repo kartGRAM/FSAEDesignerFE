@@ -29,7 +29,7 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import {alpha} from '@mui/material/styles';
 import {PointOffsetToolDialog} from '@gdComponents/dialog-components/PointOffsetToolDialog';
-import {trans} from '@gd/Elements';
+import {trans} from '@gd/IElements';
 
 import {numberToRgb, toFixedNoZero} from '@app/utils/helpers';
 

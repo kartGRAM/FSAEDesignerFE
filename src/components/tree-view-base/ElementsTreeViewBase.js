@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-filename-extension */
 /* eslint-disable react/forbid-prop-types */
 /* eslint-disable import/no-extraneous-dependencies */
 
