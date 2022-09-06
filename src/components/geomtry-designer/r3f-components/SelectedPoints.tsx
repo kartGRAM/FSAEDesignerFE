@@ -59,7 +59,7 @@ export default function SelectedPoints() {
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', ba);
         return (
-          <points args={[geometry]}>
+          <points args={[geometry]} key={color}>
             <pointsMaterial
               sizeAttenuation
               args={[

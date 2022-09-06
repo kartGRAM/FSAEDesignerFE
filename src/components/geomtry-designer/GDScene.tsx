@@ -6,6 +6,7 @@ import store, {RootState} from '@store/store';
 import {Canvas} from '@react-three/fiber';
 import {OrbitControls} from '@react-three/drei';
 import SelectedPoints from '@gdComponents/r3f-components/SelectedPoints';
+import CollectedAssembly from '@gdComponents/r3f-components/CollectedAssembly';
 
 let canvas: React.RefObject<HTMLCanvasElement>;
 
@@ -24,10 +25,6 @@ export function getScreenShot(): Blob | null {
 
 export default function GDScene() {
   canvas = useRef<HTMLCanvasElement>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const assembly = useSelector(
-    (state: RootState) => state.uitgd.collectedAssembly
-  );
 
   const bgColor = useSelector(
     (state: RootState) => state.uigd.present.backgroundColor
@@ -64,8 +61,9 @@ export default function GDScene() {
         {
           // <pointLight position={[10, 10, 10]} />
         }
-        <axesHelper args={[10]} />
+        <axesHelper args={[1]} />
         <Provider store={store}>
+          <CollectedAssembly />
           {/* <mesh>
             <boxGeometry />
             <meshNormalMaterial />
@@ -77,58 +75,3 @@ export default function GDScene() {
     </div>
   );
 }
-
-/* export default function GDScene() {
-
-
-  const selectedPoint = useSelector(
-    (state: RootState) => state.uitgd.gdSceneState.selectedPoint
-  );
-
-  const assembly = useSelector(
-    (state: RootState) => state.dgd.present.topAssembly
-  );
-
-  const dispatch = useDispatch();
-
-
-
-  useEffect(() => {
-      if (selectedPoint && selectedPoint.length) {
-        const points = [...selectedPoint];
-        // 色でグルーピング
-        const colors: (number | undefined)[] = points.reduce(
-          (prev, current) => {
-            if (!prev.length) {
-              prev.push(current.color);
-            } else if (prev[prev.length - 1] !== current.color) {
-              prev.push(current.color);
-            }
-            return prev;
-          },
-          [] as (number | undefined)[]
-        );
-        // 色ごとに描写
-        colors.forEach((color) => {
-          const node = points
-            .filter((point) => point.color === color)
-            .map((point) => getVector3(point));
-          const pm = track(
-            new THREE.PointsMaterial({
-              size: 15,
-              color: color ?? 0xff0000
-            }),
-            resourceType
-          );
-          const geometry = track(
-            new THREE.BufferGeometry().setFromPoints(node),
-            resourceType
-          );
-          const mesh = track(new THREE.Points(geometry, pm), resourceType);
-          if (scene.current) scene.current.add(mesh);
-        });
-      }
-    }
-  }, [selectedPoint]);
-  return <canvas ref={canvas} className="gd-canvas" id="threeCanvas" />;
-} */

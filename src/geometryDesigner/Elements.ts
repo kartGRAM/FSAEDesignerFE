@@ -26,6 +26,7 @@ import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {minus} from '@app/utils/helpers';
 import {getRootNode} from './INode';
 import {
+  trans,
   isBodyOfFrame,
   MirrorError,
   Elements,
@@ -1771,18 +1772,6 @@ export function getDummyElement(): IAssembly {
     joints: []
   });
 }
-
-export const trans = (p: INamedVector3, coMatrix?: Matrix3): Vector3 => {
-  const {parent} = p;
-  let v = p.value;
-  if (isElement(parent)) {
-    v = parent.position.value
-      .clone()
-      .add(v.applyMatrix3(parent.rotation.value));
-  }
-  if (coMatrix) v.applyMatrix3(coMatrix);
-  return v;
-};
 
 export const isMirror = (element: IElement | null | undefined): boolean => {
   if (!element) return false;
