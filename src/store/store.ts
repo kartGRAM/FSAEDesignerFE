@@ -45,9 +45,14 @@ const store = configureStore({
         ignoredActions: [
           'dataGeometryDesigner/updateAssembly',
           'uitGeometryDesigner/setAssembly',
-          'uitGeometryDesigner/setCollectedAssembly'
+          'uitGeometryDesigner/setCollectedAssembly',
+          'uitGeometryDesigner/setSelectedPoint'
         ],
-        ignoredPaths: [`uitgd.assembly`, 'uitgd.collectedAssembly'],
+        ignoredPaths: [
+          `uitgd.assembly`,
+          'uitgd.collectedAssembly',
+          'uitgd.gdSceneState.selectedPoint'
+        ],
         warnAfter: 128
       },
       immutableCheck: {warnAfter: 128}

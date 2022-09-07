@@ -7,7 +7,7 @@ import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {IBody, isMirrorElement} from '@gd/IElements';
 import {useDispatch, useSelector} from 'react-redux';
-import {RootState} from '@store/store';
+import store, {RootState} from '@store/store';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
 import {NamedVector3} from '@gd/NamedValues';
 import AddBoxIcon from '@mui/icons-material/AddBox';
@@ -42,7 +42,10 @@ export default function AArmConfig(params: Params) {
   );
 
   React.useEffect(() => {
-    dispatch(setSelectedPoint(null));
+    const point = store.getState().uitgd.gdSceneState.selectedPoint?.at(0);
+    if (point && point.point.parent?.nodeID !== element.nodeID) {
+      dispatch(setSelectedPoint(null));
+    }
   }, []);
 
   return (

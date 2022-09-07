@@ -5,7 +5,7 @@ import {useSelector, Provider} from 'react-redux';
 import store, {RootState} from '@store/store';
 import {Canvas} from '@react-three/fiber';
 import {OrbitControls} from '@react-three/drei';
-import SelectedPoints from '@gdComponents/r3f-components/SelectedPoints';
+// import SelectedPoints from '@gdComponents/r3f-components/SelectedPoints';
 import CollectedAssembly from '@gdComponents/r3f-components/CollectedAssembly';
 
 let canvas: React.RefObject<HTMLCanvasElement>;
@@ -71,7 +71,7 @@ export default function GDScene() {
             <boxGeometry />
             <meshNormalMaterial />
       </mesh> */}
-          <SelectedPoints />
+          {/* <SelectedPoints /> */}
         </Provider>
         <OrbitControls enableDamping={false} />
       </Canvas>
