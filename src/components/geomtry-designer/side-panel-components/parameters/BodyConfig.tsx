@@ -42,7 +42,7 @@ export default function AArmConfig(params: Params) {
   );
 
   React.useEffect(() => {
-    dispatch(setSelectedPoint({point: null}));
+    dispatch(setSelectedPoint(null));
   }, []);
 
   return (

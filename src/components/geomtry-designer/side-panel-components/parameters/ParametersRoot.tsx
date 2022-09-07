@@ -27,7 +27,7 @@ export default function ParametersRoot() {
   const dispatch = useDispatch();
   React.useEffect(() => {
     return () => {
-      dispatch(setSelectedPoint({point: null}));
+      dispatch(setSelectedPoint(null));
     };
   }, []);
 

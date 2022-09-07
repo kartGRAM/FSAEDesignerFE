@@ -1,5 +1,5 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
-import {IDataVector3} from '@gd/INamedValues';
+import {INamedVector3} from '@gd/INamedValues';
 import {ConfirmDialogProps} from '@gdComponents/dialog-components/ConfirmDialog';
 import {SaveAsDialogProps} from '@gdComponents/dialog-components/SaveAsDialog';
 import {IAssembly, Elements} from '@gd/IElements';
@@ -48,12 +48,13 @@ export interface GDState {
   clipbord: ClipboardObject | null;
 }
 
-export interface IDataVector3WithColor extends IDataVector3 {
+export interface INamedVector3WithColor {
+  point: INamedVector3;
   color?: number;
 }
 
 export interface GDSceneState {
-  selectedPoint: IDataVector3WithColor[] | null;
+  selectedPoint: INamedVector3WithColor[] | null;
 }
 
 export interface GDDialogState {
@@ -156,11 +157,11 @@ export const uitGeometryDesignerSlice = createSlice({
     },
     setSelectedPoint: (
       state: GDState,
-      action: PayloadAction<{
-        point: IDataVector3WithColor[] | IDataVector3WithColor | null;
-      }>
+      action: PayloadAction<
+        INamedVector3WithColor[] | INamedVector3WithColor | null
+      >
     ) => {
-      const {point} = action.payload;
+      const point = action.payload;
       if (!point) {
         state.gdSceneState.selectedPoint = null;
       } else if (Array.isArray(point))

@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import InputAdornment from '@mui/material/InputAdornment';
-import {getMatrix3, getDataVector3, DeltaXYZ} from '@gd/NamedValues';
+import {DeltaXYZ} from '@gd/NamedValues';
 import {INamedVector3, IPointOffsetTool} from '@gd/INamedValues';
 import Typography from '@mui/material/Typography';
 import {useDispatch, useSelector} from 'react-redux';
@@ -29,7 +29,6 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import {alpha} from '@mui/material/styles';
 import {PointOffsetToolDialog} from '@gdComponents/dialog-components/PointOffsetToolDialog';
-import {trans} from '@gd/IElements';
 
 import {numberToRgb, toFixedNoZero} from '@app/utils/helpers';
 
@@ -43,18 +42,17 @@ export interface Props {
 const Vector = React.memo((props: Props) => {
   const {vector, removable, onRemove, disabled} = props;
   const dispatch = useDispatch();
-  const coMatrix = getMatrix3(
-    useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
-  );
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const point = (
+    useSelector((state: RootState) => state.uitgd.gdSceneState.selectedPoint) ??
+    []
+  ).at(0);
   const sVector = vector.getStringValue();
 
   const [expanded, setExpanded] = React.useState<boolean>(false);
   const [rename, setRename] = React.useState<boolean>(false);
-  const [selected, setSelectedOrg] = React.useState<string>('');
+  const [selected, setSelected] = React.useState<string>('');
   const [focused, setFocused] = useState<boolean>(false);
-  const setSelected = React.useCallback((value: string) => {
-    setSelectedOrg(value);
-  }, []);
 
   const nameFormik = useFormik({
     enableReinitialize: true,
@@ -94,10 +92,7 @@ const Vector = React.memo((props: Props) => {
   });
 
   React.useEffect(() => {
-    if (focused)
-      dispatch(
-        setSelectedPoint({point: getDataVector3(trans(vector, coMatrix))})
-      );
+    if (focused) dispatch(setSelectedPoint({point: vector}));
   }, [focused, vector]);
 
   const ref = React.useRef<HTMLInputElement>(null);

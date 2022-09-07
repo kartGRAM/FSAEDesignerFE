@@ -5,12 +5,17 @@ import * as R3F from '@react-three/fiber';
 import * as THREE from 'three';
 import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
-import {getVector3} from '@gd/NamedValues';
+import {trans} from '@gd/IElements';
+import {getMatrix3} from '@gd/NamedValues';
 
 export default function SelectedPoints() {
   const points =
     useSelector((state: RootState) => state.uitgd.gdSceneState.selectedPoint) ??
     [];
+
+  const coMatrix = getMatrix3(
+    useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
+  );
 
   const colors = points.reduce((prev, current) => {
     if (!prev.length) {
@@ -21,25 +26,6 @@ export default function SelectedPoints() {
     return prev;
   }, [] as (number | undefined)[]);
 
-  /* R3F.useFrame(() => {
-    pRef.current!.geometry.attributes.position.needsUpdate = true;
-  });
-  // const p = new Array(1000).fill(0).map(() => (0.5 - Math.random()) * 7.5);
-  // const ba = new BufferAttribute(new Float32Array(p), 3);
-  // const pRef = React.useRef<THREE.Points>(null!);
-   return (
-    <points ref={pRef}>
-      <bufferGeometry attach="geometry">
-        <bufferAttribute
-          {...ba}
-          attach="attributes-position"
-          usage={THREE.DynamicDrawUsage}
-        />
-      </bufferGeometry>
-      <pointsMaterial size={0.1} color={0xff00ff} sizeAttenuation />
-    </points>
-  ); */
-
   return (
     <>
       {colors.map((color) => {
@@ -49,8 +35,8 @@ export default function SelectedPoints() {
             points
               .filter((point) => point.color === color)
               .map((point) => {
-                const v = getVector3(point);
-                return [v.x / 100, v.y / 100, v.z / 100];
+                const v = trans(point.point, coMatrix);
+                return [v.x, v.y, v.z];
               })
               .flat()
           ),
@@ -64,7 +50,7 @@ export default function SelectedPoints() {
               sizeAttenuation
               args={[
                 {
-                  size: 0.1,
+                  size: 20,
                   color: color ?? 0xff0000
                 }
               ]}

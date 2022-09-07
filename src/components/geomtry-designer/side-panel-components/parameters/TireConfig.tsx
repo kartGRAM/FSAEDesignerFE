@@ -7,15 +7,12 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {ITire, isMirrorElement} from '@gd/IElements';
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '@store/store';
-import {Vector3, Matrix3} from 'three';
 import {
   kinematicParamsDefaultExpandedChange,
   dynamicParamsDefaultExpandedChange
 } from '@store/reducers/uiGeometryDesigner';
 import Vector from '@gdComponents/Vector';
 import Scalar from '@gdComponents/Scalar';
-import {getMatrix3, getDataVector3} from '@gd/NamedValues';
-import {IDataMatrix3} from '@gd/INamedValues';
 import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
 import ElementName from './ElementName';
 
@@ -43,18 +40,11 @@ export default function TireConfig(params: Params) {
       if (focus)
         dispatch(
           setSelectedPoint({
-            point: getDataVector3(
-              trans(
-                element.leftBearing.value,
-                element.position.value,
-                element.rotation.value,
-                coMatrix
-              )
-            )
+            point: element.leftBearing
           })
         );
       return () => {
-        // if (!focus) dispatch(setSelectedPoint({point: null}));
+        // if (!focus) dispatch(setSelectedPoint(null));
       };
     },
     [element]
@@ -64,29 +54,18 @@ export default function TireConfig(params: Params) {
       if (focus)
         dispatch(
           setSelectedPoint({
-            point: getDataVector3(
-              trans(
-                element.rightBearing.value,
-                element.position.value,
-                element.rotation.value,
-                coMatrix
-              )
-            )
+            point: element.rightBearing
           })
         );
       return () => {
-        // if (!focus) dispatch(setSelectedPoint({point: null}));
+        // if (!focus) dispatch(setSelectedPoint(null));
       };
     },
     [element]
   );
 
-  const coMatrix = useSelector(
-    (state: RootState) => state.dgd.present.transCoordinateMatrix
-  );
-
   React.useEffect(() => {
-    dispatch(setSelectedPoint({point: null}));
+    dispatch(setSelectedPoint(null));
   }, []);
 
   return (
@@ -160,11 +139,4 @@ export default function TireConfig(params: Params) {
       </Accordion>
     </>
   );
-}
-
-function trans(p: Vector3, ofs: Vector3, rot: Matrix3, coMatrix: IDataMatrix3) {
-  return ofs
-    .clone()
-    .add(p.clone().applyMatrix3(rot))
-    .applyMatrix3(getMatrix3(coMatrix));
 }

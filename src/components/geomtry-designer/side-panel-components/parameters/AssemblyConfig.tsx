@@ -1,20 +1,11 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
-import {Vector3, Matrix3} from 'three';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {
-  IAssembly,
-  IElement,
-  Joint,
-  isElement,
-  isFrame,
-  trans
-} from '@gd/IElements';
-import {INamedVector3, IDataMatrix3, IDataVector3} from '@gd/INamedValues';
+import {IAssembly, IElement, isFrame} from '@gd/IElements';
+import {INamedVector3} from '@gd/INamedValues';
 
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '@store/store';
@@ -42,8 +33,7 @@ import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
 // import {getNode} from '@gd/INode';
 import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
 import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
-import {numberToRgb, toFixedNoZero} from '@app/utils/helpers';
-import {getMatrix3, getDataVector3} from '@gd/NamedValues';
+import {numberToRgb} from '@app/utils/helpers';
 import usePrevious from '@app/hooks/usePrevious';
 import ElementName from './ElementName';
 
@@ -55,7 +45,8 @@ type PointPair = {
   rhs: {parentNodeID: string; selected: number; nodeID: string} | null;
 };
 
-interface IDataVector3WithColor extends IDataVector3 {
+interface INamedVector3WithColor {
+  point: INamedVector3;
   color: number;
 }
 
@@ -103,29 +94,25 @@ export default function AssemblyConfig(params: Params) {
     setJointsListSelected(null);
   }, []);
 
-  const coMatrix = getMatrix3(
-    useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
-  );
-
   const jointLength = usePrevious(
     assembly.joints.length,
     assembly.joints.length
   );
 
-  let points: IDataVector3WithColor[] = [
+  let points: INamedVector3WithColor[] = [
     ...assembly.getPoints().map((p) => ({
-      ...getDataVector3(trans(p, coMatrix)),
+      point: p,
       color: 0x0000ff
     })),
     ...assembly.getJointedPoints().map((p) => ({
-      ...getDataVector3(trans(p, coMatrix)),
+      point: p,
       color: 0xffff00
     }))
   ];
 
   // 選択状態が変化したらポイントを再描写ただし初回も実施
   React.useEffect(() => {
-    dispatch(setSelectedPoint({point: points}));
+    dispatch(setSelectedPoint(points));
   }, [
     jointsListSelected,
     pointSelected.lhs?.nodeID,
@@ -147,11 +134,11 @@ export default function AssemblyConfig(params: Params) {
       points = [
         ...points,
         {
-          ...getDataVector3(trans(joint.lhs, coMatrix)),
+          point: joint.lhs,
           color: 0xff0000
         },
         {
-          ...getDataVector3(trans(joint.rhs, coMatrix)),
+          point: joint.rhs,
           color: 0xff0000
         }
       ];
@@ -161,16 +148,10 @@ export default function AssemblyConfig(params: Params) {
   const lhs = tmp.find((point) => point.nodeID === pointSelected.lhs?.nodeID);
   const rhs = tmp.find((point) => point.nodeID === pointSelected.rhs?.nodeID);
   if (lhs) {
-    points = [
-      ...points,
-      {...getDataVector3(trans(lhs, coMatrix)), color: 0xff0000}
-    ];
+    points = [...points, {point: lhs, color: 0xff0000}];
   }
   if (rhs) {
-    points = [
-      ...points,
-      {...getDataVector3(trans(rhs, coMatrix)), color: 0xff0000}
-    ];
+    points = [...points, {point: rhs, color: 0xff0000}];
   }
 
   let isFrameObject = false;

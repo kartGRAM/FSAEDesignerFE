@@ -58,12 +58,13 @@ export default function GDScene() {
         gl={{
           preserveDrawingBuffer: true
         }}
+        camera={{fov: 75, near: 1, far: 10000, position: [1500, 1500, 1500]}}
       >
         <color attach="background" args={[bgColor]} />
         {
           // <pointLight position={[10, 10, 10]} />
         }
-        <axesHelper args={[1]} />
+        <axesHelper args={[50]} />
         <Provider store={store}>
           <CollectedAssembly />
           {/* <mesh>

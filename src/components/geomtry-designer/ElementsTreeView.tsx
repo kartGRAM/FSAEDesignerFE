@@ -577,7 +577,13 @@ const MyLabel = React.memo(
         }
       >
         <VisibilityControl absPath={absPath} visibility={visibility} />
-        <Typography>{label}</Typography>
+        <Typography
+          sx={{
+            userSelect: 'none'
+          }}
+        >
+          {label}
+        </Typography>
       </Box>
     );
   }
