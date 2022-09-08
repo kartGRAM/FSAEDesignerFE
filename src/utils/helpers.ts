@@ -109,3 +109,7 @@ export function minus(value: string | number): string | number {
   }
   return `-(${value})`;
 }
+
+export const isArray = <T>(maybeArray: T | readonly T[]): maybeArray is T[] => {
+  return Array.isArray(maybeArray);
+};
