@@ -9,13 +9,12 @@ import Box from '@mui/material/Box';
 import store, {RootState} from '@store/store';
 import {useSelector, useDispatch} from 'react-redux';
 import {
-  IDataElement,
-  isDataAssembly,
+  IElement,
   getElementByPath,
   isAssembly as isAssemblyCheck,
-  isMirrorData
+  isMirror as isMirrorCheck
 } from '@gd/IElements';
-import {getNewElement, isMirror as isMirrorCheck} from '@gd/Elements';
+import {getNewElement} from '@gd/Elements';
 
 import {numberToRgb, getReversal, unique} from '@app/utils/helpers';
 import {updateAssembly} from '@app/store/reducers/dataGeometryDesigner';
@@ -26,7 +25,9 @@ import {
   treeViewDragExpanded,
   setDraggingNewElement,
   setDraggingElementAbsPath,
-  setConfirmDialogProps
+  setConfirmDialogProps,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  setVisibility
 } from '@store/reducers/uiTempGeometryDesigner';
 import {v4 as uuidv4} from 'uuid';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
@@ -34,6 +35,10 @@ import {
   RenameDialog,
   RenameDialogProps
 } from '@gdComponents/dialog-components/RenameDialog';
+
+// 【重要】
+// 再描写がきわめて多く、パフォーマンスに懸念。
+// そのうち直すべき（動作に問題はない）
 
 const ElementsTreeView = () => {
   const [expanded, setExpanded] = React.useState<string[]>([]);
@@ -65,9 +70,7 @@ const ElementsTreeView = () => {
     (state: RootState) => state.uigd.present.assemblyTreeViewState.fontColor
   );
 
-  const assembly = useSelector(
-    (state: RootState) => state.dgd.present.topAssembly
-  );
+  const assembly = useSelector((state: RootState) => state.uitgd.assembly);
 
   const disableSelection = useSelector(
     (state: RootState) => state.uitgd.uiDisabled
@@ -178,7 +181,6 @@ const ElementsTreeView = () => {
 interface MyTreeItemProps {
   nodeId: string;
   label: string;
-  visibility: boolean | null;
   children: PropsTreeNode[];
   dragTo: string;
   isAssembly: boolean;
@@ -189,19 +191,17 @@ interface MyTreeItemProps {
 type PropsTreeNode = {
   nodeId: string;
   label: string;
-  visibility: boolean | null;
   children: PropsTreeNode[];
   isAssembly: boolean;
   isMirror: boolean;
   isBodyOfFrame: boolean;
 };
 
-function getPropsTree(element: IDataElement | undefined): PropsTreeNode {
+function getPropsTree(element: IElement | undefined): PropsTreeNode {
   if (!element) {
     return {
       nodeId: 'none',
       label: '',
-      visibility: null,
       children: [] as PropsTreeNode[],
       isAssembly: false,
       isMirror: true,
@@ -210,32 +210,23 @@ function getPropsTree(element: IDataElement | undefined): PropsTreeNode {
   }
   let children: PropsTreeNode[] = [];
   let isAssembly = false;
-  if (isDataAssembly(element)) {
+  if (isAssemblyCheck(element)) {
     children = element.children.map((child) => getPropsTree(child));
-    isAssembly = !isMirrorData(element);
+    isAssembly = !isMirrorCheck(element);
   }
   return {
     nodeId: element.absPath,
     label: element.name.value,
-    visibility: element.visible.value ?? null,
     children,
     isAssembly,
-    isMirror: isMirrorData(element),
-    isBodyOfFrame: Boolean(element.isBodyOfFrame)
+    isMirror: isMirrorCheck(element),
+    isBodyOfFrame: Boolean(element.meta?.isBodyOfFrame)
   };
 }
 
 const MyTreeItem = React.memo((props: MyTreeItemProps) => {
-  const {
-    nodeId,
-    label,
-    children,
-    visibility,
-    isAssembly,
-    dragTo,
-    isMirror,
-    isBodyOfFrame
-  } = props;
+  const {nodeId, label, children, isAssembly, dragTo, isMirror, isBodyOfFrame} =
+    props;
   const selectedColor = numberToRgb(
     useSelector(
       (state: RootState) =>
@@ -262,7 +253,6 @@ const MyTreeItem = React.memo((props: MyTreeItemProps) => {
         <MyLabel
           label={label}
           absPath={nodeId}
-          visibility={visibility}
           isAssembly={isAssembly}
           isMirror={isMirror}
           isBodyOfFrame={isBodyOfFrame}
@@ -440,13 +430,11 @@ const MyLabel = React.memo(
     isAssembly: boolean;
     label: string;
     absPath: string;
-    visibility: boolean | null;
     isMirror: boolean;
     isBodyOfFrame: boolean;
   }) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {label, absPath, visibility, isAssembly, isMirror, isBodyOfFrame} =
-      props;
+    const {label, absPath, isAssembly, isMirror, isBodyOfFrame} = props;
     const dispatch = useDispatch();
 
     const handleDragStart = React.useCallback(
@@ -576,7 +564,7 @@ const MyLabel = React.memo(
             : undefined
         }
       >
-        <VisibilityControl absPath={absPath} visibility={visibility} />
+        <VisibilityControl absPath={absPath} />
         <Typography
           sx={{
             userSelect: 'none'
@@ -589,54 +577,55 @@ const MyLabel = React.memo(
   }
 );
 
-const VisibilityControl = React.memo(
-  (props: {absPath: string; visibility: boolean | null}) => {
-    const {absPath, visibility} = props;
-    const nColor = getReversal(
-      numberToRgb(
-        useSelector(
-          (state: RootState) =>
-            state.uigd.present.assemblyTreeViewState.selectedColor
-        )
+const VisibilityControl = React.memo((props: {absPath: string}) => {
+  const {absPath} = props;
+  const nColor = getReversal(
+    numberToRgb(
+      useSelector(
+        (state: RootState) =>
+          state.uigd.present.assemblyTreeViewState.selectedColor
       )
-    );
-    const color: string = nColor ?? '#fe6049';
-    const dispatch = useDispatch();
+    )
+  );
+  const visibility = useSelector((state: RootState) => {
+    const {assembly} = state.uitgd;
+    const element = getElementByPath(assembly, absPath);
+    return element?.visible.value ?? null;
+  });
+  const color: string = nColor ?? '#fe6049';
+  const dispatch = useDispatch();
 
-    const handleChange = React.useCallback(
-      (event: React.ChangeEvent<HTMLInputElement>) => {
-        const {assembly} = store.getState().uitgd;
-        if (assembly) {
-          const instance = getElementByPath(assembly, absPath);
-          if (instance) {
-            instance.visible.value = event.target.checked;
-            dispatch(updateAssembly(instance));
-          }
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const {assembly} = store.getState().uitgd;
+    if (assembly) {
+      const instance = getElementByPath(assembly, absPath);
+      if (instance) {
+        instance.visible.value = event.target.checked;
+        dispatch(setVisibility());
+        // dispatch(updateAssembly(instance));
+      }
+    }
+  };
+
+  return (
+    <Checkbox
+      size="small"
+      checked={!!visibility}
+      indeterminate={visibility === null}
+      onChange={handleChange}
+      sx={{
+        padding: 0.3,
+        color: alpha(color, 0.7),
+        '&.Mui-checked': {
+          color: alpha(color, 0.8)
+        },
+        '&.MuiCheckbox-indeterminate': {
+          color: alpha(color, 0.8)
         }
-      },
-      [absPath]
-    );
-
-    return (
-      <Checkbox
-        size="small"
-        checked={!!visibility}
-        indeterminate={visibility === null}
-        onChange={handleChange}
-        sx={{
-          padding: 0.3,
-          color: alpha(color, 0.7),
-          '&.Mui-checked': {
-            color: alpha(color, 0.8)
-          },
-          '&.MuiCheckbox-indeterminate': {
-            color: alpha(color, 0.8)
-          }
-        }}
-      />
-    );
-  }
-);
+      }}
+    />
+  );
+});
 
 export default ElementsTreeView;
 

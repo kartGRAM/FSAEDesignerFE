@@ -35,8 +35,9 @@ const NodeSphere = (props: {node: INamedVector3}) => {
     if (isSelected) {
       color = isSelected.color ?? 0xff0000;
     }
-
-    ref.current!.color = new THREE.Color(color);
+    if (ref.current) {
+      ref.current.color.set(color);
+    }
   });
 
   return (

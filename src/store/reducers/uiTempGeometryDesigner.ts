@@ -46,6 +46,8 @@ export interface GDState {
   draggingElementAbsPath: string;
   globalSelected: GlobalSelected | null;
   clipbord: ClipboardObject | null;
+
+  forceCallSelector: boolean;
 }
 
 export interface INamedVector3WithColor {
@@ -85,7 +87,8 @@ const initialState: GDState = {
   draggingNewElement: null,
   draggingElementAbsPath: '',
   globalSelected: null,
-  clipbord: null
+  clipbord: null,
+  forceCallSelector: true
 };
 
 export const uitGeometryDesignerSlice = createSlice({
@@ -195,6 +198,10 @@ export const uitGeometryDesignerSlice = createSlice({
       action: PayloadAction<ConfirmDialogProps | undefined>
     ) => {
       state.gdDialogState.confirmDialogProps = action.payload;
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    setVisibility: (state: GDState) => {
+      state.forceCallSelector = !state.forceCallSelector;
     }
     /* setPointOffsetToolDialogProps: (
       state: GDState,
@@ -219,7 +226,8 @@ export const {
   setConfirmDialogProps,
   treeViewDragExpanded,
   setDraggingNewElement,
-  setDraggingElementAbsPath
+  setDraggingElementAbsPath,
+  setVisibility
   // setPointOffsetToolDialogProps
 } = uitGeometryDesignerSlice.actions;
 

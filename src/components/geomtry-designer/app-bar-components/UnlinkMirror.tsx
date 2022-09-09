@@ -3,8 +3,8 @@ import * as React from 'react';
 import MenuItem from '@mui/material/MenuItem';
 import {useDispatch, useSelector} from 'react-redux';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
-import {getElementByPath, MirrorError} from '@gd/IElements';
-import {isMirror} from '@gd/Elements';
+import {getElementByPath, MirrorError, isMirror} from '@gd/IElements';
+
 import store, {RootState} from '@app/store/store';
 
 import {setConfirmDialogProps} from '@store/reducers/uiTempGeometryDesigner';

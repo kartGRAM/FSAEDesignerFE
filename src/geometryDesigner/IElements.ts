@@ -279,6 +279,11 @@ export const isMirrorData = (element: IDataElement) => {
   return 'mirrorTo' in element;
 };
 
+export const isMirror = (element: IElement | null | undefined): boolean => {
+  if (!element) return false;
+  return !!element.meta?.mirror;
+};
+
 export const isElement = (element: any): element is IElement => {
   try {
     return 'isElement' in element;

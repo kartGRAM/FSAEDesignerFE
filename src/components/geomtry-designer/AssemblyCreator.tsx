@@ -20,6 +20,9 @@ export default function AssemblyCreactor() {
       const iAssembly = getAssembly(assembly);
       dispatch(setAssembly(iAssembly));
       dispatch(setCollectedAssembly(iAssembly.collectElements()));
+    } else {
+      dispatch(setAssembly(undefined));
+      dispatch(setCollectedAssembly(undefined));
     }
     // 実行時間を計測した処理
     const end = performance.now();

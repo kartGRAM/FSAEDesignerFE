@@ -4,8 +4,8 @@ import Dialog from '@mui/material/Dialog';
 import {useSelector, useDispatch} from 'react-redux';
 import {RootState} from '@store/store';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
-import {getElementByPath, isBodyOfFrame} from '@gd/IElements';
-import {isMirror} from '@gd/Elements';
+import {getElementByPath, isBodyOfFrame, isMirror} from '@gd/IElements';
+
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import DialogActions from '@mui/material/DialogActions';

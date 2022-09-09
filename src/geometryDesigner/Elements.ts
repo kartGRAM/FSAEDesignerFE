@@ -67,7 +67,8 @@ import {
   IDataTire,
   isDataTire,
   Meta,
-  assignMeta
+  assignMeta,
+  isMirror
 } from './IElements';
 
 export function getAssembly(assembly: IDataAssembly): IAssembly {
@@ -1772,11 +1773,6 @@ export function getDummyElement(): IAssembly {
     joints: []
   });
 }
-
-export const isMirror = (element: IElement | null | undefined): boolean => {
-  if (!element) return false;
-  return !!element.meta?.mirror;
-};
 
 const isDataElement = (params: any): params is IDataElement => {
   try {

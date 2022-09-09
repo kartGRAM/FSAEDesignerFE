@@ -5,8 +5,7 @@ import {useDispatch} from 'react-redux';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
 import {useFormik} from 'formik';
 import * as Yup from 'yup';
-import {IElement, isBodyOfFrame} from '@gd/IElements';
-import {isMirror} from '@gd/Elements';
+import {IElement, isBodyOfFrame, isMirror} from '@gd/IElements';
 
 export interface Props {
   element: IElement;
