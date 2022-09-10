@@ -96,12 +96,19 @@ const Vector = React.memo((props: Props) => {
   }, [focused, vector]);
 
   const ref = React.useRef<HTMLInputElement>(null);
+  const refOfVectorField = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     if (rename) {
       ref.current?.focus();
     }
   }, [rename]);
+
+  React.useEffect(() => {
+    if (point && point.point.nodeID === vector.nodeID && !focused) {
+      refOfVectorField.current?.focus();
+    }
+  }, [point]);
 
   const handleFocus = React.useCallback(() => {
     setFocused(true);
@@ -245,6 +252,7 @@ const Vector = React.memo((props: Props) => {
           }}
         >
           <ValueField
+            inputRef={refOfVectorField}
             disabled={disabled}
             onChange={handleChange}
             label="X"

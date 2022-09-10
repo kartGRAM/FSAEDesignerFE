@@ -28,8 +28,9 @@ const Body = (props: {element: IBody}) => {
   );
 
   useFrame(() => {
-    const isSelected =
-      store.getState().uitgd.selectedElementAbsPath === element.absPath;
+    const isSelected = element.absPath.includes(
+      store.getState().uitgd.selectedElementAbsPath
+    );
     let color = 0x00ffff;
     if (isSelected) {
       color = 0xffa500;

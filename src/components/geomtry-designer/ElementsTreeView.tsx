@@ -166,7 +166,7 @@ const ElementsTreeView = () => {
           '&::-webkit-scrollbar': {
             display: 'none'
           },
-          backgroundColor: alpha(numberToRgb(bgColor), 0.9),
+          backgroundColor: alpha(numberToRgb(bgColor), 0.7),
           backdropFilter: 'blur(3px)'
         }}
       >

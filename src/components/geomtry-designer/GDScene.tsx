@@ -1,11 +1,12 @@
 import React, {useRef, useEffect} from 'react';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
+import * as THREE from 'three';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {useSelector, Provider} from 'react-redux';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import store, {RootState} from '@store/store';
 import {Canvas} from '@react-three/fiber';
 import {OrbitControls} from '@react-three/drei';
-// import SelectedPoints from '@gdComponents/r3f-components/SelectedPoints';
 import CollectedAssembly from '@gdComponents/r3f-components/CollectedAssembly';
 
 let canvas: React.RefObject<HTMLCanvasElement>;
@@ -26,6 +27,7 @@ export function getScreenShot(): Blob | null {
 export default function GDScene() {
   canvas = useRef<HTMLCanvasElement>(null);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const bgColor = useSelector(
     (state: RootState) => state.uigd.present.backgroundColor
   );
@@ -58,20 +60,16 @@ export default function GDScene() {
         gl={{
           preserveDrawingBuffer: true
         }}
-        camera={{fov: 75, near: 1, far: 10000, position: [1500, 1500, 1500]}}
+        camera={{fov: 45, near: 1, far: 10000, position: [1500, 1500, 1500]}}
+        style={{background: '#222222'}}
       >
-        <color attach="background" args={[bgColor]} />
         {
+          // <color attach="background" args={[0xffffff]} />
           // <pointLight position={[10, 10, 10]} />
         }
         <axesHelper args={[50]} />
         <Provider store={store}>
           <CollectedAssembly />
-          {/* <mesh>
-            <boxGeometry />
-            <meshNormalMaterial />
-      </mesh> */}
-          {/* <SelectedPoints /> */}
         </Provider>
         <OrbitControls enableDamping={false} />
       </Canvas>
