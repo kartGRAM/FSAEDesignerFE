@@ -37,6 +37,10 @@ export interface DialogState {
   };
 }
 
+export interface GDSceneState {
+  projectionMode: 'Perspective' | 'Orthographic';
+}
+
 export interface GDState {
   backgroundColor: number;
   enabledColorDark: number;
@@ -47,6 +51,7 @@ export interface GDState {
   assemblyTreeViewState: IAssemblyTreeViewState;
   parameterConfigState: GDParameterConfigState;
   dialogState: DialogState;
+  gdSceneState: GDSceneState;
 }
 
 const initialState: GDState = {
@@ -83,6 +88,9 @@ const initialState: GDState = {
       x: null,
       y: null
     }
+  },
+  gdSceneState: {
+    projectionMode: 'Perspective'
   }
 };
 
@@ -114,6 +122,12 @@ export const uiGeometryDesignerSlice = createSlice({
       action: PayloadAction<{x: number | null; y: number | null}>
     ) => {
       state.dialogState.pointOffsetToolDialogInitialPosition = action.payload;
+    },
+    setProjectionMode: (
+      state: GDState,
+      action: PayloadAction<'Perspective' | 'Orthographic'>
+    ) => {
+      state.gdSceneState.projectionMode = action.payload;
     }
   }
 });
@@ -122,7 +136,8 @@ export const {
   resizePanel,
   kinematicParamsDefaultExpandedChange,
   dynamicParamsDefaultExpandedChange,
-  setPointOffsetToolDialogInitialPosition
+  setPointOffsetToolDialogInitialPosition,
+  setProjectionMode
 } = uiGeometryDesignerSlice.actions;
 
 export default uiGeometryDesignerSlice.reducer;
