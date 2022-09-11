@@ -112,11 +112,9 @@ function Dolly() {
       projectionMode === 'Perspective'
         ? [perspectiveCam.current, orthoCam.current]
         : [orthoCam.current, perspectiveCam.current];
-    const lookAtVector = new THREE.Vector3(0, 0, -1).applyQuaternion(
-      anotherCamera.quaternion
-    );
-    camera.lookAt(lookAtVector);
     camera.position.copy(anotherCamera.position);
+    camera.zoom = 1.0;
+    camera.quaternion.copy(anotherCamera.quaternion);
     set({camera});
   }, [projectionMode]);
   const perspectiveCam = useRef<THREE.PerspectiveCamera>(null!);
@@ -145,7 +143,7 @@ function Dolly() {
         name="2d"
         ref={orthoCam}
         position={[1500, 1500, 1500]}
-        zoom={0.5}
+        zoom={1}
         near={1}
         far={100000}
         left={-container.clientWidth / 2}
