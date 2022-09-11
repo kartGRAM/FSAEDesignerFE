@@ -5,6 +5,10 @@ import {instance} from '@app/utils/axios';
 import saveAs from '@gd/SaveAs';
 import {AxiosRequestConfig, AxiosPromise} from 'axios';
 import {RefetchOptions} from 'axios-hooks';
+import {
+  selectElement,
+  setSelectedPoint
+} from '@store/reducers/uiTempGeometryDesigner';
 
 export default function shortCutKeys(e: KeyboardEvent) {
   if (e.ctrlKey) {
@@ -24,7 +28,8 @@ export default function shortCutKeys(e: KeyboardEvent) {
         overwrite: true,
         updateDataFuncAxiosHooks: func
       });
-    } /* else if (e.key === 'c') {
+    }
+    /* else if (e.key === 'c') {
       console.log('ctrl-c');
       // e.preventDefault();
     } else if (e.key === 'x') {
@@ -34,5 +39,9 @@ export default function shortCutKeys(e: KeyboardEvent) {
       console.log('ctrl-v');
       // e.preventDefault();
     } */
+  }
+  if (e.key === 'Escape') {
+    store.dispatch(selectElement({absPath: ''}));
+    store.dispatch(setSelectedPoint(null));
   }
 }

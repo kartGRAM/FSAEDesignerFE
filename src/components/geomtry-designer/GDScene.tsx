@@ -12,10 +12,7 @@ import {
 import CollectedAssembly from '@gdComponents/r3f-components/CollectedAssembly';
 import {numberToRgb} from '@app/utils/helpers';
 
-import Toolbar from '@mui/material/Toolbar';
-import {alpha} from '@mui/material/styles';
-import Fit from '@gdComponents/r3f-components/toolbar-components/Fit';
-import ProjectionMode from '@gdComponents/r3f-components/toolbar-components/ProjectionMode';
+import GDSceneToolBar from '@gdComponents/r3f-components/toolbar-components/GDSceneToolBar';
 
 let canvas: React.RefObject<HTMLCanvasElement>;
 
@@ -64,18 +61,7 @@ export default function GDScene() {
       className="h-100 d-flex justify-content-center
     align-items-start"
     >
-      <Toolbar
-        sx={{
-          minHeight: '24px!important',
-          justifyContent: 'center',
-          zIndex: 1,
-          background: alpha('#FFFFFF', 0.0)
-        }}
-      >
-        <ProjectionMode />
-        <Fit />
-      </Toolbar>
-
+      <GDSceneToolBar />
       <Canvas
         linear
         flat
@@ -119,14 +105,6 @@ function Dolly() {
   }, [projectionMode]);
   const perspectiveCam = useRef<THREE.PerspectiveCamera>(null!);
   const orthoCam = useRef<THREE.OrthographicCamera>(null!);
-  /* useFrame((state) => {
-    const camera =
-      projectionMode === 'Perspective'
-        ? new THREE.PerspectiveCamera(45, 1, 1, 10000)
-        : new THREE.OrthographicCamera(0, 1000, 0, 1000, 1, 10000);
-    state.camera.projectionMatrix.copy(camera.projectionMatrix);
-    state.camera.updateProjectionMatrix();
-  }); */
 
   const container = document.getElementById('gdCanvasContainer')!;
   return (

@@ -25,8 +25,8 @@ export default function ProjectionMode() {
     <Tooltip
       title={
         projectionMode === 'Perspective'
-          ? 'Change to Orthographic View Mode'
-          : 'Change to Perspective View Mode'
+          ? 'Switch to Orthographic View Mode'
+          : 'Switch to Perspective View Mode'
       }
       componentsProps={{
         popper: {
