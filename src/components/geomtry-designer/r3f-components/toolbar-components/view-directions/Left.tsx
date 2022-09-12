@@ -11,7 +11,10 @@ export default function Left(props: {onClick?: () => void}) {
       componentsProps={{
         popper: {
           sx: {
-            zIndex: 12500000000
+            zIndex: 1250000000,
+            '&:hover': {
+              display: 'none'
+            }
           }
         }
       }}

@@ -11,7 +11,10 @@ export default function Right(props: {onClick?: () => void}) {
       componentsProps={{
         popper: {
           sx: {
-            zIndex: 12500000000
+            zIndex: 12500000000,
+            '&:hover': {
+              display: 'none'
+            }
           }
         }
       }}
