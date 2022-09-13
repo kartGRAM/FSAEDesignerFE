@@ -17,6 +17,8 @@ import Isometric from './Isometric';
 
 export default function ViewDirections() {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  // eslint-disable-next-line no-undef
+  const [current, setCurrent] = React.useState<JSX.Element>(<Front />);
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -26,7 +28,7 @@ export default function ViewDirections() {
   };
   return (
     <>
-      <Front />
+      {current}
       <Tooltip
         title="View Directions"
         componentsProps={{
@@ -69,30 +71,65 @@ export default function ViewDirections() {
         <Grid container spacing={100}>
           <Grid container item spacing={1}>
             <Grid item xs={4}>
-              <Isometric />
+              <Isometric
+                onClick={() => {
+                  setCurrent(<Isometric />);
+                  handleClose();
+                }}
+              />
             </Grid>
             <Grid item xs={4}>
-              <Top />
+              <Top
+                onClick={() => {
+                  setCurrent(<Top />);
+                  handleClose();
+                }}
+              />
             </Grid>
           </Grid>
         </Grid>
         <Grid container item spacing={1}>
           <Grid item xs={4}>
-            <Left />
+            <Left
+              onClick={() => {
+                setCurrent(<Left />);
+                handleClose();
+              }}
+            />
           </Grid>
           <Grid item xs={4}>
-            <Front />
+            <Front
+              onClick={() => {
+                setCurrent(<Front />);
+                handleClose();
+              }}
+            />
           </Grid>
           <Grid item xs={4}>
-            <Right />
+            <Right
+              onClick={() => {
+                setCurrent(<Right />);
+                handleClose();
+              }}
+            />
           </Grid>
         </Grid>
         <Grid container item spacing={1}>
           <Grid item xs={4}>
-            <Rear />
+            <Rear
+              onClick={() => {
+                setCurrent(<Rear />);
+                handleClose();
+              }}
+            />
           </Grid>
           <Grid item xs={4}>
-            <Bottom />
+            <Bottom
+              onClick={() => {
+                setCurrent(<Bottom />);
+                handleClose();
+              }}
+            />
           </Grid>
         </Grid>
       </Menu>
