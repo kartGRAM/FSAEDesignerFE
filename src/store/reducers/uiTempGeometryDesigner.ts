@@ -57,6 +57,7 @@ export interface INamedVector3WithColor {
 
 export interface GDSceneState {
   selectedPoint: INamedVector3WithColor[] | null;
+  fitToScreenNotify: boolean | null;
 }
 
 export interface GDDialogState {
@@ -73,7 +74,8 @@ const initialState: GDState = {
   selectedElementAbsPath: '',
   sidePanelState: {selectedTab: 'elements'},
   gdSceneState: {
-    selectedPoint: null
+    selectedPoint: null,
+    fitToScreenNotify: null
   },
   gdDialogState: {
     formulaDialogOpen: false,
@@ -199,6 +201,10 @@ export const uitGeometryDesignerSlice = createSlice({
     ) => {
       state.gdDialogState.confirmDialogProps = action.payload;
     },
+    fitToScreen: (state: GDState) => {
+      state.gdSceneState.fitToScreenNotify =
+        !state.gdSceneState.fitToScreenNotify;
+    },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setVisibility: (state: GDState) => {
       state.forceCallSelector = !state.forceCallSelector;
@@ -227,7 +233,8 @@ export const {
   treeViewDragExpanded,
   setDraggingNewElement,
   setDraggingElementAbsPath,
-  setVisibility
+  setVisibility,
+  fitToScreen
   // setPointOffsetToolDialogProps
 } = uitGeometryDesignerSlice.actions;
 

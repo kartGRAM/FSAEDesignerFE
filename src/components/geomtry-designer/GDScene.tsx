@@ -4,15 +4,12 @@ import * as THREE from 'three';
 import {useFrame, Canvas, useThree} from '@react-three/fiber';
 import {useSelector, Provider} from 'react-redux';
 import store, {RootState} from '@store/store';
-import {
-  OrbitControls,
-  PerspectiveCamera,
-  OrthographicCamera
-} from '@react-three/drei';
+import {PerspectiveCamera, OrthographicCamera} from '@react-three/drei';
 import CollectedAssembly from '@gdComponents/r3f-components/CollectedAssembly';
 import {numberToRgb} from '@app/utils/helpers';
 
 import GDSceneToolBar from '@gdComponents/r3f-components/toolbar-components/GDSceneToolBar';
+import {OrbitControls} from './r3f-components/OrbitControls';
 
 let canvas: React.RefObject<HTMLCanvasElement>;
 
@@ -34,6 +31,9 @@ export default function GDScene() {
 
   const bgColor = useSelector(
     (state: RootState) => state.uigd.present.backgroundColor
+  );
+  const fit = useSelector(
+    (state: RootState) => state.uitgd.gdSceneState.fitToScreenNotify
   );
 
   useEffect(() => {
@@ -65,12 +65,16 @@ export default function GDScene() {
       <Canvas
         linear
         flat
-        orthographic
         ref={canvas}
         gl={{
           preserveDrawingBuffer: true
         }}
-        camera={{fov: 45, near: 1, far: 10000, position: [1500, 1500, 1500]}}
+        camera={{
+          fov: 45,
+          near: 1,
+          far: 10000,
+          position: [1500, 1500, 1500]
+        }}
         style={{background: numberToRgb(bgColor), position: 'absolute'}}
       >
         {
@@ -80,9 +84,11 @@ export default function GDScene() {
         <Provider store={store}>
           <CollectedAssembly />
 
-          <Dolly />
+          {
+            // <Dolly />
+          }
         </Provider>
-        <OrbitControls enableDamping={false} />
+        <OrbitControls enabled={fit!!} />
       </Canvas>
     </div>
   );
