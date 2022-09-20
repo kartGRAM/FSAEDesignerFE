@@ -3,6 +3,7 @@ import {INamedVector3} from '@gd/INamedValues';
 import {ConfirmDialogProps} from '@gdComponents/dialog-components/ConfirmDialog';
 import {SaveAsDialogProps} from '@gdComponents/dialog-components/SaveAsDialog';
 import {IAssembly, Elements} from '@gd/IElements';
+import {Quaternion} from 'three';
 // import {PointOffsetToolDialogProps} from '@gdComponents/dialog-components/PointOffsetToolDialog';
 
 export type SidePanelTab =
@@ -57,7 +58,8 @@ export interface INamedVector3WithColor {
 
 export interface GDSceneState {
   selectedPoint: INamedVector3WithColor[] | null;
-  fitToScreenNotify: boolean | null;
+  viewDirection: Quaternion | null | undefined;
+  toggle: boolean;
 }
 
 export interface GDDialogState {
@@ -75,7 +77,8 @@ const initialState: GDState = {
   sidePanelState: {selectedTab: 'elements'},
   gdSceneState: {
     selectedPoint: null,
-    fitToScreenNotify: null
+    viewDirection: undefined,
+    toggle: true
   },
   gdDialogState: {
     formulaDialogOpen: false,
@@ -201,9 +204,12 @@ export const uitGeometryDesignerSlice = createSlice({
     ) => {
       state.gdDialogState.confirmDialogProps = action.payload;
     },
-    fitToScreen: (state: GDState) => {
-      state.gdSceneState.fitToScreenNotify =
-        !state.gdSceneState.fitToScreenNotify;
+    setViewDirection: (
+      state: GDState,
+      action: PayloadAction<Quaternion | null>
+    ) => {
+      state.gdSceneState.viewDirection = action.payload;
+      state.gdSceneState.toggle = !state.gdSceneState.toggle;
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setVisibility: (state: GDState) => {
@@ -234,7 +240,7 @@ export const {
   setDraggingNewElement,
   setDraggingElementAbsPath,
   setVisibility,
-  fitToScreen
+  setViewDirection
   // setPointOffsetToolDialogProps
 } = uitGeometryDesignerSlice.actions;
 

@@ -33,7 +33,7 @@ export default function GDScene() {
     (state: RootState) => state.uigd.present.backgroundColor
   );
   const fit = useSelector(
-    (state: RootState) => state.uitgd.gdSceneState.fitToScreenNotify
+    (state: RootState) => state.uitgd.gdSceneState.toggle
   );
 
   useEffect(() => {

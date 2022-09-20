@@ -12,7 +12,6 @@ import * as THREE from 'three';
 import {Box} from '@react-three/drei';
 import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
-import {useSpring} from 'react-spring';
 import {OrbitControls as OrbitControlsImpl} from './OrbitControlsImpl';
 
 export type OrbitControlsProps = Omit<
@@ -49,8 +48,8 @@ export const OrbitControls = React.forwardRef<
     },
     ref
   ) => {
-    const fit = useSelector(
-      (state: RootState) => state.uitgd.gdSceneState.fitToScreenNotify
+    const viewDirectionTo = useSelector(
+      (state: RootState) => state.uitgd.gdSceneState.viewDirection
     );
     const invalidate = useThree((state) => state.invalidate);
     const defaultCamera = useThree((state) => state.camera);
@@ -72,9 +71,6 @@ export const OrbitControls = React.forwardRef<
     );
     const boxRef = React.useRef<THREE.Mesh>(null!);
     const moveTo = React.useRef<THREE.Vector3 | null>(null);
-    const viewDirectionTo = React.useRef<THREE.Quaternion>(
-      new THREE.Quaternion()
-    );
 
     useFrame(() => {
       if (controls.enabled) controls.update();
@@ -113,10 +109,10 @@ export const OrbitControls = React.forwardRef<
     }, [makeDefault, controls]);
 
     React.useEffect(() => {
-      if (fit === null) return;
-      const {camera} = get();
-      fitToScreen(camera.quaternion);
-    }, [camera, fit]);
+      if (viewDirectionTo === undefined) return;
+      const to = viewDirectionTo ?? get().camera.quaternion;
+      fitToScreen(to);
+    }, [camera, viewDirectionTo]);
 
     const fitToScreen = (quaternion: THREE.Quaternion) => {
       const {scene, camera} = get();
@@ -227,19 +223,18 @@ export const OrbitControls = React.forwardRef<
           moveToY.y,
           moveToY.z > moveToX.z ? moveToY.z : moveToX.z
         );
-        viewDirectionTo.current = quaternion.clone();
         moveTo.current.applyQuaternion(quaternion).add(camera.position);
       }
     };
 
     useFrame(() => {
       const {camera} = get();
-      if (moveTo.current) {
+      if (moveTo.current && viewDirectionTo !== undefined) {
         camera.position.lerp(moveTo.current, 0.2);
-        camera.quaternion.slerp(viewDirectionTo.current, 0.1);
+        if (viewDirectionTo) camera.quaternion.slerp(viewDirectionTo, 0.1);
         if (camera.position.distanceTo(moveTo.current) < 0.1) {
           camera.position.copy(moveTo.current);
-          camera.quaternion.copy(viewDirectionTo.current);
+          if (viewDirectionTo) camera.quaternion.copy(viewDirectionTo);
           moveTo.current = null;
         }
       }
