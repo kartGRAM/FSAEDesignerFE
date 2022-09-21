@@ -4,6 +4,8 @@ import {ConfirmDialogProps} from '@gdComponents/dialog-components/ConfirmDialog'
 import {SaveAsDialogProps} from '@gdComponents/dialog-components/SaveAsDialog';
 import {IAssembly, Elements} from '@gd/IElements';
 import {Quaternion} from 'three';
+import {RootState} from '@react-three/fiber';
+import {GetState} from 'zustand';
 // import {PointOffsetToolDialogProps} from '@gdComponents/dialog-components/PointOffsetToolDialog';
 
 export type SidePanelTab =
@@ -58,8 +60,9 @@ export interface INamedVector3WithColor {
 
 export interface GDSceneState {
   selectedPoint: INamedVector3WithColor[] | null;
-  viewDirection: Quaternion | null | undefined;
+  viewDirection: Quaternion | undefined;
   toggle: boolean;
+  get: GetState<RootState> | null;
 }
 
 export interface GDDialogState {
@@ -78,7 +81,8 @@ const initialState: GDState = {
   gdSceneState: {
     selectedPoint: null,
     viewDirection: undefined,
-    toggle: true
+    toggle: true,
+    get: null
   },
   gdDialogState: {
     formulaDialogOpen: false,
@@ -204,12 +208,15 @@ export const uitGeometryDesignerSlice = createSlice({
     ) => {
       state.gdDialogState.confirmDialogProps = action.payload;
     },
-    setViewDirection: (
-      state: GDState,
-      action: PayloadAction<Quaternion | null>
-    ) => {
+    setViewDirection: (state: GDState, action: PayloadAction<Quaternion>) => {
       state.gdSceneState.viewDirection = action.payload;
       state.gdSceneState.toggle = !state.gdSceneState.toggle;
+    },
+    setGDSceneGetThree: (
+      state: GDState,
+      action: PayloadAction<GetState<RootState>>
+    ) => {
+      state.gdSceneState.get = action.payload;
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setVisibility: (state: GDState) => {
@@ -240,7 +247,8 @@ export const {
   setDraggingNewElement,
   setDraggingElementAbsPath,
   setVisibility,
-  setViewDirection
+  setViewDirection,
+  setGDSceneGetThree
   // setPointOffsetToolDialogProps
 } = uitGeometryDesignerSlice.actions;
 

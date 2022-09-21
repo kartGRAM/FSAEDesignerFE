@@ -69,7 +69,7 @@ export const OrbitControls = React.forwardRef<
       () => new OrbitControlsImpl(explCamera),
       [explCamera]
     );
-    const boxRef = React.useRef<THREE.Mesh>(null!);
+    // const boxRef = React.useRef<THREE.Mesh>(null!);
     const moveTo = React.useRef<THREE.Vector3 | null>(null);
 
     useFrame(() => {
@@ -110,8 +110,7 @@ export const OrbitControls = React.forwardRef<
 
     React.useEffect(() => {
       if (viewDirectionTo === undefined) return;
-      const to = viewDirectionTo ?? get().camera.quaternion;
-      fitToScreen(to);
+      fitToScreen(viewDirectionTo);
     }, [camera, viewDirectionTo]);
 
     const fitToScreen = (quaternion: THREE.Quaternion) => {
@@ -119,7 +118,7 @@ export const OrbitControls = React.forwardRef<
       const assembly = scene.getObjectByName('collectedAssembly');
       if (!assembly) return;
       const box3 = new THREE.Box3().setFromObject(assembly);
-      const dimensions = new THREE.Vector3().subVectors(box3.max, box3.min);
+      /* const dimensions = new THREE.Vector3().subVectors(box3.max, box3.min);
       const boxGeo = new THREE.BoxBufferGeometry(
         dimensions.x,
         dimensions.y,
@@ -130,7 +129,7 @@ export const OrbitControls = React.forwardRef<
         dimensions.addVectors(box3.min, box3.max).multiplyScalar(0.5)
       );
       boxGeo.applyMatrix4(matrix);
-      boxRef.current.geometry.copy(boxGeo);
+      boxRef.current.geometry.copy(boxGeo); */
 
       if (isPerspectiveCamera(camera)) {
         const fov = ((camera.fov / 2) * Math.PI) / 180;
@@ -243,9 +242,11 @@ export const OrbitControls = React.forwardRef<
     return (
       <>
         <primitive ref={ref} object={controls} {...restProps} />
-        <Box ref={boxRef}>
+        {/*
+          <Box ref={boxRef}>
           <meshBasicMaterial color="hotpink" wireframe wireframeLinewidth={3} />
         </Box>
+        */}
       </>
     );
   }

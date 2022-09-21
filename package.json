@@ -80,7 +80,8 @@
     "three": "^0.142.0",
     "uuid": "8.3.2",
     "web-vitals": "2.1.4",
-    "yup": "0.32.11"
+    "yup": "0.32.11",
+    "zustand": "^4.1.1"
   },
   "devDependencies": {
     "@types/jest": "^28.1.3",

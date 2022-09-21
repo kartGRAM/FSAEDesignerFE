@@ -2,13 +2,14 @@
 import React, {useRef, useEffect} from 'react';
 import * as THREE from 'three';
 import {useFrame, Canvas, useThree} from '@react-three/fiber';
-import {useSelector, Provider} from 'react-redux';
+import {useSelector, Provider, useDispatch} from 'react-redux';
 import store, {RootState} from '@store/store';
 import {PerspectiveCamera, OrthographicCamera} from '@react-three/drei';
 import CollectedAssembly from '@gdComponents/r3f-components/CollectedAssembly';
 import {numberToRgb} from '@app/utils/helpers';
 
 import GDSceneToolBar from '@gdComponents/r3f-components/toolbar-components/GDSceneToolBar';
+import {setGDSceneGetThree} from '@store/reducers/uiTempGeometryDesigner';
 import {OrbitControls} from './r3f-components/OrbitControls';
 
 let canvas: React.RefObject<HTMLCanvasElement>;
@@ -83,10 +84,8 @@ export default function GDScene() {
         <axesHelper args={[50]} />
         <Provider store={store}>
           <CollectedAssembly />
-          <OrbitControls enabled={fit!!} />
-          {
-            // <Dolly />
-          }
+          <OrbitControls enabled={false && fit!!} />
+          <Dolly />
         </Provider>
       </Canvas>
     </div>
@@ -97,7 +96,12 @@ function Dolly() {
   const projectionMode = useSelector(
     (state: RootState) => state.uigd.present.gdSceneState.projectionMode
   );
-  const {set} = useThree();
+  const set = useThree((state) => state.set);
+  const get = useThree((state) => state.get);
+  const dispatch = useDispatch();
+  React.useEffect(() => {
+    dispatch(setGDSceneGetThree(get));
+  }, [get]);
   React.useEffect(() => {
     const [camera, anotherCamera] =
       projectionMode === 'Perspective'

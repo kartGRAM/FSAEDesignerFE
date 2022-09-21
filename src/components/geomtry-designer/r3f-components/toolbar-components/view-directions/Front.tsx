@@ -2,9 +2,14 @@ import React from 'react';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import SvgIcon from '@mui/material/SvgIcon';
+import {setViewDirection} from '@store/reducers/uiTempGeometryDesigner';
+import {Quaternion} from 'three';
+import {useDispatch} from 'react-redux';
 
 export default function Front(props: {onClick?: () => void}) {
   const {onClick} = props;
+
+  const dispatch = useDispatch();
   return (
     <Tooltip
       title="Front View"
@@ -19,7 +24,13 @@ export default function Front(props: {onClick?: () => void}) {
         }
       }}
     >
-      <IconButton sx={{padding: 0.5}} onClick={onClick}>
+      <IconButton
+        sx={{padding: 0.5}}
+        onClick={() => {
+          dispatch(setViewDirection(new Quaternion(0, 0, 0, 1)));
+          if (onClick) onClick();
+        }}
+      >
         <SvgIcon sx={{color: '#cccccc'}}>
           <svg
             version="1.1"

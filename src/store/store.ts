@@ -46,12 +46,16 @@ const store = configureStore({
           'dataGeometryDesigner/updateAssembly',
           'uitGeometryDesigner/setAssembly',
           'uitGeometryDesigner/setCollectedAssembly',
-          'uitGeometryDesigner/setSelectedPoint'
+          'uitGeometryDesigner/setGDSceneGetThree',
+          'uitGeometryDesigner/setSelectedPoint',
+          'uitGeometryDesigner/setViewDirection'
         ],
         ignoredPaths: [
           `uitgd.assembly`,
           'uitgd.collectedAssembly',
-          'uitgd.gdSceneState.selectedPoint'
+          'uitgd.gdSceneState.selectedPoint',
+          'uitgd.gdSceneState.get',
+          'uitgd.gdSceneState.viewDirection'
         ],
         warnAfter: 128
       },

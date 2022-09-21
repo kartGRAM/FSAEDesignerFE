@@ -2,9 +2,13 @@ import React from 'react';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import SvgIcon from '@mui/material/SvgIcon';
+import {setViewDirection} from '@store/reducers/uiTempGeometryDesigner';
+import {Quaternion} from 'three';
+import {useDispatch} from 'react-redux';
 
 export default function Bottom(props: {onClick?: () => void}) {
   const {onClick} = props;
+  const dispatch = useDispatch();
   return (
     <Tooltip
       title="Bottom View"
@@ -19,7 +23,17 @@ export default function Bottom(props: {onClick?: () => void}) {
         }
       }}
     >
-      <IconButton sx={{padding: 0.5}} onClick={onClick}>
+      <IconButton
+        sx={{padding: 0.5}}
+        onClick={() => {
+          dispatch(
+            setViewDirection(
+              new Quaternion(Math.sqrt(2) / 2, 0, 0, Math.sqrt(2) / 2)
+            )
+          );
+          if (onClick) onClick();
+        }}
+      >
         <SvgIcon sx={{color: '#cccccc'}}>
           <svg
             version="1.1"
