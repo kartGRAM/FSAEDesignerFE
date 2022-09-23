@@ -3,8 +3,9 @@ import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import SvgIcon from '@mui/material/SvgIcon';
 import {setViewDirection} from '@store/reducers/uiTempGeometryDesigner';
-import {Quaternion} from 'three';
+import {Spherical} from 'three';
 import {useDispatch} from 'react-redux';
+import {getCameraQuaternion} from '@utils/three';
 
 export default function Top(props: {onClick?: () => void}) {
   const {onClick} = props;
@@ -28,7 +29,8 @@ export default function Top(props: {onClick?: () => void}) {
         onClick={() => {
           dispatch(
             setViewDirection(
-              new Quaternion(-Math.sqrt(2) / 2, 0, 0, Math.sqrt(2) / 2)
+              getCameraQuaternion(new Spherical(1, 0, 0))
+              // new Quaternion(-Math.sqrt(2) / 2, 0, 0, Math.sqrt(2) / 2)
             )
           );
           if (onClick) onClick();

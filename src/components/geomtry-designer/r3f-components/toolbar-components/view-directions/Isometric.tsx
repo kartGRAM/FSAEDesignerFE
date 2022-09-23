@@ -3,8 +3,10 @@ import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import SvgIcon from '@mui/material/SvgIcon';
 import {setViewDirection} from '@store/reducers/uiTempGeometryDesigner';
-import {Quaternion} from 'three';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import {Quaternion, Vector3} from 'three';
 import {useDispatch} from 'react-redux';
+import {getCameraQuaternion} from '@utils/three';
 
 export default function Isometric(props: {onClick?: () => void}) {
   const {onClick} = props;
@@ -28,12 +30,13 @@ export default function Isometric(props: {onClick?: () => void}) {
         onClick={() => {
           dispatch(
             setViewDirection(
-              new Quaternion(
+              getCameraQuaternion(new Vector3(-1, -1, -1))
+              /* new Quaternion(
                 -0.27984814233312133,
                 0.3647051996310008,
                 0.11591689595929511,
                 0.8804762392171493
-              )
+              ) */
             )
           );
           if (onClick) onClick();

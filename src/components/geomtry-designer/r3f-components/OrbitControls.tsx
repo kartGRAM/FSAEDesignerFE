@@ -69,7 +69,7 @@ export const OrbitControls = React.forwardRef<
       () => new OrbitControlsImpl(explCamera),
       [explCamera]
     );
-    // const boxRef = React.useRef<THREE.Mesh>(null!);
+    const boxRef = React.useRef<THREE.Mesh>(null!);
     const moveTo = React.useRef<THREE.Vector3 | null>(null);
 
     useFrame(() => {
@@ -114,11 +114,15 @@ export const OrbitControls = React.forwardRef<
     }, [camera, viewDirectionTo]);
 
     const fitToScreen = (quaternion: THREE.Quaternion) => {
+      controls.enabled = false;
+      // console.log(quaternion);
       const {scene, camera} = get();
       const assembly = scene.getObjectByName('collectedAssembly');
       if (!assembly) return;
       const box3 = new THREE.Box3().setFromObject(assembly);
-      /* const dimensions = new THREE.Vector3().subVectors(box3.max, box3.min);
+      // controls.panOffset = new Vector3();
+      const corners = getCorners(box3);
+      const dimensions = new THREE.Vector3().subVectors(box3.max, box3.min);
       const boxGeo = new THREE.BoxBufferGeometry(
         dimensions.x,
         dimensions.y,
@@ -129,12 +133,11 @@ export const OrbitControls = React.forwardRef<
         dimensions.addVectors(box3.min, box3.max).multiplyScalar(0.5)
       );
       boxGeo.applyMatrix4(matrix);
-      boxRef.current.geometry.copy(boxGeo); */
+      boxRef.current.geometry.copy(boxGeo);
 
       if (isPerspectiveCamera(camera)) {
         const fov = ((camera.fov / 2) * Math.PI) / 180;
         // const viewMatrix = camera.matrixWorldInverse;
-        const corners = getCorners(box3);
         const cornersView = corners.map((point) =>
           // point.clone().applyMatrix4(viewMatrix)
           point
@@ -223,6 +226,14 @@ export const OrbitControls = React.forwardRef<
           moveToY.z > moveToX.z ? moveToY.z : moveToX.z
         );
         moveTo.current.applyQuaternion(quaternion).add(camera.position);
+
+        const objectCenter = box3.max.clone().add(box3.min).multiplyScalar(0.5);
+        const cameraCenterVec = new Vector3(0, 0, -1).applyQuaternion(
+          quaternion
+        );
+        const cameraToObjectCenter = objectCenter.clone().sub(moveTo.current);
+        const s = cameraToObjectCenter.dot(cameraCenterVec);
+        controls.target = cameraCenterVec.multiplyScalar(s).add(moveTo.current);
       }
     };
 
@@ -235,6 +246,7 @@ export const OrbitControls = React.forwardRef<
           camera.position.copy(moveTo.current);
           if (viewDirectionTo) camera.quaternion.copy(viewDirectionTo);
           moveTo.current = null;
+          controls.enabled = true;
         }
       }
     });
@@ -242,11 +254,9 @@ export const OrbitControls = React.forwardRef<
     return (
       <>
         <primitive ref={ref} object={controls} {...restProps} />
-        {/*
-          <Box ref={boxRef}>
+        <Box ref={boxRef}>
           <meshBasicMaterial color="hotpink" wireframe wireframeLinewidth={3} />
         </Box>
-        */}
       </>
     );
   }

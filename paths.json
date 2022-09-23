@@ -6,6 +6,7 @@
       "@gdComponents/*": ["src/components/geomtry-designer/*"],
       "@gd/*": ["src/geometryDesigner/*"],
       "@app/*": ["src/*"],
+      "@utils/*": ["src/utils/*"],
       "@store/*": ["src/store/*"],
       "@store": ["src/store/"],
       "@components": ["src/components/index"],

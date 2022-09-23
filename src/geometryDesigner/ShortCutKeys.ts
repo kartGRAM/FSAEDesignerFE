@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import store from '@store/store';
 import {ActionCreators} from 'redux-undo';
@@ -5,10 +6,13 @@ import {instance} from '@app/utils/axios';
 import saveAs from '@gd/SaveAs';
 import {AxiosRequestConfig, AxiosPromise} from 'axios';
 import {RefetchOptions} from 'axios-hooks';
+import {Quaternion, Spherical} from 'three';
 import {
   selectElement,
-  setSelectedPoint
+  setSelectedPoint,
+  setViewDirection
 } from '@store/reducers/uiTempGeometryDesigner';
+import {getCameraQuaternion} from '@utils/three';
 
 export default function shortCutKeys(e: KeyboardEvent) {
   if (e.ctrlKey) {
@@ -44,4 +48,57 @@ export default function shortCutKeys(e: KeyboardEvent) {
     store.dispatch(selectElement({absPath: ''}));
     store.dispatch(setSelectedPoint(null));
   }
+  if (e.key === 'F8') {
+    const {get} = store.getState().uitgd.gdSceneState;
+    if (get) {
+      const {camera} = get();
+      const qc = camera.quaternion;
+      let maxNorm = Number.MIN_SAFE_INTEGER;
+      let q: Quaternion | null = null;
+      directions.forEach((direction) => {
+        const norm = qc.dot(direction);
+        if (maxNorm < norm) {
+          maxNorm = norm;
+          q = direction.clone();
+        }
+      });
+      if (q) {
+        store.dispatch(setViewDirection(q));
+      }
+    }
+  }
 }
+
+const directions = [
+  // Bottom
+  getCameraQuaternion(new Spherical(1, Math.PI, 0)),
+  getCameraQuaternion(new Spherical(1, Math.PI, 0)).conjugate(),
+  // Front
+  new Quaternion(0, 0, 0, 1),
+  // Left
+  new Quaternion(0, -Math.sqrt(2) / 2, 0, Math.sqrt(2) / 2),
+  new Quaternion(0, Math.sqrt(2) / 2, 0, Math.sqrt(2) / 2),
+  // Rear
+  new Quaternion(0, 1, 0, 0),
+  new Quaternion(0, -1, 0, 0),
+  // Right
+  new Quaternion(0, Math.sqrt(2) / 2, 0, Math.sqrt(2) / 2),
+  new Quaternion(0, -Math.sqrt(2) / 2, 0, Math.sqrt(2) / 2),
+  // Top
+  getCameraQuaternion(new Spherical(1, 0, 0)),
+  getCameraQuaternion(new Spherical(1, 0, 0)).conjugate(),
+  // OtherTop Or Bottom
+  // ジンバルロックを避けるためgetCameraQuaternionを使用する
+  getCameraQuaternion(new Spherical(1, 0, Math.PI / 2)),
+  getCameraQuaternion(new Spherical(1, 0, Math.PI / 2)).conjugate(),
+  getCameraQuaternion(new Spherical(1, 0, Math.PI)),
+  getCameraQuaternion(new Spherical(1, 0, Math.PI)).conjugate(),
+  getCameraQuaternion(new Spherical(1, 0, Math.PI * 1.5)),
+  getCameraQuaternion(new Spherical(1, 0, Math.PI * 1.5)).conjugate(),
+  getCameraQuaternion(new Spherical(1, Math.PI, Math.PI / 2)),
+  getCameraQuaternion(new Spherical(1, Math.PI, Math.PI / 2)).conjugate(),
+  getCameraQuaternion(new Spherical(1, Math.PI, Math.PI)),
+  getCameraQuaternion(new Spherical(1, Math.PI, Math.PI)).conjugate(),
+  getCameraQuaternion(new Spherical(1, Math.PI, Math.PI * 1.5)),
+  getCameraQuaternion(new Spherical(1, Math.PI, Math.PI * 1.5)).conjugate()
+];

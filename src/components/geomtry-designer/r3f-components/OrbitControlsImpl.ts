@@ -49,12 +49,6 @@ class OrbitControls extends EventDispatcher {
 
   maxAzimuthAngle = Infinity; // radians
 
-  // Set to true to enable damping (inertia)
-  // If damping is enabled, you must call controls.update() in your animation loop
-  enableDamping = false;
-
-  dampingFactor = 0.05;
-
   // This option actually enables dollying in and out; left as "zoom" for backwards compatibility.
   // Set to false to disable zooming
   enableZoom = true;
@@ -141,6 +135,7 @@ class OrbitControls extends EventDispatcher {
     this.setPolarAngle = (value: number): void => {
       // use modulo wrapping to safeguard value
       let phi = moduloWrapAround(value, 2 * Math.PI);
+
       let currentPhi = spherical.phi;
 
       // convert to the equivalent shortest angle
@@ -234,13 +229,8 @@ class OrbitControls extends EventDispatcher {
           rotateLeft(getAutoRotationAngle());
         }
 
-        if (scope.enableDamping) {
-          spherical.theta += sphericalDelta.theta * scope.dampingFactor;
-          spherical.phi += sphericalDelta.phi * scope.dampingFactor;
-        } else {
-          spherical.theta += sphericalDelta.theta;
-          spherical.phi += sphericalDelta.phi;
-        }
+        spherical.theta += sphericalDelta.theta;
+        spherical.phi += sphericalDelta.phi;
 
         // restrict theta to be between desired limits
 
@@ -280,11 +270,7 @@ class OrbitControls extends EventDispatcher {
 
         // move target to panned location
 
-        if (scope.enableDamping === true) {
-          scope.target.addScaledVector(panOffset, scope.dampingFactor);
-        } else {
-          scope.target.add(panOffset);
-        }
+        scope.target.add(panOffset);
 
         offset.setFromSpherical(spherical);
 
@@ -295,16 +281,9 @@ class OrbitControls extends EventDispatcher {
 
         scope.object.lookAt(scope.target);
 
-        if (scope.enableDamping === true) {
-          sphericalDelta.theta *= 1 - scope.dampingFactor;
-          sphericalDelta.phi *= 1 - scope.dampingFactor;
+        sphericalDelta.set(0, 0, 0);
 
-          panOffset.multiplyScalar(1 - scope.dampingFactor);
-        } else {
-          sphericalDelta.set(0, 0, 0);
-
-          panOffset.set(0, 0, 0);
-        }
+        panOffset.set(0, 0, 0);
 
         scale = 1;
 
@@ -393,13 +372,13 @@ class OrbitControls extends EventDispatcher {
     const sphericalDelta = new Spherical();
 
     let scale = 1;
-    const panOffset = new Vector3();
     let zoomChanged = false;
 
     const rotateStart = new Vector2();
     const rotateEnd = new Vector2();
     const rotateDelta = new Vector2();
 
+    const panOffset = new Vector3();
     const panStart = new Vector2();
     const panEnd = new Vector2();
     const panDelta = new Vector2();

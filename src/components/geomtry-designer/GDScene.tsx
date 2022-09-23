@@ -84,7 +84,7 @@ export default function GDScene() {
         <axesHelper args={[50]} />
         <Provider store={store}>
           <CollectedAssembly />
-          <OrbitControls enabled={false && fit!!} />
+          <OrbitControls enabled={true || fit!!} />
           <Dolly />
         </Provider>
       </Canvas>
