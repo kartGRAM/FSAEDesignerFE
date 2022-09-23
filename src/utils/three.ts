@@ -1,5 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {Vector3, Quaternion, Spherical} from 'three';
+import * as THREE from 'three';
 
 export const isVector3 = (value: any): value is Vector3 => {
   try {
@@ -32,3 +33,19 @@ export const getCameraQuaternion = (
   // クオータニオンの合成
   return q.multiply(q2);
 };
+
+export function isPerspectiveCamera(
+  camera: THREE.Camera | undefined
+): camera is THREE.PerspectiveCamera {
+  return (
+    camera instanceof THREE.PerspectiveCamera && camera.isPerspectiveCamera
+  );
+}
+
+export function isOrthographicCamera(
+  camera: THREE.Camera | undefined
+): camera is THREE.OrthographicCamera {
+  return (
+    camera instanceof THREE.OrthographicCamera && camera.isOrthographicCamera
+  );
+}

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   EventManager,
   ReactThreeFiber,
@@ -9,9 +8,10 @@ import * as React from 'react';
 import type {Camera, Event} from 'three';
 import {Vector3} from 'three';
 import * as THREE from 'three';
-import {Box} from '@react-three/drei';
+// import {Box} from '@react-three/drei';
 import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
+import {isPerspectiveCamera, isOrthographicCamera} from '@utils/three';
 import {OrbitControls as OrbitControlsImpl} from './OrbitControlsImpl';
 
 export type OrbitControlsProps = Omit<
@@ -69,8 +69,9 @@ export const OrbitControls = React.forwardRef<
       () => new OrbitControlsImpl(explCamera),
       [explCamera]
     );
-    const boxRef = React.useRef<THREE.Mesh>(null!);
+    // const boxRef = React.useRef<THREE.Mesh>(null!);
     const moveTo = React.useRef<THREE.Vector3 | null>(null);
+    const zoomTo = React.useRef<number | null>(null);
 
     useFrame(() => {
       if (controls.enabled) controls.update();
@@ -114,15 +115,16 @@ export const OrbitControls = React.forwardRef<
     }, [camera, viewDirectionTo]);
 
     const fitToScreen = (quaternion: THREE.Quaternion) => {
-      controls.enabled = false;
       // console.log(quaternion);
       const {scene, camera} = get();
       const assembly = scene.getObjectByName('collectedAssembly');
       if (!assembly) return;
+      if (!assembly.children.length) return;
+      controls.enabled = false;
       const box3 = new THREE.Box3().setFromObject(assembly);
       // controls.panOffset = new Vector3();
       const corners = getCorners(box3);
-      const dimensions = new THREE.Vector3().subVectors(box3.max, box3.min);
+      /* const dimensions = new THREE.Vector3().subVectors(box3.max, box3.min);
       const boxGeo = new THREE.BoxBufferGeometry(
         dimensions.x,
         dimensions.y,
@@ -133,13 +135,11 @@ export const OrbitControls = React.forwardRef<
         dimensions.addVectors(box3.min, box3.max).multiplyScalar(0.5)
       );
       boxGeo.applyMatrix4(matrix);
-      boxRef.current.geometry.copy(boxGeo);
+      boxRef.current.geometry.copy(boxGeo); */
 
       if (isPerspectiveCamera(camera)) {
         const fov = ((camera.fov / 2) * Math.PI) / 180;
-        // const viewMatrix = camera.matrixWorldInverse;
         const cornersView = corners.map((point) =>
-          // point.clone().applyMatrix4(viewMatrix)
           point
             .clone()
             .sub(camera.position)
@@ -166,7 +166,7 @@ export const OrbitControls = React.forwardRef<
         let lowerCorner = new Vector3();
         let rightCorner = new Vector3();
         let leftCorner = new Vector3();
-        cornersView.forEach((point, i) => {
+        cornersView.forEach((point) => {
           const pointY = point.clone();
           pointY.x = 0;
           const vYMaxL = vYMax.clone().multiplyScalar(vYMax.dot(pointY));
@@ -234,6 +234,57 @@ export const OrbitControls = React.forwardRef<
         const cameraToObjectCenter = objectCenter.clone().sub(moveTo.current);
         const s = cameraToObjectCenter.dot(cameraCenterVec);
         controls.target = cameraCenterVec.multiplyScalar(s).add(moveTo.current);
+      } else if (isOrthographicCamera(camera)) {
+        const boundingSphereR = box3.max.clone().sub(box3.min).length() * 1.5;
+        const objectCenter = box3.max.clone().add(box3.min).multiplyScalar(0.5);
+        // まずすべてのオブジェクトが確実に見える位置に持ってくる
+        const defaultPosition = new Vector3(0, 0, 1)
+          .applyQuaternion(quaternion)
+          .multiplyScalar(boundingSphereR);
+
+        const cornersView = corners.map((point) =>
+          // point.clone().applyMatrix4(viewMatrix)
+          point
+            .clone()
+            .sub(defaultPosition)
+            .applyQuaternion(quaternion.clone().invert())
+        );
+
+        let yMax = Number.MIN_SAFE_INTEGER;
+        let yMin = Number.MAX_SAFE_INTEGER;
+        let xMax = Number.MIN_SAFE_INTEGER;
+        let xMin = Number.MAX_SAFE_INTEGER;
+        cornersView.forEach((point) => {
+          if (point.y > yMax) {
+            yMax = point.y;
+          }
+          if (point.y < yMin) {
+            yMin = point.y;
+          }
+          if (point.x > xMax) {
+            xMax = point.x;
+          }
+          if (point.x < xMin) {
+            xMin = point.x;
+          }
+        });
+
+        const deltaY = (yMax + yMin) * 0.5;
+        const deltaX = (xMax + xMin) * 0.5;
+        moveTo.current = new Vector3(deltaX, deltaY, 0);
+        moveTo.current.applyQuaternion(quaternion).add(defaultPosition);
+        const width = camera.right - camera.left;
+        const height = camera.top - camera.bottom;
+        const zoomX = (width / (xMax - xMin)) * 0.9;
+        const zoomY = (height / (yMax - yMin)) * 0.9;
+        zoomTo.current = zoomX < zoomY ? zoomX : zoomY;
+
+        const cameraCenterVec = new Vector3(0, 0, -1).applyQuaternion(
+          quaternion
+        );
+        const cameraToObjectCenter = objectCenter.clone().sub(moveTo.current);
+        const s = cameraToObjectCenter.dot(cameraCenterVec);
+        controls.target = cameraCenterVec.multiplyScalar(s).add(moveTo.current);
       }
     };
 
@@ -242,10 +293,17 @@ export const OrbitControls = React.forwardRef<
       if (moveTo.current && viewDirectionTo !== undefined) {
         camera.position.lerp(moveTo.current, 0.2);
         if (viewDirectionTo) camera.quaternion.slerp(viewDirectionTo, 0.1);
+        if (zoomTo.current) {
+          camera.zoom = THREE.MathUtils.lerp(camera.zoom, zoomTo.current, 0.2);
+          camera.updateProjectionMatrix();
+        }
         if (camera.position.distanceTo(moveTo.current) < 0.1) {
           camera.position.copy(moveTo.current);
           if (viewDirectionTo) camera.quaternion.copy(viewDirectionTo);
+          if (zoomTo.current) camera.zoom = zoomTo.current;
+          camera.updateProjectionMatrix();
           moveTo.current = null;
+          zoomTo.current = null;
           controls.enabled = true;
         }
       }
@@ -254,9 +312,11 @@ export const OrbitControls = React.forwardRef<
     return (
       <>
         <primitive ref={ref} object={controls} {...restProps} />
+        {/*
         <Box ref={boxRef}>
           <meshBasicMaterial color="hotpink" wireframe wireframeLinewidth={3} />
         </Box>
+        */}
       </>
     );
   }
@@ -276,12 +336,4 @@ function getCorners(box3: THREE.Box3): THREE.Vector3[] {
     new THREE.Vector3(low.x, high.y, high.z),
     new THREE.Vector3(high.x, high.y, high.z)
   ];
-}
-
-function isPerspectiveCamera(
-  camera: THREE.Camera | undefined
-): camera is THREE.PerspectiveCamera {
-  return (
-    camera instanceof THREE.PerspectiveCamera && camera.isPerspectiveCamera
-  );
 }

@@ -73,23 +73,27 @@ export const DirectionLength = (props: Props) => {
       nx: Yup.string()
         .required('required')
         .gdFormulaIsValid()
-        .test('optionalDetail', 'Zero norm is prohibited.', function (value) {
-          if (!value) return false;
-          // eslint-disable-next-line react/no-this-in-sfc
-          tool.nx.setValue(value);
-          // eslint-disable-next-line react/no-this-in-sfc
-          tool.ny.setValue(this.parent.ny);
-          // eslint-disable-next-line react/no-this-in-sfc
-          tool.nz.setValue(this.parent.nz);
-          if (
-            tool.nx.value === 0 &&
-            tool.ny.value === 0 &&
-            tool.nz.value === 0
-          ) {
-            return false;
+        .test(
+          'optionalDetail',
+          'Zero norm is prohibited.',
+          function test(value) {
+            if (!value) return false;
+            // eslint-disable-next-line react/no-this-in-sfc
+            tool.nx.setValue(value);
+            // eslint-disable-next-line react/no-this-in-sfc
+            tool.ny.setValue(this.parent.ny);
+            // eslint-disable-next-line react/no-this-in-sfc
+            tool.nz.setValue(this.parent.nz);
+            if (
+              tool.nx.value === 0 &&
+              tool.ny.value === 0 &&
+              tool.nz.value === 0
+            ) {
+              return false;
+            }
+            return true;
           }
-          return true;
-        }),
+        ),
       ny: Yup.string().required('required').gdFormulaIsValid(),
       nz: Yup.string().required('required').gdFormulaIsValid(),
       l: Yup.string().required('required').gdFormulaIsValid(),

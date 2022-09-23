@@ -312,6 +312,7 @@ class OrbitControls extends EventDispatcher {
     // https://github.com/mrdoob/three.js/issues/20575
     this.connect = (domElement: HTMLElement): void => {
       if ((domElement as any) === document) {
+        // eslint-disable-next-line no-console
         console.error(
           'THREE.OrbitControls: "document" should not be used as the target "domElement". Please use "renderer.domElement" instead.'
         );
@@ -493,6 +494,7 @@ class OrbitControls extends EventDispatcher {
           );
         } else {
           // camera neither orthographic nor perspective
+          // eslint-disable-next-line no-console
           console.warn(
             'WARNING: OrbitControls.js encountered an unknown camera type - pan disabled.'
           );
@@ -518,6 +520,7 @@ class OrbitControls extends EventDispatcher {
         scope.object.updateProjectionMatrix();
         zoomChanged = true;
       } else {
+        // eslint-disable-next-line no-console
         console.warn(
           'WARNING: OrbitControls.js encountered an unknown camera type - dolly/zoom disabled.'
         );
@@ -542,6 +545,7 @@ class OrbitControls extends EventDispatcher {
         scope.object.updateProjectionMatrix();
         zoomChanged = true;
       } else {
+        // eslint-disable-next-line no-console
         console.warn(
           'WARNING: OrbitControls.js encountered an unknown camera type - dolly/zoom disabled.'
         );
