@@ -64,7 +64,17 @@ export default function shortCutKeys(e: KeyboardEvent) {
       });
       if (q) {
         store.dispatch(setViewDirection(q));
+        e.preventDefault();
       }
+    }
+  }
+  if (e.key === 'F7') {
+    const {get} = store.getState().uitgd.gdSceneState;
+    if (get) {
+      const {camera} = get();
+      const qc = camera.quaternion;
+      store.dispatch(setViewDirection(qc.clone()));
+      e.preventDefault();
     }
   }
 }
