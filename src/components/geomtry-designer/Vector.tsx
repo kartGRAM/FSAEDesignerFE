@@ -29,6 +29,7 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import {alpha} from '@mui/material/styles';
 import {PointOffsetToolDialog} from '@gdComponents/dialog-components/PointOffsetToolDialog';
+import Target from '@gdComponents/svgs/Target';
 
 import {numberToRgb, toFixedNoZero} from '@app/utils/helpers';
 
@@ -285,6 +286,7 @@ const Vector = React.memo((props: Props) => {
             error={formik.touched.z && Boolean(formik.errors.z)}
             helperText={formik.touched.z && formik.errors.z}
           />
+          <Target title="Pick from existing points" />
         </Box>
       </form>
       <Accordion

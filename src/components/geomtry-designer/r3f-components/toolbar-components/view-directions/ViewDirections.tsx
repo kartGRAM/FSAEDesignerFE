@@ -67,18 +67,19 @@ export default function ViewDirections() {
       >
         <Grid container spacing={100}>
           <Grid container item spacing={1}>
+            <Grid item xs={4} />
             <Grid item xs={4}>
-              <Isometric
+              <Top
                 onClick={() => {
-                  setCurrent(<Isometric />);
+                  setCurrent(<Top />);
                   handleClose();
                 }}
               />
             </Grid>
             <Grid item xs={4}>
-              <Top
+              <Isometric
                 onClick={() => {
-                  setCurrent(<Top />);
+                  setCurrent(<Isometric />);
                   handleClose();
                 }}
               />
