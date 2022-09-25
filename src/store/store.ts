@@ -48,14 +48,18 @@ const store = configureStore({
           'uitGeometryDesigner/setCollectedAssembly',
           'uitGeometryDesigner/setGDSceneGetThree',
           'uitGeometryDesigner/setSelectedPoint',
-          'uitGeometryDesigner/setViewDirection'
+          'uitGeometryDesigner/setViewDirection',
+          'uitGeometryDesigner/setCfepOnSelected',
+          'setCopyFromExistingPointsDialogProps'
         ],
         ignoredPaths: [
           `uitgd.assembly`,
           'uitgd.collectedAssembly',
           'uitgd.gdSceneState.selectedPoint',
           'uitgd.gdSceneState.get',
-          'uitgd.gdSceneState.viewDirection'
+          'uitgd.gdSceneState.viewDirection',
+          'uitgd.gdDialogState.copyFromExistingPointsDialogProps',
+          'uitgd.gdDialogState.copyFromExistingPointsOnSelected'
         ],
         warnAfter: 128
       },

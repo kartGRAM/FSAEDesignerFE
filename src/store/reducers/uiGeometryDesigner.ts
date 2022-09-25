@@ -39,6 +39,7 @@ export interface DialogState {
 
 export interface GDSceneState {
   projectionMode: 'Perspective' | 'Orthographic';
+  componentVisualizationMode: 'ShowAllNodes' | 'WireFrameOnly';
 }
 
 export interface GDState {
@@ -90,6 +91,7 @@ const initialState: GDState = {
     }
   },
   gdSceneState: {
+    componentVisualizationMode: 'ShowAllNodes',
     projectionMode: 'Perspective'
   }
 };
@@ -128,6 +130,12 @@ export const uiGeometryDesignerSlice = createSlice({
       action: PayloadAction<'Perspective' | 'Orthographic'>
     ) => {
       state.gdSceneState.projectionMode = action.payload;
+    },
+    setComponentVisualizationMode: (
+      state: GDState,
+      action: PayloadAction<'ShowAllNodes' | 'WireFrameOnly'>
+    ) => {
+      state.gdSceneState.componentVisualizationMode = action.payload;
     }
   }
 });
@@ -137,7 +145,8 @@ export const {
   kinematicParamsDefaultExpandedChange,
   dynamicParamsDefaultExpandedChange,
   setPointOffsetToolDialogInitialPosition,
-  setProjectionMode
+  setProjectionMode,
+  setComponentVisualizationMode
 } = uiGeometryDesignerSlice.actions;
 
 export default uiGeometryDesignerSlice.reducer;

@@ -5,6 +5,7 @@ import Fit from './Fit';
 import ProjectionMode from './ProjectionMode';
 import Assemble from './Assemble';
 import ViewDirections from './view-directions/ViewDirections';
+import ComponentVisualizationMode from './ComponentVisualizationMode';
 
 export default function GDSceneToolBar() {
   return (
@@ -20,6 +21,7 @@ export default function GDSceneToolBar() {
       <ProjectionMode />
       <Fit />
       <ViewDirections />
+      <ComponentVisualizationMode />
     </Toolbar>
   );
 }
