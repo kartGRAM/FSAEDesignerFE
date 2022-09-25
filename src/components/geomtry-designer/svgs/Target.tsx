@@ -20,7 +20,6 @@ export default function Target(props: {onClick?: () => void; title: string}) {
       }}
     >
       <IconButton
-        sx={{padding: 0.5}}
         onClick={() => {
           if (onClick) onClick();
         }}

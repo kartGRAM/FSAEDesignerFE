@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 import React, {useState} from 'react';
 import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
 import Box from '@mui/material/Box';
@@ -6,7 +7,10 @@ import {DeltaXYZ} from '@gd/NamedValues';
 import {INamedVector3, IPointOffsetTool} from '@gd/INamedValues';
 import Typography from '@mui/material/Typography';
 import {useDispatch, useSelector} from 'react-redux';
-import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
+import {
+  setSelectedPoint,
+  setUIDisabled
+} from '@store/reducers/uiTempGeometryDesigner';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
 import {RootState} from '@store/store';
 import {useFormik} from 'formik';
@@ -30,6 +34,8 @@ import Paper from '@mui/material/Paper';
 import {alpha} from '@mui/material/styles';
 import {PointOffsetToolDialog} from '@gdComponents/dialog-components/PointOffsetToolDialog';
 import Target from '@gdComponents/svgs/Target';
+import Move from '@gdComponents/svgs/Move';
+import Direction from '@gdComponents/svgs/Direction';
 
 import {numberToRgb, toFixedNoZero} from '@app/utils/helpers';
 
@@ -38,10 +44,19 @@ export interface Props {
   removable?: boolean;
   onRemove?: () => void;
   disabled?: boolean;
+  disableSceneButton?: boolean;
+  directionMode?: boolean;
 }
 
 const Vector = React.memo((props: Props) => {
-  const {vector, removable, onRemove, disabled} = props;
+  const {
+    vector,
+    removable,
+    onRemove,
+    disabled,
+    disableSceneButton,
+    directionMode
+  } = props;
   const dispatch = useDispatch();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const point = (
@@ -286,7 +301,21 @@ const Vector = React.memo((props: Props) => {
             error={formik.touched.z && Boolean(formik.errors.z)}
             helperText={formik.touched.z && formik.errors.z}
           />
-          <Target title="Pick from existing points" />
+          {!disableSceneButton ? (
+            !directionMode ? (
+              <>
+                <Target
+                  title="Copy from existing points"
+                  onClick={() => {
+                    dispatch(setUIDisabled(true));
+                  }}
+                />
+                <Move title="Move this point dynamically" />
+              </>
+            ) : (
+              <Direction title="Copy from existing normal vector." />
+            )
+          ) : null}
         </Box>
       </form>
       <Accordion
