@@ -11,6 +11,7 @@ import {numberToRgb} from '@app/utils/helpers';
 import GDSceneToolBar from '@gdComponents/r3f-components/toolbar-components/GDSceneToolBar';
 import {setGDSceneGetThree} from '@store/reducers/uiTempGeometryDesigner';
 import {OrbitControls} from './r3f-components/OrbitControls';
+import SelectedPoints from './r3f-components/SelectedPoints';
 
 let canvas: React.RefObject<HTMLCanvasElement>;
 
@@ -85,6 +86,7 @@ export default function GDScene() {
         <Provider store={store}>
           <CollectedAssembly />
           <OrbitControls enabled={true || fit!!} />
+          <SelectedPoints />
           <Dolly />
         </Provider>
       </Canvas>
