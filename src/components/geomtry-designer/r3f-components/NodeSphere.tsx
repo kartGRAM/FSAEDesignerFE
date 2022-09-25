@@ -44,6 +44,11 @@ const NodeSphere = (props: {node: INamedVector3}) => {
     }
     if (isElement(node.parent) && meshRef.current) {
       meshRef.current.visible = node.parent.visible.value ?? false;
+      if (!isSelected) {
+        const visualizationMode =
+          store.getState().uigd.present.gdSceneState.componentVisualizationMode;
+        meshRef.current.visible = visualizationMode === 'ShowAllNodes';
+      }
     }
   });
 
