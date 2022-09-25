@@ -8,6 +8,7 @@ import {
 } from '@app/store/reducers/uiTempGeometryDesigner';
 import confirmIfChanged from '@app/utils/confirmIfChanged';
 import {Frame} from '@gd/Elements';
+import {setAssembled} from '@store/reducers/uiTempGeometryDesigner';
 
 import {newAssembly} from '@store/reducers/dataGeometryDesigner';
 
@@ -22,6 +23,7 @@ export default function Close(props: Props) {
     confirmIfChanged(dispatch, () => {
       const reset = async () => {
         dispatch(selectElement({absPath: ''}));
+        dispatch(setAssembled(false));
         await dispatch(setAssembly(undefined));
         if (text) {
           const frame = new Frame({name: 'newFrame', children: []});

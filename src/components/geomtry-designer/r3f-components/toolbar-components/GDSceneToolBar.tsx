@@ -3,6 +3,7 @@ import Toolbar from '@mui/material/Toolbar';
 import {alpha} from '@mui/material/styles';
 import Fit from './Fit';
 import ProjectionMode from './ProjectionMode';
+import Assemble from './Assemble';
 import ViewDirections from './view-directions/ViewDirections';
 
 export default function GDSceneToolBar() {
@@ -15,6 +16,7 @@ export default function GDSceneToolBar() {
         background: alpha('#FFFFFF', 0.0)
       }}
     >
+      <Assemble />
       <ProjectionMode />
       <Fit />
       <ViewDirections />

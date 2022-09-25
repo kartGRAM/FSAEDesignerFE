@@ -2,8 +2,9 @@ import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {INamedVector3} from '@gd/INamedValues';
 import {ConfirmDialogProps} from '@gdComponents/dialog-components/ConfirmDialog';
 import {SaveAsDialogProps} from '@gdComponents/dialog-components/SaveAsDialog';
+import {CopyFromExistingPointsDialogProps} from '@gdComponents/dialog-components/CopyFromExistingPointsDialog';
 import {IAssembly, Elements} from '@gd/IElements';
-import {Quaternion} from 'three';
+import {Quaternion, Vector3} from 'three';
 import {RootState} from '@react-three/fiber';
 import {GetState} from 'zustand';
 // import {PointOffsetToolDialogProps} from '@gdComponents/dialog-components/PointOffsetToolDialog';
@@ -62,10 +63,13 @@ export interface GDSceneState {
   selectedPoint: INamedVector3WithColor[] | null;
   viewDirection: Quaternion | undefined;
   toggle: boolean;
+  assembled: boolean;
   get: GetState<RootState> | null;
 }
 
 export interface GDDialogState {
+  copyFromExistingPointsDialogProps: CopyFromExistingPointsDialogProps;
+  copyFromExistingPointsOnSelected: ((v: Vector3) => void) | null;
   formulaDialogOpen: boolean;
   openDialogOpen: boolean;
   saveAsDialogProps?: SaveAsDialogProps;
@@ -81,10 +85,13 @@ const initialState: GDState = {
   gdSceneState: {
     selectedPoint: null,
     viewDirection: undefined,
-    toggle: true,
+    toggle: true, // その打ち消す
+    assembled: false,
     get: null
   },
   gdDialogState: {
+    copyFromExistingPointsDialogProps: {open: false, onSelected: null},
+    copyFromExistingPointsOnSelected: null,
     formulaDialogOpen: false,
     openDialogOpen: false,
     saveAsDialogProps: undefined,
@@ -208,6 +215,18 @@ export const uitGeometryDesignerSlice = createSlice({
     ) => {
       state.gdDialogState.confirmDialogProps = action.payload;
     },
+    setCopyFromExistingPointsDialogProps: (
+      state: GDState,
+      action: PayloadAction<CopyFromExistingPointsDialogProps>
+    ) => {
+      state.gdDialogState.copyFromExistingPointsDialogProps = action.payload;
+    },
+    setCfepOnSelected: (
+      state: GDState,
+      action: PayloadAction<((v: Vector3) => void) | null>
+    ) => {
+      state.gdDialogState.copyFromExistingPointsOnSelected = action.payload;
+    },
     setViewDirection: (state: GDState, action: PayloadAction<Quaternion>) => {
       state.gdSceneState.viewDirection = action.payload;
       state.gdSceneState.toggle = !state.gdSceneState.toggle;
@@ -217,6 +236,9 @@ export const uitGeometryDesignerSlice = createSlice({
       action: PayloadAction<GetState<RootState>>
     ) => {
       state.gdSceneState.get = action.payload;
+    },
+    setAssembled: (state: GDState, action: PayloadAction<boolean>) => {
+      state.gdSceneState.assembled = action.payload;
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setVisibility: (state: GDState) => {
@@ -243,10 +265,13 @@ export const {
   setOpenDialogOpen,
   setSaveAsDialogProps,
   setConfirmDialogProps,
+  setCopyFromExistingPointsDialogProps,
+  setCfepOnSelected,
   treeViewDragExpanded,
   setDraggingNewElement,
   setDraggingElementAbsPath,
   setVisibility,
+  setAssembled,
   setViewDirection,
   setGDSceneGetThree
   // setPointOffsetToolDialogProps

@@ -57,6 +57,17 @@ const NodeSphere = (props: {node: INamedVector3}) => {
       }}
       onPointerEnter={() => setShow(true)} // see note 1
       onPointerLeave={() => setShow(false)} // see note 1
+      onClick={() => {
+        const onSelected =
+          store.getState().uitgd.gdDialogState.copyFromExistingPointsOnSelected;
+        if (onSelected) {
+          const v = node.value;
+          if (isElement(node.parent)) {
+            v.add(node.parent.position.value);
+          }
+          onSelected(v);
+        }
+      }} // see note 1
     >
       <meshBasicMaterial color={0x00ff00} ref={materialRef} />
       {show ? (
@@ -64,6 +75,7 @@ const NodeSphere = (props: {node: INamedVector3}) => {
           <Paper
             elevation={3}
             sx={{
+              userSelect: 'none',
               transform: 'translate3d(20px, -50%, 0)',
               paddingTop: 0.7,
               paddingBottom: 0.7,
@@ -73,7 +85,7 @@ const NodeSphere = (props: {node: INamedVector3}) => {
                 content: '""',
                 position: 'absolute',
                 top: '50%',
-                left: '-20px',
+                left: '-10px',
                 height: '1px',
                 width: '40px',
                 background: 'white'

@@ -10,7 +10,8 @@ import {Quaternion, Spherical} from 'three';
 import {
   selectElement,
   setSelectedPoint,
-  setViewDirection
+  setViewDirection,
+  setCopyFromExistingPointsDialogProps
 } from '@store/reducers/uiTempGeometryDesigner';
 import {getCameraQuaternion} from '@utils/three';
 
@@ -45,9 +46,19 @@ export default function shortCutKeys(e: KeyboardEvent) {
     } */
   }
   if (e.key === 'Escape') {
+    if (
+      store.getState().uitgd.gdDialogState.copyFromExistingPointsDialogProps
+        .open
+    ) {
+      store.dispatch(
+        setCopyFromExistingPointsDialogProps({open: false, onSelected: null})
+      );
+      return;
+    }
     store.dispatch(selectElement({absPath: ''}));
     store.dispatch(setSelectedPoint(null));
   }
+
   if (e.key === 'F8') {
     const {get} = store.getState().uitgd.gdSceneState;
     if (get) {
