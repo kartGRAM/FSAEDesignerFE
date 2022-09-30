@@ -9,7 +9,8 @@ import Typography from '@mui/material/Typography';
 import {useDispatch, useSelector} from 'react-redux';
 import {
   setSelectedPoint,
-  setCopyFromExistingPointsDialogProps
+  setCopyFromExistingPointsDialogProps,
+  setMovePointDialogProps
 } from '@store/reducers/uiTempGeometryDesigner';
 import {isElement} from '@gd/IElements';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
@@ -324,7 +325,25 @@ const Vector = React.memo((props: Props) => {
                     );
                   }}
                 />
-                <Move title="Move this point dynamically" />
+                <Move
+                  title="Move this point dynamically"
+                  onClick={() => {
+                    dispatch(
+                      setMovePointDialogProps({
+                        open: true,
+                        target: vector,
+                        onMoved: (delta) => {
+                          const v = vector.value;
+                          v.add(delta);
+                          formik.setFieldValue('x', toFixedNoZero(v.x, 3));
+                          formik.setFieldValue('y', toFixedNoZero(v.y, 3));
+                          formik.setFieldValue('z', toFixedNoZero(v.z, 3));
+                          setTimeout(formik.handleSubmit, 0);
+                        }
+                      })
+                    );
+                  }}
+                />
               </>
             ) : (
               <Direction title="Copy from existing normal vector." />

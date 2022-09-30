@@ -4,6 +4,7 @@ import {OpenDialog} from '@gdComponents/dialog-components/OpenDialog';
 import ConfirmDialog from '@gdComponents/dialog-components/ConfirmDialog';
 import {SaveAsDialog} from '@gdComponents/dialog-components/SaveAsDialog';
 import {CopyFromExistingPointsDialog} from '@gdComponents/dialog-components/CopyFromExistingPointsDialog';
+import {MovePointDialog} from '@gdComponents/dialog-components/MovePointDialog';
 
 import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
@@ -30,6 +31,7 @@ export default function DialogRoot() {
       {saveAsDialogProps ? <SaveAsDialog {...saveAsDialogProps} /> : null}
       <ConfirmDialog />
       <CopyFromExistingPointsDialog />
+      <MovePointDialog />
     </>
   );
 }

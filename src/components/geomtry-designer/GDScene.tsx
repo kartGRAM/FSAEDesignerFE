@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, {useRef, useEffect} from 'react';
 import * as THREE from 'three';
-import {useFrame, Canvas, useThree} from '@react-three/fiber';
+import {Canvas, useThree} from '@react-three/fiber';
 import {useSelector, Provider, useDispatch} from 'react-redux';
 import store, {RootState} from '@store/store';
 import {PerspectiveCamera, OrthographicCamera} from '@react-three/drei';
@@ -10,8 +9,11 @@ import {numberToRgb} from '@app/utils/helpers';
 
 import GDSceneToolBar from '@gdComponents/r3f-components/toolbar-components/GDSceneToolBar';
 import {setGDSceneGetThree} from '@store/reducers/uiTempGeometryDesigner';
+
 import {OrbitControls} from './r3f-components/OrbitControls';
 import SelectedPoints from './r3f-components/SelectedPoints';
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 
 let canvas: React.RefObject<HTMLCanvasElement>;
 
@@ -34,8 +36,8 @@ export default function GDScene() {
   const bgColor = useSelector(
     (state: RootState) => state.uigd.present.backgroundColor
   );
-  const fit = useSelector(
-    (state: RootState) => state.uitgd.gdSceneState.toggle
+  const orbitControlsEnabled = useSelector(
+    (state: RootState) => state.uitgd.gdSceneState.orbitControlsEnabled
   );
 
   useEffect(() => {
@@ -85,7 +87,7 @@ export default function GDScene() {
         <axesHelper args={[50]} />
         <Provider store={store}>
           <CollectedAssembly />
-          <OrbitControls enabled={true || fit!!} />
+          <OrbitControls enabled={orbitControlsEnabled} />
           <SelectedPoints />
           <Dolly />
         </Provider>

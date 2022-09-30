@@ -3,6 +3,7 @@ import {INamedVector3} from '@gd/INamedValues';
 import {ConfirmDialogProps} from '@gdComponents/dialog-components/ConfirmDialog';
 import {SaveAsDialogProps} from '@gdComponents/dialog-components/SaveAsDialog';
 import {CopyFromExistingPointsDialogProps} from '@gdComponents/dialog-components/CopyFromExistingPointsDialog';
+import {MovePointDialogProps} from '@gdComponents/dialog-components/MovePointDialog';
 import {IAssembly, Elements} from '@gd/IElements';
 import {Quaternion, Vector3} from 'three';
 import {RootState} from '@react-three/fiber';
@@ -62,6 +63,7 @@ export interface INamedVector3WithColor {
 export interface GDSceneState {
   selectedPoint: INamedVector3WithColor[] | null;
   viewDirection: Quaternion | undefined;
+  orbitControlsEnabled: boolean;
   toggle: boolean;
   assembled: boolean;
   get: GetState<RootState> | null;
@@ -70,6 +72,8 @@ export interface GDSceneState {
 export interface GDDialogState {
   copyFromExistingPointsDialogProps: CopyFromExistingPointsDialogProps;
   copyFromExistingPointsOnSelected: ((v: Vector3) => void) | null;
+  movePointDialogProps: MovePointDialogProps;
+  movePointOnMoved: ((delta: Vector3) => void) | null;
   formulaDialogOpen: boolean;
   openDialogOpen: boolean;
   saveAsDialogProps?: SaveAsDialogProps;
@@ -83,6 +87,7 @@ const initialState: GDState = {
   selectedElementAbsPath: '',
   sidePanelState: {selectedTab: 'elements'},
   gdSceneState: {
+    orbitControlsEnabled: true,
     selectedPoint: null,
     viewDirection: undefined,
     toggle: true, // その打ち消す
@@ -92,6 +97,8 @@ const initialState: GDState = {
   gdDialogState: {
     copyFromExistingPointsDialogProps: {open: false, onSelected: null},
     copyFromExistingPointsOnSelected: null,
+    movePointDialogProps: {open: false, target: null, onMoved: null},
+    movePointOnMoved: null, // そのうちけす
     formulaDialogOpen: false,
     openDialogOpen: false,
     saveAsDialogProps: undefined,
@@ -227,6 +234,18 @@ export const uitGeometryDesignerSlice = createSlice({
     ) => {
       state.gdDialogState.copyFromExistingPointsOnSelected = action.payload;
     },
+    setMovePointDialogProps: (
+      state: GDState,
+      action: PayloadAction<MovePointDialogProps>
+    ) => {
+      state.gdDialogState.movePointDialogProps = action.payload;
+    },
+    setMovePointOnMoved: (
+      state: GDState,
+      action: PayloadAction<((delta: Vector3) => void) | null>
+    ) => {
+      state.gdDialogState.movePointOnMoved = action.payload;
+    },
     setViewDirection: (state: GDState, action: PayloadAction<Quaternion>) => {
       state.gdSceneState.viewDirection = action.payload;
       state.gdSceneState.toggle = !state.gdSceneState.toggle;
@@ -239,6 +258,12 @@ export const uitGeometryDesignerSlice = createSlice({
     },
     setAssembled: (state: GDState, action: PayloadAction<boolean>) => {
       state.gdSceneState.assembled = action.payload;
+    },
+    setOrbitControlsEnabled: (
+      state: GDState,
+      action: PayloadAction<boolean>
+    ) => {
+      state.gdSceneState.orbitControlsEnabled = action.payload;
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setVisibility: (state: GDState) => {
@@ -267,11 +292,14 @@ export const {
   setConfirmDialogProps,
   setCopyFromExistingPointsDialogProps,
   setCfepOnSelected,
+  setMovePointDialogProps,
+  setMovePointOnMoved,
   treeViewDragExpanded,
   setDraggingNewElement,
   setDraggingElementAbsPath,
   setVisibility,
   setAssembled,
+  setOrbitControlsEnabled,
   setViewDirection,
   setGDSceneGetThree
   // setPointOffsetToolDialogProps
