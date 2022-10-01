@@ -74,7 +74,9 @@ const NodeSphere = (props: {node: INamedVector3}) => {
       onDoubleClick={(e) => {
         handleOnDoubleClick(e);
       }}
-      onPointerEnter={() => setShow(true)} // see note 1
+      onPointerEnter={() => {
+        if (meshRef.current?.visible) setShow(true);
+      }}
       onPointerLeave={() => setShow(false)} // see note 1
       onClick={() => {
         const onSelected =

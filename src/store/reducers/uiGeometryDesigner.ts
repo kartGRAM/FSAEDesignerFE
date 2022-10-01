@@ -38,6 +38,7 @@ export interface DialogState {
 }
 
 export interface GDSceneState {
+  assemblyMode: 'FixedFrame' | 'FixTiresToBeGrounded';
   projectionMode: 'Perspective' | 'Orthographic';
   componentVisualizationMode: 'ShowAllNodes' | 'WireFrameOnly';
 }
@@ -91,6 +92,7 @@ const initialState: GDState = {
     }
   },
   gdSceneState: {
+    assemblyMode: 'FixedFrame',
     componentVisualizationMode: 'ShowAllNodes',
     projectionMode: 'Perspective'
   }
