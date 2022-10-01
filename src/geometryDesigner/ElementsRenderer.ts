@@ -33,7 +33,7 @@ export const render = (element: IElement, scene: THREE.Scene): void => {
   const trans = (p: Vector3) => {
     const tmp = position
       .clone()
-      .add(p.clone().applyMatrix3(rotation))
+      .add(p.clone().applyQuaternion(rotation))
       .applyMatrix3(coMatrix);
     return tmp;
   };

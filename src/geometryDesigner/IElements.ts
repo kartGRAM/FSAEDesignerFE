@@ -3,10 +3,12 @@ import {Vector3, Matrix3} from 'three';
 import {
   IDataVector3,
   IDataMatrix3,
+  IDataQuaternion,
   IData,
   IDataNumber,
   INamedVector3,
   INamedMatrix3,
+  INamedQuaternion,
   INamedString,
   INamedNumber,
   INamedBooleanOrUndefined
@@ -101,7 +103,7 @@ export const trans = (p: INamedVector3, coMatrix?: Matrix3): Vector3 => {
   if (isElement(parent)) {
     v = parent.position.value
       .clone()
-      .add(v.applyMatrix3(parent.rotation.value));
+      .add(v.applyQuaternion(parent.rotation.value));
   }
   if (coMatrix) v.applyMatrix3(coMatrix);
   return v;
@@ -126,7 +128,7 @@ export interface IElement extends IBidirectionalNode {
   getDataElement(state: GDState): IDataElement | undefined;
   arrange(parentPosition?: Vector3): void;
   readonly position: INamedVector3;
-  readonly rotation: INamedMatrix3;
+  readonly rotation: INamedQuaternion;
   readonly initialPosition: INamedVector3;
   meta?: Meta;
 }
@@ -143,7 +145,7 @@ export interface IDataElement extends INode {
   centerOfGravity: IDataVector3;
   inertialTensor: IDataMatrix3;
   position: IDataVector3;
-  rotation: IDataMatrix3;
+  rotation: IDataQuaternion;
   initialPosition: IDataVector3;
 
   mirrorTo?: string;

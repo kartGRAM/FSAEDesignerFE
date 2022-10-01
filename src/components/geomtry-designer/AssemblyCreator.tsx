@@ -1,10 +1,13 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import {useSelector, useDispatch} from 'react-redux';
-import Store, {RootState} from '@store/store';
+import store, {RootState} from '@store/store';
 import {
   setAssembly,
   setCollectedAssembly
 } from '@store/reducers/uiTempGeometryDesigner';
+import {IAssembly} from '@gd/IElements';
+import * as math from 'mathjs';
 
 import {getAssembly} from '@gd/Elements';
 
@@ -17,6 +20,7 @@ export default function AssemblyCreactor() {
     (state: RootState) => state.uitgd.gdSceneState.assembled
   );
 
+  // アセンブリデータに変更があった場合に実行
   React.useEffect(() => {
     const start = performance.now();
     if (assembly) {
@@ -36,7 +40,7 @@ export default function AssemblyCreactor() {
   React.useEffect(() => {
     if (assembled) return;
     const start = performance.now();
-    const assembly = Store.getState().dgd.present.topAssembly;
+    const assembly = store.getState().dgd.present.topAssembly;
     if (!assembled && assembly) {
       const iAssembly = getAssembly(assembly);
       dispatch(setAssembly(iAssembly));
@@ -49,4 +53,28 @@ export default function AssemblyCreactor() {
   }, [assembled]);
 
   return null;
+}
+
+// 拘束式のヤコビアンを求める
+export function getKinematicJacobianMatrix(assembly: IAssembly): math.Matrix {
+  const {joints} = assembly;
+  const {children} = assembly;
+  const numConstrainsByJoint = joints.length * 3;
+  const eulerParameterConstrains = children.length;
+  let numConstrains = numConstrainsByJoint + eulerParameterConstrains;
+
+  const {assemblyMode} = store.getState().uigd.present.gdSceneState;
+  if (assemblyMode === 'FixedFrame') {
+    numConstrains += 6;
+  }
+  const numGeneralizedCoordinates = children.length * 7; // OKオイラーパラメータ4+XYZ
+
+  const matrix = math.zeros([
+    numConstrains,
+    numGeneralizedCoordinates
+  ]) as math.Matrix;
+
+  joints.forEach((joint) => {});
+
+  return matrix;
 }

@@ -1,5 +1,5 @@
 /* eslint-disable max-classes-per-file */
-import {Vector3, Matrix3} from 'three';
+import {Vector3, Matrix3, Quaternion} from 'three';
 import {IBidirectionalNode, INode} from '@gd/INode';
 import {Assembly, getDummyElement} from '@gd/Elements';
 import {v4 as uuidv4} from 'uuid';
@@ -13,6 +13,7 @@ import {
   isDataPointOffsetTool,
   IDataVector3,
   IDataMatrix3,
+  IDataQuaternion,
   IDataNumber,
   IData,
   INamedValue,
@@ -22,6 +23,7 @@ import {
   INamedBooleanOrUndefined,
   INamedVector3,
   INamedMatrix3,
+  INamedQuaternion,
   IPointOffsetTool,
   IDataPointOffsetTool,
   FunctionVector3
@@ -506,8 +508,66 @@ export class NamedMatrix3 extends NamedValue implements INamedMatrix3 {
   }
 }
 
-export function isNamedMatrix3(value: INamedValue): value is NamedMatrix3 {
-  return value.className === 'Matrix3';
+export class NamedQuaternion extends NamedValue implements INamedQuaternion {
+  private _update: (newValue: Quaternion | INamedQuaternion) => void;
+
+  _value: Quaternion;
+
+  get value(): Quaternion {
+    return this._value.clone();
+  }
+
+  set value(newValue: Quaternion) {
+    this._update(newValue);
+  }
+
+  constructor(params: {
+    name?: string;
+    parent?: IBidirectionalNode;
+    value?: IDataQuaternion | Quaternion | INamedQuaternion;
+    update?: (newValue: Quaternion | INamedQuaternion) => void;
+  }) {
+    const {name: defaultName, value, update} = params;
+    super({
+      className: 'Quaternion',
+      ...params,
+      name:
+        isNamedData(value) || isNamedValue(value)
+          ? value.name
+          : defaultName ?? 'temporary'
+    });
+    this._update =
+      update ??
+      ((newValue: Quaternion | INamedQuaternion) => {
+        if (isNamedValue(newValue)) {
+          this._value.copy(newValue.value);
+        } else {
+          this._value.copy(newValue);
+        }
+      });
+
+    this._value = new Quaternion();
+    if (isNamedValue(value)) {
+      this._value.copy(value.value);
+    } else if (value) {
+      this._value.w = value.w;
+      this._value.x = value.x;
+      this._value.y = value.y;
+      this._value.z = value.z;
+      this._value.normalize();
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  getData(state: GDState): IDataQuaternion {
+    return {
+      ...super.getDataBase(),
+      w: this._value.w,
+      x: this._value.x,
+      y: this._value.y,
+      z: this._value.z
+    };
+  }
 }
 
 export function getPointOffsetTool(

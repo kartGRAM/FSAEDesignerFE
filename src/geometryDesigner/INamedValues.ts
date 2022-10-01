@@ -1,5 +1,5 @@
 import {IDataFormula, IFormula} from '@gd/IFormula';
-import {Vector3, Matrix3} from 'three';
+import {Vector3, Matrix3, Quaternion} from 'three';
 import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {INode, IBidirectionalNode} from './INode';
 
@@ -120,6 +120,11 @@ export interface INamedMatrix3 extends INamedValue {
   getData(state: GDState): IDataMatrix3;
 }
 
+export function isNamedMatrix3(value: any): value is INamedMatrix3 {
+  if (isNamedValue(value)) return value.className === 'Matrix3';
+  return false;
+}
+
 export interface IDataMatrix3 extends INamedData {
   elements: [
     number,
@@ -132,6 +137,23 @@ export interface IDataMatrix3 extends INamedData {
     number,
     number
   ];
+}
+
+export interface INamedQuaternion extends INamedValue {
+  value: Quaternion;
+  getData(state: GDState): IDataQuaternion;
+}
+
+export function isNamedQuaternion(value: any): value is INamedQuaternion {
+  if (isNamedValue(value)) return value.className === 'Quaternion';
+  return false;
+}
+
+export interface IDataQuaternion extends INamedData {
+  w: number;
+  x: number;
+  y: number;
+  z: number;
 }
 
 export interface IDataPointOffsetTool extends INode {

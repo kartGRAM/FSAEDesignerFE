@@ -1,9 +1,10 @@
 /* eslint-disable max-classes-per-file */
 /* eslint-disable class-methods-use-this */
-import {Vector3, Matrix3} from 'three';
+import {Vector3, Quaternion} from 'three';
 import {
   NamedVector3,
   NamedMatrix3,
+  NamedQuaternion,
   NamedString,
   NamedNumber,
   NamedBooleanOrUndefined,
@@ -15,9 +16,7 @@ import {
   INamedVector3,
   INamedMatrix3,
   FunctionVector3,
-  IPointOffsetTool,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  isNamedVector3
+  IPointOffsetTool
 } from '@gd/INamedValues';
 
 import {AtLeast1, AtLeast2} from '@app/utils/atLeast';
@@ -262,9 +261,9 @@ export abstract class Element implements IElement {
 
   abstract arrange(parentPosition?: Vector3 | undefined): void;
 
-  abstract get rotation(): NamedMatrix3;
+  abstract get rotation(): NamedQuaternion;
 
-  abstract set rotation(mat: NamedMatrix3);
+  abstract set rotation(q: NamedQuaternion);
 
   abstract get className(): Elements;
 
@@ -626,15 +625,15 @@ export class Assembly extends Element implements IAssembly {
   set inertialTensor(mat: NamedMatrix3) {}
 
   // eslint-disable-next-line no-empty-function
-  get rotation(): NamedMatrix3 {
-    return new NamedMatrix3({
+  get rotation(): NamedQuaternion {
+    return new NamedQuaternion({
       parent: this,
       name: 'rotation'
     });
   }
 
   // eslint-disable-next-line no-empty-function
-  set rotation(mat: NamedMatrix3) {}
+  set rotation(mat: NamedQuaternion) {}
 
   constructor(
     params:
@@ -851,7 +850,7 @@ export class Bar extends Element implements IBar {
 
   position: NamedVector3;
 
-  rotation: NamedMatrix3;
+  rotation: NamedQuaternion;
 
   getPoints(): INamedVector3[] {
     return [this.fixedPoint, this.point];
@@ -944,10 +943,10 @@ export class Bar extends Element implements IBar {
         ? params.position
         : this.initialPosition.value
     });
-    this.rotation = new NamedMatrix3({
+    this.rotation = new NamedQuaternion({
       name: 'rotation',
       parent: this,
-      value: isDataElement(params) ? params.rotation : new Matrix3()
+      value: isDataElement(params) ? params.rotation : new Quaternion()
     });
   }
 
@@ -1055,7 +1054,7 @@ export class AArm extends Element implements IAArm {
 
   position: NamedVector3;
 
-  rotation: NamedMatrix3;
+  rotation: NamedQuaternion;
 
   fixedPoints: [NamedVector3, NamedVector3];
 
@@ -1183,10 +1182,10 @@ export class AArm extends Element implements IAArm {
         ? params.position
         : this.initialPosition.value
     });
-    this.rotation = new NamedMatrix3({
+    this.rotation = new NamedQuaternion({
       name: 'rotation',
       parent: this,
-      value: isDataElement(params) ? params.rotation : new Matrix3()
+      value: isDataElement(params) ? params.rotation : new Quaternion()
     });
   }
 
@@ -1236,7 +1235,7 @@ export class BellCrank extends Element implements IBellCrank {
 
   position: NamedVector3;
 
-  rotation: NamedMatrix3;
+  rotation: NamedQuaternion;
 
   getPoints(): INamedVector3[] {
     return [...this.fixedPoints, ...this.points];
@@ -1367,10 +1366,10 @@ export class BellCrank extends Element implements IBellCrank {
         ? params.position
         : this.initialPosition.value
     });
-    this.rotation = new NamedMatrix3({
+    this.rotation = new NamedQuaternion({
       name: 'rotation',
       parent: this,
-      value: isDataElement(params) ? params.rotation : new Matrix3()
+      value: isDataElement(params) ? params.rotation : new Quaternion()
     });
   }
 
@@ -1420,7 +1419,7 @@ export class Body extends Element implements IBody {
 
   position: NamedVector3;
 
-  rotation: NamedMatrix3;
+  rotation: NamedQuaternion;
 
   getPoints(): INamedVector3[] {
     return [...this.fixedPoints, ...this.points];
@@ -1519,10 +1518,10 @@ export class Body extends Element implements IBody {
         ? params.position
         : this.initialPosition.value
     });
-    this.rotation = new NamedMatrix3({
+    this.rotation = new NamedQuaternion({
       name: 'rotation',
       parent: this,
-      value: isDataElement(params) ? params.rotation : new Matrix3()
+      value: isDataElement(params) ? params.rotation : new Quaternion()
     });
   }
 
@@ -1577,7 +1576,7 @@ export class Tire extends Element implements ITire {
 
   position: NamedVector3;
 
-  rotation: NamedMatrix3;
+  rotation: NamedQuaternion;
 
   /* UpdateMethodが適当。直す必要あり */
   get leftBearing(): NamedVector3 {
@@ -1727,10 +1726,10 @@ export class Tire extends Element implements ITire {
         ? params.position
         : this.initialPosition.value
     });
-    this.rotation = new NamedMatrix3({
+    this.rotation = new NamedQuaternion({
       name: 'rotation',
       parent: this,
-      value: isDataElement(params) ? params.rotation : new Matrix3()
+      value: isDataElement(params) ? params.rotation : new Quaternion()
     });
   }
 
