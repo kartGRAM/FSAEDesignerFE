@@ -1,5 +1,5 @@
 import {AtLeast1, AtLeast2} from '@app/utils/atLeast';
-import {Vector3, Matrix3} from 'three';
+import {Vector3, Matrix3, Quaternion} from 'three';
 import {
   IDataVector3,
   IDataMatrix3,
@@ -95,6 +95,15 @@ function getElementByPathCore(
 
 export const isMirrorElement = (element: IElement): boolean => {
   return !!element.meta?.mirror;
+};
+
+export const transQuaternion = (
+  q: Quaternion,
+  coMatrix: Matrix3
+): Quaternion => {
+  const v = new Vector3(q.x, q.y, q.z);
+  v.applyMatrix3(coMatrix);
+  return new Quaternion(v.x, v.y, v.z, q.w);
 };
 
 export const trans = (p: INamedVector3, coMatrix?: Matrix3): Vector3 => {
