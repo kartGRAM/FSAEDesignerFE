@@ -8,7 +8,12 @@ import {
   setAssembly,
   setCollectedAssembly
 } from '@store/reducers/uiTempGeometryDesigner';
-import {IAssembly, isElement, isBodyOfFrame} from '@gd/IElements';
+import {
+  IAssembly,
+  isElement,
+  isBodyOfFrame,
+  JointAsVector3
+} from '@gd/IElements';
 import * as math from 'mathjs';
 
 import {getAssembly} from '@gd/Elements';
@@ -48,10 +53,21 @@ export default function AssemblyCreactor() {
   }, [assembly]);
 
   React.useEffect(() => {
-    if (assembled) return;
+    if (assembled) {
+      const assembly = store.getState().uitgd.collectedAssembly;
+      if (assembly) {
+        try {
+          getKinematicConstrainedElements(assembly);
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.log(e);
+        }
+      }
+      return;
+    }
     const start = performance.now();
     const assembly = store.getState().dgd.present.topAssembly;
-    if (!assembled && assembly) {
+    if (assembly) {
       const iAssembly = getAssembly(assembly);
       dispatch(setAssembly(iAssembly));
       dispatch(setCollectedAssembly(iAssembly.collectElements()));
@@ -65,15 +81,19 @@ export default function AssemblyCreactor() {
   return null;
 }
 
+// 拘束式を反映して拘束する
 export function getKinematicConstrainedElements(assembly: IAssembly): void {
+  const start = performance.now();
   const {children} = assembly;
   const numGeneralizedCoordinates = children.length * 7; // OKオイラーパラメータ4+XYZ
-  let dq = math.zeros([numGeneralizedCoordinates, 1]) as math.Matrix;
-  const qN = math.zeros([numGeneralizedCoordinates, 1]) as math.Matrix;
-  const qN1 = math.ones([numGeneralizedCoordinates, 1]) as math.Matrix;
+  let dq = math.zeros([numGeneralizedCoordinates, 1], 'dense') as math.Matrix;
+  let qN = math.zeros([numGeneralizedCoordinates, 1], 'dense') as math.Matrix;
+  let qN1 = math.ones([numGeneralizedCoordinates, 1], 'dense') as math.Matrix;
+  const joints = assembly.getJointsAsVector3();
+
   while (!equal(qN, qN1)) {
-    const phi_q = getKinematicJacobianMatrix(assembly);
-    const phi = getKinematicConstrainsVector(assembly);
+    const phi_q = getKinematicJacobianMatrix(assembly, joints);
+    const phi = getKinematicConstrainsVector(assembly, joints);
     const size = phi_q.size();
 
     if (size[0] === size[1]) {
@@ -83,19 +103,32 @@ export function getKinematicConstrainedElements(assembly: IAssembly): void {
       // 行フルランクだとして疑似逆行列を求める
       const phi_qt = math.transpose(phi_q);
       const phi_qDotphi_qt = math.multiply(phi_q, phi_qt);
-      const lambda = math.lusolve(phi_qDotphi_qt, phi);
-      dq = math.multiply(phi_qt, lambda);
+      try {
+        const lambda = math.lusolve(phi_qDotphi_qt, phi);
+        dq = math.multiply(phi_qt, lambda);
+      } catch (e) {
+        break;
+      }
     } else {
       // eslint-disable-next-line no-console
       console.log('過剰拘束になっている');
       return;
     }
+    qN = getGeneralizedCoordinates(assembly);
+    qN1 = math.subtract(qN, dq);
+    setGeneralizedCoordinates(assembly, qN1);
   }
+
+  const end = performance.now();
+
+  console.log(end - start);
 }
 
 // 拘束式のヤコビアンを求める。
-export function getKinematicJacobianMatrix(assembly: IAssembly): math.Matrix {
-  const joints = assembly.getJointsAsVector3();
+export function getKinematicJacobianMatrix(
+  assembly: IAssembly,
+  joints: JointAsVector3[]
+): math.Matrix {
   const {children} = assembly;
   const numConstrainsByJoint = joints.length * 3;
   const eulerParameterConstrains = children.length;
@@ -107,14 +140,14 @@ export function getKinematicJacobianMatrix(assembly: IAssembly): math.Matrix {
   }
   const numGeneralizedCoordinates = children.length * 7; // OKオイラーパラメータ4+XYZ
 
-  const matrix = math.zeros([
-    numConstrains,
-    numGeneralizedCoordinates
-  ]) as math.Matrix;
+  const matrix = math.zeros(
+    [numConstrains, numGeneralizedCoordinates],
+    'dense'
+  ) as math.Matrix;
 
   const indices = children.reduce(
     (prev: {[index: string]: number}, current, idx) => {
-      prev[current.nodeID] = idx;
+      prev[current.nodeID] = idx * 7;
       return prev;
     },
     {}
@@ -151,11 +184,17 @@ export function getKinematicJacobianMatrix(assembly: IAssembly): math.Matrix {
       -1
     );
     matrix.subset(
-      math.index([row + X, row + Z], [colLhs + Q0, colLhs + Q3]),
+      math.index(
+        math.range(row + X, row + Z + 1),
+        math.range(colLhs + Q0, colLhs + Q3 + 1)
+      ),
       qDiffLhs
     );
     matrix.subset(
-      math.index([row + X, row + Z], [colRhs + Q0, colRhs + Q3]),
+      math.index(
+        math.range(row + X, row + Z + 1),
+        math.range(colRhs + Q0, colRhs + Q3 + 1)
+      ),
       qDiffRhs
     );
   });
@@ -199,13 +238,15 @@ export function getKinematicJacobianMatrix(assembly: IAssembly): math.Matrix {
 }
 
 // 拘束式の現在の値を求める。
-export function getKinematicConstrainsVector(assembly: IAssembly): math.Matrix {
-  const joints = assembly.getJointsAsVector3();
+export function getKinematicConstrainsVector(
+  assembly: IAssembly,
+  joints: JointAsVector3[]
+): math.Matrix {
   const {children} = assembly;
   const numConstrainsByJoint = joints.length * 3;
   const eulerParameterConstrains = children.length;
   let numConstrains = numConstrainsByJoint + eulerParameterConstrains;
-  const matrix = math.zeros([numConstrains, 1]) as math.Matrix;
+  const matrix = math.zeros([numConstrains, 1], 'dense') as math.Matrix;
 
   const {assemblyMode} = store.getState().uigd.present.gdSceneState;
   if (assemblyMode === 'FixedFrame') {
@@ -227,9 +268,9 @@ export function getKinematicConstrainsVector(assembly: IAssembly): math.Matrix {
     const sRhs = rhs.value.applyQuaternion(rhs.parent.rotation.value);
     const constrain = pLhs.add(sLhs).sub(pRhs).sub(sRhs);
 
-    matrix.set([row + X, 1], constrain.x);
-    matrix.set([row + Y, 1], constrain.y);
-    matrix.set([row + Z, 1], constrain.z);
+    matrix.set([row + X, 0], constrain.x);
+    matrix.set([row + Y, 0], constrain.y);
+    matrix.set([row + Z, 0], constrain.z);
   });
 
   // フレームボディについては完全拘束する
@@ -241,17 +282,17 @@ export function getKinematicConstrainsVector(assembly: IAssembly): math.Matrix {
     const p = frame.position.value;
     const q = frame.rotation.value;
 
-    matrix.set([row + X, 1], p.x);
-    matrix.set([row + Y, 1], p.y);
-    matrix.set([row + Z, 1], p.z);
-    matrix.set([row + Q1 - 1, 1], q.x);
-    matrix.set([row + Q2 - 1, 1], q.y);
-    matrix.set([row + Q3 - 1, 1], q.z);
+    matrix.set([row + X, 0], p.x);
+    matrix.set([row + Y, 0], p.y);
+    matrix.set([row + Z, 0], p.z);
+    matrix.set([row + Q1 - 1, 0], q.x);
+    matrix.set([row + Q2 - 1, 0], q.y);
+    matrix.set([row + Q3 - 1, 0], q.z);
   }
 
   // クォータニオンの正規化条件
   children.forEach((child, r) => {
-    // Φ = q0^2 + q1^2 + q2^2 + q3^2
+    // Φ = q0^2 + q1^2 + q2^2 + q3^2 -1
     const q = child.rotation.value;
 
     const e0 = q.w;
@@ -259,7 +300,7 @@ export function getKinematicConstrainsVector(assembly: IAssembly): math.Matrix {
     const e2 = q.y;
     const e3 = q.z;
     const row = numConstrains - eulerParameterConstrains + r;
-    matrix.set([row, 1], e0 * e0 + e1 * e1 + e2 * e2 + e3 * e3);
+    matrix.set([row, 0], e0 * e0 + e1 * e1 + e2 * e2 + e3 * e3 - 1);
   });
 
   return matrix;
@@ -270,7 +311,10 @@ export function getGeneralizedCoordinates(assembly: IAssembly): math.Matrix {
   const {children} = assembly;
   const numGeneralizedCoordinates = children.length * 7; // OKオイラーパラメータ4+XYZ
 
-  const matrix = math.zeros([numGeneralizedCoordinates, 1]) as math.Matrix;
+  const matrix = math.zeros(
+    [numGeneralizedCoordinates, 1],
+    'dense'
+  ) as math.Matrix;
 
   children.forEach((child, r) => {
     const q = child.rotation.value;
@@ -284,13 +328,13 @@ export function getGeneralizedCoordinates(assembly: IAssembly): math.Matrix {
     const e2 = q.y;
     const e3 = q.z;
     const row = r * 7;
-    matrix.set([row + X, 1], x);
-    matrix.set([row + Y, 1], y);
-    matrix.set([row + Z, 1], z);
-    matrix.set([row + Q0, 1], e0);
-    matrix.set([row + Q1, 1], e1);
-    matrix.set([row + Q2, 1], e2);
-    matrix.set([row + Q3, 1], e3);
+    matrix.set([row + X, 0], x);
+    matrix.set([row + Y, 0], y);
+    matrix.set([row + Z, 0], z);
+    matrix.set([row + Q0, 0], e0);
+    matrix.set([row + Q1, 0], e1);
+    matrix.set([row + Q2, 0], e2);
+    matrix.set([row + Q3, 0], e3);
   });
 
   return matrix;
@@ -299,12 +343,9 @@ export function getGeneralizedCoordinates(assembly: IAssembly): math.Matrix {
 // 現在の一般化座標を反映する。
 export function setGeneralizedCoordinates(
   assembly: IAssembly,
-  q: math.Matrix
+  matrix: math.Matrix
 ): void {
   const {children} = assembly;
-  const numGeneralizedCoordinates = children.length * 7; // OKオイラーパラメータ4+XYZ
-
-  const matrix = math.zeros([numGeneralizedCoordinates, 1]) as math.Matrix;
 
   children.forEach((child, r) => {
     const e = child.rotation;
@@ -312,15 +353,15 @@ export function setGeneralizedCoordinates(
 
     const row = r * 7;
     p.value = new Vector3(
-      matrix.get([row + X, 1]),
-      matrix.get([row + Y, 1]),
-      matrix.get([row + Z, 1])
+      matrix.get([row + X, 0]),
+      matrix.get([row + Y, 0]),
+      matrix.get([row + Z, 0])
     );
     e.value = new Quaternion(
-      matrix.get([row + Q1, 1]),
-      matrix.get([row + Q2, 1]),
-      matrix.get([row + Q3, 1]),
-      matrix.get([row + Q0, 1])
+      matrix.get([row + Q1, 0]),
+      matrix.get([row + Q2, 0]),
+      matrix.get([row + Q3, 0]),
+      matrix.get([row + Q0, 0])
     );
   });
 }
@@ -355,8 +396,11 @@ export function getPartialDiffOfRotationMatrix(
 export function equal(
   lhs: math.Matrix,
   rhs: math.Matrix,
-  eps = 1.0e-5
+  eps = 1.0e-1
 ): boolean {
-  const l = math.norm(math.subtract(lhs, rhs));
+  const sub = math.subtract(lhs, rhs);
+  const size = sub.size();
+  const subT = math.reshape(sub, [size[0]]);
+  const l = math.norm(subT);
   return l < eps;
 }

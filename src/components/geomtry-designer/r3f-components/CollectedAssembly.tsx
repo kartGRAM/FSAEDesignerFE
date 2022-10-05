@@ -2,8 +2,9 @@ import * as React from 'react';
 import * as THREE from 'three';
 import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
-import {isBody} from '@gd/IElements';
+import {isBody, isAArm} from '@gd/IElements';
 import Body from './Body';
+import AArm from './AArm';
 
 const CollectedAssembly = () => {
   const assembly = useSelector(
@@ -17,6 +18,7 @@ const CollectedAssembly = () => {
     <group ref={groupRef} name="collectedAssembly">
       {children.map((child) => {
         if (isBody(child)) return <Body element={child} key={child.nodeID} />;
+        if (isAArm(child)) return <AArm element={child} key={child.nodeID} />;
         return null;
       })}
     </group>

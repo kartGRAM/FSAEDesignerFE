@@ -44,6 +44,7 @@ const store = configureStore({
       serializableCheck: {
         ignoredActions: [
           'dataGeometryDesigner/updateAssembly',
+          'dataGeometryDesigner/newAssembly',
           'uitGeometryDesigner/setAssembly',
           'uitGeometryDesigner/setCollectedAssembly',
           'uitGeometryDesigner/setGDSceneGetThree',
@@ -53,6 +54,7 @@ const store = configureStore({
           'uitGeometryDesigner/setCopyFromExistingPointsDialogProps',
           'uitGeometryDesigner/setMovePointDialogProps',
           'uitGeometryDesigner/setMovePointOnMoved',
+          'uitGeometryDesigner/setSaveAsDialogProps',
           'uitGeometryDesigner/setConfirmDialogProps'
         ],
         ignoredPaths: [
