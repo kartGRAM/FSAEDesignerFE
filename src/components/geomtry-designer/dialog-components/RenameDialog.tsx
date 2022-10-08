@@ -87,7 +87,7 @@ export function RenameDialog(props: RenameDialogProps) {
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleSave} disabled={!formik.isValid}>
+        <Button onClick={handleSave} disabled={!formik.isValid} autoFocus>
           OK
         </Button>
       </DialogActions>

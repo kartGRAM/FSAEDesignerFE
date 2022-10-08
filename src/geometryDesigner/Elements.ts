@@ -859,6 +859,7 @@ export class Bar extends Element implements IBar {
   arrange(parentPosition?: Vector3) {
     const pp = parentPosition ?? new Vector3();
     this.position.value = this.initialPosition.value.clone().add(pp);
+    this.rotation.value = new Quaternion();
   }
 
   getMirror(): Bar {
@@ -1067,6 +1068,7 @@ export class AArm extends Element implements IAArm {
   arrange(parentPosition?: Vector3) {
     const pp = parentPosition ?? new Vector3();
     this.position.value = this.initialPosition.value.clone().add(pp);
+    this.rotation.value = new Quaternion();
   }
 
   getMirror(): AArm {
@@ -1244,6 +1246,7 @@ export class BellCrank extends Element implements IBellCrank {
   arrange(parentPosition?: Vector3) {
     const pp = parentPosition ?? new Vector3();
     this.position.value = this.initialPosition.value.clone().add(pp);
+    this.rotation.value = new Quaternion();
   }
 
   getMirror(): BellCrank {
@@ -1428,6 +1431,7 @@ export class Body extends Element implements IBody {
   arrange(parentPosition?: Vector3) {
     const pp = parentPosition ?? new Vector3();
     this.position.value = this.initialPosition.value.clone().add(pp);
+    this.rotation.value = new Quaternion();
   }
 
   getMirror(): Body {
@@ -1621,6 +1625,7 @@ export class Tire extends Element implements ITire {
   arrange(parentPosition?: Vector3) {
     const pp = parentPosition ?? new Vector3();
     this.position.value = this.initialPosition.value.clone().add(pp);
+    this.rotation.value = new Quaternion();
   }
 
   getMirror(): Tire {
