@@ -102,23 +102,13 @@ export default function AssemblyConfig(params: Params) {
   let points: INamedVector3WithColor[] = [
     ...assembly.getPoints().map((p) => ({
       point: p,
-      color: 0x0000ff
+      color: 0x00ff00
     })),
     ...assembly.getJointedPoints().map((p) => ({
       point: p,
-      color: 0xffff00
+      color: 0x0000ff
     }))
   ];
-
-  // 選択状態が変化したらポイントを再描写ただし初回も実施
-  React.useEffect(() => {
-    dispatch(setSelectedPoint(points));
-  }, [
-    jointsListSelected,
-    pointSelected.lhs?.nodeID,
-    pointSelected.rhs?.nodeID,
-    assembly
-  ]);
 
   // 最初の再レンダリングを回避
   React.useEffect(() => {
@@ -132,7 +122,11 @@ export default function AssemblyConfig(params: Params) {
       .find((joint, idx) => idx === jointsListSelected);
     if (joint) {
       points = [
-        ...points,
+        ...points.filter(
+          (point) =>
+            point.point.nodeID !== joint.lhs.nodeID &&
+            point.point.nodeID !== joint.rhs.nodeID
+        ),
         {
           point: joint.lhs,
           color: 0xff0000
@@ -148,11 +142,27 @@ export default function AssemblyConfig(params: Params) {
   const lhs = tmp.find((point) => point.nodeID === pointSelected.lhs?.nodeID);
   const rhs = tmp.find((point) => point.nodeID === pointSelected.rhs?.nodeID);
   if (lhs) {
-    points = [...points, {point: lhs, color: 0xff0000}];
+    points = [
+      ...points.filter((point) => point.point.nodeID !== lhs.nodeID),
+      {point: lhs, color: 0xff0000}
+    ];
   }
   if (rhs) {
-    points = [...points, {point: rhs, color: 0xff0000}];
+    points = [
+      ...points.filter((point) => point.point.nodeID !== rhs.nodeID),
+      {point: rhs, color: 0xff0000}
+    ];
   }
+
+  // 選択状態が変化したらポイントを再描写ただし初回も実施
+  React.useEffect(() => {
+    dispatch(setSelectedPoint(points));
+  }, [
+    jointsListSelected,
+    pointSelected.lhs?.nodeID,
+    pointSelected.rhs?.nodeID,
+    assembly
+  ]);
 
   let isFrameObject = false;
   if (isFrame(assembly)) isFrameObject = true;

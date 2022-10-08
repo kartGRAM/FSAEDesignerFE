@@ -57,6 +57,7 @@ export default function AssemblyCreactor() {
     console.log(end - start);
   }, [assembly]);
 
+  // assembledに変化があった場合に実行
   React.useEffect(() => {
     if (assembled) {
       const assembly = store.getState().uitgd.collectedAssembly;
@@ -74,7 +75,7 @@ export default function AssemblyCreactor() {
     const {assembly} = store.getState().uitgd;
     // resetPositions
     assembly?.arrange();
-  }, [assembled]);
+  }, [assembled, assembly]);
 
   return null;
 }
