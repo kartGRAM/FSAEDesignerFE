@@ -23,7 +23,7 @@ export default function SelectedPoints() {
   return (
     <>
       {pointsToRender.map((p) => (
-        <NodeSphere node={p.point} />
+        <NodeSphere node={p.point} key={p.point.nodeID} />
       ))}
     </>
   );

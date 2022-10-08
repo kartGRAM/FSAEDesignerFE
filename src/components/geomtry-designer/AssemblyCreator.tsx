@@ -70,17 +70,10 @@ export default function AssemblyCreactor() {
       }
       return;
     }
-    const start = performance.now();
-    const assembly = store.getState().dgd.present.topAssembly;
-    if (assembly) {
-      const iAssembly = getAssembly(assembly);
-      dispatch(setAssembly(iAssembly));
-      dispatch(setCollectedAssembly(iAssembly.collectElements()));
-    }
-    // 実行時間を計測した処理
-    const end = performance.now();
-    // eslint-disable-next-line no-console
-    console.log(end - start);
+    // else not assembled
+    const {assembly} = store.getState().uitgd;
+    // resetPositions
+    assembly?.arrange();
   }, [assembled]);
 
   return null;

@@ -60,7 +60,8 @@ const NodeSphere = (props: {node: INamedVector3}) => {
       if (!isSelected) {
         const visualizationMode =
           store.getState().uigd.present.gdSceneState.componentVisualizationMode;
-        meshRef.current.visible = visualizationMode === 'ShowAllNodes';
+        meshRef.current.visible =
+          visualizationMode === 'ShowAllNodes' && !!node.parent.visible.value;
       }
     }
   });
