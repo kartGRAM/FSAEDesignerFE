@@ -432,6 +432,6 @@ export function equal(
   const sub = lhs.sub(rhs);
   const l = sub.norm('frobenius');
   // eslint-disable-next-line no-console
-  // console.log(`norm:${l}`);
+  console.log(`norm:${l}`);
   return [l < eps, l];
 }
