@@ -22,7 +22,7 @@ const NodeSphere = (props: {node: INamedVector3}) => {
   );
   const invCoMatrix = coMatrix.clone().transpose();
   const materialRef = React.useRef<THREE.MeshBasicMaterial>(null);
-  const meshRef = React.useRef<THREE.Mesh>(null);
+  const meshRef = React.useRef<THREE.Mesh>(null!);
   const pivotControlsRef = React.useRef<THREE.Group>(null!);
   const deltaVRef = React.useRef<THREE.Vector3>(new THREE.Vector3());
 
@@ -51,11 +51,14 @@ const NodeSphere = (props: {node: INamedVector3}) => {
     let color = 0x00ff00;
     if (isSelected) {
       color = isSelected.color ?? 0xff0000;
+      meshRef.current.scale.set(1.1, 1.1, 1.1);
+    } else {
+      meshRef.current.scale.set(1.0, 1.0, 1.0);
     }
     if (materialRef.current) {
       materialRef.current.color.set(color);
     }
-    if (isElement(node.parent) && meshRef.current) {
+    if (isElement(node.parent)) {
       meshRef.current.visible = node.parent.visible.value ?? false;
       if (!isSelected) {
         const visualizationMode =
