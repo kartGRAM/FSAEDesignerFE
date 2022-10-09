@@ -76,7 +76,7 @@ const AArm = (props: {element: IAArm}) => {
       <Line
         points={arm}
         color="pink"
-        lineWidth={2}
+        lineWidth={4}
         ref={meshRefs.current[0]}
         key="arm"
       />
@@ -84,7 +84,7 @@ const AArm = (props: {element: IAArm}) => {
         <Line
           points={line}
           color="pink"
-          lineWidth={2}
+          lineWidth={4}
           ref={meshRefs.current[i + 1]}
           key="arm"
         />
