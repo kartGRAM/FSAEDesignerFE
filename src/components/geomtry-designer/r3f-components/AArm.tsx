@@ -1,5 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react';
-import * as THREE from 'three';
 import {Vector3, Plane} from 'three';
 import {ThreeEvent, useFrame} from '@react-three/fiber';
 import {Line} from '@react-three/drei';
@@ -12,6 +12,7 @@ import store, {RootState} from '@store/store';
 import {IAArm, trans} from '@gd/IElements';
 import {getMatrix3} from '@gd/NamedValues';
 import {Line2} from 'three-stdlib';
+import {getKinematicConstrainedElements} from '@gd/Kinematics';
 import NodeSphere from './NodeSphere';
 import {PivotControls} from './PivotControls/PivotControls';
 
@@ -68,8 +69,7 @@ const AArm = (props: {element: IAArm}) => {
   const meshRefs = React.useRef(
     [arm, ...projections].map(() => React.createRef<Line2>())
   );
-  const box = new THREE.Box3().setFromPoints(pts);
-  const handlePosition = box.max.clone().add(box.min).multiplyScalar(0.5);
+  const handlePosition = arm[1];
 
   const object3D = (
     <group onDoubleClick={handleOnDoubleClick}>
@@ -95,16 +95,33 @@ const AArm = (props: {element: IAArm}) => {
     </group>
   );
 
+  const dLPrevRef = React.useRef<Vector3>(new Vector3());
+
   return isMoveTarget && isAssembled ? (
     <PivotControls
+      displayValues={false}
+      disableRotations
+      disableSliders
+      autoTransform={false}
       offset={handlePosition}
       depthTest={false}
       scale={70}
       onDragStart={() => {
         dispatch(setOrbitControlsEnabled(false));
+        dLPrevRef.current.set(0, 0, 0);
       }}
       onDragEnd={() => {
         dispatch(setOrbitControlsEnabled(true));
+      }}
+      onDrag={(mL, mdL, mW, mdW) => {
+        const dL = new Vector3(
+          mdL.elements[12],
+          mdL.elements[13],
+          mdL.elements[14]
+        );
+        const dv = dL.clone().sub(dLPrevRef.current);
+        console.log(dv);
+        dLPrevRef.current = dL;
       }}
     >
       {object3D}
