@@ -5,7 +5,7 @@ import {
   setAssembly,
   setCollectedAssembly
 } from '@store/reducers/uiTempGeometryDesigner';
-import {getKinematicConstrainedElements} from '@gd/Kinematics';
+import {getKinematicConstrainedElements} from '@gd/KinematicFunctions';
 
 import {getAssembly} from '@gd/Elements';
 

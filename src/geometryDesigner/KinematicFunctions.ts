@@ -18,6 +18,26 @@ const Q1 = 4;
 const Q2 = 5;
 const Q3 = 6;
 
+export function preProcess(assembly: IAssembly): void {
+  const start = performance.now();
+  const {children} = assembly;
+  // コンポーネントのグルーピング、拘束式の簡略化などを行う
+
+  const end = performance.now();
+  // eslint-disable-next-line no-console
+  console.log(`preProcessor: ${end - start}`);
+}
+
+export function postProcess(assembly: IAssembly): void {
+  const start = performance.now();
+  const {children} = assembly;
+  // 得られた位置、クォータニオンを反映する
+
+  const end = performance.now();
+  // eslint-disable-next-line no-console
+  console.log(`postProcessor: ${end - start}`);
+}
+
 // 拘束式を反映して拘束する
 export function getKinematicConstrainedElements(assembly: IAssembly): void {
   const start = performance.now();
@@ -125,8 +145,8 @@ export function getKinematicJacobianMatrix(
     const qDiffRhs = getPartialDiffOfRotationMatrix(qRhs, vRhs);
     qDiffRhs.mul(-1);
 
-    setSubMatrix(row + X, row + Z, colLhs + Q0, colLhs + Q3, matrix, qDiffLhs);
-    setSubMatrix(row + X, row + Z, colRhs + Q0, colRhs + Q3, matrix, qDiffRhs);
+    setSubMatrix(row + X, colLhs + Q0, matrix, qDiffLhs);
+    setSubMatrix(row + X, colRhs + Q0, matrix, qDiffRhs);
   });
 
   // フレームボディについては完全拘束する
@@ -167,16 +187,15 @@ export function getKinematicJacobianMatrix(
   return matrix;
 }
 
+// サブマトリックスを設定する
 export function setSubMatrix(
   rowStart: number,
-  rowEnd: number,
   columnStart: number,
-  columnEnd: number,
   matrix: Matrix,
   submatrix: Matrix
 ) {
-  for (let row = 0; row <= rowEnd - rowStart; ++row) {
-    for (let col = 0; col <= columnEnd - columnStart; ++col) {
+  for (let row = 0; row <= submatrix.rows; ++row) {
+    for (let col = 0; col <= submatrix.columns; ++col) {
       matrix.set(row + rowStart, col + columnStart, submatrix.get(row, col));
     }
   }
@@ -311,46 +330,63 @@ export function setGeneralizedCoordinates(
   });
 }
 
+// チルダマトリックスを取得
+export function skew(v: Vector3) {
+  return new Matrix([
+    [0, v.z, -v.y],
+    [-v.z, 0, v.x],
+    [v.y, -v.x, 0]
+  ]);
+}
+// 回転行列を取得
+export function rotationMatrix(q: Quaternion) {
+  const e0 = q.w;
+  const e1 = q.x;
+  const e2 = q.y;
+  const e3 = q.z;
+  return new Matrix([
+    [
+      2 * (e1 * e1 + e0 * e0 - 1 / 2),
+      2 * (e1 * e2 - e0 * e3),
+      2 * (e1 * e3 + e0 * e2)
+    ],
+    [
+      2 * (e0 * e3 + e1 * e2),
+      2 * (e2 * e2 + e0 * e0 - 1 / 2),
+      2 * (e2 * e3 - e0 * e1)
+    ],
+    [
+      2 * (e1 * e3 - e0 * e2),
+      2 * (e2 * e3 + e0 * e1),
+      2 * (e3 * e3 + e0 * e0 - 1 / 2)
+    ]
+  ]);
+}
+
+// 回転行列を取得
+export function decompositionMatrixG(q: Quaternion) {
+  const e0 = q.w;
+  const e1 = q.x;
+  const e2 = q.y;
+  const e3 = q.z;
+  return new Matrix([
+    [-e1, e0, e3, -e2],
+    [-e2, -e3, e0, e1],
+    [-e3, e2, -e1, e0]
+  ]);
+}
+
 // 回転行列をQで偏微分したものを求める。
 export function getPartialDiffOfRotationMatrix(
   q: Quaternion,
   v: Vector3
 ): Matrix {
-  const e0 = q.w;
-  const e1 = q.x;
-  const e2 = q.y;
-  const e3 = q.z;
-  // const s = math.transpose(math.matrix([v.x, v.y, v.z]));
-  const s = new Matrix([
-    [0, v.z, -v.y],
-    [-v.z, 0, v.x],
-    [v.y, -v.x, 0]
-  ]);
-  const A = new Matrix([
-    [
-      4 * (e1 * e1 + e0 * e0 - 1 / 2),
-      4 * (e1 * e2 - e0 * e3),
-      4 * (e1 * e3 + e0 * e2)
-    ],
-    [
-      4 * (e0 * e3 + e1 * e2),
-      4 * (e2 * e2 + e0 * e0 - 1 / 2),
-      4 * (e2 * e3 - e0 * e1)
-    ],
-    [
-      4 * (e1 * e3 - e0 * e2),
-      4 * (e2 * e3 + e0 * e1),
-      4 * (e3 * e3 + e0 * e0 - 1 / 2)
-    ]
-  ]);
-  const G = new Matrix([
-    [-e1, e0, e3, -e2],
-    [-e2, -e3, e0, e1],
-    [-e3, e2, -e1, e0]
-  ]);
-  const Phi = A.mmul(s).mmul(G);
+  const s = skew(v);
+  const A = rotationMatrix(q);
+  const G = decompositionMatrixG(q);
 
-  return Phi;
+  // const s = math.transpose(math.matrix([v.x, v.y, v.z]));
+  return A.mul(2).mmul(s).mmul(G);
   /*
   const a_q = math.matrix([
     [4 * e0, -2 * e3, 2 * e2], // X行 e0列
@@ -380,4 +416,19 @@ export function equal(
   // eslint-disable-next-line no-console
   console.log(`norm:${l}`);
   return [l < eps, l];
+}
+
+export function getStableOrthogonalVector(v: Vector3): Vector3 {
+  const {x, y, z} = v;
+  const a = [x ** 2, y ** 2, z ** 2];
+  if (a[0] + a[1] + a[2] <= Number.EPSILON) {
+    throw new Error('ベクトルのノルムが小さすぎる');
+  }
+  const idx = [0, 1, 2];
+  idx.sort((lhs, rhs) => a[lhs] - a[rhs]);
+
+  const b = [0, 0, 0];
+  b[idx[1]] = Math.sqrt(a[idx[0]] / (a[idx[0]] + a[idx[1]]));
+  b[idx[0]] = Math.sqrt(1 - b[idx[1]] ** 2);
+  return new Vector3(b[0], b[1], b[3]);
 }
