@@ -3,21 +3,15 @@
 /* eslint-disable max-classes-per-file */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {Matrix} from 'ml-matrix';
-import {IElement} from '@gd/IElements';
+import {IElement, IAssembly} from '@gd/IElements';
 import {Vector3, Quaternion} from 'three';
 import {
   getStableOrthogonalVector,
   setSubMatrix,
-  getPartialDiffOfRotationMatrix,
   skew,
   rotationMatrix,
   decompositionMatrixG
 } from './KinematicFunctions';
-
-export interface Constrain {
-  constrains: number;
-  setJacobianAndConstrains(phi_q: Matrix, phi: number[]): void;
-}
 
 const X = 0;
 const Y = 1;
@@ -26,6 +20,80 @@ const Q0 = 3;
 const Q1 = 4;
 const Q2 = 5;
 const Q3 = 6;
+
+export interface Constrain {
+  constrains: number;
+  setJacobianAndConstrains(phi_q: Matrix, phi: number[]): void;
+}
+
+export class Sphere implements Constrain {
+  constrains = 3; // 自由度を3減らす
+
+  row: number;
+
+  lhs: Component;
+
+  rhs: Component;
+
+  lLocalVec: Vector3;
+
+  lLocalSkew: Matrix;
+
+  rLocalVec: Vector3;
+
+  rLocalSkew: Matrix;
+
+  constructor(
+    row: number,
+    lhs: Component,
+    rhs: Component,
+    ilhs: number,
+    irhs: number
+  ) {
+    this.row = row;
+    this.lhs = lhs;
+    this.rhs = rhs;
+    this.lLocalVec = lhs.localVectors[ilhs].clone();
+    this.lLocalSkew = skew(this.lLocalVec).mul(2);
+    this.rLocalVec = rhs.localVectors[irhs].clone();
+    this.rLocalSkew = skew(this.rLocalVec).mul(-2);
+  }
+
+  setJacobianAndConstrains(phi_q: Matrix, phi: number[]) {
+    const cLhs = this.lhs.col;
+    const cRhs = this.rhs.col;
+    const {row, lhs, rhs, lLocalVec, lLocalSkew, rLocalVec, rLocalSkew} = this;
+    const qLhs = lhs.quaternion;
+    const qRhs = rhs.quaternion;
+    const ALhs = rotationMatrix(qLhs);
+    const ARhs = rotationMatrix(qRhs);
+    const GLhs = decompositionMatrixG(qLhs);
+    const GRhs = decompositionMatrixG(qRhs);
+    const sLhs = lLocalVec.clone().applyQuaternion(qLhs);
+    const sRhs = rLocalVec.clone().applyQuaternion(qRhs);
+
+    // 始点位置拘束
+    {
+      const constrain = lhs.position
+        .clone()
+        .add(sLhs)
+        .sub(rhs.position)
+        .sub(sRhs);
+      phi[row + X] = constrain.x;
+      phi[row + Y] = constrain.y;
+      phi[row + Z] = constrain.z;
+      // diff of positions are 1
+      phi_q.set(row + X, cLhs + X, 1);
+      phi_q.set(row + Y, cLhs + Y, 1);
+      phi_q.set(row + Z, cLhs + Z, 1);
+      phi_q.set(row + X, cRhs + X, -1);
+      phi_q.set(row + Y, cRhs + Y, -1);
+      phi_q.set(row + Z, cRhs + Z, -1);
+      setSubMatrix(row + X, cLhs + Q0, phi_q, ALhs.mmul(lLocalSkew).mmul(GLhs));
+      setSubMatrix(row + X, cRhs + Q0, phi_q, ARhs.mmul(rLocalSkew).mmul(GRhs));
+    }
+  }
+}
 
 export class Hinge implements Constrain {
   constrains = 5; // 自由度を5減らす
@@ -169,5 +237,19 @@ export class Component {
     this.position = element.position.value;
     this.quaternion = element.rotation.value;
     this.localVectors = element.getPoints().map((p) => p.value);
+  }
+}
+
+export class KinematicSolver {
+  assembly: IAssembly;
+
+  components: Component[];
+
+  constrains: Constrain[];
+
+  constructor(assembly: IAssembly) {
+    this.assembly = assembly;
+    this.components = [];
+    this.constrains = [];
   }
 }

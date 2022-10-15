@@ -314,6 +314,15 @@ export const isDataAssembly = (
   element: IDataElement
 ): element is IDataAssembly => 'isDataAssembly' in element;
 
+export const isSimplifiedElement = (
+  element: any
+): element is IBar | ITire | ISpringDumper => {
+  if (isElement(element)) return false;
+  if (isBar(element)) return true;
+  if (isSpringDumper(element)) return true;
+  if (isTire(element)) return true;
+  return false;
+};
 export const isBar = (element: IElement): element is IBar =>
   element.className === 'Bar';
 export const isSpringDumper = (element: IElement): element is ISpringDumper =>

@@ -4,9 +4,8 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {IAssembly, IElement, isFrame} from '@gd/IElements';
+import {IAssembly, IElement, isFrame, isSimplifiedElement} from '@gd/IElements';
 import {INamedVector3} from '@gd/INamedValues';
-
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '@store/store';
 import {
@@ -31,7 +30,10 @@ import Tooltip from '@mui/material/Tooltip';
 import {alpha} from '@mui/material/styles';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
 // import {getNode} from '@gd/INode';
-import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
+import {
+  setSelectedPoint,
+  setConfirmDialogProps
+} from '@store/reducers/uiTempGeometryDesigner';
 import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
 import {numberToRgb} from '@app/utils/helpers';
 import usePrevious from '@app/hooks/usePrevious';
@@ -312,7 +314,7 @@ export function JointsList(props: {
         {pairSelected ? (
           <Tooltip title="Add" sx={{flex: '1'}}>
             <IconButton
-              onClick={() => {
+              onClick={async () => {
                 const points = assembly.getPoints();
                 const lhs = points.find(
                   (point) => point.nodeID === selectedPair.lhs?.nodeID
@@ -321,6 +323,24 @@ export function JointsList(props: {
                   (point) => point.nodeID === selectedPair.rhs?.nodeID
                 );
                 if (lhs && rhs) {
+                  if (
+                    isSimplifiedElement(lhs.parent) &&
+                    isSimplifiedElement(rhs.parent)
+                  ) {
+                    await new Promise<string>((resolve) => {
+                      dispatch(
+                        setConfirmDialogProps({
+                          zindex: 130000000000000000,
+                          onClose: resolve,
+                          title: 'Notice',
+                          message: `You can't joint simplified elements.`,
+                          buttons: [{text: 'OK', res: 'ok', autoFocus: true}]
+                        })
+                      );
+                    });
+                    dispatch(setConfirmDialogProps(undefined));
+                    return;
+                  }
                   assembly.joints.push({lhs: lhs.nodeID, rhs: rhs.nodeID});
                   dispatch(updateAssembly(assembly));
                 }
