@@ -186,6 +186,7 @@ export interface IDataAssembly extends IDataElement {
 export interface IBar extends IElement {
   readonly fixedPoint: INamedVector3;
   readonly point: INamedVector3;
+  readonly length: number;
 }
 
 export interface IDataBar extends IDataElement {
@@ -198,6 +199,7 @@ export interface ISpringDumper extends IElement {
   readonly point: INamedVector3;
   readonly dlMin: INamedNumber;
   readonly dlMax: INamedNumber;
+  readonly length: number;
 }
 
 export interface IDataSpringDumper extends IDataElement {
@@ -246,6 +248,7 @@ export interface ITire extends IElement {
   readonly rightBearing: INamedVector3;
   readonly leftBearing: INamedVector3;
   readonly diameter: Millimeter;
+  readonly bearingDistance: number;
 }
 
 export interface IDataTire extends IDataElement {

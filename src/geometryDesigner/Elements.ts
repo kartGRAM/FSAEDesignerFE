@@ -852,6 +852,10 @@ export class Bar extends Element implements IBar {
 
   rotation: NamedQuaternion;
 
+  get length(): number {
+    return this.fixedPoint.value.sub(this.point.value).length();
+  }
+
   getPoints(): INamedVector3[] {
     return [this.fixedPoint, this.point];
   }
@@ -1606,6 +1610,10 @@ export class Tire extends Element implements ITire {
       update: () => {},
       nodeID: this.rightBearingNodeID
     });
+  }
+
+  get bearingDistance(): number {
+    return Math.abs(this.toLeftBearing.value - this.toRightBearing.value);
   }
 
   get ground(): Vector3 {

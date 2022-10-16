@@ -4,7 +4,11 @@ import {
   IAssembly,
   isElement,
   isBodyOfFrame,
-  JointAsVector3
+  JointAsVector3,
+  IAArm,
+  isAArm,
+  IElement,
+  isSimplifiedElement
 } from '@gd/IElements';
 import {Matrix, SingularValueDecomposition} from 'ml-matrix';
 import {Quaternion, Vector3} from 'three';
@@ -89,6 +93,10 @@ export function getKinematicConstrainedElements(assembly: IAssembly): void {
 }
 
 export function getKinematicConstrainedElementsWithMinimize() {}
+
+export function getAssemblyMode() {
+  return store.getState().uigd.present.gdSceneState.assemblyMode;
+}
 
 // 拘束式のヤコビアンを求める。
 export function getKinematicJacobianMatrix(
@@ -431,4 +439,56 @@ export function getStableOrthogonalVector(v: Vector3): Vector3 {
   b[idx[1]] = Math.sqrt(a[idx[0]] / (a[idx[0]] + a[idx[1]]));
   b[idx[0]] = Math.sqrt(1 - b[idx[1]] ** 2);
   return new Vector3(b[0], b[1], b[3]);
+}
+
+export type JointDict = {[index: string]: JointAsVector3[]};
+
+export function getJointDictionary(
+  children: IElement[],
+  joints: JointAsVector3[]
+) {
+  const dictionary: JointDict = {};
+  children.forEach((child) => {
+    dictionary[child.nodeID] = [];
+  });
+  joints.forEach((joint) => {
+    const {lhs, rhs} = joint;
+    if (!isElement(lhs.parent)) return;
+    if (!isElement(rhs.parent)) return;
+    dictionary[lhs.parent.nodeID].push(joint);
+    dictionary[rhs.parent.nodeID].push(joint);
+    dictionary[lhs.nodeID].push(joint);
+    dictionary[rhs.nodeID].push(joint);
+  });
+  return dictionary;
+}
+
+export function getJointPartner(joint: JointAsVector3, nodeID: string) {
+  return joint.lhs.nodeID === nodeID ? joint.rhs : joint.lhs;
+}
+
+export function canSimplifyAArm(aArm: IAArm, jointDict: JointDict): boolean {
+  const additionalPoints = aArm.points.length - 1;
+  if (additionalPoints) return false;
+  const fp = aArm.fixedPoints;
+  const parents = fp.map((p) => {
+    const joint = jointDict[p.nodeID][0];
+    return getJointPartner(joint, p.nodeID).parent as IElement;
+  });
+  const pUpright = aArm.points[0];
+  const upright = getJointPartner(
+    jointDict[pUpright.nodeID][0],
+    pUpright.nodeID
+  ).parent as IElement;
+  if (!parents[0] || !parents[1]) return false;
+
+  if (parents[0].nodeID === parents[1].nodeID) {
+    if (isSimplifiedElement(parents[0])) return false;
+    if (isSimplifiedElement(upright)) return false;
+    if (isAArm(parents[0])) return false;
+    if (isAArm(upright)) return false;
+    return true;
+  }
+
+  return false;
 }
