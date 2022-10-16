@@ -63,7 +63,11 @@ export class Sphere implements Constrain {
 
   rLocalSkew: Matrix;
 
+  target: Vector3 = new Vector3();
+
   name: string;
+
+  isFixed: boolean = false;
 
   constructor(
     name: string,
@@ -75,29 +79,47 @@ export class Sphere implements Constrain {
   ) {
     this.name = name;
     this.row = row;
-    this.lhs = lhs;
-    this.rhs = rhs;
+    if (lhs.isFixed) {
+      if (rhs.isFixed) throw new Error('拘束式の両端が固定されている');
+      // 固定側はrhsにする
+      this.lhs = rhs;
+      this.rhs = lhs;
+      const tmp = ilhs;
+      ilhs = irhs;
+      irhs = tmp;
+    } else {
+      this.lhs = lhs;
+      this.rhs = rhs;
+    }
+
     this.lLocalVec = lhs.localVectors[ilhs].clone();
     this.lLocalSkew = skew(this.lLocalVec).mul(2);
     this.rLocalVec = rhs.localVectors[irhs].clone();
     this.rLocalSkew = skew(this.rLocalVec).mul(-2);
+    if (rhs.isFixed) {
+      this.isFixed = true;
+      this.target = rhs.position.add(
+        this.rLocalVec.applyQuaternion(rhs.quaternion)
+      );
+    }
   }
 
   setJacobianAndConstrains(phi_q: Matrix, phi: number[]) {
     const cLhs = this.lhs.col;
-    const cRhs = this.rhs.col;
-    const {row, lhs, rhs, lLocalVec, lLocalSkew, rLocalVec, rLocalSkew} = this;
+    const {row, lhs, lLocalVec, lLocalSkew} = this;
     const qLhs = lhs.quaternion;
-    const qRhs = rhs.quaternion;
     const ALhs = rotationMatrix(qLhs);
-    const ARhs = rotationMatrix(qRhs);
     const GLhs = decompositionMatrixG(qLhs);
-    const GRhs = decompositionMatrixG(qRhs);
     const sLhs = lLocalVec.clone().applyQuaternion(qLhs);
-    const sRhs = rLocalVec.clone().applyQuaternion(qRhs);
 
     // 始点位置拘束
-    {
+    if (!this.isFixed) {
+      const {rhs, rLocalVec, rLocalSkew} = this;
+      const cRhs = this.rhs.col;
+      const qRhs = rhs.quaternion;
+      const ARhs = rotationMatrix(qRhs);
+      const GRhs = decompositionMatrixG(qRhs);
+      const sRhs = rLocalVec.clone().applyQuaternion(qRhs);
       const constrain = lhs.position
         .clone()
         .add(sLhs)
@@ -115,51 +137,8 @@ export class Sphere implements Constrain {
       phi_q.set(row + Z, cRhs + Z, -1);
       setSubMatrix(row + X, cLhs + Q0, phi_q, ALhs.mmul(lLocalSkew).mmul(GLhs));
       setSubMatrix(row + X, cRhs + Q0, phi_q, ARhs.mmul(rLocalSkew).mmul(GRhs));
-    }
-  }
-}
-
-export class FixedSphere implements Constrain {
-  constrains = 3; // 自由度を3減らす
-
-  row: number;
-
-  lhs: Component;
-
-  lLocalVec: Vector3;
-
-  lLocalSkew: Matrix;
-
-  target: Vector3;
-
-  name: string;
-
-  constructor(
-    name: string,
-    row: number,
-    lhs: Component,
-    ilhs: number,
-    target: Vector3
-  ) {
-    this.name = name;
-    this.row = row;
-    this.lhs = lhs;
-    this.lLocalVec = lhs.localVectors[ilhs].clone();
-    this.lLocalSkew = skew(this.lLocalVec).mul(2);
-    this.target = target.clone();
-  }
-
-  setJacobianAndConstrains(phi_q: Matrix, phi: number[]) {
-    const cLhs = this.lhs.col;
-    const {row, lhs, lLocalVec, lLocalSkew, target} = this;
-    const qLhs = lhs.quaternion;
-    const ALhs = rotationMatrix(qLhs);
-    const GLhs = decompositionMatrixG(qLhs);
-    const sLhs = lLocalVec.clone().applyQuaternion(qLhs);
-
-    // 始点位置拘束
-    {
-      const constrain = lhs.position.clone().add(sLhs).sub(target);
+    } else {
+      const constrain = lhs.position.clone().add(sLhs).sub(this.target);
       phi[row + X] = constrain.x;
       phi[row + Y] = constrain.y;
       phi[row + Z] = constrain.z;
@@ -198,7 +177,11 @@ export class Hinge implements Constrain {
 
   rAxisSkew: Matrix;
 
+  target: Vector3 = new Vector3();
+
   name: string;
+
+  isFixed: boolean = false;
 
   constructor(
     name: string,
@@ -210,8 +193,18 @@ export class Hinge implements Constrain {
   ) {
     this.name = name;
     this.row = row;
-    this.lhs = lhs;
-    this.rhs = rhs;
+    if (rhs.isFixed) {
+      if (lhs.isFixed) throw new Error('拘束式の両端が固定されている');
+      // 固定側はlhsにする
+      this.lhs = rhs;
+      this.rhs = lhs;
+      const tmp = ilhs;
+      ilhs = irhs;
+      irhs = tmp;
+    } else {
+      this.lhs = lhs;
+      this.rhs = rhs;
+    }
     this.lLocalVec = lhs.localVectors[ilhs[0]].clone();
     this.lLocalSkew = skew(this.lLocalVec).mul(2);
     this.rLocalVec = rhs.localVectors[irhs[0]].clone();
@@ -227,6 +220,14 @@ export class Hinge implements Constrain {
     }
     const oVec1 = getStableOrthogonalVector(lAxisVec);
     const oVec2 = lAxisVec.cross(oVec1);
+    if (lhs.isFixed) {
+      this.isFixed = true;
+      this.target = lhs.position.add(
+        this.lLocalVec.applyQuaternion(lhs.quaternion)
+      );
+      oVec1.applyQuaternion(lhs.quaternion);
+      oVec2.applyQuaternion(lhs.quaternion);
+    }
     this.lOrthogonalVec = [oVec1, oVec2];
     this.lOrthogonalSkew = [
       skew(this.lOrthogonalVec[0]).mul(2),
@@ -235,32 +236,30 @@ export class Hinge implements Constrain {
   }
 
   setJacobianAndConstrains(phi_q: Matrix, phi: number[]) {
-    const cLhs = this.lhs.col;
     const cRhs = this.rhs.col;
+    const cLhs = this.lhs.col;
     const {
       row,
-      lhs,
       rhs,
-      lLocalVec,
-      lLocalSkew,
-      lOrthogonalVec,
-      lOrthogonalSkew,
       rLocalVec,
       rLocalSkew,
       rAxisVec,
-      rAxisSkew
+      rAxisSkew,
+      lhs,
+      lLocalVec,
+      lLocalSkew
     } = this;
-    const qLhs = lhs.quaternion;
     const qRhs = rhs.quaternion;
-    const ALhs = rotationMatrix(qLhs);
     const ARhs = rotationMatrix(qRhs);
-    const GLhs = decompositionMatrixG(qLhs);
     const GRhs = decompositionMatrixG(qRhs);
-    const sLhs = lLocalVec.clone().applyQuaternion(qLhs);
     const sRhs = rLocalVec.clone().applyQuaternion(qRhs);
+    const qLhs = lhs.quaternion;
+    const ALhs = rotationMatrix(qLhs);
+    const GLhs = decompositionMatrixG(qLhs);
 
     // 始点位置拘束
-    {
+    if (!this.isFixed) {
+      const sLhs = lLocalVec.clone().applyQuaternion(qLhs);
       const constrain = lhs.position
         .clone()
         .add(sLhs)
@@ -278,95 +277,8 @@ export class Hinge implements Constrain {
       phi_q.set(row + Z, cRhs + Z, -1);
       setSubMatrix(row + X, cLhs + Q0, phi_q, ALhs.mmul(lLocalSkew).mmul(GLhs));
       setSubMatrix(row + X, cRhs + Q0, phi_q, ARhs.mmul(rLocalSkew).mmul(GRhs));
-    }
-
-    // 並行拘束
-    const axis = rAxisVec.clone().applyQuaternion(qRhs);
-    const axisT = new Matrix([[axis.x, axis.y, axis.z]]); // (1x3)
-    const axisDelta = ARhs.mmul(rAxisSkew).mmul(GRhs); // (3x4)
-    for (let r = 0; r < 2; ++r) {
-      const orthoVec = lOrthogonalVec[r].clone().applyQuaternion(qLhs);
-      phi[r + row + 3] = orthoVec.dot(axis);
-      const orthoDelta = ALhs.mmul(lOrthogonalSkew[r]).mmul(GLhs); // (3x4)
-      const orthoT = new Matrix([[orthoVec.x, orthoVec.y, orthoVec.z]]); // (1x3)
-      const dLhs = axisT.mmul(orthoDelta); // (1x3) x (3x4) = (1x4)
-      const dRhs = orthoT.mmul(axisDelta); // (1x3) x (3x4) = (1x4)
-
-      setSubMatrix(row + 3 + r, cLhs + Q0, phi_q, dLhs);
-      setSubMatrix(row + 3 + r, cRhs + Q0, phi_q, dRhs);
-    }
-  }
-}
-
-export class FixedHinge implements Constrain {
-  constrains = 5; // 自由度を5減らす
-
-  row: number;
-
-  rhs: Component;
-
-  rLocalVec: Vector3;
-
-  rLocalSkew: Matrix;
-
-  rAxisVec: Vector3;
-
-  rAxisSkew: Matrix;
-
-  targetVec: Vector3;
-
-  // 軸に垂直なベクトル
-  targetOrthogonalVec: [Vector3, Vector3];
-
-  name: string;
-
-  constructor(
-    name: string,
-    row: number,
-    rhs: Component,
-    irhs: [number, number],
-    target: [Vector3, Vector3]
-  ) {
-    this.name = name;
-    this.row = row;
-    this.rhs = rhs;
-    this.targetVec = target[0].clone();
-    this.rLocalVec = rhs.localVectors[irhs[0]].clone();
-    this.rLocalSkew = skew(this.rLocalVec).mul(-2);
-    this.rAxisVec = rhs.localVectors[irhs[1]].clone().sub(this.rLocalVec);
-    this.rAxisSkew = skew(this.rAxisVec).mul(2);
-    const targetAxisVec = target[1].clone().sub(target[0]);
-    if (
-      this.rAxisVec.lengthSq() < Number.EPSILON ||
-      targetAxisVec.lengthSq() < Number.EPSILON
-    ) {
-      throw new Error('ヒンジを構成する2点が近すぎます');
-    }
-    const oVec1 = getStableOrthogonalVector(targetAxisVec);
-    const oVec2 = targetAxisVec.cross(oVec1);
-    this.targetOrthogonalVec = [oVec1, oVec2];
-  }
-
-  setJacobianAndConstrains(phi_q: Matrix, phi: number[]) {
-    const cRhs = this.rhs.col;
-    const {
-      row,
-      rhs,
-      targetVec,
-      targetOrthogonalVec,
-      rLocalVec,
-      rLocalSkew,
-      rAxisVec,
-      rAxisSkew
-    } = this;
-    const qRhs = rhs.quaternion;
-    const ARhs = rotationMatrix(qRhs);
-    const GRhs = decompositionMatrixG(qRhs);
-    const sRhs = rLocalVec.clone().applyQuaternion(qRhs);
-
-    // 始点位置拘束
-    {
-      const constrain = targetVec.clone().sub(rhs.position).sub(sRhs);
+    } else {
+      const constrain = this.target.clone().sub(rhs.position).sub(sRhs);
       phi[row + X] = constrain.x;
       phi[row + Y] = constrain.y;
       phi[row + Z] = constrain.z;
@@ -379,11 +291,18 @@ export class FixedHinge implements Constrain {
 
     // 並行拘束
     const axis = rAxisVec.clone().applyQuaternion(qRhs);
+    const axisT = new Matrix([[axis.x, axis.y, axis.z]]); // (1x3)
     const axisDelta = ARhs.mmul(rAxisSkew).mmul(GRhs); // (3x4)
     for (let r = 0; r < 2; ++r) {
-      const orthoVec = targetOrthogonalVec[r].clone();
-      phi[r + row + 3] = orthoVec.dot(axis);
+      let orthoVec = this.lOrthogonalVec[r];
+      if (!this.isFixed) {
+        orthoVec = orthoVec.clone().applyQuaternion(qLhs);
+        const orthoDelta = ALhs.mmul(this.lOrthogonalSkew[r]).mmul(GLhs); // (3x4)
+        const dLhs = axisT.mmul(orthoDelta); // (1x3) x (3x4) = (1x4)
+        setSubMatrix(row + 3 + r, cLhs + Q0, phi_q, dLhs);
+      }
       const orthoT = new Matrix([[orthoVec.x, orthoVec.y, orthoVec.z]]); // (1x3)
+      phi[r + row + 3] = orthoVec.dot(axis);
       const dRhs = orthoT.mmul(axisDelta); // (1x3) x (3x4) = (1x4)
       setSubMatrix(row + 3 + r, cRhs + Q0, phi_q, dRhs);
     }
@@ -411,6 +330,10 @@ export class BarAndSpheres implements Constrain {
 
   name: string;
 
+  target: Vector3 = new Vector3();
+
+  isFixed: boolean = false;
+
   constructor(
     name: string,
     row: number,
@@ -422,88 +345,77 @@ export class BarAndSpheres implements Constrain {
   ) {
     this.name = name;
     this.row = row;
-    this.lhs = lhs;
-    this.rhs = rhs;
+    if (lhs.isFixed) {
+      if (rhs.isFixed) throw new Error('拘束式の両端が固定されている');
+      // 固定側はrhsにする
+      this.lhs = rhs;
+      this.rhs = lhs;
+      const tmp = ilhs;
+      ilhs = irhs;
+      irhs = tmp;
+    } else {
+      this.lhs = lhs;
+      this.rhs = rhs;
+    }
     this.lLocalVec = lhs.localVectors[ilhs].clone();
     this.lLocalSkew = skew(this.lLocalVec).mul(2);
     this.rLocalVec = rhs.localVectors[irhs].clone();
     this.rLocalSkew = skew(this.rLocalVec).mul(-2);
+    if (rhs.isFixed) {
+      this.isFixed = true;
+      this.target = rhs.position.add(
+        this.rLocalVec.applyQuaternion(rhs.quaternion)
+      );
+    }
     this.l2 = l * l;
   }
 
   setJacobianAndConstrains(phi_q: Matrix, phi: number[]) {
     const cLhs = this.lhs.col;
-    const cRhs = this.rhs.col;
-    const {row, lhs, rhs, lLocalVec, lLocalSkew, rLocalVec, rLocalSkew, l2} =
-      this;
-    const qLhs = lhs.quaternion;
-    const qRhs = rhs.quaternion;
-    const ALhs = rotationMatrix(qLhs);
-    const ARhs = rotationMatrix(qRhs);
-    const GLhs = decompositionMatrixG(qLhs);
-    const GRhs = decompositionMatrixG(qRhs);
-    const sLhs = lLocalVec.clone().applyQuaternion(qLhs);
-    const sRhs = rLocalVec.clone().applyQuaternion(qRhs);
-
-    const d = lhs.position.clone().add(sLhs).sub(rhs.position).sub(sRhs);
-    const dT = new Matrix([[d.x * 2, d.y * 2, d.z * 2]]); // (1x3)
-    phi[row] = d.lengthSq() - l2;
-
-    setSubMatrix(row, cLhs + X, phi_q, dT);
-    setSubMatrix(row, cRhs + X, phi_q, dT.mul(-1));
-    setSubMatrix(row, cLhs + Q0, phi_q, dT.mul(ALhs).mul(lLocalSkew).mul(GLhs));
-    setSubMatrix(row, cRhs + Q0, phi_q, dT.mul(ARhs).mul(rLocalSkew).mul(GRhs));
-  }
-}
-
-export class BarAndSphereAndFixedPoint implements Constrain {
-  constrains = 1; // 自由度を1減らす
-
-  row: number;
-
-  lhs: Component;
-
-  lLocalVec: Vector3;
-
-  lLocalSkew: Matrix;
-
-  l2: number;
-
-  target: Vector3;
-
-  name: string;
-
-  constructor(
-    name: string,
-    row: number,
-    lhs: Component,
-    ilhs: number,
-    l: number,
-    target: Vector3
-  ) {
-    this.name = name;
-    this.row = row;
-    this.lhs = lhs;
-    this.target = target;
-    this.lLocalVec = lhs.localVectors[ilhs].clone();
-    this.lLocalSkew = skew(this.lLocalVec).mul(2);
-    this.l2 = l * l;
-  }
-
-  setJacobianAndConstrains(phi_q: Matrix, phi: number[]) {
-    const cLhs = this.lhs.col;
-    const {row, lhs, lLocalVec, lLocalSkew, target, l2} = this;
+    const {row, lhs, lLocalVec, lLocalSkew, l2} = this;
     const qLhs = lhs.quaternion;
     const ALhs = rotationMatrix(qLhs);
     const GLhs = decompositionMatrixG(qLhs);
     const sLhs = lLocalVec.clone().applyQuaternion(qLhs);
 
-    const d = lhs.position.clone().add(sLhs).sub(target);
-    const dT = new Matrix([[d.x * 2, d.y * 2, d.z * 2]]); // (1x3)
-    phi[row] = d.lengthSq() - l2;
+    if (!this.isFixed) {
+      const {rhs, rLocalVec, rLocalSkew} = this;
+      const cRhs = this.rhs.col;
+      const qRhs = rhs.quaternion;
+      const ARhs = rotationMatrix(qRhs);
+      const GRhs = decompositionMatrixG(qRhs);
+      const sRhs = rLocalVec.clone().applyQuaternion(qRhs);
+      const d = lhs.position.clone().add(sLhs).sub(rhs.position).sub(sRhs);
+      const dT = new Matrix([[d.x * 2, d.y * 2, d.z * 2]]); // (1x3)
+      phi[row] = d.lengthSq() - l2;
 
-    setSubMatrix(row, cLhs + X, phi_q, dT);
-    setSubMatrix(row, cLhs + Q0, phi_q, dT.mul(ALhs).mul(lLocalSkew).mul(GLhs));
+      setSubMatrix(row, cLhs + X, phi_q, dT);
+      setSubMatrix(row, cRhs + X, phi_q, dT.mul(-1));
+      setSubMatrix(
+        row,
+        cLhs + Q0,
+        phi_q,
+        dT.mul(ALhs).mul(lLocalSkew).mul(GLhs)
+      );
+      setSubMatrix(
+        row,
+        cRhs + Q0,
+        phi_q,
+        dT.mul(ARhs).mul(rLocalSkew).mul(GRhs)
+      );
+    } else {
+      const d = lhs.position.clone().add(sLhs).sub(this.target);
+      const dT = new Matrix([[d.x * 2, d.y * 2, d.z * 2]]); // (1x3)
+      phi[row] = d.lengthSq() - l2;
+
+      setSubMatrix(row, cLhs + X, phi_q, dT);
+      setSubMatrix(
+        row,
+        cLhs + Q0,
+        phi_q,
+        dT.mul(ALhs).mul(lLocalSkew).mul(GLhs)
+      );
+    }
   }
 }
 
@@ -521,12 +433,15 @@ export class Component {
 
   localVectors: Vector3[];
 
+  isFixed: boolean;
+
   constructor(element: IElement, col: number) {
     this.col = col;
     this.element = element;
     this.position = element.position.value;
     this.quaternion = element.rotation.value;
     this.localVectors = element.getPoints().map((p) => p.value);
+    this.isFixed = isFixedElement(element); // fixedElementになった場合、ソルバに評価されない
   }
 }
 
@@ -597,6 +512,8 @@ export class KinematicSolver {
 
   equations: number;
 
+  columnComponents: number;
+
   constructor(assembly: IAssembly) {
     this.assembly = assembly;
     const {children} = assembly;
@@ -607,13 +524,16 @@ export class KinematicSolver {
     this.restorer = [];
     const {constrains, components} = this;
     this.equations = 0;
+    this.columnComponents = 0;
     const tempComponents: {[index: string]: Component} = {};
     const assemblyMode = getAssemblyMode();
     children.forEach((element) => {
       // 拘束コンポーネントは除外する
       if (isSimplifiedElement(element)) return;
-      // 固定コンポーネントはソルバから除外する
+      /* 固定コンポーネントはソルバから除外していたが、
+         除外しないで、あとから判定させる。
       if (isFixedElement(element)) return;
+      */
       tempComponents[element.nodeID] = new Component(element, 0);
     });
     // ChildrenをComponentに変換する
@@ -640,55 +560,18 @@ export class KinematicSolver {
         }
         const pointsBody = body.getPoints();
         const pointsUpright = upright.getPoints();
-        const wpUpright = upright.position.value.add(
-          pUpright.value.applyQuaternion(upright.rotation.value)
-        );
         ptsBody.forEach((pBody, i) => {
-          const wpBody = body.position.value.add(
-            pBody.value.applyQuaternion(body.rotation.value)
+          const constrain = new BarAndSpheres(
+            `bar object of aarm ${element.name.value}`,
+            this.equations,
+            tempComponents[body.nodeID],
+            tempComponents[upright.nodeID],
+            pointsBody.findIndex((p) => pBody.nodeID === p.nodeID),
+            pointsUpright.findIndex((p) => pUpright.nodeID === p.nodeID),
+            element.points[0].value.sub(element.fixedPoints[i].value).length()
           );
-          if (isFixedElement(body)) {
-            // パターン1 Bodyが固定の場合
-            const constrain = new BarAndSphereAndFixedPoint(
-              `bar object of aarm ${element.name.value}`,
-              this.equations,
-              tempComponents[upright.nodeID],
-              pointsUpright.findIndex((p) => pUpright.nodeID === p.nodeID),
-              element.points[0].value
-                .sub(element.fixedPoints[i].value)
-                .length(),
-              wpBody
-            );
-            this.equations += constrain.constrains;
-            this.constrains.push(constrain);
-          } else if (isFixedElement(upright)) {
-            // パターン2 Uprightが固定の場合
-            const constrain = new BarAndSphereAndFixedPoint(
-              `bar object of aarm ${element.name.value}`,
-              this.equations,
-              tempComponents[body.nodeID],
-              pointsBody.findIndex((p) => pBody.nodeID === p.nodeID),
-              element.points[0].value
-                .sub(element.fixedPoints[i].value)
-                .length(),
-              wpUpright
-            );
-            this.equations += constrain.constrains;
-            this.constrains.push(constrain);
-          } else {
-            // パターン3 両方とも非固定の場合
-            const constrain = new BarAndSpheres(
-              `bar object of aarm ${element.name.value}`,
-              this.equations,
-              tempComponents[body.nodeID],
-              tempComponents[upright.nodeID],
-              pointsBody.findIndex((p) => pBody.nodeID === p.nodeID),
-              pointsUpright.findIndex((p) => pUpright.nodeID === p.nodeID),
-              element.points[0].value.sub(element.fixedPoints[i].value).length()
-            );
-            this.equations += constrain.constrains;
-            this.constrains.push(constrain);
-          }
+          this.equations += constrain.constrains;
+          this.constrains.push(constrain);
         });
         return;
       }
@@ -709,53 +592,18 @@ export class KinematicSolver {
         ) {
           return;
         }
-        if (isFixedElement(elements[0])) {
-          // パターン1 element[0]が固定の場合
-          const pointsElement = elements.map((element) => element.getPoints());
-          const wpTarget = elements[0].position.value.add(
-            points[0].value.applyQuaternion(elements[0].rotation.value)
-          );
-          const constrain = new BarAndSphereAndFixedPoint(
-            `bar object of${element.name.value}`,
-            this.equations,
-            tempComponents[elements[1].nodeID],
-            pointsElement[1].findIndex((p) => points[1].nodeID === p.nodeID),
-            element.length,
-            wpTarget
-          );
-          this.equations += constrain.constrains;
-          this.constrains.push(constrain);
-        } else if (isFixedElement(elements[1])) {
-          // パターン2 element[1]が固定の場合
-          const pointsElement = elements.map((element) => element.getPoints());
-          const wpTarget = elements[1].position.value.add(
-            points[1].value.applyQuaternion(elements[1].rotation.value)
-          );
-          const constrain = new BarAndSphereAndFixedPoint(
-            `bar object of${element.name.value}`,
-            this.equations,
-            tempComponents[elements[0].nodeID],
-            pointsElement[0].findIndex((p) => points[0].nodeID === p.nodeID),
-            element.length,
-            wpTarget
-          );
-          this.equations += constrain.constrains;
-          this.constrains.push(constrain);
-        } else {
-          // パターン3 両方とも非固定の場合
-          const pointsElement = elements.map((element) => element.getPoints());
-          const constrain = new BarAndSpheres(
-            `bar object of${element.name.value}`,
-            this.equations,
-            tempComponents[elements[0].nodeID],
-            tempComponents[elements[1].nodeID],
-            pointsElement[0].findIndex((p) => points[0].nodeID === p.nodeID),
-            pointsElement[1].findIndex((p) => points[1].nodeID === p.nodeID),
-            element.length
-          );
-          this.equations += constrain.constrains;
-          this.constrains.push(constrain);
-        }
+        const pointsElement = elements.map((element) => element.getPoints());
+        const constrain = new BarAndSpheres(
+          `bar object of${element.name.value}`,
+          this.equations,
+          tempComponents[elements[0].nodeID],
+          tempComponents[elements[1].nodeID],
+          pointsElement[0].findIndex((p) => points[0].nodeID === p.nodeID),
+          pointsElement[1].findIndex((p) => points[1].nodeID === p.nodeID),
+          element.length
+        );
+        this.equations += constrain.constrains;
+        this.constrains.push(constrain);
         return;
       }
       // Frame固定の場合はTireはコンポーネント扱いしない
@@ -767,26 +615,37 @@ export class KinematicSolver {
           getJointPartner(jointl, element.leftBearing.nodeID)
         ];
         const elements = points.map((p) => p.parent as IElement);
-        // Tireの両端が同じコンポーネントに接続されている場合無視する。
-        // 以下はかなり特殊な場合（BRGの剛性を再現しているとか）
-        if (elements[0].nodeID !== elements[1].nodeID) {
-          const pointsElement = elements.map((element) => element.getPoints());
-          const constrain = new BarAndSpheres(
-            `bar object of tire${element.name.value}`,
-            this.equations,
-            tempComponents[elements[0].nodeID],
-            tempComponents[elements[1].nodeID],
-            pointsElement[0].findIndex((p) => points[0].nodeID === p.nodeID),
-            pointsElement[1].findIndex((p) => points[1].nodeID === p.nodeID),
-            element.bearingDistance
-          );
-          this.equations += constrain.constrains;
-          this.constrains.push(constrain);
-        }
         this.restorer.push(new TireRestorer(element, points[0], points[1]));
+        // Tireの両端が同じコンポーネントに接続されている場合(通常の状態)であればタイヤは無視する。
+        if (
+          elements[0].nodeID === elements[1].nodeID ||
+          (isFixedElement(elements[0]) && isFixedElement(elements[1]))
+        ) {
+          return;
+        }
+        // 以下はかなり特殊な場合（BRGの剛性を再現しているとか）
+        const pointsElement = elements.map((element) => element.getPoints());
+        const constrain = new BarAndSpheres(
+          `bar object of tire${element.name.value}`,
+          this.equations,
+          tempComponents[elements[0].nodeID],
+          tempComponents[elements[1].nodeID],
+          pointsElement[0].findIndex((p) => points[0].nodeID === p.nodeID),
+          pointsElement[1].findIndex((p) => points[1].nodeID === p.nodeID),
+          element.bearingDistance
+        );
+        this.equations += constrain.constrains;
+        this.constrains.push(constrain);
         return;
       }
-      const a = 0;
+      // FixedElementはコンポーネント扱いしない
+      if (isFixedElement(element)) return;
+
+      // solverにコンポーネントを追加する
+      const component = tempComponents[element.nodeID];
+      component.col = this.columnComponents;
+      this.columnComponents += 7;
+      this.components.push(component);
     });
   }
 
