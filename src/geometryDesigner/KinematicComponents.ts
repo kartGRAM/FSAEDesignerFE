@@ -28,7 +28,8 @@ import {
   getJointDictionary,
   canSimplifyAArm,
   getJointPartner,
-  getAssemblyMode
+  getAssemblyMode,
+  isFixedElement
 } from './KinematicFunctions';
 
 const X = 0;
@@ -455,6 +456,57 @@ export class BarAndSpheres implements Constrain {
   }
 }
 
+export class BarAndSphereAndFixedPoint implements Constrain {
+  constrains = 1; // 自由度を1減らす
+
+  row: number;
+
+  lhs: Component;
+
+  lLocalVec: Vector3;
+
+  lLocalSkew: Matrix;
+
+  l2: number;
+
+  target: Vector3;
+
+  name: string;
+
+  constructor(
+    name: string,
+    row: number,
+    lhs: Component,
+    ilhs: number,
+    l: number,
+    target: Vector3
+  ) {
+    this.name = name;
+    this.row = row;
+    this.lhs = lhs;
+    this.target = target;
+    this.lLocalVec = lhs.localVectors[ilhs].clone();
+    this.lLocalSkew = skew(this.lLocalVec).mul(2);
+    this.l2 = l * l;
+  }
+
+  setJacobianAndConstrains(phi_q: Matrix, phi: number[]) {
+    const cLhs = this.lhs.col;
+    const {row, lhs, lLocalVec, lLocalSkew, target, l2} = this;
+    const qLhs = lhs.quaternion;
+    const ALhs = rotationMatrix(qLhs);
+    const GLhs = decompositionMatrixG(qLhs);
+    const sLhs = lLocalVec.clone().applyQuaternion(qLhs);
+
+    const d = lhs.position.clone().add(sLhs).sub(target);
+    const dT = new Matrix([[d.x * 2, d.y * 2, d.z * 2]]); // (1x3)
+    phi[row] = d.lengthSq() - l2;
+
+    setSubMatrix(row, cLhs + X, phi_q, dT);
+    setSubMatrix(row, cLhs + Q0, phi_q, dT.mul(ALhs).mul(lLocalSkew).mul(GLhs));
+  }
+}
+
 // elementの初期状態を取得し、計算後に反映する。
 // ただし、Bar, Tire, SpringDumperなど自由度の小さいElementは含まれない
 export class Component {
@@ -560,12 +612,11 @@ export class KinematicSolver {
     children.forEach((element) => {
       // 拘束コンポーネントは除外する
       if (isSimplifiedElement(element)) return;
-      if (assemblyMode === 'FixedFrame') {
-        // フレームボディはcomponentsから除外する
-        if (isBodyOfFrame(element)) return;
-      }
+      // 固定コンポーネントはソルバから除外する
+      if (isFixedElement(element)) return;
       tempComponents[element.nodeID] = new Component(element, 0);
     });
+    // ChildrenをComponentに変換する
     children.forEach((element) => {
       // AArmが単独で使われている場合は、BarAndSpheres2つに変更する。
       if (isAArm(element) && canSimplifyAArm(element, jointDict)) {
@@ -577,11 +628,55 @@ export class KinematicSolver {
         const pUpright = getJointPartner(jointu, element.points[0].nodeID);
         const body = ptsBody[0].parent as IElement;
         const upright = pUpright.parent as IElement;
+        this.restorer.push(
+          new AArmRestorer(element, [ptsBody[0], ptsBody[1]], pUpright)
+        );
         // あまりないと思うが、AArmのすべての点が同じコンポーネントに接続されている場合無視する
-        if (body.nodeID !== upright.nodeID) {
-          const pointsBody = body.getPoints();
-          const pointsUpright = upright.getPoints();
-          ptsBody.forEach((pBody) => {
+        if (
+          body.nodeID === upright.nodeID ||
+          (isFixedElement(body) && isFixedElement(upright))
+        ) {
+          return;
+        }
+        const pointsBody = body.getPoints();
+        const pointsUpright = upright.getPoints();
+        const wpUpright = upright.position.value.add(
+          pUpright.value.applyQuaternion(upright.rotation.value)
+        );
+        ptsBody.forEach((pBody, i) => {
+          const wpBody = body.position.value.add(
+            pBody.value.applyQuaternion(body.rotation.value)
+          );
+          if (isFixedElement(body)) {
+            // パターン1 Bodyが固定の場合
+            const constrain = new BarAndSphereAndFixedPoint(
+              `bar object of aarm ${element.name.value}`,
+              this.equations,
+              tempComponents[upright.nodeID],
+              pointsUpright.findIndex((p) => pUpright.nodeID === p.nodeID),
+              element.points[0].value
+                .sub(element.fixedPoints[i].value)
+                .length(),
+              wpBody
+            );
+            this.equations += constrain.constrains;
+            this.constrains.push(constrain);
+          } else if (isFixedElement(upright)) {
+            // パターン2 Uprightが固定の場合
+            const constrain = new BarAndSphereAndFixedPoint(
+              `bar object of aarm ${element.name.value}`,
+              this.equations,
+              tempComponents[body.nodeID],
+              pointsBody.findIndex((p) => pBody.nodeID === p.nodeID),
+              element.points[0].value
+                .sub(element.fixedPoints[i].value)
+                .length(),
+              wpUpright
+            );
+            this.equations += constrain.constrains;
+            this.constrains.push(constrain);
+          } else {
+            // パターン3 両方とも非固定の場合
             const constrain = new BarAndSpheres(
               `bar object of aarm ${element.name.value}`,
               this.equations,
@@ -589,15 +684,12 @@ export class KinematicSolver {
               tempComponents[upright.nodeID],
               pointsBody.findIndex((p) => pBody.nodeID === p.nodeID),
               pointsUpright.findIndex((p) => pUpright.nodeID === p.nodeID),
-              pBody.value.sub(pUpright.value).length()
+              element.points[0].value.sub(element.fixedPoints[i].value).length()
             );
             this.equations += constrain.constrains;
             this.constrains.push(constrain);
-          });
-        }
-        this.restorer.push(
-          new AArmRestorer(element, [ptsBody[0], ptsBody[1]], pUpright)
-        );
+          }
+        });
         return;
       }
       // BarはComponent扱いしない
@@ -609,8 +701,48 @@ export class KinematicSolver {
           getJointPartner(jointp, element.point.nodeID)
         ];
         const elements = points.map((p) => p.parent as IElement);
-        // あまりないと思うが、Barの両端が同じコンポーネントに接続されている場合無視する
-        if (elements[0].nodeID !== elements[1].nodeID) {
+        this.restorer.push(new BarRestorer(element, points[0], points[1]));
+        // あまりないと思うが、AArmのすべての点が同じコンポーネントに接続されている場合無視する
+        if (
+          elements[0].nodeID === elements[1].nodeID ||
+          (isFixedElement(elements[0]) && isFixedElement(elements[1]))
+        ) {
+          return;
+        }
+        if (isFixedElement(elements[0])) {
+          // パターン1 element[0]が固定の場合
+          const pointsElement = elements.map((element) => element.getPoints());
+          const wpTarget = elements[0].position.value.add(
+            points[0].value.applyQuaternion(elements[0].rotation.value)
+          );
+          const constrain = new BarAndSphereAndFixedPoint(
+            `bar object of${element.name.value}`,
+            this.equations,
+            tempComponents[elements[1].nodeID],
+            pointsElement[1].findIndex((p) => points[1].nodeID === p.nodeID),
+            element.length,
+            wpTarget
+          );
+          this.equations += constrain.constrains;
+          this.constrains.push(constrain);
+        } else if (isFixedElement(elements[1])) {
+          // パターン2 element[1]が固定の場合
+          const pointsElement = elements.map((element) => element.getPoints());
+          const wpTarget = elements[1].position.value.add(
+            points[1].value.applyQuaternion(elements[1].rotation.value)
+          );
+          const constrain = new BarAndSphereAndFixedPoint(
+            `bar object of${element.name.value}`,
+            this.equations,
+            tempComponents[elements[0].nodeID],
+            pointsElement[0].findIndex((p) => points[0].nodeID === p.nodeID),
+            element.length,
+            wpTarget
+          );
+          this.equations += constrain.constrains;
+          this.constrains.push(constrain);
+        } else {
+          // パターン3 両方とも非固定の場合
           const pointsElement = elements.map((element) => element.getPoints());
           const constrain = new BarAndSpheres(
             `bar object of${element.name.value}`,
@@ -624,7 +756,6 @@ export class KinematicSolver {
           this.equations += constrain.constrains;
           this.constrains.push(constrain);
         }
-        this.restorer.push(new BarRestorer(element, points[0], points[1]));
         return;
       }
       // Frame固定の場合はTireはコンポーネント扱いしない

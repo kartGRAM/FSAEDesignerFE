@@ -94,10 +94,6 @@ export function getKinematicConstrainedElements(assembly: IAssembly): void {
 
 export function getKinematicConstrainedElementsWithMinimize() {}
 
-export function getAssemblyMode() {
-  return store.getState().uigd.present.gdSceneState.assemblyMode;
-}
-
 // 拘束式のヤコビアンを求める。
 export function getKinematicJacobianMatrix(
   assembly: IAssembly,
@@ -490,5 +486,17 @@ export function canSimplifyAArm(aArm: IAArm, jointDict: JointDict): boolean {
     return true;
   }
 
+  return false;
+}
+
+export function getAssemblyMode() {
+  return store.getState().uigd.present.gdSceneState.assemblyMode;
+}
+
+export function isFixedElement(element: IElement) {
+  const mode = getAssemblyMode();
+  if (mode === 'FixedFrame') {
+    if (isBodyOfFrame(element)) return true;
+  }
   return false;
 }
