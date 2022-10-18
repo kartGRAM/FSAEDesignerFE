@@ -14,7 +14,8 @@ import {
   isBodyOfFrame,
   IAArm,
   IBar,
-  ITire
+  ITire,
+  JointAsVector3
 } from '@gd/IElements';
 import {INamedVector3} from '@gd/INamedValues';
 import {Vector3, Quaternion} from 'three';
@@ -29,7 +30,10 @@ import {
   canSimplifyAArm,
   getJointPartner,
   getAssemblyMode,
-  isFixedElement
+  isFixedElement,
+  getJointsToOtherComponents,
+  getNamedVector3FromJoint,
+  getIndexOfPoint
 } from './KinematicFunctions';
 
 const X = 0;
@@ -40,14 +44,14 @@ const Q1 = 4;
 const Q2 = 5;
 const Q3 = 6;
 
-export interface Constrain {
-  constrains: number;
+export interface Constraint {
+  constraints: number;
   readonly name: string;
-  setJacobianAndConstrains(phi_q: Matrix, phi: number[]): void;
+  setJacobianAndConstraints(phi_q: Matrix, phi: number[]): void;
 }
 
-export class Sphere implements Constrain {
-  constrains = 3; // 自由度を3減らす
+export class Sphere implements Constraint {
+  constraints = 3; // 自由度を3減らす
 
   row: number;
 
@@ -104,7 +108,7 @@ export class Sphere implements Constrain {
     }
   }
 
-  setJacobianAndConstrains(phi_q: Matrix, phi: number[]) {
+  setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
     const cLhs = this.lhs.col;
     const {row, lhs, lLocalVec, lLocalSkew} = this;
     const qLhs = lhs.quaternion;
@@ -120,14 +124,14 @@ export class Sphere implements Constrain {
       const ARhs = rotationMatrix(qRhs);
       const GRhs = decompositionMatrixG(qRhs);
       const sRhs = rLocalVec.clone().applyQuaternion(qRhs);
-      const constrain = lhs.position
+      const constraint = lhs.position
         .clone()
         .add(sLhs)
         .sub(rhs.position)
         .sub(sRhs);
-      phi[row + X] = constrain.x;
-      phi[row + Y] = constrain.y;
-      phi[row + Z] = constrain.z;
+      phi[row + X] = constraint.x;
+      phi[row + Y] = constraint.y;
+      phi[row + Z] = constraint.z;
       // diff of positions are 1
       phi_q.set(row + X, cLhs + X, 1);
       phi_q.set(row + Y, cLhs + Y, 1);
@@ -138,10 +142,10 @@ export class Sphere implements Constrain {
       setSubMatrix(row + X, cLhs + Q0, phi_q, ALhs.mmul(lLocalSkew).mmul(GLhs));
       setSubMatrix(row + X, cRhs + Q0, phi_q, ARhs.mmul(rLocalSkew).mmul(GRhs));
     } else {
-      const constrain = lhs.position.clone().add(sLhs).sub(this.target);
-      phi[row + X] = constrain.x;
-      phi[row + Y] = constrain.y;
-      phi[row + Z] = constrain.z;
+      const constraint = lhs.position.clone().add(sLhs).sub(this.target);
+      phi[row + X] = constraint.x;
+      phi[row + Y] = constraint.y;
+      phi[row + Z] = constraint.z;
       // diff of positions are 1
       phi_q.set(row + X, cLhs + X, 1);
       phi_q.set(row + Y, cLhs + Y, 1);
@@ -151,8 +155,8 @@ export class Sphere implements Constrain {
   }
 }
 
-export class Hinge implements Constrain {
-  constrains = 5; // 自由度を5減らす
+export class Hinge implements Constraint {
+  constraints = 5; // 自由度を5減らす
 
   row: number;
 
@@ -235,7 +239,7 @@ export class Hinge implements Constrain {
     ];
   }
 
-  setJacobianAndConstrains(phi_q: Matrix, phi: number[]) {
+  setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
     const cRhs = this.rhs.col;
     const cLhs = this.lhs.col;
     const {
@@ -260,14 +264,14 @@ export class Hinge implements Constrain {
     // 始点位置拘束
     if (!this.isFixed) {
       const sLhs = lLocalVec.clone().applyQuaternion(qLhs);
-      const constrain = lhs.position
+      const constraint = lhs.position
         .clone()
         .add(sLhs)
         .sub(rhs.position)
         .sub(sRhs);
-      phi[row + X] = constrain.x;
-      phi[row + Y] = constrain.y;
-      phi[row + Z] = constrain.z;
+      phi[row + X] = constraint.x;
+      phi[row + Y] = constraint.y;
+      phi[row + Z] = constraint.z;
       // diff of positions are 1
       phi_q.set(row + X, cLhs + X, 1);
       phi_q.set(row + Y, cLhs + Y, 1);
@@ -278,10 +282,10 @@ export class Hinge implements Constrain {
       setSubMatrix(row + X, cLhs + Q0, phi_q, ALhs.mmul(lLocalSkew).mmul(GLhs));
       setSubMatrix(row + X, cRhs + Q0, phi_q, ARhs.mmul(rLocalSkew).mmul(GRhs));
     } else {
-      const constrain = this.target.clone().sub(rhs.position).sub(sRhs);
-      phi[row + X] = constrain.x;
-      phi[row + Y] = constrain.y;
-      phi[row + Z] = constrain.z;
+      const constraint = this.target.clone().sub(rhs.position).sub(sRhs);
+      phi[row + X] = constraint.x;
+      phi[row + Y] = constraint.y;
+      phi[row + Z] = constraint.z;
       // diff of positions are 1
       phi_q.set(row + X, cRhs + X, -1);
       phi_q.set(row + Y, cRhs + Y, -1);
@@ -309,8 +313,8 @@ export class Hinge implements Constrain {
   }
 }
 
-export class BarAndSpheres implements Constrain {
-  constrains = 1; // 自由度を1減らす
+export class BarAndSpheres implements Constraint {
+  constraints = 1; // 自由度を1減らす
 
   row: number;
 
@@ -370,7 +374,7 @@ export class BarAndSpheres implements Constrain {
     this.l2 = l * l;
   }
 
-  setJacobianAndConstrains(phi_q: Matrix, phi: number[]) {
+  setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
     const cLhs = this.lhs.col;
     const {row, lhs, lLocalVec, lLocalSkew, l2} = this;
     const qLhs = lhs.quaternion;
@@ -434,6 +438,8 @@ export class Component {
   localVectors: Vector3[];
 
   isFixed: boolean;
+
+  root: Component = this;
 
   constructor(element: IElement, col: number) {
     this.col = col;
@@ -501,12 +507,35 @@ export class TireRestorer implements Restorer {
   restore() {}
 }
 
+export class RelativeConstraintRestorer implements Restorer {
+  constrained: IElement;
+
+  componentElement: IElement;
+
+  deltaPosition: Vector3;
+
+  deltaQuaternion: Quaternion;
+
+  constructor(
+    constrained: IElement,
+    componentElement: IElement,
+    joints: JointAsVector3[]
+  ) {
+    this.constrained = constrained;
+    this.componentElement = componentElement;
+    this.deltaPosition = new Vector3();
+    this.deltaQuaternion = new Quaternion();
+  }
+
+  restore() {}
+}
+
 export class KinematicSolver {
   assembly: IAssembly;
 
   components: Component[];
 
-  constrains: Constrain[];
+  constraints: Constraint[];
 
   restorer: Restorer[];
 
@@ -520,13 +549,16 @@ export class KinematicSolver {
     const joints = assembly.getJointsAsVector3();
     const jointDict = getJointDictionary(children, joints);
     this.components = [];
-    this.constrains = [];
+    this.constraints = [];
     this.restorer = [];
-    const {constrains, components} = this;
+    const {constraints, components} = this;
+    const jointsDone = new Set<JointAsVector3>();
     this.equations = 0;
     this.columnComponents = 0;
     const tempComponents: {[index: string]: Component} = {};
+    const tempElements: {[index: string]: IElement} = {};
     const assemblyMode = getAssemblyMode();
+    // ステップ1 ChildrenをComponentに変換する
     children.forEach((element) => {
       // 拘束コンポーネントは除外する
       if (isSimplifiedElement(element)) return;
@@ -535,13 +567,24 @@ export class KinematicSolver {
       if (isFixedElement(element)) return;
       */
       tempComponents[element.nodeID] = new Component(element, 0);
+      tempElements[element.nodeID] = element;
     });
-    // ChildrenをComponentに変換する
+    // ステップ2 未実装：3点以上の拘束式で拘束されているElement同志を統合する
+    // また、Fixedであれば、その旨フラグを立てる
+    children.forEach((element) => {});
+    // ステップ3 この時点でElement間の拘束点は2点以下なので、Sphere拘束か
+    // Hinge拘束か、BarAndSpher拘束を実施する。
+    // この時点でコンポーネント間の拘束はただ1つの拘束式になっている。
     children.forEach((element) => {
       // AArmが単独で使われている場合は、BarAndSpheres2つに変更する。
       if (isAArm(element) && canSimplifyAArm(element, jointDict)) {
-        const joints = element.fixedPoints.map((p) => jointDict[p.nodeID][0]);
+        const joints = element.fixedPoints.map((p) => {
+          const joint = jointDict[p.nodeID][0];
+          jointsDone.add(joint);
+          return joint;
+        });
         const jointu = jointDict[element.points[0].nodeID][0];
+        jointsDone.add(jointu);
         const ptsBody = joints.map((joint, i) =>
           getJointPartner(joint, element.fixedPoints[i].nodeID)
         );
@@ -561,7 +604,7 @@ export class KinematicSolver {
         const pointsBody = body.getPoints();
         const pointsUpright = upright.getPoints();
         ptsBody.forEach((pBody, i) => {
-          const constrain = new BarAndSpheres(
+          const constraint = new BarAndSpheres(
             `bar object of aarm ${element.name.value}`,
             this.equations,
             tempComponents[body.nodeID],
@@ -570,8 +613,8 @@ export class KinematicSolver {
             pointsUpright.findIndex((p) => pUpright.nodeID === p.nodeID),
             element.points[0].value.sub(element.fixedPoints[i].value).length()
           );
-          this.equations += constrain.constrains;
-          this.constrains.push(constrain);
+          this.equations += constraint.constraints;
+          constraints.push(constraint);
         });
         return;
       }
@@ -579,6 +622,8 @@ export class KinematicSolver {
       if (isBar(element) || isSpringDumper(element)) {
         const jointf = jointDict[element.fixedPoint.nodeID][0];
         const jointp = jointDict[element.point.nodeID][0];
+        jointsDone.add(jointf);
+        jointsDone.add(jointp);
         const points = [
           getJointPartner(jointf, element.fixedPoint.nodeID),
           getJointPartner(jointp, element.point.nodeID)
@@ -593,7 +638,7 @@ export class KinematicSolver {
           return;
         }
         const pointsElement = elements.map((element) => element.getPoints());
-        const constrain = new BarAndSpheres(
+        const constraint = new BarAndSpheres(
           `bar object of${element.name.value}`,
           this.equations,
           tempComponents[elements[0].nodeID],
@@ -602,14 +647,16 @@ export class KinematicSolver {
           pointsElement[1].findIndex((p) => points[1].nodeID === p.nodeID),
           element.length
         );
-        this.equations += constrain.constrains;
-        this.constrains.push(constrain);
+        this.equations += constraint.constraints;
+        constraints.push(constraint);
         return;
       }
       // Frame固定の場合はTireはコンポーネント扱いしない
       if (assemblyMode === 'FixedFrame' && isTire(element)) {
         const jointr = jointDict[element.rightBearing.nodeID][0];
         const jointl = jointDict[element.leftBearing.nodeID][0];
+        jointsDone.add(jointr);
+        jointsDone.add(jointl);
         const points = [
           getJointPartner(jointr, element.rightBearing.nodeID),
           getJointPartner(jointl, element.leftBearing.nodeID)
@@ -625,7 +672,7 @@ export class KinematicSolver {
         }
         // 以下はかなり特殊な場合（BRGの剛性を再現しているとか）
         const pointsElement = elements.map((element) => element.getPoints());
-        const constrain = new BarAndSpheres(
+        const constraint = new BarAndSpheres(
           `bar object of tire${element.name.value}`,
           this.equations,
           tempComponents[elements[0].nodeID],
@@ -634,8 +681,8 @@ export class KinematicSolver {
           pointsElement[1].findIndex((p) => points[1].nodeID === p.nodeID),
           element.bearingDistance
         );
-        this.equations += constrain.constrains;
-        this.constrains.push(constrain);
+        this.equations += constraint.constraints;
+        constraints.push(constraint);
         return;
       }
       // FixedElementはコンポーネント扱いしない
@@ -643,10 +690,65 @@ export class KinematicSolver {
 
       // solverにコンポーネントを追加する
       const component = tempComponents[element.nodeID];
+      components.push(component);
+      // 関連するジョイントを得る(すでに検討済みであれば破棄)
+      const [partnerIDs, jDict] = getJointsToOtherComponents(
+        jointDict[element.nodeID].filter((joint) => !jointsDone.has(joint)),
+        element.nodeID
+      );
+      // 拘束の多い順に拘束式を作成
+      partnerIDs.forEach((partnerID) => {
+        const otherComponent = tempComponents[partnerID];
+        const otherElement = tempElements[partnerID];
+        const joints = jDict[partnerID];
+        if (joints.length >= 3) {
+          // 完全拘束または過剰拘束
+          throw new Error('3点以上での拘束は未実装');
+          // throw new Error('3点以上の拘束を検知');
+        } else {
+          const iLhs: number[] = [];
+          const iRhs: number[] = [];
+          let constraint: Constraint;
+          joints.forEach((joint) => {
+            jointsDone.add(joint);
+            const [pThis, pPartner] = getNamedVector3FromJoint(
+              joint,
+              element.nodeID,
+              partnerID
+            );
+            iLhs.push(getIndexOfPoint(element, pThis));
+            iRhs.push(getIndexOfPoint(otherElement, pPartner));
+          });
+          if (joints.length === 2) {
+            constraint = new Hinge(
+              `Hinge Constrains to ${element.name.value} and ${otherElement.name.value}`,
+              this.equations,
+              component,
+              otherComponent,
+              [iLhs[0], iLhs[1]],
+              [iRhs[0], iRhs[1]]
+            );
+          } else {
+            // 1点拘束
+            constraint = new Sphere(
+              `Sphere Constrains to ${element.name.value} and ${otherElement.name.value}`,
+              this.equations,
+              component,
+              otherComponent,
+              iLhs[0],
+              iRhs[0]
+            );
+          }
+          this.equations += constraint.constraints;
+          constraints.push(constraint);
+        }
+      });
       component.col = this.columnComponents;
       this.columnComponents += 7;
-      this.components.push(component);
     });
+    // ステップ4 グルーピング
+    // Union Find Treeを用いてグルーピングを実施する。
+    this.constraints.forEach((constraint) => {});
   }
 
   solve(): void {}

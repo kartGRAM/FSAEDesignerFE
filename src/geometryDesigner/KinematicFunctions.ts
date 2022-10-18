@@ -10,6 +10,7 @@ import {
   IElement,
   isSimplifiedElement
 } from '@gd/IElements';
+import {INamedVector3} from '@gd/INamedValues';
 import {Matrix, SingularValueDecomposition} from 'ml-matrix';
 import {Quaternion, Vector3} from 'three';
 import store from '@store/store';
@@ -439,6 +440,14 @@ export function getStableOrthogonalVector(v: Vector3): Vector3 {
 
 export type JointDict = {[index: string]: JointAsVector3[]};
 
+// 拘束点がgetPointsの何番目か
+export function getIndexOfPoint(element: IElement, v: INamedVector3) {
+  const i = element.getPoints().findIndex((p) => p.nodeID === v.nodeID);
+  if (i < 0) throw new Error('拘束点が見つからない');
+  return i;
+}
+
+// ElementIDまたは拘束点をもとにJointを得る
 export function getJointDictionary(
   children: IElement[],
   joints: JointAsVector3[]
@@ -459,10 +468,56 @@ export function getJointDictionary(
   return dictionary;
 }
 
+// Jointの相手を得る
 export function getJointPartner(joint: JointAsVector3, nodeID: string) {
-  return joint.lhs.nodeID === nodeID ? joint.rhs : joint.lhs;
+  if (joint.lhs.nodeID === nodeID) return joint.rhs;
+  if (joint.rhs.nodeID === nodeID) return joint.lhs;
+  if (joint.lhs.parent?.nodeID === nodeID) return joint.rhs;
+  if (joint.rhs.parent?.nodeID === nodeID) return joint.lhs;
+  throw new Error('相手が見つからない');
 }
 
+// JointをParent名で分解
+export function getNamedVector3FromJoint(
+  joint: JointAsVector3,
+  nodeID1: string,
+  nodeID2: string
+): [INamedVector3, INamedVector3] {
+  if (
+    joint.lhs.parent?.nodeID === nodeID1 &&
+    joint.rhs.parent?.nodeID === nodeID2
+  ) {
+    return [joint.lhs, joint.rhs];
+  }
+  if (
+    joint.rhs.parent?.nodeID === nodeID1 &&
+    joint.lhs.parent?.nodeID === nodeID2
+  ) {
+    return [joint.rhs, joint.lhs];
+  }
+  throw new Error('ノード名が不一致');
+}
+
+// 自分に関連したJointのArrayから、相手部品ごとのJointを得る
+export function getJointsToOtherComponents(
+  joints: JointAsVector3[],
+  nodeID: string
+): [string[], JointDict] {
+  const dict = joints.reduce((prev, joint) => {
+    const partner = getJointPartner(joint, nodeID).parent;
+    if (isElement(partner)) {
+      if (!(partner.nodeID in prev)) prev[partner.nodeID] = [];
+      prev[partner.nodeID].push(joint);
+    }
+    return prev;
+  }, {} as JointDict);
+  const keys = Object.keys(dict);
+  // 拘束の数が多い順に並べる
+  keys.sort((a, b) => dict[b].length - dict[a].length);
+  return [keys, dict];
+}
+
+// AArmをBar2つに変換できるか？
 export function canSimplifyAArm(aArm: IAArm, jointDict: JointDict): boolean {
   const additionalPoints = aArm.points.length - 1;
   if (additionalPoints) return false;
@@ -489,10 +544,12 @@ export function canSimplifyAArm(aArm: IAArm, jointDict: JointDict): boolean {
   return false;
 }
 
+// アセンブリモードを得る
 export function getAssemblyMode() {
   return store.getState().uigd.present.gdSceneState.assemblyMode;
 }
 
+// 固定コンポーネントかを判定
 export function isFixedElement(element: IElement) {
   const mode = getAssemblyMode();
   if (mode === 'FixedFrame') {
