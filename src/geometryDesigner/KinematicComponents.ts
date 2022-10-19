@@ -45,6 +45,8 @@ const Q2 = 5;
 const Q3 = 6;
 
 export interface Constraint {
+  readonly lhs: Component;
+  readonly rhs: Component;
   constraints: number;
   readonly name: string;
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]): void;
@@ -427,25 +429,68 @@ export class BarAndSpheres implements Constraint {
 // ただし、Bar, Tire, SpringDumperなど自由度の小さいElementは含まれない
 export class Component {
   // ヤコビアンの列番号
-  col: number;
+  _col: number;
+
+  setCol(col: number) {
+    this._col = col;
+  }
+
+  get col(): number {
+    if (this.isRelativeFixed) return this.parent.col;
+    return this._col;
+  }
+
+  // 自由度
+  get degreeOfFreedom(): number {
+    if (this.isRelativeFixed) return 0;
+    return 7;
+  }
 
   element: IElement;
 
-  position: Vector3;
+  _position: Vector3;
 
-  quaternion: Quaternion;
+  get position() {
+    if (this.isRelativeFixed) return this.parent.position;
+    return this._position;
+  }
+
+  set position(value: Vector3) {
+    if (this.isRelativeFixed) {
+      this.parent.position = value;
+    }
+    this._position = value;
+  }
+
+  _quaternion: Quaternion;
+
+  get quaternion() {
+    if (this.isRelativeFixed) return this.parent.quaternion;
+    return this._quaternion;
+  }
+
+  set quaternion(value: Quaternion) {
+    if (this.isRelativeFixed) {
+      this.parent.quaternion = value;
+    }
+    this._quaternion = value;
+  }
 
   localVectors: Vector3[];
 
   isFixed: boolean;
 
+  isRelativeFixed: boolean = false;
+
+  parent: Component = this;
+
   root: Component = this;
 
   constructor(element: IElement, col: number) {
-    this.col = col;
+    this._col = col;
     this.element = element;
-    this.position = element.position.value;
-    this.quaternion = element.rotation.value;
+    this._position = element.position.value;
+    this._quaternion = element.rotation.value;
     this.localVectors = element.getPoints().map((p) => p.value);
     this.isFixed = isFixedElement(element); // fixedElementになった場合、ソルバに評価されない
   }
@@ -557,8 +602,7 @@ export class KinematicSolver {
     this.columnComponents = 0;
     const tempComponents: {[index: string]: Component} = {};
     const tempElements: {[index: string]: IElement} = {};
-    const assemblyMode = getAssemblyMode();
-    // ステップ1 ChildrenをComponentに変換する
+    // ステップ1: ChildrenをComponentに変換する
     children.forEach((element) => {
       // 拘束コンポーネントは除外する
       if (isSimplifiedElement(element)) return;
@@ -566,13 +610,66 @@ export class KinematicSolver {
          除外しないで、あとから判定させる。
       if (isFixedElement(element)) return;
       */
-      tempComponents[element.nodeID] = new Component(element, 0);
+      tempComponents[element.nodeID] = new Component(element, -1);
       tempElements[element.nodeID] = element;
     });
-    // ステップ2 未実装：3点以上の拘束式で拘束されているElement同志を統合する
-    // また、Fixedであれば、その旨フラグを立てる
-    children.forEach((element) => {});
-    // ステップ3 この時点でElement間の拘束点は2点以下なので、Sphere拘束か
+    // ステップ2: 3点以上の拘束式で拘束されているElementを統合し、相対固定拘束を作成
+    // また、相対固定拘束であるというフラグを立てる
+    // 計算された相対固定拘束のデルタだけ、ComponentのlocalPointsを移動する
+    const needToUpdatePoints = new Map<Component, [Vector3, Quaternion]>();
+    children.forEach((element) => {
+      // AArmが単独で使われている場合は、BarAndSpheres2つに変更する。
+      if (isAArm(element) && canSimplifyAArm(element, jointDict)) return;
+      // BarはComponent扱いしない
+      if (isBar(element) || isSpringDumper(element)) return;
+      // Tireはコンポーネント扱いしない
+      if (isTire(element)) return;
+      // FixedElementはコンポーネント扱いしない
+      if (isFixedElement(element)) return;
+      // 関連するジョイントを得る(すでに検討済みであれば破棄)
+      const [partnerIDs, jDict] = getJointsToOtherComponents(
+        jointDict[element.nodeID].filter((joint) => !jointsDone.has(joint)),
+        element.nodeID
+      );
+      // 最も拘束式の多いもの(=先頭キーの大きさが3を超えていれば)
+      if (partnerIDs.length) {
+        const partnerID = partnerIDs[0];
+        const joints = jDict[partnerID];
+        if (joints.length >= 3) {
+          // この2つのコンポーネントは相対固定拘束
+          joints.forEach((joint) => jointsDone.add(joint));
+          const component = tempComponents[element.nodeID];
+          const otherComponent = tempComponents[partnerID];
+          const otherElement = tempElements[partnerID];
+          // 相対固定拘束を計算
+          const restorer = new RelativeConstraintRestorer(
+            element,
+            otherElement,
+            joints
+          );
+          this.restorer.push(restorer);
+          component.parent = otherComponent;
+          component.isRelativeFixed = true;
+          needToUpdatePoints.set(component, [
+            restorer.deltaPosition,
+            restorer.deltaQuaternion
+          ]);
+        }
+      }
+    });
+    // eslint-disable-next-line no-restricted-syntax, prefer-const
+    for (let [component, [deltaP, deltaQ]] of needToUpdatePoints) {
+      while (component.parent.isRelativeFixed) {
+        component.parent = component.parent.parent;
+        const [pDeltaP, pDeltaQ] = needToUpdatePoints.get(component.parent)!;
+        deltaP = pDeltaP.add(deltaP);
+        deltaQ = pDeltaQ.multiply(deltaQ);
+      }
+      component.localVectors.forEach((v) =>
+        v.applyQuaternion(deltaQ).add(deltaP)
+      );
+    }
+    // ステップ3: この時点でElement間の拘束点は2点以下なので、Sphere拘束か
     // Hinge拘束か、BarAndSpher拘束を実施する。
     // この時点でコンポーネント間の拘束はただ1つの拘束式になっている。
     children.forEach((element) => {
@@ -651,8 +748,8 @@ export class KinematicSolver {
         constraints.push(constraint);
         return;
       }
-      // Frame固定の場合はTireはコンポーネント扱いしない
-      if (assemblyMode === 'FixedFrame' && isTire(element)) {
+      // Tireはコンポーネント扱いしない
+      if (isTire(element)) {
         const jointr = jointDict[element.rightBearing.nodeID][0];
         const jointl = jointDict[element.leftBearing.nodeID][0];
         jointsDone.add(jointr);
@@ -687,9 +784,11 @@ export class KinematicSolver {
       }
       // FixedElementはコンポーネント扱いしない
       if (isFixedElement(element)) return;
+      // 相対固定拘束の場合は、親のみを追加
+      const component = tempComponents[element.nodeID];
+      if (component.isRelativeFixed) return;
 
       // solverにコンポーネントを追加する
-      const component = tempComponents[element.nodeID];
       components.push(component);
       // 関連するジョイントを得る(すでに検討済みであれば破棄)
       const [partnerIDs, jDict] = getJointsToOtherComponents(
@@ -701,57 +800,58 @@ export class KinematicSolver {
         const otherComponent = tempComponents[partnerID];
         const otherElement = tempElements[partnerID];
         const joints = jDict[partnerID];
-        if (joints.length >= 3) {
-          // 完全拘束または過剰拘束
-          throw new Error('3点以上での拘束は未実装');
-          // throw new Error('3点以上の拘束を検知');
+        const iLhs: number[] = [];
+        const iRhs: number[] = [];
+        let constraint: Constraint;
+        joints.forEach((joint) => {
+          jointsDone.add(joint);
+          const [pThis, pPartner] = getNamedVector3FromJoint(
+            joint,
+            element.nodeID,
+            partnerID
+          );
+          iLhs.push(getIndexOfPoint(element, pThis));
+          iRhs.push(getIndexOfPoint(otherElement, pPartner));
+        });
+        // コンポーネント間の拘束の数は2以下
+        if (joints.length === 2) {
+          constraint = new Hinge(
+            `Hinge Constrains to ${element.name.value} and ${otherElement.name.value}`,
+            this.equations,
+            component,
+            otherComponent,
+            [iLhs[0], iLhs[1]],
+            [iRhs[0], iRhs[1]]
+          );
         } else {
-          const iLhs: number[] = [];
-          const iRhs: number[] = [];
-          let constraint: Constraint;
-          joints.forEach((joint) => {
-            jointsDone.add(joint);
-            const [pThis, pPartner] = getNamedVector3FromJoint(
-              joint,
-              element.nodeID,
-              partnerID
-            );
-            iLhs.push(getIndexOfPoint(element, pThis));
-            iRhs.push(getIndexOfPoint(otherElement, pPartner));
-          });
-          if (joints.length === 2) {
-            constraint = new Hinge(
-              `Hinge Constrains to ${element.name.value} and ${otherElement.name.value}`,
-              this.equations,
-              component,
-              otherComponent,
-              [iLhs[0], iLhs[1]],
-              [iRhs[0], iRhs[1]]
-            );
-          } else {
-            // 1点拘束
-            constraint = new Sphere(
-              `Sphere Constrains to ${element.name.value} and ${otherElement.name.value}`,
-              this.equations,
-              component,
-              otherComponent,
-              iLhs[0],
-              iRhs[0]
-            );
-          }
-          this.equations += constraint.constraints;
-          constraints.push(constraint);
+          // 1点拘束
+          constraint = new Sphere(
+            `Sphere Constrains to ${element.name.value} and ${otherElement.name.value}`,
+            this.equations,
+            component,
+            otherComponent,
+            iLhs[0],
+            iRhs[0]
+          );
         }
+        this.equations += constraint.constraints;
+        constraints.push(constraint);
       });
-      component.col = this.columnComponents;
-      this.columnComponents += 7;
+      component.setCol(this.columnComponents);
+      this.columnComponents += component.degreeOfFreedom;
     });
-    // ステップ4 グルーピング
+    // ステップ4: グルーピング
     // Union Find Treeを用いてグルーピングを実施する。
-    this.constraints.forEach((constraint) => {});
+    this.constraints.forEach((constraint) => {
+      if (constraint.lhs.isFixed) return;
+      if (constraint.rhs.isFixed) return;
+    });
+
+    // 上記4ステップでプリプロセッサ完了
   }
 
   solve(): void {}
 
-  setElements(): void {}
+  // ポストプロセス： 要素への位置の反映と、Restorerの適用
+  postProcess(): void {}
 }
