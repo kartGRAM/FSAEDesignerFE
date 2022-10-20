@@ -47,6 +47,7 @@ const Q3 = 6;
 export interface Constraint {
   readonly lhs: Component;
   readonly rhs: Component;
+  row: number;
   constraints: number;
   readonly name: string;
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]): void;
@@ -55,7 +56,7 @@ export interface Constraint {
 export class Sphere implements Constraint {
   constraints = 3; // 自由度を3減らす
 
-  row: number;
+  row: number = -1;
 
   lhs: Component;
 
@@ -77,14 +78,12 @@ export class Sphere implements Constraint {
 
   constructor(
     name: string,
-    row: number,
     lhs: Component,
     rhs: Component,
     ilhs: number,
     irhs: number
   ) {
     this.name = name;
-    this.row = row;
     if (lhs.isFixed) {
       if (rhs.isFixed) throw new Error('拘束式の両端が固定されている');
       // 固定側はrhsにする
@@ -160,7 +159,7 @@ export class Sphere implements Constraint {
 export class Hinge implements Constraint {
   constraints = 5; // 自由度を5減らす
 
-  row: number;
+  row: number = -1;
 
   lhs: Component;
 
@@ -191,14 +190,12 @@ export class Hinge implements Constraint {
 
   constructor(
     name: string,
-    row: number,
     lhs: Component,
     rhs: Component,
     ilhs: [number, number],
     irhs: [number, number]
   ) {
     this.name = name;
-    this.row = row;
     if (rhs.isFixed) {
       if (lhs.isFixed) throw new Error('拘束式の両端が固定されている');
       // 固定側はlhsにする
@@ -318,7 +315,7 @@ export class Hinge implements Constraint {
 export class BarAndSpheres implements Constraint {
   constraints = 1; // 自由度を1減らす
 
-  row: number;
+  row: number = -1;
 
   lhs: Component;
 
@@ -342,7 +339,6 @@ export class BarAndSpheres implements Constraint {
 
   constructor(
     name: string,
-    row: number,
     lhs: Component,
     rhs: Component,
     ilhs: number,
@@ -350,7 +346,6 @@ export class BarAndSpheres implements Constraint {
     l: number
   ) {
     this.name = name;
-    this.row = row;
     if (lhs.isFixed) {
       if (rhs.isFixed) throw new Error('拘束式の両端が固定されている');
       // 固定側はrhsにする
@@ -429,7 +424,7 @@ export class BarAndSpheres implements Constraint {
 // ただし、Bar, Tire, SpringDumperなど自由度の小さいElementは含まれない
 export class Component {
   // ヤコビアンの列番号
-  _col: number;
+  _col: number = -1;
 
   setCol(col: number) {
     this._col = col;
@@ -482,12 +477,39 @@ export class Component {
 
   isRelativeFixed: boolean = false;
 
+  get isExcludedComponent() {
+    return this.isFixed || this.isRelativeFixed;
+  }
+
   parent: Component = this;
 
-  root: Component = this;
+  unionFindTreeParent: Component = this;
 
-  constructor(element: IElement, col: number) {
-    this._col = col;
+  unionFindTreeConstraints: Constraint[] = [];
+
+  get root(): Component {
+    if (this.unionFindTreeParent === this) return this;
+    // 経路圧縮
+    return this.unionFindTreeParent.root;
+  }
+
+  get isRoot() {
+    return this.root === this;
+  }
+
+  unite(other: Component, constraint: Constraint) {
+    if (this.root === other.root) return;
+    const otherRoot = other.root;
+    other.root.unionFindTreeParent = this.root;
+    this.root.unionFindTreeConstraints = [
+      ...this.root.unionFindTreeConstraints,
+      constraint,
+      ...otherRoot.unionFindTreeConstraints
+    ];
+    otherRoot.unionFindTreeConstraints = [];
+  }
+
+  constructor(element: IElement) {
     this.element = element;
     this._position = element.position.value;
     this._quaternion = element.rotation.value;
@@ -578,28 +600,23 @@ export class RelativeConstraintRestorer implements Restorer {
 export class KinematicSolver {
   assembly: IAssembly;
 
-  components: Component[];
+  components: Component[][];
 
-  constraints: Constraint[];
+  equations: number[];
+
+  degreeOfFreedoms: number[];
 
   restorer: Restorer[];
-
-  equations: number;
-
-  columnComponents: number;
 
   constructor(assembly: IAssembly) {
     this.assembly = assembly;
     const {children} = assembly;
     const joints = assembly.getJointsAsVector3();
     const jointDict = getJointDictionary(children, joints);
-    this.components = [];
-    this.constraints = [];
     this.restorer = [];
-    const {constraints, components} = this;
+    const constraints: Constraint[] = [];
+    const components: Component[] = [];
     const jointsDone = new Set<JointAsVector3>();
-    this.equations = 0;
-    this.columnComponents = 0;
     const tempComponents: {[index: string]: Component} = {};
     const tempElements: {[index: string]: IElement} = {};
     // ステップ1: ChildrenをComponentに変換する
@@ -610,7 +627,7 @@ export class KinematicSolver {
          除外しないで、あとから判定させる。
       if (isFixedElement(element)) return;
       */
-      tempComponents[element.nodeID] = new Component(element, -1);
+      tempComponents[element.nodeID] = new Component(element);
       tempElements[element.nodeID] = element;
     });
     // ステップ2: 3点以上の拘束式で拘束されているElementを統合し、相対固定拘束を作成
@@ -703,14 +720,12 @@ export class KinematicSolver {
         ptsBody.forEach((pBody, i) => {
           const constraint = new BarAndSpheres(
             `bar object of aarm ${element.name.value}`,
-            this.equations,
             tempComponents[body.nodeID],
             tempComponents[upright.nodeID],
             pointsBody.findIndex((p) => pBody.nodeID === p.nodeID),
             pointsUpright.findIndex((p) => pUpright.nodeID === p.nodeID),
             element.points[0].value.sub(element.fixedPoints[i].value).length()
           );
-          this.equations += constraint.constraints;
           constraints.push(constraint);
         });
         return;
@@ -737,14 +752,12 @@ export class KinematicSolver {
         const pointsElement = elements.map((element) => element.getPoints());
         const constraint = new BarAndSpheres(
           `bar object of${element.name.value}`,
-          this.equations,
           tempComponents[elements[0].nodeID],
           tempComponents[elements[1].nodeID],
           pointsElement[0].findIndex((p) => points[0].nodeID === p.nodeID),
           pointsElement[1].findIndex((p) => points[1].nodeID === p.nodeID),
           element.length
         );
-        this.equations += constraint.constraints;
         constraints.push(constraint);
         return;
       }
@@ -771,14 +784,12 @@ export class KinematicSolver {
         const pointsElement = elements.map((element) => element.getPoints());
         const constraint = new BarAndSpheres(
           `bar object of tire${element.name.value}`,
-          this.equations,
           tempComponents[elements[0].nodeID],
           tempComponents[elements[1].nodeID],
           pointsElement[0].findIndex((p) => points[0].nodeID === p.nodeID),
           pointsElement[1].findIndex((p) => points[1].nodeID === p.nodeID),
           element.bearingDistance
         );
-        this.equations += constraint.constraints;
         constraints.push(constraint);
         return;
       }
@@ -817,7 +828,6 @@ export class KinematicSolver {
         if (joints.length === 2) {
           constraint = new Hinge(
             `Hinge Constrains to ${element.name.value} and ${otherElement.name.value}`,
-            this.equations,
             component,
             otherComponent,
             [iLhs[0], iLhs[1]],
@@ -827,24 +837,46 @@ export class KinematicSolver {
           // 1点拘束
           constraint = new Sphere(
             `Sphere Constrains to ${element.name.value} and ${otherElement.name.value}`,
-            this.equations,
             component,
             otherComponent,
             iLhs[0],
             iRhs[0]
           );
         }
-        this.equations += constraint.constraints;
         constraints.push(constraint);
       });
-      component.setCol(this.columnComponents);
-      this.columnComponents += component.degreeOfFreedom;
     });
     // ステップ4: グルーピング
     // Union Find Treeを用いてグルーピングを実施する。
-    this.constraints.forEach((constraint) => {
-      if (constraint.lhs.isFixed) return;
-      if (constraint.rhs.isFixed) return;
+    constraints.forEach((constraint) => {
+      if (constraint.lhs.isExcludedComponent) return;
+      if (constraint.rhs.isExcludedComponent) return;
+      constraint.lhs.unite(constraint.rhs, constraint);
+    });
+
+    const rootComponents = components.filter((component) => component.isRoot);
+    this.equations = [];
+    this.degreeOfFreedoms = [];
+    this.components = rootComponents.map((root) => {
+      const grouped = [
+        root,
+        ...components.filter(
+          (component) => component.root === root && component !== root
+        )
+      ];
+      this.equations.push(
+        root.unionFindTreeConstraints.reduce((prev, current) => {
+          current.row = prev;
+          return prev + current.constraints;
+        }, 0)
+      );
+      this.degreeOfFreedoms.push(
+        grouped.reduce((prev, current) => {
+          current.setCol(prev);
+          return prev + current.degreeOfFreedom;
+        }, 0)
+      );
+      return grouped;
     });
 
     // 上記4ステップでプリプロセッサ完了
