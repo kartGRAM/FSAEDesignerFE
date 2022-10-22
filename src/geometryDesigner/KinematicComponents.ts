@@ -11,7 +11,6 @@ import {
   isTire,
   isSpringDumper,
   isSimplifiedElement,
-  isBodyOfFrame,
   IAArm,
   IBar,
   ITire,
@@ -29,7 +28,6 @@ import {
   getJointDictionary,
   canSimplifyAArm,
   getJointPartner,
-  getAssemblyMode,
   isFixedElement,
   getJointsToOtherComponents,
   getNamedVector3FromJoint,
@@ -79,33 +77,33 @@ export class Sphere implements Constraint {
 
   constructor(
     name: string,
-    lhs: Component,
-    rhs: Component,
+    clhs: Component,
+    crhs: Component,
     ilhs: number,
     irhs: number
   ) {
     this.name = name;
-    if (lhs.isFixed) {
-      if (rhs.isFixed) throw new Error('拘束式の両端が固定されている');
+    if (clhs.isFixed) {
+      if (crhs.isFixed) throw new Error('拘束式の両端が固定されている');
       // 固定側はrhsにする
-      this.lhs = rhs;
-      this.rhs = lhs;
+      this.lhs = crhs;
+      this.rhs = clhs;
       const tmp = ilhs;
       ilhs = irhs;
       irhs = tmp;
     } else {
-      this.lhs = lhs;
-      this.rhs = rhs;
+      this.lhs = clhs;
+      this.rhs = crhs;
     }
 
-    this.lLocalVec = lhs.localVectors[ilhs].clone();
+    this.lLocalVec = this.lhs.localVectors[ilhs].clone();
     this.lLocalSkew = skew(this.lLocalVec).mul(2);
-    this.rLocalVec = rhs.localVectors[irhs].clone();
+    this.rLocalVec = this.rhs.localVectors[irhs].clone();
     this.rLocalSkew = skew(this.rLocalVec).mul(-2);
-    if (rhs.isFixed) {
+    if (this.rhs.isFixed) {
       this.isFixed = true;
-      this.target = rhs.position.add(
-        this.rLocalVec.applyQuaternion(rhs.quaternion)
+      this.target = this.rhs.position.add(
+        this.rLocalVec.applyQuaternion(this.rhs.quaternion)
       );
     }
   }
@@ -191,31 +189,31 @@ export class Hinge implements Constraint {
 
   constructor(
     name: string,
-    lhs: Component,
-    rhs: Component,
+    clhs: Component,
+    crhs: Component,
     ilhs: [number, number],
     irhs: [number, number]
   ) {
     this.name = name;
-    if (rhs.isFixed) {
-      if (lhs.isFixed) throw new Error('拘束式の両端が固定されている');
+    if (crhs.isFixed) {
+      if (clhs.isFixed) throw new Error('拘束式の両端が固定されている');
       // 固定側はlhsにする
-      this.lhs = rhs;
-      this.rhs = lhs;
+      this.lhs = crhs;
+      this.rhs = clhs;
       const tmp = ilhs;
       ilhs = irhs;
       irhs = tmp;
     } else {
-      this.lhs = lhs;
-      this.rhs = rhs;
+      this.lhs = clhs;
+      this.rhs = crhs;
     }
-    this.lLocalVec = lhs.localVectors[ilhs[0]].clone();
+    this.lLocalVec = this.lhs.localVectors[ilhs[0]].clone();
     this.lLocalSkew = skew(this.lLocalVec).mul(2);
-    this.rLocalVec = rhs.localVectors[irhs[0]].clone();
+    this.rLocalVec = this.rhs.localVectors[irhs[0]].clone();
     this.rLocalSkew = skew(this.rLocalVec).mul(-2);
-    this.rAxisVec = rhs.localVectors[irhs[1]].clone().sub(this.rLocalVec);
+    this.rAxisVec = this.rhs.localVectors[irhs[1]].clone().sub(this.rLocalVec);
     this.rAxisSkew = skew(this.rAxisVec).mul(2);
-    const lAxisVec = lhs.localVectors[ilhs[1]].clone().sub(this.lLocalVec);
+    const lAxisVec = this.lhs.localVectors[ilhs[1]].clone().sub(this.lLocalVec);
     if (
       this.rAxisVec.lengthSq() < Number.EPSILON ||
       lAxisVec.lengthSq() < Number.EPSILON
@@ -224,13 +222,13 @@ export class Hinge implements Constraint {
     }
     const oVec1 = getStableOrthogonalVector(lAxisVec);
     const oVec2 = lAxisVec.cross(oVec1);
-    if (lhs.isFixed) {
+    if (this.lhs.isFixed) {
       this.isFixed = true;
-      this.target = lhs.position.add(
-        this.lLocalVec.applyQuaternion(lhs.quaternion)
+      this.target = this.lhs.position.add(
+        this.lLocalVec.applyQuaternion(this.lhs.quaternion)
       );
-      oVec1.applyQuaternion(lhs.quaternion);
-      oVec2.applyQuaternion(lhs.quaternion);
+      oVec1.applyQuaternion(this.lhs.quaternion);
+      oVec2.applyQuaternion(this.lhs.quaternion);
     }
     this.lOrthogonalVec = [oVec1, oVec2];
     this.lOrthogonalSkew = [
@@ -340,33 +338,33 @@ export class BarAndSpheres implements Constraint {
 
   constructor(
     name: string,
-    lhs: Component,
-    rhs: Component,
+    clhs: Component,
+    crhs: Component,
     ilhs: number,
     irhs: number,
     l: number
   ) {
     this.name = name;
-    if (lhs.isFixed) {
-      if (rhs.isFixed) throw new Error('拘束式の両端が固定されている');
+    if (clhs.isFixed) {
+      if (crhs.isFixed) throw new Error('拘束式の両端が固定されている');
       // 固定側はrhsにする
-      this.lhs = rhs;
-      this.rhs = lhs;
+      this.lhs = crhs;
+      this.rhs = clhs;
       const tmp = ilhs;
       ilhs = irhs;
       irhs = tmp;
     } else {
-      this.lhs = lhs;
-      this.rhs = rhs;
+      this.lhs = clhs;
+      this.rhs = crhs;
     }
-    this.lLocalVec = lhs.localVectors[ilhs].clone();
+    this.lLocalVec = this.lhs.localVectors[ilhs].clone();
     this.lLocalSkew = skew(this.lLocalVec).mul(2);
-    this.rLocalVec = rhs.localVectors[irhs].clone();
+    this.rLocalVec = this.rhs.localVectors[irhs].clone();
     this.rLocalSkew = skew(this.rLocalVec).mul(-2);
-    if (rhs.isFixed) {
+    if (this.rhs.isFixed) {
       this.isFixed = true;
-      this.target = rhs.position.add(
-        this.rLocalVec.applyQuaternion(rhs.quaternion)
+      this.target = this.rhs.position.add(
+        this.rLocalVec.applyQuaternion(this.rhs.quaternion)
       );
     }
     this.l2 = l * l;
@@ -436,15 +434,42 @@ export class Component {
     return this._col;
   }
 
-  applyDq(dq: Matrix) {}
-
   // 自由度
   get degreeOfFreedom(): number {
     if (this.isRelativeFixed) return 0;
     return 7;
   }
 
+  applyDq(dq: Matrix) {
+    if (this._col === -1) return;
+    const {col} = this;
+    if (this.degreeOfFreedom === 7) {
+      const dx = dq.get(col + X, 0);
+      const dy = dq.get(col + Y, 0);
+      const dz = dq.get(col + Z, 0);
+      const dq0 = dq.get(col + Q0, 0);
+      const dq1 = dq.get(col + Q1, 0);
+      const dq2 = dq.get(col + Q2, 0);
+      const dq3 = dq.get(col + Q3, 0);
+      this._position.x -= dx;
+      this._position.y -= dy;
+      this._position.z -= dz;
+      this._quaternion.w -= dq0;
+      this._quaternion.x -= dq1;
+      this._quaternion.y -= dq2;
+      this._quaternion.z -= dq3;
+    }
+  }
+
   element: IElement;
+
+  applyResultToElement() {
+    if (this._col === -1) return;
+    if (this.degreeOfFreedom === 7) {
+      this.element.position.value = this.position;
+      this.element.rotation.value = this.quaternion;
+    }
+  }
 
   _position: Vector3;
 
@@ -543,7 +568,15 @@ export class BarRestorer implements Restorer {
     this.point = point;
   }
 
-  restore() {}
+  restore() {
+    const fp = this.element.fixedPoint.value;
+    const fpTo = this.fixedPoint.value;
+    const deltaP = fpTo.clone().sub(fp);
+    const s = this.element.point.value.sub(fp).normalize();
+    const sTo = this.point.value.sub(fpTo).normalize();
+    this.element.rotation.value = new Quaternion().setFromUnitVectors(s, sTo);
+    this.element.position.value = this.element.position.value.add(deltaP);
+  }
 }
 
 export class AArmRestorer implements Restorer {
@@ -569,17 +602,29 @@ export class AArmRestorer implements Restorer {
 export class TireRestorer implements Restorer {
   element: ITire;
 
-  fixedPoint: INamedVector3;
+  leftBearing: INamedVector3;
 
-  point: INamedVector3;
+  rightBearing: INamedVector3;
 
-  constructor(element: ITire, fixedPoint: INamedVector3, point: INamedVector3) {
+  constructor(
+    element: ITire,
+    leftBearing: INamedVector3,
+    rightBearing: INamedVector3
+  ) {
     this.element = element;
-    this.fixedPoint = fixedPoint;
-    this.point = point;
+    this.leftBearing = leftBearing;
+    this.rightBearing = rightBearing;
   }
 
-  restore() {}
+  restore() {
+    const fp = this.element.leftBearing.value;
+    const fpTo = this.leftBearing.value;
+    const deltaP = fpTo.clone().sub(fp);
+    const s = this.element.rightBearing.value.sub(fp).normalize();
+    const sTo = this.rightBearing.value.sub(fpTo).normalize();
+    this.element.rotation.value = new Quaternion().setFromUnitVectors(s, sTo);
+    this.element.position.value = this.element.position.value.add(deltaP);
+  }
 }
 
 export class RelativeConstraintRestorer implements Restorer {
@@ -600,6 +645,7 @@ export class RelativeConstraintRestorer implements Restorer {
     this.componentElement = componentElement;
     this.deltaPosition = new Vector3();
     this.deltaQuaternion = new Quaternion();
+    throw new Error('未実装');
   }
 
   restore() {}
@@ -887,11 +933,17 @@ export class KinematicSolver {
     });
 
     // 上記4ステップでプリプロセッサ完了
-    this.solve({strictMode: true});
+    this.solve({strictMode: true, postProcess: true});
   }
 
-  solve(params: {strictMode?: boolean; maxCnt?: number}): void {
+  solve(params: {
+    strictMode?: boolean;
+    maxCnt?: number;
+    postProcess?: boolean;
+  }): void {
     const {strictMode, maxCnt} = params;
+    const postProcess = params.postProcess ?? true;
+
     // Kinematicソルバを解く
     this.components.forEach((components, idx) => {
       const root = components[0];
@@ -917,9 +969,12 @@ export class KinematicSolver {
         // 差分を反映
         components.forEach((component) => component.applyDq(dq));
 
-        const norm = dq.norm('frobenius');
+        const l2 = dq.transpose().mmul(dq);
+        const norm = l2.get(0, 0);
+        // eslint-disable-next-line no-console
+        console.log(`norm=${norm}`);
         eq = norm < 1.0e-3;
-        if (norm > minNorm * 10) {
+        if (norm > minNorm * 10 || Number.isNaN(norm)) {
           // eslint-disable-next-line no-console
           console.log('収束していない');
           throw new Error('ニュートンラプソン法収束エラー');
@@ -929,12 +984,21 @@ export class KinematicSolver {
         }
       }
     });
+
+    if (postProcess) {
+      this.postProcess();
+    }
+  }
+
+  // ポストプロセス： 要素への位置の反映と、Restorerの適用
+  postProcess(): void {
+    // Componentの位置、回転をElementに反映
+    this.components.forEach((components) =>
+      components.forEach((component) => component.applyResultToElement())
+    );
     // 簡略化したElementを反映する
     this.restorers.forEach((restorer) => {
       restorer.restore();
     });
   }
-
-  // ポストプロセス： 要素への位置の反映と、Restorerの適用
-  postProcess(): void {}
 }

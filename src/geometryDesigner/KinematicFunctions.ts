@@ -23,26 +23,6 @@ const Q1 = 4;
 const Q2 = 5;
 const Q3 = 6;
 
-export function preProcess(assembly: IAssembly): void {
-  const start = performance.now();
-  const {children} = assembly;
-  // コンポーネントのグルーピング、拘束式の簡略化などを行う
-
-  const end = performance.now();
-  // eslint-disable-next-line no-console
-  console.log(`preProcessor: ${end - start}`);
-}
-
-export function postProcess(assembly: IAssembly): void {
-  const start = performance.now();
-  const {children} = assembly;
-  // 得られた位置、クォータニオンを反映する
-
-  const end = performance.now();
-  // eslint-disable-next-line no-console
-  console.log(`postProcessor: ${end - start}`);
-}
-
 // 拘束式を反映して拘束する
 export function getKinematicConstrainedElements(assembly: IAssembly): void {
   const start = performance.now();
@@ -199,8 +179,8 @@ export function setSubMatrix(
   matrix: Matrix,
   submatrix: Matrix
 ) {
-  for (let row = 0; row <= submatrix.rows; ++row) {
-    for (let col = 0; col <= submatrix.columns; ++col) {
+  for (let row = 0; row < submatrix.rows; ++row) {
+    for (let col = 0; col < submatrix.columns; ++col) {
       matrix.set(row + rowStart, col + columnStart, submatrix.get(row, col));
     }
   }
@@ -455,17 +435,18 @@ export function getJointDictionary(
   joints: JointAsVector3[]
 ) {
   const dictionary: JointDict = {};
-  children.forEach((child) => {
-    dictionary[child.nodeID] = [];
-  });
+  const add = (dict: JointDict, key: string, joint: JointAsVector3) => {
+    if (!(key in dict)) dict[key] = [];
+    dict[key].push(joint);
+  };
   joints.forEach((joint) => {
     const {lhs, rhs} = joint;
     if (!isElement(lhs.parent)) return;
     if (!isElement(rhs.parent)) return;
-    dictionary[lhs.parent.nodeID].push(joint);
-    dictionary[rhs.parent.nodeID].push(joint);
-    dictionary[lhs.nodeID].push(joint);
-    dictionary[rhs.nodeID].push(joint);
+    add(dictionary, lhs.parent.nodeID, joint);
+    add(dictionary, rhs.parent.nodeID, joint);
+    add(dictionary, lhs.nodeID, joint);
+    add(dictionary, rhs.nodeID, joint);
   });
   return dictionary;
 }

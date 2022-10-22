@@ -5,7 +5,8 @@ import {
   setAssembly,
   setCollectedAssembly
 } from '@store/reducers/uiTempGeometryDesigner';
-import {getKinematicConstrainedElements} from '@gd/KinematicFunctions';
+// import {getKinematicConstrainedElements} from '@gd/KinematicFunctions';
+import {KinematicSolver} from '@gd/KinematicComponents';
 
 import {getAssembly} from '@gd/Elements';
 
@@ -41,7 +42,9 @@ export default function AssemblyCreactor() {
       const assembly = store.getState().uitgd.collectedAssembly;
       if (assembly) {
         try {
-          getKinematicConstrainedElements(assembly);
+          // getKinematicConstrainedElements(assembly);
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const solver = new KinematicSolver(assembly);
         } catch (e) {
           // eslint-disable-next-line no-console
           console.log(e);
