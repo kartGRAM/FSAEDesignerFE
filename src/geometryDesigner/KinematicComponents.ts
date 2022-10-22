@@ -2,7 +2,7 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable max-classes-per-file */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import {Matrix} from 'ml-matrix';
+import {Matrix, SingularValueDecomposition} from 'ml-matrix';
 import {
   IElement,
   IAssembly,
@@ -33,7 +33,8 @@ import {
   isFixedElement,
   getJointsToOtherComponents,
   getNamedVector3FromJoint,
-  getIndexOfPoint
+  getIndexOfPoint,
+  equal
 } from './KinematicFunctions';
 
 const X = 0;
@@ -435,6 +436,8 @@ export class Component {
     return this._col;
   }
 
+  applyDq(dq: Matrix) {}
+
   // 自由度
   get degreeOfFreedom(): number {
     if (this.isRelativeFixed) return 0;
@@ -486,6 +489,11 @@ export class Component {
   unionFindTreeParent: Component = this;
 
   unionFindTreeConstraints: Constraint[] = [];
+
+  getGroupedConstraints() {
+    if (!this.isRoot) throw new Error('ルートコンポーネントじゃない');
+    return this.unionFindTreeConstraints;
+  }
 
   get root(): Component {
     if (this.unionFindTreeParent === this) return this;
@@ -606,14 +614,13 @@ export class KinematicSolver {
 
   degreeOfFreedoms: number[];
 
-  restorer: Restorer[];
+  restorers: Restorer[] = [];
 
   constructor(assembly: IAssembly) {
     this.assembly = assembly;
     const {children} = assembly;
     const joints = assembly.getJointsAsVector3();
     const jointDict = getJointDictionary(children, joints);
-    this.restorer = [];
     const constraints: Constraint[] = [];
     const components: Component[] = [];
     const jointsDone = new Set<JointAsVector3>();
@@ -664,7 +671,7 @@ export class KinematicSolver {
             otherElement,
             joints
           );
-          this.restorer.push(restorer);
+          this.restorers.push(restorer);
           component.parent = otherComponent;
           component.isRelativeFixed = true;
           needToUpdatePoints.set(component, [
@@ -674,17 +681,18 @@ export class KinematicSolver {
         }
       }
     });
-    // eslint-disable-next-line no-restricted-syntax, prefer-const
-    for (let [component, [deltaP, deltaQ]] of needToUpdatePoints) {
-      while (component.parent.isRelativeFixed) {
-        component.parent = component.parent.parent;
-        const [pDeltaP, pDeltaQ] = needToUpdatePoints.get(component.parent)!;
-        deltaP = pDeltaP.add(deltaP);
-        deltaQ = pDeltaQ.multiply(deltaQ);
-      }
+    // eslint-disable-next-line no-restricted-syntax
+    for (const [component, [deltaP, deltaQ]] of needToUpdatePoints) {
       component.localVectors.forEach((v) =>
         v.applyQuaternion(deltaQ).add(deltaP)
       );
+      while (component.parent.isRelativeFixed) {
+        component.parent = component.parent.parent;
+        const [deltaP, deltaQ] = needToUpdatePoints.get(component.parent)!;
+        component.localVectors.forEach((v) =>
+          v.applyQuaternion(deltaQ).add(deltaP)
+        );
+      }
     }
     // ステップ3: この時点でElement間の拘束点は2点以下なので、Sphere拘束か
     // Hinge拘束か、BarAndSpher拘束を実施する。
@@ -705,7 +713,7 @@ export class KinematicSolver {
         const pUpright = getJointPartner(jointu, element.points[0].nodeID);
         const body = ptsBody[0].parent as IElement;
         const upright = pUpright.parent as IElement;
-        this.restorer.push(
+        this.restorers.push(
           new AArmRestorer(element, [ptsBody[0], ptsBody[1]], pUpright)
         );
         // あまりないと思うが、AArmのすべての点が同じコンポーネントに接続されている場合無視する
@@ -741,7 +749,7 @@ export class KinematicSolver {
           getJointPartner(jointp, element.point.nodeID)
         ];
         const elements = points.map((p) => p.parent as IElement);
-        this.restorer.push(new BarRestorer(element, points[0], points[1]));
+        this.restorers.push(new BarRestorer(element, points[0], points[1]));
         // あまりないと思うが、AArmのすべての点が同じコンポーネントに接続されている場合無視する
         if (
           elements[0].nodeID === elements[1].nodeID ||
@@ -772,7 +780,7 @@ export class KinematicSolver {
           getJointPartner(jointl, element.leftBearing.nodeID)
         ];
         const elements = points.map((p) => p.parent as IElement);
-        this.restorer.push(new TireRestorer(element, points[0], points[1]));
+        this.restorers.push(new TireRestorer(element, points[0], points[1]));
         // Tireの両端が同じコンポーネントに接続されている場合(通常の状態)であればタイヤは無視する。
         if (
           elements[0].nodeID === elements[1].nodeID ||
@@ -853,7 +861,6 @@ export class KinematicSolver {
       if (constraint.rhs.isExcludedComponent) return;
       constraint.lhs.unite(constraint.rhs, constraint);
     });
-
     const rootComponents = components.filter((component) => component.isRoot);
     this.equations = [];
     this.degreeOfFreedoms = [];
@@ -880,9 +887,53 @@ export class KinematicSolver {
     });
 
     // 上記4ステップでプリプロセッサ完了
+    this.solve({strictMode: true});
   }
 
-  solve(): void {}
+  solve(params: {strictMode?: boolean; maxCnt?: number}): void {
+    const {strictMode, maxCnt} = params;
+    // Kinematicソルバを解く
+    this.components.forEach((components, idx) => {
+      const root = components[0];
+      const constraints = root.getGroupedConstraints();
+      const equations = this.equations[idx];
+      const degreeOfFreedom = this.degreeOfFreedoms[idx];
+
+      let i = 0;
+      let minNorm = Number.MAX_SAFE_INTEGER;
+      let eq = false;
+      while (!eq && ++i < (maxCnt ?? 100)) {
+        const phi_q = new Matrix(equations, degreeOfFreedom);
+        const phi = new Array<number>(degreeOfFreedom);
+        constraints.forEach((constraint) => {
+          constraint.setJacobianAndConstraints(phi_q, phi);
+        });
+
+        const matPhi = new Matrix([phi]).transpose();
+        const dq = new SingularValueDecomposition(phi_q, {
+          autoTranspose: true
+        }).solve(matPhi);
+
+        // 差分を反映
+        components.forEach((component) => component.applyDq(dq));
+
+        const norm = dq.norm('frobenius');
+        eq = norm < 1.0e-3;
+        if (norm > minNorm * 10) {
+          // eslint-disable-next-line no-console
+          console.log('収束していない');
+          throw new Error('ニュートンラプソン法収束エラー');
+        }
+        if (norm < minNorm) {
+          minNorm = norm;
+        }
+      }
+    });
+    // 簡略化したElementを反映する
+    this.restorers.forEach((restorer) => {
+      restorer.restore();
+    });
+  }
 
   // ポストプロセス： 要素への位置の反映と、Restorerの適用
   postProcess(): void {}

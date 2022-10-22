@@ -368,7 +368,7 @@ export function rotationMatrix(q: Quaternion) {
   ]);
 }
 
-// 回転行列を取得
+// 回転行列の部分分解行列を取得
 export function decompositionMatrixG(q: Quaternion) {
   const e0 = q.w;
   const e1 = q.x;
@@ -411,6 +411,7 @@ export function getPartialDiffOfRotationMatrix(
   */
 }
 
+// 二つのマトリックスを比較
 export function equal(
   lhs: Matrix,
   rhs: Matrix,
@@ -423,6 +424,7 @@ export function equal(
   return [l < eps, l];
 }
 
+// あるベクトルに垂直なベクトルを1つ取得
 export function getStableOrthogonalVector(v: Vector3): Vector3 {
   const {x, y, z} = v;
   const a = [x ** 2, y ** 2, z ** 2];
