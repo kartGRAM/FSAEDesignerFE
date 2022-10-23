@@ -48,13 +48,25 @@ export interface Constraint {
   readonly lhs: Component;
   readonly rhs: Component;
   row: number;
-  constraints: number;
+  active(strictMode: boolean): boolean;
+  constraints(strictMode: boolean): number;
   readonly name: string;
-  setJacobianAndConstraints(phi_q: Matrix, phi: number[]): void;
+  setJacobianAndConstraints(
+    phi_q: Matrix,
+    phi: number[],
+    strictMode: boolean
+  ): void;
 }
 
 export class Sphere implements Constraint {
-  constraints = 3; // 自由度を3減らす
+  // 自由度を3減らす
+  constraints() {
+    return 3;
+  }
+
+  active() {
+    return true;
+  }
 
   row: number = -1;
 
@@ -157,7 +169,14 @@ export class Sphere implements Constraint {
 }
 
 export class Hinge implements Constraint {
-  constraints = 5; // 自由度を5減らす
+  // 自由度を5減らす
+  constraints() {
+    return 5;
+  }
+
+  active() {
+    return true;
+  }
 
   row: number = -1;
 
@@ -313,7 +332,16 @@ export class Hinge implements Constraint {
 }
 
 export class BarAndSpheres implements Constraint {
-  constraints = 1; // 自由度を1減らす
+  // 自由度を1減らす
+  constraints(strictMode: boolean) {
+    if (!strictMode && this.isSpringDumper) return 0;
+    return 1;
+  }
+
+  active(strictMode: boolean) {
+    if (!strictMode && this.isSpringDumper) return false;
+    return true;
+  }
 
   row: number = -1;
 
@@ -337,15 +365,19 @@ export class BarAndSpheres implements Constraint {
 
   isFixed: boolean = false;
 
+  isSpringDumper: boolean;
+
   constructor(
     name: string,
     clhs: Component,
     crhs: Component,
     ilhs: number,
     irhs: number,
-    l: number
+    l: number,
+    isSpringDumper: boolean
   ) {
     this.name = name;
+    this.isSpringDumper = isSpringDumper;
     if (clhs.isFixed) {
       if (crhs.isFixed) throw new Error('拘束式の両端が固定されている');
       // 固定側はrhsにする
@@ -421,7 +453,14 @@ export class BarAndSpheres implements Constraint {
 }
 
 export class QuaternionConstraint implements Constraint {
-  constraints = 1; // 自由度を1減らす
+  // 自由度を1減らす
+  constraints() {
+    return 1;
+  }
+
+  active() {
+    return true;
+  }
 
   row: number = -1;
 
@@ -646,7 +685,9 @@ export class BarRestorer implements Restorer {
     const sTo = pTo.sub(fpTo).normalize();
     this.element.rotation.value = new Quaternion().setFromUnitVectors(s, sTo);
 
-    fp.applyQuaternion(this.element.rotation.value);
+    fp.applyQuaternion(this.element.rotation.value).add(
+      this.element.position.value
+    );
     const deltaP = fpTo.clone().sub(fp);
     this.element.position.value = this.element.position.value.add(deltaP);
   }
@@ -669,7 +710,42 @@ export class AArmRestorer implements Restorer {
     this.point = point;
   }
 
-  restore() {}
+  restore() {
+    const fps = this.element.fixedPoints.map((fp) => fp.value);
+    const fpParent = this.fixedPoints[0].parent as IElement;
+    const fpTo = this.fixedPoints.map((p) =>
+      p.value
+        .applyQuaternion(fpParent.rotation.value)
+        .add(fpParent.position.value)
+    );
+    const s1 = fps[1].clone().sub(fps[0]).normalize();
+    const s1To = fpTo[1].clone().sub(fpTo[0]).normalize();
+    const rot1 = new Quaternion().setFromUnitVectors(s1, s1To);
+
+    const pParent = this.point.parent as IElement;
+    const pTo = this.point.value
+      .applyQuaternion(pParent.rotation.value)
+      .add(pParent.position.value);
+    const p = this.element.points[0].value.applyQuaternion(rot1);
+    fps.forEach((fp) => fp.applyQuaternion(rot1));
+    // fp0からp
+    const s2tmp = p.clone().sub(fps[0]);
+    const s2Totmp = pTo.clone().sub(fpTo[0]);
+    const s2 = s2tmp
+      .clone()
+      .sub(s1To.clone().multiplyScalar(s1To.dot(s2tmp)))
+      .normalize();
+    const s2To = s2Totmp
+      .clone()
+      .sub(s1To.clone().multiplyScalar(s1To.dot(s2Totmp)))
+      .normalize();
+    const rot2 = new Quaternion().setFromUnitVectors(s2, s2To);
+    this.element.rotation.value = rot1.multiply(rot2);
+
+    const fp = fps[0].applyQuaternion(rot2).add(this.element.position.value);
+    const deltaP = fpTo[0].sub(fp);
+    this.element.position.value = this.element.position.value.add(deltaP);
+  }
 }
 
 export class TireRestorer implements Restorer {
@@ -691,11 +767,23 @@ export class TireRestorer implements Restorer {
 
   restore() {
     const fp = this.element.leftBearing.value;
-    const fpTo = this.leftBearing.value;
-    const deltaP = fpTo.clone().sub(fp);
+    const fpParent = this.leftBearing.parent as IElement;
+    const fpTo = this.leftBearing.value
+      .applyQuaternion(fpParent.rotation.value)
+      .add(fpParent.position.value);
+
+    const pParent = this.rightBearing.parent as IElement;
+    const pTo = this.rightBearing.value
+      .applyQuaternion(pParent.rotation.value)
+      .add(pParent.position.value);
     const s = this.element.rightBearing.value.sub(fp).normalize();
-    const sTo = this.rightBearing.value.sub(fpTo).normalize();
+    const sTo = pTo.sub(fpTo).normalize();
     this.element.rotation.value = new Quaternion().setFromUnitVectors(s, sTo);
+
+    fp.applyQuaternion(this.element.rotation.value).add(
+      this.element.position.value
+    );
+    const deltaP = fpTo.clone().sub(fp);
     this.element.position.value = this.element.position.value.add(deltaP);
   }
 }
@@ -728,10 +816,6 @@ export class KinematicSolver {
   assembly: IAssembly;
 
   components: Component[][];
-
-  equations: number[];
-
-  degreeOfFreedoms: number[];
 
   restorers: Restorer[] = [];
 
@@ -856,7 +940,10 @@ export class KinematicSolver {
               tempComponents[upright.nodeID],
               pointsBody.findIndex((p) => pBody.nodeID === p.nodeID),
               pointsUpright.findIndex((p) => pUpright.nodeID === p.nodeID),
-              element.points[0].value.sub(element.fixedPoints[i].value).length()
+              element.points[0].value
+                .sub(element.fixedPoints[i].value)
+                .length(),
+              false
             );
             constraints.push(constraint);
           });
@@ -888,7 +975,8 @@ export class KinematicSolver {
             tempComponents[elements[1].nodeID],
             pointsElement[0].findIndex((p) => points[0].nodeID === p.nodeID),
             pointsElement[1].findIndex((p) => points[1].nodeID === p.nodeID),
-            element.length
+            element.length,
+            isSpringDumper(element)
           );
           constraints.push(constraint);
           return;
@@ -920,7 +1008,8 @@ export class KinematicSolver {
             tempComponents[elements[1].nodeID],
             pointsElement[0].findIndex((p) => points[0].nodeID === p.nodeID),
             pointsElement[1].findIndex((p) => points[1].nodeID === p.nodeID),
-            element.bearingDistance
+            element.bearingDistance,
+            false
           );
           constraints.push(constraint);
         }
@@ -1002,8 +1091,6 @@ export class KinematicSolver {
         constraint.lhs.unite(constraint.rhs, constraint);
       });
       const rootComponents = components.filter((component) => component.isRoot);
-      this.equations = [];
-      this.degreeOfFreedoms = [];
       this.components = rootComponents.map((root) => {
         const grouped = [
           root,
@@ -1017,45 +1104,50 @@ export class KinematicSolver {
             root.unionFindTreeConstraints.push(constraintToNormalize);
           }
         });
-        this.equations.push(
-          root.unionFindTreeConstraints.reduce((prev, current) => {
-            current.row = prev;
-            return prev + current.constraints;
-          }, 0)
-        );
-        this.degreeOfFreedoms.push(
-          grouped.reduce((prev, current) => {
-            current.setCol(prev);
-            return prev + current.degreeOfFreedom;
-          }, 0)
-        );
         return grouped;
       });
     }
     // 上記4ステップでプリプロセッサ完了
-    this.solve({postProcess: true});
+    this.solve({strictMode: true, postProcess: true, logOutput: true});
   }
 
-  solve(params: {maxCnt?: number; postProcess?: boolean}): void {
+  solve(params: {
+    strictMode?: boolean;
+    maxCnt?: number;
+    postProcess?: boolean;
+    logOutput?: boolean;
+  }): void {
     const start = performance.now();
     const {maxCnt} = params;
     const postProcess = params.postProcess ?? true;
+    const strictMode = params.strictMode ?? false;
+    const logOutput = params.logOutput ?? false;
 
     // Kinematicソルバを解く
     this.components.forEach((components, idx) => {
       const root = components[0];
-      const constraints = root.getGroupedConstraints();
-      const equations = this.equations[idx];
-      const degreeOfFreedom = this.degreeOfFreedoms[idx];
+      const constraints = root
+        .getGroupedConstraints()
+        .filter((constraint) => constraint.active(strictMode));
+
+      const equations = constraints.reduce((prev, current) => {
+        current.row = prev;
+        return prev + current.constraints(strictMode);
+      }, 0);
+      const degreeOfFreedom = components.reduce((prev, current) => {
+        current.setCol(prev);
+        return prev + current.degreeOfFreedom;
+      }, 0);
+      // いつも同じところが更新されるので、毎回newしなくてもよい
+      const phi_q = new Matrix(equations, degreeOfFreedom);
+      const phi = new Array<number>(degreeOfFreedom);
 
       let i = 0;
       let minNorm = Number.MAX_SAFE_INTEGER;
       let eq = false;
       while (!eq && ++i < (maxCnt ?? 100)) {
-        const phi_q = new Matrix(equations, degreeOfFreedom);
-        const phi = new Array<number>(degreeOfFreedom);
         constraints.forEach((constraint) => {
-          constraint.setJacobianAndConstraints(phi_q, phi);
+          constraint.setJacobianAndConstraints(phi_q, phi, strictMode);
         });
 
         const matPhi = new Matrix([phi]).transpose();
@@ -1069,7 +1161,7 @@ export class KinematicSolver {
         // const l2 = dq.transpose().mmul(dq);
         // const norm = l2.get(0, 0);
         const norm = dq.norm('frobenius');
-        eq = norm < 1.0e-3;
+        eq = norm < 1.0e-4;
         if (norm > minNorm * 100 || Number.isNaN(norm)) {
           // eslint-disable-next-line no-console
           console.log(`norm=${norm}`);
@@ -1084,8 +1176,10 @@ export class KinematicSolver {
     });
 
     const end = performance.now();
-    // eslint-disable-next-line no-console
-    console.log(`solver converged. time = ${end - start}`);
+    if (logOutput) {
+      // eslint-disable-next-line no-console
+      console.log(`solver converged...\ntime = ${(end - start).toFixed(1)}`);
+    }
 
     if (postProcess) {
       this.postProcess();

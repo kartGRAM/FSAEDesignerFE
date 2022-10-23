@@ -33,7 +33,7 @@ export default function AssemblyCreactor() {
     // 実行時間を計測した処理
     const end = performance.now();
     // eslint-disable-next-line no-console
-    console.log(end - start);
+    console.log((end - start).toFixed(1));
   }, [assembly]);
 
   // assembledに変化があった場合に実行
