@@ -407,16 +407,17 @@ export function equal(
 // あるベクトルに垂直なベクトルを1つ取得
 export function getStableOrthogonalVector(v: Vector3): Vector3 {
   const {x, y, z} = v;
-  const a = [x ** 2, y ** 2, z ** 2];
-  if (a[0] + a[1] + a[2] <= Number.EPSILON) {
+  const a2 = [x ** 2, y ** 2, z ** 2];
+  if (a2[0] + a2[1] + a2[2] <= Number.EPSILON) {
     throw new Error('ベクトルのノルムが小さすぎる');
   }
+  const a = [x, y, z];
   const idx = [0, 1, 2];
-  idx.sort((lhs, rhs) => a[lhs] - a[rhs]);
+  idx.sort((lhs, rhs) => a2[rhs] - a2[lhs]);
 
   const b = [0, 0, 0];
-  b[idx[1]] = Math.sqrt(a[idx[0]] / (a[idx[0]] + a[idx[1]]));
-  b[idx[0]] = Math.sqrt(1 - b[idx[1]] ** 2);
+  b[idx[1]] = Math.sqrt(a2[idx[0]] / (a2[idx[0]] + a2[idx[1]]));
+  b[idx[0]] = (-a[idx[1]] / a[idx[0]]) * b[idx[1]];
   return new Vector3(b[0], b[1], b[3]);
 }
 

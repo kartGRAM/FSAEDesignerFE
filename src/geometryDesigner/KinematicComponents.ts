@@ -1020,15 +1020,11 @@ export class KinematicSolver {
       });
     }
     // 上記4ステップでプリプロセッサ完了
-    this.solve({strictMode: true, postProcess: true});
+    this.solve({postProcess: true});
   }
 
-  solve(params: {
-    strictMode?: boolean;
-    maxCnt?: number;
-    postProcess?: boolean;
-  }): void {
-    const {strictMode, maxCnt} = params;
+  solve(params: {maxCnt?: number; postProcess?: boolean}): void {
+    const {maxCnt} = params;
     const postProcess = params.postProcess ?? true;
 
     // Kinematicソルバを解く
@@ -1056,12 +1052,13 @@ export class KinematicSolver {
         // 差分を反映
         components.forEach((component) => component.applyDq(dq));
 
-        const l2 = dq.transpose().mmul(dq);
-        const norm = l2.get(0, 0);
+        // const l2 = dq.transpose().mmul(dq);
+        // const norm = l2.get(0, 0);
+        const norm = dq.norm('frobenius');
         // eslint-disable-next-line no-console
         console.log(`norm=${norm}`);
         eq = norm < 1.0e-3;
-        if (norm > minNorm * 10 || Number.isNaN(norm)) {
+        if (norm > minNorm * 100 || Number.isNaN(norm)) {
           // eslint-disable-next-line no-console
           console.log('収束していない');
           throw new Error('ニュートンラプソン法収束エラー');
