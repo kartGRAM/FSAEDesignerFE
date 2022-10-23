@@ -3,7 +3,8 @@ import {useSelector, useDispatch} from 'react-redux';
 import store, {RootState} from '@store/store';
 import {
   setAssembly,
-  setCollectedAssembly
+  setCollectedAssembly,
+  setKinematicSolver
 } from '@store/reducers/uiTempGeometryDesigner';
 // import {getKinematicConstrainedElements} from '@gd/KinematicFunctions';
 import {KinematicSolver} from '@gd/KinematicComponents';
@@ -45,6 +46,7 @@ export default function AssemblyCreactor() {
           // getKinematicConstrainedElements(assembly);
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const solver = new KinematicSolver(assembly);
+          dispatch(setKinematicSolver(solver));
         } catch (e) {
           // eslint-disable-next-line no-console
           console.log(e);
@@ -52,6 +54,8 @@ export default function AssemblyCreactor() {
       }
       return;
     }
+    dispatch(setKinematicSolver(undefined));
+
     // else not assembled
     const {assembly} = store.getState().uitgd;
     // resetPositions

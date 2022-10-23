@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable no-lone-blocks */
 /* eslint-disable camelcase */
 /* eslint-disable class-methods-use-this */
@@ -12,9 +13,6 @@ import {
   isTire,
   isSpringDumper,
   isSimplifiedElement,
-  IAArm,
-  IBar,
-  ITire,
   JointAsVector3
 } from '@gd/IElements';
 import {INamedVector3} from '@gd/INamedValues';
@@ -35,6 +33,14 @@ import {
   getIndexOfPoint,
   equal
 } from './KinematicFunctions';
+import {
+  Restorer,
+  TireRestorer,
+  AArmRestorer,
+  BarRestorer,
+  RelativeConstraintRestorer
+} from './Restorer';
+import {IObjectiveFunction} from './Driver';
 
 const X = 0;
 const Y = 1;
@@ -653,169 +659,12 @@ export class Component {
   }
 }
 
-export interface Restorer {
-  restore(): void;
-}
-
-export class BarRestorer implements Restorer {
-  element: IBar;
-
-  fixedPoint: INamedVector3;
-
-  point: INamedVector3;
-
-  constructor(element: IBar, fixedPoint: INamedVector3, point: INamedVector3) {
-    this.element = element;
-    this.fixedPoint = fixedPoint;
-    this.point = point;
-  }
-
-  restore() {
-    const fp = this.element.fixedPoint.value;
-    const fpParent = this.fixedPoint.parent as IElement;
-    const pParent = this.point.parent as IElement;
-    const fpTo = this.fixedPoint.value
-      .applyQuaternion(fpParent.rotation.value)
-      .add(fpParent.position.value);
-    const s = this.element.point.value.sub(fp).normalize();
-
-    const pTo = this.point.value
-      .applyQuaternion(pParent.rotation.value)
-      .add(pParent.position.value);
-    const sTo = pTo.sub(fpTo).normalize();
-    this.element.rotation.value = new Quaternion().setFromUnitVectors(s, sTo);
-
-    fp.applyQuaternion(this.element.rotation.value).add(
-      this.element.position.value
-    );
-    const deltaP = fpTo.clone().sub(fp);
-    this.element.position.value = this.element.position.value.add(deltaP);
-  }
-}
-
-export class AArmRestorer implements Restorer {
-  element: IAArm;
-
-  fixedPoints: [INamedVector3, INamedVector3];
-
-  point: INamedVector3;
-
-  constructor(
-    element: IAArm,
-    fixedPoints: [INamedVector3, INamedVector3],
-    point: INamedVector3
-  ) {
-    this.element = element;
-    this.fixedPoints = fixedPoints;
-    this.point = point;
-  }
-
-  restore() {
-    const fps = this.element.fixedPoints.map((fp) => fp.value);
-    const fpParent = this.fixedPoints[0].parent as IElement;
-    const fpTo = this.fixedPoints.map((p) =>
-      p.value
-        .applyQuaternion(fpParent.rotation.value)
-        .add(fpParent.position.value)
-    );
-    const s1 = fps[1].clone().sub(fps[0]).normalize();
-    const s1To = fpTo[1].clone().sub(fpTo[0]).normalize();
-    const rot1 = new Quaternion().setFromUnitVectors(s1, s1To);
-
-    const pParent = this.point.parent as IElement;
-    const pTo = this.point.value
-      .applyQuaternion(pParent.rotation.value)
-      .add(pParent.position.value);
-    const p = this.element.points[0].value.applyQuaternion(rot1);
-    fps.forEach((fp) => fp.applyQuaternion(rot1));
-    // fp0からp
-    const s2tmp = p.clone().sub(fps[0]);
-    const s2Totmp = pTo.clone().sub(fpTo[0]);
-    const s2 = s2tmp
-      .clone()
-      .sub(s1To.clone().multiplyScalar(s1To.dot(s2tmp)))
-      .normalize();
-    const s2To = s2Totmp
-      .clone()
-      .sub(s1To.clone().multiplyScalar(s1To.dot(s2Totmp)))
-      .normalize();
-    const rot2 = new Quaternion().setFromUnitVectors(s2, s2To);
-    this.element.rotation.value = rot1.multiply(rot2);
-
-    const fp = fps[0].applyQuaternion(rot2).add(this.element.position.value);
-    const deltaP = fpTo[0].sub(fp);
-    this.element.position.value = this.element.position.value.add(deltaP);
-  }
-}
-
-export class TireRestorer implements Restorer {
-  element: ITire;
-
-  leftBearing: INamedVector3;
-
-  rightBearing: INamedVector3;
-
-  constructor(
-    element: ITire,
-    leftBearing: INamedVector3,
-    rightBearing: INamedVector3
-  ) {
-    this.element = element;
-    this.leftBearing = leftBearing;
-    this.rightBearing = rightBearing;
-  }
-
-  restore() {
-    const fp = this.element.leftBearing.value;
-    const fpParent = this.leftBearing.parent as IElement;
-    const fpTo = this.leftBearing.value
-      .applyQuaternion(fpParent.rotation.value)
-      .add(fpParent.position.value);
-
-    const pParent = this.rightBearing.parent as IElement;
-    const pTo = this.rightBearing.value
-      .applyQuaternion(pParent.rotation.value)
-      .add(pParent.position.value);
-    const s = this.element.rightBearing.value.sub(fp).normalize();
-    const sTo = pTo.sub(fpTo).normalize();
-    this.element.rotation.value = new Quaternion().setFromUnitVectors(s, sTo);
-
-    fp.applyQuaternion(this.element.rotation.value).add(
-      this.element.position.value
-    );
-    const deltaP = fpTo.clone().sub(fp);
-    this.element.position.value = this.element.position.value.add(deltaP);
-  }
-}
-
-export class RelativeConstraintRestorer implements Restorer {
-  constrained: IElement;
-
-  componentElement: IElement;
-
-  deltaPosition: Vector3;
-
-  deltaQuaternion: Quaternion;
-
-  constructor(
-    constrained: IElement,
-    componentElement: IElement,
-    joints: JointAsVector3[]
-  ) {
-    this.constrained = constrained;
-    this.componentElement = componentElement;
-    this.deltaPosition = new Vector3();
-    this.deltaQuaternion = new Quaternion();
-    throw new Error('未実装');
-  }
-
-  restore() {}
-}
-
 export class KinematicSolver {
   assembly: IAssembly;
 
   components: Component[][];
+
+  componentsFromNodeID: {[index: string]: Component};
 
   restorers: Restorer[] = [];
 
@@ -905,6 +754,7 @@ export class KinematicSolver {
     // Hinge拘束か、BarAndSpher拘束を実施する。
     // この時点でコンポーネント間の拘束はただ1つの拘束式になっている。
     {
+      this.componentsFromNodeID = {};
       children.forEach((element) => {
         // AArmが単独で使われている場合は、BarAndSpheres2つに変更する。
         if (isAArm(element) && canSimplifyAArm(element, jointDict)) {
@@ -1028,6 +878,7 @@ export class KinematicSolver {
         if (component.isRelativeFixed) return;
         // solverにコンポーネントを追加する
         components.push(component);
+        this.componentsFromNodeID[element.nodeID] = component;
         // 関連するジョイントを得る(すでに検討済みであれば破棄)
         const [partnerIDs, jDict] = getJointsToOtherComponents(
           jointDict[element.nodeID].filter((joint) => !jointsDone.has(joint)),
@@ -1111,17 +962,25 @@ export class KinematicSolver {
     this.solve({strictMode: true, postProcess: true, logOutput: true});
   }
 
-  solve(params: {
+  getGroupItBelongsTo(component: Component): [Component, Component[]] {
+    for (const components of this.components) {
+      const root = components[0];
+      if (root.root === component.root) return [root, components];
+    }
+    throw new Error('所属しているグループが見つからない');
+  }
+
+  solve(params?: {
     strictMode?: boolean;
     maxCnt?: number;
     postProcess?: boolean;
     logOutput?: boolean;
   }): void {
     const start = performance.now();
-    const {maxCnt} = params;
-    const postProcess = params.postProcess ?? true;
-    const strictMode = params.strictMode ?? false;
-    const logOutput = params.logOutput ?? false;
+    const maxCnt = params?.maxCnt ?? 100;
+    const postProcess = params?.postProcess ?? true;
+    const strictMode = params?.strictMode ?? false;
+    const logOutput = params?.logOutput ?? false;
 
     // Kinematicソルバを解く
     this.components.forEach((components, idx) => {
@@ -1145,7 +1004,7 @@ export class KinematicSolver {
       let i = 0;
       let minNorm = Number.MAX_SAFE_INTEGER;
       let eq = false;
-      while (!eq && ++i < (maxCnt ?? 100)) {
+      while (!eq && ++i < maxCnt) {
         constraints.forEach((constraint) => {
           constraint.setJacobianAndConstraints(phi_q, phi, strictMode);
         });
@@ -1186,13 +1045,83 @@ export class KinematicSolver {
     }
   }
 
+  solveObjectiveFunction(
+    func: IObjectiveFunction,
+    params?: {
+      maxCnt?: number;
+      postProcess?: boolean;
+      logOutput?: boolean;
+    }
+  ) {
+    const start = performance.now();
+    const maxCnt = params?.maxCnt ?? 100;
+    const postProcess = params?.postProcess ?? true;
+    const strictMode = false;
+    const logOutput = params?.logOutput ?? false;
+    const end = performance.now();
+    const [root, components] = this.getGroupItBelongsTo(func.component);
+    const constraints = root.unionFindTreeConstraints;
+
+    const equations = constraints.reduce((prev, current) => {
+      current.row = prev;
+      return prev + current.constraints(strictMode);
+    }, 0);
+    const degreeOfFreedom = components.reduce((prev, current) => {
+      current.setCol(prev);
+      return prev + current.degreeOfFreedom;
+    }, 0);
+    // いつも同じところが更新されるので、毎回newしなくてもよい
+    const phi_q = new Matrix(equations, degreeOfFreedom);
+    const phi = new Array<number>(degreeOfFreedom);
+
+    let i = 0;
+    let minNorm = Number.MAX_SAFE_INTEGER;
+    let eq = false;
+    while (!eq && ++i < maxCnt) {
+      constraints.forEach((constraint) => {
+        constraint.setJacobianAndConstraints(phi_q, phi, strictMode);
+      });
+
+      const matPhi = new Matrix([phi]).transpose();
+      const dq = new SingularValueDecomposition(phi_q, {
+        autoTranspose: true
+      }).solve(matPhi);
+
+      // 差分を反映
+      components.forEach((component) => component.applyDq(dq));
+
+      // const l2 = dq.transpose().mmul(dq);
+      // const norm = l2.get(0, 0);
+      const norm = dq.norm('frobenius');
+      eq = norm < 1.0e-4;
+      if (norm > minNorm * 100 || Number.isNaN(norm)) {
+        // eslint-disable-next-line no-console
+        console.log(`norm=${norm}`);
+        // eslint-disable-next-line no-console
+        console.log('収束していない');
+        throw new Error('準ニュートンラプソン法収束エラー');
+      }
+      if (norm < minNorm) {
+        minNorm = norm;
+      }
+    }
+
+    if (logOutput) {
+      // eslint-disable-next-line no-console
+      console.log(`solver converged...\ntime = ${(end - start).toFixed(1)}`);
+    }
+    if (postProcess) {
+      this.postProcess();
+    }
+  }
+
   // ポストプロセス： 要素への位置の反映と、Restorerの適用
   postProcess(): void {
     // Componentの位置、回転をElementに反映
     this.components.forEach((components) =>
       components.forEach((component) => component.applyResultToElement())
     );
-    // 簡略化したElementを反映する
+    // 簡略化したElementに計算結果を反映する
     this.restorers.forEach((restorer) => {
       restorer.restore();
     });

@@ -47,6 +47,7 @@ const store = configureStore({
           'dataGeometryDesigner/newAssembly',
           'uitGeometryDesigner/setAssembly',
           'uitGeometryDesigner/setCollectedAssembly',
+          'uitGeometryDesigner/setKinematicSolver',
           'uitGeometryDesigner/setGDSceneGetThree',
           'uitGeometryDesigner/setSelectedPoint',
           'uitGeometryDesigner/setViewDirection',
@@ -59,6 +60,7 @@ const store = configureStore({
         ],
         ignoredPaths: [
           `uitgd.assembly`,
+          `uitgd.kinematicSolver`,
           'uitgd.collectedAssembly',
           'uitgd.gdSceneState.selectedPoint',
           'uitgd.gdSceneState.get',

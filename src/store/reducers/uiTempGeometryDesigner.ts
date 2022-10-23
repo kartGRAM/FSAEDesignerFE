@@ -8,6 +8,7 @@ import {IAssembly, Elements} from '@gd/IElements';
 import {Quaternion, Vector3} from 'three';
 import {RootState} from '@react-three/fiber';
 import {GetState} from 'zustand';
+import {KinematicSolver} from '@gd/KinematicComponents';
 // import {PointOffsetToolDialogProps} from '@gdComponents/dialog-components/PointOffsetToolDialog';
 
 export type SidePanelTab =
@@ -45,6 +46,7 @@ export interface GDState {
   gdDialogState: GDDialogState;
   assembly: IAssembly | undefined;
   collectedAssembly: IAssembly | undefined;
+  kinematicSolver: KinematicSolver | undefined;
 
   treeViewDragExpanded: string[];
   draggingNewElement: Elements | null;
@@ -106,6 +108,7 @@ const initialState: GDState = {
   },
   assembly: undefined,
   collectedAssembly: undefined,
+  kinematicSolver: undefined,
   treeViewDragExpanded: [],
   draggingNewElement: null,
   draggingElementAbsPath: '',
@@ -129,6 +132,12 @@ export const uitGeometryDesignerSlice = createSlice({
       action: PayloadAction<IAssembly | undefined>
     ) => {
       state.collectedAssembly = action.payload;
+    },
+    setKinematicSolver: (
+      state: GDState,
+      action: PayloadAction<KinematicSolver | undefined>
+    ) => {
+      state.kinematicSolver = action.payload;
     },
     setDraggingNewElement: (
       state: GDState,
@@ -281,6 +290,7 @@ export const uitGeometryDesignerSlice = createSlice({
 export const {
   setAssembly,
   setCollectedAssembly,
+  setKinematicSolver,
   setUIDisabled,
   toggleFullScreen,
   selectElement,

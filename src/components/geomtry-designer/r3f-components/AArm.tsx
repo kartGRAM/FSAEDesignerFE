@@ -12,7 +12,6 @@ import store, {RootState} from '@store/store';
 import {IAArm, trans} from '@gd/IElements';
 import {getMatrix3} from '@gd/NamedValues';
 import {Line2} from 'three-stdlib';
-import {getKinematicConstrainedElements} from '@gd/KinematicFunctions';
 import NodeSphere from './NodeSphere';
 import {PivotControls} from './PivotControls/PivotControls';
 
