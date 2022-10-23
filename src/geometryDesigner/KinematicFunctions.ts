@@ -504,28 +504,31 @@ export function getJointsToOtherComponents(
 // AArmをBar2つに変換できるか？
 export function canSimplifyAArm(aArm: IAArm, jointDict: JointDict): boolean {
   const additionalPoints = aArm.points.length - 1;
+  // 3点のみで構成されてない場合NG
   if (additionalPoints) return false;
   const fp = aArm.fixedPoints;
+  // フレーム側の親を取得
   const parents = fp.map((p) => {
     const joint = jointDict[p.nodeID][0];
     return getJointPartner(joint, p.nodeID).parent as IElement;
   });
+  // フレームが分割されていたりした場合はfalse;
+  if (!parents[0] || !parents[1]) return false;
+  if (parents[0].nodeID !== parents[1].nodeID) return false;
+
+  const frame = parents[0];
   const pUpright = aArm.points[0];
+  // アップライト側の親を取得
   const upright = getJointPartner(
     jointDict[pUpright.nodeID][0],
     pUpright.nodeID
   ).parent as IElement;
-  if (!parents[0] || !parents[1]) return false;
 
-  if (parents[0].nodeID === parents[1].nodeID) {
-    if (isSimplifiedElement(parents[0])) return false;
-    if (isSimplifiedElement(upright)) return false;
-    if (isAArm(parents[0])) return false;
-    if (isAArm(upright)) return false;
-    return true;
-  }
-
-  return false;
+  if (isSimplifiedElement(frame)) return false;
+  if (isSimplifiedElement(upright)) return false;
+  if (isAArm(frame)) return false;
+  if (isAArm(upright)) return false;
+  return true;
 }
 
 // アセンブリモードを得る

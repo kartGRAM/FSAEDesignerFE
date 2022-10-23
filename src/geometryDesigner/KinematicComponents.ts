@@ -103,9 +103,9 @@ export class Sphere implements Constraint {
     this.rLocalSkew = skew(this.rLocalVec).mul(-2);
     if (this.rhs.isFixed) {
       this.isFixed = true;
-      this.target = this.rhs.position.add(
-        this.rLocalVec.applyQuaternion(this.rhs.quaternion)
-      );
+      this.target = this.rhs.position
+        .clone()
+        .add(this.rLocalVec.applyQuaternion(this.rhs.quaternion));
     }
   }
 
@@ -225,9 +225,9 @@ export class Hinge implements Constraint {
     const oVec2 = lAxisVec.cross(oVec1);
     if (this.lhs.isFixed) {
       this.isFixed = true;
-      this.target = this.lhs.position.add(
-        this.lLocalVec.applyQuaternion(this.lhs.quaternion)
-      );
+      this.target = this.lhs.position
+        .clone()
+        .add(this.lLocalVec.applyQuaternion(this.lhs.quaternion));
       oVec1.applyQuaternion(this.lhs.quaternion);
       oVec2.applyQuaternion(this.lhs.quaternion);
     }
@@ -364,9 +364,9 @@ export class BarAndSpheres implements Constraint {
     this.rLocalSkew = skew(this.rLocalVec).mul(-2);
     if (this.rhs.isFixed) {
       this.isFixed = true;
-      this.target = this.rhs.position.add(
-        this.rLocalVec.applyQuaternion(this.rhs.quaternion)
-      );
+      this.target = this.rhs.position
+        .clone()
+        .add(this.rLocalVec.applyQuaternion(this.rhs.quaternion));
     }
     this.l2 = l * l;
   }
@@ -463,6 +463,8 @@ export class QuaternionConstraint implements Constraint {
 // elementの初期状態を取得し、計算後に反映する。
 // ただし、Bar, Tire, SpringDumperなど自由度の小さいElementは含まれない
 export class Component {
+  readonly name: string;
+
   // ヤコビアンの列番号
   _col: number = -1;
 
@@ -603,6 +605,7 @@ export class Component {
   }
 
   constructor(element: IElement) {
+    this.name = element.name.value;
     this.element = element;
     this._position = element.position.value;
     this._quaternion = element.rotation.value;
@@ -630,11 +633,21 @@ export class BarRestorer implements Restorer {
 
   restore() {
     const fp = this.element.fixedPoint.value;
-    const fpTo = this.fixedPoint.value;
-    const deltaP = fpTo.clone().sub(fp);
+    const fpParent = this.fixedPoint.parent as IElement;
+    const pParent = this.point.parent as IElement;
+    const fpTo = this.fixedPoint.value
+      .applyQuaternion(fpParent.rotation.value)
+      .add(fpParent.position.value);
     const s = this.element.point.value.sub(fp).normalize();
-    const sTo = this.point.value.sub(fpTo).normalize();
+
+    const pTo = this.point.value
+      .applyQuaternion(pParent.rotation.value)
+      .add(pParent.position.value);
+    const sTo = pTo.sub(fpTo).normalize();
     this.element.rotation.value = new Quaternion().setFromUnitVectors(s, sTo);
+
+    fp.applyQuaternion(this.element.rotation.value);
+    const deltaP = fpTo.clone().sub(fp);
     this.element.position.value = this.element.position.value.add(deltaP);
   }
 }
@@ -1024,6 +1037,7 @@ export class KinematicSolver {
   }
 
   solve(params: {maxCnt?: number; postProcess?: boolean}): void {
+    const start = performance.now();
     const {maxCnt} = params;
     const postProcess = params.postProcess ?? true;
 
@@ -1055,10 +1069,10 @@ export class KinematicSolver {
         // const l2 = dq.transpose().mmul(dq);
         // const norm = l2.get(0, 0);
         const norm = dq.norm('frobenius');
-        // eslint-disable-next-line no-console
-        console.log(`norm=${norm}`);
         eq = norm < 1.0e-3;
         if (norm > minNorm * 100 || Number.isNaN(norm)) {
+          // eslint-disable-next-line no-console
+          console.log(`norm=${norm}`);
           // eslint-disable-next-line no-console
           console.log('収束していない');
           throw new Error('ニュートンラプソン法収束エラー');
@@ -1068,6 +1082,10 @@ export class KinematicSolver {
         }
       }
     });
+
+    const end = performance.now();
+    // eslint-disable-next-line no-console
+    console.log(`solver converged. time = ${end - start}`);
 
     if (postProcess) {
       this.postProcess();

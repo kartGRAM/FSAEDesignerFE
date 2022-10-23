@@ -320,7 +320,7 @@ export const isDataAssembly = (
 export const isSimplifiedElement = (
   element: any
 ): element is IBar | ITire | ISpringDumper => {
-  if (isElement(element)) return false;
+  if (!isElement(element)) return false;
   if (isBar(element)) return true;
   if (isSpringDumper(element)) return true;
   if (isTire(element)) return true;
