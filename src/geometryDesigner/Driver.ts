@@ -8,8 +8,7 @@ import {Vector3} from 'three';
 import {KinematicSolver, Component} from '@gd/KinematicComponents';
 import {
   getIndexOfPoint,
-  getPartialDiffOfRotationMatrix,
-  setSubMatrix
+  getPartialDiffOfRotationMatrix
 } from '@gd/KinematicFunctions';
 
 export interface IObjectiveFunction {

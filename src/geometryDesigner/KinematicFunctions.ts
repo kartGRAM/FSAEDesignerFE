@@ -14,6 +14,7 @@ import {Quaternion, Vector3} from 'three';
 import store from '@store/store';
 
 // サブマトリックスを設定する
+/*
 export function setSubMatrix(
   rowStart: number,
   columnStart: number,
@@ -26,6 +27,7 @@ export function setSubMatrix(
     }
   }
 }
+*/
 
 // チルダマトリックスを取得
 export function skew(v: Vector3) {

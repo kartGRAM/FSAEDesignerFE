@@ -20,7 +20,6 @@ import {Vector3, Quaternion} from 'three';
 import {AtLeast1} from '@utils/atLeast';
 import {
   getStableOrthogonalVector,
-  setSubMatrix,
   skew,
   rotationMatrix,
   decompositionMatrixG,
@@ -158,8 +157,8 @@ export class Sphere implements Constraint {
       phi_q.set(row + X, cRhs + X, -1);
       phi_q.set(row + Y, cRhs + Y, -1);
       phi_q.set(row + Z, cRhs + Z, -1);
-      setSubMatrix(row + X, cLhs + Q0, phi_q, ALhs.mmul(lLocalSkew).mmul(GLhs));
-      setSubMatrix(row + X, cRhs + Q0, phi_q, ARhs.mmul(rLocalSkew).mmul(GRhs));
+      phi_q.setSubMatrix(ALhs.mmul(lLocalSkew).mmul(GLhs), row + X, cLhs + Q0);
+      phi_q.setSubMatrix(ARhs.mmul(rLocalSkew).mmul(GRhs), row + X, cRhs + Q0);
     } else {
       const constraint = lhs.position.clone().add(sLhs).sub(this.target);
       phi[row + X] = constraint.x;
@@ -169,7 +168,7 @@ export class Sphere implements Constraint {
       phi_q.set(row + X, cLhs + X, 1);
       phi_q.set(row + Y, cLhs + Y, 1);
       phi_q.set(row + Z, cLhs + Z, 1);
-      setSubMatrix(row + X, cLhs + Q0, phi_q, ALhs.mmul(lLocalSkew).mmul(GLhs));
+      phi_q.setSubMatrix(ALhs.mmul(lLocalSkew).mmul(GLhs), row + X, cLhs + Q0);
     }
   }
 }
@@ -303,8 +302,8 @@ export class Hinge implements Constraint {
       phi_q.set(row + X, cRhs + X, -1);
       phi_q.set(row + Y, cRhs + Y, -1);
       phi_q.set(row + Z, cRhs + Z, -1);
-      setSubMatrix(row + X, cLhs + Q0, phi_q, ALhs.mmul(lLocalSkew).mmul(GLhs));
-      setSubMatrix(row + X, cRhs + Q0, phi_q, ARhs.mmul(rLocalSkew).mmul(GRhs));
+      phi_q.setSubMatrix(ALhs.mmul(lLocalSkew).mmul(GLhs), row + X, cLhs + Q0);
+      phi_q.setSubMatrix(ARhs.mmul(rLocalSkew).mmul(GRhs), row + X, cRhs + Q0);
     } else {
       const constraint = this.target.clone().sub(rhs.position).sub(sRhs);
       phi[row + X] = constraint.x;
@@ -314,7 +313,7 @@ export class Hinge implements Constraint {
       phi_q.set(row + X, cRhs + X, -1);
       phi_q.set(row + Y, cRhs + Y, -1);
       phi_q.set(row + Z, cRhs + Z, -1);
-      setSubMatrix(row + X, cRhs + Q0, phi_q, ARhs.mmul(rLocalSkew).mmul(GRhs));
+      phi_q.setSubMatrix(ARhs.mmul(rLocalSkew).mmul(GRhs), row + X, cRhs + Q0);
     }
 
     // 並行拘束
@@ -327,12 +326,12 @@ export class Hinge implements Constraint {
         orthoVec = orthoVec.clone().applyQuaternion(qLhs);
         const orthoDelta = ALhs.mmul(this.lOrthogonalSkew[r]).mmul(GLhs); // (3x4)
         const dLhs = axisT.mmul(orthoDelta); // (1x3) x (3x4) = (1x4)
-        setSubMatrix(row + 3 + r, cLhs + Q0, phi_q, dLhs);
+        phi_q.setSubMatrix(dLhs, row + 3 + r, cLhs + Q0);
       }
       const orthoT = new Matrix([[orthoVec.x, orthoVec.y, orthoVec.z]]); // (1x3)
       phi[r + row + 3] = orthoVec.dot(axis);
       const dRhs = orthoT.mmul(axisDelta); // (1x3) x (3x4) = (1x4)
-      setSubMatrix(row + 3 + r, cRhs + Q0, phi_q, dRhs);
+      phi_q.setSubMatrix(dRhs, row + 3 + r, cRhs + Q0);
     }
   }
 }
@@ -428,31 +427,28 @@ export class BarAndSpheres implements Constraint {
       const dT = new Matrix([[d.x * 2, d.y * 2, d.z * 2]]); // (1x3)
       phi[row] = d.lengthSq() - l2;
 
-      setSubMatrix(row, cLhs + X, phi_q, dT);
-      setSubMatrix(row, cRhs + X, phi_q, dT.clone().mul(-1));
-      setSubMatrix(
+      phi_q.setSubMatrix(dT, row, cLhs + X);
+      phi_q.setSubMatrix(dT.clone().mul(-1), row, cRhs + X);
+      phi_q.setSubMatrix(
+        dT.mmul(ALhs).mmul(lLocalSkew).mmul(GLhs),
         row,
-        cLhs + Q0,
-        phi_q,
-        dT.mmul(ALhs).mmul(lLocalSkew).mmul(GLhs)
+        cLhs + Q0
       );
-      setSubMatrix(
+      phi_q.setSubMatrix(
+        dT.mmul(ARhs).mmul(rLocalSkew).mmul(GRhs),
         row,
-        cRhs + Q0,
-        phi_q,
-        dT.mmul(ARhs).mmul(rLocalSkew).mmul(GRhs)
+        cRhs + Q0
       );
     } else {
       const d = lhs.position.clone().add(sLhs).sub(this.target);
       const dT = new Matrix([[d.x * 2, d.y * 2, d.z * 2]]); // (1x3)
       phi[row] = d.lengthSq() - l2;
 
-      setSubMatrix(row, cLhs + X, phi_q, dT);
-      setSubMatrix(
+      phi_q.setSubMatrix(dT, row, cLhs + X);
+      phi_q.setSubMatrix(
+        dT.mmul(ALhs).mmul(lLocalSkew).mmul(GLhs), // (1x3) x (3x3) x(3x3) x (3x4) = (1x4)
         row,
-        cLhs + Q0,
-        phi_q,
-        dT.mmul(ALhs).mmul(lLocalSkew).mmul(GLhs) // (1x3) x (3x3) x(3x3) x (3x4) = (1x4)
+        cLhs + Q0
       );
     }
   }
@@ -1077,15 +1073,29 @@ export class KinematicSolver {
     let i = 0;
     let minNorm = Number.MAX_SAFE_INTEGER;
     let eq = false;
+    const H = Matrix.eye(degreeOfFreedom, degreeOfFreedom); // ヘッセ行列
+    const L = new Matrix(
+      degreeOfFreedom + equations,
+      degreeOfFreedom + equations
+    );
+    const lambda = new Array<number>(equations);
+    const dFx = new Array<number>(degreeOfFreedom);
     while (!eq && ++i < maxCnt) {
+      // ヤコビアンマトリックスと、現在の制約式を得る。
       constraints.forEach((constraint) => {
         constraint.setJacobianAndConstraints(phi_q, phi, strictMode);
       });
+      // 目的関数の勾配を得る。
+      func.getGradient(dFx);
+      const matLambdaPhi = new Matrix([[...dFx, ...phi]]).transpose();
+      L.setSubMatrix(H, 0, 0);
+      L.setSubMatrix(phi_q, degreeOfFreedom, 0);
+      L.setSubMatrix(phi_q.transpose().mul(-1), 0, degreeOfFreedom);
 
-      const matPhi = new Matrix([phi]).transpose();
-      const dq = new SingularValueDecomposition(phi_q, {
+      const dqAndLambda = new SingularValueDecomposition(phi_q, {
         autoTranspose: true
-      }).solve(matPhi);
+      }).solve(matLambdaPhi);
+      const dq = dqAndLambda.subMatrix(0, degreeOfFreedom - 1, 0, 0);
 
       // 差分を反映
       components.forEach((component) => component.applyDq(dq));
