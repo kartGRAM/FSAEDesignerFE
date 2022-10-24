@@ -1005,7 +1005,7 @@ export class KinematicSolver {
           constraint.setJacobianAndConstraints(phi_q, phi, strictMode);
         });
 
-        const matPhi = new Matrix([phi]).transpose();
+        const matPhi = Matrix.columnVector(phi);
         const dq = new SingularValueDecomposition(phi_q, {
           autoTranspose: true
         }).solve(matPhi);
@@ -1074,11 +1074,11 @@ export class KinematicSolver {
     let minNorm = Number.MAX_SAFE_INTEGER;
     let eq = false;
     const H = Matrix.eye(degreeOfFreedom, degreeOfFreedom); // ヘッセ行列
-    const L = new Matrix(
+    const mat = new Matrix(
       degreeOfFreedom + equations,
       degreeOfFreedom + equations
     );
-    const lambda = new Array<number>(equations);
+    let L = new Matrix(1, degreeOfFreedom);
     const dFx = new Array<number>(degreeOfFreedom);
     while (!eq && ++i < maxCnt) {
       // ヤコビアンマトリックスと、現在の制約式を得る。
@@ -1087,21 +1087,43 @@ export class KinematicSolver {
       });
       // 目的関数の勾配を得る。
       func.getGradient(dFx);
-      const matLambdaPhi = new Matrix([[...dFx, ...phi]]).transpose();
-      L.setSubMatrix(H, 0, 0);
-      L.setSubMatrix(phi_q, degreeOfFreedom, 0);
-      L.setSubMatrix(phi_q.transpose().mul(-1), 0, degreeOfFreedom);
+      const matLambdaPhi = Matrix.columnVector([...dFx, ...phi]);
+      mat.setSubMatrix(H, 0, 0);
+      mat.setSubMatrix(phi_q, degreeOfFreedom, 0);
+      mat.setSubMatrix(phi_q.transpose().mul(-1), 0, degreeOfFreedom);
 
-      const dqAndLambda = new SingularValueDecomposition(phi_q, {
+      const dqAndLambda = new SingularValueDecomposition(mat, {
         autoTranspose: true
       }).solve(matLambdaPhi);
-      const dq = dqAndLambda.subMatrix(0, degreeOfFreedom - 1, 0, 0);
 
+      const dq = dqAndLambda.subMatrix(0, degreeOfFreedom - 1, 0, 0);
       // 差分を反映
       components.forEach((component) => component.applyDq(dq));
 
-      // const l2 = dq.transpose().mmul(dq);
-      // const norm = l2.get(0, 0);
+      // Lを計算
+      const lambdaN1 = dqAndLambda
+        .subMatrix(0, degreeOfFreedom, 0, 0)
+        .getColumn(0);
+      const newL = Matrix.rowVector(dFx);
+      lambdaN1.forEach((lambda, i) => {
+        newL.add(phi_q.getRowVector(i).mul(lambda));
+      });
+      const y = newL.sub(L);
+      L = newL;
+
+      // ヘッセ行列を更新
+      const s = dq.mul(-1);
+      const Hs = H.mmul(s);
+      const sy = s.dot(y);
+      const sHs = s.dot(Hs);
+      if (Math.abs(sHs) < Number.EPSILON || Math.abs(sy) < Number.EPSILON) {
+        throw new Error('除算エラー');
+      }
+      const HssH = Hs.mmul(Hs.transpose().mul(-1 / sHs));
+      const yy = y.mmul(y.transpose().mul(1 / sy));
+      H.add(HssH).add(yy);
+
+      // 終了処理
       const norm = dq.norm('frobenius');
       eq = norm < 1.0e-4;
       if (norm > minNorm * 100 || Number.isNaN(norm)) {
