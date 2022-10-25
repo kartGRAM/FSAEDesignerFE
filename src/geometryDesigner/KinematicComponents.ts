@@ -1068,7 +1068,7 @@ export class KinematicSolver {
     }, 0);
     // いつも同じところが更新されるので、毎回newしなくてもよい
     const phi_q = new Matrix(equations, degreeOfFreedom);
-    const phi = new Array<number>(degreeOfFreedom);
+    const phi = new Array<number>(degreeOfFreedom).fill(0);
 
     let i = 0;
     let minNorm = Number.MAX_SAFE_INTEGER;
@@ -1078,8 +1078,8 @@ export class KinematicSolver {
       degreeOfFreedom + equations,
       degreeOfFreedom + equations
     );
-    let L = new Matrix(1, degreeOfFreedom);
-    const dFx = new Array<number>(degreeOfFreedom);
+    let deltaL = new Matrix(1, degreeOfFreedom);
+    const dFx = new Array<number>(degreeOfFreedom).fill(0);
     while (!eq && ++i < maxCnt) {
       // ヤコビアンマトリックスと、現在の制約式を得る。
       constraints.forEach((constraint) => {
@@ -1087,6 +1087,8 @@ export class KinematicSolver {
       });
       // 目的関数の勾配を得る。
       func.getGradient(dFx);
+
+      // ラグランジュ未定乗数法を解く。
       const matLambdaPhi = Matrix.columnVector([...dFx, ...phi]);
       mat.setSubMatrix(H, 0, 0);
       mat.setSubMatrix(phi_q, degreeOfFreedom, 0);
@@ -1096,20 +1098,21 @@ export class KinematicSolver {
         autoTranspose: true
       }).solve(matLambdaPhi);
 
+      // 一般化座標の差分を取得。
       const dq = dqAndLambda.subMatrix(0, degreeOfFreedom - 1, 0, 0);
       // 差分を反映
       components.forEach((component) => component.applyDq(dq));
 
-      // Lを計算
+      // ΔLを計算
       const lambdaN1 = dqAndLambda
-        .subMatrix(0, degreeOfFreedom, 0, 0)
+        .subMatrix(degreeOfFreedom, degreeOfFreedom + equations - 1, 0, 0)
         .getColumn(0);
-      const newL = Matrix.rowVector(dFx);
+      const newDeltaL = Matrix.rowVector(dFx);
       lambdaN1.forEach((lambda, i) => {
-        newL.add(phi_q.getRowVector(i).mul(lambda));
+        newDeltaL.add(phi_q.getRowVector(i).mul(lambda));
       });
-      const y = newL.sub(L);
-      L = newL;
+      const y = newDeltaL.sub(deltaL);
+      deltaL = newDeltaL;
 
       // ヘッセ行列を更新
       const s = dq.mul(-1);
@@ -1120,13 +1123,15 @@ export class KinematicSolver {
         throw new Error('除算エラー');
       }
       const HssH = Hs.mmul(Hs.transpose().mul(-1 / sHs));
-      const yy = y.mmul(y.transpose().mul(1 / sy));
+      const yy = y.transpose().mmul(y.mul(1 / sy));
       H.add(HssH).add(yy);
 
       // 終了処理
       const norm = dq.norm('frobenius');
       eq = norm < 1.0e-4;
-      if (norm > minNorm * 100 || Number.isNaN(norm)) {
+      // eslint-disable-next-line no-console
+      console.log(`norm=${norm}`);
+      if (norm > minNorm * 10000 || Number.isNaN(norm)) {
         // eslint-disable-next-line no-console
         console.log(`norm=${norm}`);
         // eslint-disable-next-line no-console
@@ -1137,6 +1142,8 @@ export class KinematicSolver {
         minNorm = norm;
       }
     }
+
+    this.solve({strictMode: false, postProcess: false, logOutput: true});
 
     if (logOutput) {
       // eslint-disable-next-line no-console

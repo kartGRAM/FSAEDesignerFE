@@ -12,6 +12,7 @@ import store, {RootState} from '@store/store';
 import {IAArm, trans} from '@gd/IElements';
 import {getMatrix3} from '@gd/NamedValues';
 import {Line2} from 'three-stdlib';
+import {MovePointTo} from '@gd/Driver';
 import NodeSphere from './NodeSphere';
 import {PivotControls} from './PivotControls/PivotControls';
 
@@ -118,8 +119,18 @@ const AArm = (props: {element: IAArm}) => {
           mdL.elements[13],
           mdL.elements[14]
         );
-        const dv = dL.clone().sub(dLPrevRef.current);
-        console.log(dv);
+        const solver = store.getState().uitgd.kinematicSolver;
+        if (solver) {
+          const dv = dL.clone().sub(dLPrevRef.current);
+          const target = handlePosition.clone().add(dv);
+          const func = new MovePointTo(element.points[0], target, solver);
+          try {
+            solver.solveObjectiveFunction(func);
+          } catch (e) {
+            // eslint-disable-next-line no-console
+            console.log(e);
+          }
+        }
         dLPrevRef.current = dL;
       }}
     >

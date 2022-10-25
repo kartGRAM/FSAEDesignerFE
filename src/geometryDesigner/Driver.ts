@@ -2,7 +2,7 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {Matrix} from 'ml-matrix';
-import {IAssembly, IElement, isElement} from '@gd/IElements';
+import {IElement, isElement} from '@gd/IElements';
 import {INamedVector3} from '@gd/INamedValues';
 import {Vector3} from 'three';
 import {KinematicSolver, Component} from '@gd/KinematicComponents';
@@ -23,7 +23,7 @@ const Q1 = 4;
 const Q2 = 5;
 const Q3 = 6;
 
-export class movePointTo implements IObjectiveFunction {
+export class MovePointTo implements IObjectiveFunction {
   point: INamedVector3;
 
   element: IElement;
