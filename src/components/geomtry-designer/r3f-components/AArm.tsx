@@ -121,11 +121,12 @@ const AArm = (props: {element: IAArm}) => {
         );
         const solver = store.getState().uitgd.kinematicSolver;
         if (solver) {
-          const dv = dL.clone().sub(dLPrevRef.current);
-          const target = handlePosition.clone().add(dv);
+          const coMatrixT = coMatrix.clone().transpose();
+          const dv = dL.clone().sub(dLPrevRef.current).applyMatrix3(coMatrixT);
+          const target = handlePosition.clone().applyMatrix3(coMatrixT).add(dv);
           const func = new MovePointTo(element.points[0], target, solver);
           try {
-            solver.solveObjectiveFunction(func);
+            solver.solveObjectiveFunction(func, {logOutput: true});
           } catch (e) {
             // eslint-disable-next-line no-console
             console.log(e);

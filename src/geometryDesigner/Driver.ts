@@ -26,8 +26,6 @@ const Q3 = 6;
 export class MovePointTo implements IObjectiveFunction {
   point: INamedVector3;
 
-  element: IElement;
-
   target: Vector3;
 
   component: Component;
@@ -40,9 +38,9 @@ export class MovePointTo implements IObjectiveFunction {
     if (!isElement(point.parent)) throw new Error('pointの親がElementじゃない');
     if (!(point.parent.nodeID in solver.componentsFromNodeID))
       throw new Error('SolverにElementが含まれていない');
-    this.element = point.parent;
-    this.pointIdx = getIndexOfPoint(this.element, point);
-    this.component = solver.componentsFromNodeID[this.element.nodeID];
+    const element = point.parent;
+    this.pointIdx = getIndexOfPoint(element, point);
+    this.component = solver.componentsFromNodeID[element.nodeID];
   }
 
   getGradient(dFx: number[]) {
@@ -52,12 +50,12 @@ export class MovePointTo implements IObjectiveFunction {
          = p^2 + s^2 + w^2 + 2p・As - 2p・w - 2w・As
 
     δf = (2p +2As -2w)Tδp + (2p-2w)・δAs
-       = (2p + 2As - 2w)Tδp + (2p-2w)T・(As~・G)δq
+       = (2p + 2As - 2w)Tδp + (2p - 2w)T・(As~・G)δq
     */
     const w2 = this.target.clone().multiplyScalar(2);
-    const q = this.element.rotation.value;
+    const q = this.component.quaternion;
     const s = this.point.value;
-    const p2 = this.element.position.value.multiplyScalar(2);
+    const p2 = this.component.position.clone().multiplyScalar(2);
     const As2 = s.clone().applyQuaternion(q).multiplyScalar(2);
     const dfdp = p2.clone().add(As2).sub(w2);
     const idx = this.component.col;
@@ -65,11 +63,9 @@ export class MovePointTo implements IObjectiveFunction {
     dFx[idx + Y] = dfdp.y;
     dFx[idx + Z] = dfdp.z;
 
-    const qDiffs = getPartialDiffOfRotationMatrix(
-      this.element.rotation.value,
-      s
-    ); // (3x4)
-    const pw = new Matrix([[p2.x - w2.x, p2.y - w2.y, p2.z - w2.z]]); // (1x3)
+    const p2subw2 = p2.sub(w2);
+    const qDiffs = getPartialDiffOfRotationMatrix(q, s); // (3x4)
+    const pw = new Matrix([[p2subw2.x, p2subw2.y, p2subw2.z]]); // (1x3)
     const dfdq = pw.mmul(qDiffs); // (1x3) x (3x4 ) = (1,4)になるので注意
     dFx[idx + Q0] = dfdq.get(0, 0);
     dFx[idx + Q1] = dfdq.get(0, 1);

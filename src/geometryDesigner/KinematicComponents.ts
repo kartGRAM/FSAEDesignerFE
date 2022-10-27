@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-catch */
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable no-lone-blocks */
 /* eslint-disable camelcase */
@@ -648,6 +649,15 @@ export class Component {
   constructor(element: IElement) {
     this.name = element.name.value;
     this.element = element;
+    this.reset();
+    this._position = element.position.value;
+    this._quaternion = element.rotation.value;
+    this.localVectors = element.getPoints().map((p) => p.value);
+    this._isFixed = isFixedElement(element); // fixedElementになった場合、ソルバに評価されない
+  }
+
+  reset() {
+    const {element} = this;
     this._position = element.position.value;
     this._quaternion = element.rotation.value;
     this.localVectors = element.getPoints().map((p) => p.value);
@@ -663,6 +673,8 @@ export class KinematicSolver {
   componentsFromNodeID: {[index: string]: Component};
 
   restorers: Restorer[] = [];
+
+  running: boolean = false;
 
   constructor(assembly: IAssembly) {
     this.assembly = assembly;
@@ -972,18 +984,105 @@ export class KinematicSolver {
     postProcess?: boolean;
     logOutput?: boolean;
   }): void {
-    const start = performance.now();
-    const maxCnt = params?.maxCnt ?? 100;
-    const postProcess = params?.postProcess ?? true;
-    const strictMode = params?.strictMode ?? false;
-    const logOutput = params?.logOutput ?? false;
+    if (this.running) return;
+    this.running = true;
+    try {
+      const start = performance.now();
+      const maxCnt = params?.maxCnt ?? 100;
+      const postProcess = params?.postProcess ?? true;
+      const strictMode = params?.strictMode ?? false;
+      const logOutput = params?.logOutput ?? false;
 
-    // Kinematicソルバを解く
-    this.components.forEach((components, idx) => {
-      const root = components[0];
-      const constraints = root
-        .getGroupedConstraints()
-        .filter((constraint) => constraint.active(strictMode));
+      // Kinematicソルバを解く
+      this.components.forEach((components, idx) => {
+        const root = components[0];
+        const constraints = root
+          .getGroupedConstraints()
+          .filter((constraint) => constraint.active(strictMode));
+
+        const equations = constraints.reduce((prev, current) => {
+          current.row = prev;
+          return prev + current.constraints(strictMode);
+        }, 0);
+        const degreeOfFreedom = components.reduce((prev, current) => {
+          current.setCol(prev);
+          return prev + current.degreeOfFreedom;
+        }, 0);
+        // いつも同じところが更新されるので、毎回newしなくてもよい
+        const phi_q = new Matrix(equations, degreeOfFreedom);
+        const phi = new Array<number>(degreeOfFreedom);
+
+        let i = 0;
+        let minNorm = Number.MAX_SAFE_INTEGER;
+        let eq = false;
+        while (!eq && ++i < maxCnt) {
+          constraints.forEach((constraint) => {
+            constraint.setJacobianAndConstraints(phi_q, phi, strictMode);
+          });
+
+          const matPhi = Matrix.columnVector(phi);
+          const dq = new SingularValueDecomposition(phi_q, {
+            autoTranspose: true
+          }).solve(matPhi);
+
+          // 差分を反映
+          components.forEach((component) => component.applyDq(dq));
+
+          // const l2 = dq.transpose().mmul(dq);
+          // const norm = l2.get(0, 0);
+          const norm = dq.norm('frobenius');
+          eq = norm < 1.0e-4;
+          if (norm > minNorm * 100 || Number.isNaN(norm)) {
+            // eslint-disable-next-line no-console
+            console.log(`norm=${norm}`);
+            // eslint-disable-next-line no-console
+            console.log('収束していない');
+            throw new Error('ニュートンラプソン法収束エラー');
+          }
+          if (norm < minNorm) {
+            minNorm = norm;
+          }
+        }
+      });
+
+      const end = performance.now();
+      if (logOutput) {
+        // eslint-disable-next-line no-console
+        console.log(`solver converged...\ntime = ${(end - start).toFixed(1)}`);
+      }
+
+      if (postProcess) {
+        this.postProcess();
+      }
+    } catch (e) {
+      this.running = false;
+      this.components.forEach((components) => {
+        components.forEach((component) => component.reset());
+      });
+      throw e;
+    }
+    this.running = false;
+  }
+
+  solveObjectiveFunction(
+    func: IObjectiveFunction,
+    params?: {
+      maxCnt?: number;
+      postProcess?: boolean;
+      logOutput?: boolean;
+    }
+  ) {
+    if (this.running) return;
+    this.running = true;
+    try {
+      const start = performance.now();
+      const maxCnt = params?.maxCnt ?? 100;
+      const postProcess = params?.postProcess ?? true;
+      const strictMode = false;
+      const logOutput = params?.logOutput ?? false;
+      const end = performance.now();
+      const [root, components] = this.getGroupItBelongsTo(func.component);
+      const constraints = root.unionFindTreeConstraints;
 
       const equations = constraints.reduce((prev, current) => {
         current.row = prev;
@@ -995,163 +1094,106 @@ export class KinematicSolver {
       }, 0);
       // いつも同じところが更新されるので、毎回newしなくてもよい
       const phi_q = new Matrix(equations, degreeOfFreedom);
-      const phi = new Array<number>(degreeOfFreedom);
+      const phi = new Array<number>(degreeOfFreedom).fill(0);
 
       let i = 0;
       let minNorm = Number.MAX_SAFE_INTEGER;
       let eq = false;
+      const H = Matrix.eye(degreeOfFreedom, degreeOfFreedom); // ヘッセ行列
+      const mat = new Matrix(
+        degreeOfFreedom + equations,
+        degreeOfFreedom + equations
+      );
+      let deltaL = new Matrix(1, degreeOfFreedom);
+      const dFx = new Array<number>(degreeOfFreedom).fill(0);
       while (!eq && ++i < maxCnt) {
+        // ヤコビアンマトリックスと、現在の制約式を得る。
         constraints.forEach((constraint) => {
           constraint.setJacobianAndConstraints(phi_q, phi, strictMode);
         });
+        // 目的関数の勾配を得る。
+        func.getGradient(dFx);
 
-        const matPhi = Matrix.columnVector(phi);
-        const dq = new SingularValueDecomposition(phi_q, {
+        // ラグランジュ未定乗数法を解く。
+        const matLambdaPhi = Matrix.columnVector([...dFx, ...phi]).mul(-1);
+        mat.setSubMatrix(H, 0, 0);
+        mat.setSubMatrix(phi_q, degreeOfFreedom, 0);
+        mat.setSubMatrix(phi_q.transpose().mul(-1), 0, degreeOfFreedom);
+
+        const dqAndLambda = new SingularValueDecomposition(mat, {
           autoTranspose: true
-        }).solve(matPhi);
+        }).solve(matLambdaPhi);
 
+        // 一般化座標の差分を取得。
+        const dq = dqAndLambda.subMatrix(0, degreeOfFreedom - 1, 0, 0);
         // 差分を反映
-        components.forEach((component) => component.applyDq(dq));
+        components.forEach((component) =>
+          component.applyDq(dq.clone().mul(-1))
+        );
 
-        // const l2 = dq.transpose().mmul(dq);
-        // const norm = l2.get(0, 0);
+        // ΔLを計算
+        const lambdaN1 = dqAndLambda
+          .subMatrix(degreeOfFreedom, degreeOfFreedom + equations - 1, 0, 0)
+          .getColumn(0);
+        const newDeltaL = Matrix.rowVector(dFx);
+        lambdaN1.forEach((lambda, i) => {
+          newDeltaL.add(phi_q.getRowVector(i).mul(lambda));
+        });
+        const y = newDeltaL.sub(deltaL);
+        deltaL = newDeltaL;
+
+        // ヘッセ行列を更新
+        const s = dq; // .mul(-1);
+        const Hs = H.mmul(s);
+        const sy = s.dot(y);
+        const sHs = s.dot(Hs);
+        if (Math.abs(sHs) > Number.EPSILON && Math.abs(sy) > Number.EPSILON) {
+          const HssH = Hs.mmul(Hs.transpose().mul(-1 / sHs));
+          const yy = y.transpose().mmul(y.mul(1 / sy));
+          H.add(HssH).add(yy);
+          // throw new Error('除算エラー');
+        }
+
+        // 終了処理
+        // const norm = Matrix.rowVector(dFx).norm('frobenius');
         const norm = dq.norm('frobenius');
-        eq = norm < 1.0e-4;
-        if (norm > minNorm * 100 || Number.isNaN(norm)) {
-          // eslint-disable-next-line no-console
-          console.log(`norm=${norm}`);
+        eq = norm < 1.0e-3;
+        // eslint-disable-next-line no-console
+        if (logOutput) {
+          console.log(`norm=${norm.toFixed(3)}`);
+        }
+        if (norm > minNorm * 10000 || Number.isNaN(norm)) {
           // eslint-disable-next-line no-console
           console.log('収束していない');
-          throw new Error('ニュートンラプソン法収束エラー');
+          throw new Error('準ニュートンラプソン法収束エラー');
         }
         if (norm < minNorm) {
           minNorm = norm;
         }
       }
-    });
-
-    const end = performance.now();
-    if (logOutput) {
-      // eslint-disable-next-line no-console
-      console.log(`solver converged...\ntime = ${(end - start).toFixed(1)}`);
-    }
-
-    if (postProcess) {
-      this.postProcess();
-    }
-  }
-
-  solveObjectiveFunction(
-    func: IObjectiveFunction,
-    params?: {
-      maxCnt?: number;
-      postProcess?: boolean;
-      logOutput?: boolean;
-    }
-  ) {
-    const start = performance.now();
-    const maxCnt = params?.maxCnt ?? 100;
-    const postProcess = params?.postProcess ?? true;
-    const strictMode = false;
-    const logOutput = params?.logOutput ?? false;
-    const end = performance.now();
-    const [root, components] = this.getGroupItBelongsTo(func.component);
-    const constraints = root.unionFindTreeConstraints;
-
-    const equations = constraints.reduce((prev, current) => {
-      current.row = prev;
-      return prev + current.constraints(strictMode);
-    }, 0);
-    const degreeOfFreedom = components.reduce((prev, current) => {
-      current.setCol(prev);
-      return prev + current.degreeOfFreedom;
-    }, 0);
-    // いつも同じところが更新されるので、毎回newしなくてもよい
-    const phi_q = new Matrix(equations, degreeOfFreedom);
-    const phi = new Array<number>(degreeOfFreedom).fill(0);
-
-    let i = 0;
-    let minNorm = Number.MAX_SAFE_INTEGER;
-    let eq = false;
-    const H = Matrix.eye(degreeOfFreedom, degreeOfFreedom); // ヘッセ行列
-    const mat = new Matrix(
-      degreeOfFreedom + equations,
-      degreeOfFreedom + equations
-    );
-    let deltaL = new Matrix(1, degreeOfFreedom);
-    const dFx = new Array<number>(degreeOfFreedom).fill(0);
-    while (!eq && ++i < maxCnt) {
-      // ヤコビアンマトリックスと、現在の制約式を得る。
-      constraints.forEach((constraint) => {
-        constraint.setJacobianAndConstraints(phi_q, phi, strictMode);
-      });
-      // 目的関数の勾配を得る。
-      func.getGradient(dFx);
-
-      // ラグランジュ未定乗数法を解く。
-      const matLambdaPhi = Matrix.columnVector([...dFx, ...phi]);
-      mat.setSubMatrix(H, 0, 0);
-      mat.setSubMatrix(phi_q, degreeOfFreedom, 0);
-      mat.setSubMatrix(phi_q.transpose().mul(-1), 0, degreeOfFreedom);
-
-      const dqAndLambda = new SingularValueDecomposition(mat, {
-        autoTranspose: true
-      }).solve(matLambdaPhi);
-
-      // 一般化座標の差分を取得。
-      const dq = dqAndLambda.subMatrix(0, degreeOfFreedom - 1, 0, 0);
-      // 差分を反映
-      components.forEach((component) => component.applyDq(dq));
-
-      // ΔLを計算
-      const lambdaN1 = dqAndLambda
-        .subMatrix(degreeOfFreedom, degreeOfFreedom + equations - 1, 0, 0)
-        .getColumn(0);
-      const newDeltaL = Matrix.rowVector(dFx);
-      lambdaN1.forEach((lambda, i) => {
-        newDeltaL.add(phi_q.getRowVector(i).mul(lambda));
-      });
-      const y = newDeltaL.sub(deltaL);
-      deltaL = newDeltaL;
-
-      // ヘッセ行列を更新
-      const s = dq.mul(-1);
-      const Hs = H.mmul(s);
-      const sy = s.dot(y);
-      const sHs = s.dot(Hs);
-      if (Math.abs(sHs) < Number.EPSILON || Math.abs(sy) < Number.EPSILON) {
-        throw new Error('除算エラー');
-      }
-      const HssH = Hs.mmul(Hs.transpose().mul(-1 / sHs));
-      const yy = y.transpose().mmul(y.mul(1 / sy));
-      H.add(HssH).add(yy);
-
-      // 終了処理
-      const norm = dq.norm('frobenius');
-      eq = norm < 1.0e-4;
-      // eslint-disable-next-line no-console
-      console.log(`norm=${norm}`);
-      if (norm > minNorm * 10000 || Number.isNaN(norm)) {
+      if (i >= maxCnt) {
         // eslint-disable-next-line no-console
-        console.log(`norm=${norm}`);
-        // eslint-disable-next-line no-console
-        console.log('収束していない');
+        console.log('maxCntに到達');
         throw new Error('準ニュートンラプソン法収束エラー');
       }
-      if (norm < minNorm) {
-        minNorm = norm;
+
+      // this.solve({strictMode: false, postProcess: false, logOutput: true});
+
+      if (logOutput) {
+        // eslint-disable-next-line no-console
+        console.log(`solver converged...\ntime = ${(end - start).toFixed(1)}`);
       }
+      if (postProcess) {
+        this.postProcess();
+      }
+    } catch (e) {
+      this.components.forEach((components) => {
+        components.forEach((component) => component.reset());
+      });
+      this.running = false;
+      throw e;
     }
-
-    this.solve({strictMode: false, postProcess: false, logOutput: true});
-
-    if (logOutput) {
-      // eslint-disable-next-line no-console
-      console.log(`solver converged...\ntime = ${(end - start).toFixed(1)}`);
-    }
-    if (postProcess) {
-      this.postProcess();
-    }
+    this.running = false;
   }
 
   // ポストプロセス： 要素への位置の反映と、Restorerの適用
