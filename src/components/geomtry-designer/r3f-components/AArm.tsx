@@ -9,7 +9,7 @@ import {
   setOrbitControlsEnabled
 } from '@app/store/reducers/uiTempGeometryDesigner';
 import store, {RootState} from '@store/store';
-import {IAArm, trans} from '@gd/IElements';
+import {IAArm, transQuaternion, trans} from '@gd/IElements';
 import {getMatrix3} from '@gd/NamedValues';
 import {Line2} from 'three-stdlib';
 import {MovePointTo} from '@gd/Driver';
@@ -52,13 +52,17 @@ const AArm = (props: {element: IAArm}) => {
       if (!ref.current) return;
       ref.current.material.color.set(color);
       ref.current.visible = element.visible.value ?? false;
+      ref.current.position.copy(element.position.value.applyMatrix3(coMatrix));
+      ref.current.quaternion.copy(
+        transQuaternion(element.rotation.value, coMatrix)
+      );
     });
   });
 
   const nodes = element.getPoints();
-  let pts = nodes.map((p) => trans(p, coMatrix));
+  let pts = nodes.map((p) => p.value.applyMatrix3(coMatrix));
   const arm: [Vector3, Vector3, Vector3] = [pts[0], pts[2], pts[1]];
-  pts = pts.filter((v, i) => i > 2);
+  pts = arm.filter((v, i) => i > 2);
   const plane = new Plane().setFromCoplanarPoints(...arm);
   const projections = pts.map((p) => {
     const v = new Vector3();
@@ -123,13 +127,13 @@ const AArm = (props: {element: IAArm}) => {
         if (solver) {
           const coMatrixT = coMatrix.clone().transpose();
           const dv = dL.clone().sub(dLPrevRef.current).applyMatrix3(coMatrixT);
-          const target = handlePosition.clone().applyMatrix3(coMatrixT).add(dv);
+          const target = trans(element.points[0]).add(dv);
           const func = new MovePointTo(element.points[0], target, solver);
           try {
-            solver.solveObjectiveFunction(func, {logOutput: true});
+            solver.solveObjectiveFunction(func);
           } catch (e) {
             // eslint-disable-next-line no-console
-            console.log(e);
+            console.log('収束エラー');
           }
         }
         dLPrevRef.current = dL;

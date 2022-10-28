@@ -101,8 +101,7 @@ export const transQuaternion = (
   q: Quaternion,
   coMatrix: Matrix3
 ): Quaternion => {
-  const v = new Vector3(q.x, q.y, q.z);
-  v.applyMatrix3(coMatrix);
+  const v = new Vector3(q.x, q.y, q.z).applyMatrix3(coMatrix);
   return new Quaternion(v.x, v.y, v.z, q.w);
 };
 
