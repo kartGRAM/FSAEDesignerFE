@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react';
-import {Vector3, Plane, Matrix4, Matrix3} from 'three';
+import {Vector3, Plane, Matrix4, Matrix3, Group} from 'three';
 import {ThreeEvent, useFrame} from '@react-three/fiber';
 import {Line} from '@react-three/drei';
 import {useSelector, useDispatch} from 'react-redux';
@@ -52,11 +52,13 @@ const AArm = (props: {element: IAArm}) => {
       if (!ref.current) return;
       ref.current.material.color.set(color);
       ref.current.visible = element.visible.value ?? false;
-      ref.current.position.copy(element.position.value.applyMatrix3(coMatrix));
-      ref.current.quaternion.copy(
-        transQuaternion(element.rotation.value, coMatrix)
-      );
     });
+    groupRef.current.position.copy(
+      element.position.value.applyMatrix3(coMatrix)
+    );
+    groupRef.current.quaternion.copy(
+      transQuaternion(element.rotation.value, coMatrix)
+    );
   });
 
   const nodes = element.getPoints();
@@ -70,6 +72,7 @@ const AArm = (props: {element: IAArm}) => {
     return [p, v];
   });
 
+  const groupRef = React.useRef<Group>(null!);
   const meshRefs = React.useRef(
     [arm, ...projections].map(() => React.createRef<Line2>())
   );
@@ -83,7 +86,7 @@ const AArm = (props: {element: IAArm}) => {
 
   return (
     <>
-      <group onDoubleClick={handleOnDoubleClick}>
+      <group onDoubleClick={handleOnDoubleClick} ref={groupRef}>
         <Line
           points={arm}
           color="pink"

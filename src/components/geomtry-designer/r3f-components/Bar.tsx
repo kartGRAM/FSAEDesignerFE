@@ -3,20 +3,15 @@ import * as THREE from 'three';
 import {ThreeEvent, useFrame} from '@react-three/fiber';
 import {Line} from '@react-three/drei';
 import {useSelector, useDispatch} from 'react-redux';
-import {
-  selectElement,
-  setOrbitControlsEnabled
-} from '@app/store/reducers/uiTempGeometryDesigner';
+import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
 import store, {RootState} from '@store/store';
-import {IBar, trans} from '@gd/IElements';
+import {IBar, transQuaternion} from '@gd/IElements';
 import {getMatrix3} from '@gd/NamedValues';
 import {Line2} from 'three-stdlib';
 import NodeSphere from './NodeSphere';
-import {PivotControls} from './PivotControls/PivotControls';
 
 const Bar = (props: {element: IBar}) => {
   const {element} = props;
-  const meshRef = React.useRef<Line2>(null!);
   const coMatrix = getMatrix3(
     useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
   );
@@ -31,14 +26,6 @@ const Bar = (props: {element: IBar}) => {
     [element.absPath]
   );
 
-  const isMoveTarget = useSelector(
-    (state: RootState) => state.uitgd.selectedElementAbsPath === element.absPath
-  );
-
-  const isAssembled = useSelector(
-    (state: RootState) => state.uitgd.gdSceneState.assembled
-  );
-
   useFrame(() => {
     const selectedPath = store.getState().uitgd.selectedElementAbsPath;
     const isSelected = !!selectedPath && element.absPath.includes(selectedPath);
@@ -48,38 +35,27 @@ const Bar = (props: {element: IBar}) => {
     }
     meshRef.current.material.color.set(color);
     meshRef.current.visible = element.visible.value ?? false;
+
+    groupRef.current.position.copy(
+      element.position.value.applyMatrix3(coMatrix)
+    );
+    groupRef.current.quaternion.copy(
+      transQuaternion(element.rotation.value, coMatrix)
+    );
   });
 
   const nodes = element.getPoints();
-  const pts = nodes.map((p) => trans(p, coMatrix));
-  const box = new THREE.Box3().setFromPoints(pts);
-  const handlePosition = box.max.clone().add(box.min).multiplyScalar(0.5);
+  const pts = nodes.map((p) => p.value.applyMatrix3(coMatrix));
+  const groupRef = React.useRef<THREE.Group>(null!);
+  const meshRef = React.useRef<Line2>(null!);
 
-  const object3D = (
-    <group onDoubleClick={handleOnDoubleClick}>
+  return (
+    <group onDoubleClick={handleOnDoubleClick} ref={groupRef}>
       <Line points={pts} color="pink" lineWidth={2} ref={meshRef} />
       {nodes.map((node) => (
         <NodeSphere node={node} key={node.nodeID} />
       ))}
     </group>
-  );
-
-  return isMoveTarget && isAssembled ? (
-    <PivotControls
-      offset={handlePosition}
-      depthTest={false}
-      scale={70}
-      onDragStart={() => {
-        dispatch(setOrbitControlsEnabled(false));
-      }}
-      onDragEnd={() => {
-        dispatch(setOrbitControlsEnabled(true));
-      }}
-    >
-      {object3D}
-    </PivotControls>
-  ) : (
-    object3D
   );
 };
 export default Bar;

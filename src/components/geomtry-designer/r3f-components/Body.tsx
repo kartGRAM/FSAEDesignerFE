@@ -7,7 +7,7 @@ import {
   setOrbitControlsEnabled
 } from '@app/store/reducers/uiTempGeometryDesigner';
 import store, {RootState} from '@store/store';
-import {IBody, trans, isBodyOfFrame} from '@gd/IElements';
+import {IBody, trans, isBodyOfFrame, transQuaternion} from '@gd/IElements';
 import {getMatrix3} from '@gd/NamedValues';
 import {ConvexGeometry} from 'three/examples/jsm/geometries/ConvexGeometry';
 import NodeSphere from './NodeSphere';
@@ -15,8 +15,6 @@ import {PivotControls} from './PivotControls/PivotControls';
 
 const Body = (props: {element: IBody}) => {
   const {element} = props;
-  const materialRef = React.useRef<THREE.MeshBasicMaterial>(null!);
-  const meshRef = React.useRef<THREE.Mesh>(null!);
   const coMatrix = getMatrix3(
     useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
   );
@@ -56,48 +54,59 @@ const Body = (props: {element: IBody}) => {
     if (meshRef.current) {
       meshRef.current.visible = element.visible.value ?? false;
     }
+    groupRef.current.position.copy(
+      element.position.value.applyMatrix3(coMatrix)
+    );
+    groupRef.current.quaternion.copy(
+      transQuaternion(element.rotation.value, coMatrix)
+    );
   });
 
   const nodes = element.getPoints();
   const pts = nodes.map((p) => trans(p, coMatrix));
   const geometry = new ConvexGeometry(pts);
-  const box = new THREE.Box3().setFromPoints(pts);
-  const handlePosition = box.max.clone().add(box.min).multiplyScalar(0.5);
 
-  const object3D = (
-    <group onDoubleClick={handleOnDoubleClick}>
-      <mesh args={[geometry]} ref={meshRef}>
-        <meshBasicMaterial
-          args={[{color: 0x00ffff}]}
-          wireframe
-          wireframeLinewidth={3}
-          ref={materialRef}
+  const groupRef = React.useRef<THREE.Group>(null!);
+  const materialRef = React.useRef<THREE.MeshBasicMaterial>(null!);
+  const meshRef = React.useRef<THREE.Mesh>(null!);
+  const initialPosition = trans(nodes[0], coMatrix);
+  const rotationRef = React.useRef<THREE.Matrix3>(new THREE.Matrix3());
+
+  return (
+    <>
+      <group onDoubleClick={handleOnDoubleClick} ref={groupRef}>
+        <mesh args={[geometry]} ref={meshRef}>
+          <meshBasicMaterial
+            args={[{color: 0x00ffff}]}
+            wireframe
+            wireframeLinewidth={3}
+            ref={materialRef}
+          />
+        </mesh>
+        {nodes.map((node) => (
+          <NodeSphere node={node} key={node.nodeID} />
+        ))}
+      </group>
+      {(!isFrame || assemblyMode !== 'FixedFrame') &&
+      isMoveTarget &&
+      isAssembled ? (
+        <PivotControls
+          displayValues={false}
+          disableSliders
+          matrix={new THREE.Matrix4()
+            .setFromMatrix3(rotationRef.current)
+            .setPosition(initialPosition)}
+          depthTest={false}
+          scale={70}
+          onDragStart={() => {
+            dispatch(setOrbitControlsEnabled(false));
+          }}
+          onDragEnd={() => {
+            dispatch(setOrbitControlsEnabled(true));
+          }}
         />
-      </mesh>
-      {nodes.map((node) => (
-        <NodeSphere node={node} key={node.nodeID} />
-      ))}
-    </group>
-  );
-
-  return (!isFrame || assemblyMode !== 'FixedFrame') &&
-    isMoveTarget &&
-    isAssembled ? (
-    <PivotControls
-      offset={handlePosition}
-      depthTest={false}
-      scale={70}
-      onDragStart={() => {
-        dispatch(setOrbitControlsEnabled(false));
-      }}
-      onDragEnd={() => {
-        dispatch(setOrbitControlsEnabled(true));
-      }}
-    >
-      {object3D}
-    </PivotControls>
-  ) : (
-    object3D
+      ) : null}
+    </>
   );
 };
 export default Body;

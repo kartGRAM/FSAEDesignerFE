@@ -5,7 +5,7 @@ import {Sphere, Html} from '@react-three/drei';
 import {useSelector, useDispatch} from 'react-redux';
 import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
 import store, {RootState} from '@store/store';
-import {trans, isElement} from '@gd/IElements';
+import {isElement} from '@gd/IElements';
 import {getMatrix3} from '@gd/NamedValues';
 import {INamedVector3} from '@gd/INamedValues';
 import {
@@ -23,7 +23,6 @@ const NodeSphere = (props: {node: INamedVector3}) => {
   const invCoMatrix = coMatrix.clone().transpose();
   const materialRef = React.useRef<THREE.MeshBasicMaterial>(null);
   const meshRef = React.useRef<THREE.Mesh>(null!);
-  const groupRef = React.useRef<THREE.Group>(null!);
   const pivotControlsRef = React.useRef<THREE.Group>(null!);
   const deltaVRef = React.useRef<THREE.Vector3>(new THREE.Vector3());
 
@@ -68,10 +67,9 @@ const NodeSphere = (props: {node: INamedVector3}) => {
           visualizationMode === 'ShowAllNodes' && !!node.parent.visible.value;
       }
     }
-    groupRef.current.position.copy(trans(node, coMatrix));
   });
 
-  const position = trans(node, coMatrix);
+  const position = node.value.applyMatrix3(coMatrix);
 
   const sphere = (
     <Sphere
@@ -149,7 +147,7 @@ const NodeSphere = (props: {node: INamedVector3}) => {
   );
 
   return (
-    <group position={position} ref={groupRef}>
+    <group position={position}>
       {isMoveTarget ? (
         <PivotControls
           ref={pivotControlsRef}
