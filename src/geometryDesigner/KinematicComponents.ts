@@ -1098,7 +1098,8 @@ export class KinematicSolver {
       const phi_qN1 = new Matrix(equations, degreeOfFreedom);
       const phi = new Array<number>(degreeOfFreedom).fill(0);
       const phiN1 = new Array<number>(degreeOfFreedom).fill(0);
-      let lambda = new Array<number>(equations).fill(0);
+      // let lambda = new Array<number>(equations).fill(0);
+      let lambda = Matrix.zeros(1, equations);
 
       let i = 0;
       let minNorm = Number.MAX_SAFE_INTEGER;
@@ -1117,7 +1118,7 @@ export class KinematicSolver {
           constraint.setJacobianAndConstraints(phi_q, phi, strictMode);
         });
         // ラグランジュ未定乗数法を解く。
-        const matLambdaPhi = Matrix.columnVector([...dFx, ...phi]).mul(-1);
+        const matLambdaPhi = Matrix.columnVector([...dFx, ...phi]);
         mat.setSubMatrix(H, 0, 0);
         mat.setSubMatrix(phi_q, degreeOfFreedom, 0);
         mat.setSubMatrix(phi_q.transpose().mul(-1), 0, degreeOfFreedom);
@@ -1129,9 +1130,7 @@ export class KinematicSolver {
         // 一般化座標の差分を取得。
         const dq = dqAndLambda.subMatrix(0, degreeOfFreedom - 1, 0, 0);
         // 差分を反映
-        components.forEach((component) =>
-          component.applyDq(dq.clone().mul(-1))
-        );
+        components.forEach((component) => component.applyDq(dq));
 
         // ΔLを計算
         // Φn+1,Φqn+1を計算
@@ -1144,20 +1143,16 @@ export class KinematicSolver {
         const dFxN1 = dFx;
 
         const deltaLN = Matrix.rowVector(dFxN);
-        lambda.forEach((lambda, i) => {
-          deltaLN.add(phi_q.getRowVector(i).mul(lambda));
-        });
+        deltaLN.add(lambda.mmul(phi_q));
         const deltaLN1 = Matrix.rowVector(dFxN1);
-        lambda.forEach((lambda, i) => {
-          deltaLN1.add(phi_qN1.getRowVector(i).mul(lambda));
-        });
+        deltaLN1.add(lambda.mmul(phi_qN1));
         const y = deltaLN1.sub(deltaLN);
         lambda = dqAndLambda
           .subMatrix(degreeOfFreedom, degreeOfFreedom + equations - 1, 0, 0)
-          .getColumn(0);
+          .transpose();
 
         // ヘッセ行列を更新
-        const s = dq; // .mul(-1);
+        const s = dq.mul(-1);
         const Hs = H.mmul(s);
         const sy = s.dot(y);
         const sHs = s.dot(Hs);
