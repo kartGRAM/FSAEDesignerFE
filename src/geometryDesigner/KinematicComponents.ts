@@ -1095,10 +1095,7 @@ export class KinematicSolver {
       }, 0);
       // いつも同じところが更新されるので、毎回newしなくてもよい
       const phi_q = new Matrix(equations, degreeOfFreedom);
-      const phi_qN1 = new Matrix(equations, degreeOfFreedom);
       const phi = new Array<number>(degreeOfFreedom).fill(0);
-      const phiN1 = new Array<number>(degreeOfFreedom).fill(0);
-      // let lambda = new Array<number>(equations).fill(0);
       let lambda = Matrix.zeros(1, equations);
 
       let i = 0;
@@ -1112,11 +1109,11 @@ export class KinematicSolver {
       const dFx = new Array<number>(degreeOfFreedom).fill(0);
       // 目的関数の勾配を得る。
       func.getGradient(dFx);
+      // ヤコビアンマトリックスと、現在の制約式を得る。
+      constraints.forEach((constraint) => {
+        constraint.setJacobianAndConstraints(phi_q, phi, strictMode);
+      });
       while (!eq && ++i < maxCnt) {
-        // ヤコビアンマトリックスと、現在の制約式を得る。
-        constraints.forEach((constraint) => {
-          constraint.setJacobianAndConstraints(phi_q, phi, strictMode);
-        });
         // ラグランジュ未定乗数法を解く。
         const matLambdaPhi = Matrix.columnVector([...dFx, ...phi]);
         mat.setSubMatrix(H, 0, 0);
@@ -1132,27 +1129,27 @@ export class KinematicSolver {
         // 差分を反映
         components.forEach((component) => component.applyDq(dq));
 
-        // ΔLを計算
-        // Φn+1,Φqn+1を計算
-        constraints.forEach((constraint) => {
-          constraint.setJacobianAndConstraints(phi_qN1, phiN1, strictMode);
-        });
         // 目的関数の勾配を得る。
-        const dFxN = [...dFx];
+        // ΔLを計算
+        const deltaL = Matrix.rowVector(dFx);
+        deltaL.add(lambda.mmul(phi_q));
+        // ΦqとΦとdFxを更新。
+        constraints.forEach((constraint) => {
+          constraint.setJacobianAndConstraints(phi_q, phi, strictMode);
+        });
         func.getGradient(dFx);
-        const dFxN1 = dFx;
+        // ΔLn+1を計算
+        const deltaLN1 = Matrix.rowVector(dFx);
+        deltaLN1.add(lambda.mmul(phi_q));
 
-        const deltaLN = Matrix.rowVector(dFxN);
-        deltaLN.add(lambda.mmul(phi_q));
-        const deltaLN1 = Matrix.rowVector(dFxN1);
-        deltaLN1.add(lambda.mmul(phi_qN1));
-        const y = deltaLN1.sub(deltaLN);
+        // λn+1を計算
         lambda = dqAndLambda
           .subMatrix(degreeOfFreedom, degreeOfFreedom + equations - 1, 0, 0)
           .transpose();
 
         // ヘッセ行列を更新
         const s = dq.mul(-1);
+        const y = deltaLN1.sub(deltaL);
         const Hs = H.mmul(s);
         const sy = s.dot(y);
         const sHs = s.dot(Hs);
