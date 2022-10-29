@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react';
-import {Vector3, Plane} from 'three';
+import {Vector3, Plane, Matrix4, Matrix3} from 'three';
 import {ThreeEvent, useFrame} from '@react-three/fiber';
 import {Line} from '@react-three/drei';
 import {useSelector, useDispatch} from 'react-redux';
@@ -73,76 +73,85 @@ const AArm = (props: {element: IAArm}) => {
   const meshRefs = React.useRef(
     [arm, ...projections].map(() => React.createRef<Line2>())
   );
-  const handlePosition = arm[1];
 
-  const object3D = (
-    <group onDoubleClick={handleOnDoubleClick}>
-      <Line
-        points={arm}
-        color="pink"
-        lineWidth={4}
-        ref={meshRefs.current[0]}
-        key="arm"
-      />
-      {projections.map((line, i) => (
+  // const dLPrevRef = React.useRef<Vector3>(new Vector3());
+  const initialPosition = trans(nodes[2], coMatrix);
+  const rotationRef = React.useRef<Matrix3>(new Matrix3());
+  React.useEffect(() => {
+    rotationRef.current = new Matrix3();
+  }, [isMoveTarget, isAssembled]);
+
+  return (
+    <>
+      <group onDoubleClick={handleOnDoubleClick}>
         <Line
-          points={line}
+          points={arm}
           color="pink"
           lineWidth={4}
-          ref={meshRefs.current[i + 1]}
+          ref={meshRefs.current[0]}
           key="arm"
         />
-      ))}
-      {nodes.map((node) => (
-        <NodeSphere node={node} key={node.nodeID} />
-      ))}
-    </group>
-  );
+        {projections.map((line, i) => (
+          <Line
+            points={line}
+            color="pink"
+            lineWidth={4}
+            ref={meshRefs.current[i + 1]}
+            key="arm"
+          />
+        ))}
+        {nodes.map((node) => (
+          <NodeSphere node={node} key={node.nodeID} />
+        ))}
+      </group>
+      {isMoveTarget && isAssembled ? (
+        <PivotControls
+          displayValues={false}
+          disableSliders
+          matrix={new Matrix4()
+            .setFromMatrix3(rotationRef.current)
+            .setPosition(initialPosition)}
+          depthTest={false}
+          scale={70}
+          onDragStart={() => {
+            store.dispatch(setOrbitControlsEnabled(false));
+            // dLPrevRef.current.set(0, 0, 0);
+          }}
+          onDragEnd={() => {
+            store.dispatch(setOrbitControlsEnabled(true));
+          }}
+          onDrag={(mL, mdL, mW, mdW) => {
+            const solver = store.getState().uitgd.kinematicSolver;
+            if (solver) {
+              const coMatrixT = coMatrix.clone().transpose();
+              const target = new Vector3(
+                mL.elements[12],
+                mL.elements[13],
+                mL.elements[14]
+              ).applyMatrix3(coMatrixT);
+              const delta = target
+                .clone()
+                .sub(trans(element.points[0]))
+                .lengthSq();
 
-  const dLPrevRef = React.useRef<Vector3>(new Vector3());
+              rotationRef.current = new Matrix3().setFromMatrix4(mL);
+              if (delta < 1e-10) {
+                return;
+              }
 
-  return isMoveTarget && isAssembled ? (
-    <PivotControls
-      displayValues={false}
-      disableRotations
-      disableSliders
-      autoTransform={false}
-      offset={handlePosition}
-      depthTest={false}
-      scale={70}
-      onDragStart={() => {
-        dispatch(setOrbitControlsEnabled(false));
-        dLPrevRef.current.set(0, 0, 0);
-      }}
-      onDragEnd={() => {
-        dispatch(setOrbitControlsEnabled(true));
-      }}
-      onDrag={(mL, mdL, mW, mdW) => {
-        const dL = new Vector3(
-          mdL.elements[12],
-          mdL.elements[13],
-          mdL.elements[14]
-        );
-        const solver = store.getState().uitgd.kinematicSolver;
-        if (solver) {
-          const coMatrixT = coMatrix.clone().transpose();
-          const dv = dL.clone().sub(dLPrevRef.current).applyMatrix3(coMatrixT);
-          const target = trans(element.points[0]).add(dv);
-          const func = new MovePointTo(element.points[0], target, solver);
-          try {
-            solver.solveObjectiveFunction(func);
-          } catch (e) {
-            // eslint-disable-next-line no-console
-            console.log('収束エラー');
-          }
-        }
-        dLPrevRef.current = dL;
-      }}
-    >
-      {object3D}
-    </PivotControls>
-  ) : (
-    object3D
+              // .add(initialPosition);
+              const func = new MovePointTo(element.points[0], target, solver);
+              try {
+                solver.solveObjectiveFunction(func);
+              } catch (e) {
+                // eslint-disable-next-line no-console
+                console.log('収束エラー');
+              }
+            }
+          }}
+        />
+      ) : null}
+    </>
   );
 };
 export default AArm;

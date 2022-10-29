@@ -23,6 +23,7 @@ const NodeSphere = (props: {node: INamedVector3}) => {
   const invCoMatrix = coMatrix.clone().transpose();
   const materialRef = React.useRef<THREE.MeshBasicMaterial>(null);
   const meshRef = React.useRef<THREE.Mesh>(null!);
+  const groupRef = React.useRef<THREE.Group>(null!);
   const pivotControlsRef = React.useRef<THREE.Group>(null!);
   const deltaVRef = React.useRef<THREE.Vector3>(new THREE.Vector3());
 
@@ -67,6 +68,7 @@ const NodeSphere = (props: {node: INamedVector3}) => {
           visualizationMode === 'ShowAllNodes' && !!node.parent.visible.value;
       }
     }
+    groupRef.current.position.copy(trans(node, coMatrix));
   });
 
   const position = trans(node, coMatrix);
@@ -147,7 +149,7 @@ const NodeSphere = (props: {node: INamedVector3}) => {
   );
 
   return (
-    <group position={position}>
+    <group position={position} ref={groupRef}>
       {isMoveTarget ? (
         <PivotControls
           ref={pivotControlsRef}
