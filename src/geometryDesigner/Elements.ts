@@ -1065,6 +1065,18 @@ export class AArm extends Element implements IAArm {
 
   points: AtLeast1<NamedVector3>;
 
+  get centerOfPoints() {
+    const {fixedPoints, points} = this;
+    return new NamedVector3({
+      name: 'center',
+      parent: this,
+      value: fixedPoints[0].value
+        .add(fixedPoints[1].value)
+        .add(points[0].value)
+        .multiplyScalar(1 / 3)
+    });
+  }
+
   getPoints(): INamedVector3[] {
     return [...this.fixedPoints, ...this.points];
   }
@@ -1245,6 +1257,19 @@ export class BellCrank extends Element implements IBellCrank {
 
   getPoints(): INamedVector3[] {
     return [...this.fixedPoints, ...this.points];
+  }
+
+  get centerOfPoints() {
+    const {fixedPoints, points} = this;
+    return new NamedVector3({
+      name: 'center',
+      parent: this,
+      value: fixedPoints[0].value
+        .add(fixedPoints[1].value)
+        .add(points[0].value)
+        .add(points[1].value)
+        .multiplyScalar(0.25)
+    });
   }
 
   arrange(parentPosition?: Vector3) {
@@ -1430,6 +1455,22 @@ export class Body extends Element implements IBody {
 
   getPoints(): INamedVector3[] {
     return [...this.fixedPoints, ...this.points];
+  }
+
+  get centerOfPoints() {
+    const {fixedPoints, points} = this;
+    const c = new Vector3();
+    this.points.forEach((p) => c.add(p.value));
+    this.fixedPoints.forEach((p) => c.add(p.value));
+    if (points.length || fixedPoints.length) {
+      c.multiplyScalar(1 / (points.length + fixedPoints.length));
+    }
+
+    return new NamedVector3({
+      name: 'center',
+      parent: this,
+      value: c
+    });
   }
 
   arrange(parentPosition?: Vector3) {

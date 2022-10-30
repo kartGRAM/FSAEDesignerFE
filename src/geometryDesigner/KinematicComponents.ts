@@ -1100,7 +1100,6 @@ export class KinematicSolver {
 
       let i = 0;
       let minNorm = Number.MAX_SAFE_INTEGER;
-      let eq = false;
       const H = Matrix.eye(degreeOfFreedom, degreeOfFreedom); // ヘッセ行列
       const mat = new Matrix(
         degreeOfFreedom + equations,
@@ -1113,7 +1112,7 @@ export class KinematicSolver {
       constraints.forEach((constraint) => {
         constraint.setJacobianAndConstraints(phi_q, phi, strictMode);
       });
-      while (!eq && ++i < maxCnt) {
+      while (++i < maxCnt) {
         // ラグランジュ未定乗数法を解く。
         const matLambdaPhi = Matrix.columnVector([...dFx, ...phi]);
         mat.setSubMatrix(H, 0, 0);
@@ -1133,6 +1132,12 @@ export class KinematicSolver {
         // ΔLを計算
         const deltaL = Matrix.rowVector(dFx);
         deltaL.add(lambda.mmul(phi_q));
+        // 終了処理
+        // const norm = Matrix.rowVector(dFx).norm('frobenius');
+        const norm = dq.norm('frobenius') + deltaL.norm('frobenius');
+        // const norm = deltaL.norm('frobenius');
+        if (norm < 1.0e-3) break;
+
         // ΦqとΦとdFxを更新。
         constraints.forEach((constraint) => {
           constraint.setJacobianAndConstraints(phi_q, phi, strictMode);
@@ -1157,15 +1162,14 @@ export class KinematicSolver {
           const HssH = Hs.mmul(Hs.transpose().mul(-1 / sHs));
           const yy = y.transpose().mmul(y.mul(1 / sy));
           H.add(HssH).add(yy);
-          // throw new Error('除算エラー');
+        } else if (logOutput) {
+          // eslint-disable-next-line no-console
+          console.log('分母が0なのでヘッセ行列の更新ができなかった');
         }
 
-        // 終了処理
-        // const norm = Matrix.rowVector(dFx).norm('frobenius');
-        const norm = dq.norm('frobenius');
-        eq = norm < 1.0e-3;
-        // eslint-disable-next-line no-console
+        // 収束確認
         if (logOutput) {
+          // eslint-disable-next-line no-console
           console.log(`norm=${norm.toFixed(3)}`);
         }
         if (norm > minNorm * 10000 || Number.isNaN(norm)) {

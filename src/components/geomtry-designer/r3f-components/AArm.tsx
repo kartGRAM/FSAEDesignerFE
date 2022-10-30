@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react';
 import {Vector3, Plane, Matrix4, Matrix3, Group} from 'three';
 import {ThreeEvent, useFrame} from '@react-three/fiber';
@@ -77,7 +76,6 @@ const AArm = (props: {element: IAArm}) => {
     [arm, ...projections].map(() => React.createRef<Line2>())
   );
 
-  // const dLPrevRef = React.useRef<Vector3>(new Vector3());
   const initialPosition = trans(nodes[2], coMatrix);
   const rotationRef = React.useRef<Matrix3>(new Matrix3());
   React.useEffect(() => {
@@ -118,12 +116,11 @@ const AArm = (props: {element: IAArm}) => {
           scale={70}
           onDragStart={() => {
             store.dispatch(setOrbitControlsEnabled(false));
-            // dLPrevRef.current.set(0, 0, 0);
           }}
           onDragEnd={() => {
             store.dispatch(setOrbitControlsEnabled(true));
           }}
-          onDrag={(mL, mdL, mW, mdW) => {
+          onDrag={(mL) => {
             const solver = store.getState().uitgd.kinematicSolver;
             if (solver) {
               const coMatrixT = coMatrix.clone().transpose();

@@ -30,8 +30,6 @@ export class MovePointTo implements IObjectiveFunction {
 
   component: Component;
 
-  pointIdx: number;
-
   constructor(point: INamedVector3, target: Vector3, solver: KinematicSolver) {
     this.point = point;
     this.target = target;
@@ -39,7 +37,6 @@ export class MovePointTo implements IObjectiveFunction {
     if (!(point.parent.nodeID in solver.componentsFromNodeID))
       throw new Error('SolverにElementが含まれていない');
     const element = point.parent;
-    this.pointIdx = getIndexOfPoint(element, point);
     this.component = solver.componentsFromNodeID[element.nodeID];
   }
 

@@ -211,6 +211,7 @@ export interface IDataSpringDumper extends IDataElement {
 export interface IBody extends IElement {
   readonly fixedPoints: INamedVector3[];
   readonly points: INamedVector3[];
+  readonly centerOfPoints: INamedVector3;
 }
 
 export interface IDataBody extends IDataElement {

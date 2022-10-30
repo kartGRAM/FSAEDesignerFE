@@ -10,6 +10,7 @@ import store, {RootState} from '@store/store';
 import {IBody, trans, isBodyOfFrame, transQuaternion} from '@gd/IElements';
 import {getMatrix3} from '@gd/NamedValues';
 import {ConvexGeometry} from 'three/examples/jsm/geometries/ConvexGeometry';
+import {MovePointTo} from '@gd/Driver';
 import NodeSphere from './NodeSphere';
 import {PivotControls} from './PivotControls/PivotControls';
 
@@ -63,13 +64,13 @@ const Body = (props: {element: IBody}) => {
   });
 
   const nodes = element.getPoints();
-  const pts = nodes.map((p) => trans(p, coMatrix));
+  const pts = nodes.map((p) => p.value.applyMatrix3(coMatrix));
   const geometry = new ConvexGeometry(pts);
 
   const groupRef = React.useRef<THREE.Group>(null!);
   const materialRef = React.useRef<THREE.MeshBasicMaterial>(null!);
   const meshRef = React.useRef<THREE.Mesh>(null!);
-  const initialPosition = trans(nodes[0], coMatrix);
+  const initialPosition = trans(element.centerOfPoints, coMatrix);
   const rotationRef = React.useRef<THREE.Matrix3>(new THREE.Matrix3());
 
   return (
@@ -100,9 +101,55 @@ const Body = (props: {element: IBody}) => {
           scale={70}
           onDragStart={() => {
             dispatch(setOrbitControlsEnabled(false));
+            /* const solver = store.getState().uitgd.kinematicSolver;
+            if (solver) {
+              const func = new MovePointTo(
+                element.centerOfPoints,
+                element.centerOfPoints.value.add(new THREE.Vector3(0, 0, 50)),
+                solver
+              );
+              try {
+                solver.solveObjectiveFunction(func, {logOutput: true});
+              } catch (e) {
+                // eslint-disable-next-line no-console
+                console.log('収束エラー');
+              }
+            } */
           }}
           onDragEnd={() => {
             dispatch(setOrbitControlsEnabled(true));
+          }}
+          onDrag={(mL) => {
+            const solver = store.getState().uitgd.kinematicSolver;
+            if (solver) {
+              const coMatrixT = coMatrix.clone().transpose();
+              const target = new THREE.Vector3(
+                mL.elements[12],
+                mL.elements[13],
+                mL.elements[14]
+              ).applyMatrix3(coMatrixT);
+              const delta = target
+                .clone()
+                .sub(trans(element.points[0]))
+                .lengthSq();
+
+              rotationRef.current = new THREE.Matrix3().setFromMatrix4(mL);
+              if (delta < 1e-10) {
+                return;
+              }
+
+              const func = new MovePointTo(
+                element.centerOfPoints,
+                target,
+                solver
+              );
+              try {
+                solver.solveObjectiveFunction(func, {logOutput: false});
+              } catch (e) {
+                // eslint-disable-next-line no-console
+                console.log('収束エラー');
+              }
+            }
           }}
         />
       ) : null}
