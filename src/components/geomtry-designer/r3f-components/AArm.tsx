@@ -3,10 +3,7 @@ import {Vector3, Plane, Matrix4, Matrix3, Group} from 'three';
 import {ThreeEvent, useFrame} from '@react-three/fiber';
 import {Line} from '@react-three/drei';
 import {useSelector, useDispatch} from 'react-redux';
-import {
-  selectElement,
-  setOrbitControlsEnabled
-} from '@app/store/reducers/uiTempGeometryDesigner';
+import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
 import store, {RootState} from '@store/store';
 import {IAArm, transQuaternion, trans} from '@gd/IElements';
 import {getMatrix3} from '@gd/NamedValues';
@@ -112,14 +109,7 @@ const AArm = (props: {element: IAArm}) => {
           matrix={new Matrix4()
             .setFromMatrix3(rotationRef.current)
             .setPosition(initialPosition)}
-          depthTest={false}
           scale={70}
-          onDragStart={() => {
-            store.dispatch(setOrbitControlsEnabled(false));
-          }}
-          onDragEnd={() => {
-            store.dispatch(setOrbitControlsEnabled(true));
-          }}
           onDrag={(mL) => {
             const solver = store.getState().uitgd.kinematicSolver;
             if (solver) {

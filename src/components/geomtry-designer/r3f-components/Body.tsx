@@ -2,10 +2,7 @@ import * as React from 'react';
 import * as THREE from 'three';
 import {ThreeEvent, useFrame} from '@react-three/fiber';
 import {useSelector, useDispatch} from 'react-redux';
-import {
-  selectElement,
-  setOrbitControlsEnabled
-} from '@app/store/reducers/uiTempGeometryDesigner';
+import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
 import store, {RootState} from '@store/store';
 import {IBody, trans, isBodyOfFrame, transQuaternion} from '@gd/IElements';
 import {getMatrix3} from '@gd/NamedValues';
@@ -62,6 +59,9 @@ const Body = (props: {element: IBody}) => {
       transQuaternion(element.rotation.value, coMatrix)
     );
   });
+  React.useEffect(() => {
+    rotationRef.current = new THREE.Matrix3();
+  }, [isMoveTarget, isAssembled]);
 
   const nodes = element.getPoints();
   const pts = nodes.map((p) => p.value.applyMatrix3(coMatrix));
@@ -97,28 +97,7 @@ const Body = (props: {element: IBody}) => {
           matrix={new THREE.Matrix4()
             .setFromMatrix3(rotationRef.current)
             .setPosition(initialPosition)}
-          depthTest={false}
           scale={70}
-          onDragStart={() => {
-            dispatch(setOrbitControlsEnabled(false));
-            /* const solver = store.getState().uitgd.kinematicSolver;
-            if (solver) {
-              const func = new MovePointTo(
-                element.centerOfPoints,
-                element.centerOfPoints.value.add(new THREE.Vector3(0, 0, 50)),
-                solver
-              );
-              try {
-                solver.solveObjectiveFunction(func, {logOutput: true});
-              } catch (e) {
-                // eslint-disable-next-line no-console
-                console.log('収束エラー');
-              }
-            } */
-          }}
-          onDragEnd={() => {
-            dispatch(setOrbitControlsEnabled(true));
-          }}
           onDrag={(mL) => {
             const solver = store.getState().uitgd.kinematicSolver;
             if (solver) {

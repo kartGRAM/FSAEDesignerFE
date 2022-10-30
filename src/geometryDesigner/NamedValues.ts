@@ -26,7 +26,8 @@ import {
   INamedQuaternion,
   IPointOffsetTool,
   IDataPointOffsetTool,
-  FunctionVector3
+  FunctionVector3,
+  IMetaNamedVector3
   // isNamedVector3
 } from '@gd/INamedValues';
 import {GDState} from '@store/reducers/dataGeometryDesigner';
@@ -334,9 +335,9 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
 
   readonly z: NamedNumber;
 
-  mirrorTo: string | undefined;
-
   pointOffsetTools: IPointOffsetTool[] = [];
+
+  meta: IMetaNamedVector3;
 
   private _update: (newValue: FunctionVector3 | INamedVector3) => void;
 
@@ -414,19 +415,25 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
       parent: this
     });
     if (isNamedData(value)) {
-      this.mirrorTo = value.mirrorTo;
+      this.meta = {
+        mirrorTo: value.mirrorTo,
+        isFreeNode: value.isFreeNode
+      };
+
       if (value.pointOffsetTools) {
         this.pointOffsetTools = value.pointOffsetTools.map((tool) =>
           getPointOffsetTool(tool, this)
         );
       }
     } else if (isNamedValue(value)) {
-      this.mirrorTo = value.mirrorTo;
+      this.meta = {...value.meta};
       if (value.pointOffsetTools) {
         this.pointOffsetTools = value.pointOffsetTools.map((tool) =>
           tool.copy(this)
         );
       }
+    } else {
+      this.meta = {};
     }
   }
 
@@ -439,7 +446,8 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
       pointOffsetTools: this.pointOffsetTools?.map((tool) =>
         tool.getData(state)
       ),
-      mirrorTo: this.mirrorTo
+      mirrorTo: this.meta.mirrorTo,
+      isFreeNode: this.meta.isFreeNode
     };
   }
 }

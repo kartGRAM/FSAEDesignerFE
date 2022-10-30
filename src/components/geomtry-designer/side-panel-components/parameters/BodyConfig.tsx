@@ -129,6 +129,7 @@ export default function AArmConfig(params: Params) {
               </Typography>
               {element.points.map((point, i) => (
                 <Vector
+                  isNode
                   disabled={isMirror}
                   key={point.name}
                   vector={point}

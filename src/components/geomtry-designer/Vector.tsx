@@ -38,6 +38,8 @@ import {PointOffsetToolDialog} from '@gdComponents/dialog-components/PointOffset
 import Target from '@gdComponents/svgs/Target';
 import Move from '@gdComponents/svgs/Move';
 import Direction from '@gdComponents/svgs/Direction';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
 
 import {numberToRgb, toFixedNoZero} from '@app/utils/helpers';
 
@@ -48,6 +50,7 @@ export interface Props {
   disabled?: boolean;
   disableSceneButton?: boolean;
   directionMode?: boolean;
+  isNode?: boolean;
 }
 
 const Vector = React.memo((props: Props) => {
@@ -57,7 +60,8 @@ const Vector = React.memo((props: Props) => {
     onRemove,
     disabled,
     disableSceneButton,
-    directionMode
+    directionMode,
+    isNode
   } = props;
   const dispatch = useDispatch();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -173,7 +177,7 @@ const Vector = React.memo((props: Props) => {
       dispatch(updateAssembly(vector));
       setSelected('');
     },
-    [vector]
+    [vector, selected]
   );
 
   const handleNameDblClick = React.useCallback(() => {
@@ -248,7 +252,23 @@ const Vector = React.memo((props: Props) => {
             }}
           />
         )}
-
+        {isNode && !disabled ? (
+          <FormControlLabel
+            sx={{margin: 0, whiteSpace: 'nowrap'}}
+            control={
+              <Checkbox
+                checked={!!vector.meta.isFreeNode}
+                size="small"
+                onChange={(e) => {
+                  const {checked} = e.target;
+                  vector.meta.isFreeNode = checked;
+                  dispatch(updateAssembly(vector));
+                }}
+              />
+            }
+            label="free node"
+          />
+        ) : null}
         {removable && !disabled ? (
           <Tooltip title="Delete" sx={{flex: '1'}}>
             <IconButton

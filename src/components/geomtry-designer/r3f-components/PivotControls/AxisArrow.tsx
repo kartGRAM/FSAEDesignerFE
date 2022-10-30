@@ -5,6 +5,8 @@ import * as THREE from 'three';
 import {ThreeEvent, useThree} from '@react-three/fiber';
 import {Line, Html} from '@react-three/drei';
 import {context} from '@react-three/drei/core/pivotControls/context';
+import store from '@store/store';
+import {setOrbitControlsEnabled} from '@app/store/reducers/uiTempGeometryDesigner';
 
 const vec1 = new THREE.Vector3();
 const vec2 = new THREE.Vector3();
@@ -98,7 +100,10 @@ export const AxisArrow: React.FC<{
   const onPointerMove = React.useCallback(
     (e: ThreeEvent<PointerEvent>) => {
       e.stopPropagation();
-      if (!isHovered) setIsHovered(true);
+      if (!isHovered) {
+        store.dispatch(setOrbitControlsEnabled(false));
+        setIsHovered(true);
+      }
 
       if (clickInfo.current) {
         const {clickPoint, dir} = clickInfo.current;
@@ -147,6 +152,7 @@ export const AxisArrow: React.FC<{
   );
 
   const onPointerOut = React.useCallback((e: ThreeEvent<PointerEvent>) => {
+    store.dispatch(setOrbitControlsEnabled(true));
     e.stopPropagation();
     setIsHovered(false);
   }, []);

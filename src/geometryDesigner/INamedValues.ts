@@ -18,6 +18,7 @@ export interface INamedValue extends IBidirectionalNode {
   name: string;
   value: unknown;
   getData(state: GDState): unknown;
+  meta?: unknown;
   // update(newValue: unknown): this;
 }
 
@@ -78,12 +79,17 @@ export function isNamedNumber(value: any): value is INamedNumber {
 
 export interface IDataNumber extends IData<IDataFormula> {}
 
+export interface IMetaNamedVector3 {
+  mirrorTo?: string;
+  isFreeNode?: boolean;
+}
+
 export interface INamedVector3 extends INamedValue {
   readonly x: INamedNumber;
   readonly y: INamedNumber;
   readonly z: INamedNumber;
   value: Vector3;
-  mirrorTo?: string;
+  meta: IMetaNamedVector3;
   getData(state: GDState): IDataVector3;
   setValue(
     newValue:
@@ -113,6 +119,7 @@ export interface IDataVector3 extends INamedData {
   z: IDataNumber;
   pointOffsetTools?: IDataPointOffsetTool[];
   mirrorTo?: string;
+  isFreeNode?: boolean;
 }
 
 export interface INamedMatrix3 extends INamedValue {

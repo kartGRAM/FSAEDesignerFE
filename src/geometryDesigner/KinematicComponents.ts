@@ -409,14 +409,14 @@ export class BarAndSpheres implements Constraint {
     this.l2 = l * l;
   }
 
-  setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
+  setJacobianAndConstraints(phi_q: Matrix, phi: number[], strictMode: boolean) {
+    if (!strictMode && this.isSpringDumper) return;
     const cLhs = this.lhs.col;
     const {row, lhs, lLocalVec, lLocalSkew, l2} = this;
     const qLhs = lhs.quaternion;
     const ALhs = rotationMatrix(qLhs);
     const GLhs = decompositionMatrixG(qLhs);
     const sLhs = lLocalVec.clone().applyQuaternion(qLhs);
-
     if (!this.isFixed) {
       const {rhs, rLocalVec, rLocalSkew} = this;
       const cRhs = this.rhs.col;

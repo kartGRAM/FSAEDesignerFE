@@ -67,6 +67,7 @@ export default function AArmConfig(params: Params) {
           <Vector vector={element.fixedPoints[1]} disabled={isMirror} />
           {element.points.map((point, i) => (
             <Vector
+              isNode
               disabled={isMirror}
               key={point.name}
               vector={point}

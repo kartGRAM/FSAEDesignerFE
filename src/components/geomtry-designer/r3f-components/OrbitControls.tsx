@@ -51,6 +51,10 @@ export const OrbitControls = React.forwardRef<
     const viewDirectionTo = useSelector(
       (state: RootState) => state.uitgd.gdSceneState.viewDirection
     );
+
+    restProps.enabled = useSelector(
+      (state: RootState) => state.uitgd.gdSceneState.orbitControlsEnabled
+    );
     const invalidate = useThree((state) => state.invalidate);
     const defaultCamera = useThree((state) => state.camera);
     const gl = useThree((state) => state.gl);

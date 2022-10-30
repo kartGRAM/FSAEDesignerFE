@@ -768,7 +768,10 @@ export class Frame extends Assembly {
     if (!isDataElement(params)) {
       const {name, children, initialPosition, mass, centerOfGravity} = params;
       const namedPoints = children.reduce((prev: INamedVector3[], child) => {
-        prev = [...prev, ...child.getPoints()];
+        prev = [
+          ...prev,
+          ...child.getPoints().filter((p) => !p.meta.isFreeNode)
+        ];
         return prev;
       }, [] as INamedVector3[]);
       const points = namedPoints.map((p) => trans(p));
@@ -798,7 +801,10 @@ export class Frame extends Assembly {
         const namedPoints = this.children.reduce(
           (prev: INamedVector3[], child) => {
             if (child === body) return prev;
-            prev = [...prev, ...child.getPoints()];
+            prev = [
+              ...prev,
+              ...child.getPoints().filter((p) => !p.meta.isFreeNode)
+            ];
             return prev;
           },
           [] as INamedVector3[]
@@ -1840,7 +1846,7 @@ const mirrorVec = (
   inplace: boolean = false
 ): INamedVector3 => {
   const v = inplace ? vec : new NamedVector3({value: vec});
-  v.mirrorTo = vec.nodeID;
+  v.meta.mirrorTo = vec.nodeID;
 
   (v.y as NamedNumber).setValue(minus(v.y.getStringValue()));
   v.pointOffsetTools?.forEach((tool) => getMirrorPOT(tool));
@@ -1878,7 +1884,7 @@ const syncPointsMirror = (
   const listP = mirTo.reduce(
     (obj, x) =>
       Object.assign(obj, {
-        [x.mirrorTo ?? 'なぜかミラー設定されていない']: x
+        [x.meta.mirrorTo ?? 'なぜかミラー設定されていない']: x
       }),
     {} as {[name: string]: INamedVector3}
   );

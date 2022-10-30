@@ -36,9 +36,6 @@ export default function GDScene() {
   const bgColor = useSelector(
     (state: RootState) => state.uigd.present.backgroundColor
   );
-  const orbitControlsEnabled = useSelector(
-    (state: RootState) => state.uitgd.gdSceneState.orbitControlsEnabled
-  );
 
   useEffect(() => {
     const window = document.getElementById('gdAppBar');
@@ -87,7 +84,7 @@ export default function GDScene() {
         <axesHelper args={[50]} />
         <Provider store={store}>
           <CollectedAssembly />
-          <OrbitControls enabled={orbitControlsEnabled} />
+          <OrbitControls />
           <SelectedPoints />
           <Dolly />
         </Provider>
