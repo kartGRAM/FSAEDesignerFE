@@ -1081,7 +1081,6 @@ export class KinematicSolver {
       const postProcess = params?.postProcess ?? true;
       const strictMode = false;
       const logOutput = params?.logOutput ?? false;
-      const end = performance.now();
       const [root, components] = this.getGroupItBelongsTo(func.component);
       const constraints = root.unionFindTreeConstraints;
 
@@ -1168,10 +1167,6 @@ export class KinematicSolver {
         }
 
         // 収束確認
-        if (logOutput) {
-          // eslint-disable-next-line no-console
-          console.log(`norm=${norm.toFixed(3)}`);
-        }
         if (norm > minNorm * 10000 || Number.isNaN(norm)) {
           // eslint-disable-next-line no-console
           console.log('収束していない');
@@ -1190,6 +1185,7 @@ export class KinematicSolver {
       // this.solve({strictMode: false, postProcess: false, logOutput: true});
 
       if (logOutput) {
+        const end = performance.now();
         // eslint-disable-next-line no-console
         console.log(`solver converged...\ntime = ${(end - start).toFixed(1)}`);
       }

@@ -55,6 +55,32 @@ const AArm = (props: {element: IAArm}) => {
     groupRef.current.quaternion.copy(
       transQuaternion(element.rotation.value, coMatrix)
     );
+    if (dragRef.current) {
+      dragRef.current = false;
+      const solver = store.getState().uitgd.kinematicSolver;
+      if (solver && !solver.running) {
+        const delta = targetRef.current
+          .clone()
+          .sub(trans(element.points[0]))
+          .lengthSq();
+
+        if (delta < 1e-10) {
+          return;
+        }
+
+        const func = new MovePointTo(
+          element.centerOfPoints,
+          targetRef.current,
+          solver
+        );
+        try {
+          solver.solveObjectiveFunction(func, {logOutput: false});
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.log('収束エラー');
+        }
+      }
+    }
   });
 
   const nodes = element.getPoints();
@@ -75,6 +101,8 @@ const AArm = (props: {element: IAArm}) => {
 
   const initialPosition = trans(nodes[2], coMatrix);
   const rotationRef = React.useRef<Matrix3>(new Matrix3());
+  const targetRef = React.useRef<Vector3>(new Vector3());
+  const dragRef = React.useRef<boolean>(false);
   React.useEffect(() => {
     rotationRef.current = new Matrix3();
   }, [isMoveTarget, isAssembled]);
@@ -111,33 +139,14 @@ const AArm = (props: {element: IAArm}) => {
             .setPosition(initialPosition)}
           scale={70}
           onDrag={(mL) => {
-            const solver = store.getState().uitgd.kinematicSolver;
-            if (solver) {
-              const coMatrixT = coMatrix.clone().transpose();
-              const target = new Vector3(
-                mL.elements[12],
-                mL.elements[13],
-                mL.elements[14]
-              ).applyMatrix3(coMatrixT);
-              const delta = target
-                .clone()
-                .sub(trans(element.points[0]))
-                .lengthSq();
-
-              rotationRef.current = new Matrix3().setFromMatrix4(mL);
-              if (delta < 1e-10) {
-                return;
-              }
-
-              // .add(initialPosition);
-              const func = new MovePointTo(element.points[0], target, solver);
-              try {
-                solver.solveObjectiveFunction(func);
-              } catch (e) {
-                // eslint-disable-next-line no-console
-                console.log('収束エラー');
-              }
-            }
+            const coMatrixT = coMatrix.clone().transpose();
+            targetRef.current = new Vector3(
+              mL.elements[12],
+              mL.elements[13],
+              mL.elements[14]
+            ).applyMatrix3(coMatrixT);
+            dragRef.current = true;
+            rotationRef.current = new Matrix3().setFromMatrix4(mL);
           }}
         />
       ) : null}

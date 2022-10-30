@@ -58,6 +58,32 @@ const Body = (props: {element: IBody}) => {
     groupRef.current.quaternion.copy(
       transQuaternion(element.rotation.value, coMatrix)
     );
+    if (dragRef.current) {
+      dragRef.current = false;
+      const solver = store.getState().uitgd.kinematicSolver;
+      if (solver && !solver.running) {
+        const delta = targetRef.current
+          .clone()
+          .sub(trans(element.points[0]))
+          .lengthSq();
+
+        if (delta < 1e-10) {
+          return;
+        }
+
+        const func = new MovePointTo(
+          element.centerOfPoints,
+          targetRef.current,
+          solver
+        );
+        try {
+          solver.solveObjectiveFunction(func, {logOutput: false});
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.log('収束エラー');
+        }
+      }
+    }
   });
   React.useEffect(() => {
     rotationRef.current = new THREE.Matrix3();
@@ -72,6 +98,8 @@ const Body = (props: {element: IBody}) => {
   const meshRef = React.useRef<THREE.Mesh>(null!);
   const initialPosition = trans(element.centerOfPoints, coMatrix);
   const rotationRef = React.useRef<THREE.Matrix3>(new THREE.Matrix3());
+  const targetRef = React.useRef<THREE.Vector3>(new THREE.Vector3());
+  const dragRef = React.useRef<boolean>(false);
 
   return (
     <>
@@ -99,36 +127,14 @@ const Body = (props: {element: IBody}) => {
             .setPosition(initialPosition)}
           scale={70}
           onDrag={(mL) => {
-            const solver = store.getState().uitgd.kinematicSolver;
-            if (solver) {
-              const coMatrixT = coMatrix.clone().transpose();
-              const target = new THREE.Vector3(
-                mL.elements[12],
-                mL.elements[13],
-                mL.elements[14]
-              ).applyMatrix3(coMatrixT);
-              const delta = target
-                .clone()
-                .sub(trans(element.points[0]))
-                .lengthSq();
-
-              rotationRef.current = new THREE.Matrix3().setFromMatrix4(mL);
-              if (delta < 1e-10) {
-                return;
-              }
-
-              const func = new MovePointTo(
-                element.centerOfPoints,
-                target,
-                solver
-              );
-              try {
-                solver.solveObjectiveFunction(func, {logOutput: false});
-              } catch (e) {
-                // eslint-disable-next-line no-console
-                console.log('収束エラー');
-              }
-            }
+            const coMatrixT = coMatrix.clone().transpose();
+            targetRef.current = new THREE.Vector3(
+              mL.elements[12],
+              mL.elements[13],
+              mL.elements[14]
+            ).applyMatrix3(coMatrixT);
+            dragRef.current = true;
+            rotationRef.current = new THREE.Matrix3().setFromMatrix4(mL);
           }}
         />
       ) : null}
