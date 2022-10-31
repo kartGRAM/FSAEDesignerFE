@@ -5,6 +5,7 @@ import ConfirmDialog from '@gdComponents/dialog-components/ConfirmDialog';
 import {SaveAsDialog} from '@gdComponents/dialog-components/SaveAsDialog';
 import {CopyFromExistingPointsDialog} from '@gdComponents/dialog-components/CopyFromExistingPointsDialog';
 import {MovePointDialog} from '@gdComponents/dialog-components/MovePointDialog';
+import {MoveComponentDialog} from '@gdComponents/dialog-components/MoveComponentDialog';
 
 import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
@@ -32,6 +33,7 @@ export default function DialogRoot() {
       <ConfirmDialog />
       <CopyFromExistingPointsDialog />
       <MovePointDialog />
+      <MoveComponentDialog />
     </>
   );
 }
