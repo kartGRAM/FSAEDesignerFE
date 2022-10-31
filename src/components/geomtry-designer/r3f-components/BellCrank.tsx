@@ -5,7 +5,7 @@ import {Line} from '@react-three/drei';
 import {useSelector, useDispatch} from 'react-redux';
 import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
 import store, {RootState} from '@store/store';
-import {IAArm, transQuaternion, trans} from '@gd/IElements';
+import {IBellCrank, transQuaternion, trans} from '@gd/IElements';
 import {getMatrix3} from '@gd/NamedValues';
 import {Line2} from 'three-stdlib';
 import {MovePointTo} from '@gd/Driver';
@@ -13,7 +13,7 @@ import {setMovingMode} from '@store/reducers/uiTempGeometryDesigner';
 import NodeSphere from './NodeSphere';
 import {PivotControls} from './PivotControls/PivotControls';
 
-const AArm = (props: {element: IAArm}) => {
+const BellCrank = (props: {element: IBellCrank}) => {
   const {element} = props;
 
   const coMatrix = getMatrix3(
@@ -41,7 +41,7 @@ const AArm = (props: {element: IAArm}) => {
   useFrame(() => {
     const selectedPath = store.getState().uitgd.selectedElementAbsPath;
     const isSelected = !!selectedPath && element.absPath.includes(selectedPath);
-    let color: number | string = 0xfffdd0;
+    let color: number | string = 0xd3bfd9;
     if (isSelected) {
       color = 0xffa500;
     }
@@ -70,7 +70,7 @@ const AArm = (props: {element: IAArm}) => {
         }
 
         const func = new MovePointTo(
-          element.points[0],
+          element.centerOfPoints,
           targetRef.current,
           solver
         );
@@ -86,9 +86,15 @@ const AArm = (props: {element: IAArm}) => {
 
   const nodes = element.getPoints();
   let pts = nodes.map((p) => p.value.applyMatrix3(coMatrix));
-  const arm: [Vector3, Vector3, Vector3] = [pts[0], pts[2], pts[1]];
-  pts = pts.filter((v, i) => i > 2);
-  const plane = new Plane().setFromCoplanarPoints(...arm);
+  const bellCrankPlane: [Vector3, Vector3, Vector3] = [
+    pts[2],
+    pts[0].clone().add(pts[1]).multiplyScalar(0.5),
+    pts[3]
+  ];
+  const bellCrank = [...bellCrankPlane, pts[2]];
+  const fp = [pts[0], pts[1]];
+  pts = pts.filter((v, i) => i > 3);
+  const plane = new Plane().setFromCoplanarPoints(...bellCrankPlane);
   const projections = pts.map((p) => {
     const v = new Vector3();
     plane.projectPoint(p, v);
@@ -97,10 +103,10 @@ const AArm = (props: {element: IAArm}) => {
 
   const groupRef = React.useRef<Group>(null!);
   const meshRefs = React.useRef(
-    [arm, ...projections].map(() => React.createRef<Line2>())
+    [bellCrank, fp, ...projections].map(() => React.createRef<Line2>())
   );
 
-  const initialPosition = trans(nodes[2], coMatrix);
+  const initialPosition = trans(element.centerOfPoints, coMatrix);
   const rotationRef = React.useRef<Matrix3>(new Matrix3());
   const targetRef = React.useRef<Vector3>(new Vector3());
   const dragRef = React.useRef<boolean>(false);
@@ -113,19 +119,27 @@ const AArm = (props: {element: IAArm}) => {
     <>
       <group onDoubleClick={handleOnDoubleClick} ref={groupRef}>
         <Line
-          points={arm}
+          points={bellCrank}
           color="pink"
           lineWidth={4}
           ref={meshRefs.current[0]}
-          key="arm"
+          key="bellcrank"
+        />
+        <Line
+          points={fp}
+          color="pink"
+          lineWidth={4}
+          ref={meshRefs.current[1]}
+          key="axis"
         />
         {projections.map((line, i) => (
           <Line
             points={line}
             color="pink"
             lineWidth={4}
-            ref={meshRefs.current[i + 1]}
-            key={(i + 1).toString()}
+            ref={meshRefs.current[i + 2]}
+            // eslint-disable-next-line react/no-array-index-key
+            key={`attachement${i}`}
           />
         ))}
         {nodes.map((node) => (
@@ -155,4 +169,4 @@ const AArm = (props: {element: IAArm}) => {
     </>
   );
 };
-export default AArm;
+export default BellCrank;

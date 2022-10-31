@@ -11,7 +11,9 @@ export default function Move() {
   const disabled = useSelector((state: RootState) => {
     return (
       state.uitgd.gdSceneState.movingMode ||
-      state.uitgd.selectedElementAbsPath === '' ||
+      !state.uitgd.collectedAssembly?.children.find(
+        (child) => child.absPath === state.uitgd.selectedElementAbsPath
+      ) ||
       !state.uitgd.gdSceneState.assembled
     );
   });
