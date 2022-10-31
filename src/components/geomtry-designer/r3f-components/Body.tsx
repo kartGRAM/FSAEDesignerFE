@@ -8,6 +8,7 @@ import {IBody, trans, isBodyOfFrame, transQuaternion} from '@gd/IElements';
 import {getMatrix3} from '@gd/NamedValues';
 import {ConvexGeometry} from 'three/examples/jsm/geometries/ConvexGeometry';
 import {MovePointTo} from '@gd/Driver';
+import {setMovingMode} from '@store/reducers/uiTempGeometryDesigner';
 import NodeSphere from './NodeSphere';
 import {PivotControls} from './PivotControls/PivotControls';
 
@@ -26,20 +27,17 @@ const Body = (props: {element: IBody}) => {
     },
     [element.absPath]
   );
-
-  const isMoveTarget = useSelector(
-    (state: RootState) => state.uitgd.selectedElementAbsPath === element.absPath
-  );
-
-  const isAssembled = useSelector(
-    (state: RootState) => state.uitgd.gdSceneState.assembled
-  );
-
-  const assemblyMode = useSelector(
-    (state: RootState) => state.uigd.present.gdSceneState.assemblyMode
-  );
-
   const isFrame = isBodyOfFrame(element);
+
+  const moveThisComponent = useSelector((state: RootState) => {
+    return (
+      (!isFrame ||
+        state.uigd.present.gdSceneState.assemblyMode !== 'FixedFrame') &&
+      state.uitgd.selectedElementAbsPath === element.absPath &&
+      state.uitgd.gdSceneState.assembled &&
+      state.uitgd.gdSceneState.movingMode
+    );
+  });
 
   useFrame(() => {
     const selectedPath = store.getState().uitgd.selectedElementAbsPath;
@@ -87,7 +85,8 @@ const Body = (props: {element: IBody}) => {
   });
   React.useEffect(() => {
     rotationRef.current = new THREE.Matrix3();
-  }, [isMoveTarget, isAssembled]);
+    if (!moveThisComponent) dispatch(setMovingMode(false));
+  }, [moveThisComponent]);
 
   const nodes = element.getPoints();
   const pts = nodes.map((p) => p.value.applyMatrix3(coMatrix));
@@ -116,9 +115,7 @@ const Body = (props: {element: IBody}) => {
           <NodeSphere node={node} key={node.nodeID} />
         ))}
       </group>
-      {(!isFrame || assemblyMode !== 'FixedFrame') &&
-      isMoveTarget &&
-      isAssembled ? (
+      {moveThisComponent ? (
         <PivotControls
           displayValues={false}
           disableSliders

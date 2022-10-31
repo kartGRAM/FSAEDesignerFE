@@ -11,7 +11,8 @@ import {
   selectElement,
   setSelectedPoint,
   setViewDirection,
-  setCopyFromExistingPointsDialogProps
+  setCopyFromExistingPointsDialogProps,
+  setMovingMode
 } from '@store/reducers/uiTempGeometryDesigner';
 import {getCameraQuaternion} from '@utils/three';
 
@@ -55,6 +56,11 @@ export default function shortCutKeys(e: KeyboardEvent) {
       );
       return;
     }
+    if (store.getState().uitgd.gdSceneState.movingMode) {
+      store.dispatch(setMovingMode(false));
+      return;
+    }
+
     store.dispatch(selectElement({absPath: ''}));
     store.dispatch(setSelectedPoint(null));
   }

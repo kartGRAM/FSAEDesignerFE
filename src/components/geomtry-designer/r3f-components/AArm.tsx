@@ -9,6 +9,7 @@ import {IAArm, transQuaternion, trans} from '@gd/IElements';
 import {getMatrix3} from '@gd/NamedValues';
 import {Line2} from 'three-stdlib';
 import {MovePointTo} from '@gd/Driver';
+import {setMovingMode} from '@store/reducers/uiTempGeometryDesigner';
 import NodeSphere from './NodeSphere';
 import {PivotControls} from './PivotControls/PivotControls';
 
@@ -29,13 +30,13 @@ const AArm = (props: {element: IAArm}) => {
     [element.absPath]
   );
 
-  const isMoveTarget = useSelector(
-    (state: RootState) => state.uitgd.selectedElementAbsPath === element.absPath
-  );
-
-  const isAssembled = useSelector(
-    (state: RootState) => state.uitgd.gdSceneState.assembled
-  );
+  const moveThisComponent = useSelector((state: RootState) => {
+    return (
+      state.uitgd.selectedElementAbsPath === element.absPath &&
+      state.uitgd.gdSceneState.assembled &&
+      state.uitgd.gdSceneState.movingMode
+    );
+  });
 
   useFrame(() => {
     const selectedPath = store.getState().uitgd.selectedElementAbsPath;
@@ -105,7 +106,8 @@ const AArm = (props: {element: IAArm}) => {
   const dragRef = React.useRef<boolean>(false);
   React.useEffect(() => {
     rotationRef.current = new Matrix3();
-  }, [isMoveTarget, isAssembled]);
+    if (!moveThisComponent) dispatch(setMovingMode(false));
+  }, [moveThisComponent]);
 
   return (
     <>
@@ -130,7 +132,7 @@ const AArm = (props: {element: IAArm}) => {
           <NodeSphere node={node} key={node.nodeID} />
         ))}
       </group>
-      {isMoveTarget && isAssembled ? (
+      {moveThisComponent ? (
         <PivotControls
           displayValues={false}
           disableSliders

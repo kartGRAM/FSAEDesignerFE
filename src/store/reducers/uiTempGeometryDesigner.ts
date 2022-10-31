@@ -63,6 +63,7 @@ export interface INamedVector3WithColor {
 }
 
 export interface GDSceneState {
+  movingMode: boolean;
   selectedPoint: INamedVector3WithColor[] | null;
   viewDirection: Quaternion | undefined;
   orbitControlsEnabled: boolean;
@@ -89,6 +90,7 @@ const initialState: GDState = {
   selectedElementAbsPath: '',
   sidePanelState: {selectedTab: 'elements'},
   gdSceneState: {
+    movingMode: false,
     orbitControlsEnabled: true,
     selectedPoint: null,
     viewDirection: undefined,
@@ -267,6 +269,10 @@ export const uitGeometryDesignerSlice = createSlice({
     },
     setAssembled: (state: GDState, action: PayloadAction<boolean>) => {
       state.gdSceneState.assembled = action.payload;
+      state.gdSceneState.movingMode = false;
+    },
+    setMovingMode: (state: GDState, action: PayloadAction<boolean>) => {
+      state.gdSceneState.movingMode = action.payload;
     },
     setOrbitControlsEnabled: (
       state: GDState,
@@ -311,7 +317,8 @@ export const {
   setAssembled,
   setOrbitControlsEnabled,
   setViewDirection,
-  setGDSceneGetThree
+  setGDSceneGetThree,
+  setMovingMode
   // setPointOffsetToolDialogProps
 } = uitGeometryDesignerSlice.actions;
 
