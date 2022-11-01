@@ -5,6 +5,7 @@ import Fit from './Fit';
 import ProjectionMode from './ProjectionMode';
 import Assemble from './Assemble';
 import Move from './Move';
+import ResetPosition from './ResetPosition';
 import ViewDirections from './view-directions/ViewDirections';
 import ComponentVisualizationMode from './ComponentVisualizationMode';
 
@@ -18,6 +19,7 @@ export default function GDSceneToolBar() {
         background: alpha('#FFFFFF', 0.0)
       }}
     >
+      <ResetPosition />
       <Move />
       <Assemble />
       <ProjectionMode />

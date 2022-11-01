@@ -69,6 +69,7 @@ export interface GDSceneState {
   orbitControlsEnabled: boolean;
   toggle: boolean;
   assembled: boolean;
+  resetPositions: boolean;
   get: GetState<RootState> | null;
 }
 
@@ -94,6 +95,7 @@ const initialState: GDState = {
     orbitControlsEnabled: true,
     selectedPoint: null,
     viewDirection: undefined,
+    resetPositions: false,
     toggle: true, // その打ち消す
     assembled: false,
     get: null
@@ -274,6 +276,9 @@ export const uitGeometryDesignerSlice = createSlice({
     setMovingMode: (state: GDState, action: PayloadAction<boolean>) => {
       state.gdSceneState.movingMode = action.payload;
     },
+    resetPositions: (state: GDState) => {
+      state.gdSceneState.resetPositions = !state.gdSceneState.resetPositions;
+    },
     setOrbitControlsEnabled: (
       state: GDState,
       action: PayloadAction<boolean>
@@ -315,6 +320,7 @@ export const {
   setDraggingElementAbsPath,
   setVisibility,
   setAssembled,
+  resetPositions,
   setOrbitControlsEnabled,
   setViewDirection,
   setGDSceneGetThree,

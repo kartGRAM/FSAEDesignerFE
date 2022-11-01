@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Vector3, Plane, Matrix4, Matrix3, Group} from 'three';
+import {Vector3, Plane, Matrix4, Group} from 'three';
 import {ThreeEvent, useFrame} from '@react-three/fiber';
 import {Line} from '@react-three/drei';
 import {useSelector, useDispatch} from 'react-redux';
@@ -39,7 +39,8 @@ const BellCrank = (props: {element: IBellCrank}) => {
   });
 
   useFrame(() => {
-    const selectedPath = store.getState().uitgd.selectedElementAbsPath;
+    const state = store.getState();
+    const selectedPath = state.uitgd.selectedElementAbsPath;
     const isSelected = !!selectedPath && element.absPath.includes(selectedPath);
     let color: number | string = 0xd3bfd9;
     if (isSelected) {
@@ -82,6 +83,13 @@ const BellCrank = (props: {element: IBellCrank}) => {
         }
       }
     }
+    if (
+      moveThisComponent &&
+      resetStateRef.current !== state.uitgd.gdSceneState.resetPositions
+    ) {
+      pivotRef.current.matrix = new Matrix4().setPosition(initialPosition);
+      resetStateRef.current = !resetStateRef.current;
+    }
   });
 
   const nodes = element.getPoints();
@@ -107,11 +115,13 @@ const BellCrank = (props: {element: IBellCrank}) => {
   );
 
   const initialPosition = trans(element.centerOfPoints, coMatrix);
-  const rotationRef = React.useRef<Matrix3>(new Matrix3());
   const targetRef = React.useRef<Vector3>(new Vector3());
   const dragRef = React.useRef<boolean>(false);
+  const pivotRef = React.useRef<Group>(null!);
+  const resetStateRef = React.useRef<boolean>(
+    store.getState().uitgd.gdSceneState.resetPositions
+  );
   React.useEffect(() => {
-    rotationRef.current = new Matrix3();
     if (!moveThisComponent) dispatch(setMovingMode(false));
   }, [moveThisComponent]);
 
@@ -148,11 +158,10 @@ const BellCrank = (props: {element: IBellCrank}) => {
       </group>
       {moveThisComponent ? (
         <PivotControls
+          ref={pivotRef}
           displayValues={false}
           disableSliders
-          matrix={new Matrix4()
-            .setFromMatrix3(rotationRef.current)
-            .setPosition(initialPosition)}
+          matrix={new Matrix4().setPosition(initialPosition)}
           scale={70}
           onDrag={(mL) => {
             const coMatrixT = coMatrix.clone().transpose();
@@ -162,7 +171,6 @@ const BellCrank = (props: {element: IBellCrank}) => {
               mL.elements[14]
             ).applyMatrix3(coMatrixT);
             dragRef.current = true;
-            rotationRef.current = new Matrix3().setFromMatrix4(mL);
           }}
         />
       ) : null}

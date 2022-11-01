@@ -10,22 +10,23 @@ import {RootState} from '@store/store';
 export default function Move() {
   const disabled = useSelector((state: RootState) => {
     return (
-      state.uitgd.gdSceneState.movingMode ||
       !state.uitgd.collectedAssembly?.children.find(
         (child) => child.absPath === state.uitgd.selectedElementAbsPath
-      ) ||
-      !state.uitgd.gdSceneState.assembled
+      ) || !state.uitgd.gdSceneState.assembled
     );
   });
+  const moving = useSelector(
+    (state: RootState) => state.uitgd.gdSceneState.movingMode
+  );
   const dispatch = useDispatch();
 
   const handleOnClick = () => {
-    dispatch(setMovingMode(true));
+    dispatch(setMovingMode(!moving));
   };
 
   return (
     <Tooltip
-      title="move selected component"
+      title="Move Selected Components"
       componentsProps={{
         popper: {
           sx: {
@@ -39,7 +40,7 @@ export default function Move() {
         onClick={handleOnClick}
         disabled={disabled}
       >
-        <SvgIcon sx={{color: disabled ? '#555555' : '#cccccc'}}>
+        <SvgIcon sx={{color: moving || disabled ? '#555555' : '#cccccc'}}>
           <svg
             version="1.1"
             x="0px"

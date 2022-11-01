@@ -4,7 +4,8 @@ import store, {RootState} from '@store/store';
 import {
   setAssembly,
   setCollectedAssembly,
-  setKinematicSolver
+  setKinematicSolver,
+  setAssembled
 } from '@store/reducers/uiTempGeometryDesigner';
 // import {getKinematicConstrainedElements} from '@gd/KinematicFunctions';
 import {KinematicSolver} from '@gd/KinematicComponents';
@@ -50,6 +51,7 @@ export default function AssemblyCreactor() {
         } catch (e) {
           // eslint-disable-next-line no-console
           console.log(e);
+          dispatch(setAssembled(false));
         }
       }
       return;

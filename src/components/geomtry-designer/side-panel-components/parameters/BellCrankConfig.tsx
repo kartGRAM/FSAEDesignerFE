@@ -130,7 +130,7 @@ export default function AArmConfig(params: Params) {
           <Typography>Dynamic Parameters</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Typography>TBD</Typography>
+          <Typography>WIP</Typography>
         </AccordionDetails>
       </Accordion>
       <Accordion>

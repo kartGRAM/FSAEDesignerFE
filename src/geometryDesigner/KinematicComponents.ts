@@ -650,7 +650,6 @@ export class Component {
   constructor(element: IElement) {
     this.name = element.name.value;
     this.element = element;
-    this.reset();
     this._position = element.position.value;
     this._quaternion = element.rotation.value;
     this.localVectors = element.getPoints().map((p) => p.value);
@@ -664,6 +663,22 @@ export class Component {
     this.localVectors = element.getPoints().map((p) => p.value);
     this._isFixed = isFixedElement(element); // fixedElementになった場合、ソルバに評価されない
   }
+
+  _initialPosition: Vector3 = new Vector3();
+
+  _initialQuaternion: Quaternion = new Quaternion();
+
+  saveInitialQ() {
+    this._initialPosition = this.position.clone();
+    this._initialQuaternion = this.quaternion.clone();
+  }
+
+  restoreInitialQ() {
+    if (!this.isRelativeFixed) {
+      this.position = this._initialPosition.clone();
+      this.quaternion = this._initialQuaternion.clone();
+    }
+  }
 }
 
 export class KinematicSolver {
@@ -676,6 +691,8 @@ export class KinematicSolver {
   restorers: Restorer[] = [];
 
   running: boolean = false;
+
+  firstSolved = false;
 
   constructor(assembly: IAssembly) {
     this.assembly = assembly;
@@ -1044,6 +1061,11 @@ export class KinematicSolver {
             minNorm = norm;
           }
         }
+        if (i >= maxCnt) {
+          // eslint-disable-next-line no-console
+          console.log('maxCntに到達');
+          throw new Error('ニュートンラプソン法収束エラー');
+        }
       });
 
       const end = performance.now();
@@ -1051,6 +1073,12 @@ export class KinematicSolver {
         // eslint-disable-next-line no-console
         console.log(`solver converged...\ntime = ${(end - start).toFixed(1)}`);
       }
+      if (!this.firstSolved) {
+        this.components.forEach((components) => {
+          components.forEach((component) => component.saveInitialQ());
+        });
+      }
+      this.firstSolved = true;
 
       if (postProcess) {
         this.postProcess();
@@ -1200,6 +1228,21 @@ export class KinematicSolver {
       throw e;
     }
     this.running = false;
+  }
+
+  restoreInitialQ() {
+    try {
+      if (!this.firstSolved) {
+        this.solve();
+        return;
+      }
+      this.components.forEach((components) => {
+        components.forEach((component) => component.restoreInitialQ());
+      });
+      this.postProcess();
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   // ポストプロセス： 要素への位置の反映と、Restorerの適用

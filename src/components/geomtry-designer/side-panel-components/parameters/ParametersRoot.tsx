@@ -8,11 +8,13 @@ import {
   isBellCrank,
   isBody,
   isTire,
+  isSpringDumper,
   isAssembly
 } from '@gd/IElements';
 import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
 import AArmConfig from './AArmConfig';
 import BarConfig from './BarConfig';
+import SpringDumperConfig from './SpringDumperConfig';
 import BellCrankConfig from './BellCrankConfig';
 import BodyConfig from './BodyConfig';
 import TireConfig from './TireConfig';
@@ -38,6 +40,8 @@ export default function ParametersRoot() {
     component = <AArmConfig element={element} key={element.absPath} />;
   } else if (element && isBar(element)) {
     component = <BarConfig element={element} key={element.absPath} />;
+  } else if (element && isSpringDumper(element)) {
+    component = <SpringDumperConfig element={element} key={element.absPath} />;
   } else if (element && isBellCrank(element)) {
     component = <BellCrankConfig element={element} key={element.absPath} />;
   } else if (element && isBody(element)) {

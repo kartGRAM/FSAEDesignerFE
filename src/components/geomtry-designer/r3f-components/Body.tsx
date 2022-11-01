@@ -40,7 +40,8 @@ const Body = (props: {element: IBody}) => {
   });
 
   useFrame(() => {
-    const selectedPath = store.getState().uitgd.selectedElementAbsPath;
+    const state = store.getState();
+    const selectedPath = state.uitgd.selectedElementAbsPath;
     const isSelected = !!selectedPath && element.absPath.includes(selectedPath);
     let color = 0x00ffff;
     if (isSelected) {
@@ -82,9 +83,17 @@ const Body = (props: {element: IBody}) => {
         }
       }
     }
+    if (
+      moveThisComponent &&
+      resetStateRef.current !== state.uitgd.gdSceneState.resetPositions
+    ) {
+      pivotRef.current.matrix = new THREE.Matrix4().setPosition(
+        initialPosition
+      );
+      resetStateRef.current = !resetStateRef.current;
+    }
   });
   React.useEffect(() => {
-    rotationRef.current = new THREE.Matrix3();
     if (!moveThisComponent) dispatch(setMovingMode(false));
   }, [moveThisComponent]);
 
@@ -96,9 +105,12 @@ const Body = (props: {element: IBody}) => {
   const materialRef = React.useRef<THREE.MeshBasicMaterial>(null!);
   const meshRef = React.useRef<THREE.Mesh>(null!);
   const initialPosition = trans(element.centerOfPoints, coMatrix);
-  const rotationRef = React.useRef<THREE.Matrix3>(new THREE.Matrix3());
   const targetRef = React.useRef<THREE.Vector3>(new THREE.Vector3());
   const dragRef = React.useRef<boolean>(false);
+  const pivotRef = React.useRef<THREE.Group>(null!);
+  const resetStateRef = React.useRef<boolean>(
+    store.getState().uitgd.gdSceneState.resetPositions
+  );
 
   return (
     <>
@@ -117,11 +129,10 @@ const Body = (props: {element: IBody}) => {
       </group>
       {moveThisComponent ? (
         <PivotControls
+          ref={pivotRef}
           displayValues={false}
           disableSliders
-          matrix={new THREE.Matrix4()
-            .setFromMatrix3(rotationRef.current)
-            .setPosition(initialPosition)}
+          matrix={new THREE.Matrix4().setPosition(initialPosition)}
           scale={70}
           onDrag={(mL) => {
             const coMatrixT = coMatrix.clone().transpose();
@@ -131,7 +142,6 @@ const Body = (props: {element: IBody}) => {
               mL.elements[14]
             ).applyMatrix3(coMatrixT);
             dragRef.current = true;
-            rotationRef.current = new THREE.Matrix3().setFromMatrix4(mL);
           }}
         />
       ) : null}

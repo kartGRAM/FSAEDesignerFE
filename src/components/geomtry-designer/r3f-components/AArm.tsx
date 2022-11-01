@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Vector3, Plane, Matrix4, Matrix3, Group} from 'three';
+import {Vector3, Plane, Matrix4, Group} from 'three';
 import {ThreeEvent, useFrame} from '@react-three/fiber';
 import {Line} from '@react-three/drei';
 import {useSelector, useDispatch} from 'react-redux';
@@ -30,6 +30,8 @@ const AArm = (props: {element: IAArm}) => {
     [element.absPath]
   );
 
+  useSelector((state: RootState) => state.uitgd.gdSceneState.resetPositions);
+
   const moveThisComponent = useSelector((state: RootState) => {
     return (
       state.uitgd.selectedElementAbsPath === element.absPath &&
@@ -39,7 +41,8 @@ const AArm = (props: {element: IAArm}) => {
   });
 
   useFrame(() => {
-    const selectedPath = store.getState().uitgd.selectedElementAbsPath;
+    const state = store.getState();
+    const selectedPath = state.uitgd.selectedElementAbsPath;
     const isSelected = !!selectedPath && element.absPath.includes(selectedPath);
     let color: number | string = 0xfffdd0;
     if (isSelected) {
@@ -82,6 +85,13 @@ const AArm = (props: {element: IAArm}) => {
         }
       }
     }
+    if (
+      moveThisComponent &&
+      resetStateRef.current !== state.uitgd.gdSceneState.resetPositions
+    ) {
+      pivotRef.current.matrix = new Matrix4().setPosition(initialPosition);
+      resetStateRef.current = !resetStateRef.current;
+    }
   });
 
   const nodes = element.getPoints();
@@ -96,16 +106,18 @@ const AArm = (props: {element: IAArm}) => {
   });
 
   const groupRef = React.useRef<Group>(null!);
+  const pivotRef = React.useRef<Group>(null!);
+  const resetStateRef = React.useRef<boolean>(
+    store.getState().uitgd.gdSceneState.resetPositions
+  );
   const meshRefs = React.useRef(
     [arm, ...projections].map(() => React.createRef<Line2>())
   );
 
   const initialPosition = trans(nodes[2], coMatrix);
-  const rotationRef = React.useRef<Matrix3>(new Matrix3());
   const targetRef = React.useRef<Vector3>(new Vector3());
   const dragRef = React.useRef<boolean>(false);
   React.useEffect(() => {
-    rotationRef.current = new Matrix3();
     if (!moveThisComponent) dispatch(setMovingMode(false));
   }, [moveThisComponent]);
 
@@ -134,11 +146,10 @@ const AArm = (props: {element: IAArm}) => {
       </group>
       {moveThisComponent ? (
         <PivotControls
+          ref={pivotRef}
           displayValues={false}
           disableSliders
-          matrix={new Matrix4()
-            .setFromMatrix3(rotationRef.current)
-            .setPosition(initialPosition)}
+          matrix={new Matrix4().setPosition(initialPosition)}
           scale={70}
           onDrag={(mL) => {
             const coMatrixT = coMatrix.clone().transpose();
@@ -148,7 +159,6 @@ const AArm = (props: {element: IAArm}) => {
               mL.elements[14]
             ).applyMatrix3(coMatrixT);
             dragRef.current = true;
-            rotationRef.current = new Matrix3().setFromMatrix4(mL);
           }}
         />
       ) : null}
