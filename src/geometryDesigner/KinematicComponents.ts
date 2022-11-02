@@ -53,15 +53,19 @@ const Q3 = 6;
 export interface Constraint {
   readonly lhs: Component;
   readonly rhs: Component;
+  readonly isInequalityConstraint: boolean;
   row: number;
-  active(strictMode: boolean): boolean;
-  constraints(strictMode: boolean): number;
+  active(onAssemble: boolean): boolean;
+  constraints(onAssemble: boolean): number;
   readonly name: string;
   setJacobianAndConstraints(
     phi_q: Matrix,
     phi: number[],
-    strictMode: boolean
+    onAssemble: boolean
   ): void;
+
+  setJacobianAndConstraintsInequal(phi_q: Matrix, phi: number[]): void;
+  checkInequalityConstraint(): boolean;
 }
 
 export class Sphere implements Constraint {
@@ -73,6 +77,8 @@ export class Sphere implements Constraint {
   active() {
     return true;
   }
+
+  readonly isInequalityConstraint = false;
 
   row: number = -1;
 
@@ -172,6 +178,12 @@ export class Sphere implements Constraint {
       phi_q.setSubMatrix(ALhs.mmul(lLocalSkew).mmul(GLhs), row + X, cLhs + Q0);
     }
   }
+
+  setJacobianAndConstraintsInequal() {}
+
+  checkInequalityConstraint() {
+    return false;
+  }
 }
 
 export class Hinge implements Constraint {
@@ -183,6 +195,8 @@ export class Hinge implements Constraint {
   active() {
     return true;
   }
+
+  readonly isInequalityConstraint = false;
 
   row: number = -1;
 
@@ -335,18 +349,28 @@ export class Hinge implements Constraint {
       phi_q.setSubMatrix(dRhs, row + 3 + r, cRhs + Q0);
     }
   }
+
+  setJacobianAndConstraintsInequal() {}
+
+  checkInequalityConstraint() {
+    return false;
+  }
 }
 
 export class BarAndSpheres implements Constraint {
   // 自由度を1減らす
-  constraints(strictMode: boolean) {
-    if (!strictMode && this.isSpringDumper) return 0;
+  constraints(onAssemble: boolean) {
+    if (!onAssemble && this.isSpringDumper) return 0;
     return 1;
   }
 
-  active(strictMode: boolean) {
-    if (!strictMode && this.isSpringDumper) return false;
+  active(onAssemble: boolean) {
+    if (!onAssemble && this.isSpringDumper) return false;
     return true;
+  }
+
+  get isInequalityConstraint() {
+    return this.isSpringDumper;
   }
 
   row: number = -1;
@@ -373,6 +397,10 @@ export class BarAndSpheres implements Constraint {
 
   isSpringDumper: boolean;
 
+  dlMin: number = Number.MIN_SAFE_INTEGER;
+
+  dlMax: number = Number.MAX_SAFE_INTEGER;
+
   constructor(
     name: string,
     clhs: Component,
@@ -380,10 +408,14 @@ export class BarAndSpheres implements Constraint {
     ilhs: number,
     irhs: number,
     l: number,
-    isSpringDumper: boolean
+    isSpringDumper: boolean,
+    dlMin?: number,
+    dlMax?: number
   ) {
     this.name = name;
     this.isSpringDumper = isSpringDumper;
+    if (dlMin) this.dlMin = dlMin;
+    if (dlMax) this.dlMax = dlMax;
     if (clhs.isFixed) {
       if (crhs.isFixed) throw new Error('拘束式の両端が固定されている');
       // 固定側はrhsにする
@@ -409,10 +441,55 @@ export class BarAndSpheres implements Constraint {
     this.l2 = l * l;
   }
 
-  setJacobianAndConstraints(phi_q: Matrix, phi: number[], strictMode: boolean) {
-    if (!strictMode && this.isSpringDumper) return;
+  setJacobianAndConstraints(phi_q: Matrix, phi: number[], onAssemble: boolean) {
+    if (!onAssemble && this.isSpringDumper) return;
+    this.setJacobianAndConstraintsImpl(this.l2, phi_q, phi);
+  }
+
+  setJacobianAndConstraintsInequal(phi_q: Matrix, phi: number[]) {
+    let d: number = 0;
+    const {lhs, lLocalVec} = this;
+    const qLhs = lhs.quaternion;
+    const sLhs = lLocalVec.clone().applyQuaternion(qLhs);
+    if (!this.isFixed) {
+      const {rhs, rLocalVec} = this;
+      const qRhs = rhs.quaternion;
+      const sRhs = rLocalVec.clone().applyQuaternion(qRhs);
+      d = lhs.position.clone().add(sLhs).sub(rhs.position).sub(sRhs).length();
+    } else {
+      d = lhs.position.clone().add(sLhs).sub(this.target).length();
+    }
+    const l = Math.sqrt(this.l2);
+    let l2 = 0;
+    const lMin = l + this.dlMin - Number.EPSILON;
+    const lMax = l + this.dlMax + Number.EPSILON;
+    if (d < lMin) l2 = (l + this.dlMin) ** 2;
+    if (d > lMax) l2 = (l + this.dlMax) ** 2;
+    this.setJacobianAndConstraintsImpl(l2, phi_q, phi);
+  }
+
+  checkInequalityConstraint() {
+    let d: number = 0;
+    const {lhs, lLocalVec} = this;
+    const qLhs = lhs.quaternion;
+    const sLhs = lLocalVec.clone().applyQuaternion(qLhs);
+    if (!this.isFixed) {
+      const {rhs, rLocalVec} = this;
+      const qRhs = rhs.quaternion;
+      const sRhs = rLocalVec.clone().applyQuaternion(qRhs);
+      d = lhs.position.clone().add(sLhs).sub(rhs.position).sub(sRhs).length();
+    } else {
+      d = lhs.position.clone().add(sLhs).sub(this.target).length();
+    }
+    const l = Math.sqrt(this.l2);
+    const lMin = l + this.dlMin - Number.EPSILON;
+    const lMax = l + this.dlMax + Number.EPSILON;
+    return d < lMin || lMax < d;
+  }
+
+  setJacobianAndConstraintsImpl(l2: number, phi_q: Matrix, phi: number[]) {
     const cLhs = this.lhs.col;
-    const {row, lhs, lLocalVec, lLocalSkew, l2} = this;
+    const {row, lhs, lLocalVec, lLocalSkew} = this;
     const qLhs = lhs.quaternion;
     const ALhs = rotationMatrix(qLhs);
     const GLhs = decompositionMatrixG(qLhs);
@@ -465,6 +542,8 @@ export class QuaternionConstraint implements Constraint {
     return true;
   }
 
+  readonly isInequalityConstraint = false;
+
   row: number = -1;
 
   component: Component;
@@ -499,6 +578,12 @@ export class QuaternionConstraint implements Constraint {
     phi_q.set(row, col + Q1, 2 * e1);
     phi_q.set(row, col + Q2, 2 * e2);
     phi_q.set(row, col + Q3, 2 * e3);
+  }
+
+  setJacobianAndConstraintsInequal() {}
+
+  checkInequalityConstraint() {
+    return false;
   }
 }
 
@@ -852,7 +937,9 @@ export class KinematicSolver {
             pointsElement[0].findIndex((p) => points[0].nodeID === p.nodeID),
             pointsElement[1].findIndex((p) => points[1].nodeID === p.nodeID),
             element.length,
-            isSpringDumper(element)
+            isSpringDumper(element),
+            isSpringDumper(element) ? element.dlMin.value : undefined,
+            isSpringDumper(element) ? element.dlMax.value : undefined
           );
           constraints.push(constraint);
           return;
@@ -985,7 +1072,7 @@ export class KinematicSolver {
       });
     }
     // 上記4ステップでプリプロセッサ完了
-    this.solve({strictMode: true, postProcess: true, logOutput: true});
+    this.solve({onAssemble: true, postProcess: true, logOutput: true});
   }
 
   getGroupItBelongsTo(component: Component): [Component, Component[]] {
@@ -997,7 +1084,7 @@ export class KinematicSolver {
   }
 
   solve(params?: {
-    strictMode?: boolean;
+    onAssemble?: boolean;
     maxCnt?: number;
     postProcess?: boolean;
     logOutput?: boolean;
@@ -1008,7 +1095,7 @@ export class KinematicSolver {
       const start = performance.now();
       const maxCnt = params?.maxCnt ?? 100;
       const postProcess = params?.postProcess ?? true;
-      const strictMode = params?.strictMode ?? false;
+      const onAssemble = params?.onAssemble ?? false;
       const logOutput = params?.logOutput ?? false;
 
       // Kinematicソルバを解く
@@ -1016,11 +1103,11 @@ export class KinematicSolver {
         const root = components[0];
         const constraints = root
           .getGroupedConstraints()
-          .filter((constraint) => constraint.active(strictMode));
+          .filter((constraint) => constraint.active(onAssemble));
 
         const equations = constraints.reduce((prev, current) => {
           current.row = prev;
-          return prev + current.constraints(strictMode);
+          return prev + current.constraints(onAssemble);
         }, 0);
         const degreeOfFreedom = components.reduce((prev, current) => {
           current.setCol(prev);
@@ -1028,14 +1115,14 @@ export class KinematicSolver {
         }, 0);
         // いつも同じところが更新されるので、毎回newしなくてもよい
         const phi_q = new Matrix(equations, degreeOfFreedom);
-        const phi = new Array<number>(degreeOfFreedom);
+        const phi = new Array<number>(equations);
 
         let i = 0;
         let minNorm = Number.MAX_SAFE_INTEGER;
         let eq = false;
         while (!eq && ++i < maxCnt) {
           constraints.forEach((constraint) => {
-            constraint.setJacobianAndConstraints(phi_q, phi, strictMode);
+            constraint.setJacobianAndConstraints(phi_q, phi, onAssemble);
           });
 
           const matPhi = Matrix.columnVector(phi);
@@ -1046,8 +1133,6 @@ export class KinematicSolver {
           // 差分を反映
           components.forEach((component) => component.applyDq(dq));
 
-          // const l2 = dq.transpose().mmul(dq);
-          // const norm = l2.get(0, 0);
           const norm = dq.norm('frobenius');
           eq = norm < 1.0e-4;
           if (norm > minNorm * 100 || Number.isNaN(norm)) {
@@ -1097,6 +1182,7 @@ export class KinematicSolver {
     func: IObjectiveFunction,
     params?: {
       maxCnt?: number;
+      ignoreInequalityConstraints?: boolean;
       postProcess?: boolean;
       logOutput?: boolean;
     }
@@ -1107,111 +1193,175 @@ export class KinematicSolver {
       const start = performance.now();
       const maxCnt = params?.maxCnt ?? 100;
       const postProcess = params?.postProcess ?? true;
-      const strictMode = false;
+      const ignoreInequalityConstraints =
+        params?.ignoreInequalityConstraints ?? true;
+      const onAssemble = false;
       const logOutput = params?.logOutput ?? false;
       const [root, components] = this.getGroupItBelongsTo(func.component);
       const constraints = root.unionFindTreeConstraints;
 
-      const equations = constraints.reduce((prev, current) => {
-        current.row = prev;
-        return prev + current.constraints(strictMode);
-      }, 0);
       const degreeOfFreedom = components.reduce((prev, current) => {
         current.setCol(prev);
         return prev + current.degreeOfFreedom;
       }, 0);
-      // いつも同じところが更新されるので、毎回newしなくてもよい
-      const phi_q = new Matrix(equations, degreeOfFreedom);
-      const phi = new Array<number>(degreeOfFreedom).fill(0);
-      let lambda = Matrix.zeros(1, equations);
 
-      let i = 0;
-      let minNorm = Number.MAX_SAFE_INTEGER;
-      const H = Matrix.eye(degreeOfFreedom, degreeOfFreedom); // ヘッセ行列
-      const mat = new Matrix(
-        degreeOfFreedom + equations,
-        degreeOfFreedom + equations
-      );
       const dFx = new Array<number>(degreeOfFreedom).fill(0);
-      // 目的関数の勾配を得る。
-      func.getGradient(dFx);
-      // ヤコビアンマトリックスと、現在の制約式を得る。
-      constraints.forEach((constraint) => {
-        constraint.setJacobianAndConstraints(phi_q, phi, strictMode);
-      });
-      while (++i < maxCnt) {
-        // ラグランジュ未定乗数法を解く。
-        const matLambdaPhi = Matrix.columnVector([...dFx, ...phi]);
-        mat.setSubMatrix(H, 0, 0);
-        mat.setSubMatrix(phi_q, degreeOfFreedom, 0);
-        mat.setSubMatrix(phi_q.transpose().mul(-1), 0, degreeOfFreedom);
+      const numInequalityConstraints = constraints.reduce(
+        (prev, current) =>
+          prev +
+          (current.isInequalityConstraint && !ignoreInequalityConstraints
+            ? 1
+            : 0),
+        0
+      );
+      if (numInequalityConstraints <= 1) {
+        // 不等式制約が実質1つ以下 ⇒ 簡単に解ける
+        const inequalityConstraint = constraints.find(
+          (c) => c.isInequalityConstraint
+        );
+        let icBound = false;
+        for (let j = 0; j < 2; ++j) {
+          let minNorm = Number.MAX_SAFE_INTEGER;
+          let equations = constraints.reduce((prev, current) => {
+            current.row = prev;
+            return prev + current.constraints(onAssemble);
+          }, 0);
+          if (inequalityConstraint && icBound) {
+            inequalityConstraint.row = equations;
+            ++equations;
+          }
+          const H = Matrix.eye(degreeOfFreedom, degreeOfFreedom); // ヘッセ行列
+          // いつも同じところが更新されるので、毎回newしなくてもよい
+          const phi_q = new Matrix(equations, degreeOfFreedom);
+          const phi = new Array<number>(equations).fill(0);
+          // let lambda = Matrix.zeros(1, equations);
+          const mat = new Matrix(
+            degreeOfFreedom + equations,
+            degreeOfFreedom + equations
+          );
+          // 目的関数の勾配を得る。
+          func.getGradient(dFx);
+          // ヤコビアンマトリックスと、現在の制約式を得る。
+          constraints.forEach((constraint) => {
+            constraint.setJacobianAndConstraints(phi_q, phi, onAssemble);
+          });
+          if (icBound) {
+            inequalityConstraint?.setJacobianAndConstraintsInequal(phi_q, phi);
+          }
+          let i = 0;
+          while (++i < maxCnt) {
+            // ラグランジュ未定乗数法を解く。
+            const matLambdaPhi = Matrix.columnVector([...dFx, ...phi]);
+            mat.setSubMatrix(H, 0, 0);
+            mat.setSubMatrix(phi_q, degreeOfFreedom, 0);
+            mat.setSubMatrix(phi_q.transpose().mul(-1), 0, degreeOfFreedom);
 
-        const dqAndLambda = new SingularValueDecomposition(mat, {
-          autoTranspose: true
-        }).solve(matLambdaPhi);
+            const dqAndLambda = new SingularValueDecomposition(mat, {
+              autoTranspose: true
+            }).solve(matLambdaPhi);
 
-        // 一般化座標の差分を取得。
-        const dq = dqAndLambda.subMatrix(0, degreeOfFreedom - 1, 0, 0);
-        // 差分を反映
-        components.forEach((component) => component.applyDq(dq));
+            // 一般化座標の差分を取得。
+            const dq = dqAndLambda.subMatrix(0, degreeOfFreedom - 1, 0, 0);
+            // 差分を反映
+            components.forEach((component) => component.applyDq(dq));
+            // λn+1を計算
+            const lambda = dqAndLambda
+              .subMatrix(degreeOfFreedom, degreeOfFreedom + equations - 1, 0, 0)
+              .transpose();
 
-        // 目的関数の勾配を得る。
-        // ΔLを計算
-        const deltaL = Matrix.rowVector(dFx);
-        deltaL.add(lambda.mmul(phi_q));
-        // 終了処理
-        // const norm = Matrix.rowVector(dFx).norm('frobenius');
-        const norm = dq.norm('frobenius') + deltaL.norm('frobenius');
-        // const norm = deltaL.norm('frobenius');
-        if (norm < 1.0e-3) break;
+            // 目的関数の勾配を得る。
+            // ΔLを計算
+            const deltaL = Matrix.rowVector(dFx);
+            deltaL.add(lambda.mmul(phi_q));
+            // 終了処理
+            // const norm = Matrix.rowVector(dFx).norm('frobenius');
+            const norm1 = dq.norm('frobenius');
+            const norm2 = deltaL.norm('frobenius');
+            if (norm1 < 1.0e-3 && norm2 < 1e-3) break;
+            const norm = norm1 + norm2;
 
-        // ΦqとΦとdFxを更新。
-        constraints.forEach((constraint) => {
-          constraint.setJacobianAndConstraints(phi_q, phi, strictMode);
-        });
-        func.getGradient(dFx);
-        // ΔLn+1を計算
-        const deltaLN1 = Matrix.rowVector(dFx);
-        deltaLN1.add(lambda.mmul(phi_q));
+            // ΦqとΦとdFxを更新。
+            constraints.forEach((constraint) => {
+              constraint.setJacobianAndConstraints(phi_q, phi, onAssemble);
+            });
+            if (icBound) {
+              inequalityConstraint?.setJacobianAndConstraintsInequal(
+                phi_q,
+                phi
+              );
+            }
+            func.getGradient(dFx);
+            // ΔLn+1を計算
+            const deltaLN1 = Matrix.rowVector(dFx);
+            deltaLN1.add(lambda.mmul(phi_q));
+            /* λn+1を計算
+            lambda = dqAndLambda
+              .subMatrix(degreeOfFreedom, degreeOfFreedom + equations - 1, 0, 0)
+              .transpose();
+            */
 
-        // λn+1を計算
-        lambda = dqAndLambda
-          .subMatrix(degreeOfFreedom, degreeOfFreedom + equations - 1, 0, 0)
-          .transpose();
+            // ヘッセ行列を更新
+            const s = dq.mul(-1);
+            const y = deltaLN1.sub(deltaL);
+            const Hs = H.mmul(s);
+            const sy = s.dot(y);
+            const sHs = s.dot(Hs);
+            let HConverged = true;
+            if (Math.abs(sHs) > Number.EPSILON) {
+              const HssH = Hs.mmul(Hs.transpose().mul(-1 / sHs));
+              H.add(HssH);
+              HConverged = false;
+            } else if (logOutput) {
+              // eslint-disable-next-line no-console
+              console.log('sHsの分母が0なのでヘッセ行列の更新ができなかった');
+            }
 
-        // ヘッセ行列を更新
-        const s = dq.mul(-1);
-        const y = deltaLN1.sub(deltaL);
-        const Hs = H.mmul(s);
-        const sy = s.dot(y);
-        const sHs = s.dot(Hs);
-        if (Math.abs(sHs) > Number.EPSILON && Math.abs(sy) > Number.EPSILON) {
-          const HssH = Hs.mmul(Hs.transpose().mul(-1 / sHs));
-          const yy = y.transpose().mmul(y.mul(1 / sy));
-          H.add(HssH).add(yy);
-        } else if (logOutput) {
-          // eslint-disable-next-line no-console
-          console.log('分母が0なのでヘッセ行列の更新ができなかった');
+            if (Math.abs(sy) > Number.EPSILON) {
+              const yy = y.transpose().mmul(y.mul(1 / sy));
+              H.add(yy);
+              HConverged = false;
+            } else if (logOutput) {
+              // eslint-disable-next-line no-console
+              console.log('syの分母が0なのでヘッセ行列の更新ができなかった');
+            }
+            if (HConverged) break;
+
+            // 収束確認
+            if (logOutput) {
+              // eslint-disable-next-line no-console
+              console.log(
+                `norm=${norm.toFixed(3)}\nnorm1 = ${norm1.toFixed(
+                  3
+                )}\nnorm2=${norm2.toFixed(3)}`
+              );
+            }
+            if (norm > minNorm * 10000 || Number.isNaN(norm)) {
+              // eslint-disable-next-line no-console
+              console.log('収束していない');
+              throw new Error('準ニュートンラプソン法収束エラー');
+            }
+            if (norm < minNorm) {
+              minNorm = norm;
+            }
+          }
+          if (i >= maxCnt) {
+            // eslint-disable-next-line no-console
+            console.log('maxCntに到達');
+            throw new Error('準ニュートンラプソン法収束エラー');
+          }
+          // 不等式制約を満足しているか確認。falseなら満足している。
+          icBound = !!inequalityConstraint?.checkInequalityConstraint();
+          if (!icBound) break;
+          if (logOutput) {
+            // eslint-disable-next-line no-console
+            console.log(
+              `solver converged...\nbut inequal constraints are not satisfied.`
+            );
+          }
         }
-
-        // 収束確認
-        if (norm > minNorm * 10000 || Number.isNaN(norm)) {
-          // eslint-disable-next-line no-console
-          console.log('収束していない');
-          throw new Error('準ニュートンラプソン法収束エラー');
-        }
-        if (norm < minNorm) {
-          minNorm = norm;
-        }
+      } else {
+        throw new Error('未実装');
       }
-      if (i >= maxCnt) {
-        // eslint-disable-next-line no-console
-        console.log('maxCntに到達');
-        throw new Error('準ニュートンラプソン法収束エラー');
-      }
-
-      // this.solve({strictMode: false, postProcess: false, logOutput: true});
-
       if (logOutput) {
         const end = performance.now();
         // eslint-disable-next-line no-console

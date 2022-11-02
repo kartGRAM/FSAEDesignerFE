@@ -76,7 +76,7 @@ const Body = (props: {element: IBody}) => {
           solver
         );
         try {
-          solver.solveObjectiveFunction(func, {logOutput: false});
+          solver.solveObjectiveFunction(func, {logOutput: true});
         } catch (e) {
           // eslint-disable-next-line no-console
           console.log('収束エラー');

@@ -51,7 +51,7 @@ const Bar = (props: {element: IBar}) => {
 
   return (
     <group onDoubleClick={handleOnDoubleClick} ref={groupRef}>
-      <Line points={pts} color="pink" lineWidth={2} ref={meshRef} />
+      <Line points={pts} color="pink" lineWidth={4} ref={meshRef} />
       {nodes.map((node) => (
         <NodeSphere node={node} key={node.nodeID} />
       ))}
