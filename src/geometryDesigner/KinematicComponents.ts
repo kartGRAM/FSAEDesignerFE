@@ -64,8 +64,12 @@ export interface Constraint {
     onAssemble: boolean
   ): void;
 
-  setJacobianAndConstraintsInequal(phi_q: Matrix, phi: number[]): void;
-  checkInequalityConstraint(): boolean;
+  setJacobianAndConstraintsInequal(
+    phi_q: Matrix,
+    phi: number[],
+    hint: any
+  ): any;
+  checkInequalityConstraint(): [boolean, any];
 }
 
 export class Sphere implements Constraint {
@@ -181,8 +185,8 @@ export class Sphere implements Constraint {
 
   setJacobianAndConstraintsInequal() {}
 
-  checkInequalityConstraint() {
-    return false;
+  checkInequalityConstraint(): [boolean, any] {
+    return [false, null];
   }
 }
 
@@ -352,8 +356,8 @@ export class Hinge implements Constraint {
 
   setJacobianAndConstraintsInequal() {}
 
-  checkInequalityConstraint() {
-    return false;
+  checkInequalityConstraint(): [boolean, any] {
+    return [false, null];
   }
 }
 
@@ -446,29 +450,24 @@ export class BarAndSpheres implements Constraint {
     this.setJacobianAndConstraintsImpl(this.l2, phi_q, phi);
   }
 
-  setJacobianAndConstraintsInequal(phi_q: Matrix, phi: number[]) {
-    let d: number = 0;
-    const {lhs, lLocalVec} = this;
-    const qLhs = lhs.quaternion;
-    const sLhs = lLocalVec.clone().applyQuaternion(qLhs);
-    if (!this.isFixed) {
-      const {rhs, rLocalVec} = this;
-      const qRhs = rhs.quaternion;
-      const sRhs = rLocalVec.clone().applyQuaternion(qRhs);
-      d = lhs.position.clone().add(sLhs).sub(rhs.position).sub(sRhs).length();
-    } else {
-      d = lhs.position.clone().add(sLhs).sub(this.target).length();
-    }
+  setJacobianAndConstraintsInequal(
+    phi_q: Matrix,
+    phi: number[],
+    hint: any
+  ): number {
     const l = Math.sqrt(this.l2);
-    let l2 = 0;
-    const lMin = l + this.dlMin - Number.EPSILON;
-    const lMax = l + this.dlMax + Number.EPSILON;
-    if (d < lMin) l2 = (l + this.dlMin) ** 2;
-    if (d > lMax) l2 = (l + this.dlMax) ** 2;
+    let l2 = (l + this.dlMax) ** 2;
+    let hintN = hint as number;
+    if (!hint) {
+      // eslint-disable-next-line prefer-destructuring
+      hintN = this.checkInequalityConstraint()[1];
+    }
+    if (hintN === -1) l2 = (l + this.dlMin) ** 2;
     this.setJacobianAndConstraintsImpl(l2, phi_q, phi);
+    return hintN;
   }
 
-  checkInequalityConstraint() {
+  checkInequalityConstraint(): [boolean, number] {
     let d: number = 0;
     const {lhs, lLocalVec} = this;
     const qLhs = lhs.quaternion;
@@ -484,7 +483,10 @@ export class BarAndSpheres implements Constraint {
     const l = Math.sqrt(this.l2);
     const lMin = l + this.dlMin - Number.EPSILON;
     const lMax = l + this.dlMax + Number.EPSILON;
-    return d < lMin || lMax < d;
+    let hint = 0;
+    if (d < lMin) hint = -1;
+    if (d > lMax) hint = 1;
+    return [d < lMin || lMax < d, hint];
   }
 
   setJacobianAndConstraintsImpl(l2: number, phi_q: Matrix, phi: number[]) {
@@ -582,8 +584,8 @@ export class QuaternionConstraint implements Constraint {
 
   setJacobianAndConstraintsInequal() {}
 
-  checkInequalityConstraint() {
-    return false;
+  checkInequalityConstraint(): [boolean, any] {
+    return [false, null];
   }
 }
 
@@ -1220,6 +1222,7 @@ export class KinematicSolver {
           (c) => c.isInequalityConstraint
         );
         let icBound = false;
+        let hint: any;
         for (let j = 0; j < 2; ++j) {
           let minNorm = Number.MAX_SAFE_INTEGER;
           let equations = constraints.reduce((prev, current) => {
@@ -1246,7 +1249,11 @@ export class KinematicSolver {
             constraint.setJacobianAndConstraints(phi_q, phi, onAssemble);
           });
           if (icBound) {
-            inequalityConstraint?.setJacobianAndConstraintsInequal(phi_q, phi);
+            hint = inequalityConstraint?.setJacobianAndConstraintsInequal(
+              phi_q,
+              phi,
+              hint
+            );
           }
           let i = 0;
           while (++i < maxCnt) {
@@ -1285,9 +1292,10 @@ export class KinematicSolver {
               constraint.setJacobianAndConstraints(phi_q, phi, onAssemble);
             });
             if (icBound) {
-              inequalityConstraint?.setJacobianAndConstraintsInequal(
+              hint = inequalityConstraint?.setJacobianAndConstraintsInequal(
                 phi_q,
-                phi
+                phi,
+                hint
               );
             }
             func.getGradient(dFx);
@@ -1350,7 +1358,9 @@ export class KinematicSolver {
             throw new Error('準ニュートンラプソン法収束エラー');
           }
           // 不等式制約を満足しているか確認。falseなら満足している。
-          icBound = !!inequalityConstraint?.checkInequalityConstraint();
+          if (inequalityConstraint) {
+            [icBound, hint] = inequalityConstraint.checkInequalityConstraint();
+          }
           if (!icBound) break;
           if (logOutput) {
             // eslint-disable-next-line no-console
