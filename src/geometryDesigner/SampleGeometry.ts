@@ -162,8 +162,8 @@ const getLeftFrontSuspension = (): Assembly => {
     name: 'coilover',
     fixedPoint: new Vector3(-20, 261.1, 352.3),
     point: new Vector3(-20, 355.6, 193.3),
-    dlMin: -10,
-    dlMax: 10
+    dlMin: -30,
+    dlMax: 30
   });
 
   const bellCrank = new BellCrank({
@@ -286,8 +286,8 @@ const getLeftRearSuspension = (): Assembly => {
     name: 'coilover',
     fixedPoint: new Vector3(60, 66.9, 350),
     point: new Vector3(60, 240.5, 413.9),
-    dlMin: -10,
-    dlMax: 10
+    dlMin: -30,
+    dlMax: 30
   });
 
   const bellCrank = new BellCrank({

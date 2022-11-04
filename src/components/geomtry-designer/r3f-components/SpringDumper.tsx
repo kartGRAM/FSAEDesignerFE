@@ -25,6 +25,9 @@ const SpringDumper = (props: {element: ISpringDumper}) => {
     },
     [element.absPath]
   );
+  const assembled = useSelector(
+    (state: RootState) => state.uitgd.gdSceneState.assembled
+  );
 
   useFrame(() => {
     const selectedPath = store.getState().uitgd.selectedElementAbsPath;
@@ -35,10 +38,19 @@ const SpringDumper = (props: {element: ISpringDumper}) => {
     // ばねの長さをupdate
     const fp = element.fixedPoint.value.applyMatrix3(coMatrix);
     const p = element.point.value.applyMatrix3(coMatrix);
-    p.sub(fp)
-      .normalize()
-      .multiplyScalar(element.length + element.currentDL)
-      .add(fp);
+    if (assembled) {
+      p.sub(fp)
+        .normalize()
+        .multiplyScalar(element.length + element.currentDL)
+        .add(fp);
+      // 限界なら色を変える
+      if (
+        Math.abs(element.currentDL - element.dlMin.value) < 1e-5 ||
+        Math.abs(element.currentDL - element.dlMax.value) < 1e-5
+      ) {
+        color = 'yellow';
+      }
+    }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const start = meshRef.current.geometry.attributes.instanceStart
       .array as Float32Array;
@@ -47,13 +59,6 @@ const SpringDumper = (props: {element: ISpringDumper}) => {
     start[3 + 1] = p.y;
     start[3 + 2] = p.z;
     meshRef.current.geometry.attributes.instanceStart.needsUpdate = true;
-    // 限界なら色を変える
-    if (
-      Math.abs(element.currentDL - element.dlMin.value) < 1e-5 ||
-      Math.abs(element.currentDL - element.dlMax.value) < 1e-5
-    ) {
-      color = 'yellow';
-    }
     if (isSelected) {
       color = 0xffa500;
     }

@@ -6,14 +6,33 @@ import {useSelector, useDispatch} from 'react-redux';
 import {setMovingMode} from '@store/reducers/uiTempGeometryDesigner';
 
 import {RootState} from '@store/store';
+import {isAArm, isBar, isTire, isSpringDumper} from '@gd/IElements';
+import {
+  canSimplifyAArm,
+  isFixedElement,
+  getJointDictionary
+} from '@gd/KinematicFunctions';
 
 export default function Move() {
   const disabled = useSelector((state: RootState) => {
-    return (
-      !state.uitgd.collectedAssembly?.children.find(
-        (child) => child.absPath === state.uitgd.selectedElementAbsPath
-      ) || !state.uitgd.gdSceneState.assembled
+    const assembly = state.uitgd.collectedAssembly;
+    if (!assembly) return true;
+    const {children} = assembly;
+    const element = children.find(
+      (child) => child.absPath === state.uitgd.selectedElementAbsPath
     );
+    const joints = assembly.getJointsAsVector3();
+    const jointDict = getJointDictionary(children, joints);
+    if (!element) return true;
+    if (isAArm(element) && canSimplifyAArm(element, jointDict)) return true;
+    // BarはComponent扱いしない
+    if (isBar(element) || isSpringDumper(element)) return true;
+    // Tireはコンポーネント扱いしない
+    if (isTire(element)) return true;
+    // FixedElementはコンポーネント扱いしない
+    if (isFixedElement(element)) return true;
+
+    return !state.uitgd.gdSceneState.assembled;
   });
   const moving = useSelector(
     (state: RootState) => state.uitgd.gdSceneState.movingMode
