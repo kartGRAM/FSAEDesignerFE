@@ -61,6 +61,8 @@ import {
   IBody,
   IDataBody,
   isDataBody,
+  ILinearBushing,
+  IDataLinearBushing,
   ITire,
   IDataTire,
   isDataTire,
@@ -1011,22 +1013,22 @@ export class SpringDumper extends Bar implements ISpringDumper {
 
   dlMax: NamedNumber;
 
-  currentDL: number = 0;
+  dlCurrent: number = 0;
 
   get currentPoint() {
     const fp = this.fixedPoint.value;
     const p = this.point.value;
     p.sub(fp)
       .normalize()
-      .multiplyScalar(this.length + this.currentDL)
+      .multiplyScalar(this.length + this.dlCurrent)
       .add(fp);
     return p;
   }
 
   get isLimited() {
     return (
-      Math.abs(this.currentDL - this.dlMin.value) < 1e-5 ||
-      Math.abs(this.currentDL - this.dlMax.value) < 1e-5
+      Math.abs(this.dlCurrent - this.dlMin.value) < 1e-5 ||
+      Math.abs(this.dlCurrent - this.dlMax.value) < 1e-5
     );
   }
 
@@ -1840,6 +1842,95 @@ export class Tire extends Element implements ITire {
       leftBearingNodeID: this.leftBearingNodeID,
       rightBearingNodeID: this.rightBearingNodeID
     };
+  }
+}
+
+export class LinearBushing extends Element implements ILinearBushing {
+  get className(): Elements {
+    return 'SpringDumper';
+  }
+
+  getMirror(): LinearBushing {
+    if (isMirror(this)) throw new MirrorError('ミラーはミラーできない');
+    const fp = mirrorVec(this.fixedPoint);
+    const p = mirrorVec(this.point);
+    const ip = mirrorVec(this.initialPosition);
+    const cog = mirrorVec(this.centerOfGravity);
+    const ret = new SpringDumper({
+      name: `mirror_${this.name.value}`,
+      fixedPoint: fp,
+      point: p,
+      initialPosition: ip,
+      mass: this.mass.value,
+      centerOfGravity: cog,
+      dlMin: this.dlMin.value,
+      dlMax: this.dlMax.value
+    });
+    assignMeta(ret, {mirror: {to: this.nodeID}});
+    return ret;
+  }
+
+  dlMin: NamedNumber;
+
+  dlMax: NamedNumber;
+
+  dlCurrent: number = 0;
+
+  get currentPoint() {
+    const fp = this.fixedPoint.value;
+    const p = this.point.value;
+    p.sub(fp)
+      .normalize()
+      .multiplyScalar(this.length + this.dlCurrent)
+      .add(fp);
+    return p;
+  }
+
+  get isLimited() {
+    return (
+      Math.abs(this.dlCurrent - this.dlMin.value) < 1e-5 ||
+      Math.abs(this.dlCurrent - this.dlMax.value) < 1e-5
+    );
+  }
+
+  constructor(
+    params:
+      | {
+          name: string;
+          fixedPoints: [
+            FunctionVector3 | IDataVector3 | INamedVector3,
+            FunctionVector3 | IDataVector3 | INamedVector3
+          ];
+          points: AtLeast1<FunctionVector3 | IDataVector3 | INamedVector3>;
+          dlMin: number;
+          dlMax: number;
+          initialPosition?: FunctionVector3 | IDataVector3 | INamedVector3;
+          mass?: number;
+          centerOfGravity?: FunctionVector3 | IDataVector3 | INamedVector3;
+        }
+      | IDataSpringDumper
+  ) {
+    super(params);
+    this.dlMin = new NamedNumber({
+      name: 'dlMin',
+      parent: this,
+      value: params.dlMin
+    });
+    this.dlMax = new NamedNumber({
+      name: 'dlMax',
+      parent: this,
+      value: params.dlMax
+    });
+  }
+
+  getDataElement(state: GDState): IDataLinearBushing {
+    const baseData = super.getDataElement(state);
+    const data: IDataLinearBushing = {
+      ...baseData,
+      dlMin: this.dlMin.getData(state),
+      dlMax: this.dlMax.getData(state)
+    };
+    return data;
   }
 }
 

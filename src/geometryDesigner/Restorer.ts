@@ -50,7 +50,7 @@ export class BarRestorer implements Restorer {
     this.element.position.value = this.element.position.value.add(deltaP);
     if (isSpringDumper(this.element)) {
       const l = fpTo.sub(pTo).length();
-      this.element.currentDL = l - this.element.length;
+      this.element.dlCurrent = l - this.element.length;
     }
   }
 }

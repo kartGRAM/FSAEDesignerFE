@@ -198,7 +198,7 @@ export interface ISpringDumper extends IElement {
   readonly dlMin: INamedNumber;
   readonly dlMax: INamedNumber;
   readonly length: number;
-  currentDL: number;
+  dlCurrent: number;
   readonly currentPoint: Vector3;
   readonly isLimited: boolean;
 }
@@ -261,16 +261,29 @@ export interface IDataTire extends IDataElement {
   rightBearingNodeID: string;
 }
 
-export interface ISlider extends IElement {
+export interface ILinearBushing extends IElement {
   // 固定点(フレーム側)
   readonly fixedPoints: [INamedVector3, INamedVector3];
   // 移動点(タイロッド側)
-  readonly points: [Vector3, Vector3];
+  // fixedPointsの中点を基準とし、idx=0⇒idx=1方向を正とした位置
+  readonly toPoints: AtLeast1<INamedNumber>;
   readonly dlMin: INamedNumber;
   readonly dlMax: INamedNumber;
+
+  readonly points: INamedVector3[];
+  readonly supportDistance: number;
+
+  dlCurrent: number;
+  readonly currentPoint: Vector3;
+  readonly isLimited: boolean;
 }
 
-export interface IRackAndPinion extends ISlider {
+export interface IDataLinearBushing extends IDataElement {
+  fixedPoints: IDataVector3[];
+  toPoints: IDataNumber[];
+}
+
+export interface IRackAndPinion extends ILinearBushing {
   readonly dlPerRad: Radian;
 }
 
