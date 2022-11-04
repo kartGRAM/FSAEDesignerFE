@@ -79,7 +79,7 @@ const BellCrank = (props: {element: IBellCrank}) => {
           solver.solveObjectiveFunction(func, {logOutput: false});
         } catch (e) {
           // eslint-disable-next-line no-console
-          console.log('収束エラー');
+          // console.log('収束エラー');
         }
       }
     }

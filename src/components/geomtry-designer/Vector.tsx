@@ -327,6 +327,7 @@ const Vector = React.memo((props: Props) => {
             !directionMode ? (
               <>
                 <Target
+                  disabled={disabled}
                   title="Copy from existing points"
                   onClick={() => {
                     dispatch(
@@ -346,6 +347,7 @@ const Vector = React.memo((props: Props) => {
                   }}
                 />
                 <Move
+                  disabled={disabled}
                   title="Move this point dynamically"
                   onClick={() => {
                     dispatch(

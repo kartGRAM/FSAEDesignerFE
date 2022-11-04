@@ -199,6 +199,7 @@ export interface ISpringDumper extends IElement {
   readonly dlMin: INamedNumber;
   readonly dlMax: INamedNumber;
   readonly length: number;
+  currentDL: number;
 }
 
 export interface IDataSpringDumper extends IDataElement {
@@ -327,7 +328,7 @@ export const isSimplifiedElement = (
   return false;
 };
 export const isBar = (element: IElement): element is IBar =>
-  element.className === 'Bar';
+  element.className === 'Bar' || element.className === 'SpringDumper';
 export const isSpringDumper = (element: IElement): element is ISpringDumper =>
   element.className === 'SpringDumper';
 export const isTire = (element: IElement): element is ITire =>

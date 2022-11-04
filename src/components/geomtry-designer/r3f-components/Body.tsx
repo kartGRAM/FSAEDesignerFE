@@ -76,10 +76,10 @@ const Body = (props: {element: IBody}) => {
           solver
         );
         try {
-          solver.solveObjectiveFunction(func, {logOutput: true});
+          solver.solveObjectiveFunction(func, {logOutput: false});
         } catch (e) {
           // eslint-disable-next-line no-console
-          console.log('収束エラー');
+          // console.log('収束エラー');
         }
       }
     }

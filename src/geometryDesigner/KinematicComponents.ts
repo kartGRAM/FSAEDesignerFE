@@ -641,6 +641,36 @@ export class Component {
     }
   }
 
+  loadQ(q: number[]) {
+    if (this._col === -1) return;
+    const {col} = this;
+    if (this.degreeOfFreedom === 7) {
+      this.position.x = q[col + X];
+      this.position.y = q[col + Y];
+      this.position.z = q[col + Z];
+      this.quaternion.w = q[col + Q0];
+      this.quaternion.x = q[col + Q1];
+      this.quaternion.y = q[col + Q2];
+      this.quaternion.z = q[col + Q3];
+      this._quaternion.normalize();
+    }
+  }
+
+  saveQ(q: number[]) {
+    if (this._col === -1) return;
+    const {col} = this;
+    if (this.degreeOfFreedom === 7) {
+      q[col + X] = this.position.x;
+      q[col + Y] = this.position.y;
+      q[col + Z] = this.position.z;
+      q[col + Q0] = this.quaternion.w;
+      q[col + Q1] = this.quaternion.x;
+      q[col + Q2] = this.quaternion.y;
+      q[col + Q3] = this.quaternion.z;
+      this._quaternion.normalize();
+    }
+  }
+
   element: IElement;
 
   applyResultToElement() {
@@ -1191,6 +1221,13 @@ export class KinematicSolver {
   ) {
     if (this.running) return;
     this.running = true;
+    const [root, components] = this.getGroupItBelongsTo(func.component);
+    const degreeOfFreedom = components.reduce((prev, current) => {
+      current.setCol(prev);
+      return prev + current.degreeOfFreedom;
+    }, 0);
+    const qCurrent = new Array<number>(degreeOfFreedom);
+    components.forEach((c) => c.saveQ(qCurrent));
     try {
       const start = performance.now();
       const maxCnt = params?.maxCnt ?? 100;
@@ -1199,13 +1236,7 @@ export class KinematicSolver {
         params?.ignoreInequalityConstraints ?? true;
       const onAssemble = false;
       const logOutput = params?.logOutput ?? false;
-      const [root, components] = this.getGroupItBelongsTo(func.component);
       const constraints = root.unionFindTreeConstraints;
-
-      const degreeOfFreedom = components.reduce((prev, current) => {
-        current.setCol(prev);
-        return prev + current.degreeOfFreedom;
-      }, 0);
 
       const dFx = new Array<number>(degreeOfFreedom).fill(0);
       const numInequalityConstraints = constraints.reduce(
@@ -1232,12 +1263,13 @@ export class KinematicSolver {
           if (inequalityConstraint && icBound) {
             inequalityConstraint.row = equations;
             ++equations;
+            components.forEach((c) => c.loadQ(qCurrent));
           }
           const H = Matrix.eye(degreeOfFreedom, degreeOfFreedom); // ヘッセ行列
           // いつも同じところが更新されるので、毎回newしなくてもよい
           const phi_q = new Matrix(equations, degreeOfFreedom);
           const phi = new Array<number>(equations).fill(0);
-          // let lambda = Matrix.zeros(1, equations);
+          let lambda = Matrix.zeros(1, equations);
           const mat = new Matrix(
             degreeOfFreedom + equations,
             degreeOfFreedom + equations
@@ -1271,17 +1303,17 @@ export class KinematicSolver {
             const dq = dqAndLambda.subMatrix(0, degreeOfFreedom - 1, 0, 0);
             // 差分を反映
             components.forEach((component) => component.applyDq(dq));
-            // λn+1を計算
+            /* λn+1を計算
             const lambda = dqAndLambda
               .subMatrix(degreeOfFreedom, degreeOfFreedom + equations - 1, 0, 0)
               .transpose();
+              */
 
             // 目的関数の勾配を得る。
             // ΔLを計算
             const deltaL = Matrix.rowVector(dFx);
             deltaL.add(lambda.mmul(phi_q));
             // 終了処理
-            // const norm = Matrix.rowVector(dFx).norm('frobenius');
             const norm1 = dq.norm('frobenius');
             const norm2 = deltaL.norm('frobenius');
             if (norm1 < 1.0e-3 && norm2 < 1e-3) break;
@@ -1302,11 +1334,10 @@ export class KinematicSolver {
             // ΔLn+1を計算
             const deltaLN1 = Matrix.rowVector(dFx);
             deltaLN1.add(lambda.mmul(phi_q));
-            /* λn+1を計算
+            // λn+1を計算
             lambda = dqAndLambda
               .subMatrix(degreeOfFreedom, degreeOfFreedom + equations - 1, 0, 0)
               .transpose();
-            */
 
             // ヘッセ行列を更新
             const s = dq.mul(-1);
@@ -1343,9 +1374,9 @@ export class KinematicSolver {
                 )}\nnorm2=${norm2.toFixed(3)}`
               );
             }
-            if (norm > minNorm * 10000 || Number.isNaN(norm)) {
+            if (norm > minNorm * 100 || Number.isNaN(norm)) {
               // eslint-disable-next-line no-console
-              console.log('収束していない');
+              if (logOutput) console.log('収束していない');
               throw new Error('準ニュートンラプソン法収束エラー');
             }
             if (norm < minNorm) {
@@ -1381,9 +1412,7 @@ export class KinematicSolver {
         this.postProcess();
       }
     } catch (e) {
-      this.components.forEach((components) => {
-        components.forEach((component) => component.reset());
-      });
+      components.forEach((c) => c.loadQ(qCurrent));
       this.running = false;
       throw e;
     }

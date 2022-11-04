@@ -1,6 +1,13 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable max-classes-per-file */
-import {IElement, IAArm, IBar, ITire, JointAsVector3} from '@gd/IElements';
+import {
+  IElement,
+  IAArm,
+  IBar,
+  ITire,
+  JointAsVector3,
+  isSpringDumper
+} from '@gd/IElements';
 import {INamedVector3} from '@gd/INamedValues';
 import {Vector3, Quaternion} from 'three';
 
@@ -33,7 +40,7 @@ export class BarRestorer implements Restorer {
     const pTo = this.point.value
       .applyQuaternion(pParent.rotation.value)
       .add(pParent.position.value);
-    const sTo = pTo.sub(fpTo).normalize();
+    const sTo = pTo.clone().sub(fpTo).normalize();
     this.element.rotation.value = new Quaternion().setFromUnitVectors(s, sTo);
 
     fp.applyQuaternion(this.element.rotation.value).add(
@@ -41,6 +48,10 @@ export class BarRestorer implements Restorer {
     );
     const deltaP = fpTo.clone().sub(fp);
     this.element.position.value = this.element.position.value.add(deltaP);
+    if (isSpringDumper(this.element)) {
+      const l = fpTo.sub(pTo).length();
+      this.element.currentDL = l - this.element.length;
+    }
   }
 }
 

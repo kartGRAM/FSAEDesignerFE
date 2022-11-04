@@ -3,8 +3,12 @@ import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import SvgIcon from '@mui/material/SvgIcon';
 
-export default function Target(props: {onClick?: () => void; title: string}) {
-  const {onClick, title} = props;
+export default function Target(props: {
+  onClick?: () => void;
+  title: string;
+  disabled?: boolean;
+}) {
+  const {onClick, title, disabled} = props;
   return (
     <Tooltip
       title={title}
@@ -20,6 +24,7 @@ export default function Target(props: {onClick?: () => void; title: string}) {
       }}
     >
       <IconButton
+        disabled={disabled}
         onClick={() => {
           if (onClick) onClick();
         }}

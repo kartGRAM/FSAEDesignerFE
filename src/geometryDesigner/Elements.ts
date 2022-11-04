@@ -136,11 +136,11 @@ function getElement(element: IDataElement): IElement {
     }
     return new Assembly(element);
   }
-  if (isDataBar(element)) {
-    return new Bar(element);
-  }
   if (isDataSpringDumper(element)) {
     return new SpringDumper(element);
+  }
+  if (isDataBar(element)) {
+    return new Bar(element);
   }
   if (isDataAArm(element)) {
     return new AArm(element);
@@ -1011,6 +1011,8 @@ export class SpringDumper extends Bar implements ISpringDumper {
   dlMin: NamedNumber;
 
   dlMax: NamedNumber;
+
+  currentDL: number = 0;
 
   constructor(
     params:
