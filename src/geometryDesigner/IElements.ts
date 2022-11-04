@@ -18,7 +18,6 @@ import {INode, IBidirectionalNode} from './INode';
 
 export type Radian = number;
 export type NodeID = string;
-export type Millimeter = number;
 export interface Joint {
   lhs: NodeID;
   rhs: NodeID;
@@ -200,6 +199,8 @@ export interface ISpringDumper extends IElement {
   readonly dlMax: INamedNumber;
   readonly length: number;
   currentDL: number;
+  readonly currentPoint: Vector3;
+  readonly isLimited: boolean;
 }
 
 export interface IDataSpringDumper extends IDataElement {
@@ -248,7 +249,7 @@ export interface ITire extends IElement {
   readonly toRightBearing: INamedNumber;
   readonly rightBearing: INamedVector3;
   readonly leftBearing: INamedVector3;
-  readonly diameter: Millimeter;
+  readonly diameter: number;
   readonly bearingDistance: number;
 }
 
@@ -260,11 +261,17 @@ export interface IDataTire extends IDataElement {
   rightBearingNodeID: string;
 }
 
-export interface IRackAndPinion extends IElement {
-  points: [Vector3, Vector3];
-  dlMin: Millimeter;
-  dlMax: Millimeter;
-  dlPerRad: Radian;
+export interface ISlider extends IElement {
+  // 固定点(フレーム側)
+  readonly fixedPoints: [INamedVector3, INamedVector3];
+  // 移動点(タイロッド側)
+  readonly points: [Vector3, Vector3];
+  readonly dlMin: INamedNumber;
+  readonly dlMax: INamedNumber;
+}
+
+export interface IRackAndPinion extends ISlider {
+  readonly dlPerRad: Radian;
 }
 
 export interface IFrame extends IAssembly {}

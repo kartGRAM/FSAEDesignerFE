@@ -25,9 +25,6 @@ const SpringDumper = (props: {element: ISpringDumper}) => {
     },
     [element.absPath]
   );
-  const assembled = useSelector(
-    (state: RootState) => state.uitgd.gdSceneState.assembled
-  );
 
   useFrame(() => {
     const selectedPath = store.getState().uitgd.selectedElementAbsPath;
@@ -35,26 +32,15 @@ const SpringDumper = (props: {element: ISpringDumper}) => {
     let color: string | number = 'blue';
     meshRef.current.visible = element.visible.value ?? false;
 
-    // ばねの長さをupdate
-    const fp = element.fixedPoint.value.applyMatrix3(coMatrix);
-    const p = element.point.value.applyMatrix3(coMatrix);
-    if (assembled) {
-      p.sub(fp)
-        .normalize()
-        .multiplyScalar(element.length + element.currentDL)
-        .add(fp);
-      // 限界なら色を変える
-      if (
-        Math.abs(element.currentDL - element.dlMin.value) < 1e-5 ||
-        Math.abs(element.currentDL - element.dlMax.value) < 1e-5
-      ) {
-        color = 'yellow';
-      }
+    // 限界なら色を変える
+    if (element.isLimited) {
+      color = 'yellow';
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const start = meshRef.current.geometry.attributes.instanceStart
       .array as Float32Array;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const p = element.currentPoint.applyMatrix3(coMatrix);
     start[3 + 0] = p.x;
     start[3 + 1] = p.y;
     start[3 + 2] = p.z;

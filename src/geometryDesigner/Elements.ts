@@ -29,7 +29,6 @@ import {
   isBodyOfFrame,
   MirrorError,
   Elements,
-  Millimeter,
   Joint,
   JointAsVector3,
   NodeID,
@@ -1014,14 +1013,31 @@ export class SpringDumper extends Bar implements ISpringDumper {
 
   currentDL: number = 0;
 
+  get currentPoint() {
+    const fp = this.fixedPoint.value;
+    const p = this.point.value;
+    p.sub(fp)
+      .normalize()
+      .multiplyScalar(this.length + this.currentDL)
+      .add(fp);
+    return p;
+  }
+
+  get isLimited() {
+    return (
+      Math.abs(this.currentDL - this.dlMin.value) < 1e-5 ||
+      Math.abs(this.currentDL - this.dlMax.value) < 1e-5
+    );
+  }
+
   constructor(
     params:
       | {
           name: string;
           fixedPoint: FunctionVector3 | IDataVector3 | INamedVector3;
           point: FunctionVector3 | IDataVector3 | INamedVector3;
-          dlMin: Millimeter;
-          dlMax: Millimeter;
+          dlMin: number;
+          dlMax: number;
           initialPosition?: FunctionVector3 | IDataVector3 | INamedVector3;
           mass?: number;
           centerOfGravity?: FunctionVector3 | IDataVector3 | INamedVector3;
@@ -1703,7 +1719,7 @@ export class Tire extends Element implements ITire {
     return ret;
   }
 
-  get diameter(): Millimeter {
+  get diameter(): number {
     return this.tireCenter.value.z * 2.0;
   }
 
