@@ -39,7 +39,8 @@ export type Elements =
   | 'AArm'
   | 'BellCrank'
   | 'Body'
-  | 'Tire';
+  | 'Tire'
+  | 'LinearBushing';
 
 export function getElementByPath(
   root: IAssembly | undefined | null,
@@ -272,15 +273,16 @@ export interface ILinearBushing extends IElement {
 
   readonly points: INamedVector3[];
   readonly supportDistance: number;
-
   dlCurrent: number;
-  readonly currentPoint: Vector3;
+  readonly currentPoints: Vector3[];
   readonly isLimited: boolean;
 }
 
 export interface IDataLinearBushing extends IDataElement {
   fixedPoints: IDataVector3[];
   toPoints: IDataNumber[];
+  dlMin: IDataNumber;
+  dlMax: IDataNumber;
 }
 
 export interface IRackAndPinion extends ILinearBushing {
@@ -362,6 +364,8 @@ export const isBellCrank = (element: IElement): element is IBellCrank =>
 export const isFrame = (element: IAssembly): element is IFrame =>
   element.className === 'Frame';
 
+export const isLinearBushing = (element: IElement): element is ILinearBushing =>
+  element.className === 'LinearBushing';
 export const isDataBar = (element: IDataElement): element is IDataBar =>
   element.className === 'Bar';
 export const isDataSpringDumper = (
@@ -376,6 +380,9 @@ export const isDataBody = (element: IDataElement): element is IDataBody =>
 export const isDataBellCrank = (
   element: IDataElement
 ): element is IDataBellCrank => element.className === 'BellCrank';
+export const isDataLinearBushing = (
+  element: IDataElement
+): element is IDataLinearBushing => element.className === 'LinearBushing';
 
 export const isDataFrame = (element: IDataAssembly): element is IDataFrame =>
   element.className === 'Frame';

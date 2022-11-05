@@ -12,7 +12,8 @@ import {
   Body,
   Tire,
   SpringDumper,
-  Frame
+  Frame,
+  LinearBushing
 } from './Elements';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -77,7 +78,7 @@ const getUprightAssy = (): Assembly => {
   return frontSuspensionSubAssy;
 };
 
-const getLeftFrontSuspension = (): Assembly => {
+const getFrontLeftSuspension = (): Assembly => {
   const tireCenter = new Vector3(0, 607.5, 220);
 
   const tire = new Tire({
@@ -190,22 +191,40 @@ const getLeftFrontSuspension = (): Assembly => {
     ]
   });
 
-  const leftFrontSuspensionSubAssy = new Assembly({
+  const leftSuspension = new Assembly({
     name: 'leftFrontSuspensionSubAssy',
     children: [armsSubAssy, pullRodSubAssy],
     joints: [{lhs: upperArm.points[1].nodeID, rhs: pullRod.fixedPoint.nodeID}]
   });
-  return leftFrontSuspensionSubAssy;
+  return leftSuspension;
 };
 
 const getFrontSuspension = (): Assembly => {
-  const leftSuspension = getLeftFrontSuspension();
+  const leftSuspension = getFrontLeftSuspension();
   const rightSuspension = leftSuspension.getMirror();
+  const rackAndPinion = new LinearBushing({
+    name: 'rackAndPinion',
+    fixedPoints: [new Vector3(-65, -150, 162.6), new Vector3(-65, 150, 162.6)],
+    toPoints: [213.3, -213.3],
+    dlMin: -30,
+    dlMax: 30
+  });
+  const tieRod = leftSuspension.getElementByName('tieRod') as Bar;
+  const mirTieRod = rightSuspension.getElementByName('mirror_tieRod') as Bar;
 
   const frontSuspensionSubAssy = new Assembly({
     name: 'frontSuspentionSubAssy',
-    children: [leftSuspension, rightSuspension],
-    joints: [],
+    children: [leftSuspension, rightSuspension, rackAndPinion],
+    joints: [
+      {
+        lhs: tieRod.fixedPoint.nodeID,
+        rhs: rackAndPinion.points[0].nodeID
+      },
+      {
+        lhs: mirTieRod.fixedPoint.nodeID,
+        rhs: rackAndPinion.points[1].nodeID
+      }
+    ],
     initialPosition: {x: 'frontSusCenter', y: 0, z: 0}
   });
   return frontSuspensionSubAssy;
