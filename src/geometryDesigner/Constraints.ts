@@ -503,6 +503,145 @@ export class BarAndSpheres implements Constraint {
   }
 }
 
+export class LinearBushingSingleEnd implements Constraint {
+  // 自由度を2減らす
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  constraints(onAssemble: boolean) {
+    // 組み立て時は固定する
+    // if (onAssemble) return 3;
+    return 2;
+  }
+
+  active() {
+    return true;
+  }
+
+  row: number = -1;
+
+  res: Component;
+
+  fixed: Component;
+
+  resLocalVec: Vector3;
+
+  resLocalSkew: Matrix;
+
+  fixedLocalVec: [Vector3, Vector3];
+
+  fixedAxisVec: Vector3;
+
+  // 軸に垂直なベクトル
+  fixedOrthogonalVec: [Vector3, Vector3];
+
+  fixedOrthogonalSkew: [Matrix, Matrix];
+
+  l2: number;
+
+  name: string;
+
+  isFixed: boolean = false;
+
+  dlMin: number = Number.MIN_SAFE_INTEGER;
+
+  dlMax: number = Number.MAX_SAFE_INTEGER;
+
+  constructor(
+    name: string,
+    cRodEndSide: Component,
+    cFixed: Component,
+    iRodEndSide: number,
+    iFixed: [number, number],
+    l: number,
+    dlMin?: number,
+    dlMax?: number
+  ) {
+    this.name = name;
+    if (dlMin) this.dlMin = dlMin;
+    if (dlMax) this.dlMax = dlMax;
+    if (cRodEndSide.isFixed) {
+      throw new Error('RodEnd側が固定されている');
+    }
+    this.res = cRodEndSide;
+    this.fixed = cFixed;
+
+    this.resLocalVec = this.res.localVectors[iRodEndSide].clone();
+    this.resLocalSkew = skew(this.resLocalVec).mul(2);
+    this.fixedLocalVec = [
+      this.fixed.localVectors[iFixed[0]].clone(),
+      this.fixed.localVectors[iFixed[1]].clone()
+    ];
+    this.fixedAxisVec = this.fixed.localVectors[iFixed[1]]
+      .clone()
+      .sub(this.fixed.localVectors[iFixed[0]]);
+
+    if (this.fixedAxisVec.lengthSq() < Number.EPSILON) {
+      throw new Error('リニアブッシュを保持するする2点が近すぎます');
+    }
+
+    if (this.fixed.isFixed) {
+      this.isFixed = true;
+      this.fixedAxisVec.applyQuaternion(this.fixed.quaternion);
+      this.fixedLocalVec[0].applyQuaternion(this.fixed.quaternion);
+      this.fixedLocalVec[1].applyQuaternion(this.fixed.quaternion);
+    }
+
+    const oVec1 = getStableOrthogonalVector(this.fixedAxisVec);
+    const oVec2 = this.fixedAxisVec.cross(oVec1);
+    this.fixedOrthogonalVec = [oVec1, oVec2];
+    this.fixedOrthogonalSkew = [
+      skew(this.fixedOrthogonalVec[0]).mul(2),
+      skew(this.fixedOrthogonalVec[1]).mul(2)
+    ];
+    this.l2 = l * l;
+  }
+
+  setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
+    const cRES = this.res.col;
+    const cFixed = this.fixed.col;
+    const {
+      row,
+      fixed,
+      fixedLocalVec,
+      fixedAxisVec,
+      res,
+      resLocalVec,
+      resLocalSkew
+    } = this;
+    const qFixed = fixed.quaternion;
+    const AFixed = rotationMatrix(qFixed);
+    const GFixed = decompositionMatrixG(qFixed);
+    const sFixed = fixedLocalVec.clone().applyQuaternion(qFixed);
+    const qRes = res.quaternion;
+    const ARes = rotationMatrix(qRes);
+    const GRes = decompositionMatrixG(qRes);
+
+    // 並行拘束
+
+    const axis0 = res..applyQuaternion(qFixed);
+    const axisT = new Matrix([[axis.x, axis.y, axis.z]]); // (1x3)
+    const axisDelta = ARhs.mmul(rAxisSkew).mmul(GRhs); // (3x4)
+    for (let r = 0; r < 2; ++r) {
+      let orthoVec = this.lOrthogonalVec[r];
+      if (!this.isFixed) {
+        orthoVec = orthoVec.clone().applyQuaternion(qLhs);
+        const orthoDelta = ALhs.mmul(this.lOrthogonalSkew[r]).mmul(GLhs); // (3x4)
+        const dLhs = axisT.mmul(orthoDelta); // (1x3) x (3x4) = (1x4)
+        phi_q.setSubMatrix(dLhs, row + 3 + r, cLhs + Q0);
+      }
+      const orthoT = new Matrix([[orthoVec.x, orthoVec.y, orthoVec.z]]); // (1x3)
+      phi[r + row + 3] = orthoVec.dot(axis);
+      const dRhs = orthoT.mmul(axisDelta); // (1x3) x (3x4) = (1x4)
+      phi_q.setSubMatrix(dRhs, row + 3 + r, cRhs + Q0);
+    }
+  }
+
+  setJacobianAndConstraintsInequal() {}
+
+  checkInequalityConstraint(): [boolean, any] {
+    return [false, null];
+  }
+}
+
 export class QuaternionConstraint implements Constraint {
   // 自由度を1減らす
   constraints() {
