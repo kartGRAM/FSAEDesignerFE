@@ -5,6 +5,7 @@ import {
   IAArm,
   IBar,
   ITire,
+  ILinearBushing,
   JointAsVector3,
   isSpringDumper
 } from '@gd/IElements';
@@ -167,6 +168,31 @@ export class RelativeConstraintRestorer implements Restorer {
   ) {
     this.constrained = constrained;
     this.componentElement = componentElement;
+    this.deltaPosition = new Vector3();
+    this.deltaQuaternion = new Quaternion();
+    throw new Error('未実装');
+  }
+
+  restore() {}
+}
+
+export class LinearBushingRestorer implements Restorer {
+  element: ILinearBushing;
+
+  componentElement: IElement;
+
+  deltaPosition: Vector3;
+
+  deltaQuaternion: Quaternion;
+
+  constructor(
+    element: ILinearBushing,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    fixedPoints: [INamedVector3, INamedVector3],
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    points: INamedVector3[]
+  ) {
+    this.element = element;
     this.deltaPosition = new Vector3();
     this.deltaQuaternion = new Quaternion();
     throw new Error('未実装');

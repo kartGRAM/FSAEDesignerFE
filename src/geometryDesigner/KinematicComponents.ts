@@ -11,6 +11,7 @@ import {
   isAArm,
   isBar,
   isTire,
+  isLinearBushing,
   isSpringDumper,
   isSimplifiedElement,
   JointAsVector3
@@ -30,6 +31,7 @@ import {
   TireRestorer,
   AArmRestorer,
   BarRestorer,
+  LinearBushingRestorer,
   RelativeConstraintRestorer
 } from './Restorer';
 import {IObjectiveFunction} from './Driver';
@@ -38,6 +40,7 @@ import {
   Sphere,
   Hinge,
   BarAndSpheres,
+  LinearBushingSingleEnd,
   QuaternionConstraint
 } from './Constraints';
 
@@ -306,6 +309,8 @@ export class KinematicSolver {
         if (isBar(element) || isSpringDumper(element)) return;
         // Tireはコンポーネント扱いしない
         if (isTire(element)) return;
+        // LinearBushingはコンポーネント扱いしない
+        if (isLinearBushing(element)) return;
         // FixedElementはコンポーネント扱いしない
         if (isFixedElement(element)) return;
         // 関連するジョイントを得る(すでに検討済みであれば破棄)
@@ -468,6 +473,55 @@ export class KinematicSolver {
           );
           constraints.push(constraint);
         }
+        // BarはComponent扱いしない
+        if (isLinearBushing(element)) {
+          element.points.forEach((point) => {
+            const jointf0 = jointDict[element.fixedPoints[0].nodeID][0];
+            const jointf1 = jointDict[element.fixedPoints[1].nodeID][0];
+            const jointp = jointDict[point.nodeID][0];
+            jointsDone.add(jointf0);
+            jointsDone.add(jointf1);
+            jointsDone.add(jointp);
+            const points = [
+              getJointPartner(jointf0, element.fixedPoints[0].nodeID),
+              getJointPartner(jointf0, element.fixedPoints[1].nodeID),
+              getJointPartner(jointp, point.nodeID)
+            ];
+            const elements = points.map((p) => p.parent as IElement);
+            this.restorers.push(
+              new LinearBushingRestorer(
+                element,
+                [points[0], points[1]],
+                [points[2]]
+              )
+            );
+            // あまりないと思うが、AArmのすべての点が同じコンポーネントに接続されている場合無視する
+            if (
+              elements[0].nodeID === elements[1].nodeID ||
+              (isFixedElement(elements[0]) && isFixedElement(elements[1]))
+            ) {
+              return;
+            }
+            const pointsElement = elements.map((element) =>
+              element.getPoints()
+            );
+            const constraint = new LinearBushingSingleEnd(
+              `Linear bushing object of ${element.name.value}`,
+              tempComponents[elements[0].nodeID],
+              tempComponents[elements[1].nodeID],
+              pointsElement[0].findIndex((p) => points[0].nodeID === p.nodeID),
+              [
+                pointsElement[1].findIndex(
+                  (p) => points[1].nodeID === p.nodeID
+                ),
+                pointsElement[1].findIndex((p) => points[2].nodeID === p.nodeID)
+              ],
+              element.dlMin.value,
+              element.dlMax.value
+            );
+            constraints.push(constraint);
+          });
+        }
       });
       children.forEach((element) => {
         // AArmが単独で使われている場合は、BarAndSpheres2つに変更する。
@@ -476,6 +530,8 @@ export class KinematicSolver {
         if (isBar(element) || isSpringDumper(element)) return;
         // Tireはコンポーネント扱いしない
         if (isTire(element)) return;
+        // LinearBushingはコンポーネント扱いしない
+        if (isLinearBushing(element)) return;
         // FixedElementはコンポーネント扱いしない
         if (isFixedElement(element)) return;
         // 相対固定拘束の場合は、親のみを追加

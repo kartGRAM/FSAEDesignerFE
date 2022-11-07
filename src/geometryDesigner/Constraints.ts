@@ -516,6 +516,16 @@ export class LinearBushingSingleEnd implements Constraint {
     return true;
   }
 
+  readonly isInequalityConstraint = false;
+
+  get lhs() {
+    return this.res;
+  }
+
+  get rhs() {
+    return this.fixed;
+  }
+
   row: number = -1;
 
   res: Component;
@@ -528,14 +538,12 @@ export class LinearBushingSingleEnd implements Constraint {
 
   fixedLocalVec: [Vector3, Vector3];
 
-  fixedAxisVec: Vector3;
+  fixedLocalSkew: [Matrix, Matrix];
 
   // 軸に垂直なベクトル
   fixedOrthogonalVec: [Vector3, Vector3];
 
   fixedOrthogonalSkew: [Matrix, Matrix];
-
-  l2: number;
 
   name: string;
 
@@ -551,7 +559,6 @@ export class LinearBushingSingleEnd implements Constraint {
     cFixed: Component,
     iRodEndSide: number,
     iFixed: [number, number],
-    l: number,
     dlMin?: number,
     dlMax?: number
   ) {
@@ -570,68 +577,86 @@ export class LinearBushingSingleEnd implements Constraint {
       this.fixed.localVectors[iFixed[0]].clone(),
       this.fixed.localVectors[iFixed[1]].clone()
     ];
-    this.fixedAxisVec = this.fixed.localVectors[iFixed[1]]
+    const fixedAxisVec = this.fixed.localVectors[iFixed[1]]
       .clone()
       .sub(this.fixed.localVectors[iFixed[0]]);
 
-    if (this.fixedAxisVec.lengthSq() < Number.EPSILON) {
+    if (fixedAxisVec.lengthSq() < Number.EPSILON) {
       throw new Error('リニアブッシュを保持するする2点が近すぎます');
     }
+    this.fixedLocalSkew = [
+      skew(this.fixedLocalVec[0]).mul(2),
+      skew(this.fixedLocalVec[1]).mul(2)
+    ];
 
     if (this.fixed.isFixed) {
       this.isFixed = true;
-      this.fixedAxisVec.applyQuaternion(this.fixed.quaternion);
-      this.fixedLocalVec[0].applyQuaternion(this.fixed.quaternion);
-      this.fixedLocalVec[1].applyQuaternion(this.fixed.quaternion);
+      this.fixedLocalVec[0]
+        .applyQuaternion(this.fixed.quaternion)
+        .add(this.fixed.position);
+      this.fixedLocalVec[1]
+        .applyQuaternion(this.fixed.quaternion)
+        .add(this.fixed.position);
     }
-
-    const oVec1 = getStableOrthogonalVector(this.fixedAxisVec);
-    const oVec2 = this.fixedAxisVec.cross(oVec1);
+    const oVec1 = getStableOrthogonalVector(fixedAxisVec);
+    const oVec2 = fixedAxisVec.cross(oVec1);
     this.fixedOrthogonalVec = [oVec1, oVec2];
     this.fixedOrthogonalSkew = [
       skew(this.fixedOrthogonalVec[0]).mul(2),
       skew(this.fixedOrthogonalVec[1]).mul(2)
     ];
-    this.l2 = l * l;
   }
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
-    const cRES = this.res.col;
+    const cRes = this.res.col;
     const cFixed = this.fixed.col;
     const {
       row,
       fixed,
       fixedLocalVec,
-      fixedAxisVec,
+      fixedLocalSkew,
       res,
       resLocalVec,
       resLocalSkew
     } = this;
+    const pFixed = fixed.position;
     const qFixed = fixed.quaternion;
     const AFixed = rotationMatrix(qFixed);
     const GFixed = decompositionMatrixG(qFixed);
-    const sFixed = fixedLocalVec.clone().applyQuaternion(qFixed);
+    const sFixed = fixedLocalVec.map((v) => v.clone().applyQuaternion(qFixed));
+
+    const pRes = res.position.clone();
     const qRes = res.quaternion;
     const ARes = rotationMatrix(qRes);
     const GRes = decompositionMatrixG(qRes);
 
     // 並行拘束
-
-    const axis0 = res..applyQuaternion(qFixed);
-    const axisT = new Matrix([[axis.x, axis.y, axis.z]]); // (1x3)
-    const axisDelta = ARhs.mmul(rAxisSkew).mmul(GRhs); // (3x4)
+    const axis = resLocalVec.clone().applyQuaternion(qRes).add(pRes);
+    if (!this.isFixed) {
+      axis.sub(sFixed[0].clone().add(pFixed));
+    } else {
+      axis.sub(sFixed[0]);
+    }
+    const axisT = Matrix.rowVector([axis.x, axis.y, axis.z]); // (1x3)
+    const axisDeltaQ = ARes.mmul(resLocalSkew).mmul(GRes); // (3x4)
+    const dFixedDeltaQ = AFixed.mmul(fixedLocalSkew[0]).mmul(GFixed);
     for (let r = 0; r < 2; ++r) {
-      let orthoVec = this.lOrthogonalVec[r];
+      let orthoVec = this.fixedOrthogonalVec[r];
+      const orthoVecT = Matrix.rowVector([orthoVec.x, orthoVec.y, orthoVec.z]); // (1x3)
       if (!this.isFixed) {
-        orthoVec = orthoVec.clone().applyQuaternion(qLhs);
-        const orthoDelta = ALhs.mmul(this.lOrthogonalSkew[r]).mmul(GLhs); // (3x4)
-        const dLhs = axisT.mmul(orthoDelta); // (1x3) x (3x4) = (1x4)
-        phi_q.setSubMatrix(dLhs, row + 3 + r, cLhs + Q0);
+        orthoVec = orthoVec.clone().applyQuaternion(qFixed);
+        const orthoDelta = AFixed.mmul(this.fixedOrthogonalSkew[r]).mmul(
+          GFixed
+        ); // (3x4)
+        const dFixed = axisT.mmul(orthoDelta); // (1x3) x (3x4) = (1x4)
+        dFixed.sub(orthoVecT.mmul(dFixedDeltaQ)); // (1x3) x (3x4) = (1x4)
+        phi_q.setSubMatrix(orthoVecT.clone().mul(-1), row + r, cFixed + X);
+        phi_q.setSubMatrix(dFixed, row + r, cFixed + Q0);
       }
-      const orthoT = new Matrix([[orthoVec.x, orthoVec.y, orthoVec.z]]); // (1x3)
-      phi[r + row + 3] = orthoVec.dot(axis);
-      const dRhs = orthoT.mmul(axisDelta); // (1x3) x (3x4) = (1x4)
-      phi_q.setSubMatrix(dRhs, row + 3 + r, cRhs + Q0);
+      phi[r + row] = orthoVec.dot(axis);
+      const dRes = orthoVecT.mmul(axisDeltaQ); // (1x3) x (3x4) = (1x4)
+      phi_q.setSubMatrix(orthoVecT, row + r, cRes + X);
+      phi_q.setSubMatrix(dRes, row + 3 + r, cRes + Q0);
     }
   }
 
