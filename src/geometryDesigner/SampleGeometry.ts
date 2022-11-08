@@ -12,8 +12,8 @@ import {
   Body,
   Tire,
   SpringDumper,
-  Frame,
-  LinearBushing
+  Frame
+  // LinearBushing
 } from './Elements';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -202,7 +202,7 @@ const getFrontLeftSuspension = (): Assembly => {
 const getFrontSuspension = (): Assembly => {
   const leftSuspension = getFrontLeftSuspension();
   const rightSuspension = leftSuspension.getMirror();
-  const rackAndPinion = new LinearBushing({
+  /* const rackAndPinion = new LinearBushing({
     name: 'rackAndPinion',
     fixedPoints: [new Vector3(-65, -150, 162.6), new Vector3(-65, 150, 162.6)],
     toPoints: [213.3, -213.3],
@@ -225,6 +225,12 @@ const getFrontSuspension = (): Assembly => {
         rhs: rackAndPinion.points[1].nodeID
       }
     ],
+    initialPosition: {x: 'frontSusCenter', y: 0, z: 0}
+  }); */
+  const frontSuspensionSubAssy = new Assembly({
+    name: 'frontSuspentionSubAssy',
+    children: [leftSuspension, rightSuspension],
+    joints: [],
     initialPosition: {x: 'frontSusCenter', y: 0, z: 0}
   });
   return frontSuspensionSubAssy;
