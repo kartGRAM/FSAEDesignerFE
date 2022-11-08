@@ -24,7 +24,7 @@ export default function Close(props: Props) {
       const reset = async () => {
         dispatch(selectElement({absPath: ''}));
         dispatch(setAssembled(false));
-        await dispatch(setAssembly(undefined));
+        dispatch(setAssembly(undefined));
         if (text) {
           const frame = new Frame({name: 'newFrame', children: []});
           await dispatch(newAssembly(frame));

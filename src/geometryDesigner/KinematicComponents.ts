@@ -426,11 +426,14 @@ export class KinematicSolver {
           ) {
             return;
           }
+          const lhs = tempComponents[elements[0].nodeID];
+          const rhs = tempComponents[elements[1].nodeID];
+          if (!lhs || !rhs) return;
           const pointsElement = elements.map((element) => element.getPoints());
           const constraint = new BarAndSpheres(
             `bar object of ${element.name.value}`,
-            tempComponents[elements[0].nodeID],
-            tempComponents[elements[1].nodeID],
+            lhs,
+            rhs,
             pointsElement[0].findIndex((p) => points[0].nodeID === p.nodeID),
             pointsElement[1].findIndex((p) => points[1].nodeID === p.nodeID),
             element.length,
@@ -473,7 +476,7 @@ export class KinematicSolver {
           );
           constraints.push(constraint);
         }
-        // BarはComponent扱いしない
+        // LinearBushingはComponent扱いしない
         if (isLinearBushing(element)) {
           element.points.forEach((point) => {
             const jointf0 = jointDict[element.fixedPoints[0].nodeID][0];
@@ -484,7 +487,7 @@ export class KinematicSolver {
             jointsDone.add(jointp);
             const points = [
               getJointPartner(jointf0, element.fixedPoints[0].nodeID),
-              getJointPartner(jointf0, element.fixedPoints[1].nodeID),
+              getJointPartner(jointf1, element.fixedPoints[1].nodeID),
               getJointPartner(jointp, point.nodeID)
             ];
             const elements = points.map((p) => p.parent as IElement);
