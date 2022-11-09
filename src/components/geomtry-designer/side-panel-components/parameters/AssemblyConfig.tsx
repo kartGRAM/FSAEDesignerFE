@@ -323,7 +323,7 @@ export function JointsList(props: {
                   (point) => point.nodeID === selectedPair.rhs?.nodeID
                 );
                 if (lhs && rhs) {
-                  if (
+                  /* if (
                     isSimplifiedElement(lhs.parent) &&
                     isSimplifiedElement(rhs.parent)
                   ) {
@@ -340,7 +340,7 @@ export function JointsList(props: {
                     });
                     dispatch(setConfirmDialogProps(undefined));
                     return;
-                  }
+                  } */
                   assembly.joints.push({lhs: lhs.nodeID, rhs: rhs.nodeID});
                   dispatch(updateAssembly(assembly));
                 }
