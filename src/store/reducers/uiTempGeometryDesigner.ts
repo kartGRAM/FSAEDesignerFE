@@ -130,6 +130,13 @@ export const uitGeometryDesignerSlice = createSlice({
       action: PayloadAction<IAssembly | undefined>
     ) => {
       state.assembly = action.payload;
+      if (!state.assembly) {
+        state.collectedAssembly = undefined;
+        state.kinematicSolver = undefined;
+        state.gdSceneState.assembled = false;
+        state.gdSceneState.movingMode = false;
+        state.selectedElementAbsPath = '';
+      }
     },
     setCollectedAssembly: (
       state: GDState,
