@@ -52,9 +52,34 @@ const Q1 = 4;
 const Q2 = 5;
 const Q3 = 6;
 
-// elementの初期状態を取得し、計算後に反映する。
-// ただし、Bar, Tire, SpringDumperなど自由度の小さいElementは含まれない
-export class Component {
+export interface IComponent {
+  readonly name: string;
+  readonly col: number;
+  setCol(col: number): void;
+  readonly degreeOfFreedom: number;
+  // 正規化用の拘束式を得る
+  getConstraintToNormalize(): Constraint | null;
+  applyDq(dq: Matrix): void;
+  loadQ(q: number[]): void;
+  saveQ(q: number[]): void;
+  applyResultToElement(): void;
+  position: Vector3;
+  quaternion: Quaternion;
+  localVectors: Vector3[];
+  readonly isFixed: boolean;
+  getGroupedConstraints(): Constraint[];
+  get root(): IComponent;
+  get isRoot(): boolean;
+  unionFindTreeParent: IComponent;
+  unionFindTreeConstraints: Constraint[];
+  unite(other: IComponent, constraint: Constraint): void;
+  reset(): void;
+  saveInitialQ(): void;
+  restoreInitialQ(): void;
+}
+
+// 7自由度のコンポーネント
+export class FullDegreesComponent implements IComponent {
   readonly name: string;
 
   // ヤコビアンの列番号
@@ -194,9 +219,9 @@ export class Component {
     return this.isFixed || this.isRelativeFixed;
   }
 
-  parent: Component = this;
+  parent = this;
 
-  unionFindTreeParent: Component = this;
+  unionFindTreeParent = this;
 
   unionFindTreeConstraints: Constraint[] = [];
 
@@ -205,17 +230,17 @@ export class Component {
     return this.unionFindTreeConstraints;
   }
 
-  get root(): Component {
+  get root(): IComponent {
     if (this.unionFindTreeParent === this) return this;
     // 経路圧縮
     return this.unionFindTreeParent.root;
   }
 
-  get isRoot() {
+  get isRoot(): boolean {
     return this.root === this;
   }
 
-  unite(other: Component, constraint: Constraint) {
+  unite(other: IComponent, constraint: Constraint) {
     if (this.root === other.root) return;
     const otherRoot = other.root;
     other.root.unionFindTreeParent = this.root;
@@ -264,9 +289,9 @@ export class Component {
 export class KinematicSolver {
   assembly: IAssembly;
 
-  components: Component[][];
+  components: IComponent[][];
 
-  componentsFromNodeID: {[index: string]: Component};
+  componentsFromNodeID: {[index: string]: IComponent};
 
   restorers: Restorer[] = [];
 
@@ -280,9 +305,9 @@ export class KinematicSolver {
     const joints = assembly.getJointsAsVector3();
     const jointDict = getJointDictionary(children, joints);
     const constraints: Constraint[] = [];
-    const components: Component[] = [];
+    const components: IComponent[] = [];
     const jointsDone = new Set<JointAsVector3>();
-    const tempComponents: {[index: string]: Component} = {};
+    const tempComponents: {[index: string]: FullDegreesComponent} = {};
     const tempElements: {[index: string]: IElement} = {};
     // ステップ1: ChildrenをComponentに変換する
     {
@@ -293,7 +318,7 @@ export class KinematicSolver {
          除外しないで、あとから判定させる。
       if (isFixedElement(element)) return;
       */
-        tempComponents[element.nodeID] = new Component(element);
+        tempComponents[element.nodeID] = new FullDegreesComponent(element);
         tempElements[element.nodeID] = element;
       });
     }
@@ -301,7 +326,10 @@ export class KinematicSolver {
     // また、相対固定拘束であるというフラグを立てる
     // 計算された相対固定拘束のデルタだけ、ComponentのlocalPointsを移動する
     {
-      const needToUpdatePoints = new Map<Component, [Vector3, Quaternion]>();
+      const needToUpdatePoints = new Map<
+        FullDegreesComponent,
+        [Vector3, Quaternion]
+      >();
       children.forEach((element) => {
         // AArmが単独で使われている場合は、BarAndSpheres2つに変更する。
         if (isAArm(element) && canSimplifyAArm(element, jointDict)) return;
@@ -626,7 +654,7 @@ export class KinematicSolver {
     this.solve({onAssemble: true, postProcess: true, logOutput: true});
   }
 
-  getGroupItBelongsTo(component: Component): [Component, Component[]] {
+  getGroupItBelongsTo(component: IComponent): [IComponent, IComponent[]] {
     for (const components of this.components) {
       const root = components[0];
       if (root.root === component.root) return [root, components];

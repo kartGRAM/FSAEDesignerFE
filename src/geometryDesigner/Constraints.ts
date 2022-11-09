@@ -9,7 +9,7 @@ import {
   rotationMatrix,
   decompositionMatrixG
 } from './KinematicFunctions';
-import {Component} from './KinematicComponents';
+import {IComponent} from './KinematicComponents';
 
 const X = 0;
 const Y = 1;
@@ -20,8 +20,8 @@ const Q2 = 5;
 const Q3 = 6;
 
 export interface Constraint {
-  readonly lhs: Component;
-  readonly rhs: Component;
+  readonly lhs: IComponent;
+  readonly rhs: IComponent;
   readonly isInequalityConstraint: boolean;
   row: number;
   active(onAssemble: boolean): boolean;
@@ -55,9 +55,9 @@ export class Sphere implements Constraint {
 
   row: number = -1;
 
-  lhs: Component;
+  lhs: IComponent;
 
-  rhs: Component;
+  rhs: IComponent;
 
   lLocalVec: Vector3;
 
@@ -75,8 +75,8 @@ export class Sphere implements Constraint {
 
   constructor(
     name: string,
-    clhs: Component,
-    crhs: Component,
+    clhs: IComponent,
+    crhs: IComponent,
     ilhs: number,
     irhs: number
   ) {
@@ -173,9 +173,9 @@ export class Hinge implements Constraint {
 
   row: number = -1;
 
-  lhs: Component;
+  lhs: IComponent;
 
-  rhs: Component;
+  rhs: IComponent;
 
   lLocalVec: Vector3;
 
@@ -202,8 +202,8 @@ export class Hinge implements Constraint {
 
   constructor(
     name: string,
-    clhs: Component,
-    crhs: Component,
+    clhs: IComponent,
+    crhs: IComponent,
     ilhs: [number, number],
     irhs: [number, number]
   ) {
@@ -348,9 +348,9 @@ export class BarAndSpheres implements Constraint {
 
   row: number = -1;
 
-  lhs: Component;
+  lhs: IComponent;
 
-  rhs: Component;
+  rhs: IComponent;
 
   lLocalVec: Vector3;
 
@@ -376,8 +376,8 @@ export class BarAndSpheres implements Constraint {
 
   constructor(
     name: string,
-    clhs: Component,
-    crhs: Component,
+    clhs: IComponent,
+    crhs: IComponent,
     ilhs: number,
     irhs: number,
     l: number,
@@ -528,9 +528,9 @@ export class LinearBushingSingleEnd implements Constraint {
 
   row: number = -1;
 
-  res: Component;
+  res: IComponent;
 
-  fixed: Component;
+  fixed: IComponent;
 
   resLocalVec: Vector3;
 
@@ -555,8 +555,8 @@ export class LinearBushingSingleEnd implements Constraint {
 
   constructor(
     name: string,
-    cRodEndSide: Component,
-    cFixed: Component,
+    cRodEndSide: IComponent,
+    cFixed: IComponent,
     iRodEndSide: number,
     iFixed: [number, number],
     dlMin?: number,
@@ -681,27 +681,27 @@ export class QuaternionConstraint implements Constraint {
 
   row: number = -1;
 
-  component: Component;
+  IComponent: IComponent;
 
   get lhs() {
-    return this.component;
+    return this.IComponent;
   }
 
   get rhs() {
-    return this.component;
+    return this.IComponent;
   }
 
   name: string;
 
-  constructor(name: string, component: Component) {
+  constructor(name: string, IComponent: IComponent) {
     this.name = name;
-    this.component = component;
+    this.IComponent = IComponent;
   }
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
-    const {row, component} = this;
-    const {col} = component;
-    const q = component.quaternion;
+    const {row, IComponent} = this;
+    const {col} = IComponent;
+    const q = IComponent.quaternion;
 
     const e0 = q.w;
     const e1 = q.x;

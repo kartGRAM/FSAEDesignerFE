@@ -5,14 +5,14 @@ import {Matrix} from 'ml-matrix';
 import {IElement, isElement} from '@gd/IElements';
 import {INamedVector3} from '@gd/INamedValues';
 import {Vector3} from 'three';
-import {KinematicSolver, Component} from '@gd/KinematicComponents';
+import {KinematicSolver, IComponent} from '@gd/KinematicComponents';
 import {
   getIndexOfPoint,
   getPartialDiffOfRotationMatrix
 } from '@gd/KinematicFunctions';
 
 export interface IObjectiveFunction {
-  component: Component;
+  component: IComponent;
   getGradient(dFx: number[]): void;
 }
 const X = 0;
@@ -28,7 +28,7 @@ export class MovePointTo implements IObjectiveFunction {
 
   target: Vector3;
 
-  component: Component;
+  component: IComponent;
 
   constructor(point: INamedVector3, target: Vector3, solver: KinematicSolver) {
     this.point = point;
