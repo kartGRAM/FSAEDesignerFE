@@ -2,8 +2,7 @@ import React from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 import store, {RootState} from '@store/store';
 import {
-  setAssembly,
-  setCollectedAssembly,
+  setAssemblyAndCollectedAssembly,
   setKinematicSolver,
   setAssembled
 } from '@store/reducers/uiTempGeometryDesigner';
@@ -26,10 +25,14 @@ export default function AssemblyCreactor() {
     const start = performance.now();
     if (assembly) {
       const iAssembly = getAssembly(assembly);
-      dispatch(setAssembly(iAssembly));
-      dispatch(setCollectedAssembly(iAssembly.collectElements()));
+      dispatch(
+        setAssemblyAndCollectedAssembly({
+          assembly: iAssembly,
+          collectedAssembly: iAssembly.collectElements()
+        })
+      );
     } else {
-      dispatch(setAssembly(undefined));
+      dispatch(setAssemblyAndCollectedAssembly(undefined));
     }
     // 実行時間を計測した処理
     const end = performance.now();

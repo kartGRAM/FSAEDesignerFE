@@ -18,6 +18,7 @@ export default function Move() {
     const assembly = state.uitgd.collectedAssembly;
     const dAssembly = state.dgd.present.topAssembly;
     if (!assembly || !dAssembly) return true;
+    if (assembly.nodeID !== dAssembly.nodeID) return true;
     const {children} = assembly;
     const element = children.find(
       (child) => child.absPath === state.uitgd.selectedElementAbsPath

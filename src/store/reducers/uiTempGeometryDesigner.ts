@@ -125,24 +125,27 @@ export const uitGeometryDesignerSlice = createSlice({
   name: 'uitGeometryDesigner',
   initialState,
   reducers: {
-    setAssembly: (
+    setAssemblyAndCollectedAssembly: (
       state: GDState,
-      action: PayloadAction<IAssembly | undefined>
+      action: PayloadAction<
+        | {
+            assembly: IAssembly;
+            collectedAssembly: IAssembly;
+          }
+        | undefined
+      >
     ) => {
-      state.assembly = action.payload;
-      if (!state.assembly) {
+      state.gdSceneState.assembled = false;
+      if (!action.payload) {
+        state.assembly = undefined;
         state.collectedAssembly = undefined;
         state.kinematicSolver = undefined;
-        state.gdSceneState.assembled = false;
         state.gdSceneState.movingMode = false;
         state.selectedElementAbsPath = '';
+        return;
       }
-    },
-    setCollectedAssembly: (
-      state: GDState,
-      action: PayloadAction<IAssembly | undefined>
-    ) => {
-      state.collectedAssembly = action.payload;
+      state.assembly = action.payload.assembly;
+      state.collectedAssembly = action.payload.collectedAssembly;
     },
     setKinematicSolver: (
       state: GDState,
@@ -306,8 +309,7 @@ export const uitGeometryDesignerSlice = createSlice({
 });
 
 export const {
-  setAssembly,
-  setCollectedAssembly,
+  setAssemblyAndCollectedAssembly,
   setKinematicSolver,
   setUIDisabled,
   toggleFullScreen,

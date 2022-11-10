@@ -45,8 +45,7 @@ const store = configureStore({
         ignoredActions: [
           'dataGeometryDesigner/updateAssembly',
           'dataGeometryDesigner/newAssembly',
-          'uitGeometryDesigner/setAssembly',
-          'uitGeometryDesigner/setCollectedAssembly',
+          'uitGeometryDesigner/setAssemblyAndCollectedAssembly',
           'uitGeometryDesigner/setKinematicSolver',
           'uitGeometryDesigner/setGDSceneGetThree',
           'uitGeometryDesigner/setSelectedPoint',

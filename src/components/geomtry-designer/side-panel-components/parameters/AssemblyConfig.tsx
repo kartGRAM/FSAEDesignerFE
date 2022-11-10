@@ -4,7 +4,11 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {IAssembly, IElement, isFrame, isSimplifiedElement} from '@gd/IElements';
+import {
+  IAssembly,
+  IElement,
+  isFrame /* isSimplifiedElement */
+} from '@gd/IElements';
 import {INamedVector3} from '@gd/INamedValues';
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '@store/store';
@@ -31,8 +35,8 @@ import {alpha} from '@mui/material/styles';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
 // import {getNode} from '@gd/INode';
 import {
-  setSelectedPoint,
-  setConfirmDialogProps
+  setSelectedPoint
+  /* setConfirmDialogProps */
 } from '@store/reducers/uiTempGeometryDesigner';
 import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
 import {numberToRgb} from '@app/utils/helpers';
