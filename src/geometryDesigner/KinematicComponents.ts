@@ -16,6 +16,7 @@ import {
   isSimplifiedElement,
   JointAsVector3
 } from '@gd/IElements';
+import {INamedVector3} from '@gd/INamedValues';
 import {Vector3, Quaternion} from 'three';
 import {
   getJointDictionary,
@@ -53,6 +54,7 @@ const Q2 = 5;
 const Q3 = 6;
 
 export interface IComponent {
+  readonly className: string;
   readonly name: string;
   readonly col: number;
   setCol(col: number): void;
@@ -80,6 +82,8 @@ export interface IComponent {
 
 // 7自由度のコンポーネント
 export class FullDegreesComponent implements IComponent {
+  readonly className = 'FullDegreesComponent';
+
   readonly name: string;
 
   // ヤコビアンの列番号
@@ -286,6 +290,159 @@ export class FullDegreesComponent implements IComponent {
   }
 }
 
+// 計算にのみ使用する3自由度の点コンポーネント(bar同士をつなぐ場合のダミー)
+export class PointComponent implements IComponent {
+  readonly className = 'PointComponent';
+
+  readonly name: string;
+
+  // ヤコビアンの列番号
+  _col: number = -1;
+
+  setCol(col: number) {
+    this._col = col;
+  }
+
+  get col(): number {
+    return this._col;
+  }
+
+  // 自由度
+  get degreeOfFreedom(): number {
+    return 3;
+  }
+
+  // 正規化用の拘束式を得る
+  getConstraintToNormalize(): Constraint | null {
+    return null;
+  }
+
+  applyDq(dq: Matrix) {
+    if (this._col === -1) return;
+    const {col} = this;
+    const dx = dq.get(col + X, 0);
+    const dy = dq.get(col + Y, 0);
+    const dz = dq.get(col + Z, 0);
+    this._position.x -= dx;
+    this._position.y -= dy;
+    this._position.z -= dz;
+  }
+
+  loadQ(q: number[]) {
+    if (this._col === -1) return;
+    const {col} = this;
+    this.position.x = q[col + X];
+    this.position.y = q[col + Y];
+    this.position.z = q[col + Z];
+  }
+
+  saveQ(q: number[]) {
+    if (this._col === -1) return;
+    const {col} = this;
+    q[col + X] = this.position.x;
+    q[col + Y] = this.position.y;
+    q[col + Z] = this.position.z;
+  }
+
+  lhs: INamedVector3;
+
+  rhs: INamedVector3;
+
+  applyResultToElement() {
+    this.lhs.value = this.position;
+    this.rhs.value = this.position;
+  }
+
+  _position: Vector3;
+
+  get position() {
+    return this._position;
+  }
+
+  set position(value: Vector3) {
+    this._position = value;
+  }
+
+  get quaternion() {
+    return new Quaternion();
+  }
+
+  // eslint-disable-next-line no-empty-function
+  set quaternion(value: Quaternion) {}
+
+  localVectors: Vector3[] = [];
+
+  _isFixed: boolean = false;
+
+  get isFixed(): boolean {
+    return false;
+  }
+
+  isRelativeFixed: boolean = false;
+
+  readonly isExcludedComponent = false;
+
+  parent = this;
+
+  unionFindTreeParent = this;
+
+  unionFindTreeConstraints: Constraint[] = [];
+
+  getGroupedConstraints() {
+    if (!this.isRoot) throw new Error('ルートコンポーネントじゃない');
+    return this.unionFindTreeConstraints;
+  }
+
+  get root(): IComponent {
+    if (this.unionFindTreeParent === this) return this;
+    // 経路圧縮
+    return this.unionFindTreeParent.root;
+  }
+
+  get isRoot(): boolean {
+    return this.root === this;
+  }
+
+  unite(other: IComponent, constraint: Constraint) {
+    if (this.root === other.root) return;
+    const otherRoot = other.root;
+    other.root.unionFindTreeParent = this.root;
+    this.root.unionFindTreeConstraints = [
+      ...this.root.unionFindTreeConstraints,
+      constraint,
+      ...otherRoot.unionFindTreeConstraints
+    ];
+    otherRoot.unionFindTreeConstraints = [];
+  }
+
+  constructor(lhs: INamedVector3, rhs: INamedVector3) {
+    this.name = `${lhs.name}&${rhs.name}`;
+    this.lhs = lhs;
+    this.rhs = rhs;
+    this._position = lhs.value;
+  }
+
+  reset() {
+    this._position = this.lhs.value;
+  }
+
+  _initialPosition: Vector3 = new Vector3();
+
+  _initialQuaternion: Quaternion = new Quaternion();
+
+  saveInitialQ() {
+    this._initialPosition = this.position.clone();
+    this._initialQuaternion = this.quaternion.clone();
+  }
+
+  restoreInitialQ() {
+    if (!this.isRelativeFixed) {
+      this.position = this._initialPosition.clone();
+      this.quaternion = this._initialQuaternion.clone();
+    }
+  }
+}
+
 export class KinematicSolver {
   assembly: IAssembly;
 
@@ -454,9 +611,11 @@ export class KinematicSolver {
           ) {
             return;
           }
+          // シンプル化されていない場合、コンポーネントを得る
           const lhs = tempComponents[elements[0].nodeID];
           const rhs = tempComponents[elements[1].nodeID];
-          if (!lhs || !rhs) return;
+          if (!lhs) {
+          }
           const pointsElement = elements.map((element) => element.getPoints());
           const constraint = new BarAndSpheres(
             `bar object of ${element.name.value}`,

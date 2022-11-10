@@ -16,9 +16,10 @@ import {
 export default function Move() {
   const disabled = useSelector((state: RootState) => {
     const assembly = state.uitgd.collectedAssembly;
+    const nonCollectedAssembly = state.uitgd.assembly;
     const dAssembly = state.dgd.present.topAssembly;
-    if (!assembly || !dAssembly) return true;
-    if (assembly.nodeID !== dAssembly.nodeID) return true;
+    if (!nonCollectedAssembly || !assembly || !dAssembly) return true;
+    if (nonCollectedAssembly.nodeID !== dAssembly.nodeID) return true;
     const {children} = assembly;
     const element = children.find(
       (child) => child.absPath === state.uitgd.selectedElementAbsPath

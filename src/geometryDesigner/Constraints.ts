@@ -9,7 +9,7 @@ import {
   rotationMatrix,
   decompositionMatrixG
 } from './KinematicFunctions';
-import {IComponent} from './KinematicComponents';
+import {IComponent, FullDegreesComponent} from './KinematicComponents';
 
 const X = 0;
 const Y = 1;
@@ -75,8 +75,8 @@ export class Sphere implements Constraint {
 
   constructor(
     name: string,
-    clhs: IComponent,
-    crhs: IComponent,
+    clhs: FullDegreesComponent,
+    crhs: FullDegreesComponent,
     ilhs: number,
     irhs: number
   ) {
@@ -202,8 +202,8 @@ export class Hinge implements Constraint {
 
   constructor(
     name: string,
-    clhs: IComponent,
-    crhs: IComponent,
+    clhs: FullDegreesComponent,
+    crhs: FullDegreesComponent,
     ilhs: [number, number],
     irhs: [number, number]
   ) {
@@ -693,9 +693,9 @@ export class QuaternionConstraint implements Constraint {
 
   name: string;
 
-  constructor(name: string, IComponent: IComponent) {
+  constructor(name: string, component: FullDegreesComponent) {
     this.name = name;
-    this.IComponent = IComponent;
+    this.IComponent = component;
   }
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
