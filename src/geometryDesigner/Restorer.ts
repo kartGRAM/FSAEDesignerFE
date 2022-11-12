@@ -179,24 +179,42 @@ export class RelativeConstraintRestorer implements Restorer {
 export class LinearBushingRestorer implements Restorer {
   element: ILinearBushing;
 
-  componentElement: IElement;
+  fixedPoints: INamedVector3[];
 
-  deltaPosition: Vector3;
-
-  deltaQuaternion: Quaternion;
+  point: INamedVector3;
 
   constructor(
     element: ILinearBushing,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     fixedPoints: [INamedVector3, INamedVector3],
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    points: INamedVector3[]
+    point: INamedVector3
   ) {
     this.element = element;
-    this.deltaPosition = new Vector3();
-    this.deltaQuaternion = new Quaternion();
-    throw new Error('未実装');
+    this.fixedPoints = fixedPoints;
+    this.point = point;
   }
 
-  restore() {}
+  restore() {
+    const fps = this.element.fixedPoints.map((p) => p.value);
+    const fpParent = this.fixedPoints[0].parent as IElement;
+
+    const fpsTo = this.fixedPoints.map((p) =>
+      p.value
+        .applyQuaternion(fpParent.rotation.value)
+        .add(fpParent.position.value)
+    );
+    const s = fps[1].sub(fps[0]).normalize();
+    const sTo = fpsTo[1].clone().sub(fpsTo[0]).normalize();
+    this.element.rotation.value = new Quaternion().setFromUnitVectors(s, sTo);
+
+    const supportsCenter = fpsTo[1].clone().add(fpsTo[0]).multiplyScalar(0.5);
+    const supportDistance = s.length();
+    const pParent = this.point.parent as IElement;
+
+    const pTo = this.point.value
+      .applyQuaternion(pParent.rotation.value)
+      .add(pParent.position.value);
+    this.element.dlCurrent = supportDistance - pTo.sub(supportsCenter).length();
+  }
 }

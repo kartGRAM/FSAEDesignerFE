@@ -168,6 +168,11 @@ export const uitGeometryDesignerSlice = createSlice({
     treeViewDragExpanded: (state: GDState, action: PayloadAction<string[]>) => {
       state.treeViewDragExpanded = action.payload;
     },
+    resetDragState: (state: GDState) => {
+      state.treeViewDragExpanded = [];
+      state.draggingNewElement = null;
+      state.draggingElementAbsPath = '';
+    },
     toggleFullScreen: (state: GDState) => {
       state.isFullScreen = !state.isFullScreen;
       state.fullScreenZIndex = state.isFullScreen ? 1000000 : 0;
@@ -327,6 +332,7 @@ export const {
   treeViewDragExpanded,
   setDraggingNewElement,
   setDraggingElementAbsPath,
+  resetDragState,
   setVisibility,
   setAssembled,
   resetPositions,

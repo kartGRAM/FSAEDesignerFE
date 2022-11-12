@@ -6,8 +6,8 @@ import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import {useDispatch} from 'react-redux';
 import {
-  treeViewDragExpanded,
-  setDraggingNewElement
+  setDraggingNewElement,
+  resetDragState
 } from '@store/reducers/uiTempGeometryDesigner';
 import {Elements} from '@gd/IElements';
 
@@ -25,6 +25,7 @@ const elements = [
   createElement('Body'),
   // createElement('Frame'),
   createElement('SpringDumper'),
+  createElement('LinearBushing'),
   createElement('Tire')
 ];
 
@@ -40,8 +41,7 @@ export default function ElementsRoot() {
   );
 
   const handleDragEnd = React.useCallback(() => {
-    dispatch(treeViewDragExpanded([]));
-    dispatch(setDraggingNewElement(null));
+    dispatch(resetDragState());
   }, []);
 
   return (

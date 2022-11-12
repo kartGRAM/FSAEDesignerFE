@@ -9,7 +9,12 @@ import {
   rotationMatrix,
   decompositionMatrixG
 } from './KinematicFunctions';
-import {IComponent, FullDegreesComponent} from './KinematicComponents';
+import {
+  IComponent,
+  FullDegreesComponent,
+  isFullDegreesComponent
+  // isPointComponent
+} from './KinematicComponents';
 
 const X = 0;
 const Y = 1;
@@ -381,12 +386,12 @@ export class BarAndSpheres implements Constraint {
     ilhs: number,
     irhs: number,
     l: number,
-    isSpringDumper: boolean,
+    isSpringDumper?: boolean,
     dlMin?: number,
     dlMax?: number
   ) {
     this.name = name;
-    this.isSpringDumper = isSpringDumper;
+    this.isSpringDumper = isSpringDumper ?? false;
     if (dlMin) this.dlMin = dlMin;
     if (dlMax) this.dlMax = dlMax;
     if (clhs.isFixed) {
@@ -401,9 +406,9 @@ export class BarAndSpheres implements Constraint {
       this.lhs = clhs;
       this.rhs = crhs;
     }
-    this.lLocalVec = this.lhs.localVectors[ilhs].clone();
+    this.lLocalVec = this.lhs.localVectors[ilhs]?.clone() ?? new Vector3();
     this.lLocalSkew = skew(this.lLocalVec).mul(2);
-    this.rLocalVec = this.rhs.localVectors[irhs].clone();
+    this.rLocalVec = this.rhs.localVectors[irhs]?.clone() ?? new Vector3();
     this.rLocalSkew = skew(this.rLocalVec).mul(-2);
     if (this.rhs.isFixed) {
       this.isFixed = true;
@@ -478,27 +483,33 @@ export class BarAndSpheres implements Constraint {
 
       phi_q.setSubMatrix(dT, row, cLhs + X);
       phi_q.setSubMatrix(dT.clone().mul(-1), row, cRhs + X);
-      phi_q.setSubMatrix(
-        dT.mmul(ALhs).mmul(lLocalSkew).mmul(GLhs),
-        row,
-        cLhs + Q0
-      );
-      phi_q.setSubMatrix(
-        dT.mmul(ARhs).mmul(rLocalSkew).mmul(GRhs),
-        row,
-        cRhs + Q0
-      );
+      if (isFullDegreesComponent(this.lhs)) {
+        phi_q.setSubMatrix(
+          dT.mmul(ALhs).mmul(lLocalSkew).mmul(GLhs),
+          row,
+          cLhs + Q0
+        );
+      }
+      if (isFullDegreesComponent(this.rhs)) {
+        phi_q.setSubMatrix(
+          dT.mmul(ARhs).mmul(rLocalSkew).mmul(GRhs),
+          row,
+          cRhs + Q0
+        );
+      }
     } else {
       const d = lhs.position.clone().add(sLhs).sub(this.target);
       const dT = new Matrix([[d.x * 2, d.y * 2, d.z * 2]]); // (1x3)
       phi[row] = d.lengthSq() - l2;
 
       phi_q.setSubMatrix(dT, row, cLhs + X);
-      phi_q.setSubMatrix(
-        dT.mmul(ALhs).mmul(lLocalSkew).mmul(GLhs), // (1x3) x (3x3) x(3x3) x (3x4) = (1x4)
-        row,
-        cLhs + Q0
-      );
+      if (isFullDegreesComponent(this.lhs)) {
+        phi_q.setSubMatrix(
+          dT.mmul(ALhs).mmul(lLocalSkew).mmul(GLhs), // (1x3) x (3x3) x(3x3) x (3x4) = (1x4)
+          row,
+          cLhs + Q0
+        );
+      }
     }
   }
 }
@@ -555,10 +566,10 @@ export class LinearBushingSingleEnd implements Constraint {
 
   constructor(
     name: string,
-    cRodEndSide: IComponent,
     cFixed: IComponent,
-    iRodEndSide: number,
+    cRodEndSide: IComponent,
     iFixed: [number, number],
+    iRodEndSide: number,
     dlMin?: number,
     dlMax?: number
   ) {
@@ -571,7 +582,8 @@ export class LinearBushingSingleEnd implements Constraint {
     this.res = cRodEndSide;
     this.fixed = cFixed;
 
-    this.resLocalVec = this.res.localVectors[iRodEndSide].clone();
+    this.resLocalVec =
+      this.res.localVectors[iRodEndSide]?.clone() ?? new Vector3();
     this.resLocalSkew = skew(this.resLocalVec).mul(2);
     this.fixedLocalVec = [
       this.fixed.localVectors[iFixed[0]].clone(),
@@ -653,10 +665,12 @@ export class LinearBushingSingleEnd implements Constraint {
         phi_q.setSubMatrix(orthoVecT.clone().mul(-1), row + r, cFixed + X);
         phi_q.setSubMatrix(dFixed, row + r, cFixed + Q0);
       }
-      phi[r + row] = orthoVec.dot(axis);
-      const dRes = orthoVecT.mmul(axisDeltaQ); // (1x3) x (3x4) = (1x4)
       phi_q.setSubMatrix(orthoVecT, row + r, cRes + X);
-      phi_q.setSubMatrix(dRes, row + 3 + r, cRes + Q0);
+      phi[r + row] = orthoVec.dot(axis);
+      if (isFullDegreesComponent(res)) {
+        const dRes = orthoVecT.mmul(axisDeltaQ); // (1x3) x (3x4) = (1x4)
+        phi_q.setSubMatrix(dRes, row + 3 + r, cRes + Q0);
+      }
     }
   }
 

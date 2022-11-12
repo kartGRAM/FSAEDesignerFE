@@ -82,7 +82,9 @@ export interface IComponent {
 
 // 7自由度のコンポーネント
 export class FullDegreesComponent implements IComponent {
-  readonly className = 'FullDegreesComponent';
+  static readonly className = 'FullDegreesComponent' as const;
+
+  readonly className = FullDegreesComponent.className;
 
   readonly name: string;
 
@@ -289,10 +291,17 @@ export class FullDegreesComponent implements IComponent {
     }
   }
 }
+export function isFullDegreesComponent(
+  component: IComponent
+): component is FullDegreesComponent {
+  return component.className === FullDegreesComponent.className;
+}
 
 // 計算にのみ使用する3自由度の点コンポーネント(bar同士をつなぐ場合のダミー)
 export class PointComponent implements IComponent {
-  readonly className = 'PointComponent';
+  static readonly className = 'PointComponent' as const;
+
+  readonly className = PointComponent.className;
 
   readonly name: string;
 
@@ -317,6 +326,7 @@ export class PointComponent implements IComponent {
     return null;
   }
 
+  // とりあえず点の位置だけ合わせる(あとはRestorer任せ)
   applyDq(dq: Matrix) {
     if (this._col === -1) return;
     const {col} = this;
@@ -349,8 +359,22 @@ export class PointComponent implements IComponent {
   rhs: INamedVector3;
 
   applyResultToElement() {
-    this.lhs.value = this.position;
-    this.rhs.value = this.position;
+    const lhs = this.lhs.parent as IElement;
+    const plhs = this.lhs.value
+      .applyQuaternion(lhs.rotation.value)
+      .add(lhs.position.value);
+    lhs.position.value = this.position
+      .clone()
+      .sub(plhs)
+      .add(lhs.position.value);
+    const rhs = this.rhs.parent as IElement;
+    const prhs = this.rhs.value
+      .applyQuaternion(rhs.rotation.value)
+      .add(rhs.position.value);
+    rhs.position.value = this.position
+      .clone()
+      .sub(prhs)
+      .add(rhs.position.value);
   }
 
   _position: Vector3;
@@ -441,6 +465,11 @@ export class PointComponent implements IComponent {
       this.quaternion = this._initialQuaternion.clone();
     }
   }
+}
+export function isPointComponent(
+  component: IComponent
+): component is PointComponent {
+  return component.className === PointComponent.className;
 }
 
 export class KinematicSolver {
@@ -548,6 +577,7 @@ export class KinematicSolver {
     // この時点でコンポーネント間の拘束はただ1つの拘束式になっている。
     {
       this.componentsFromNodeID = {};
+      const pointComponents: {[index: string]: PointComponent} = {};
       children.forEach((element) => {
         // AArmが単独で使われている場合は、BarAndSpheres2つに変更する。
         if (isAArm(element) && canSimplifyAArm(element, jointDict)) {
@@ -612,9 +642,31 @@ export class KinematicSolver {
             return;
           }
           // シンプル化されていない場合、コンポーネントを得る
-          const lhs = tempComponents[elements[0].nodeID];
-          const rhs = tempComponents[elements[1].nodeID];
+          let lhs: IComponent = tempComponents[elements[0].nodeID];
+          let rhs: IComponent = tempComponents[elements[1].nodeID];
           if (!lhs) {
+            if (!(points[0].nodeID in pointComponents)) {
+              pointComponents[element.fixedPoint.nodeID] = new PointComponent(
+                element.fixedPoint,
+                points[0]
+              );
+              lhs = pointComponents[element.fixedPoint.nodeID];
+              components.push(lhs);
+            } else {
+              lhs = pointComponents[points[0].nodeID];
+            }
+          }
+          if (!rhs) {
+            if (!(points[1].nodeID in pointComponents)) {
+              pointComponents[element.point.nodeID] = new PointComponent(
+                element.point,
+                points[1]
+              );
+              rhs = pointComponents[element.point.nodeID];
+              components.push(rhs);
+            } else {
+              rhs = pointComponents[points[1].nodeID];
+            }
           }
           const pointsElement = elements.map((element) => element.getPoints());
           const constraint = new BarAndSpheres(
@@ -665,32 +717,54 @@ export class KinematicSolver {
         }
         // LinearBushingはComponent扱いしない
         if (isLinearBushing(element)) {
-          element.points.forEach((point) => {
-            const jointf0 = jointDict[element.fixedPoints[0].nodeID][0];
-            const jointf1 = jointDict[element.fixedPoints[1].nodeID][0];
+          const jointf0 = jointDict[element.fixedPoints[0].nodeID][0];
+          const jointf1 = jointDict[element.fixedPoints[1].nodeID][0];
+          const fixedPoints = [
+            getJointPartner(jointf0, element.fixedPoints[0].nodeID),
+            getJointPartner(jointf1, element.fixedPoints[1].nodeID)
+          ];
+          jointsDone.add(jointf0);
+          jointsDone.add(jointf1);
+          const node0: INamedVector3[] = [];
+          const nodeIdx0: number[] = [];
+          const component0: IComponent[] = [];
+          element.points.forEach((point, i) => {
             const jointp = jointDict[point.nodeID][0];
-            jointsDone.add(jointf0);
-            jointsDone.add(jointf1);
             jointsDone.add(jointp);
             const points = [
-              getJointPartner(jointf0, element.fixedPoints[0].nodeID),
-              getJointPartner(jointf1, element.fixedPoints[1].nodeID),
+              ...fixedPoints,
               getJointPartner(jointp, point.nodeID)
             ];
+            // 最初のみリストアに登録
+            if (i === 0) {
+              this.restorers.push(
+                new LinearBushingRestorer(
+                  element,
+                  [points[0], points[1]],
+                  points[2]
+                )
+              );
+            }
             const elements = points.map((p) => p.parent as IElement);
-            this.restorers.push(
-              new LinearBushingRestorer(
-                element,
-                [points[0], points[1]],
-                [points[2]]
-              )
-            );
             // あまりないと思うが、AArmのすべての点が同じコンポーネントに接続されている場合無視する
             if (
-              elements[0].nodeID === elements[1].nodeID ||
-              (isFixedElement(elements[0]) && isFixedElement(elements[1]))
+              elements[0].nodeID === elements[2].nodeID ||
+              (isFixedElement(elements[0]) && isFixedElement(elements[2]))
             ) {
               return;
+            }
+            let rhs: IComponent = tempComponents[elements[2].nodeID];
+            if (!rhs) {
+              if (!(points[2].nodeID in pointComponents)) {
+                pointComponents[point.nodeID] = new PointComponent(
+                  point,
+                  points[2]
+                );
+                rhs = pointComponents[point.nodeID];
+                components.push(rhs);
+              } else {
+                rhs = pointComponents[points[2].nodeID];
+              }
             }
             const pointsElement = elements.map((element) =>
               element.getPoints()
@@ -698,18 +772,42 @@ export class KinematicSolver {
             const constraint = new LinearBushingSingleEnd(
               `Linear bushing object of ${element.name.value}`,
               tempComponents[elements[0].nodeID],
-              tempComponents[elements[1].nodeID],
-              pointsElement[0].findIndex((p) => points[0].nodeID === p.nodeID),
+              rhs,
               [
-                pointsElement[1].findIndex(
-                  (p) => points[1].nodeID === p.nodeID
+                pointsElement[0].findIndex(
+                  (p) => points[0].nodeID === p.nodeID
                 ),
-                pointsElement[1].findIndex((p) => points[2].nodeID === p.nodeID)
+                pointsElement[1].findIndex((p) => points[1].nodeID === p.nodeID)
               ],
+              pointsElement[2].findIndex((p) => points[2].nodeID === p.nodeID),
               element.dlMin.value,
               element.dlMax.value
             );
             constraints.push(constraint);
+            if (i === 0) {
+              node0.push(points[2]);
+              nodeIdx0.push(
+                pointsElement[2].findIndex((p) => points[2].nodeID === p.nodeID)
+              );
+              component0.push(rhs);
+            } else {
+              const point0 = node0[0];
+              const idx0 = nodeIdx0[0];
+              const lhs = component0[0];
+              const l = point0.value.sub(point.value).length();
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              const constraint = new BarAndSpheres(
+                `bar object of ${element.name.value} ${i}`,
+                lhs,
+                rhs,
+                idx0,
+                pointsElement[2].findIndex(
+                  (p) => points[2].nodeID === p.nodeID
+                ),
+                l
+              );
+              // constraints.push(constraint);
+            }
           });
         }
       });
@@ -873,9 +971,10 @@ export class KinematicSolver {
 
           const norm = dq.norm('frobenius');
           eq = norm < 1.0e-4;
-          if (norm > minNorm * 100 || Number.isNaN(norm)) {
+          console.log(`norm=${norm.toFixed(3)}`);
+          if (norm > minNorm * 1000 || Number.isNaN(norm)) {
             // eslint-disable-next-line no-console
-            console.log(`norm=${norm}`);
+            console.log(`norm=${norm.toFixed(3)}`);
             // eslint-disable-next-line no-console
             console.log('収束していない');
             throw new Error('ニュートンラプソン法収束エラー');

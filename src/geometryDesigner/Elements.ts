@@ -131,6 +131,15 @@ export function getNewElement(name: Elements): IElement {
       toRightBearing: -60
     });
   }
+  if (name === 'LinearBushing') {
+    return new LinearBushing({
+      name: 'newLinearBushing',
+      fixedPoints: [new Vector3(0, 0, 0), new Vector3(0, 200, 0)],
+      toPoints: [150],
+      dlMin: -50,
+      dlMax: 50
+    });
+  }
   throw Error('Not Supported Exception');
 }
 

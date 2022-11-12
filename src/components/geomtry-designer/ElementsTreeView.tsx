@@ -23,9 +23,9 @@ import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
 import usePrevious from '@app/hooks/usePrevious';
 import {
   treeViewDragExpanded,
-  setDraggingNewElement,
   setDraggingElementAbsPath,
   setConfirmDialogProps,
+  resetDragState,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   setVisibility
 } from '@store/reducers/uiTempGeometryDesigner';
@@ -365,9 +365,8 @@ const TrashNode = React.memo(() => {
     async (e: React.DragEvent<HTMLLIElement>) => {
       e.preventDefault();
       setOpacity(0.2);
-      dispatch(treeViewDragExpanded([]));
       const movingElement = store.getState().uitgd.draggingElementAbsPath;
-      dispatch(setDraggingElementAbsPath(''));
+      dispatch(resetDragState());
       if (!movingElement) return;
       const {assembly} = store.getState().uitgd;
       const element = getElementByPath(assembly, movingElement);
@@ -496,11 +495,9 @@ const MyLabel = React.memo(
       (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
 
-        dispatch(treeViewDragExpanded([]));
         const elementType = store.getState().uitgd.draggingNewElement;
-        dispatch(setDraggingNewElement(null));
         const movingElement = store.getState().uitgd.draggingElementAbsPath;
-        dispatch(setDraggingElementAbsPath(''));
+        dispatch(resetDragState());
         const {assembly} = store.getState().uitgd;
         if (assembly && elementType) {
           const newElement = getNewElement(elementType);
