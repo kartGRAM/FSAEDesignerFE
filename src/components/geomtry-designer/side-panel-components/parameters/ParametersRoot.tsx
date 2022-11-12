@@ -9,6 +9,7 @@ import {
   isBody,
   isTire,
   isSpringDumper,
+  isLinearBushing,
   isAssembly
 } from '@gd/IElements';
 import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
@@ -18,6 +19,7 @@ import SpringDumperConfig from './SpringDumperConfig';
 import BellCrankConfig from './BellCrankConfig';
 import BodyConfig from './BodyConfig';
 import TireConfig from './TireConfig';
+import LinearBushingConfig from './LinearBushingConfig';
 import AssemblyConfig from './AssemblyConfig';
 
 export default function ParametersRoot() {
@@ -48,6 +50,8 @@ export default function ParametersRoot() {
     component = <BodyConfig element={element} key={element.absPath} />;
   } else if (element && isTire(element)) {
     component = <TireConfig element={element} key={element.absPath} />;
+  } else if (element && isLinearBushing(element)) {
+    component = <LinearBushingConfig element={element} key={element.absPath} />;
   } else if (element && isAssembly(element)) {
     component = <AssemblyConfig assembly={element} key={element.absPath} />;
   }

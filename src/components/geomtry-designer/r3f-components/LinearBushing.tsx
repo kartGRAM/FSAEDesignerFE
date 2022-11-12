@@ -73,7 +73,7 @@ const LinearBushing = (props: {element: ILinearBushing}) => {
     );
   });
 
-  const nodes = element.fixedPoints;
+  const nodes = element.getPoints();
   const pts = nodes.map((p) => p.value.applyMatrix3(coMatrix));
   const groupRef = React.useRef<THREE.Group>(null!);
   const meshRef = React.useRef<Line2>(null!);
