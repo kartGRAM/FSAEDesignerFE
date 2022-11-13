@@ -437,7 +437,10 @@ export class PointComponent implements IComponent {
     this.name = `${lhs.name}&${rhs.name}`;
     this.lhs = lhs;
     this.rhs = rhs;
-    this._position = lhs.value;
+    const element = lhs.parent as IElement;
+    this._position = lhs.value
+      .applyQuaternion(element.rotation.value)
+      .add(element.position.value);
   }
 
   reset() {
@@ -1182,7 +1185,7 @@ export class KinematicSolver {
                 )}\nnorm2=${norm2.toFixed(3)}`
               );
             }
-            if (norm > minNorm * 100 || Number.isNaN(norm)) {
+            if (norm > minNorm * 1000 || Number.isNaN(norm)) {
               // eslint-disable-next-line no-console
               if (logOutput) console.log('収束していない');
               throw new Error('準ニュートンラプソン法収束エラー');

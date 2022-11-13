@@ -239,7 +239,7 @@ export class Hinge implements Constraint {
       throw new Error('ヒンジを構成する2点が近すぎます');
     }
     const oVec1 = getStableOrthogonalVector(lAxisVec);
-    const oVec2 = lAxisVec.cross(oVec1);
+    const oVec2 = lAxisVec.cross(oVec1).normalize();
     if (this.lhs.isFixed) {
       this.isFixed = true;
       this.target = this.lhs.position
@@ -596,10 +596,6 @@ export class LinearBushingSingleEnd implements Constraint {
     if (fixedAxisVec.lengthSq() < Number.EPSILON) {
       throw new Error('リニアブッシュを保持するする2点が近すぎます');
     }
-    this.fixedLocalSkew = [
-      skew(this.fixedLocalVec[0]).mul(-2),
-      skew(this.fixedLocalVec[1]).mul(-2)
-    ];
 
     if (this.fixed.isFixed) {
       this.isFixed = true;
@@ -610,8 +606,13 @@ export class LinearBushingSingleEnd implements Constraint {
         .applyQuaternion(this.fixed.quaternion)
         .add(this.fixed.position);
     }
+    this.fixedLocalSkew = [
+      skew(this.fixedLocalVec[0]).mul(-2),
+      skew(this.fixedLocalVec[1]).mul(-2)
+    ];
+
     const oVec1 = getStableOrthogonalVector(fixedAxisVec);
-    const oVec2 = fixedAxisVec.cross(oVec1);
+    const oVec2 = fixedAxisVec.cross(oVec1).normalize();
     this.fixedOrthogonalVec = [oVec1, oVec2];
     this.fixedOrthogonalSkew = [
       skew(this.fixedOrthogonalVec[0]).mul(-2),

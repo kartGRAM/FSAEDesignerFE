@@ -71,7 +71,7 @@ export default function LinearBushingConfig(params: Params) {
               value={point}
               unit="mm"
               disabled={isMirror}
-              key={point.name}
+              key={point.nodeID}
               removable={i > 0}
               onRemove={() => {
                 element.toPoints.splice(i, 1);
