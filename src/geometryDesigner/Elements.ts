@@ -1053,6 +1053,11 @@ export class SpringDumper extends Bar implements ISpringDumper {
     );
   }
 
+  arrange(parentPosition?: Vector3) {
+    this.dlCurrent = 0;
+    super.arrange(parentPosition);
+  }
+
   constructor(
     params:
       | {
@@ -1937,6 +1942,7 @@ export class LinearBushing extends Element implements ILinearBushing {
   }
 
   arrange(parentPosition?: Vector3) {
+    this.dlCurrent = 0;
     const pp = parentPosition ?? new Vector3();
     this.position.value = this.initialPosition.value.clone().add(pp);
     this.rotation.value = new Quaternion();

@@ -795,10 +795,9 @@ export class KinematicSolver {
               );
               component0.push(rhs);
             } else {
-              const point0 = node0[0];
               const idx0 = nodeIdx0[0];
               const lhs = component0[0];
-              const l = point0.value.sub(point.value).length();
+              const l = element.toPoints[i].value - element.toPoints[0].value;
               // eslint-disable-next-line @typescript-eslint/no-unused-vars
               const constraint = new BarAndSpheres(
                 `bar object of ${element.name.value} ${i}`,

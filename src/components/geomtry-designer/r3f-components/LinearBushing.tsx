@@ -45,6 +45,7 @@ const LinearBushing = (props: {element: ILinearBushing}) => {
     const fp = element.fixedPoints.map((p) => p.value);
     const center = fp[0].clone().add(fp[1]).multiplyScalar(0.5);
     const dir = fp[1].clone().sub(fp[0]).normalize();
+    const s = fp[1].clone().sub(fp[0]).applyMatrix3(coMatrix).normalize();
 
     const ptsTo = [
       Math.min(-supportDistance / 2, ...toPoints),
@@ -71,6 +72,7 @@ const LinearBushing = (props: {element: ILinearBushing}) => {
     groupRef.current.quaternion.copy(
       transQuaternion(element.rotation.value, coMatrix)
     );
+    dlRef.current.position.copy(s.multiplyScalar(element.dlCurrent));
   });
 
   const nodes = element.getPoints();
