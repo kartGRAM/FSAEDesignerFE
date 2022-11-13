@@ -7,7 +7,7 @@ import {
   setAssembled
 } from '@store/reducers/uiTempGeometryDesigner';
 // import {getKinematicConstrainedElements} from '@gd/KinematicFunctions';
-import {KinematicSolver} from '@gd/KinematicComponents';
+import {KinematicSolver} from '@gd/kinematics/KinematicComponents';
 
 import {getAssembly} from '@gd/Elements';
 

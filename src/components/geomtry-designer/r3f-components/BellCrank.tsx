@@ -8,7 +8,7 @@ import store, {RootState} from '@store/store';
 import {IBellCrank, transQuaternion, trans} from '@gd/IElements';
 import {getMatrix3} from '@gd/NamedValues';
 import {Line2} from 'three-stdlib';
-import {MovePointTo} from '@gd/Driver';
+import {MovePointTo} from '@gd/kinematics/Driver';
 import {setMovingMode} from '@store/reducers/uiTempGeometryDesigner';
 import NodeSphere from './NodeSphere';
 import {PivotControls} from './PivotControls/PivotControls';

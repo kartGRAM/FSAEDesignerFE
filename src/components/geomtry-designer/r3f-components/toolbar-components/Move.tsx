@@ -11,7 +11,7 @@ import {
   canSimplifyAArm,
   isFixedElement,
   getJointDictionary
-} from '@gd/KinematicFunctions';
+} from '@gd/kinematics/KinematicFunctions';
 
 export default function Move() {
   const disabled = useSelector((state: RootState) => {

@@ -7,7 +7,7 @@ import store, {RootState} from '@store/store';
 import {IBody, trans, isBodyOfFrame, transQuaternion} from '@gd/IElements';
 import {getMatrix3} from '@gd/NamedValues';
 import {ConvexGeometry} from 'three/examples/jsm/geometries/ConvexGeometry';
-import {MovePointTo} from '@gd/Driver';
+import {MovePointTo} from '@gd/kinematics/Driver';
 import {setMovingMode} from '@store/reducers/uiTempGeometryDesigner';
 import NodeSphere from './NodeSphere';
 import {PivotControls} from './PivotControls/PivotControls';

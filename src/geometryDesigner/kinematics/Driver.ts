@@ -5,11 +5,11 @@ import {Matrix} from 'ml-matrix';
 import {IElement, isElement} from '@gd/IElements';
 import {INamedVector3} from '@gd/INamedValues';
 import {Vector3} from 'three';
-import {KinematicSolver, IComponent} from '@gd/KinematicComponents';
+import {KinematicSolver, IComponent} from '@gd/kinematics/KinematicComponents';
 import {
   getIndexOfPoint,
   getPartialDiffOfRotationMatrix
-} from '@gd/KinematicFunctions';
+} from '@gd/kinematics/KinematicFunctions';
 
 export interface IObjectiveFunction {
   component: IComponent;
