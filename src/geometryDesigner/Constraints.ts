@@ -584,7 +584,7 @@ export class LinearBushingSingleEnd implements Constraint {
 
     this.resLocalVec =
       this.res.localVectors[iRodEndSide]?.clone() ?? new Vector3();
-    this.resLocalSkew = skew(this.resLocalVec).mul(2);
+    this.resLocalSkew = skew(this.resLocalVec).mul(-2);
     this.fixedLocalVec = [
       this.fixed.localVectors[iFixed[0]].clone(),
       this.fixed.localVectors[iFixed[1]].clone()
@@ -597,8 +597,8 @@ export class LinearBushingSingleEnd implements Constraint {
       throw new Error('リニアブッシュを保持するする2点が近すぎます');
     }
     this.fixedLocalSkew = [
-      skew(this.fixedLocalVec[0]).mul(2),
-      skew(this.fixedLocalVec[1]).mul(2)
+      skew(this.fixedLocalVec[0]).mul(-2),
+      skew(this.fixedLocalVec[1]).mul(-2)
     ];
 
     if (this.fixed.isFixed) {
@@ -614,8 +614,8 @@ export class LinearBushingSingleEnd implements Constraint {
     const oVec2 = fixedAxisVec.cross(oVec1);
     this.fixedOrthogonalVec = [oVec1, oVec2];
     this.fixedOrthogonalSkew = [
-      skew(this.fixedOrthogonalVec[0]).mul(2),
-      skew(this.fixedOrthogonalVec[1]).mul(2)
+      skew(this.fixedOrthogonalVec[0]).mul(-2),
+      skew(this.fixedOrthogonalVec[1]).mul(-2)
     ];
   }
 
@@ -635,20 +635,22 @@ export class LinearBushingSingleEnd implements Constraint {
     const qFixed = fixed.quaternion;
     const AFixed = rotationMatrix(qFixed);
     const GFixed = decompositionMatrixG(qFixed);
-    const sFixed = fixedLocalVec.map((v) => v.clone().applyQuaternion(qFixed));
+    const sFixed = fixedLocalVec.map((v) => v.clone());
+    if (!this.isFixed) sFixed.forEach((p) => p.applyQuaternion(qFixed));
 
     const pRes = res.position.clone();
     const qRes = res.quaternion;
     const ARes = rotationMatrix(qRes);
     const GRes = decompositionMatrixG(qRes);
 
-    // 並行拘束
+    // 軸を作成
     const axis = resLocalVec.clone().applyQuaternion(qRes).add(pRes);
     if (!this.isFixed) {
       axis.sub(sFixed[0].clone().add(pFixed));
     } else {
       axis.sub(sFixed[0]);
     }
+    // 並行拘束
     const axisT = Matrix.rowVector([axis.x, axis.y, axis.z]); // (1x3)
     const axisDeltaQ = ARes.mmul(resLocalSkew).mmul(GRes); // (3x4)
     const dFixedDeltaQ = AFixed.mmul(fixedLocalSkew[0]).mmul(GFixed);

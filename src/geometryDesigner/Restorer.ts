@@ -13,7 +13,7 @@ import {INamedVector3} from '@gd/INamedValues';
 import {Vector3, Quaternion} from 'three';
 
 export interface Restorer {
-  restore(): void;
+  restore(unresolvedPoints: {[key: string]: Vector3}): void;
 }
 
 export class BarRestorer implements Restorer {
@@ -29,18 +29,22 @@ export class BarRestorer implements Restorer {
     this.point = point;
   }
 
-  restore() {
+  restore(unresolvedPoints: {[key: string]: Vector3}) {
     const fp = this.element.fixedPoint.value;
     const fpParent = this.fixedPoint.parent as IElement;
     const pParent = this.point.parent as IElement;
-    const fpTo = this.fixedPoint.value
-      .applyQuaternion(fpParent.rotation.value)
-      .add(fpParent.position.value);
+    const fpTo =
+      unresolvedPoints[this.fixedPoint.nodeID] ??
+      this.fixedPoint.value
+        .applyQuaternion(fpParent.rotation.value)
+        .add(fpParent.position.value);
     const s = this.element.point.value.sub(fp).normalize();
 
-    const pTo = this.point.value
-      .applyQuaternion(pParent.rotation.value)
-      .add(pParent.position.value);
+    const pTo =
+      unresolvedPoints[this.point.nodeID] ??
+      this.point.value
+        .applyQuaternion(pParent.rotation.value)
+        .add(pParent.position.value);
     const sTo = pTo.clone().sub(fpTo).normalize();
     this.element.rotation.value = new Quaternion().setFromUnitVectors(s, sTo);
 
@@ -195,26 +199,40 @@ export class LinearBushingRestorer implements Restorer {
     this.point = point;
   }
 
-  restore() {
+  restore(unresolvedPoints: {[key: string]: Vector3}) {
     const fps = this.element.fixedPoints.map((p) => p.value);
     const fpParent = this.fixedPoints[0].parent as IElement;
 
-    const fpsTo = this.fixedPoints.map((p) =>
-      p.value
-        .applyQuaternion(fpParent.rotation.value)
-        .add(fpParent.position.value)
+    const fpsTo = this.fixedPoints.map(
+      (p) =>
+        unresolvedPoints[p.nodeID] ??
+        p.value
+          .applyQuaternion(fpParent.rotation.value)
+          .add(fpParent.position.value)
     );
-    const s = fps[1].sub(fps[0]).normalize();
+    const s = fps[1].clone().sub(fps[0]).normalize();
     const sTo = fpsTo[1].clone().sub(fpsTo[0]).normalize();
     this.element.rotation.value = new Quaternion().setFromUnitVectors(s, sTo);
 
+    fps.forEach((p) =>
+      p
+        .applyQuaternion(this.element.rotation.value)
+        .add(this.element.position.value)
+    );
+    const deltaP = fpsTo[0].clone().sub(fps[0]);
+    this.element.position.value = this.element.position.value.add(deltaP);
+
     const supportsCenter = fpsTo[1].clone().add(fpsTo[0]).multiplyScalar(0.5);
-    const supportDistance = s.length();
     const pParent = this.point.parent as IElement;
 
-    const pTo = this.point.value
-      .applyQuaternion(pParent.rotation.value)
-      .add(pParent.position.value);
-    this.element.dlCurrent = supportDistance - pTo.sub(supportsCenter).length();
+    const pTo =
+      unresolvedPoints[this.point.nodeID] ??
+      this.point.value
+        .applyQuaternion(pParent.rotation.value)
+        .add(pParent.position.value);
+    const pToDelta = pTo.sub(supportsCenter);
+    const sign = pToDelta.dot(sTo) > 0 ? 1 : -1;
+    const initialPosition = this.element.toPoints[0].value;
+    this.element.dlCurrent = pToDelta.length() * sign - initialPosition;
   }
 }

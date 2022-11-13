@@ -359,22 +359,16 @@ export class PointComponent implements IComponent {
   rhs: INamedVector3;
 
   applyResultToElement() {
-    const lhs = this.lhs.parent as IElement;
-    const plhs = this.lhs.value
-      .applyQuaternion(lhs.rotation.value)
-      .add(lhs.position.value);
-    lhs.position.value = this.position
-      .clone()
-      .sub(plhs)
-      .add(lhs.position.value);
-    const rhs = this.rhs.parent as IElement;
-    const prhs = this.rhs.value
-      .applyQuaternion(rhs.rotation.value)
-      .add(rhs.position.value);
-    rhs.position.value = this.position
-      .clone()
-      .sub(prhs)
-      .add(rhs.position.value);
+    [this.lhs, this.rhs].forEach((p) => {
+      const element = p.parent as IElement;
+      const pFrom = p.value
+        .applyQuaternion(element.rotation.value)
+        .add(element.position.value);
+      element.position.value = this.position
+        .clone()
+        .sub(pFrom)
+        .add(element.position.value);
+    });
   }
 
   _position: Vector3;
@@ -477,6 +471,8 @@ export class KinematicSolver {
 
   components: IComponent[][];
 
+  pointComponents: {[index: string]: PointComponent} = {};
+
   componentsFromNodeID: {[index: string]: IComponent};
 
   restorers: Restorer[] = [];
@@ -577,7 +573,7 @@ export class KinematicSolver {
     // この時点でコンポーネント間の拘束はただ1つの拘束式になっている。
     {
       this.componentsFromNodeID = {};
-      const pointComponents: {[index: string]: PointComponent} = {};
+      const {pointComponents} = this;
       children.forEach((element) => {
         // AArmが単独で使われている場合は、BarAndSpheres2つに変更する。
         if (isAArm(element) && canSimplifyAArm(element, jointDict)) {
@@ -653,7 +649,9 @@ export class KinematicSolver {
               lhs = pointComponents[element.fixedPoint.nodeID];
               components.push(lhs);
             } else {
-              lhs = pointComponents[points[0].nodeID];
+              // eslint-disable-next-line no-multi-assign
+              lhs = pointComponents[element.fixedPoint.nodeID] =
+                pointComponents[points[0].nodeID];
             }
           }
           if (!rhs) {
@@ -665,7 +663,9 @@ export class KinematicSolver {
               rhs = pointComponents[element.point.nodeID];
               components.push(rhs);
             } else {
-              rhs = pointComponents[points[1].nodeID];
+              // eslint-disable-next-line no-multi-assign
+              rhs = pointComponents[element.fixedPoint.nodeID] =
+                pointComponents[points[1].nodeID];
             }
           }
           const pointsElement = elements.map((element) => element.getPoints());
@@ -729,30 +729,14 @@ export class KinematicSolver {
           const nodeIdx0: number[] = [];
           const component0: IComponent[] = [];
           element.points.forEach((point, i) => {
+            // if (i > 0) return;
             const jointp = jointDict[point.nodeID][0];
             jointsDone.add(jointp);
             const points = [
               ...fixedPoints,
               getJointPartner(jointp, point.nodeID)
             ];
-            // 最初のみリストアに登録
-            if (i === 0) {
-              this.restorers.push(
-                new LinearBushingRestorer(
-                  element,
-                  [points[0], points[1]],
-                  points[2]
-                )
-              );
-            }
             const elements = points.map((p) => p.parent as IElement);
-            // あまりないと思うが、AArmのすべての点が同じコンポーネントに接続されている場合無視する
-            if (
-              elements[0].nodeID === elements[2].nodeID ||
-              (isFixedElement(elements[0]) && isFixedElement(elements[2]))
-            ) {
-              return;
-            }
             let rhs: IComponent = tempComponents[elements[2].nodeID];
             if (!rhs) {
               if (!(points[2].nodeID in pointComponents)) {
@@ -763,12 +747,32 @@ export class KinematicSolver {
                 rhs = pointComponents[point.nodeID];
                 components.push(rhs);
               } else {
-                rhs = pointComponents[points[2].nodeID];
+                // eslint-disable-next-line no-multi-assign
+                rhs = pointComponents[point.nodeID] =
+                  pointComponents[points[2].nodeID];
               }
             }
             const pointsElement = elements.map((element) =>
               element.getPoints()
             );
+            // 最初のみリストアに登録
+            if (i === 0) {
+              this.restorers.push(
+                new LinearBushingRestorer(
+                  element,
+                  [points[0], points[1]],
+                  points[2]
+                )
+              );
+            }
+
+            // あまりないと思うが、AArmのすべての点が同じコンポーネントに接続されている場合無視する
+            if (
+              elements[0].nodeID === elements[2].nodeID ||
+              (isFixedElement(elements[0]) && isFixedElement(elements[2]))
+            ) {
+              return;
+            }
             const constraint = new LinearBushingSingleEnd(
               `Linear bushing object of ${element.name.value}`,
               tempComponents[elements[0].nodeID],
@@ -806,7 +810,7 @@ export class KinematicSolver {
                 ),
                 l
               );
-              // constraints.push(constraint);
+              constraints.push(constraint);
             }
           });
         }
@@ -1247,8 +1251,15 @@ export class KinematicSolver {
       components.forEach((component) => component.applyResultToElement())
     );
     // 簡略化したElementに計算結果を反映する
+    const unresolvedPoints = Object.keys(this.pointComponents).reduce(
+      (prev, current) => {
+        prev[current] = this.pointComponents[current].position.clone();
+        return prev;
+      },
+      {} as {[key: string]: Vector3}
+    );
     this.restorers.forEach((restorer) => {
-      restorer.restore();
+      restorer.restore(unresolvedPoints);
     });
   }
 }

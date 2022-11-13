@@ -75,15 +75,23 @@ const LinearBushing = (props: {element: ILinearBushing}) => {
 
   const nodes = element.getPoints();
   const pts = nodes.map((p) => p.value.applyMatrix3(coMatrix));
+  const fixedPoints = nodes.slice(0, 2);
+  const points = nodes.slice(2);
   const groupRef = React.useRef<THREE.Group>(null!);
+  const dlRef = React.useRef<THREE.Group>(null!);
   const meshRef = React.useRef<Line2>(null!);
 
   return (
     <group onDoubleClick={handleOnDoubleClick} ref={groupRef}>
-      <Line points={pts} color="pink" lineWidth={4} ref={meshRef} />
-      {nodes.map((node) => (
+      <Line points={pts.slice(0, 2)} color="pink" lineWidth={4} ref={meshRef} />
+      {fixedPoints.map((node) => (
         <NodeSphere node={node} key={node.nodeID} />
       ))}
+      <group ref={dlRef}>
+        {points.map((node) => (
+          <NodeSphere node={node} key={node.nodeID} />
+        ))}
+      </group>
     </group>
   );
 };
