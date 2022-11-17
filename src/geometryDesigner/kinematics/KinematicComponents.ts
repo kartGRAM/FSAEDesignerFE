@@ -24,8 +24,7 @@ import {
   getJointPartner,
   isFixedElement,
   getJointsToOtherComponents,
-  getNamedVector3FromJoint,
-  getIndexOfPoint
+  getNamedVector3FromJoint
 } from './KinematicFunctions';
 import {
   Restorer,
@@ -67,7 +66,6 @@ export interface IComponent {
   applyResultToElement(): void;
   position: Vector3;
   quaternion: Quaternion;
-  localVectors: Vector3[];
   readonly isFixed: boolean;
   getGroupedConstraints(): Constraint[];
   get root(): IComponent;
@@ -203,8 +201,6 @@ export class FullDegreesComponent implements IComponent {
     this._quaternion = value;
   }
 
-  localVectors: Vector3[];
-
   _isFixed: boolean = false;
 
   get isFixed(): boolean {
@@ -263,7 +259,6 @@ export class FullDegreesComponent implements IComponent {
     this.element = element;
     this._position = element.position.value;
     this._quaternion = element.rotation.value;
-    this.localVectors = element.getPoints().map((p) => p.value);
     this._isFixed = isFixedElement(element); // fixedElementになった場合、ソルバに評価されない
   }
 
@@ -271,7 +266,6 @@ export class FullDegreesComponent implements IComponent {
     const {element} = this;
     this._position = element.position.value;
     this._quaternion = element.rotation.value;
-    this.localVectors = element.getPoints().map((p) => p.value);
     this._isFixed = isFixedElement(element); // fixedElementになった場合、ソルバに評価されない
   }
 
@@ -387,8 +381,6 @@ export class PointComponent implements IComponent {
 
   // eslint-disable-next-line no-empty-function
   set quaternion(value: Quaternion) {}
-
-  localVectors: Vector3[] = [];
 
   _isFixed: boolean = false;
 
@@ -557,19 +549,6 @@ export class KinematicSolver {
           }
         }
       });
-      // eslint-disable-next-line no-restricted-syntax
-      for (const [component, [deltaP, deltaQ]] of needToUpdatePoints) {
-        component.localVectors.forEach((v) =>
-          v.applyQuaternion(deltaQ).add(deltaP)
-        );
-        while (component.parent.isRelativeFixed) {
-          component.parent = component.parent.parent;
-          const [deltaP, deltaQ] = needToUpdatePoints.get(component.parent)!;
-          component.localVectors.forEach((v) =>
-            v.applyQuaternion(deltaQ).add(deltaP)
-          );
-        }
-      }
     }
     // ステップ3: この時点でElement間の拘束点は2点以下なので、Sphere拘束か
     // Hinge拘束か、BarAndSpher拘束を実施する。
@@ -603,18 +582,16 @@ export class KinematicSolver {
           ) {
             return;
           }
-          const pointsBody = body.getPoints();
-          const pointsUpright = upright.getPoints();
           ptsBody.forEach((pBody, i) => {
             const constraint = new BarAndSpheres(
               `bar object of aarm ${element.name.value}`,
               tempComponents[body.nodeID],
               tempComponents[upright.nodeID],
-              pointsBody.findIndex((p) => pBody.nodeID === p.nodeID),
-              pointsUpright.findIndex((p) => pUpright.nodeID === p.nodeID),
               element.points[0].value
                 .sub(element.fixedPoints[i].value)
                 .length(),
+              pBody.value,
+              pUpright.value,
               false
             );
             constraints.push(constraint);
@@ -671,14 +648,13 @@ export class KinematicSolver {
                 pointComponents[points[1].nodeID];
             }
           }
-          const pointsElement = elements.map((element) => element.getPoints());
           const constraint = new BarAndSpheres(
             `bar object of ${element.name.value}`,
             lhs,
             rhs,
-            pointsElement[0].findIndex((p) => points[0].nodeID === p.nodeID),
-            pointsElement[1].findIndex((p) => points[1].nodeID === p.nodeID),
             element.length,
+            isFullDegreesComponent(lhs) ? points[0].value : undefined,
+            isFullDegreesComponent(rhs) ? points[1].value : undefined,
             isSpringDumper(element),
             isSpringDumper(element) ? element.dlMin.value : undefined,
             isSpringDumper(element) ? element.dlMax.value : undefined
@@ -706,14 +682,13 @@ export class KinematicSolver {
             return;
           }
           // 以下はかなり特殊な場合（BRGの剛性を再現しているとか）
-          const pointsElement = elements.map((element) => element.getPoints());
           const constraint = new BarAndSpheres(
             `bar object of tire ${element.name.value}`,
             tempComponents[elements[0].nodeID],
             tempComponents[elements[1].nodeID],
-            pointsElement[0].findIndex((p) => points[0].nodeID === p.nodeID),
-            pointsElement[1].findIndex((p) => points[1].nodeID === p.nodeID),
             element.bearingDistance,
+            points[0].value,
+            points[1].value,
             false
           );
           constraints.push(constraint);
@@ -728,11 +703,9 @@ export class KinematicSolver {
           ];
           jointsDone.add(jointf0);
           jointsDone.add(jointf1);
-          const node0: INamedVector3[] = [];
-          const nodeIdx0: number[] = [];
+          const node0: (Vector3 | undefined)[] = [];
           const component0: IComponent[] = [];
           element.points.forEach((point, i) => {
-            // if (i > 0) return;
             const jointp = jointDict[point.nodeID][0];
             jointsDone.add(jointp);
             const points = [
@@ -755,9 +728,6 @@ export class KinematicSolver {
                   pointComponents[points[2].nodeID];
               }
             }
-            const pointsElement = elements.map((element) =>
-              element.getPoints()
-            );
             // 最初のみリストアに登録
             if (i === 0) {
               this.restorers.push(
@@ -780,37 +750,29 @@ export class KinematicSolver {
               `Linear bushing object of ${element.name.value}`,
               tempComponents[elements[0].nodeID],
               rhs,
-              [
-                pointsElement[0].findIndex(
-                  (p) => points[0].nodeID === p.nodeID
-                ),
-                pointsElement[1].findIndex((p) => points[1].nodeID === p.nodeID)
-              ],
-              pointsElement[2].findIndex((p) => points[2].nodeID === p.nodeID),
+              [points[0].value, points[1].value],
+              element.toPoints[i].value,
+              isFullDegreesComponent(rhs) ? points[2].value : undefined,
               element.dlMin.value,
               element.dlMax.value
             );
             constraints.push(constraint);
             if (i === 0) {
-              node0.push(points[2]);
-              nodeIdx0.push(
-                pointsElement[2].findIndex((p) => points[2].nodeID === p.nodeID)
+              node0.push(
+                isFullDegreesComponent(rhs) ? points[2].value : undefined
               );
               component0.push(rhs);
             } else {
-              const idx0 = nodeIdx0[0];
+              const v0 = node0[0];
               const lhs = component0[0];
               const l = element.toPoints[i].value - element.toPoints[0].value;
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
               const constraint = new BarAndSpheres(
                 `bar object of ${element.name.value} ${i}`,
                 lhs,
                 rhs,
-                idx0,
-                pointsElement[2].findIndex(
-                  (p) => points[2].nodeID === p.nodeID
-                ),
-                l
+                l,
+                v0,
+                isFullDegreesComponent(rhs) ? points[2].value : undefined
               );
               constraints.push(constraint);
             }
@@ -844,8 +806,8 @@ export class KinematicSolver {
           const otherComponent = tempComponents[partnerID];
           const otherElement = tempElements[partnerID];
           const joints = jDict[partnerID];
-          const iLhs: number[] = [];
-          const iRhs: number[] = [];
+          const vLhs: Vector3[] = [];
+          const vRhs: Vector3[] = [];
           let constraint: Constraint;
           joints.forEach((joint) => {
             jointsDone.add(joint);
@@ -854,8 +816,8 @@ export class KinematicSolver {
               element.nodeID,
               partnerID
             );
-            iLhs.push(getIndexOfPoint(element, pThis));
-            iRhs.push(getIndexOfPoint(otherElement, pPartner));
+            vLhs.push(pThis.value);
+            vRhs.push(pPartner.value);
           });
           // コンポーネント間の拘束の数は2以下
           if (joints.length === 2) {
@@ -863,8 +825,8 @@ export class KinematicSolver {
               `Hinge Constrains to ${element.name.value} and ${otherElement.name.value}`,
               component,
               otherComponent,
-              [iLhs[0], iLhs[1]],
-              [iRhs[0], iRhs[1]]
+              [vLhs[0], vLhs[1]],
+              [vRhs[0], vRhs[1]]
             );
           } else {
             // 1点拘束
@@ -872,8 +834,8 @@ export class KinematicSolver {
               `Sphere Constrains to ${element.name.value} and ${otherElement.name.value}`,
               component,
               otherComponent,
-              iLhs[0],
-              iRhs[0]
+              vLhs[0],
+              vRhs[0]
             );
           }
           constraints.push(constraint);

@@ -80,10 +80,10 @@ export class Sphere implements Constraint {
 
   constructor(
     name: string,
-    clhs: FullDegreesComponent,
-    crhs: FullDegreesComponent,
-    ilhs: number,
-    irhs: number
+    clhs: IComponent,
+    crhs: IComponent,
+    vlhs?: Vector3,
+    vrhs?: Vector3
   ) {
     this.name = name;
     if (clhs.isFixed) {
@@ -91,17 +91,17 @@ export class Sphere implements Constraint {
       // 固定側はrhsにする
       this.lhs = crhs;
       this.rhs = clhs;
-      const tmp = ilhs;
-      ilhs = irhs;
-      irhs = tmp;
+      const tmp = vlhs;
+      vlhs = vrhs;
+      vrhs = tmp;
     } else {
       this.lhs = clhs;
       this.rhs = crhs;
     }
 
-    this.lLocalVec = this.lhs.localVectors[ilhs].clone();
+    this.lLocalVec = vlhs?.clone() ?? new Vector3();
     this.lLocalSkew = skew(this.lLocalVec).mul(2);
-    this.rLocalVec = this.rhs.localVectors[irhs].clone();
+    this.rLocalVec = vrhs?.clone() ?? new Vector3();
     this.rLocalSkew = skew(this.rLocalVec).mul(-2);
     if (this.rhs.isFixed) {
       this.isFixed = true;
@@ -142,8 +142,20 @@ export class Sphere implements Constraint {
       phi_q.set(row + X, cRhs + X, -1);
       phi_q.set(row + Y, cRhs + Y, -1);
       phi_q.set(row + Z, cRhs + Z, -1);
-      phi_q.setSubMatrix(ALhs.mmul(lLocalSkew).mmul(GLhs), row + X, cLhs + Q0);
-      phi_q.setSubMatrix(ARhs.mmul(rLocalSkew).mmul(GRhs), row + X, cRhs + Q0);
+      if (isFullDegreesComponent(lhs)) {
+        phi_q.setSubMatrix(
+          ALhs.mmul(lLocalSkew).mmul(GLhs),
+          row + X,
+          cLhs + Q0
+        );
+      }
+      if (isFullDegreesComponent(rhs)) {
+        phi_q.setSubMatrix(
+          ARhs.mmul(rLocalSkew).mmul(GRhs),
+          row + X,
+          cRhs + Q0
+        );
+      }
     } else {
       const constraint = lhs.position.clone().add(sLhs).sub(this.target);
       phi[row + X] = constraint.x;
@@ -153,7 +165,13 @@ export class Sphere implements Constraint {
       phi_q.set(row + X, cLhs + X, 1);
       phi_q.set(row + Y, cLhs + Y, 1);
       phi_q.set(row + Z, cLhs + Z, 1);
-      phi_q.setSubMatrix(ALhs.mmul(lLocalSkew).mmul(GLhs), row + X, cLhs + Q0);
+      if (isFullDegreesComponent(lhs)) {
+        phi_q.setSubMatrix(
+          ALhs.mmul(lLocalSkew).mmul(GLhs),
+          row + X,
+          cLhs + Q0
+        );
+      }
     }
   }
 
@@ -209,8 +227,8 @@ export class Hinge implements Constraint {
     name: string,
     clhs: FullDegreesComponent,
     crhs: FullDegreesComponent,
-    ilhs: [number, number],
-    irhs: [number, number]
+    vlhs: [Vector3, Vector3],
+    vrhs: [Vector3, Vector3]
   ) {
     this.name = name;
     if (crhs.isFixed) {
@@ -218,20 +236,20 @@ export class Hinge implements Constraint {
       // 固定側はlhsにする
       this.lhs = crhs;
       this.rhs = clhs;
-      const tmp = ilhs;
-      ilhs = irhs;
-      irhs = tmp;
+      const tmp = vlhs;
+      vlhs = vrhs;
+      vrhs = tmp;
     } else {
       this.lhs = clhs;
       this.rhs = crhs;
     }
-    this.lLocalVec = this.lhs.localVectors[ilhs[0]].clone();
+    this.lLocalVec = vlhs[0].clone();
     this.lLocalSkew = skew(this.lLocalVec).mul(2);
-    this.rLocalVec = this.rhs.localVectors[irhs[0]].clone();
+    this.rLocalVec = vrhs[0].clone();
     this.rLocalSkew = skew(this.rLocalVec).mul(-2);
-    this.rAxisVec = this.rhs.localVectors[irhs[1]].clone().sub(this.rLocalVec);
+    this.rAxisVec = vlhs[1].clone().sub(this.rLocalVec);
     this.rAxisSkew = skew(this.rAxisVec).mul(2);
-    const lAxisVec = this.lhs.localVectors[ilhs[1]].clone().sub(this.lLocalVec);
+    const lAxisVec = vrhs[1].clone().sub(this.lLocalVec);
     if (
       this.rAxisVec.lengthSq() < Number.EPSILON ||
       lAxisVec.lengthSq() < Number.EPSILON
@@ -383,9 +401,9 @@ export class BarAndSpheres implements Constraint {
     name: string,
     clhs: IComponent,
     crhs: IComponent,
-    ilhs: number,
-    irhs: number,
     l: number,
+    vlhs?: Vector3,
+    vrhs?: Vector3,
     isSpringDumper?: boolean,
     dlMin?: number,
     dlMax?: number
@@ -399,16 +417,16 @@ export class BarAndSpheres implements Constraint {
       // 固定側はrhsにする
       this.lhs = crhs;
       this.rhs = clhs;
-      const tmp = ilhs;
-      ilhs = irhs;
-      irhs = tmp;
+      const tmp = vlhs;
+      vlhs = vrhs;
+      vrhs = tmp;
     } else {
       this.lhs = clhs;
       this.rhs = crhs;
     }
-    this.lLocalVec = this.lhs.localVectors[ilhs]?.clone() ?? new Vector3();
+    this.lLocalVec = vlhs?.clone() ?? new Vector3();
     this.lLocalSkew = skew(this.lLocalVec).mul(2);
-    this.rLocalVec = this.rhs.localVectors[irhs]?.clone() ?? new Vector3();
+    this.rLocalVec = vrhs?.clone() ?? new Vector3();
     this.rLocalSkew = skew(this.rLocalVec).mul(-2);
     if (this.rhs.isFixed) {
       this.isFixed = true;
@@ -483,14 +501,15 @@ export class BarAndSpheres implements Constraint {
 
       phi_q.setSubMatrix(dT, row, cLhs + X);
       phi_q.setSubMatrix(dT.clone().mul(-1), row, cRhs + X);
-      if (isFullDegreesComponent(this.lhs)) {
+
+      if (isFullDegreesComponent(lhs)) {
         phi_q.setSubMatrix(
           dT.mmul(ALhs).mmul(lLocalSkew).mmul(GLhs),
           row,
           cLhs + Q0
         );
       }
-      if (isFullDegreesComponent(this.rhs)) {
+      if (isFullDegreesComponent(rhs)) {
         phi_q.setSubMatrix(
           dT.mmul(ARhs).mmul(rLocalSkew).mmul(GRhs),
           row,
@@ -503,7 +522,7 @@ export class BarAndSpheres implements Constraint {
       phi[row] = d.lengthSq() - l2;
 
       phi_q.setSubMatrix(dT, row, cLhs + X);
-      if (isFullDegreesComponent(this.lhs)) {
+      if (isFullDegreesComponent(lhs)) {
         phi_q.setSubMatrix(
           dT.mmul(ALhs).mmul(lLocalSkew).mmul(GLhs), // (1x3) x (3x3) x(3x3) x (3x4) = (1x4)
           row,
@@ -519,7 +538,7 @@ export class LinearBushingSingleEnd implements Constraint {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   constraints(onAssemble: boolean) {
     // 組み立て時は固定する
-    // if (onAssemble) return 3;
+    if (onAssemble) return 3;
     return 2;
   }
 
@@ -564,15 +583,34 @@ export class LinearBushingSingleEnd implements Constraint {
 
   dlMax: number = Number.MAX_SAFE_INTEGER;
 
+  sphere: Sphere;
+
   constructor(
     name: string,
-    cFixed: IComponent,
+    cFixed: FullDegreesComponent,
     cRodEndSide: IComponent,
-    iFixed: [number, number],
-    iRodEndSide: number,
+    vFixed: [Vector3, Vector3],
+    initialLength: number,
+    vRodEndSide?: Vector3,
     dlMin?: number,
     dlMax?: number
   ) {
+    const center = vFixed[1].clone().add(vFixed[0]).multiplyScalar(0.5);
+    this.fixedLocalVec = [vFixed[0].clone(), vFixed[1].clone()];
+    const fixedAxisVec = vFixed[1].clone().sub(vFixed[0]);
+    if (fixedAxisVec.lengthSq() < Number.EPSILON) {
+      throw new Error('リニアブッシュを保持するする2点が近すぎます');
+    }
+    this.sphere = new Sphere(
+      name,
+      cFixed,
+      cRodEndSide,
+      center.add(
+        fixedAxisVec.clone().normalize().multiplyScalar(initialLength)
+      ),
+      vRodEndSide
+    );
+
     this.name = name;
     if (dlMin) this.dlMin = dlMin;
     if (dlMax) this.dlMax = dlMax;
@@ -582,20 +620,8 @@ export class LinearBushingSingleEnd implements Constraint {
     this.res = cRodEndSide;
     this.fixed = cFixed;
 
-    this.resLocalVec =
-      this.res.localVectors[iRodEndSide]?.clone() ?? new Vector3();
+    this.resLocalVec = vRodEndSide?.clone() ?? new Vector3();
     this.resLocalSkew = skew(this.resLocalVec).mul(-2);
-    this.fixedLocalVec = [
-      this.fixed.localVectors[iFixed[0]].clone(),
-      this.fixed.localVectors[iFixed[1]].clone()
-    ];
-    const fixedAxisVec = this.fixed.localVectors[iFixed[1]]
-      .clone()
-      .sub(this.fixed.localVectors[iFixed[0]]);
-
-    if (fixedAxisVec.lengthSq() < Number.EPSILON) {
-      throw new Error('リニアブッシュを保持するする2点が近すぎます');
-    }
 
     if (this.fixed.isFixed) {
       this.isFixed = true;
@@ -620,7 +646,13 @@ export class LinearBushingSingleEnd implements Constraint {
     ];
   }
 
-  setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
+  setJacobianAndConstraints(phi_q: Matrix, phi: number[], onAssemble: boolean) {
+    if (onAssemble) {
+      this.sphere.row = this.row;
+      this.sphere.setJacobianAndConstraints(phi_q, phi);
+      return;
+    }
+
     const cRes = this.res.col;
     const cFixed = this.fixed.col;
     const {
@@ -670,8 +702,8 @@ export class LinearBushingSingleEnd implements Constraint {
       }
       phi_q.setSubMatrix(orthoVecT, row + r, cRes + X);
       phi[r + row] = orthoVec.dot(axis);
+      const dRes = orthoVecT.mmul(axisDeltaQ); // (1x3) x (3x4) = (1x4)
       if (isFullDegreesComponent(res)) {
-        const dRes = orthoVecT.mmul(axisDeltaQ); // (1x3) x (3x4) = (1x4)
         phi_q.setSubMatrix(dRes, row + 3 + r, cRes + Q0);
       }
     }
