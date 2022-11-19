@@ -21,6 +21,7 @@ import {
   SidePanelTab,
   selectSidePanelTab
 } from '@app/store/reducers/uiTempGeometryDesigner';
+import SteeringWheel from './svgs/SteeringWheel';
 
 const drawerWidth = 240;
 
@@ -109,6 +110,7 @@ export default function MiniDrawer() {
         {[
           {text: 'elements', icon: <HomeRepairServiceIcon />},
           {text: 'parameters', icon: <SettingsInputComponentIcon />},
+          {text: 'drivers', icon: <SteeringWheel />},
           {text: 'analysis', icon: <AutoGraphIcon />},
           {text: 'style', icon: <BrushIcon />},
           {text: 'visualization', icon: <ComputerIcon />}
