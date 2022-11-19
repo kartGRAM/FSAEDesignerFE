@@ -8,7 +8,7 @@ import {IAssembly, Elements} from '@gd/IElements';
 import {Quaternion, Vector3} from 'three';
 import {RootState} from '@react-three/fiber';
 import {GetState} from 'zustand';
-import {KinematicSolver} from '@gd/kinematics/KinematicComponents';
+import {KinematicSolver} from '@gd/kinematics/Solver';
 // import {PointOffsetToolDialogProps} from '@gdComponents/dialog-components/PointOffsetToolDialog';
 
 export type SidePanelTab =

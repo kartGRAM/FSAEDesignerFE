@@ -39,6 +39,19 @@ const Body = (props: {element: IBody}) => {
     );
   });
 
+  const nodes = element.getPoints();
+  const getInitialPosition = React.useCallback(() => {
+    const state = store.getState();
+    const point =
+      nodes.find(
+        (p) =>
+          p.nodeID ===
+          state.uitgd.gdSceneState.selectedPoint?.at(0)?.point.nodeID
+      ) ?? element.centerOfPoints;
+    return point;
+  }, [nodes]);
+  const pts = nodes.map((p) => p.value.applyMatrix3(coMatrix));
+
   useFrame(() => {
     const state = store.getState();
     const selectedPath = state.uitgd.selectedElementAbsPath;
@@ -61,20 +74,14 @@ const Body = (props: {element: IBody}) => {
       dragRef.current = false;
       const solver = store.getState().uitgd.kinematicSolver;
       if (solver && !solver.running) {
-        const delta = targetRef.current
-          .clone()
-          .sub(trans(element.points[0]))
-          .lengthSq();
+        const point = getInitialPosition();
+        const delta = targetRef.current.clone().sub(trans(point)).lengthSq();
 
         if (delta < 1e-10) {
           return;
         }
 
-        const func = new MovePointTo(
-          element.centerOfPoints,
-          targetRef.current,
-          solver
-        );
+        const func = new MovePointTo(point, targetRef.current, solver);
         try {
           solver.solveObjectiveFunction(func, {logOutput: false});
         } catch (e) {
@@ -88,23 +95,25 @@ const Body = (props: {element: IBody}) => {
       resetStateRef.current !== state.uitgd.gdSceneState.resetPositions
     ) {
       pivotRef.current.matrix = new THREE.Matrix4().setPosition(
-        initialPosition
+        trans(getInitialPosition(), coMatrix)
       );
       resetStateRef.current = !resetStateRef.current;
     }
   });
   React.useEffect(() => {
     if (!moveThisComponent) dispatch(setMovingMode(false));
+    else {
+      pivotRef.current.matrix = new THREE.Matrix4().setPosition(
+        trans(getInitialPosition(), coMatrix)
+      );
+    }
   }, [moveThisComponent]);
 
-  const nodes = element.getPoints();
-  const pts = nodes.map((p) => p.value.applyMatrix3(coMatrix));
   const geometry = new ConvexGeometry(pts);
 
   const groupRef = React.useRef<THREE.Group>(null!);
   const materialRef = React.useRef<THREE.MeshBasicMaterial>(null!);
   const meshRef = React.useRef<THREE.Mesh>(null!);
-  const initialPosition = trans(element.centerOfPoints, coMatrix);
   const targetRef = React.useRef<THREE.Vector3>(new THREE.Vector3());
   const dragRef = React.useRef<boolean>(false);
   const pivotRef = React.useRef<THREE.Group>(null!);
@@ -132,7 +141,6 @@ const Body = (props: {element: IBody}) => {
           ref={pivotRef}
           displayValues={false}
           disableSliders
-          matrix={new THREE.Matrix4().setPosition(initialPosition)}
           scale={70}
           onDrag={(mL) => {
             const coMatrixT = coMatrix.clone().transpose();
