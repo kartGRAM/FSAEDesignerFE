@@ -17,6 +17,8 @@ import {
 import {getCameraQuaternion} from '@utils/three';
 
 export default function shortCutKeys(e: KeyboardEvent) {
+  const state = store.getState();
+  if (state.uitgd.uiDisabled) return;
   if (e.ctrlKey) {
     if (e.key === 'z') store.dispatch(ActionCreators.undo());
     else if (e.key === 'y') store.dispatch(ActionCreators.redo());
@@ -47,16 +49,13 @@ export default function shortCutKeys(e: KeyboardEvent) {
     } */
   }
   if (e.key === 'Escape') {
-    if (
-      store.getState().uitgd.gdDialogState.copyFromExistingPointsDialogProps
-        .open
-    ) {
+    if (state.uitgd.gdDialogState.copyFromExistingPointsDialogProps.open) {
       store.dispatch(
         setCopyFromExistingPointsDialogProps({open: false, onSelected: null})
       );
       return;
     }
-    if (store.getState().uitgd.gdSceneState.movingMode) {
+    if (state.uitgd.gdSceneState.movingMode) {
       store.dispatch(setMovingMode(false));
       return;
     }
@@ -66,7 +65,7 @@ export default function shortCutKeys(e: KeyboardEvent) {
   }
 
   if (e.key === 'F8') {
-    const {get} = store.getState().uitgd.gdSceneState;
+    const {get} = state.uitgd.gdSceneState;
     if (get) {
       const {camera} = get();
       const qc = camera.quaternion;
@@ -86,7 +85,7 @@ export default function shortCutKeys(e: KeyboardEvent) {
     }
   }
   if (e.key === 'F7') {
-    const {get} = store.getState().uitgd.gdSceneState;
+    const {get} = state.uitgd.gdSceneState;
     if (get) {
       const {camera} = get();
       const qc = camera.quaternion;

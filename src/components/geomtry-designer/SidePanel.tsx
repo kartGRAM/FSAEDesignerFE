@@ -6,9 +6,10 @@ import {RootState} from '@store/store';
 import Divider from '@mui/material/Divider';
 import {alpha} from '@mui/material/styles';
 // eslint-disable-next-line no-unused-vars
-import {resizePanel} from '@app/store/reducers/uiGeometryDesigner';
-import ParametersRoot from '@app/components/geomtry-designer/side-panel-components/parameters/ParametersRoot';
-import ElementsRoot from '@app/components/geomtry-designer/side-panel-components/elements/ElementsRoot';
+import {resizePanel} from '@store/reducers/uiGeometryDesigner';
+import ParametersRoot from '@gdComponents/side-panel-components/parameters/ParametersRoot';
+import ElementsRoot from '@gdComponents/side-panel-components/elements/ElementsRoot';
+import Controllers from '@gdComponents/side-panel-components/controllers/Controllers';
 import $ from 'jquery';
 import 'jqueryui';
 
@@ -83,6 +84,8 @@ export default function SidePanel() {
     adContent = <ElementsRoot />;
   } else if (selectedTab === 'parameters') {
     adContent = <ParametersRoot />;
+  } else if (selectedTab === 'controllers') {
+    adContent = <Controllers />;
   }
 
   return (

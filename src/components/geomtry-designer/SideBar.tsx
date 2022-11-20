@@ -110,7 +110,7 @@ export default function MiniDrawer() {
         {[
           {text: 'elements', icon: <HomeRepairServiceIcon />},
           {text: 'parameters', icon: <SettingsInputComponentIcon />},
-          {text: 'drivers', icon: <SteeringWheel />},
+          {text: 'controllers', icon: <SteeringWheel />},
           {text: 'analysis', icon: <AutoGraphIcon />},
           {text: 'style', icon: <BrushIcon />},
           {text: 'visualization', icon: <ComputerIcon />}
