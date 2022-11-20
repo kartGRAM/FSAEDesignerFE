@@ -10,6 +10,7 @@ import {getMatrix3} from '@gd/NamedValues';
 import {Line2} from 'three-stdlib';
 import {MovePointTo} from '@gd/kinematics/Driver';
 import {setMovingMode} from '@store/reducers/uiTempGeometryDesigner';
+import useUpdateEffect from '@app/hooks/useUpdateEffect';
 import NodeSphere from './NodeSphere';
 import {PivotControls} from './PivotControls/PivotControls';
 
@@ -121,7 +122,7 @@ const BellCrank = (props: {element: IBellCrank}) => {
   const resetStateRef = React.useRef<boolean>(
     store.getState().uitgd.gdSceneState.resetPositions
   );
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     if (!moveThisComponent) dispatch(setMovingMode(false));
   }, [moveThisComponent]);
 

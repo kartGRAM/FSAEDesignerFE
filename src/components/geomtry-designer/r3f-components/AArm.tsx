@@ -10,6 +10,7 @@ import {getMatrix3} from '@gd/NamedValues';
 import {Line2} from 'three-stdlib';
 import {MovePointTo} from '@gd/kinematics/Driver';
 import {setMovingMode} from '@store/reducers/uiTempGeometryDesigner';
+import useUpdateEffect from '@app/hooks/useUpdateEffect';
 import NodeSphere from './NodeSphere';
 import {PivotControls} from './PivotControls/PivotControls';
 
@@ -117,7 +118,7 @@ const AArm = (props: {element: IAArm}) => {
   const initialPosition = trans(nodes[2], coMatrix);
   const targetRef = React.useRef<Vector3>(new Vector3());
   const dragRef = React.useRef<boolean>(false);
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     if (!moveThisComponent) dispatch(setMovingMode(false));
   }, [moveThisComponent]);
 

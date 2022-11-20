@@ -9,6 +9,7 @@ import {getMatrix3} from '@gd/NamedValues';
 import {ConvexGeometry} from 'three/examples/jsm/geometries/ConvexGeometry';
 import {MovePointTo} from '@gd/kinematics/Driver';
 import {setMovingMode} from '@store/reducers/uiTempGeometryDesigner';
+import useUpdateEffect from '@app/hooks/useUpdateEffect';
 import NodeSphere from './NodeSphere';
 import {PivotControls} from './PivotControls/PivotControls';
 
@@ -100,7 +101,7 @@ const Body = (props: {element: IBody}) => {
       resetStateRef.current = !resetStateRef.current;
     }
   });
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     if (!moveThisComponent) dispatch(setMovingMode(false));
     else {
       pivotRef.current.matrix = new THREE.Matrix4().setPosition(
