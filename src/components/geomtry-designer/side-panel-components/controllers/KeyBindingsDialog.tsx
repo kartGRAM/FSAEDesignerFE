@@ -7,6 +7,8 @@ import {RootState} from '@store/store';
 import {setUIDisabled} from '@store/reducers/uiTempGeometryDesigner';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
+import FullLayoutKeyboard from './FullLayoutKeyboad';
+import 'react-simple-keyboard/build/css/index.css';
 
 export interface PointOffsetToolDialogProps {
   open: boolean;
@@ -45,9 +47,12 @@ export function KeyBindingsDialog(props: PointOffsetToolDialogProps) {
       sx={{
         zIndex: `${zindex}!important`
       }}
+      PaperProps={{sx: {maxWidth: 'unset', width: '960px'}}}
     >
-      <DialogTitle>Point Offset Tool</DialogTitle>
-      <DialogContent />
+      <DialogTitle>Key Bindings Dialog</DialogTitle>
+      <DialogContent>
+        <FullLayoutKeyboard />
+      </DialogContent>
 
       <DialogActions>
         <Button onClick={handleApply}>Apply</Button>

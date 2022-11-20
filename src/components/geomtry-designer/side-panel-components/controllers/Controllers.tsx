@@ -30,7 +30,7 @@ export default function Controllers() {
           size="large"
           onClick={() => setKbdOpen(true)}
         >
-          Open the Key Bindings Setting Dialog
+          Open the Key Bindings Dialog
         </Button>
       </Box>
 
