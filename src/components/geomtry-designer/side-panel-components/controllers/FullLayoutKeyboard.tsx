@@ -107,3 +107,10 @@ export default function FullLayoutKeyboad(
     </div>
   );
 }
+
+const keyConverts: {[index: string]: string} = {
+  '{enter}': 'enter'
+};
+export const keys = (key: string) => {
+  return keyConverts[key] ?? key;
+};

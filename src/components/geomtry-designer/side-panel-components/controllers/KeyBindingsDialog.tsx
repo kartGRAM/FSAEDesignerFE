@@ -8,14 +8,16 @@ import {setUIDisabled} from '@store/reducers/uiTempGeometryDesigner';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import {alpha} from '@mui/material/styles';
-import FullLayoutKeyboard from './FullLayoutKeyboard';
+import FullLayoutKeyboard, {keys} from './FullLayoutKeyboard';
+import {ControlDefinition} from './ControlDefinition';
 
 export interface KeyBindingsDialogProps {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const disabledKey = '{escape} {tab} {enter} {controlleft} {controlright} f7 f8';
+const disabledKey =
+  '{escape} {tab} {enter} {controlleft} {controlright} {f7} {f8}';
 export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
   const {open, setOpen} = props;
   const [selectedKey, setSelectedKey] = React.useState('');
@@ -28,6 +30,9 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
     (state: RootState) => state.dgd.present.controls
   ).filter((c) => c.type === 'keyboard');
   const assignedKeys = controls.map((c) => c.inputButton).join(' ');
+  const selectedControl = controls.find(
+    (c) => c.inputButton === keys(selectedKey)
+  );
 
   React.useEffect(() => {
     if (open) {
@@ -101,6 +106,9 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
         }}
       >
         <FullLayoutKeyboard {...options} />
+        {selectedControl ? (
+          <ControlDefinition control={selectedControl} />
+        ) : null}
       </DialogContent>
 
       <DialogActions>
