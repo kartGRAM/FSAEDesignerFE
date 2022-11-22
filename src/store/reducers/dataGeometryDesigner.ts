@@ -8,15 +8,10 @@ import {
   // getElementByPath
 } from '@app/geometryDesigner/IElements';
 import {IBidirectionalNode, getRootNode} from '@gd/INode';
-
+import {IControl} from '@gd/IControls';
 import {IDataMatrix3} from '@gd/INamedValues';
 import {IDataFormula, validateAll /* , replaceVariable */} from '@gd/IFormula';
 import {DateTime} from 'luxon';
-
-export interface IAssemblyTreeViewState {
-  fontColor: string;
-  borderLeft: string;
-}
 
 export interface GDState {
   id: number;
@@ -26,6 +21,7 @@ export interface GDState {
   transCoordinateMatrix: IDataMatrix3;
   topAssembly?: IDataAssembly;
   formulae: IDataFormula[];
+  controls: IControl[];
   changed: boolean;
 }
 
@@ -44,6 +40,7 @@ const initialState: GDState = {
     elements: [0, 0, 1, 1, 0, 0, 0, 1, 0]
   },
   formulae: [],
+  controls: [],
   changed: false
 };
 
@@ -56,6 +53,7 @@ export interface SavedData {
   created?: string;
   topAssembly: IDataAssembly | undefined;
   formulae: IDataFormula[];
+  controls: IControl[];
 }
 
 export function getSetTopAssemblyParams(data: any): SavedData {
@@ -65,7 +63,8 @@ export function getSetTopAssemblyParams(data: any): SavedData {
     note: data.note as string,
     lastUpdated: data.lastUpdated as string,
     topAssembly: convertJsonToDataAssembly(data.content as string),
-    formulae: convertJsonToDataFormula(data.formulae as string)
+    formulae: convertJsonToDataFormula(data.formulae as string),
+    controls: convertJsonToControls(data.controls as string)
   };
 }
 
@@ -91,6 +90,17 @@ function convertJsonToDataFormula(content: string): IDataFormula[] {
   }
 }
 
+function convertJsonToControls(content: string): IControl[] {
+  try {
+    const data = JSON.parse(content) as IControl[];
+    return data;
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.log(err);
+    return [];
+  }
+}
+
 export function getListSetTopAssemblyParams(listedData: any): SavedData[] {
   const ret = listedData.map(
     (data: any): SavedData => ({
@@ -101,7 +111,8 @@ export function getListSetTopAssemblyParams(listedData: any): SavedData[] {
       created: data.created as string,
       thumbnail: data.thumbnail ? (data.thumbnail as string) : undefined,
       topAssembly: convertJsonToDataAssembly(data.content as string),
-      formulae: convertJsonToDataFormula(data.formulae as string)
+      formulae: convertJsonToDataFormula(data.formulae as string),
+      controls: convertJsonToControls(data.controls as string)
     })
   );
   return ret;
@@ -127,6 +138,7 @@ export const dataGeometryDesignerSlice = createSlice({
       state.note = '';
       state.lastUpdated = DateTime.local().toString();
       state.formulae = initialState.formulae;
+      state.controls = initialState.controls;
       state.topAssembly = action.payload?.getDataElement(state);
       state.changed = false;
     },
@@ -138,6 +150,7 @@ export const dataGeometryDesignerSlice = createSlice({
       state.topAssembly = action.payload.topAssembly;
       state.lastUpdated = action.payload.lastUpdated;
       state.formulae = action.payload.formulae;
+      state.controls = action.payload.controls;
       state.changed = false;
     },
     updateAssembly: (
@@ -174,57 +187,6 @@ export const dataGeometryDesignerSlice = createSlice({
       }
       state.changed = true;
     }
-    /* setNewFormula: (
-      state: GDState,
-      action: PayloadAction<{
-        name: string;
-        formula: string;
-        absPath: string;
-      }>
-    ) => {
-      const {name, formula, absPath} = action.payload;
-      const tmp = [...state.formulae, {name, formula, absPath}];
-      if (validateAll(tmp) === 'OK') {
-        state.formulae = tmp;
-      }
-      state.changed = true;
-    }
-    updateFormula: (
-      state: GDState,
-      action: PayloadAction<{
-        name: string;
-        formula: string;
-      }>
-    ) => {
-      const {name, formula} = action.payload;
-      const tmp = [...state.formulae];
-      tmp.forEach((value) => {
-        if (value.name === name) {
-          value.formula = formula;
-        }
-      });
-      if (validateAll(tmp) === 'OK') {
-        state.formulae = tmp;
-      }
-      state.changed = true;
-    },
-    removeFormula: (
-      state: GDState,
-      action: PayloadAction<{
-        name: string;
-        replacement: string;
-      }>
-    ) => {
-      const {name, replacement} = action.payload;
-      const tmp = state.formulae.filter((value) => value.name !== name);
-      tmp.forEach((value) => {
-        value.formula = replaceVariable(value.formula, name, replacement);
-      });
-      if (validateAll(tmp) === 'OK') {
-        state.formulae = tmp;
-      }
-      state.changed = true;
-    } */
   }
 });
 

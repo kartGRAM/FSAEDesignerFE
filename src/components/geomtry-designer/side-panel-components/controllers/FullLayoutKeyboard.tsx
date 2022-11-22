@@ -1,9 +1,12 @@
 import React from 'react';
-import Keyboard from 'react-simple-keyboard';
+import Keyboard, {KeyboardReactInterface} from 'react-simple-keyboard';
 import 'react-simple-keyboard/build/css/index.css';
 import './keyboad.css';
 
-export default function FullLayoutKeyboad() {
+export default function FullLayoutKeyboad(
+  props: KeyboardReactInterface['options']
+) {
+  const {onKeyPress: onKeyPressOrg} = props;
   const [layoutName, setLayoutName] = React.useState('default');
 
   const onKeyPress = (button: string) => {
@@ -14,10 +17,13 @@ export default function FullLayoutKeyboad() {
       button === '{capslock}'
     ) {
       setLayoutName((prev) => (prev === 'default' ? 'shift' : 'default'));
+      return;
     }
+    if (onKeyPressOrg) onKeyPressOrg(button);
   };
 
   const commonKeyboardOptions = {
+    ...props,
     theme: 'simple-keyboard hg-theme-default hg-layout-default',
     physicalKeyboardHighlight: true,
     syncInstanceInputs: true,

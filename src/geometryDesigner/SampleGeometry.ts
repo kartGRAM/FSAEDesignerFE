@@ -401,6 +401,7 @@ export const getSampleData = async (): Promise<SavedData> => {
     note: '2013年度京都大学優勝車両',
     lastUpdated: DateTime.local().toString(),
     formulae,
+    controls: [],
     topAssembly: getKZRR11Assy().getDataElement(store.getState().dgd.present)
     // topAssembly: getUprightAssy().getDataElement(store.getState().dgd.present)
   };
