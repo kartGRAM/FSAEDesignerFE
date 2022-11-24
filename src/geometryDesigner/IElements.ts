@@ -126,6 +126,7 @@ export interface IElement extends IBidirectionalNode {
   readonly centerOfGravity: INamedVector3;
   readonly visible: INamedBooleanOrUndefined;
   parent: IAssembly | null;
+  readonly controllable?: boolean;
   readonly nodeID: string;
   readonly absPath: string;
   getPoints(): INamedVector3[];
@@ -263,6 +264,7 @@ export interface IDataTire extends IDataElement {
 }
 
 export interface ILinearBushing extends IElement {
+  readonly controllable: true;
   // 固定点(フレーム側)
   readonly fixedPoints: [INamedVector3, INamedVector3];
   // 移動点(タイロッド側)

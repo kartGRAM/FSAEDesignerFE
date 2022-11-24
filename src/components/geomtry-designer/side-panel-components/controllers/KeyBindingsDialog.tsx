@@ -106,9 +106,11 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
         }}
       >
         <FullLayoutKeyboard {...options} />
-        {selectedControl ? (
-          <ControlDefinition control={selectedControl} />
-        ) : null}
+        <ControlDefinition
+          control={selectedControl}
+          disabled={selectedKey === ''}
+          key={selectedKey}
+        />
       </DialogContent>
 
       <DialogActions>

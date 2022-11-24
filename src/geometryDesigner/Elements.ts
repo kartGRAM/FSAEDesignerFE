@@ -1876,6 +1876,8 @@ export class LinearBushing extends Element implements ILinearBushing {
     return 'LinearBushing';
   }
 
+  controllable = true as const;
+
   visible: NamedBooleanOrUndefined;
 
   mass: NamedNumber;
