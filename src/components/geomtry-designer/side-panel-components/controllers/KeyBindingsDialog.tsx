@@ -4,7 +4,10 @@ import DialogContent from '@mui/material/DialogContent';
 import Dialog from '@mui/material/Dialog';
 import {useSelector, useDispatch} from 'react-redux';
 import {RootState} from '@store/store';
-import {setUIDisabled} from '@store/reducers/uiTempGeometryDesigner';
+import {
+  setUIDisabled,
+  setConfirmDialogProps
+} from '@store/reducers/uiTempGeometryDesigner';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import {alpha} from '@mui/material/styles';
@@ -21,6 +24,7 @@ const disabledKey =
 export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
   const {open, setOpen} = props;
   const [selectedKey, setSelectedKey] = React.useState('');
+  const [changed, setChanged] = React.useState<boolean>(false);
 
   const zindex =
     useSelector((state: RootState) => state.uitgd.fullScreenZIndex) + 1000;
@@ -29,7 +33,9 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
   const controls = useSelector(
     (state: RootState) => state.dgd.present.controls
   ).filter((c) => c.type === 'keyboard');
+
   const assignedKeys = controls.map((c) => c.inputButton).join(' ');
+
   const selectedControl = controls.find(
     (c) => c.inputButton === keys(selectedKey)
   );
@@ -49,12 +55,36 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
   };
 
   const handleOKClick = () => {
+    handleApply();
     setOpen(false);
   };
 
   const options = {
     disableButtonHold: true,
-    onKeyPress: (button: string) => {
+    onKeyPress: async (button: string) => {
+      if (changed) {
+        const ret = await new Promise<string>((resolve) => {
+          dispatch(
+            setConfirmDialogProps({
+              zindex: zindex + 10000 + 1,
+              onClose: resolve,
+              title: 'Confirm',
+              message: `Control bindings have been changed. Do you save changes?`,
+              buttons: [
+                {text: 'Save', res: 'save'},
+                {text: "Don't save", res: 'noSave'},
+                {text: 'Cancel', res: 'cancel', autoFocus: true}
+              ]
+            })
+          );
+        });
+        dispatch(setConfirmDialogProps(undefined));
+        if (ret === 'cancel') return;
+        if (ret === 'save') handleApply();
+        else {
+          setChanged(false);
+        }
+      }
       if (selectedKey !== button) {
         setSelectedKey(button);
       } else {
@@ -107,6 +137,7 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
       >
         <FullLayoutKeyboard {...options} />
         <ControlDefinition
+          setChanged={setChanged}
           control={selectedControl}
           disabled={selectedKey === ''}
           key={selectedKey}

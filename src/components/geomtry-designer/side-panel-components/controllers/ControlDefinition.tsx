@@ -1,5 +1,5 @@
 import React from 'react';
-import {IControl} from '@gd/IControls';
+import {IControl, isLinearBushingControl} from '@gd/IControls';
 import {useSelector} from 'react-redux';
 import store, {RootState} from '@store/store';
 import {IElement, isLinearBushing} from '@gd/IElements';
@@ -15,12 +15,15 @@ import {LinearBushingControl} from './LinearBushingControl';
 export interface ControlDefinitionProps {
   control: IControl | undefined;
   disabled: boolean;
+  setChanged: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export function ControlDefinition(props: ControlDefinitionProps) {
-  const {control, disabled} = props;
+  const {control, disabled, setChanged} = props;
+
   const zindex =
     useSelector((state: RootState) => state.uitgd.fullScreenZIndex) + 1200;
+
   const [selectedID, setSelectedID] = React.useState<string>(
     control?.targetElement ?? ''
   );
@@ -37,7 +40,11 @@ export function ControlDefinition(props: ControlDefinitionProps) {
 
   let components = null;
   const element = elements.find((e) => e.nodeID === selectedID);
-  if (element && isLinearBushing(element)) {
+  if (
+    element &&
+    isLinearBushing(element) &&
+    (!control || isLinearBushingControl(control))
+  ) {
     components = <LinearBushingControl control={control} element={element} />;
   }
 
@@ -60,16 +67,21 @@ export function ControlDefinition(props: ControlDefinitionProps) {
           MenuProps={{
             sx: {zIndex: zindex}
           }}
-          onChange={(e) => setSelectedID(e.target.value)}
+          onChange={(e) => {
+            setChanged(true);
+            setSelectedID(e.target.value);
+          }}
         >
           <MenuItem value="">
             <em>None</em>
           </MenuItem>
           {Object.keys(controllableElements)
             .map((key) => [
-              <ListSubheader>{key}</ListSubheader>,
+              <ListSubheader key={key}>{key}</ListSubheader>,
               ...controllableElements[key].map((element) => (
-                <MenuItem value={element.nodeID}>{element.name.value}</MenuItem>
+                <MenuItem value={element.nodeID} key={element.nodeID}>
+                  {element.name.value}
+                </MenuItem>
               ))
             ])
             .flat()}

@@ -1,19 +1,21 @@
 export interface IControl {
-  className: string;
-  type: ControllerTypes;
-  targetElement: string;
-  inputButton: string;
+  readonly nodeID: string;
+  readonly className: string;
+  readonly type: ControllerTypes;
+  readonly targetElement: string;
+  readonly inputButton: string;
 }
 
 export interface ILinearBushingControl extends IControl {
-  className: 'LinearBushing';
-  reverse: boolean;
-  speed: number; // mm/s
+  readonly className: 'LinearBushing';
+  readonly reverse: boolean;
+  readonly speed: number; // mm/s
 }
 
 export function isLinearBushingControl(
-  control: IControl
+  control: IControl | undefined | null
 ): control is ILinearBushingControl {
+  if (!control) return false;
   return control.className === 'LinearBushing';
 }
 

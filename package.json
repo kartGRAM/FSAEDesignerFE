@@ -58,6 +58,7 @@
     "formik": "2.2.9",
     "i18next": "21.8.11",
     "i18next-browser-languagedetector": "6.1.4",
+    "immer": "^9.0.16",
     "jquery": "^3.6.0",
     "jqueryui": "^1.11.1",
     "luxon": "2.4.0",
