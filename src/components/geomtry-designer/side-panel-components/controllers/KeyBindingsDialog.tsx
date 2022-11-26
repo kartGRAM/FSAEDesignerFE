@@ -8,9 +8,12 @@ import {
   setUIDisabled,
   setConfirmDialogProps
 } from '@store/reducers/uiTempGeometryDesigner';
+import {setControl, removeControl} from '@store/reducers/dataGeometryDesigner';
+
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import {alpha} from '@mui/material/styles';
+import {IControl} from '@gd/IControls';
 import FullLayoutKeyboard, {keys} from './FullLayoutKeyboard';
 import {ControlDefinition} from './ControlDefinition';
 
@@ -24,7 +27,7 @@ const disabledKey =
 export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
   const {open, setOpen} = props;
   const [selectedKey, setSelectedKey] = React.useState('');
-  const [changed, setChanged] = React.useState<boolean>(false);
+  const [staged, setStaged] = React.useState<null | IControl | string>(null);
 
   const zindex =
     useSelector((state: RootState) => state.uitgd.fullScreenZIndex) + 1000;
@@ -48,13 +51,23 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
     }
   }, [open]);
 
-  const handleApply = () => {};
+  const handleApply = () => {
+    if (!staged) return;
+
+    if (typeof staged === 'string') {
+      dispatch(removeControl(staged));
+      setStaged(null);
+      return;
+    }
+    dispatch(setControl(staged));
+    setStaged(null);
+  };
 
   const handleClose = () => {
     setOpen(false);
   };
 
-  const handleOKClick = () => {
+  const handleOK = () => {
     handleApply();
     setOpen(false);
   };
@@ -62,7 +75,7 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
   const options = {
     disableButtonHold: true,
     onKeyPress: async (button: string) => {
-      if (changed) {
+      if (staged) {
         const ret = await new Promise<string>((resolve) => {
           dispatch(
             setConfirmDialogProps({
@@ -82,7 +95,7 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
         if (ret === 'cancel') return;
         if (ret === 'save') handleApply();
         else {
-          setChanged(false);
+          await setStaged(null);
         }
       }
       if (selectedKey !== button) {
@@ -100,7 +113,7 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
   };
   if (assignedKeys !== '')
     options.buttonTheme.push({
-      class: 'assinged',
+      class: 'assigned',
       buttons: assignedKeys
     });
   if (selectedKey !== '')
@@ -137,17 +150,20 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
       >
         <FullLayoutKeyboard {...options} />
         <ControlDefinition
-          setChanged={setChanged}
+          setStaged={setStaged}
           control={selectedControl}
           disabled={selectedKey === ''}
+          inputButton={selectedKey}
           key={selectedKey}
         />
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={handleApply}>Apply</Button>
+        <Button onClick={handleApply} disabled={!staged}>
+          Apply
+        </Button>
         <Button onClick={handleClose}>Cancel</Button>
-        <Button onClick={handleOKClick}>OK</Button>
+        <Button onClick={handleOK}>OK</Button>
       </DialogActions>
     </Dialog>
   );

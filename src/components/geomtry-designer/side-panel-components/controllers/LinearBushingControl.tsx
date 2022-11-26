@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
-import {ILinearBushingControl} from '@gd/IControls';
+import {LinearBushingControl} from '@gd/Controls';
+import {IControl} from '@gd/IControls';
 import {ILinearBushing} from '@gd/IElements';
 import {useDispatch} from 'react-redux';
 import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
@@ -11,18 +12,17 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import {InputBaseComponentProps} from '@mui/material/InputBase';
 import {isNumber} from '@app/utils/helpers';
+import useUpdateEffect from '@app/hooks/useUpdateEffect';
 
 export interface LinearBushingControlProps {
-  control: ILinearBushingControl | undefined;
-  element: ILinearBushing;
+  control: LinearBushingControl;
+  setStaged: React.Dispatch<React.SetStateAction<null | IControl | string>>;
 }
 
-export function LinearBushingControl(props: LinearBushingControlProps) {
-  const {control, element} = props;
-  const [speed, setSpeed] = React.useState<number | ''>(control?.speed ?? 10);
-  const [reverse, setReverse] = React.useState<boolean>(
-    control?.reverse ?? false
-  );
+export function LinearBushingControlSettings(props: LinearBushingControlProps) {
+  const {control, setStaged} = props;
+  const [speed, setSpeed] = React.useState<number | ''>(control.speed);
+  const [reverse, setReverse] = React.useState<boolean>(control.reverse);
   const max = 100;
   const min = 0;
 
@@ -49,6 +49,12 @@ export function LinearBushingControl(props: LinearBushingControlProps) {
   ) => {
     setReverse(checked);
   };
+
+  useUpdateEffect(() => {
+    control.speed = isNumber(speed) ? speed : 0;
+    control.reverse = reverse;
+    setStaged(control.getDataControl());
+  }, [speed, reverse]);
 
   return (
     <>

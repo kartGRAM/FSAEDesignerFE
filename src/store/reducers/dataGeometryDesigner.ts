@@ -186,6 +186,24 @@ export const dataGeometryDesignerSlice = createSlice({
         if (state.topAssembly) state.topAssembly = {...state.topAssembly};
       }
       state.changed = true;
+    },
+    setControl: (state: GDState, action: PayloadAction<IControl>) => {
+      const control = action.payload;
+      const {controls} = state;
+      const idx = controls.findIndex(
+        (c) =>
+          c.nodeID === control.nodeID ||
+          (c.type === control.type && c.inputButton === control.inputButton)
+      );
+      if (idx !== -1) {
+        controls[idx] = control;
+        return;
+      }
+      state.controls = [control, ...state.controls];
+    },
+    removeControl: (state: GDState, action: PayloadAction<string>) => {
+      const nodeID = action.payload;
+      state.controls = state.controls.filter((c) => c.nodeID !== nodeID);
     }
   }
 });
@@ -195,7 +213,9 @@ export const {
   newAssembly,
   setTopAssembly,
   updateAssembly,
-  setFormulae
+  setFormulae,
+  setControl,
+  removeControl
 } = dataGeometryDesignerSlice.actions;
 
 export default dataGeometryDesignerSlice.reducer;

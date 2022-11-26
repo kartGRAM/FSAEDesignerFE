@@ -1,5 +1,6 @@
 import React from 'react';
-import {IControl, isLinearBushingControl} from '@gd/IControls';
+import {LinearBushingControl} from '@gd/Controls';
+import {IControl, isILinearBushingControl} from '@gd/IControls';
 import {useSelector} from 'react-redux';
 import store, {RootState} from '@store/store';
 import {IElement, isLinearBushing} from '@gd/IElements';
@@ -10,16 +11,18 @@ import ListSubheader from '@mui/material/ListSubheader';
 import Select from '@mui/material/Select';
 import Box from '@mui/material/Box';
 import {alpha} from '@mui/material/styles';
-import {LinearBushingControl} from './LinearBushingControl';
+import usePrevious from '@app/hooks/usePrevious';
+import {LinearBushingControlSettings} from './LinearBushingControl';
 
 export interface ControlDefinitionProps {
   control: IControl | undefined;
   disabled: boolean;
-  setChanged: React.Dispatch<React.SetStateAction<boolean>>;
+  inputButton: string;
+  setStaged: React.Dispatch<React.SetStateAction<null | IControl | string>>;
 }
 
 export function ControlDefinition(props: ControlDefinitionProps) {
-  const {control, disabled, setChanged} = props;
+  const {control, disabled, setStaged, inputButton} = props;
 
   const zindex =
     useSelector((state: RootState) => state.uitgd.fullScreenZIndex) + 1200;
@@ -27,6 +30,7 @@ export function ControlDefinition(props: ControlDefinitionProps) {
   const [selectedID, setSelectedID] = React.useState<string>(
     control?.targetElement ?? ''
   );
+  const prevID = usePrevious(selectedID);
 
   const state = store.getState();
   const elements = (state.uitgd.collectedAssembly?.children ?? []).filter(
@@ -40,12 +44,29 @@ export function ControlDefinition(props: ControlDefinitionProps) {
 
   let components = null;
   const element = elements.find((e) => e.nodeID === selectedID);
-  if (
-    element &&
-    isLinearBushing(element) &&
-    (!control || isLinearBushingControl(control))
-  ) {
-    components = <LinearBushingControl control={control} element={element} />;
+  if (inputButton !== '' && element && isLinearBushing(element)) {
+    let controlImpl: LinearBushingControl;
+    if (
+      isILinearBushingControl(control) &&
+      control.targetElement === element.nodeID
+    ) {
+      controlImpl = new LinearBushingControl(control);
+    } else {
+      controlImpl = new LinearBushingControl({
+        type: 'keyboard',
+        targetElement: element.nodeID,
+        inputButton
+      });
+      if (prevID !== selectedID) {
+        setTimeout(() => setStaged(controlImpl.getDataControl()), 0);
+      }
+    }
+    components = (
+      <LinearBushingControlSettings
+        control={controlImpl}
+        setStaged={setStaged}
+      />
+    );
   }
 
   return (
@@ -61,15 +82,17 @@ export function ControlDefinition(props: ControlDefinitionProps) {
         </InputLabel>
         <Select
           disabled={disabled}
-          defaultValue=""
+          value={selectedID}
           id="component-select"
           label="Select a controllable component"
           MenuProps={{
             sx: {zIndex: zindex}
           }}
           onChange={(e) => {
-            setChanged(true);
             setSelectedID(e.target.value);
+            if (e.target.value === '' && control) {
+              setStaged(control.nodeID);
+            }
           }}
         >
           <MenuItem value="">

@@ -12,7 +12,7 @@ export interface ILinearBushingControl extends IControl {
   readonly speed: number; // mm/s
 }
 
-export function isLinearBushingControl(
+export function isILinearBushingControl(
   control: IControl | undefined | null
 ): control is ILinearBushingControl {
   if (!control) return false;
