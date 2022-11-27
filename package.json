@@ -43,7 +43,7 @@
     "@mui/material": "^5.8.6",
     "@mui/utils": "^5.9.0",
     "@react-spring/types": "^9.5.4",
-    "@react-three/drei": "^9.32.3",
+    "@react-three/drei": "^9.43.3",
     "@react-three/fiber": "^8.8.6",
     "@reduxjs/toolkit": "1.8.2",
     "@testing-library/jest-dom": "5.16.4",

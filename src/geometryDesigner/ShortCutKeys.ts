@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import store from '@store/store';
@@ -19,6 +20,7 @@ import {getCameraQuaternion} from '@utils/three';
 export default function shortCutKeys(e: KeyboardEvent) {
   const state = store.getState();
   if (state.uitgd.uiDisabled) return;
+
   if (e.ctrlKey) {
     if (e.key === 'z') store.dispatch(ActionCreators.undo());
     else if (e.key === 'y') store.dispatch(ActionCreators.redo());

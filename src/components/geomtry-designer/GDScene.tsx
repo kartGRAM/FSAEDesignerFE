@@ -3,7 +3,11 @@ import * as THREE from 'three';
 import {Canvas, useThree} from '@react-three/fiber';
 import {useSelector, Provider, useDispatch} from 'react-redux';
 import store, {RootState} from '@store/store';
-import {PerspectiveCamera, OrthographicCamera} from '@react-three/drei';
+import {
+  PerspectiveCamera,
+  OrthographicCamera,
+  KeyboardControls
+} from '@react-three/drei';
 import CollectedAssembly from '@gdComponents/r3f-components/CollectedAssembly';
 import {numberToRgb} from '@app/utils/helpers';
 
@@ -37,6 +41,10 @@ export default function GDScene() {
     (state: RootState) => state.uigd.present.backgroundColor
   );
 
+  const controls = useSelector(
+    (state: RootState) => state.dgd.present.controls
+  ).filter((c) => c.type === 'keyboard');
+
   useEffect(() => {
     const window = document.getElementById('gdAppBar');
     const sidePanel = document.getElementById('gdSidePanel');
@@ -63,32 +71,34 @@ export default function GDScene() {
     align-items-start"
     >
       <GDSceneToolBar />
-      <Canvas
-        linear
-        flat
-        ref={canvas}
-        gl={{
-          preserveDrawingBuffer: true
-        }}
-        camera={{
-          fov: 45,
-          near: 1,
-          far: 10000,
-          position: [1500, 1500, 1500]
-        }}
-        style={{background: numberToRgb(bgColor), position: 'absolute'}}
-      >
-        {
-          // <pointLight position={[10, 10, 10]} />
-        }
-        <axesHelper args={[50]} />
-        <Provider store={store}>
-          <CollectedAssembly />
-          <OrbitControls />
-          <SelectedPoints />
-          <Dolly />
-        </Provider>
-      </Canvas>
+      <KeyboardControls>
+        <Canvas
+          linear
+          flat
+          ref={canvas}
+          gl={{
+            preserveDrawingBuffer: true
+          }}
+          camera={{
+            fov: 45,
+            near: 1,
+            far: 10000,
+            position: [1500, 1500, 1500]
+          }}
+          style={{background: numberToRgb(bgColor), position: 'absolute'}}
+        >
+          {
+            // <pointLight position={[10, 10, 10]} />
+          }
+          <axesHelper args={[50]} />
+          <Provider store={store}>
+            <CollectedAssembly />
+            <OrbitControls />
+            <SelectedPoints />
+            <Dolly />
+          </Provider>
+        </Canvas>
+      </KeyboardControls>
     </div>
   );
 }

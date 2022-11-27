@@ -1,5 +1,10 @@
 /* eslint-disable max-classes-per-file */
-import {IControl, ControllerTypes, ILinearBushingControl} from '@gd/IControls';
+import {
+  IControl,
+  ControllerTypes,
+  ILinearBushingControl,
+  isILinearBushingControl
+} from '@gd/IControls';
 import {v4 as uuidv4} from 'uuid';
 
 export abstract class Control {
@@ -82,4 +87,10 @@ export function isLinearBushingControl(
 ): control is LinearBushingControl {
   if (!control) return false;
   return control.className === 'LinearBushing';
+}
+
+export function getControl(control: IControl): Control {
+  if (isILinearBushingControl(control))
+    return new LinearBushingControl(control);
+  throw Error('Not Supported Exception');
 }
