@@ -87,7 +87,9 @@ export function LinearBushingControlSettings(props: LinearBushingControlProps) {
         sx={{display: 'flex', flexDirection: 'row', width: '100%'}}
       >
         <FormControlLabel
-          control={<Checkbox value={reverse} onChange={handleReverseChange} />}
+          control={
+            <Checkbox checked={reverse} onChange={handleReverseChange} />
+          }
           label="Reverse Direction"
         />
       </Box>

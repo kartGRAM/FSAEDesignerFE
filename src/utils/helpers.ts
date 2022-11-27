@@ -113,3 +113,10 @@ export function minus(value: string | number): string | number {
 export const isArray = <T>(maybeArray: T | readonly T[]): maybeArray is T[] => {
   return Array.isArray(maybeArray);
 };
+
+export function inverseKeyValue(obj: {[index: string]: string}) {
+  return Object.keys(obj).reduceRight((ret, k) => {
+    ret[obj[k]] = k;
+    return ret;
+  }, {} as {[index: string]: string});
+}

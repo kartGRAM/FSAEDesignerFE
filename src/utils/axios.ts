@@ -40,6 +40,7 @@ export function getDataToSave(
     note,
     content: JSON.stringify(state.topAssembly),
     formulae: JSON.stringify(state.formulae),
+    controls: JSON.stringify(state.controls),
     clientLastUpdated: state.lastUpdated,
     overwrite
   };

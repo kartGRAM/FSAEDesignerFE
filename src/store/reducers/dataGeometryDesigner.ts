@@ -200,10 +200,12 @@ export const dataGeometryDesignerSlice = createSlice({
         return;
       }
       state.controls = [control, ...state.controls];
+      state.changed = true;
     },
     removeControl: (state: GDState, action: PayloadAction<string>) => {
       const nodeID = action.payload;
       state.controls = state.controls.filter((c) => c.nodeID !== nodeID);
+      state.changed = true;
     }
   }
 });

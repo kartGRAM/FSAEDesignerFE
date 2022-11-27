@@ -14,7 +14,7 @@ import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import {alpha} from '@mui/material/styles';
 import {IControl} from '@gd/IControls';
-import FullLayoutKeyboard, {keys} from './FullLayoutKeyboard';
+import FullLayoutKeyboard, {keysInv} from './FullLayoutKeyboard';
 import {ControlDefinition} from './ControlDefinition';
 
 export interface KeyBindingsDialogProps {
@@ -37,11 +37,9 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
     (state: RootState) => state.dgd.present.controls
   ).filter((c) => c.type === 'keyboard');
 
-  const assignedKeys = controls.map((c) => c.inputButton).join(' ');
+  const assignedKeys = controls.map((c) => keysInv(c.inputButton)).join(' ');
 
-  const selectedControl = controls.find(
-    (c) => c.inputButton === keys(selectedKey)
-  );
+  const selectedControl = controls.find((c) => c.inputButton === selectedKey);
 
   React.useEffect(() => {
     if (open) {
@@ -75,6 +73,7 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
   const options = {
     disableButtonHold: true,
     onKeyPress: async (button: string) => {
+      if (disabledKey.split(' ').includes(keysInv(button))) return;
       if (staged) {
         const ret = await new Promise<string>((resolve) => {
           dispatch(
@@ -119,7 +118,7 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
   if (selectedKey !== '')
     options.buttonTheme.push({
       class: 'selected',
-      buttons: selectedKey
+      buttons: keysInv(selectedKey)
     });
 
   return (

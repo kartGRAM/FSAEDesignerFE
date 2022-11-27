@@ -2,6 +2,7 @@ import React from 'react';
 import Keyboard, {KeyboardReactInterface} from 'react-simple-keyboard';
 import 'react-simple-keyboard/build/css/index.css';
 import './keyboad.css';
+import {inverseKeyValue} from '@app/utils/helpers';
 
 export default function FullLayoutKeyboad(
   props: KeyboardReactInterface['options']
@@ -19,7 +20,7 @@ export default function FullLayoutKeyboad(
       setLayoutName((prev) => (prev === 'default' ? 'shift' : 'default'));
       return;
     }
-    if (onKeyPressOrg) onKeyPressOrg(button);
+    if (onKeyPressOrg) onKeyPressOrg(keys(button));
   };
 
   const commonKeyboardOptions = {
@@ -109,8 +110,19 @@ export default function FullLayoutKeyboad(
 }
 
 const keyConverts: {[index: string]: string} = {
-  '{enter}': 'enter'
+  '{enter}': 'Enter',
+  '{arrowup}': 'ArrowUp',
+  '{arrowleft}': 'ArrowLeft',
+  '{arrowdown}': 'ArrowDown',
+  '{arrowright}': 'ArrowRight'
 };
+
+const keyConvertsInversed = inverseKeyValue(keyConverts);
+
 export const keys = (key: string) => {
   return keyConverts[key] ?? key;
+};
+
+export const keysInv = (key: string) => {
+  return keyConvertsInversed[key] ?? key;
 };
