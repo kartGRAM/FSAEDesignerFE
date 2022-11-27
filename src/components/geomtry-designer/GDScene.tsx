@@ -16,6 +16,7 @@ import {setGDSceneGetThree} from '@store/reducers/uiTempGeometryDesigner';
 
 import {OrbitControls} from './r3f-components/OrbitControls';
 import SelectedPoints from './r3f-components/SelectedPoints';
+import {KeyboardControls as MyKeyboardControls} from './r3f-components/KeyboardControls';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
@@ -44,6 +45,7 @@ export default function GDScene() {
   const controls = useSelector(
     (state: RootState) => state.dgd.present.controls
   ).filter((c) => c.type === 'keyboard');
+  const map = controls.map((c) => ({name: c.nodeID, keys: [c.inputButton]}));
 
   useEffect(() => {
     const window = document.getElementById('gdAppBar');
@@ -71,7 +73,7 @@ export default function GDScene() {
     align-items-start"
     >
       <GDSceneToolBar />
-      <KeyboardControls>
+      <KeyboardControls map={map}>
         <Canvas
           linear
           flat
@@ -94,6 +96,7 @@ export default function GDScene() {
           <Provider store={store}>
             <CollectedAssembly />
             <OrbitControls />
+            <MyKeyboardControls />
             <SelectedPoints />
             <Dolly />
           </Provider>

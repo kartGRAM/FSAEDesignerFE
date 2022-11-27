@@ -5,7 +5,7 @@ import * as React from 'react';
 import {Size, /* extend, */ useFrame, useThree} from '@react-three/fiber';
 // import {MeshLine, MeshLineMaterial} from 'meshline';
 
-import {context} from '@react-three/drei/core/pivotControls/context';
+import {context} from './context';
 import {PlaneSlider} from './PlaneSlider';
 import {AxisRotator} from './AxisRotator';
 import {AxisArrow} from './AxisArrow';

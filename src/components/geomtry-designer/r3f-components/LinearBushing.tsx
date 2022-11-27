@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as THREE from 'three';
 import {ThreeEvent, useFrame} from '@react-three/fiber';
-import {Line, useKeyboardControls} from '@react-three/drei';
+import {Line} from '@react-three/drei';
 import {useSelector, useDispatch} from 'react-redux';
 import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
 import store, {RootState} from '@store/store';
@@ -25,8 +25,6 @@ const LinearBushing = (props: {element: ILinearBushing}) => {
     },
     [element.absPath]
   );
-
-  const [sub, get] = useKeyboardControls<string>();
 
   useFrame(() => {
     const selectedPath = store.getState().uitgd.selectedElementAbsPath;

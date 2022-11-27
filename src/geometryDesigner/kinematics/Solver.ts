@@ -2,7 +2,7 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable no-lone-blocks */
 import {Matrix, SingularValueDecomposition} from 'ml-matrix';
-
+import {Control} from '@gd/Controls';
 import {
   IElement,
   IAssembly,
@@ -61,7 +61,7 @@ export class KinematicSolver {
 
   firstSolved = false;
 
-  constructor(assembly: IAssembly) {
+  constructor(assembly: IAssembly, controls: {[index: string]: Control}) {
     this.assembly = assembly;
     const {children} = assembly;
     const joints = assembly.getJointsAsVector3();
@@ -280,6 +280,7 @@ export class KinematicSolver {
         }
         // LinearBushingはComponent扱いしない
         if (isLinearBushing(element)) {
+          const controled = element.nodeID in controls;
           const jointf0 = jointDict[element.fixedPoints[0].nodeID][0];
           const jointf1 = jointDict[element.fixedPoints[1].nodeID][0];
           const fixedPoints = [
@@ -339,27 +340,31 @@ export class KinematicSolver {
               element.toPoints[i].value,
               isFullDegreesComponent(rhs) ? points[2].value : undefined,
               element.dlMin.value,
-              element.dlMax.value
+              element.dlMax.value,
+              controled,
+              element.nodeID
             );
             constraints.push(constraint);
-            if (i === 0) {
-              node0.push(
-                isFullDegreesComponent(rhs) ? points[2].value : undefined
-              );
-              component0.push(rhs);
-            } else {
-              const v0 = node0[0];
-              const lhs = component0[0];
-              const l = element.toPoints[i].value - element.toPoints[0].value;
-              const constraint = new BarAndSpheres(
-                `bar object of ${element.name.value} ${i}`,
-                lhs,
-                rhs,
-                l,
-                v0,
-                isFullDegreesComponent(rhs) ? points[2].value : undefined
-              );
-              constraints.push(constraint);
+            if (!controled) {
+              if (i === 0) {
+                node0.push(
+                  isFullDegreesComponent(rhs) ? points[2].value : undefined
+                );
+                component0.push(rhs);
+              } else {
+                const v0 = node0[0];
+                const lhs = component0[0];
+                const l = element.toPoints[i].value - element.toPoints[0].value;
+                const constraint = new BarAndSpheres(
+                  `bar object of ${element.name.value} ${i}`,
+                  lhs,
+                  rhs,
+                  l,
+                  v0,
+                  isFullDegreesComponent(rhs) ? points[2].value : undefined
+                );
+                constraints.push(constraint);
+              }
             }
           });
         }
@@ -524,7 +529,7 @@ export class KinematicSolver {
 
           const norm = dq.norm('frobenius');
           eq = norm < 1.0e-4;
-          console.log(`norm=${norm.toFixed(3)}`);
+          // console.log(`norm=${norm.toFixed(3)}`);
           if (norm > minNorm * 1000 || Number.isNaN(norm)) {
             // eslint-disable-next-line no-console
             console.log(`norm=${norm.toFixed(3)}`);

@@ -8,6 +8,7 @@ import {
 } from '@store/reducers/uiTempGeometryDesigner';
 // import {getKinematicConstrainedElements} from '@gd/KinematicFunctions';
 import {KinematicSolver} from '@gd/kinematics/Solver';
+import {getControl, Control} from '@gd/Controls';
 
 import {getAssembly} from '@gd/Elements';
 
@@ -19,6 +20,12 @@ export default function AssemblyCreactor() {
   const assembled = useSelector(
     (state: RootState) => state.uitgd.gdSceneState.assembled
   );
+  const controls = useSelector(
+    (state: RootState) => state.dgd.present.controls
+  ).reduce((prev, current) => {
+    prev[current.targetElement] = getControl(current);
+    return prev;
+  }, {} as {[index: string]: Control});
 
   // アセンブリデータに変更があった場合に実行
   React.useEffect(() => {
@@ -48,7 +55,7 @@ export default function AssemblyCreactor() {
         try {
           // getKinematicConstrainedElements(assembly);
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const solver = new KinematicSolver(assembly);
+          const solver = new KinematicSolver(assembly, controls);
           dispatch(setKinematicSolver(solver));
         } catch (e) {
           // eslint-disable-next-line no-console
@@ -62,9 +69,9 @@ export default function AssemblyCreactor() {
 
     // else not assembled
     const {assembly} = store.getState().uitgd;
-    // resetPositions
+    // resetPositions& set dlCurrent to 0
     assembly?.arrange();
-  }, [assembled, assembly]);
+  }, [assembled, assembly, controls]);
 
   return null;
 }

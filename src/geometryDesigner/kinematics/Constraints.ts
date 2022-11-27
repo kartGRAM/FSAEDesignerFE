@@ -78,6 +78,31 @@ export class Sphere implements Constraint {
 
   isFixed: boolean = false;
 
+  swaped: boolean;
+
+  setVlhs(vlhs: Vector3, checkSwap: boolean = true): void {
+    if (this.swaped && checkSwap) {
+      this.setVrhs(vlhs, false);
+      return;
+    }
+    this.lLocalVec = vlhs.clone();
+    this.lLocalSkew = skew(this.lLocalVec).mul(2);
+  }
+
+  setVrhs(vrhs: Vector3, checkSwap: boolean = true): void {
+    if (this.swaped && checkSwap) {
+      this.setVlhs(vrhs, false);
+      return;
+    }
+    this.rLocalVec = vrhs.clone();
+    this.rLocalSkew = skew(this.rLocalVec).mul(-2);
+    if (this.rhs.isFixed) {
+      this.target = this.rhs.position
+        .clone()
+        .add(this.rLocalVec.applyQuaternion(this.rhs.quaternion));
+    }
+  }
+
   constructor(
     name: string,
     clhs: IComponent,
@@ -88,6 +113,7 @@ export class Sphere implements Constraint {
     this.name = name;
     if (clhs.isFixed) {
       if (crhs.isFixed) throw new Error('拘束式の両端が固定されている');
+      this.swaped = true;
       // 固定側はrhsにする
       this.lhs = crhs;
       this.rhs = clhs;
@@ -95,6 +121,7 @@ export class Sphere implements Constraint {
       vlhs = vrhs;
       vrhs = tmp;
     } else {
+      this.swaped = false;
       this.lhs = clhs;
       this.rhs = crhs;
     }
@@ -535,10 +562,10 @@ export class BarAndSpheres implements Constraint {
 
 export class LinearBushingSingleEnd implements Constraint {
   // 自由度を2減らす
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   constraints(onAssemble: boolean) {
     // 組み立て時は固定する
     if (onAssemble) return 3;
+    if (this.controled) return 3;
     return 2;
   }
 
@@ -556,6 +583,8 @@ export class LinearBushingSingleEnd implements Constraint {
     return this.fixed;
   }
 
+  controled: boolean;
+
   row: number = -1;
 
   res: IComponent;
@@ -569,6 +598,16 @@ export class LinearBushingSingleEnd implements Constraint {
   fixedLocalVec: [Vector3, Vector3];
 
   fixedLocalSkew: [Matrix, Matrix];
+
+  initialLength: number;
+
+  dl: number = 0;
+
+  elementID: string;
+
+  fixedAxisVec: Vector3;
+
+  center: Vector3;
 
   // 軸に垂直なベクトル
   fixedOrthogonalVec: [Vector3, Vector3];
@@ -593,21 +632,34 @@ export class LinearBushingSingleEnd implements Constraint {
     initialLength: number,
     vRodEndSide?: Vector3,
     dlMin?: number,
-    dlMax?: number
+    dlMax?: number,
+    controled?: boolean,
+    elementID?: string
   ) {
-    const center = vFixed[1].clone().add(vFixed[0]).multiplyScalar(0.5);
+    this.controled = controled ?? false;
+    this.elementID = elementID ?? '';
+    this.initialLength = initialLength;
+    this.center = vFixed[1].clone().add(vFixed[0]).multiplyScalar(0.5);
+    this.fixed = cFixed;
+    this.res = cRodEndSide;
     this.fixedLocalVec = [vFixed[0].clone(), vFixed[1].clone()];
     const fixedAxisVec = vFixed[1].clone().sub(vFixed[0]);
+    this.fixedAxisVec = fixedAxisVec.clone();
     if (fixedAxisVec.lengthSq() < Number.EPSILON) {
       throw new Error('リニアブッシュを保持するする2点が近すぎます');
     }
     this.sphere = new Sphere(
       name,
-      cFixed,
-      cRodEndSide,
-      center.add(
-        fixedAxisVec.clone().normalize().multiplyScalar(initialLength)
-      ),
+      this.fixed,
+      this.res,
+      this.center
+        .clone()
+        .add(
+          this.fixedAxisVec
+            .clone()
+            .normalize()
+            .multiplyScalar(this.initialLength)
+        ),
       vRodEndSide
     );
 
@@ -617,8 +669,6 @@ export class LinearBushingSingleEnd implements Constraint {
     if (cRodEndSide.isFixed) {
       throw new Error('RodEnd側が固定されている');
     }
-    this.res = cRodEndSide;
-    this.fixed = cFixed;
 
     this.resLocalVec = vRodEndSide?.clone() ?? new Vector3();
     this.resLocalSkew = skew(this.resLocalVec).mul(-2);
@@ -649,6 +699,29 @@ export class LinearBushingSingleEnd implements Constraint {
   setJacobianAndConstraints(phi_q: Matrix, phi: number[], onAssemble: boolean) {
     if (onAssemble) {
       this.sphere.row = this.row;
+      this.sphere.setVlhs(
+        this.center
+          .clone()
+          .add(
+            this.fixedAxisVec
+              .clone()
+              .normalize()
+              .multiplyScalar(this.initialLength)
+          )
+      );
+      this.sphere.setJacobianAndConstraints(phi_q, phi);
+      return;
+    }
+    if (this.controled) {
+      this.sphere.row = this.row;
+      this.sphere.setVlhs(
+        this.center.clone().add(
+          this.fixedAxisVec
+            .clone()
+            .normalize()
+            .multiplyScalar(this.initialLength + this.dl)
+        )
+      );
       this.sphere.setJacobianAndConstraints(phi_q, phi);
       return;
     }

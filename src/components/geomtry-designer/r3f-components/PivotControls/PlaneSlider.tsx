@@ -3,9 +3,9 @@ import * as React from 'react';
 import * as THREE from 'three';
 import {ThreeEvent, useThree} from '@react-three/fiber';
 import {Line, Html} from '@react-three/drei';
-import {context} from '@react-three/drei/core/pivotControls/context';
 import store from '@store/store';
 import {setOrbitControlsEnabled} from '@app/store/reducers/uiTempGeometryDesigner';
+import {context} from './context';
 
 const decomposeIntoBasis = (
   e1: THREE.Vector3,

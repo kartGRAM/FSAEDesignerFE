@@ -6,6 +6,7 @@ import {
   isILinearBushingControl
 } from '@gd/IControls';
 import {v4 as uuidv4} from 'uuid';
+import store from '@store/store';
 
 export abstract class Control {
   readonly nodeID: string;
@@ -44,6 +45,8 @@ export abstract class Control {
     };
   }
 
+  abstract solve(dt: number): void;
+
   abstract getDataControl(): IControl;
 }
 
@@ -69,6 +72,11 @@ export class LinearBushingControl extends Control {
     super(control);
     this.speed = control.speed ?? 10;
     this.reverse = control.reverse ?? false;
+  }
+
+  solve(dt: number): void {
+    const solver = store.getState().uitgd.kinematicSolver;
+    if (!solver) throw new Error('solverがない');
   }
 
   getDataControl(): ILinearBushingControl {
