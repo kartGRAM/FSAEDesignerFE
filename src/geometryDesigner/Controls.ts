@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable max-classes-per-file */
 import {
   IControl,
@@ -6,7 +7,11 @@ import {
   isILinearBushingControl
 } from '@gd/IControls';
 import {v4 as uuidv4} from 'uuid';
-import store from '@store/store';
+import {
+  LinearBushingSingleEnd,
+  isLinearBushingSingleEnd
+} from '@gd/kinematics/Constraints';
+import {KinematicSolver} from '@gd/kinematics/Solver';
 
 export abstract class Control {
   readonly nodeID: string;
@@ -45,7 +50,7 @@ export abstract class Control {
     };
   }
 
-  abstract solve(dt: number): void;
+  abstract preprocess(dt: number, solver: KinematicSolver): void;
 
   abstract getDataControl(): IControl;
 }
@@ -74,9 +79,27 @@ export class LinearBushingControl extends Control {
     this.reverse = control.reverse ?? false;
   }
 
-  solve(dt: number): void {
-    const solver = store.getState().uitgd.kinematicSolver;
-    if (!solver) throw new Error('solverがない');
+  preprocess(dt: number, solver: KinematicSolver): void {
+    const deltaDl = dt * this.speed * (this.reverse ? -1 : 1);
+    const roots = solver.components.map((c) => c[0]);
+    const constraints = roots.reduce((prev, current) => {
+      prev.push(
+        ...(current
+          .getGroupedConstraints()
+          .filter(
+            (c) =>
+              isLinearBushingSingleEnd(c) && c.elementID === this.targetElement
+          ) as LinearBushingSingleEnd[])
+      );
+      return prev;
+    }, [] as LinearBushingSingleEnd[]);
+    constraints.forEach((constraint) => {
+      constraint.dl += deltaDl;
+      constraint.dl = Math.min(
+        constraint.dlMax,
+        Math.max(constraint.dlMin, constraint.dl)
+      );
+    });
   }
 
   getDataControl(): ILinearBushingControl {

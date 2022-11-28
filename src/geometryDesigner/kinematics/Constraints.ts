@@ -25,6 +25,7 @@ const Q2 = 5;
 const Q3 = 6;
 
 export interface Constraint {
+  readonly className: string;
   readonly lhs: IComponent;
   readonly rhs: IComponent;
   readonly isInequalityConstraint: boolean;
@@ -47,6 +48,8 @@ export interface Constraint {
 }
 
 export class Sphere implements Constraint {
+  readonly className = 'Sphere';
+
   // 自由度を3減らす
   constraints() {
     return 3;
@@ -210,6 +213,8 @@ export class Sphere implements Constraint {
 }
 
 export class Hinge implements Constraint {
+  readonly className = 'Hinge';
+
   // 自由度を5減らす
   constraints() {
     return 5;
@@ -381,6 +386,8 @@ export class Hinge implements Constraint {
 }
 
 export class BarAndSpheres implements Constraint {
+  readonly className = 'BarAndSpheres';
+
   // 自由度を1減らす
   constraints(onAssemble: boolean) {
     if (!onAssemble && this.isSpringDumper) return 0;
@@ -561,6 +568,8 @@ export class BarAndSpheres implements Constraint {
 }
 
 export class LinearBushingSingleEnd implements Constraint {
+  readonly className = 'LinearBushingSingleEnd';
+
   // 自由度を2減らす
   constraints(onAssemble: boolean) {
     // 組み立て時は固定する
@@ -789,7 +798,15 @@ export class LinearBushingSingleEnd implements Constraint {
   }
 }
 
+export function isLinearBushingSingleEnd(
+  constraint: Constraint
+): constraint is LinearBushingSingleEnd {
+  return constraint.className === 'LinearBushingSingleEnd';
+}
+
 export class QuaternionConstraint implements Constraint {
+  readonly className = 'QuaternionConstraint';
+
   // 自由度を1減らす
   constraints() {
     return 1;

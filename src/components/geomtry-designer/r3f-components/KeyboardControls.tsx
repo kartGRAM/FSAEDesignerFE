@@ -17,13 +17,21 @@ export const KeyboardControls = () => {
       return prev;
     }, {} as {[index: string]: Control});
 
-  useFrame(() => {
+  const solver = useSelector((state: RootState) => state.uitgd.kinematicSolver);
+
+  useFrame((threeState, delta) => {
+    if (!solver) return;
     const state = get() as {[index: string]: boolean};
+    const needToUpdate = {value: false};
     Object.keys(state).forEach((key) => {
       if (!state[key]) return;
+      needToUpdate.value = true;
       const control = controls[key];
-      console.log(control.className);
+      control.preprocess(delta, solver);
     });
+    if (needToUpdate.value) {
+      solver.solve();
+    }
   });
 
   return null;
