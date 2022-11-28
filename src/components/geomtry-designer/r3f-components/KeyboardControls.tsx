@@ -19,8 +19,11 @@ export const KeyboardControls = () => {
 
   const solver = useSelector((state: RootState) => state.uitgd.kinematicSolver);
 
+  const time = {value: 0};
+
   useFrame((threeState, delta) => {
     if (!solver) return;
+    if (solver.running) return;
     const state = get() as {[index: string]: boolean};
     const needToUpdate = {value: false};
     Object.keys(state).forEach((key) => {
@@ -29,9 +32,9 @@ export const KeyboardControls = () => {
       const control = controls[key];
       control.preprocess(delta, solver);
     });
-    if (needToUpdate.value) {
-      solver.solve();
-    }
+    time.value += delta;
+    if (!needToUpdate.value) return;
+    solver.solve();
   });
 
   return null;

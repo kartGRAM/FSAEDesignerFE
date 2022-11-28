@@ -706,6 +706,19 @@ export class LinearBushingSingleEnd implements Constraint {
   }
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[], onAssemble: boolean) {
+    if (this.controled) {
+      this.sphere.row = this.row;
+      this.sphere.setVlhs(
+        this.center.clone().add(
+          this.fixedAxisVec
+            .clone()
+            .normalize()
+            .multiplyScalar(this.initialLength + this.dl)
+        )
+      );
+      this.sphere.setJacobianAndConstraints(phi_q, phi);
+      return;
+    }
     if (onAssemble) {
       this.sphere.row = this.row;
       this.sphere.setVlhs(
@@ -717,19 +730,6 @@ export class LinearBushingSingleEnd implements Constraint {
               .normalize()
               .multiplyScalar(this.initialLength)
           )
-      );
-      this.sphere.setJacobianAndConstraints(phi_q, phi);
-      return;
-    }
-    if (this.controled) {
-      this.sphere.row = this.row;
-      this.sphere.setVlhs(
-        this.center.clone().add(
-          this.fixedAxisVec
-            .clone()
-            .normalize()
-            .multiplyScalar(this.initialLength + this.dl)
-        )
       );
       this.sphere.setJacobianAndConstraints(phi_q, phi);
       return;

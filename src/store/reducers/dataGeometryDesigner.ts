@@ -197,6 +197,7 @@ export const dataGeometryDesignerSlice = createSlice({
       );
       if (idx !== -1) {
         controls[idx] = control;
+        state.changed = true;
         return;
       }
       state.controls = [control, ...state.controls];
