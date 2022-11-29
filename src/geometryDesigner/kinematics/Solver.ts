@@ -33,6 +33,7 @@ import {
 } from './Restorer';
 import {IObjectiveFunction} from './Driver';
 import {
+  ConstraintsOptions,
   Constraint,
   Sphere,
   Hinge,
@@ -466,7 +467,11 @@ export class KinematicSolver {
       });
     }
     // 上記4ステップでプリプロセッサ完了
-    this.solve({onAssemble: true, postProcess: true, logOutput: true});
+    this.solve({
+      constraintsOptions: {onAssemble: true},
+      postProcess: true,
+      logOutput: true
+    });
   }
 
   getGroupItBelongsTo(component: IComponent): [IComponent, IComponent[]] {
@@ -478,7 +483,8 @@ export class KinematicSolver {
   }
 
   solve(params?: {
-    onAssemble?: boolean;
+    fixSpringDumperAtCurrentPosition?: boolean;
+    constraintsOptions?: ConstraintsOptions;
     maxCnt?: number;
     postProcess?: boolean;
     logOutput?: boolean;
@@ -489,7 +495,7 @@ export class KinematicSolver {
       const start = performance.now();
       const maxCnt = params?.maxCnt ?? 100;
       const postProcess = params?.postProcess ?? true;
-      const onAssemble = params?.onAssemble ?? false;
+      const constraintsOptions = params?.constraintsOptions ?? {};
       const logOutput = params?.logOutput ?? false;
 
       // Kinematicソルバを解く
@@ -497,11 +503,11 @@ export class KinematicSolver {
         const root = components[0];
         const constraints = root
           .getGroupedConstraints()
-          .filter((constraint) => constraint.active(onAssemble));
+          .filter((constraint) => constraint.active(constraintsOptions));
 
         const equations = constraints.reduce((prev, current) => {
           current.row = prev;
-          return prev + current.constraints(onAssemble);
+          return prev + current.constraints(constraintsOptions);
         }, 0);
         const degreeOfFreedom = components.reduce((prev, current) => {
           current.setCol(prev);
@@ -516,7 +522,11 @@ export class KinematicSolver {
         let eq = false;
         while (!eq && ++i < maxCnt) {
           constraints.forEach((constraint) => {
-            constraint.setJacobianAndConstraints(phi_q, phi, onAssemble);
+            constraint.setJacobianAndConstraints(
+              phi_q,
+              phi,
+              constraintsOptions
+            );
           });
 
           const matPhi = Matrix.columnVector(phi);
@@ -577,6 +587,7 @@ export class KinematicSolver {
     func: IObjectiveFunction,
     params?: {
       maxCnt?: number;
+      constraintsOptions?: ConstraintsOptions;
       ignoreInequalityConstraints?: boolean;
       postProcess?: boolean;
       logOutput?: boolean;
@@ -584,6 +595,7 @@ export class KinematicSolver {
   ) {
     if (this.running) return;
     this.running = true;
+    const constraintsOptions = params?.constraintsOptions ?? {};
     const [root, components] = this.getGroupItBelongsTo(func.component);
     const degreeOfFreedom = components.reduce((prev, current) => {
       current.setCol(prev);
@@ -597,7 +609,6 @@ export class KinematicSolver {
       const postProcess = params?.postProcess ?? true;
       const ignoreInequalityConstraints =
         params?.ignoreInequalityConstraints ?? true;
-      const onAssemble = false;
       const logOutput = params?.logOutput ?? false;
       const constraints = root.unionFindTreeConstraints;
 
@@ -621,7 +632,7 @@ export class KinematicSolver {
           let minNorm = Number.MAX_SAFE_INTEGER;
           let equations = constraints.reduce((prev, current) => {
             current.row = prev;
-            return prev + current.constraints(onAssemble);
+            return prev + current.constraints(constraintsOptions);
           }, 0);
           if (inequalityConstraint && icBound) {
             inequalityConstraint.row = equations;
@@ -641,7 +652,11 @@ export class KinematicSolver {
           func.getGradient(dFx);
           // ヤコビアンマトリックスと、現在の制約式を得る。
           constraints.forEach((constraint) => {
-            constraint.setJacobianAndConstraints(phi_q, phi, onAssemble);
+            constraint.setJacobianAndConstraints(
+              phi_q,
+              phi,
+              constraintsOptions
+            );
           });
           if (icBound) {
             hint = inequalityConstraint?.setJacobianAndConstraintsInequal(
@@ -684,7 +699,11 @@ export class KinematicSolver {
 
             // ΦqとΦとdFxを更新。
             constraints.forEach((constraint) => {
-              constraint.setJacobianAndConstraints(phi_q, phi, onAssemble);
+              constraint.setJacobianAndConstraints(
+                phi_q,
+                phi,
+                constraintsOptions
+              );
             });
             if (icBound) {
               hint = inequalityConstraint?.setJacobianAndConstraintsInequal(

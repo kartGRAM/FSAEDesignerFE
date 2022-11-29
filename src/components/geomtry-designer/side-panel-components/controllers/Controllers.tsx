@@ -7,13 +7,23 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '@store/store';
+import {toggleFixSpringDumperDuaringControl} from '@store/reducers/uiGeometryDesigner';
 import {KeyBindingsDialog} from './KeyBindingsDialog';
 
 export default function Controllers() {
   const dispatch = useDispatch();
   const [kbdOpen, setKbdOpen] = React.useState(false);
+  const fixSpringDumperDuaringControl = useSelector(
+    (state: RootState) =>
+      state.uigd.present.gdSceneState.fixSpringDumperDuaringControl
+  );
+  const handleFSDDCChange = () => {
+    dispatch(toggleFixSpringDumperDuaringControl());
+  };
 
   return (
     <>
@@ -43,6 +53,18 @@ export default function Controllers() {
         </AccordionSummary>
         <AccordionDetails sx={{padding: 0}} />
       </Accordion>
+      <Box component="div" padding={3}>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={fixSpringDumperDuaringControl}
+              onChange={handleFSDDCChange}
+            />
+          }
+          label="Fix spring dumper duaring control"
+        />
+      </Box>
+
       <KeyBindingsDialog open={kbdOpen} setOpen={setKbdOpen} />
     </>
   );

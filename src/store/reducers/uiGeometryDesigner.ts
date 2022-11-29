@@ -41,6 +41,7 @@ export interface GDSceneState {
   assemblyMode: 'FixedFrame' | 'FixTiresToBeGrounded';
   projectionMode: 'Perspective' | 'Orthographic';
   componentVisualizationMode: 'ShowAllNodes' | 'WireFrameOnly';
+  fixSpringDumperDuaringControl: boolean;
 }
 
 export interface GDState {
@@ -94,7 +95,8 @@ const initialState: GDState = {
   gdSceneState: {
     assemblyMode: 'FixedFrame',
     componentVisualizationMode: 'ShowAllNodes',
-    projectionMode: 'Perspective'
+    projectionMode: 'Perspective',
+    fixSpringDumperDuaringControl: true
   }
 };
 
@@ -133,6 +135,10 @@ export const uiGeometryDesignerSlice = createSlice({
     ) => {
       state.gdSceneState.projectionMode = action.payload;
     },
+    toggleFixSpringDumperDuaringControl: (state: GDState) => {
+      state.gdSceneState.fixSpringDumperDuaringControl =
+        !state.gdSceneState.fixSpringDumperDuaringControl;
+    },
     setComponentVisualizationMode: (
       state: GDState,
       action: PayloadAction<'ShowAllNodes' | 'WireFrameOnly'>
@@ -148,7 +154,8 @@ export const {
   dynamicParamsDefaultExpandedChange,
   setPointOffsetToolDialogInitialPosition,
   setProjectionMode,
-  setComponentVisualizationMode
+  setComponentVisualizationMode,
+  toggleFixSpringDumperDuaringControl
 } = uiGeometryDesignerSlice.actions;
 
 export default uiGeometryDesignerSlice.reducer;

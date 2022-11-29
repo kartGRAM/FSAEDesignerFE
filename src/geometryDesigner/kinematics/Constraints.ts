@@ -24,19 +24,24 @@ const Q1 = 4;
 const Q2 = 5;
 const Q3 = 6;
 
+export interface ConstraintsOptions {
+  onAssemble?: boolean;
+  fixSpringDumpersAtCurrentPositions?: boolean;
+}
+
 export interface Constraint {
   readonly className: string;
   readonly lhs: IComponent;
   readonly rhs: IComponent;
   readonly isInequalityConstraint: boolean;
   row: number;
-  active(onAssemble: boolean): boolean;
-  constraints(onAssemble: boolean): number;
+  active(options: ConstraintsOptions): boolean;
+  constraints(options: ConstraintsOptions): number;
   readonly name: string;
   setJacobianAndConstraints(
     phi_q: Matrix,
     phi: number[],
-    onAssemble: boolean
+    options: ConstraintsOptions
   ): void;
 
   setJacobianAndConstraintsInequal(
@@ -389,13 +394,19 @@ export class BarAndSpheres implements Constraint {
   readonly className = 'BarAndSpheres';
 
   // 自由度を1減らす
-  constraints(onAssemble: boolean) {
-    if (!onAssemble && this.isSpringDumper) return 0;
+  constraints(options: ConstraintsOptions) {
+    const {onAssemble, fixSpringDumpersAtCurrentPositions} = options;
+    if (onAssemble) return 1;
+    if (this.isSpringDumper && fixSpringDumpersAtCurrentPositions) return 1;
+    if (this.isSpringDumper) return 0;
     return 1;
   }
 
-  active(onAssemble: boolean) {
-    if (!onAssemble && this.isSpringDumper) return false;
+  active(options: ConstraintsOptions) {
+    const {onAssemble, fixSpringDumpersAtCurrentPositions} = options;
+    if (onAssemble) return true;
+    if (this.isSpringDumper && fixSpringDumpersAtCurrentPositions) return true;
+    if (this.isSpringDumper) return false;
     return true;
   }
 
@@ -471,9 +482,22 @@ export class BarAndSpheres implements Constraint {
     this.l2 = l * l;
   }
 
-  setJacobianAndConstraints(phi_q: Matrix, phi: number[], onAssemble: boolean) {
-    if (!onAssemble && this.isSpringDumper) return;
-    this.setJacobianAndConstraintsImpl(this.l2, phi_q, phi);
+  setJacobianAndConstraints(
+    phi_q: Matrix,
+    phi: number[],
+    options: ConstraintsOptions
+  ) {
+    const {onAssemble, fixSpringDumpersAtCurrentPositions} = options;
+    if (
+      !onAssemble &&
+      this.isSpringDumper &&
+      !fixSpringDumpersAtCurrentPositions
+    )
+      return;
+    let {l2} = this;
+    if (this.isSpringDumper && fixSpringDumpersAtCurrentPositions)
+      l2 = this.getDistanceOfEndPoints() ** 2;
+    this.setJacobianAndConstraintsImpl(l2, phi_q, phi);
   }
 
   setJacobianAndConstraintsInequal(
@@ -493,7 +517,7 @@ export class BarAndSpheres implements Constraint {
     return hintN;
   }
 
-  checkInequalityConstraint(): [boolean, number] {
+  getDistanceOfEndPoints() {
     let d: number = 0;
     const {lhs, lLocalVec} = this;
     const qLhs = lhs.quaternion;
@@ -506,6 +530,11 @@ export class BarAndSpheres implements Constraint {
     } else {
       d = lhs.position.clone().add(sLhs).sub(this.target).length();
     }
+    return d;
+  }
+
+  checkInequalityConstraint(): [boolean, number] {
+    const d = this.getDistanceOfEndPoints();
     const l = Math.sqrt(this.l2);
     const lMin = l + this.dlMin - Number.EPSILON;
     const lMax = l + this.dlMax + Number.EPSILON;
@@ -571,7 +600,8 @@ export class LinearBushingSingleEnd implements Constraint {
   readonly className = 'LinearBushingSingleEnd';
 
   // 自由度を2減らす
-  constraints(onAssemble: boolean) {
+  constraints(options: ConstraintsOptions) {
+    const {onAssemble} = options;
     // 組み立て時は固定する
     if (onAssemble) return 3;
     if (this.controled) return 3;
@@ -705,7 +735,12 @@ export class LinearBushingSingleEnd implements Constraint {
     ];
   }
 
-  setJacobianAndConstraints(phi_q: Matrix, phi: number[], onAssemble: boolean) {
+  setJacobianAndConstraints(
+    phi_q: Matrix,
+    phi: number[],
+    options: ConstraintsOptions
+  ) {
+    const {onAssemble} = options;
     if (this.controled) {
       this.sphere.row = this.row;
       this.sphere.setVlhs(

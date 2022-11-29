@@ -18,6 +18,10 @@ export const KeyboardControls = () => {
     }, {} as {[index: string]: Control});
 
   const solver = useSelector((state: RootState) => state.uitgd.kinematicSolver);
+  const fixSpringDumperDuaringControl = useSelector(
+    (state: RootState) =>
+      state.uigd.present.gdSceneState.fixSpringDumperDuaringControl
+  );
 
   const time = {value: 0};
 
@@ -34,7 +38,11 @@ export const KeyboardControls = () => {
     });
     time.value += delta;
     if (!needToUpdate.value) return;
-    solver.solve();
+    solver.solve({
+      constraintsOptions: {
+        fixSpringDumpersAtCurrentPositions: fixSpringDumperDuaringControl
+      }
+    });
   });
 
   return null;
