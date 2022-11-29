@@ -1,9 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import {LinearBushingControl} from '@gd/Controls';
 import {IControl} from '@gd/IControls';
-import {ILinearBushing} from '@gd/IElements';
-import {useDispatch} from 'react-redux';
 import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import Slider from '@mui/material/Slider';
@@ -23,7 +20,7 @@ export function LinearBushingControlSettings(props: LinearBushingControlProps) {
   const {control, setStaged} = props;
   const [speed, setSpeed] = React.useState<number | ''>(control.speed);
   const [reverse, setReverse] = React.useState<boolean>(control.reverse);
-  const max = 100;
+  const max = 400;
   const min = 0;
 
   const handleSliderSpeedChange = (
@@ -68,6 +65,8 @@ export function LinearBushingControlSettings(props: LinearBushingControlProps) {
             aria-label="Small"
             valueLabelDisplay="auto"
             value={isNumber(speed) ? speed : 0}
+            min={min}
+            max={max}
             onChange={handleSliderSpeedChange}
           />
         </Box>
