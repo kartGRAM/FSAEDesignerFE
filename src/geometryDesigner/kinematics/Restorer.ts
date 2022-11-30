@@ -143,8 +143,9 @@ export class TireRestorer implements Restorer {
     const pTo = this.rightBearing.value
       .applyQuaternion(pParent.rotation.value)
       .add(pParent.position.value);
-    const s = this.element.rightBearing.value.sub(fp).normalize();
-    const sTo = pTo.sub(fpTo).normalize();
+    const s = this.element.rightBearing.value.sub(fp).normalize(); // 右-左
+    const sTo = pTo.clone().sub(fpTo).normalize(); // 右-左
+
     this.element.rotation.value = new Quaternion().setFromUnitVectors(s, sTo);
 
     fp.applyQuaternion(this.element.rotation.value).add(

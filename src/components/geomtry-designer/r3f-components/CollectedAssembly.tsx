@@ -8,6 +8,7 @@ import {
   isBar,
   isBellCrank,
   isSpringDumper,
+  isTire,
   isLinearBushing
 } from '@gd/IElements';
 import Body from './Body';
@@ -16,6 +17,7 @@ import Bar from './Bar';
 import SpringDumper from './SpringDumper';
 import BellCrank from './BellCrank';
 import LinearBushing from './LinearBushing';
+import Tire from './Tire';
 
 const CollectedAssembly = () => {
   const assembly = useSelector(
@@ -35,6 +37,7 @@ const CollectedAssembly = () => {
         if (isBar(child)) return <Bar element={child} key={child.nodeID} />;
         if (isBellCrank(child))
           return <BellCrank element={child} key={child.nodeID} />;
+        if (isTire(child)) return <Tire element={child} key={child.nodeID} />;
         if (isLinearBushing(child))
           return <LinearBushing element={child} key={child.nodeID} />;
         return null;
