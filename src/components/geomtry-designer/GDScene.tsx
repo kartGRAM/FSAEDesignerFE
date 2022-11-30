@@ -46,6 +46,12 @@ export default function GDScene() {
     (state: RootState) => state.dgd.present.controls
   ).filter((c) => c.type === 'keyboard');
   const map = controls.map((c) => ({name: c.nodeID, keys: [c.inputButton]}));
+  map.push(
+    ...[
+      {name: 'fixY', keys: ['F5']},
+      {name: 'fixZ', keys: ['F6']}
+    ]
+  );
 
   useEffect(() => {
     const window = document.getElementById('gdAppBar');

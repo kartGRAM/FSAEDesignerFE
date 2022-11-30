@@ -1,14 +1,11 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import * as React from 'react';
-import * as THREE from 'three';
 import {useFrame} from '@react-three/fiber';
 import {useSelector} from 'react-redux';
 import {useKeyboardControls} from '@react-three/drei';
 import {getControl, Control} from '@gd/Controls';
-import store, {RootState} from '@store/store';
+import {RootState} from '@store/store';
 
 export const KeyboardControls = () => {
-  const [sub, get] = useKeyboardControls<string>();
+  const [, get] = useKeyboardControls<string>();
 
   const controls = useSelector((state: RootState) => state.dgd.present.controls)
     .filter((c) => c.type === 'keyboard')
@@ -34,7 +31,7 @@ export const KeyboardControls = () => {
       if (!state[key]) return;
       needToUpdate.value = true;
       const control = controls[key];
-      control.preprocess(delta, solver);
+      if (control) control.preprocess(delta, solver);
     });
     time.value += delta;
     if (!needToUpdate.value) return;

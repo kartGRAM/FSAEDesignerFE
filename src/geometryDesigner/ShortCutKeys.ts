@@ -21,6 +21,15 @@ export default function shortCutKeys(e: KeyboardEvent) {
   const state = store.getState();
   if (state.uitgd.uiDisabled) return;
 
+  const controllerKeys = state.dgd.present.controls
+    .filter((c) => c.type === 'keyboard')
+    .map((c) => c.inputButton);
+  const orbitControlKeys = ['F4', 'F5', 'F6'];
+  if (controllerKeys.includes(e.key) || orbitControlKeys.includes(e.key)) {
+    e.preventDefault();
+    return;
+  }
+
   if (e.ctrlKey) {
     if (e.key === 'z') store.dispatch(ActionCreators.undo());
     else if (e.key === 'y') store.dispatch(ActionCreators.redo());

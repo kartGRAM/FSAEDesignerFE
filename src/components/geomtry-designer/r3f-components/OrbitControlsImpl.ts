@@ -110,7 +110,7 @@ class OrbitControls extends EventDispatcher {
 
   reset: () => void;
 
-  update: () => void;
+  update: (args?: {fixY: boolean; fixZ: boolean}) => void;
 
   connect: (domElement: HTMLElement) => void;
 
@@ -199,7 +199,7 @@ class OrbitControls extends EventDispatcher {
     };
 
     // this method is exposed, but perhaps it would be better if we can make it private...
-    this.update = ((): (() => void) => {
+    this.update = ((): ((args?: {fixY: boolean; fixZ: boolean}) => void) => {
       const offset = new Vector3();
 
       // so camera.up is the orbit axis
@@ -214,8 +214,11 @@ class OrbitControls extends EventDispatcher {
 
       const twoPI = 2 * Math.PI;
 
-      return function update(): boolean {
+      return function update(args?: {fixY: boolean; fixZ: boolean}): boolean {
+        if (!scope.enabled) return false;
         const {position} = scope.object;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const {fixY, fixZ} = args ?? {fixY: false, fixz: false};
 
         offset.copy(position).sub(scope.target);
 
@@ -228,6 +231,8 @@ class OrbitControls extends EventDispatcher {
         if (scope.autoRotate && state === STATE.NONE) {
           rotateLeft(getAutoRotationAngle());
         }
+        if (fixZ) sphericalDelta.phi = 0;
+        if (fixY) sphericalDelta.theta = 0;
 
         spherical.theta += sphericalDelta.theta;
         spherical.phi += sphericalDelta.phi;
@@ -582,7 +587,7 @@ class OrbitControls extends EventDispatcher {
         rotateUp((2 * Math.PI * rotateDelta.y) / element.clientHeight);
       }
       rotateStart.copy(rotateEnd);
-      scope.update();
+      // scope.update();
     }
 
     function handleMouseMoveDolly(event: MouseEvent) {
@@ -613,7 +618,6 @@ class OrbitControls extends EventDispatcher {
       } else if (event.deltaY > 0) {
         dollyOut(getZoomScale());
       }
-
       scope.update();
     }
 
@@ -937,7 +941,7 @@ class OrbitControls extends EventDispatcher {
         case STATE.TOUCH_ROTATE:
           if (scope.enableRotate === false) return;
           handleTouchMoveRotate(event);
-          scope.update();
+          // scope.update();
           break;
 
         case STATE.TOUCH_PAN:
@@ -956,7 +960,7 @@ class OrbitControls extends EventDispatcher {
           if (scope.enableZoom === false && scope.enableRotate === false)
             return;
           handleTouchMoveDollyRotate(event);
-          scope.update();
+          // scope.update();
           break;
 
         default:

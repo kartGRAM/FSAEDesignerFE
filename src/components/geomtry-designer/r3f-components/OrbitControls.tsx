@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   EventManager,
   ReactThreeFiber,
@@ -12,6 +13,7 @@ import * as THREE from 'three';
 import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
 import {isPerspectiveCamera, isOrthographicCamera} from '@utils/three';
+import {useKeyboardControls} from '@react-three/drei';
 import {OrbitControls as OrbitControlsImpl} from './OrbitControlsImpl';
 
 export type OrbitControlsProps = Omit<
@@ -52,6 +54,8 @@ export const OrbitControls = React.forwardRef<
       (state: RootState) => state.uitgd.gdSceneState.viewDirection
     );
 
+    const [, getKeys] = useKeyboardControls<string>();
+
     restProps.enabled = useSelector(
       (state: RootState) => state.uitgd.gdSceneState.orbitControlsEnabled
     );
@@ -78,7 +82,9 @@ export const OrbitControls = React.forwardRef<
     const zoomTo = React.useRef<number | null>(null);
 
     useFrame(() => {
-      if (controls.enabled) controls.update();
+      const keyState = getKeys() as {[index: string]: boolean};
+      const args = {fixY: keyState.fixY, fixZ: keyState.fixZ};
+      controls.update(args);
     }, -1);
 
     React.useEffect(() => {

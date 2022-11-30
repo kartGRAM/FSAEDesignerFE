@@ -23,7 +23,7 @@ export interface KeyBindingsDialogProps {
 }
 
 const disabledKey =
-  '{escape} {tab} {enter} {controlleft} {controlright} {f7} {f8}';
+  '{escape} {tab} {enter} {controlleft} {controlright} {f4} {f5} {f6} {f7} {f8} {f11}';
 export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
   const {open, setOpen} = props;
   const [selectedKey, setSelectedKey] = React.useState('');
