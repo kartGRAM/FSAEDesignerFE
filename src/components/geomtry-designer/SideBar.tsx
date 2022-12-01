@@ -12,7 +12,6 @@ import HomeRepairServiceIcon from '@mui/icons-material/HomeRepairService';
 import SettingsInputComponentIcon from '@mui/icons-material/SettingsInputComponent';
 import BrushIcon from '@mui/icons-material/Brush';
 import SettingsIcon from '@mui/icons-material/Settings';
-import AutoGraphIcon from '@mui/icons-material/AutoGraph';
 import ComputerIcon from '@mui/icons-material/Computer';
 import {useSelector, useDispatch} from 'react-redux';
 import {numberToRgb} from '@app/utils/helpers';
@@ -25,6 +24,7 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import SteeringWheel from './svgs/SteeringWheel';
 import SquareMeasure from './svgs/SquareMeasure';
+import Graph from './svgs/GraphOfTwoData';
 
 const drawerWidth = 240;
 
@@ -115,7 +115,7 @@ export default function MiniDrawer() {
           {text: 'parameters', icon: <SettingsInputComponentIcon />},
           {text: 'controllers', icon: <SteeringWheel />},
           {text: 'measures', icon: <SquareMeasure />},
-          {text: 'analysis', icon: <AutoGraphIcon />},
+          {text: 'analysis', icon: <Graph />},
           {text: 'style', icon: <BrushIcon />},
           {text: 'visualization', icon: <ComputerIcon />}
         ].map((item) => (
