@@ -1,7 +1,7 @@
 import React from 'react';
 import SvgIcon from '@mui/material/SvgIcon';
 
-export default function Move() {
+export default function StearingWheel() {
   return (
     <SvgIcon>
       <svg

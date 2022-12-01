@@ -21,7 +21,10 @@ import {
   SidePanelTab,
   selectSidePanelTab
 } from '@app/store/reducers/uiTempGeometryDesigner';
+import Tooltip from '@mui/material/Tooltip';
+import Typography from '@mui/material/Typography';
 import SteeringWheel from './svgs/SteeringWheel';
+import SquareMeasure from './svgs/SquareMeasure';
 
 const drawerWidth = 240;
 
@@ -111,45 +114,61 @@ export default function MiniDrawer() {
           {text: 'elements', icon: <HomeRepairServiceIcon />},
           {text: 'parameters', icon: <SettingsInputComponentIcon />},
           {text: 'controllers', icon: <SteeringWheel />},
+          {text: 'measures', icon: <SquareMeasure />},
           {text: 'analysis', icon: <AutoGraphIcon />},
           {text: 'style', icon: <BrushIcon />},
           {text: 'visualization', icon: <ComputerIcon />}
         ].map((item) => (
           <ListItem key={item.text} disablePadding sx={{display: 'block'}}>
-            <ListItemButton
-              disabled={
-                disabled || (item.text === 'parameters' && !selectedNodeID)
-              }
-              sx={{
-                minHeight: 48,
-                justifyContent: open ? 'initial' : 'center',
-                px: 2.5,
-                backgroundColor:
-                  item.text === selectedTab
-                    ? `${numberToRgb(selectedBgColor)}!important`
-                    : undefined
-              }}
-              onClick={() => {
-                panelSelect(item.text as SidePanelTab);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'enter') {
-                  panelSelect(item.text as SidePanelTab);
+            <Tooltip
+              placement="right"
+              title={<Typography color="inherit">{item.text}</Typography>}
+              componentsProps={{
+                popper: {
+                  sx: {
+                    zIndex: 12500000000
+                  }
                 }
               }}
             >
-              <ListItemIcon
+              <ListItemButton
+                disabled={
+                  disabled || (item.text === 'parameters' && !selectedNodeID)
+                }
                 sx={{
-                  minWidth: 0,
-                  mr: open ? 3 : 'auto',
-                  justifyContent: 'center',
-                  color: numberToRgb(iconColor)
+                  minHeight: 48,
+                  justifyContent: open ? 'initial' : 'center',
+                  px: 2.5,
+                  backgroundColor:
+                    item.text === selectedTab
+                      ? `${numberToRgb(selectedBgColor)}!important`
+                      : undefined
+                }}
+                onClick={() => {
+                  panelSelect(item.text as SidePanelTab);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'enter') {
+                    panelSelect(item.text as SidePanelTab);
+                  }
                 }}
               >
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText primary={item.text} sx={{opacity: open ? 1 : 0}} />
-            </ListItemButton>
+                <ListItemIcon
+                  sx={{
+                    minWidth: 0,
+                    mr: open ? 3 : 'auto',
+                    justifyContent: 'center',
+                    color: numberToRgb(iconColor)
+                  }}
+                >
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText
+                  primary={item.text}
+                  sx={{opacity: open ? 1 : 0}}
+                />
+              </ListItemButton>
+            </Tooltip>
           </ListItem>
         ))}
       </List>
