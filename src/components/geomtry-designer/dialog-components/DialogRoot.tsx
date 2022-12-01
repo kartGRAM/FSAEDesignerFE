@@ -6,6 +6,7 @@ import {SaveAsDialog} from '@gdComponents/dialog-components/SaveAsDialog';
 import {CopyFromExistingPointsDialog} from '@gdComponents/dialog-components/CopyFromExistingPointsDialog';
 import {MovePointDialog} from '@gdComponents/dialog-components/MovePointDialog';
 import {MoveComponentDialog} from '@gdComponents/dialog-components/MoveComponentDialog';
+import {RecordingDialog} from '@gdComponents/dialog-components/RecordingDialog';
 
 import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
@@ -34,6 +35,7 @@ export default function DialogRoot() {
       <CopyFromExistingPointsDialog />
       <MovePointDialog />
       <MoveComponentDialog />
+      <RecordingDialog />
     </>
   );
 }

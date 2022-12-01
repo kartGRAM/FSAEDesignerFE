@@ -79,6 +79,7 @@ export interface GDDialogState {
   movePointDialogProps: MovePointDialogProps;
   movePointOnMoved: ((delta: Vector3) => void) | null;
   formulaDialogOpen: boolean;
+  RecordingDialogOpen: boolean;
   openDialogOpen: boolean;
   saveAsDialogProps?: SaveAsDialogProps;
   confirmDialogProps?: ConfirmDialogProps;
@@ -106,6 +107,7 @@ const initialState: GDState = {
     movePointDialogProps: {open: false, target: null, onMoved: null},
     movePointOnMoved: null, // そのうちけす
     formulaDialogOpen: false,
+    RecordingDialogOpen: false,
     openDialogOpen: false,
     saveAsDialogProps: undefined,
     confirmDialogProps: undefined
@@ -230,6 +232,14 @@ export const uitGeometryDesignerSlice = createSlice({
     ) => {
       state.gdDialogState.formulaDialogOpen = action.payload.open;
     },
+    setRecordingDialogOpen: (
+      state: GDState,
+      action: PayloadAction<{
+        open: boolean;
+      }>
+    ) => {
+      state.gdDialogState.RecordingDialogOpen = action.payload.open;
+    },
     setOpenDialogOpen: (
       state: GDState,
       action: PayloadAction<{
@@ -322,6 +332,7 @@ export const {
   selectSidePanelTab,
   setSelectedPoint,
   setFormulaDialogOpen,
+  setRecordingDialogOpen,
   setOpenDialogOpen,
   setSaveAsDialogProps,
   setConfirmDialogProps,

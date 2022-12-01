@@ -5,9 +5,6 @@ import Dialog from '@mui/material/Dialog';
 import {useSelector, useDispatch} from 'react-redux';
 import {RootState} from '@store/store';
 import {setUIDisabled} from '@store/reducers/uiTempGeometryDesigner';
-import {setPointOffsetToolDialogInitialPosition} from '@store/reducers/uiGeometryDesigner';
-import Paper, {PaperProps} from '@mui/material/Paper';
-import Draggable from 'react-draggable';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import InputLabel from '@mui/material/InputLabel';
@@ -23,6 +20,7 @@ import {INamedVector3, IPointOffsetTool} from '@gd/INamedValues';
 import {DeltaXYZ} from '@gdComponents/dialog-components/PointOffsetToolDialogComponents/DeltaXYZ';
 import {DirectionLength} from '@gdComponents/dialog-components/PointOffsetToolDialogComponents/DirectionLength';
 import Divider from '@mui/material/Divider';
+import PaperComponentDraggable from '@gdComponents/PaperComponentDraggable';
 
 export interface PointOffsetToolDialogProps {
   open: boolean;
@@ -96,7 +94,7 @@ export function PointOffsetToolDialog(props: PointOffsetToolDialogProps) {
       open={open}
       // onClose={onClose}
       components={{Backdrop: undefined}}
-      PaperComponent={PaperCompornent}
+      PaperComponent={PaperComponentDraggable}
       aria-labelledby="draggable-dialog-title"
       sx={{
         zIndex: `${zindex}!important`,
@@ -135,37 +133,5 @@ export function PointOffsetToolDialog(props: PointOffsetToolDialogProps) {
         </Button>
       </DialogActions>
     </Dialog>
-  );
-}
-
-function PaperCompornent(props: PaperProps) {
-  const dispatch = useDispatch();
-  const {x, y} = useSelector(
-    (state: RootState) =>
-      state.uigd.present.dialogState.pointOffsetToolDialogInitialPosition
-  );
-  return (
-    <Draggable
-      bounds="parent"
-      handle="#draggable-dialog-title"
-      cancel={'[class*="MuiDialogContent-root"]'}
-      defaultPosition={x && y ? {x, y} : undefined}
-      onStop={(e, data) => {
-        dispatch(
-          setPointOffsetToolDialogInitialPosition({
-            x: data.lastX,
-            y: data.lastY
-          })
-        );
-      }}
-    >
-      <Paper
-        {...props}
-        sx={{
-          pointerEvents: 'auto',
-          minWidth: 600
-        }}
-      />
-    </Draggable>
   );
 }

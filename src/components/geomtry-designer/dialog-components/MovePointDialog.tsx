@@ -16,6 +16,7 @@ import Draggable from 'react-draggable';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import {Vector3} from 'three';
+import PaperComponentDraggable from '@gdComponents/PaperComponentDraggable';
 
 export interface MovePointDialogProps {
   open: boolean;
@@ -62,7 +63,7 @@ export function MovePointDialog() {
     <Dialog
       open={open}
       components={{Backdrop: undefined}}
-      PaperComponent={PaperCompornent}
+      PaperComponent={PaperComponentDraggable}
       aria-labelledby="draggable-dialog-title"
       sx={{
         zIndex: `${zindex}!important`,
@@ -75,36 +76,5 @@ export function MovePointDialog() {
         <Button onClick={handleClose}>Cancel</Button>
       </DialogActions>
     </Dialog>
-  );
-}
-
-function PaperCompornent(props: PaperProps) {
-  const dispatch = useDispatch();
-  const {x, y} = useSelector(
-    (state: RootState) =>
-      state.uigd.present.dialogState.pointOffsetToolDialogInitialPosition
-  );
-  return (
-    <Draggable
-      bounds="parent"
-      handle="#draggable-dialog-title"
-      cancel={'[class*="MuiDialogContent-root"]'}
-      defaultPosition={x && y ? {x, y} : undefined}
-      onStop={(e, data) => {
-        dispatch(
-          setPointOffsetToolDialogInitialPosition({
-            x: data.lastX,
-            y: data.lastY
-          })
-        );
-      }}
-    >
-      <Paper
-        {...props}
-        sx={{
-          pointerEvents: 'auto'
-        }}
-      />
-    </Draggable>
   );
 }

@@ -20,6 +20,7 @@ import Save from '@gdComponents/app-bar-components/Save';
 import Undo from '@gdComponents/app-bar-components/Undo';
 import Redo from '@gdComponents/app-bar-components/Redo';
 import Formula from '@gdComponents/app-bar-components/Formula';
+import Recording from '@gdComponents/app-bar-components/Recording';
 import CreateMirror from '@gdComponents/app-bar-components/CreateMirror';
 import UnlinkMirror from '@gdComponents/app-bar-components/UnlinkMirror';
 import ResetUISettings from '@gdComponents/app-bar-components/ResetUISettings';
@@ -127,6 +128,7 @@ export default function GDAppBar() {
           <Formula disabled={nodata} />
           <CreateMirror disabled={nodata} />
           <UnlinkMirror />
+          <Recording disabled={nodata} />
         </GDAppBarMenu>
         <Typography
           variant="h6"
