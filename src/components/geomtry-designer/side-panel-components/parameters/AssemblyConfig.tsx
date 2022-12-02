@@ -478,7 +478,7 @@ export function RestOfPoints(props: {
           variant="subtitle1"
           component="div"
         >
-          {element.name.value}&apos;s Points
+          Points of {element.name.value}
         </Typography>
         {isSelected() ? (
           <Tooltip title="Delete" sx={{flex: '1'}}>

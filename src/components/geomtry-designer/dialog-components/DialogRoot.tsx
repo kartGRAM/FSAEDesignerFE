@@ -7,7 +7,6 @@ import {CopyFromExistingPointsDialog} from '@gdComponents/dialog-components/Copy
 import {MovePointDialog} from '@gdComponents/dialog-components/MovePointDialog';
 import {MoveComponentDialog} from '@gdComponents/dialog-components/MoveComponentDialog';
 import {RecordingDialog} from '@gdComponents/dialog-components/RecordingDialog';
-
 import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
 

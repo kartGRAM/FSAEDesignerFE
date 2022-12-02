@@ -18,9 +18,11 @@ import {OrbitControls} from './r3f-components/OrbitControls';
 import SelectedPoints from './r3f-components/SelectedPoints';
 import {KeyboardControls as MyKeyboardControls} from './r3f-components/KeyboardControls';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-
 let canvas: React.RefObject<HTMLCanvasElement>;
+
+export function getCanvas() {
+  return canvas.current;
+}
 
 export function getScreenShot(): Blob | null {
   if (canvas.current) {
