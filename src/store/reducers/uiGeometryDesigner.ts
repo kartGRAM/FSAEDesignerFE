@@ -38,6 +38,7 @@ export interface DialogState {
 }
 
 export interface GDSceneState {
+  showGroundPlaneGrid: boolean;
   assemblyMode: 'FixedFrame' | 'FixTiresToBeGrounded';
   projectionMode: 'Perspective' | 'Orthographic';
   componentVisualizationMode: 'ShowAllNodes' | 'WireFrameOnly';
@@ -93,6 +94,7 @@ const initialState: GDState = {
     }
   },
   gdSceneState: {
+    showGroundPlaneGrid: false,
     assemblyMode: 'FixedFrame',
     componentVisualizationMode: 'ShowAllNodes',
     projectionMode: 'Perspective',
@@ -135,6 +137,9 @@ export const uiGeometryDesignerSlice = createSlice({
     ) => {
       state.gdSceneState.projectionMode = action.payload;
     },
+    setGroundPlaneShow: (state: GDState, action: PayloadAction<boolean>) => {
+      state.gdSceneState.showGroundPlaneGrid = action.payload;
+    },
     toggleFixSpringDumperDuaringControl: (state: GDState) => {
       state.gdSceneState.fixSpringDumperDuaringControl =
         !state.gdSceneState.fixSpringDumperDuaringControl;
@@ -154,6 +159,7 @@ export const {
   dynamicParamsDefaultExpandedChange,
   setPointOffsetToolDialogInitialPosition,
   setProjectionMode,
+  setGroundPlaneShow,
   setComponentVisualizationMode,
   toggleFixSpringDumperDuaringControl
 } = uiGeometryDesignerSlice.actions;

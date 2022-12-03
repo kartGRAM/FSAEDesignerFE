@@ -7,6 +7,7 @@ import Assemble from './Assemble';
 import Move from './Move';
 import ResetPosition from './ResetPosition';
 import ViewDirections from './view-directions/ViewDirections';
+import GroundPlaneMode from './GroundPlaneMode';
 import ComponentVisualizationMode from './ComponentVisualizationMode';
 
 export default function GDSceneToolBar() {
@@ -26,6 +27,7 @@ export default function GDSceneToolBar() {
       <Fit />
       <ViewDirections />
       <ComponentVisualizationMode />
+      <GroundPlaneMode />
     </Toolbar>
   );
 }
