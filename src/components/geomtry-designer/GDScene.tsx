@@ -16,6 +16,7 @@ import {setGDSceneGetThree} from '@store/reducers/uiTempGeometryDesigner';
 
 import {OrbitControls} from './r3f-components/OrbitControls';
 import SelectedPoints from './r3f-components/SelectedPoints';
+import GroundPlane from './r3f-components/GroundPlane';
 import {KeyboardControls as MyKeyboardControls} from './r3f-components/KeyboardControls';
 
 let canvas: React.RefObject<HTMLCanvasElement>;
@@ -106,6 +107,7 @@ export default function GDScene() {
             <OrbitControls />
             <MyKeyboardControls />
             <SelectedPoints />
+            <GroundPlane />
             <Dolly />
           </Provider>
         </Canvas>
