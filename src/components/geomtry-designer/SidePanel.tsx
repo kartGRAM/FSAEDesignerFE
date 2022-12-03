@@ -9,6 +9,7 @@ import {alpha} from '@mui/material/styles';
 import {resizePanel} from '@store/reducers/uiGeometryDesigner';
 import ParametersRoot from '@gdComponents/side-panel-components/parameters/ParametersRoot';
 import ElementsRoot from '@gdComponents/side-panel-components/elements/ElementsRoot';
+import MeasureRoot from '@gdComponents/side-panel-components/measure/MeasureRoot';
 import Controllers from '@gdComponents/side-panel-components/controllers/Controllers';
 import $ from 'jquery';
 import 'jqueryui';
@@ -86,6 +87,8 @@ export default function SidePanel() {
     adContent = <ParametersRoot />;
   } else if (selectedTab === 'controllers') {
     adContent = <Controllers />;
+  } else if (selectedTab === 'measure') {
+    adContent = <MeasureRoot />;
   }
 
   return (

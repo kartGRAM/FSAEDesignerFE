@@ -114,7 +114,7 @@ export default function MiniDrawer() {
           {text: 'elements', icon: <HomeRepairServiceIcon />},
           {text: 'parameters', icon: <SettingsInputComponentIcon />},
           {text: 'controllers', icon: <SteeringWheel />},
-          {text: 'measures', icon: <SquareMeasure />},
+          {text: 'measure', icon: <SquareMeasure />},
           {text: 'analysis', icon: <Graph />},
           {text: 'style', icon: <BrushIcon />},
           {text: 'visualization', icon: <ComputerIcon />}
