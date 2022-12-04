@@ -56,9 +56,13 @@ export const OrbitControls = React.forwardRef<
 
     const [, getKeys] = useKeyboardControls<string>();
 
-    restProps.enabled = useSelector(
-      (state: RootState) => state.uitgd.gdSceneState.orbitControlsEnabled
+    const enabled = useSelector(
+      (state: RootState) =>
+        state.uitgd.gdSceneState.orbitControlsEnabled &&
+        state.uitgd.gdSceneState.orbitControlsEnabledManual
     );
+
+    restProps.enabled = enabled;
     const invalidate = useThree((state) => state.invalidate);
     const defaultCamera = useThree((state) => state.camera);
     const gl = useThree((state) => state.gl);
@@ -314,7 +318,7 @@ export const OrbitControls = React.forwardRef<
           camera.updateProjectionMatrix();
           moveTo.current = null;
           zoomTo.current = null;
-          controls.enabled = true;
+          controls.enabled = enabled;
         }
       }
     });

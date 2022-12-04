@@ -67,6 +67,7 @@ export interface GDSceneState {
   selectedPoint: INamedVector3WithColor[] | null;
   viewDirection: Quaternion | undefined;
   orbitControlsEnabled: boolean;
+  orbitControlsEnabledManual: boolean;
   toggle: boolean;
   assembled: boolean;
   resetPositions: boolean;
@@ -94,6 +95,7 @@ const initialState: GDState = {
   gdSceneState: {
     movingMode: false,
     orbitControlsEnabled: true,
+    orbitControlsEnabledManual: true,
     selectedPoint: null,
     viewDirection: undefined,
     resetPositions: false,
@@ -310,6 +312,12 @@ export const uitGeometryDesignerSlice = createSlice({
     ) => {
       state.gdSceneState.orbitControlsEnabled = action.payload;
     },
+    setOrbitControlsEnabledManual: (
+      state: GDState,
+      action: PayloadAction<boolean>
+    ) => {
+      state.gdSceneState.orbitControlsEnabledManual = action.payload;
+    },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setVisibility: (state: GDState) => {
       state.forceCallSelector = !state.forceCallSelector;
@@ -348,6 +356,7 @@ export const {
   setAssembled,
   resetPositions,
   setOrbitControlsEnabled,
+  setOrbitControlsEnabledManual,
   setViewDirection,
   setGDSceneGetThree,
   setMovingMode

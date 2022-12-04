@@ -9,6 +9,7 @@ import ResetPosition from './ResetPosition';
 import ViewDirections from './view-directions/ViewDirections';
 import GroundPlaneMode from './GroundPlaneMode';
 import ComponentVisualizationMode from './ComponentVisualizationMode';
+import FixCamera from './FixCamera';
 
 export default function GDSceneToolBar() {
   return (
@@ -23,6 +24,7 @@ export default function GDSceneToolBar() {
       <ResetPosition />
       <Move />
       <Assemble />
+      <FixCamera />
       <ProjectionMode />
       <Fit />
       <ViewDirections />
