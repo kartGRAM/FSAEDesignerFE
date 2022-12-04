@@ -13,7 +13,7 @@ const GroundPlane = () => {
 
   useFrame(() => {});
 
-  const length = 8000;
+  const length = 5000;
   const segmentLength = 200;
   const segments = Math.floor(length / segmentLength);
 

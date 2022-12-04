@@ -18,7 +18,7 @@ export default function FixCamera() {
 
   return (
     <Tooltip
-      title={enabled ? 'Fix Camera Position' : 'Camera Controls Enabled'}
+      title={enabled ? 'Fix Camera Position' : 'Enable Camera Controls'}
       componentsProps={{
         popper: {
           sx: {

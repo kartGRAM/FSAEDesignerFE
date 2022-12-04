@@ -101,7 +101,6 @@ export default function GDScene() {
           {
             // <pointLight position={[10, 10, 10]} />
           }
-          <axesHelper args={[50]} />
           <Provider store={store}>
             <CollectedAssembly />
             <OrbitControls />
@@ -110,6 +109,7 @@ export default function GDScene() {
             <GroundPlane />
             <Dolly />
           </Provider>
+          <axesHelper args={[50]} />
         </Canvas>
       </KeyboardControls>
     </div>
