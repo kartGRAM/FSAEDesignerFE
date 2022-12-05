@@ -50,6 +50,7 @@ export interface Constraint {
     hint: any
   ): any;
   checkInequalityConstraint(): [boolean, any];
+  resetStates(): void;
 }
 
 export class Sphere implements Constraint {
@@ -63,6 +64,8 @@ export class Sphere implements Constraint {
   active() {
     return true;
   }
+
+  resetStates(): void {}
 
   readonly isInequalityConstraint = false;
 
@@ -228,6 +231,8 @@ export class Hinge implements Constraint {
   active() {
     return true;
   }
+
+  resetStates(): void {}
 
   readonly isInequalityConstraint = false;
 
@@ -409,6 +414,8 @@ export class BarAndSpheres implements Constraint {
     if (this.isSpringDumper) return false;
     return true;
   }
+
+  resetStates(): void {}
 
   get isInequalityConstraint() {
     return this.isSpringDumper;
@@ -620,6 +627,10 @@ export class LinearBushingSingleEnd implements Constraint {
 
   get rhs() {
     return this.fixed;
+  }
+
+  resetStates(): void {
+    this.dl = 0;
   }
 
   controled: boolean;
@@ -850,6 +861,8 @@ export class QuaternionConstraint implements Constraint {
   active() {
     return true;
   }
+
+  resetStates(): void {}
 
   readonly isInequalityConstraint = false;
 

@@ -808,6 +808,7 @@ export class KinematicSolver {
         return;
       }
       this.components.forEach((components) => {
+        components[0].getGroupedConstraints().forEach((c) => c.resetStates());
         components.forEach((component) => component.restoreInitialQ());
       });
       this.postProcess();
