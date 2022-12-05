@@ -46,22 +46,39 @@ export interface DataFromOtherPlane extends IDataPlane {
   distance: IDataNumber;
 }
 
-export interface IPointNormalPlane extends IPlane {
+export interface IPointNormalLinePlane extends IPlane {
+  className: 'PointNormalLinePlane';
   point: IPoint;
-  direction: ILine;
-  getData(): IDataPointNormalPlane;
+  normal: ILine;
+  getData(): IDataPointNormalLinePlane;
 }
 
-export interface IDataPointNormalPlane extends IDataPlane {
+export interface IDataPointNormalLinePlane extends IDataPlane {
+  className: 'PointNormalLinePlane';
   point: NodeID;
-  direction: NodeID;
+  normal: NodeID;
+}
+
+export interface IAxisPointPlane extends IPlane {
+  className: 'AxisPointPlane';
+  point: IPoint;
+  normal: ILine;
+  getData(): IDataAxisPointPlane;
+}
+
+export interface IDataAxisPointPlane extends IDataPlane {
+  className: 'AxisPointPlane';
+  point: NodeID;
+  normal: NodeID;
 }
 
 export interface IThreePointsPlane extends IPlane {
+  className: 'ThreePointsPlane';
   points: [IPoint, IPoint, IPoint];
   getData(): IDataThreePointsPlane;
 }
 
 export interface IDataThreePointsPlane extends IDataPlane {
+  className: 'ThreePointsPlane';
   points: [NodeID, NodeID, NodeID];
 }

@@ -29,6 +29,10 @@ export interface ILine extends IMeasureObject {
   getThreeLine(): THREE.Line;
 }
 
+export interface IDataLine extends IDataMeasureObject {
+  isDataLine: true;
+}
+
 export interface IPoint extends IMeasureObject {
   isPoint: true;
   getThreePoint(): THREE.Vector3;
