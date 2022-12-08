@@ -7,6 +7,7 @@ export interface IMeasureObject {
   readonly className: string;
   name: string;
   getData(): IDataMeasureObject;
+  update(): void;
 }
 
 export interface IDataMeasureObject {
@@ -36,4 +37,8 @@ export interface IDataLine extends IDataMeasureObject {
 export interface IPoint extends IMeasureObject {
   isPoint: true;
   getThreePoint(): THREE.Vector3;
+}
+
+export interface IDataPoint extends IDataMeasureObject {
+  isDataPoint: true;
 }

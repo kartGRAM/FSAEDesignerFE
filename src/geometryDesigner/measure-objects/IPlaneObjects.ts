@@ -1,47 +1,47 @@
 import {INamedNumber, IDataNumber} from '@gd/INamedValues';
 import {IPlane, IPoint, ILine, NodeID, IDataPlane} from './IMeasureObjects';
 
-export interface FromXYPlane extends IPlane {
+export interface IFromXYPlane extends IPlane {
   className: 'FromXYPlane';
   distance: INamedNumber;
-  getData(): IDataPointNormalPlane;
+  getData(): IDataFromXYPlane;
 }
 
-export interface DataFromXYPlane extends IDataPlane {
+export interface IDataFromXYPlane extends IDataPlane {
   className: 'FromXYPlane';
   distance: IDataNumber;
 }
 
-export interface FromYZPlane extends IPlane {
+export interface IFromYZPlane extends IPlane {
   className: 'FromYZPlane';
   distance: INamedNumber;
-  getData(): IDataPointNormalPlane;
+  getData(): IDataFromYZPlane;
 }
 
-export interface DataFromYZPlane extends IDataPlane {
+export interface IDataFromYZPlane extends IDataPlane {
   className: 'FromYZPlane';
   distance: IDataNumber;
 }
 
-export interface FromZXPlane extends IPlane {
+export interface IFromZXPlane extends IPlane {
   className: 'FromZXPlane';
   distance: INamedNumber;
-  getData(): IDataPointNormalPlane;
+  getData(): IDataFromZXPlane;
 }
 
-export interface DataFromZXPlane extends IDataPlane {
+export interface IDataFromZXPlane extends IDataPlane {
   className: 'FromZXPlane';
   distance: IDataNumber;
 }
 
-export interface FromOtherPlane extends IPlane {
+export interface IFromOtherPlane extends IPlane {
   className: 'FromOtherPlane';
-  Plane: IPlane;
+  plane: IPlane;
   distance: INamedNumber;
-  getData(): IDataPointNormalPlane;
+  getData(): IFromOtherPlane;
 }
 
-export interface DataFromOtherPlane extends IDataPlane {
+export interface IDataFromOtherPlane extends IDataPlane {
   className: 'FromOtherPlane';
   distance: IDataNumber;
 }

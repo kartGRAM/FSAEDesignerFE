@@ -40,3 +40,16 @@ export interface IDataTwoPlaneIntersectionLine extends IDataLine {
   className: 'TwoPlaneIntersectionLine';
   planes: [NodeID, NodeID];
 }
+
+export interface IFromOtherLine extends ILine {
+  className: 'FromOtherLine';
+  line: ILine;
+  distance: INamedNumber;
+  getData(): IDataFromOtherLine;
+}
+
+export interface IDataFromOtherLine extends IDataLine {
+  className: 'FromOtherLine';
+  line: NodeID;
+  distance: IDataNumber;
+}
