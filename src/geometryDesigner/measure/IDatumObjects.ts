@@ -3,6 +3,7 @@ import * as THREE from 'three';
 export type NodeID = string;
 
 export interface IDatumObject {
+  isDatumObject: true;
   readonly nodeID: string;
   readonly className: string;
   name: string;
@@ -10,12 +11,30 @@ export interface IDatumObject {
   getData(): IDataDatumObject;
   update(): void;
 }
+export function isDatumObject(data: any): data is IDatumObject {
+  try {
+    if (data.isDatumObject) return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
 
 export interface IDataDatumObject {
+  isDataDatumObject: true;
   readonly nodeID: string;
   readonly className: string;
   visibility: boolean;
   name: string;
+}
+
+export function isDataDatumObject(data: any): data is IDataDatumObject {
+  try {
+    if (data.isDataDatumObject) return true;
+    return false;
+  } catch {
+    return false;
+  }
 }
 
 export interface IPlane extends IDatumObject {

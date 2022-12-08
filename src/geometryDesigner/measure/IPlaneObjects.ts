@@ -38,7 +38,7 @@ export interface IFromOtherPlane extends IPlane {
   className: 'FromOtherPlane';
   plane: IPlane;
   distance: INamedNumber;
-  getData(): IFromOtherPlane;
+  getData(): IDataFromOtherPlane;
 }
 
 export interface IDataFromOtherPlane extends IDataPlane {
