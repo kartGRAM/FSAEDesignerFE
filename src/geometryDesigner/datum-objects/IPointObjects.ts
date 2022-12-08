@@ -1,5 +1,5 @@
 import {INamedVector3, IDataVector3} from '@gd/INamedValues';
-import {IPlane, IPoint, ILine, NodeID, IDataPoint} from './IMeasureObjects';
+import {IPlane, IPoint, ILine, NodeID, IDataPoint} from './IDatumObjects';
 
 export interface IElementPoint extends IPoint {
   className: 'ElementPoint';

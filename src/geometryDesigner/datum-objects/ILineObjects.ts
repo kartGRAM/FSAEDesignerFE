@@ -4,7 +4,7 @@ import {
   INamedVector3,
   IDataVector3
 } from '@gd/INamedValues';
-import {IPlane, IPoint, ILine, NodeID, IDataLine} from './IMeasureObjects';
+import {IPlane, IPoint, ILine, NodeID, IDataLine} from './IDatumObjects';
 
 export interface ITwoPointsLine extends ILine {
   className: 'TwoPointLine';

@@ -1,5 +1,5 @@
 import {INamedNumber, IDataNumber} from '@gd/INamedValues';
-import {IPlane, IPoint, ILine, NodeID, IDataPlane} from './IMeasureObjects';
+import {IPlane, IPoint, ILine, NodeID, IDataPlane} from './IDatumObjects';
 
 export interface IFromXYPlane extends IPlane {
   className: 'FromXYPlane';
