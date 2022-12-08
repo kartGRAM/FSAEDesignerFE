@@ -65,5 +65,24 @@ export interface IDataPoint extends IDataDatumObject {
 }
 
 export interface IDatumGroup {
-  readonly children: IDatumObject;
+  readonly children: IDatumObject[];
+  name: string;
+  visibility: boolean | undefined;
+  update(): void;
+  getData(): IDataDatumGroup;
+}
+
+export interface IDataDatumGroup {
+  isDataDatumGroup: true;
+  children: IDataDatumObject[];
+  name: string;
+}
+
+export function isDataDatumGroup(data: any): data is IDataDatumGroup {
+  try {
+    if (data.isDataDatumGroup) return true;
+    return false;
+  } catch {
+    return false;
+  }
 }
