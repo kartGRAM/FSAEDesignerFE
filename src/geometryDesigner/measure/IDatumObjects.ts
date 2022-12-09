@@ -9,7 +9,7 @@ export interface IDatumObject {
   name: string;
   visibility: boolean;
   getData(): IDataDatumObject;
-  update(): void;
+  update(ref: IDatumObject[]): void;
 }
 export function isDatumObject(data: any): data is IDatumObject {
   try {

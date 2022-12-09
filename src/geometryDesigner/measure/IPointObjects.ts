@@ -45,7 +45,7 @@ export interface IProjectionPointToPlane extends IPoint {
   getData(): IDataProjectionPointToPlane;
 }
 
-export interface IDataProjectionPointToPlane extends IPoint {
+export interface IDataProjectionPointToPlane extends IDataPoint {
   className: 'ProjectionPointToPlane';
   plane: NodeID;
   point: NodeID;
@@ -58,7 +58,7 @@ export interface IProjectionPointToLine extends IPoint {
   getData(): IDataProjectionPointToLine;
 }
 
-export interface IDataProjectionPointToLine extends IPoint {
+export interface IDataProjectionPointToLine extends IDataPoint {
   className: 'ProjectionPointToLine';
   plane: NodeID;
   line: NodeID;

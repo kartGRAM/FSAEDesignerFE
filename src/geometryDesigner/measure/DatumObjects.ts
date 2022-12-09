@@ -70,7 +70,9 @@ export class DatumGroup implements IDatumGroup {
   }
 
   update(): void {
-    this.children.forEach((child) => child.update());
+    this.children.forEach((child, i) =>
+      child.update(this.children.slice(0, i + 1))
+    );
   }
 
   constructor(params: {name: string} | IDataDatumGroup) {
@@ -94,8 +96,16 @@ export class DatumGroup implements IDatumGroup {
 export class DatumManager {
   children: DatumGroup[];
 
-  constructor() {
-    this.children = [];
+  constructor(datumGroups: IDataDatumGroup[]) {
+    this.children = datumGroups.map((child) => new DatumGroup(child));
+  }
+
+  update(): void {
+    this.children.forEach((child) => child.update());
+  }
+
+  getData(): IDataDatumGroup[] {
+    return this.children.map((child) => child.getData());
   }
 }
 
