@@ -84,3 +84,8 @@ export class Position extends MeasureTool implements IPosition {
     return {x, y, z};
   }
 }
+
+export function getMeasureTool(tool: IMeasureTool) {
+  if (isDataPosition(tool)) return new Position(tool);
+  throw new Error('未実装のツール');
+}
