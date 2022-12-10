@@ -1,5 +1,4 @@
 /* eslint-disable camelcase */
-/* eslint-disable no-restricted-syntax */
 /* eslint-disable no-lone-blocks */
 import {Matrix, SingularValueDecomposition} from 'ml-matrix';
 import {Control} from '@gd/Controls';

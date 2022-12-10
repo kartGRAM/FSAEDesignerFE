@@ -60,6 +60,15 @@ export interface IPoint extends IDatumObject {
   getThreePoint(): THREE.Vector3;
 }
 
+export function isPoint(datum: any): datum is IPoint {
+  try {
+    if (datum.isPoint) return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 export interface IDataPoint extends IDataDatumObject {
   isDataPoint: true;
 }

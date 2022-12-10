@@ -78,7 +78,6 @@ function getElementByPathCore(
   const childrenPath = path.slice(0, -1);
 
   let element: IElement | IDataElement | null = null;
-  // eslint-disable-next-line no-restricted-syntax
   for (const child of root.children) {
     if (isElement(child) && isAssembly(child)) {
       element = getElementByPathCore(child, childrenPath);

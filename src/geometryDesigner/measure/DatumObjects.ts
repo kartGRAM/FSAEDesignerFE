@@ -1,6 +1,7 @@
 /* eslint-disable max-classes-per-file */
 import {v4 as uuidv4} from 'uuid';
 import {
+  NodeID,
   IDatumObject,
   IDatumGroup,
   IDataDatumObject,
@@ -98,6 +99,17 @@ export class DatumManager {
 
   constructor(datumGroups: IDataDatumGroup[]) {
     this.children = datumGroups.map((child) => new DatumGroup(child));
+  }
+
+  getDatumObject(nodeID: NodeID): IDatumObject | undefined {
+    for (const group of this.children) {
+      for (const datum of group.children) {
+        if (datum.nodeID === nodeID) {
+          return datum;
+        }
+      }
+    }
+    return undefined;
   }
 
   update(): void {

@@ -1,4 +1,3 @@
-/* eslint-disable no-restricted-syntax */
 import React from 'react';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';

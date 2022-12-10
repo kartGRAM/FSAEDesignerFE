@@ -9,6 +9,7 @@ import {Quaternion, Vector3} from 'three';
 import {RootState} from '@react-three/fiber';
 import {GetState} from 'zustand';
 import {KinematicSolver} from '@gd/kinematics/Solver';
+import {DatumManager} from '@gd/measure/DatumObjects';
 // import {PointOffsetToolDialogProps} from '@gdComponents/dialog-components/PointOffsetToolDialog';
 
 export type SidePanelTab =
@@ -47,6 +48,7 @@ export interface GDState {
   assembly: IAssembly | undefined;
   collectedAssembly: IAssembly | undefined;
   kinematicSolver: KinematicSolver | undefined;
+  datumManager: DatumManager | undefined;
 
   treeViewDragExpanded: string[];
   draggingNewElement: Elements | null;
@@ -114,6 +116,7 @@ const initialState: GDState = {
     saveAsDialogProps: undefined,
     confirmDialogProps: undefined
   },
+  datumManager: undefined,
   assembly: undefined,
   collectedAssembly: undefined,
   kinematicSolver: undefined,

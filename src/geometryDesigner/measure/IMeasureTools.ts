@@ -9,12 +9,24 @@ export interface IMeasureTool {
   visibility: boolean;
   getData(): IDataMeasureTool;
   update(): void;
-  readonly value: number;
+  readonly value: {[index: string]: number};
 }
 
 export interface IDataMeasureTool {
-  isMeasureTool: true;
+  isDataMeasureTool: true;
+  readonly nodeID: string;
   readonly className: string;
+  name: string;
+  visibility: boolean;
+}
+
+export function isDataMeasureTool(data: any): data is IDataMeasureTool {
+  try {
+    if (data.isDataMeasureTool) return true;
+    return false;
+  } catch {
+    return false;
+  }
 }
 
 export interface IDistance extends IMeasureTool {
@@ -23,7 +35,7 @@ export interface IDistance extends IMeasureTool {
   rhs: IPoint | ILine | IPlane;
 }
 
-export interface IDataDistance extends IMeasureTool {
+export interface IDataDistance extends IDataMeasureTool {
   isDistance: true;
   lhs: NodeID;
   rhs: NodeID;
@@ -35,8 +47,27 @@ export interface IAngle extends IMeasureTool {
   rhs: ILine | IPlane;
 }
 
-export interface IDataAngle extends IMeasureTool {
+export interface IDataAngle extends IDataMeasureTool {
   isDistance: true;
   lhs: NodeID;
   rhs: NodeID;
+}
+
+export interface IPosition extends IMeasureTool {
+  isPosition: true;
+  point: IPoint;
+}
+
+export interface IDataPosition extends IDataMeasureTool {
+  isDataPosition: true;
+  point: NodeID;
+}
+
+export function isDataPosition(data: any): data is IDataPosition {
+  try {
+    if (data.isDataPosition) return true;
+    return false;
+  } catch {
+    return false;
+  }
 }
