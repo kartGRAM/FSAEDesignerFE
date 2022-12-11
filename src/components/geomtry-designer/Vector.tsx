@@ -374,6 +374,7 @@ const Vector = React.memo((props: Props) => {
         </Box>
       </form>
       <Accordion
+        TransitionProps={{unmountOnExit: true}}
         expanded={expanded}
         onChange={handleAccordionOpen}
         sx={{

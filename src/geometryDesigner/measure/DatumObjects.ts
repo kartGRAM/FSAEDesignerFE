@@ -1,6 +1,8 @@
 /* eslint-disable max-classes-per-file */
 import {v4 as uuidv4} from 'uuid';
 import {IAssembly} from '@gd/IElements';
+import {ElementPoint} from '@gd/measure/PointObjects';
+import {isDataElementPoint} from '@gd/measure/IPointObjects';
 import {
   NodeID,
   IDatumObject,
@@ -72,22 +74,17 @@ export class DatumGroup implements IDatumGroup {
     });
   }
 
-  update(): void {
+  update(collectedAssembly: IAssembly): void {
     this.children.forEach((child, i) =>
-      child.update(this.children.slice(0, i + 1))
+      child.update(this.children.slice(0, i + 1), collectedAssembly)
     );
   }
 
-  constructor(
-    params: {name: string} | IDataDatumGroup,
-    collectedAssembly: IAssembly
-  ) {
+  constructor(params: {name: string} | IDataDatumGroup) {
     this.name = params.name;
     this.children = [];
     if (isDataDatumGroup(params)) {
-      this.children = params.children.map((child) =>
-        getDatumObject(child, collectedAssembly)
-      );
+      this.children = params.children.map((child) => getDatumObject(child));
     }
   }
 
@@ -104,10 +101,8 @@ export class DatumGroup implements IDatumGroup {
 export class DatumManager implements IDatumManager {
   children: IDatumGroup[];
 
-  constructor(datumGroups: IDataDatumGroup[], collectedAssembly: IAssembly) {
-    this.children = datumGroups.map(
-      (child) => new DatumGroup(child, collectedAssembly)
-    );
+  constructor(datumGroups: IDataDatumGroup[]) {
+    this.children = datumGroups.map((child) => new DatumGroup(child));
   }
 
   getDatumObject(nodeID: NodeID): IDatumObject | undefined {
@@ -121,8 +116,8 @@ export class DatumManager implements IDatumManager {
     return undefined;
   }
 
-  update(): void {
-    this.children.forEach((child) => child.update());
+  update(collectedAssembly: IAssembly): void {
+    this.children.forEach((child) => child.update(collectedAssembly));
   }
 
   getData(): IDataDatumGroup[] {
@@ -130,9 +125,7 @@ export class DatumManager implements IDatumManager {
   }
 }
 
-function getDatumObject(
-  data: IDataDatumObject,
-  collectedAssembly: IAssembly
-): IDatumObject {
+function getDatumObject(data: IDataDatumObject): IDatumObject {
+  if (isDataElementPoint(data)) return new ElementPoint(data);
   throw new Error('未実装のデータムを検出');
 }

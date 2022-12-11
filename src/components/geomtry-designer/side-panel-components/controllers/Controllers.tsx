@@ -44,7 +44,10 @@ export default function Controllers() {
         </Button>
       </Box>
 
-      <Accordion onChange={(e, expanded) => {}}>
+      <Accordion
+        TransitionProps={{unmountOnExit: true}}
+        onChange={(e, expanded) => {}}
+      >
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="panel1a-content"

@@ -3,7 +3,13 @@ import SvgIcon from '@mui/material/SvgIcon';
 
 export default function SquareMeasure() {
   return (
-    <SvgIcon>
+    <SvgIcon
+      sx={{
+        path: {
+          // strokeWidth: '1000px'
+        }
+      }}
+    >
       <svg
         version="1.1"
         xmlns="http://www.w3.org/2000/svg"

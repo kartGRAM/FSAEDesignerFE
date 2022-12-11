@@ -30,6 +30,11 @@ export interface GDParameterConfigState {
   dynamicParamsExpanded: boolean;
 }
 
+export interface MeasurePanelState {
+  DatumObjectsExpanded: boolean;
+  MeasureToolsExpanded: boolean;
+}
+
 export interface DialogState {
   pointOffsetToolDialogInitialPosition: {
     x: number | null;
@@ -54,6 +59,7 @@ export interface GDState {
   sidePanelState: ISidePanelState;
   assemblyTreeViewState: IAssemblyTreeViewState;
   parameterConfigState: GDParameterConfigState;
+  measurePanelState: MeasurePanelState;
   dialogState: DialogState;
   gdSceneState: GDSceneState;
 }
@@ -86,6 +92,10 @@ const initialState: GDState = {
   parameterConfigState: {
     kinematicParamsExpanded: true,
     dynamicParamsExpanded: true
+  },
+  measurePanelState: {
+    DatumObjectsExpanded: true,
+    MeasureToolsExpanded: true
   },
   dialogState: {
     pointOffsetToolDialogInitialPosition: {
@@ -125,6 +135,19 @@ export const uiGeometryDesignerSlice = createSlice({
     ) => {
       state.parameterConfigState.dynamicParamsExpanded = action.payload;
     },
+
+    datumObjectAccordionDefaultExpandedChange: (
+      state: GDState,
+      action: PayloadAction<boolean>
+    ) => {
+      state.measurePanelState.DatumObjectsExpanded = action.payload;
+    },
+    measureToolsAccordionDefaultExpandedChange: (
+      state: GDState,
+      action: PayloadAction<boolean>
+    ) => {
+      state.measurePanelState.MeasureToolsExpanded = action.payload;
+    },
     setPointOffsetToolDialogInitialPosition: (
       state: GDState,
       action: PayloadAction<{x: number | null; y: number | null}>
@@ -161,7 +184,9 @@ export const {
   setProjectionMode,
   setGroundPlaneShow,
   setComponentVisualizationMode,
-  toggleFixSpringDumperDuaringControl
+  toggleFixSpringDumperDuaringControl,
+  datumObjectAccordionDefaultExpandedChange,
+  measureToolsAccordionDefaultExpandedChange
 } = uiGeometryDesignerSlice.actions;
 
 export default uiGeometryDesignerSlice.reducer;

@@ -177,6 +177,7 @@ export default function AssemblyConfig(params: Params) {
     <>
       <ElementName element={assembly} />
       <Accordion
+        TransitionProps={{unmountOnExit: true}}
         expanded={kinematicParamsDefaultExpanded}
         onChange={(e, expanded) => {
           dispatch(kinematicParamsDefaultExpandedChange(expanded));
@@ -217,6 +218,7 @@ export default function AssemblyConfig(params: Params) {
         </AccordionDetails>
       </Accordion>
       <Accordion
+        TransitionProps={{unmountOnExit: true}}
         expanded={dynamicParamsDefaultExpanded}
         onChange={(e, expanded) => {
           dispatch(dynamicParamsDefaultExpandedChange(expanded));
@@ -233,7 +235,7 @@ export default function AssemblyConfig(params: Params) {
           <Typography>WIP</Typography>
         </AccordionDetails>
       </Accordion>
-      <Accordion>
+      <Accordion TransitionProps={{unmountOnExit: true}}>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="panel3a-content"
@@ -242,7 +244,7 @@ export default function AssemblyConfig(params: Params) {
           <Typography>Visualization</Typography>
         </AccordionSummary>
       </Accordion>
-      <Accordion>
+      <Accordion TransitionProps={{unmountOnExit: true}}>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="panel3a-content"

@@ -90,7 +90,7 @@ export interface IDatumGroup {
   readonly children: IDatumObject[];
   name: string;
   visibility: boolean | undefined;
-  update(): void;
+  update(collectedAssembly: IAssembly): void;
   getData(): IDataDatumGroup;
 }
 
@@ -114,6 +114,6 @@ export interface IDatumManager {
 
   getDatumObject(nodeID: NodeID): IDatumObject | undefined;
 
-  update(): void;
+  update(collectedAssembly: IAssembly): void;
   getData(): IDataDatumGroup[];
 }
