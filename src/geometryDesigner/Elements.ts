@@ -254,6 +254,11 @@ export abstract class Element implements IElement {
 
   abstract getPoints(): INamedVector3[];
 
+  getMeasurablePoints(): INamedVector3[] {
+    const points = this.getPoints();
+    return [...points, this.centerOfGravity];
+  }
+
   abstract getMirror(): IElement;
 
   unlinkMirror(): void {

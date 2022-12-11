@@ -1,5 +1,12 @@
 import {INamedVector3, IDataVector3} from '@gd/INamedValues';
-import {IPlane, IPoint, ILine, NodeID, IDataPoint} from './IDatumObjects';
+import {
+  IPlane,
+  IPoint,
+  ILine,
+  NodeID,
+  IDataPoint,
+  IDataDatumObject
+} from './IDatumObjects';
 
 export interface IElementPoint extends IPoint {
   className: 'ElementPoint';
@@ -12,6 +19,13 @@ export interface IDataElementPoint extends IDataPoint {
   className: 'ElementPoint';
   element: NodeID;
   point: NodeID;
+}
+
+export function isDataElementPoint(
+  data: IDataDatumObject
+): data is IDataElementPoint {
+  if (data.className === 'ElementPoint') return true;
+  return false;
 }
 
 export interface IFixedPoint extends IPoint {

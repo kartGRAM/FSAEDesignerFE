@@ -51,15 +51,6 @@ export function getElementByPath(
   return getElementByPathCore(root, pathSplited) as IElement | null;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-/* function getDataElementByPath(
-  root: IDataAssembly | undefined | null,
-  path: string
-): IDataElement | null {
-  const pathSplited = path.split('@');
-  return getElementByPathCore(root, pathSplited) as IDataElement | null;
-} */
-
 function getElementByPathCore(
   root: IAssembly /* | IDataAssembly */ | undefined | null,
   path: string[]
@@ -129,6 +120,7 @@ export interface IElement extends IBidirectionalNode {
   readonly nodeID: string;
   readonly absPath: string;
   getPoints(): INamedVector3[];
+  getMeasurablePoints(): INamedVector3[];
   getPointsNodeIDs(): string[];
   getMirror(): IElement;
   unlinkMirror(): void;

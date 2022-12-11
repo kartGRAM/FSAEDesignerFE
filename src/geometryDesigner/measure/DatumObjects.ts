@@ -25,7 +25,7 @@ export abstract class DatumObject implements IDatumObject {
 
   abstract getData(): IDataDatumObject;
 
-  abstract update(): void;
+  abstract update(ref: IDatumObject[], collectedAssembly: IAssembly): void;
 
   constructor(params: {name: string} | IDatumObject) {
     this.name = params.name;

@@ -1,6 +1,5 @@
 /* eslint-disable max-classes-per-file */
 import {v4 as uuidv4} from 'uuid';
-import store from '@store/store';
 import {IPoint, isPoint, IDatumManager} from './IDatumObjects';
 import {
   IDataMeasureTool,

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {IAssembly} from '@gd/IElements';
 
 export type NodeID = string;
 
@@ -9,8 +10,9 @@ export interface IDatumObject {
   name: string;
   visibility: boolean;
   getData(): IDataDatumObject;
-  update(ref: IDatumObject[]): void;
+  update(ref: IDatumObject[], collectedAssembly: IAssembly): void;
 }
+
 export function isDatumObject(data: any): data is IDatumObject {
   try {
     if (data.isDatumObject) return true;
@@ -58,6 +60,7 @@ export interface IDataLine extends IDataDatumObject {
 export interface IPoint extends IDatumObject {
   isPoint: true;
   getThreePoint(): THREE.Vector3;
+  getData(): IDataPoint;
 }
 
 export function isPoint(datum: any): datum is IPoint {
@@ -71,6 +74,16 @@ export function isPoint(datum: any): datum is IPoint {
 
 export interface IDataPoint extends IDataDatumObject {
   isDataPoint: true;
+  lastPosition: {x: number; y: number; z: number};
+}
+
+export function isDataPoint(datum: any): datum is IPoint {
+  try {
+    if (datum.isDataPoint) return true;
+    return false;
+  } catch {
+    return false;
+  }
 }
 
 export interface IDatumGroup {
