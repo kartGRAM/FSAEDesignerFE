@@ -95,3 +95,12 @@ export function isDataDatumGroup(data: any): data is IDataDatumGroup {
     return false;
   }
 }
+
+export interface IDatumManager {
+  children: IDatumGroup[];
+
+  getDatumObject(nodeID: NodeID): IDatumObject | undefined;
+
+  update(): void;
+  getData(): IDataDatumGroup[];
+}

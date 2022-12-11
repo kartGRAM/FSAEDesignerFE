@@ -1,7 +1,7 @@
 /* eslint-disable max-classes-per-file */
 import {v4 as uuidv4} from 'uuid';
 import store from '@store/store';
-import {IPoint, isPoint} from './IDatumObjects';
+import {IPoint, isPoint, IDatumManager} from './IDatumObjects';
 import {
   IDataMeasureTool,
   IMeasureTool,
@@ -54,11 +54,13 @@ export class Position extends MeasureTool implements IPosition {
 
   readonly className = 'Position' as const;
 
-  constructor(params: {name: string; point: IPoint} | IDataPosition) {
+  constructor(
+    params: {name: string; point: IPoint} | IDataPosition,
+    datumManager: IDatumManager
+  ) {
     super(params);
     if (isDataPosition(params)) {
-      const manager = store.getState().uitgd.datumManager!;
-      const point = manager.getDatumObject(params.point);
+      const point = datumManager.getDatumObject(params.point);
       if (!point) throw new Error('pointが見つからない');
       if (!isPoint(point)) throw new Error('datumがIPointでない');
       this.point = point;
@@ -85,7 +87,10 @@ export class Position extends MeasureTool implements IPosition {
   }
 }
 
-export function getMeasureTool(tool: IMeasureTool) {
-  if (isDataPosition(tool)) return new Position(tool);
+export function getMeasureTool(
+  tool: IMeasureTool,
+  datumManager: IDatumManager
+) {
+  if (isDataPosition(tool)) return new Position(tool, datumManager);
   throw new Error('未実装のツール');
 }

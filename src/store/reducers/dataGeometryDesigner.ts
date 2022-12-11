@@ -9,7 +9,7 @@ import {
 } from '@app/geometryDesigner/IElements';
 import {IBidirectionalNode, getRootNode} from '@gd/INode';
 import {IControl} from '@gd/IControls';
-import {IDataDatumObject} from '@gd/measure/IDatumObjects';
+import {IDataDatumGroup} from '@gd/measure/IDatumObjects';
 import {IDataMeasureTool} from '@gd/measure/IMeasureTools';
 import {IDataMatrix3} from '@gd/INamedValues';
 import {IDataFormula, validateAll /* , replaceVariable */} from '@gd/IFormula';
@@ -25,7 +25,7 @@ export interface GDState {
   topAssembly?: IDataAssembly;
   formulae: IDataFormula[];
   controls: IControl[];
-  datumObjects: IDataDatumObject[];
+  datumObjects: IDataDatumGroup[];
   measureTools: IDataMeasureTool[];
   changed: boolean;
 }
@@ -139,6 +139,20 @@ export const dataGeometryDesignerSlice = createSlice({
     removeControl: (state: GDState, action: PayloadAction<string>) => {
       const nodeID = action.payload;
       state.controls = state.controls.filter((c) => c.nodeID !== nodeID);
+      state.changed = true;
+    },
+    setDatumObjects: (
+      state: GDState,
+      action: PayloadAction<IDataDatumGroup[]>
+    ) => {
+      state.datumObjects = action.payload;
+      state.changed = true;
+    },
+    setMeasureTools: (
+      state: GDState,
+      action: PayloadAction<IDataMeasureTool[]>
+    ) => {
+      state.measureTools = action.payload;
       state.changed = true;
     }
   }

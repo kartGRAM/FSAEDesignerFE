@@ -1,5 +1,6 @@
 /* eslint-disable max-classes-per-file */
 import {v4 as uuidv4} from 'uuid';
+import {IAssembly} from '@gd/IElements';
 import {
   NodeID,
   IDatumObject,
@@ -7,7 +8,8 @@ import {
   IDataDatumObject,
   IDataDatumGroup,
   isDataDatumObject,
-  isDataDatumGroup
+  isDataDatumGroup,
+  IDatumManager
 } from './IDatumObjects';
 
 export abstract class DatumObject implements IDatumObject {
@@ -76,11 +78,16 @@ export class DatumGroup implements IDatumGroup {
     );
   }
 
-  constructor(params: {name: string} | IDataDatumGroup) {
+  constructor(
+    params: {name: string} | IDataDatumGroup,
+    collectedAssembly: IAssembly
+  ) {
     this.name = params.name;
     this.children = [];
     if (isDataDatumGroup(params)) {
-      this.children = params.children.map((child) => getDatumObject(child));
+      this.children = params.children.map((child) =>
+        getDatumObject(child, collectedAssembly)
+      );
     }
   }
 
@@ -94,11 +101,13 @@ export class DatumGroup implements IDatumGroup {
   }
 }
 
-export class DatumManager {
-  children: DatumGroup[];
+export class DatumManager implements IDatumManager {
+  children: IDatumGroup[];
 
-  constructor(datumGroups: IDataDatumGroup[]) {
-    this.children = datumGroups.map((child) => new DatumGroup(child));
+  constructor(datumGroups: IDataDatumGroup[], collectedAssembly: IAssembly) {
+    this.children = datumGroups.map(
+      (child) => new DatumGroup(child, collectedAssembly)
+    );
   }
 
   getDatumObject(nodeID: NodeID): IDatumObject | undefined {
@@ -121,6 +130,9 @@ export class DatumManager {
   }
 }
 
-function getDatumObject(data: IDataDatumObject): IDatumObject {
-  throw new Error(data.name);
+function getDatumObject(
+  data: IDataDatumObject,
+  collectedAssembly: IAssembly
+): IDatumObject {
+  throw new Error('未実装のデータムを検出');
 }
