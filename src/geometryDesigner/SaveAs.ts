@@ -2,10 +2,8 @@ import {getDataToSave} from '@app/utils/axios';
 import axios, {AxiosRequestConfig, AxiosPromise} from 'axios';
 import {RefetchOptions} from 'axios-hooks';
 import {Dispatch, AnyAction} from 'redux';
-import {
-  setTopAssembly,
-  getSetTopAssemblyParams
-} from '@store/reducers/dataGeometryDesigner';
+import {setTopAssembly} from '@store/reducers/dataGeometryDesigner';
+import {getSetTopAssemblyParams} from '@gd/ISaveData';
 import store from '@store/store';
 import {
   setConfirmDialogProps,

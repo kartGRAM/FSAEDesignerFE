@@ -10,11 +10,8 @@ import {
   setOpenDialogOpen,
   setConfirmDialogProps
 } from '@store/reducers/uiTempGeometryDesigner';
-import {
-  getListSetTopAssemblyParams,
-  setTopAssembly,
-  SavedData
-} from '@store/reducers/dataGeometryDesigner';
+import {setTopAssembly} from '@store/reducers/dataGeometryDesigner';
+import {getListSetTopAssemblyParams, SavedData} from '@gd/ISaveData';
 import confirmIfChanged from '@app/utils/confirmIfChanged';
 import {styled} from '@mui/material/styles';
 import Grid from '@mui/material/Grid';

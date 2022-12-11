@@ -3,6 +3,7 @@ import store from '@store/store';
 import {logoutUser} from '@store/reducers/auth';
 import {configure} from 'axios-hooks';
 import {getScreenShot} from '@gdComponents/GDScene';
+import {SavedDataToSend} from '@gd/ISaveData';
 
 const instance = axios.create({
   baseURL: store.getState().auth.apiURLBase!,
@@ -26,7 +27,6 @@ configure({axios: instance});
 
 export {instance};
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function getDataToSave(
   filename: string,
   note: string,
@@ -34,18 +34,20 @@ export function getDataToSave(
 ): FormData {
   const state = store.getState().dgd.present;
   const data = new FormData();
-  const values: any = {
+  const values: SavedDataToSend = {
     id: state.id,
     name: filename,
     note,
     content: JSON.stringify(state.topAssembly),
     formulae: JSON.stringify(state.formulae),
     controls: JSON.stringify(state.controls),
+    datumObjects: JSON.stringify(state.datumObjects),
+    measureTools: JSON.stringify(state.measureTools),
     clientLastUpdated: state.lastUpdated,
     overwrite
   };
   Object.keys(values).forEach((key) => {
-    data.append(key, values[key]);
+    data.append(key, (values as any)[key]);
   });
   data.append('thumbnail', getScreenShot() ?? '', 'image.png');
   return data;

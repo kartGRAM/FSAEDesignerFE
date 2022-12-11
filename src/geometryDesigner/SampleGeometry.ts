@@ -1,5 +1,7 @@
 import {Vector3} from 'three';
-import {SavedData, setFormulae} from '@store/reducers/dataGeometryDesigner';
+import {setFormulae} from '@store/reducers/dataGeometryDesigner';
+
+import {SavedData} from '@gd/ISaveData';
 import {DateTime} from 'luxon';
 import store from '@store/store';
 
@@ -402,6 +404,8 @@ export const getSampleData = async (): Promise<SavedData> => {
     lastUpdated: DateTime.local().toString(),
     formulae,
     controls: [],
+    datumObjects: [],
+    measureTools: [],
     topAssembly: getKZRR11Assy().getDataElement(store.getState().dgd.present)
     // topAssembly: getUprightAssy().getDataElement(store.getState().dgd.present)
   };
