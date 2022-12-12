@@ -5,12 +5,12 @@ import {SaveAsDialogProps} from '@gdComponents/dialog-components/SaveAsDialog';
 import {CopyFromExistingPointsDialogProps} from '@gdComponents/dialog-components/CopyFromExistingPointsDialog';
 import {MovePointDialogProps} from '@gdComponents/dialog-components/MovePointDialog';
 import {IAssembly, Elements} from '@gd/IElements';
+import {IDatumManager} from '@gd/measure/IDatumObjects';
+import {IMeasureToolsManager} from '@gd/measure/IMeasureTools';
 import {Quaternion, Vector3} from 'three';
 import {RootState} from '@react-three/fiber';
 import {GetState} from 'zustand';
 import {KinematicSolver} from '@gd/kinematics/Solver';
-import {DatumManager} from '@gd/measure/DatumObjects';
-import {MeasureToolsManager} from '@gd/measure/MeasureToolsManager';
 // import {PointOffsetToolDialogProps} from '@gdComponents/dialog-components/PointOffsetToolDialog';
 
 export type SidePanelTab =
@@ -49,8 +49,8 @@ export interface GDState {
   assembly: IAssembly | undefined;
   collectedAssembly: IAssembly | undefined;
   kinematicSolver: KinematicSolver | undefined;
-  datumManager: DatumManager | undefined;
-  measureToolsManager: MeasureToolsManager | undefined;
+  datumManager: IDatumManager | undefined;
+  measureToolsManager: IMeasureToolsManager | undefined;
 
   treeViewDragExpanded: string[];
   draggingNewElement: Elements | null;
@@ -141,6 +141,8 @@ export const uitGeometryDesignerSlice = createSlice({
         | {
             assembly: IAssembly;
             collectedAssembly: IAssembly;
+            datumManager: IDatumManager;
+            measureToolsManager: IMeasureToolsManager;
           }
         | undefined
       >
@@ -149,6 +151,8 @@ export const uitGeometryDesignerSlice = createSlice({
       if (!action.payload) {
         state.assembly = undefined;
         state.collectedAssembly = undefined;
+        state.datumManager = undefined;
+        state.measureToolsManager = undefined;
         state.kinematicSolver = undefined;
         state.gdSceneState.movingMode = false;
         state.selectedElementAbsPath = '';
@@ -156,6 +160,26 @@ export const uitGeometryDesignerSlice = createSlice({
       }
       state.assembly = action.payload.assembly;
       state.collectedAssembly = action.payload.collectedAssembly;
+      state.datumManager = action.payload.datumManager;
+      state.measureToolsManager = action.payload.measureToolsManager;
+    },
+    setDatumManager: (
+      state: GDState,
+      action: PayloadAction<{
+        datumManager: IDatumManager;
+        measureToolsManager: IMeasureToolsManager;
+      }>
+    ) => {
+      state.datumManager = action.payload.datumManager;
+      state.measureToolsManager = action.payload.measureToolsManager;
+    },
+    setMeasureToolsManager: (
+      state: GDState,
+      action: PayloadAction<{
+        measureToolsManager: IMeasureToolsManager;
+      }>
+    ) => {
+      state.measureToolsManager = action.payload.measureToolsManager;
     },
     setKinematicSolver: (
       state: GDState,
@@ -339,6 +363,8 @@ export const uitGeometryDesignerSlice = createSlice({
 
 export const {
   setAssemblyAndCollectedAssembly,
+  setDatumManager,
+  setMeasureToolsManager,
   setKinematicSolver,
   setUIDisabled,
   toggleFullScreen,

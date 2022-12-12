@@ -4,7 +4,8 @@ import {
   isDataDatumObject,
   IDatumObject,
   IPoint,
-  IDataPoint
+  IDataPoint,
+  DatumDict
 } from '@gd/measure/IDatumObjects';
 import {
   IDataElementPoint,
@@ -57,7 +58,7 @@ export class ElementPoint extends Point implements IElementPoint {
     };
   }
 
-  update(ref: IDatumObject[], collectedAssembly: IAssembly): void {
+  update(ref: DatumDict, collectedAssembly: IAssembly): void {
     const element = collectedAssembly.children.find(
       (child) => child.nodeID === this.element
     );

@@ -20,6 +20,12 @@ export interface IDataMeasureTool {
   visibility: boolean;
 }
 
+export interface IMeasureToolsManager {
+  children: IMeasureTool[];
+  getMeasureTool(nodeID: string): IMeasureTool | undefined;
+  update(): void;
+}
+
 export function isDataMeasureTool(data: any): data is IDataMeasureTool {
   try {
     if (data.isDataMeasureTool) return true;

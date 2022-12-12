@@ -3,6 +3,8 @@ import {IAssembly} from '@gd/IElements';
 
 export type NodeID = string;
 
+export type DatumDict = {[index: string]: IDatumObject | undefined};
+
 export interface IDatumObject {
   isDatumObject: true;
   readonly nodeID: string;
@@ -10,7 +12,7 @@ export interface IDatumObject {
   name: string;
   visibility: boolean;
   getData(): IDataDatumObject;
-  update(ref: IDatumObject[], collectedAssembly: IAssembly): void;
+  update(ref: DatumDict, collectedAssembly: IAssembly): void;
 }
 
 export function isDatumObject(data: any): data is IDatumObject {
@@ -88,13 +90,15 @@ export function isDataPoint(datum: any): datum is IPoint {
 
 export interface IDatumGroup {
   readonly children: IDatumObject[];
+  readonly nodeID: NodeID;
   name: string;
   visibility: boolean | undefined;
-  update(collectedAssembly: IAssembly): void;
+  update(ref: DatumDict, collectedAssembly: IAssembly): void;
   getData(): IDataDatumGroup;
 }
 
 export interface IDataDatumGroup {
+  readonly nodeID: NodeID;
   isDataDatumGroup: true;
   children: IDataDatumObject[];
   name: string;

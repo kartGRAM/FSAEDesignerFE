@@ -4,11 +4,15 @@ import store, {RootState} from '@store/store';
 import {
   setAssemblyAndCollectedAssembly,
   setKinematicSolver,
-  setAssembled
+  setAssembled,
+  setDatumManager,
+  setMeasureToolsManager
 } from '@store/reducers/uiTempGeometryDesigner';
 // import {getKinematicConstrainedElements} from '@gd/KinematicFunctions';
 import {KinematicSolver} from '@gd/kinematics/Solver';
 import {getControl, Control} from '@gd/Controls';
+import {DatumManager} from '@gd/measure/DatumManager';
+import {MeasureToolsManager} from '@gd/measure/MeasureToolsManager';
 
 import {getAssembly} from '@gd/Elements';
 
@@ -17,6 +21,15 @@ export default function AssemblyCreactor() {
   const assembly = useSelector(
     (state: RootState) => state.dgd.present.topAssembly
   );
+
+  const datumObjects = useSelector(
+    (state: RootState) => state.dgd.present.datumObjects
+  );
+
+  const measureTools = useSelector(
+    (state: RootState) => state.dgd.present.measureTools
+  );
+
   const assembled = useSelector(
     (state: RootState) => state.uitgd.gdSceneState.assembled
   );
@@ -31,11 +44,22 @@ export default function AssemblyCreactor() {
   React.useEffect(() => {
     const start = performance.now();
     if (assembly) {
+      // 依存変数に入れてないので、現在の値を取得する
+      const state = store.getState().dgd.present;
       const iAssembly = getAssembly(assembly);
+      const collectedAssembly = iAssembly.collectElements();
+      const datumManager = new DatumManager(state.datumObjects);
+      datumManager.update(iAssembly);
+      const measureToolsManager = new MeasureToolsManager(
+        datumManager,
+        state.measureTools
+      );
       dispatch(
         setAssemblyAndCollectedAssembly({
           assembly: iAssembly,
-          collectedAssembly: iAssembly.collectElements()
+          collectedAssembly,
+          datumManager,
+          measureToolsManager
         })
       );
     } else {
@@ -46,6 +70,52 @@ export default function AssemblyCreactor() {
     // eslint-disable-next-line no-console
     console.log((end - start).toFixed(1));
   }, [assembly]);
+
+  React.useEffect(() => {
+    if (datumObjects) {
+      const start = performance.now();
+      // 依存変数入れていないので、現在の値を取得
+      const state = store.getState();
+      // datumObjectsがあれば必ずcollectedAssemblyはある。
+      const datumManager = new DatumManager(datumObjects);
+      datumManager.update(state.uitgd.collectedAssembly!);
+      const measureToolsManager = new MeasureToolsManager(
+        datumManager,
+        state.dgd.present.measureTools
+      );
+      dispatch(
+        setDatumManager({
+          datumManager,
+          measureToolsManager
+        })
+      );
+      // 実行時間を計測した処理
+      const end = performance.now();
+      // eslint-disable-next-line no-console
+      console.log((end - start).toFixed(1));
+    }
+  }, [datumObjects]);
+
+  React.useEffect(() => {
+    if (measureTools) {
+      const start = performance.now();
+      // 依存変数入れていないので、現在の値を取得
+      const state = store.getState().uitgd;
+      const measureToolsManager = new MeasureToolsManager(
+        state.datumManager!,
+        measureTools
+      );
+      dispatch(
+        setMeasureToolsManager({
+          measureToolsManager
+        })
+      );
+      // 実行時間を計測した処理
+      const end = performance.now();
+      // eslint-disable-next-line no-console
+      console.log((end - start).toFixed(1));
+    }
+  }, [measureTools]);
 
   // assembledに変化があった場合に実行
   React.useEffect(() => {

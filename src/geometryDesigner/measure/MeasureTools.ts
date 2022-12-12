@@ -87,7 +87,7 @@ export class Position extends MeasureTool implements IPosition {
 }
 
 export function getMeasureTool(
-  tool: IMeasureTool,
+  tool: IDataMeasureTool,
   datumManager: IDatumManager
 ) {
   if (isDataPosition(tool)) return new Position(tool, datumManager);

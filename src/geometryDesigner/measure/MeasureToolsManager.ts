@@ -1,17 +1,22 @@
-import {IMeasureTool} from '@gd/measure/IMeasureTools';
+import {
+  IMeasureTool,
+  IDataMeasureTool,
+  IMeasureToolsManager
+} from '@gd/measure/IMeasureTools';
+import {getMeasureTool} from '@gd/measure/MeasureTools';
+import {IDatumManager} from './IDatumObjects';
 
-export class MeasureToolsManager {
+export class MeasureToolsManager implements IMeasureToolsManager {
   children: IMeasureTool[];
 
-  constructor(tools: IMeasureTool[]) {
-    this.children = tools;
+  getMeasureTool(nodeID: string): IMeasureTool | undefined {
+    return this.children.find((child) => child.nodeID === nodeID);
   }
 
-  getMeasureTool(nodeID: string): IMeasureTool | undefined {
-    for (const child of this.children) {
-      if (child.nodeID === nodeID) return child;
-    }
-    return undefined;
+  constructor(datumManager: IDatumManager, data?: IDataMeasureTool[]) {
+    this.children = (data ?? []).map((data) =>
+      getMeasureTool(data, datumManager)
+    );
   }
 
   update(): void {
