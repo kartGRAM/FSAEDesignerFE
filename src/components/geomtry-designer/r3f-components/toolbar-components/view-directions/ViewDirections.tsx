@@ -41,7 +41,6 @@ export default function ViewDirections() {
         </IconButton>
       </Tooltip>
       <Menu
-        id="basic-menu"
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}

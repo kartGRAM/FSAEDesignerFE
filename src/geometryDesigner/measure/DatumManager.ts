@@ -3,6 +3,8 @@ import {v4 as uuidv4} from 'uuid';
 import {IAssembly} from '@gd/IElements';
 import {ElementPoint} from '@gd/measure/PointObjects';
 import {isDataElementPoint} from '@gd/measure/IPointObjects';
+import store from '@store/store';
+import {setDatumObjects} from '@store/reducers/dataGeometryDesigner';
 import {
   NodeID,
   IDatumObject,
@@ -71,8 +73,11 @@ export class DatumGroup implements IDatumGroup {
 export class DatumManager implements IDatumManager {
   children: IDatumGroup[];
 
-  constructor(datumGroups: IDataDatumGroup[]) {
+  collectedAssembly: IAssembly;
+
+  constructor(datumGroups: IDataDatumGroup[], collectedAssembly: IAssembly) {
     this.children = datumGroups.map((child) => new DatumGroup(child));
+    this.collectedAssembly = collectedAssembly;
   }
 
   getDatumObject(nodeID: NodeID): IDatumObject | undefined {
@@ -86,13 +91,36 @@ export class DatumManager implements IDatumManager {
     return undefined;
   }
 
-  update(collectedAssembly: IAssembly): void {
+  getDatumGroup(nodeID: NodeID): IDatumGroup | undefined {
+    for (const group of this.children) {
+      if (group.nodeID === nodeID) return group;
+    }
+    return undefined;
+  }
+
+  update(): void {
     const updated: DatumDict = {};
-    this.children.forEach((child) => child.update(updated, collectedAssembly));
+    this.children.forEach((child) =>
+      child.update(updated, this.collectedAssembly)
+    );
   }
 
   getData(): IDataDatumGroup[] {
     return this.children.map((child) => child.getData());
+  }
+
+  dispatch(): void {
+    store.dispatch(setDatumObjects(this.getData()));
+  }
+
+  addGroup(group: IDatumGroup): void {
+    this.children.push(group);
+    this.update();
+  }
+
+  removeGroup(group: NodeID): void {
+    this.children = this.children.filter((child) => child.nodeID !== group);
+    this.update();
   }
 }
 

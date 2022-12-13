@@ -196,7 +196,7 @@ export default function AArmConfig(params: Params) {
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="panel2a-content"
-          id="panel2a-header"
+
         >
           <Typography>Dynamic Parameters</Typography>
         </AccordionSummary>
@@ -208,7 +208,7 @@ export default function AArmConfig(params: Params) {
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="panel3a-content"
-          id="panel3a-header"
+
         >
           <Typography>Visualization</Typography>
         </AccordionSummary>
@@ -217,7 +217,7 @@ export default function AArmConfig(params: Params) {
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="panel3a-content"
-          id="panel3a-header"
+
         >
           <Typography>Other Configurations</Typography>
         </AccordionSummary>

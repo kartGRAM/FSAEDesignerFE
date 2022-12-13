@@ -442,13 +442,9 @@ export default function OnDeleteDialog(props: OnDeleteDialogProps) {
         backdropFilter: 'blur(3px)'
       }}
     >
-      <DialogTitle id="alert-dialog-title">
-        {`${name} is used in other formulae.`}
-      </DialogTitle>
+      <DialogTitle>{`${name} is used in other formulae.`}</DialogTitle>
       <DialogContent>
-        <DialogContentText id="alert-dialog-description">
-          Replace with a constant value.
-        </DialogContentText>
+        <DialogContentText>Replace with a constant value.</DialogContentText>
 
         <TextField
           autoFocus
@@ -579,12 +575,7 @@ const TableToolbar = (props: TableToolbarProps) => {
             {numSelected} selected
           </Typography>
         ) : (
-          <Typography
-            sx={{flex: '1 1 100%'}}
-            variant="h6"
-            id="tableTitle"
-            component="div"
-          >
+          <Typography sx={{flex: '1 1 100%'}} variant="h6" component="div">
             Fomulae & Global Variables
           </Typography>
         )}

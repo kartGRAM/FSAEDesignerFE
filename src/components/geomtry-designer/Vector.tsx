@@ -392,7 +392,6 @@ const Vector = React.memo((props: Props) => {
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="panel1a-content"
-          id="panel1a-header"
           sx={{
             '.MuiAccordionSummary-content': {
               mt: 0,

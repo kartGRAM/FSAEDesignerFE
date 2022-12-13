@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   isDataDatumObject,
-  IDatumObject,
   IPoint,
   IDataPoint,
   DatumDict
@@ -14,7 +13,6 @@ import {
 } from '@gd/measure/IPointObjects';
 import {Vector3} from 'three';
 import {DatumObject} from '@gd/measure/DatumObjects';
-import store from '@store/store';
 import {IAssembly} from '@gd/IElements';
 
 export abstract class Point extends DatumObject implements IPoint {

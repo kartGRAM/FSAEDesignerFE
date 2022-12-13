@@ -104,10 +104,9 @@ export function PointOffsetToolDialog(props: PointOffsetToolDialogProps) {
       <DialogTitle>Point Offset Tool</DialogTitle>
       <DialogContent>
         <FormControl sx={{m: 1, minWidth: 300}} size="small">
-          <InputLabel id="demo-select-small">Type</InputLabel>
+          <InputLabel>Type</InputLabel>
           <Select
             labelId="demo-select-small"
-            id="demo-select-small"
             value={type}
             label="Type"
             onChange={handleChange}

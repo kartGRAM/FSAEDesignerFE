@@ -84,6 +84,8 @@ export const dataGeometryDesignerSlice = createSlice({
       state.lastUpdated = action.payload.lastUpdated;
       state.formulae = action.payload.formulae;
       state.controls = action.payload.controls;
+      state.datumObjects = action.payload.datumObjects;
+      state.measureTools = action.payload.measureTools;
       state.changed = false;
     },
     updateAssembly: (
@@ -162,6 +164,8 @@ export const {
   setCoordinateMatrix,
   newAssembly,
   setTopAssembly,
+  setDatumObjects,
+  setMeasureTools,
   updateAssembly,
   setFormulae,
   setControl,

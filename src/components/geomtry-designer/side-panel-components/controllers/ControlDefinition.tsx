@@ -83,7 +83,6 @@ export function ControlDefinition(props: ControlDefinitionProps) {
         <Select
           disabled={disabled}
           value={selectedID}
-          id="component-select"
           label="Select a controllable component"
           MenuProps={{
             sx: {zIndex: zindex}

@@ -117,7 +117,11 @@ export interface IDatumManager {
   children: IDatumGroup[];
 
   getDatumObject(nodeID: NodeID): IDatumObject | undefined;
+  getDatumGroup(nodeID: NodeID): IDatumGroup | undefined;
 
-  update(collectedAssembly: IAssembly): void;
+  update(): void;
   getData(): IDataDatumGroup[];
+  dispatch(): void;
+  addGroup(group: IDatumGroup): void;
+  removeGroup(group: NodeID): void;
 }

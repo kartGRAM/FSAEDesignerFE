@@ -33,12 +33,6 @@ export default function AssemblyCreactor() {
   const assembled = useSelector(
     (state: RootState) => state.uitgd.gdSceneState.assembled
   );
-  const controls = useSelector(
-    (state: RootState) => state.dgd.present.controls
-  ).reduce((prev, current) => {
-    prev[current.targetElement] = getControl(current);
-    return prev;
-  }, {} as {[index: string]: Control});
 
   // アセンブリデータに変更があった場合に実行
   React.useEffect(() => {
@@ -48,8 +42,11 @@ export default function AssemblyCreactor() {
       const state = store.getState().dgd.present;
       const iAssembly = getAssembly(assembly);
       const collectedAssembly = iAssembly.collectElements();
-      const datumManager = new DatumManager(state.datumObjects);
-      datumManager.update(iAssembly);
+      const datumManager = new DatumManager(
+        state.datumObjects,
+        collectedAssembly
+      );
+      datumManager.update();
       const measureToolsManager = new MeasureToolsManager(
         datumManager,
         state.measureTools
@@ -77,8 +74,11 @@ export default function AssemblyCreactor() {
       // 依存変数入れていないので、現在の値を取得
       const state = store.getState();
       // datumObjectsがあれば必ずcollectedAssemblyはある。
-      const datumManager = new DatumManager(datumObjects);
-      datumManager.update(state.uitgd.collectedAssembly!);
+      const datumManager = new DatumManager(
+        datumObjects,
+        state.uitgd.collectedAssembly!
+      );
+      datumManager.update();
       const measureToolsManager = new MeasureToolsManager(
         datumManager,
         state.dgd.present.measureTools
@@ -120,7 +120,13 @@ export default function AssemblyCreactor() {
   // assembledに変化があった場合に実行
   React.useEffect(() => {
     if (assembled) {
-      const assembly = store.getState().uitgd.collectedAssembly;
+      const state = store.getState();
+
+      const assembly = state.uitgd.collectedAssembly;
+      const controls = state.dgd.present.controls.reduce((prev, current) => {
+        prev[current.targetElement] = getControl(current);
+        return prev;
+      }, {} as {[index: string]: Control});
       if (assembly) {
         try {
           // getKinematicConstrainedElements(assembly);
@@ -141,7 +147,7 @@ export default function AssemblyCreactor() {
     const {assembly} = store.getState().uitgd;
     // resetPositions& set dlCurrent to 0
     assembly?.arrange();
-  }, [assembled, assembly, controls]);
+  }, [assembled, assembly]);
 
   return null;
 }
