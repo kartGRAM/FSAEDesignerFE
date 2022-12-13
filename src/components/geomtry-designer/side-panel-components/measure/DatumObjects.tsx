@@ -17,6 +17,7 @@ import Tooltip from '@mui/material/Tooltip';
 import {datumObjectAccordionDefaultExpandedChange} from '@store/reducers/uiGeometryDesigner';
 import {DatumGroup} from '@gd/measure/DatumManager';
 import {setConfirmDialogProps} from '@store/reducers/uiTempGeometryDesigner';
+import {DatumGroupName} from './DatumGroupName';
 
 export default function DatumObjects() {
   const dispatch = useDispatch();
@@ -190,7 +191,7 @@ export default function DatumObjects() {
                 expandIcon={<ExpandMoreIcon />}
                 aria-controls="panel1a-content"
               >
-                <Typography>{group.name}</Typography>
+                <DatumGroupName group={group} />
               </AccordionSummary>
               <AccordionDetails sx={{padding: 0}}>
                 <Box component="div" />
