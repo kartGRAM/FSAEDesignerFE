@@ -17,7 +17,6 @@ import Tooltip from '@mui/material/Tooltip';
 import {datumObjectAccordionDefaultExpandedChange} from '@store/reducers/uiGeometryDesigner';
 import {DatumGroup} from '@gd/measure/DatumManager';
 import {setConfirmDialogProps} from '@store/reducers/uiTempGeometryDesigner';
-import {DatumGroupName} from './DatumGroupName';
 import {DatumGroupTable} from './DatumGroup';
 
 export default function DatumObjects() {
@@ -168,42 +167,12 @@ export default function DatumObjects() {
           </Box>
         ) : (
           datumGroups.map((group) => (
-            <Accordion
+            <DatumGroupTable
+              datumGroup={group}
               key={group.nodeID}
-              TransitionProps={{unmountOnExit: true}}
-              expanded={group.nodeID === expanded}
-              onChange={(e, expanded) => {
-                if (expanded) setExpanded(group.nodeID);
-                else setExpanded('');
-              }}
-              sx={{
-                backgroundColor: group.nodeID === expanded ? '#cdf8e6' : '#eee',
-                ml: 1,
-                mr: 1,
-                '&.Mui-expanded': {
-                  ml: 1,
-                  mr: 1,
-                  mt: 0,
-                  mb: 0
-                }
-              }}
-            >
-              <AccordionSummary
-                expandIcon={<ExpandMoreIcon />}
-                aria-controls="panel1a-content"
-                sx={{
-                  userSelect: 'none',
-                  '&.Mui-focusVisible': {
-                    backgroundColor: 'unset'
-                  }
-                }}
-              >
-                <DatumGroupName group={group} />
-              </AccordionSummary>
-              <AccordionDetails sx={{padding: 0}}>
-                <DatumGroupTable datumGroup={group} />
-              </AccordionDetails>
-            </Accordion>
+              expanded={expanded}
+              setExpanded={setExpanded}
+            />
           ))
         )}
       </AccordionDetails>

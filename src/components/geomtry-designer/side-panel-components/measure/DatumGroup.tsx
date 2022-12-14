@@ -12,10 +12,20 @@ import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '@store/store';
 import {alpha} from '@mui/material/styles';
 import {IDatumGroup, IDatumObject} from '@gd/measure/IDatumObjects';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import Typography from '@mui/material/Typography';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {DatumDialog} from './DatumDialog';
+import {DatumGroupName} from './DatumGroupName';
 
-export function DatumGroupTable(props: {datumGroup: IDatumGroup}) {
-  const {datumGroup} = props;
+export function DatumGroupTable(props: {
+  datumGroup: IDatumGroup;
+  expanded: string;
+  setExpanded: React.Dispatch<React.SetStateAction<string>>;
+}) {
+  const {datumGroup, expanded, setExpanded} = props;
   const enabledColorLight: number = useSelector(
     (state: RootState) => state.uigd.present.enabledColorLight
   );
@@ -32,61 +42,95 @@ export function DatumGroupTable(props: {datumGroup: IDatumGroup}) {
 
   return (
     <>
-      <TableContainer
-        component={Paper}
+      <Accordion
+        TransitionProps={{unmountOnExit: true}}
+        expanded={datumGroup.nodeID === expanded}
+        onChange={(e, expanded) => {
+          if (expanded) setExpanded(datumGroup.nodeID);
+          else setExpanded('');
+        }}
         sx={{
-          '&::-webkit-scrollbar': {
-            height: '10px'
-          },
-          '&::-webkit-scrollbar-thumb': {
-            backgroundColor: numberToRgb(enabledColorLight),
-            borderRadius: '5px'
+          backgroundColor: datumGroup.nodeID === expanded ? '#cdf8e6' : '#eee',
+          ml: 1,
+          mr: 1,
+          '&.Mui-expanded': {
+            ml: 1,
+            mr: 1,
+            mt: 0,
+            mb: 0
           }
         }}
       >
-        <Table
-          sx={{backgroundColor: alpha('#FFF', 0.0)}}
-          size="small"
-          aria-label="a dense table"
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          aria-controls="panel1a-content"
+          sx={{
+            userSelect: 'none',
+            '&.Mui-focusVisible': {
+              backgroundColor: 'unset'
+            }
+          }}
         >
-          <TableHead>
-            <TableRow onClick={() => setSelected('')}>
-              <TableCell>Order</TableCell>
-              <TableCell>Visible</TableCell>
-              <TableCell>Name</TableCell>
-              <TableCell align="right">Type</TableCell>
-              <TableCell align="right">description</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {datumObjects?.map((datum, idx) => {
-              return (
-                <TableRow
-                  key={datum.nodeID}
-                  sx={{
-                    '&:last-child td, &:last-child th': {border: 0},
-                    userSelect: 'none',
-                    backgroundColor:
-                      selected === datum.nodeID
-                        ? alpha(numberToRgb(enabledColorLight), 0.5)
-                        : 'unset'
-                  }}
-                  onClick={() => setSelected(datum.nodeID)}
-                  onDoubleClick={() => onDatumDblClick(datum)}
-                >
-                  <TableCell>{idx + 1}</TableCell>
-                  <TableCell align="right">{datum.visibility}</TableCell>
-                  <TableCell sx={{whiteSpace: 'nowrap'}}>
-                    {datum.name}
-                  </TableCell>
-                  <TableCell align="right">{datum.className}</TableCell>
-                  <TableCell align="right">{datum.description}</TableCell>
+          <DatumGroupName group={datumGroup} />
+        </AccordionSummary>
+        <AccordionDetails sx={{padding: 0}}>
+          <TableContainer
+            component={Paper}
+            sx={{
+              '&::-webkit-scrollbar': {
+                height: '10px'
+              },
+              '&::-webkit-scrollbar-thumb': {
+                backgroundColor: numberToRgb(enabledColorLight),
+                borderRadius: '5px'
+              }
+            }}
+          >
+            <Table
+              sx={{backgroundColor: alpha('#FFF', 0.0)}}
+              size="small"
+              aria-label="a dense table"
+            >
+              <TableHead>
+                <TableRow onClick={() => setSelected('')}>
+                  <TableCell>Order</TableCell>
+                  <TableCell>Visible</TableCell>
+                  <TableCell>Name</TableCell>
+                  <TableCell align="right">Type</TableCell>
+                  <TableCell align="right">description</TableCell>
                 </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
+              </TableHead>
+              <TableBody>
+                {datumObjects?.map((datum, idx) => {
+                  return (
+                    <TableRow
+                      key={datum.nodeID}
+                      sx={{
+                        '&:last-child td, &:last-child th': {border: 0},
+                        userSelect: 'none',
+                        backgroundColor:
+                          selected === datum.nodeID
+                            ? alpha(numberToRgb(enabledColorLight), 0.5)
+                            : 'unset'
+                      }}
+                      onClick={() => setSelected(datum.nodeID)}
+                      onDoubleClick={() => onDatumDblClick(datum)}
+                    >
+                      <TableCell>{idx + 1}</TableCell>
+                      <TableCell align="right">{datum.visibility}</TableCell>
+                      <TableCell sx={{whiteSpace: 'nowrap'}}>
+                        {datum.name}
+                      </TableCell>
+                      <TableCell align="right">{datum.className}</TableCell>
+                      <TableCell align="right">{datum.description}</TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </AccordionDetails>
+      </Accordion>
       <DatumDialog
         open={dialogTarget !== ''}
         close={() => {
