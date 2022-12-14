@@ -33,6 +33,8 @@ export abstract class DatumObject implements IDatumObject {
     }
   }
 
+  abstract get description(): string;
+
   getDataBase(): IDataDatumObject {
     return {
       isDataDatumObject: true,

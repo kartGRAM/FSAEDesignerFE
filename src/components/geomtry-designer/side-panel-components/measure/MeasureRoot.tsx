@@ -18,7 +18,7 @@ export default function MeasureRoot() {
 
   return (
     <>
-      <Typography variant="h6">Controllers</Typography>
+      <Typography variant="h6">Measure</Typography>
       <DatumObjects />
 
       <Accordion

@@ -18,6 +18,7 @@ import {datumObjectAccordionDefaultExpandedChange} from '@store/reducers/uiGeome
 import {DatumGroup} from '@gd/measure/DatumManager';
 import {setConfirmDialogProps} from '@store/reducers/uiTempGeometryDesigner';
 import {DatumGroupName} from './DatumGroupName';
+import {DatumGroupTable} from './DatumGroup';
 
 export default function DatumObjects() {
   const dispatch = useDispatch();
@@ -105,7 +106,7 @@ export default function DatumObjects() {
             variant="subtitle1"
             component="div"
           >
-            Datum Objects
+            Datum Groups & Datum Objects
           </Typography>
           {datumObjectsAccExpanded ? (
             <>
@@ -176,7 +177,7 @@ export default function DatumObjects() {
                 else setExpanded('');
               }}
               sx={{
-                backgroundColor: group.nodeID === expanded ? '#add8e6' : '#eee',
+                backgroundColor: group.nodeID === expanded ? '#cdf8e6' : '#eee',
                 ml: 1,
                 mr: 1,
                 '&.Mui-expanded': {
@@ -190,11 +191,17 @@ export default function DatumObjects() {
               <AccordionSummary
                 expandIcon={<ExpandMoreIcon />}
                 aria-controls="panel1a-content"
+                sx={{
+                  userSelect: 'none',
+                  '&.Mui-focusVisible': {
+                    backgroundColor: 'unset'
+                  }
+                }}
               >
                 <DatumGroupName group={group} />
               </AccordionSummary>
               <AccordionDetails sx={{padding: 0}}>
-                <Box component="div" />
+                <DatumGroupTable datumGroup={group} />
               </AccordionDetails>
             </Accordion>
           ))

@@ -13,9 +13,11 @@ import {
 } from '@gd/measure/IPointObjects';
 import {Vector3} from 'three';
 import {DatumObject} from '@gd/measure/DatumObjects';
-import {IAssembly} from '@gd/IElements';
+import {IAssembly, IElement} from '@gd/IElements';
 
 export abstract class Point extends DatumObject implements IPoint {
+  abstract get description(): string;
+
   readonly isPoint = true as const;
 
   abstract getThreePoint(): Vector3;
@@ -42,6 +44,13 @@ export class ElementPoint extends Point implements IElementPoint {
 
   storedValue: Vector3;
 
+  elementBuf: IElement | undefined = undefined;
+
+  get description() {
+    const element = this.elementBuf;
+    return `element point of ${element?.name.value}`;
+  }
+
   getThreePoint(): Vector3 {
     return this.storedValue;
   }
@@ -57,10 +66,10 @@ export class ElementPoint extends Point implements IElementPoint {
   }
 
   update(ref: DatumDict, collectedAssembly: IAssembly): void {
-    const element = collectedAssembly.children.find(
+    this.elementBuf = collectedAssembly.children.find(
       (child) => child.nodeID === this.element
     );
-    const point = element
+    const point = this.elementBuf
       ?.getMeasurablePoints()
       .find((p) => p.nodeID === this.point);
     if (!point) throw new Error('計測点が見つからない');

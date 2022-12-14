@@ -11,6 +11,7 @@ export interface IDatumObject {
   readonly className: string;
   name: string;
   visibility: boolean;
+  readonly description: string;
   getData(): IDataDatumObject;
   update(ref: DatumDict, collectedAssembly: IAssembly): void;
 }
