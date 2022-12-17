@@ -9,6 +9,7 @@ import {ILinearBushing, transQuaternion} from '@gd/IElements';
 import {getMatrix3} from '@gd/NamedValues';
 import {Line2} from 'three-stdlib';
 import NodeSphere from './NodeSphere';
+import MeasurablePoint from './MeasurablePointSphere';
 
 const LinearBushing = (props: {element: ILinearBushing}) => {
   const {element} = props;
@@ -20,10 +21,12 @@ const LinearBushing = (props: {element: ILinearBushing}) => {
 
   const handleOnDoubleClick = React.useCallback(
     (e: ThreeEvent<MouseEvent>) => {
+      if (!meshRef.current.visible) return;
+      if (store.getState().uitgd.uiDisabled) return;
       e.stopPropagation();
       dispatch(selectElement({absPath: element.absPath}));
     },
-    [element.absPath]
+    [element.absPath, store]
   );
 
   useFrame(() => {
@@ -76,6 +79,7 @@ const LinearBushing = (props: {element: ILinearBushing}) => {
   });
 
   const nodes = element.getPoints();
+  const measurablePoints = element.getMeasurablePoints();
   const pts = nodes.map((p) => p.value.applyMatrix3(coMatrix));
   const fixedPoints = nodes.slice(0, 2);
   const points = nodes.slice(2);
@@ -92,6 +96,9 @@ const LinearBushing = (props: {element: ILinearBushing}) => {
       <group ref={dlRef}>
         {points.map((node) => (
           <NodeSphere node={node} key={node.nodeID} />
+        ))}
+        {measurablePoints.map((p) => (
+          <MeasurablePoint node={p} key={p.nodeID} />
         ))}
       </group>
     </group>

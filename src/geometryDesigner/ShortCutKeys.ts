@@ -18,7 +18,35 @@ import {getCameraQuaternion} from '@utils/three';
 
 export default function shortCutKeys(e: KeyboardEvent) {
   const state = store.getState();
-  if (state.uitgd.uiDisabled) return;
+  if (e.key === 'F8') {
+    const {get} = state.uitgd.gdSceneState;
+    if (get) {
+      const {camera} = get();
+      const qc = camera.quaternion;
+      let maxNorm = Number.MIN_SAFE_INTEGER;
+      let q: Quaternion | null = null;
+      directions.forEach((direction) => {
+        const norm = qc.dot(direction);
+        if (maxNorm < norm) {
+          maxNorm = norm;
+          q = direction.clone();
+        }
+      });
+      if (q) {
+        store.dispatch(setViewDirection(q));
+        e.preventDefault();
+      }
+    }
+  }
+  if (e.key === 'F7') {
+    const {get} = state.uitgd.gdSceneState;
+    if (get) {
+      const {camera} = get();
+      const qc = camera.quaternion;
+      store.dispatch(setViewDirection(qc.clone()));
+      e.preventDefault();
+    }
+  }
 
   const controllerKeys = state.dgd.present.controls
     .filter((c) => c.type === 'keyboard')
@@ -28,6 +56,7 @@ export default function shortCutKeys(e: KeyboardEvent) {
     if (!e.key.includes('Arrow')) e.preventDefault();
     return;
   }
+  if (state.uitgd.uiDisabled) return;
 
   if (e.ctrlKey) {
     if (e.key === 'z') store.dispatch(ActionCreators.undo());
@@ -72,36 +101,6 @@ export default function shortCutKeys(e: KeyboardEvent) {
 
     store.dispatch(selectElement({absPath: ''}));
     store.dispatch(setSelectedPoint(null));
-  }
-
-  if (e.key === 'F8') {
-    const {get} = state.uitgd.gdSceneState;
-    if (get) {
-      const {camera} = get();
-      const qc = camera.quaternion;
-      let maxNorm = Number.MIN_SAFE_INTEGER;
-      let q: Quaternion | null = null;
-      directions.forEach((direction) => {
-        const norm = qc.dot(direction);
-        if (maxNorm < norm) {
-          maxNorm = norm;
-          q = direction.clone();
-        }
-      });
-      if (q) {
-        store.dispatch(setViewDirection(q));
-        e.preventDefault();
-      }
-    }
-  }
-  if (e.key === 'F7') {
-    const {get} = state.uitgd.gdSceneState;
-    if (get) {
-      const {camera} = get();
-      const qc = camera.quaternion;
-      store.dispatch(setViewDirection(qc.clone()));
-      e.preventDefault();
-    }
   }
 }
 

@@ -76,6 +76,8 @@ export interface GDSceneState {
   assembled: boolean;
   resetPositions: boolean;
   get: GetState<RootState> | null;
+  measureElementPointsMode: boolean;
+  measureElementPointSetterCallback?: (node: INamedVector3) => void;
 }
 
 export interface GDDialogState {
@@ -105,7 +107,9 @@ const initialState: GDState = {
     resetPositions: false,
     toggle: true, // その打ち消す
     assembled: false,
-    get: null
+    get: null,
+    measureElementPointsMode: false,
+    measureElementPointSetterCallback: undefined
   },
   gdDialogState: {
     copyFromExistingPointsDialogProps: {open: false, onSelected: null},
@@ -348,6 +352,18 @@ export const uitGeometryDesignerSlice = createSlice({
     ) => {
       state.gdSceneState.orbitControlsEnabledManual = action.payload;
     },
+    setMeasureElementPointMode: (
+      state: GDState,
+      action: PayloadAction<boolean>
+    ) => {
+      state.gdSceneState.measureElementPointsMode = action.payload;
+    },
+    setMeasureElementPointSetterCallback: (
+      state: GDState,
+      action: PayloadAction<(node: INamedVector3) => void | undefined>
+    ) => {
+      state.gdSceneState.measureElementPointSetterCallback = action.payload;
+    },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setVisibility: (state: GDState) => {
       state.forceCallSelector = !state.forceCallSelector;
@@ -391,6 +407,8 @@ export const {
   setOrbitControlsEnabledManual,
   setViewDirection,
   setGDSceneGetThree,
+  setMeasureElementPointMode,
+  setMeasureElementPointSetterCallback,
   setMovingMode
   // setPointOffsetToolDialogProps
 } = uitGeometryDesignerSlice.actions;

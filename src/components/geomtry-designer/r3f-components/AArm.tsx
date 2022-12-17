@@ -12,6 +12,7 @@ import {MovePointTo} from '@gd/kinematics/Driver';
 import {setMovingMode} from '@store/reducers/uiTempGeometryDesigner';
 import useUpdateEffect from '@app/hooks/useUpdateEffect';
 import NodeSphere from './NodeSphere';
+import MeasurablePoint from './MeasurablePointSphere';
 import {PivotControls} from './PivotControls/PivotControls';
 
 const AArm = (props: {element: IAArm}) => {
@@ -25,10 +26,12 @@ const AArm = (props: {element: IAArm}) => {
 
   const handleOnDoubleClick = React.useCallback(
     (e: ThreeEvent<MouseEvent>) => {
+      if (!meshRefs.current[0].current?.visible) return;
+      if (store.getState().uitgd.uiDisabled) return;
       e.stopPropagation();
       dispatch(selectElement({absPath: element.absPath}));
     },
-    [element.absPath]
+    [element.absPath, store]
   );
 
   useSelector((state: RootState) => state.uitgd.gdSceneState.resetPositions);
@@ -96,6 +99,7 @@ const AArm = (props: {element: IAArm}) => {
   });
 
   const nodes = element.getPoints();
+  const measurablePoints = element.getMeasurablePoints();
   let pts = nodes.map((p) => p.value.applyMatrix3(coMatrix));
   const arm: [Vector3, Vector3, Vector3] = [pts[0], pts[2], pts[1]];
   pts = pts.filter((v, i) => i > 2);
@@ -143,6 +147,9 @@ const AArm = (props: {element: IAArm}) => {
         ))}
         {nodes.map((node) => (
           <NodeSphere node={node} key={node.nodeID} />
+        ))}
+        {measurablePoints.map((p) => (
+          <MeasurablePoint node={p} key={p.nodeID} />
         ))}
       </group>
       {moveThisComponent ? (

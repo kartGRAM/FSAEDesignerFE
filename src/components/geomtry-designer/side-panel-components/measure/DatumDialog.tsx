@@ -20,6 +20,7 @@ import Select, {SelectChangeEvent} from '@mui/material/Select';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import MenuItem from '@mui/material/MenuItem';
 import {setUIDisabled} from '@store/reducers/uiTempGeometryDesigner';
+import Box from '@mui/material/Box';
 import {
   getPointObjectClass,
   PointObject,
@@ -127,70 +128,74 @@ export function DatumDialog(props: {
         {datum ? datum.name : 'New Datum'}
       </DialogTitle>
       <DialogContent>
-        <FormControl
+        <Box
+          component="div"
           sx={{m: 1, flexGrow: 1, mt: 1, flexDirection: 'row'}}
-          size="small"
         >
-          <Select
-            displayEmpty
-            value={datumType}
-            onChange={handleDatumTypeChange}
-            sx={{
-              '& legend': {display: 'none'},
-              '& fieldset': {top: 0},
-              width: 200
-            }}
-            input={<OutlinedInput sx={{width: 200}} />}
-            renderValue={(selected) => {
-              if (selected.length === 0) {
-                return <em>Select Datum Type</em>;
-              }
-              return selected;
-            }}
-            MenuProps={{
-              sx: {zIndex: zindex + 100}
-            }}
-          >
-            <MenuItem disabled value="">
-              <em>Select Datum Type</em>
-            </MenuItem>
-            {datumTypesSelectable.map((type) => (
-              <MenuItem key={type} value={type}>
-                {type}
+          <FormControl size="small">
+            <Select
+              displayEmpty
+              value={datumType}
+              onChange={handleDatumTypeChange}
+              sx={{
+                '& legend': {display: 'none'},
+                '& fieldset': {top: 0},
+                width: 200
+              }}
+              input={<OutlinedInput sx={{width: 200}} />}
+              renderValue={(selected) => {
+                if (selected.length === 0) {
+                  return <em>Select Datum Type</em>;
+                }
+                return selected;
+              }}
+              MenuProps={{
+                sx: {zIndex: zindex + 100}
+              }}
+            >
+              <MenuItem disabled value="">
+                <em>Select Datum Type</em>
               </MenuItem>
-            ))}
-          </Select>
-          <Select
-            displayEmpty
-            value={datumClass}
-            onChange={handleDatumClassChange}
-            sx={{
-              ml: 3,
-              '& legend': {display: 'none'},
-              '& fieldset': {top: 0},
-              width: 200
-            }}
-            input={<OutlinedInput />}
-            renderValue={(selected) => {
-              if (selected.length === 0) {
-                return <em>Select Datum Class</em>;
-              }
-              return selected;
-            }}
-            MenuProps={{
-              sx: {zIndex: zindex + 100}
-            }}
-          >
-            <MenuItem disabled value="">
-              <em>Select Datum Class</em>
-            </MenuItem>
-            {selectedClasses.map((type) => (
-              <MenuItem key={type} value={type}>
-                {type}
+              {datumTypesSelectable.map((type) => (
+                <MenuItem key={type} value={type}>
+                  {type}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl size="small">
+            <Select
+              displayEmpty
+              value={datumClass}
+              onChange={handleDatumClassChange}
+              sx={{
+                ml: 3,
+                '& legend': {display: 'none'},
+                '& fieldset': {top: 0},
+                width: 200
+              }}
+              input={<OutlinedInput />}
+              renderValue={(selected) => {
+                if (selected.length === 0) {
+                  return <em>Select Datum Class</em>;
+                }
+                return selected;
+              }}
+              MenuProps={{
+                sx: {zIndex: zindex + 100}
+              }}
+            >
+              <MenuItem disabled value="">
+                <em>Select Datum Class</em>
               </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+              {selectedClasses.map((type) => (
+                <MenuItem key={type} value={type}>
+                  {type}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
         {content}
       </DialogContent>
       <DialogActions>

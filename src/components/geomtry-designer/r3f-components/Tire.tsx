@@ -4,10 +4,11 @@ import {ThreeEvent, useFrame} from '@react-three/fiber';
 import {Circle} from '@react-three/drei';
 import {useSelector, useDispatch} from 'react-redux';
 import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
-import {RootState} from '@store/store';
+import store, {RootState} from '@store/store';
 import {ITire, transQuaternion} from '@gd/IElements';
 import {getMatrix3} from '@gd/NamedValues';
 import NodeSphere from './NodeSphere';
+import MeasurablePoint from './MeasurablePointSphere';
 
 const Tire = (props: {element: ITire}) => {
   const {element} = props;
@@ -19,10 +20,12 @@ const Tire = (props: {element: ITire}) => {
 
   const handleOnDoubleClick = React.useCallback(
     (e: ThreeEvent<MouseEvent>) => {
+      if (!meshRef.current.visible) return;
+      if (store.getState().uitgd.uiDisabled) return;
       e.stopPropagation();
       dispatch(selectElement({absPath: element.absPath}));
     },
-    [element.absPath]
+    [element.absPath, store]
   );
 
   const isSelected = useSelector((state: RootState) => {
@@ -47,6 +50,7 @@ const Tire = (props: {element: ITire}) => {
   });
 
   const nodes = element.getPoints();
+  const measurablePoints = element.getMeasurablePoints();
   const center = element.tireCenter.value.applyMatrix3(coMatrix);
   const radius = center.y;
   const groupRef = React.useRef<THREE.Group>(null!);
@@ -73,6 +77,9 @@ const Tire = (props: {element: ITire}) => {
       </Circle>
       {nodes.map((node) => (
         <NodeSphere node={node} key={node.nodeID} />
+      ))}
+      {measurablePoints.map((p) => (
+        <MeasurablePoint node={p} key={p.nodeID} />
       ))}
     </group>
   );

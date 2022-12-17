@@ -7,18 +7,16 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
-import {numberToRgb, toFixedNoZero} from '@app/utils/helpers';
-import {useDispatch, useSelector} from 'react-redux';
+import {numberToRgb} from '@app/utils/helpers';
+import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
 import {alpha} from '@mui/material/styles';
 import {IDatumGroup, IDatumObject} from '@gd/measure/IDatumObjects';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
-import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AddBoxIcon from '@mui/icons-material/AddBox';
-import Toolbar from '@mui/material/Toolbar';
 import DeleteIcon from '@mui/icons-material/Delete';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
@@ -90,15 +88,17 @@ export function DatumGroupTable(props: {
               }
             }}
           >
-            <IconButton
-              onClick={(e) => {
-                e.stopPropagation();
-                onDatumDblClick(undefined);
-              }}
-              disabled={datumGroup.nodeID !== expanded}
-            >
-              <AddBoxIcon />
-            </IconButton>
+            <span>
+              <IconButton
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDatumDblClick(undefined);
+                }}
+                disabled={datumGroup.nodeID !== expanded}
+              >
+                <AddBoxIcon />
+              </IconButton>
+            </span>
           </Tooltip>
         </AccordionSummary>
         <AccordionDetails sx={{pt: 0, pb: 1, pl: 1, pr: 1}}>

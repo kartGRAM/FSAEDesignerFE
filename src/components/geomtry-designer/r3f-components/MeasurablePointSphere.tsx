@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react';
 import * as THREE from 'three';
 import {ThreeEvent, useFrame} from '@react-three/fiber';
@@ -8,43 +9,33 @@ import store, {RootState} from '@store/store';
 import {isElement} from '@gd/IElements';
 import {getMatrix3} from '@gd/NamedValues';
 import {INamedVector3} from '@gd/INamedValues';
-import {
-  setSelectedPoint,
-  setOrbitControlsEnabled
-} from '@store/reducers/uiTempGeometryDesigner';
+import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
 import {Paper, Typography} from '@mui/material';
-import {PivotControls} from './PivotControls/PivotControls';
 
-const NodeSphere = (props: {node: INamedVector3}) => {
+const MeasurablePointSphere = (props: {node: INamedVector3}) => {
   const {node} = props;
   const coMatrix = getMatrix3(
     useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
   );
-  const invCoMatrix = coMatrix.clone().transpose();
+  const mode = useSelector(
+    (state: RootState) => state.uitgd.gdSceneState.measureElementPointsMode
+  );
   const materialRef = React.useRef<THREE.MeshBasicMaterial>(null);
-  const meshRef = React.useRef<THREE.Mesh>(null!);
-  const pivotControlsRef = React.useRef<THREE.Group>(null!);
-  const deltaVRef = React.useRef<THREE.Vector3>(new THREE.Vector3());
+  const meshRef = React.useRef<THREE.Mesh>(null);
 
   const dispatch = useDispatch();
 
   const handleOnDoubleClick = React.useCallback(
     (e: ThreeEvent<MouseEvent>) => {
-      if (!meshRef.current.visible) return;
       e.stopPropagation();
-      dispatch(setSelectedPoint({point: node}));
-      dispatch(selectElement({absPath: node.parent?.absPath ?? ''}));
+      const state = store.getState().uitgd;
+      if (state.gdSceneState.measureElementPointSetterCallback)
+        state.gdSceneState.measureElementPointSetterCallback(node);
     },
-    [node.absPath]
+    [node.nodeID]
   );
 
   const [show, setShow] = React.useState(false);
-
-  const isMoveTarget = useSelector(
-    (state: RootState) =>
-      state.uitgd.gdDialogState.movePointDialogProps.target?.nodeID ===
-      node.nodeID
-  );
 
   useFrame(() => {
     const pwcs = store.getState().uitgd.gdSceneState.selectedPoint ?? [];
@@ -52,29 +43,26 @@ const NodeSphere = (props: {node: INamedVector3}) => {
     let color = 0x00ff00;
     if (isSelected) {
       color = isSelected.color ?? 0xff0000;
-      meshRef.current.scale.set(1.1, 1.1, 1.1);
+      meshRef.current?.scale.set(1.1, 1.1, 1.1);
     } else {
-      meshRef.current.scale.set(1.0, 1.0, 1.0);
+      meshRef.current?.scale.set(1.0, 1.0, 1.0);
     }
     if (materialRef.current) {
       materialRef.current.color.set(color);
     }
-    if (isElement(node.parent)) {
+    if (isElement(node.parent) && meshRef.current) {
       meshRef.current.visible = node.parent.visible.value ?? false;
-      if (!isSelected) {
-        const visualizationMode =
-          store.getState().uigd.present.gdSceneState.componentVisualizationMode;
-        meshRef.current.visible =
-          visualizationMode === 'ShowAllNodes' && !!node.parent.visible.value;
-      }
     }
   });
 
+  if (!mode) return null;
+
   const position = node.value.applyMatrix3(coMatrix);
 
-  const sphere = (
+  return (
     <Sphere
       ref={meshRef}
+      position={position}
       args={[5, 16, 16]}
       onDoubleClick={(e) => {
         handleOnDoubleClick(e);
@@ -146,34 +134,5 @@ const NodeSphere = (props: {node: INamedVector3}) => {
       ) : null}
     </Sphere>
   );
-
-  return (
-    <group position={position}>
-      {isMoveTarget ? (
-        <PivotControls
-          ref={pivotControlsRef}
-          depthTest={false}
-          scale={70}
-          onDragStart={() => {
-            dispatch(setOrbitControlsEnabled(false));
-          }}
-          onDragEnd={() => {
-            dispatch(setOrbitControlsEnabled(true));
-            deltaVRef.current
-              .set(0, 0, 0)
-              .applyMatrix4(pivotControlsRef.current.matrix)
-              .applyMatrix3(invCoMatrix);
-            const onMoved =
-              store.getState().uitgd.gdDialogState.movePointOnMoved;
-            if (onMoved) onMoved(deltaVRef.current);
-          }}
-        >
-          {sphere}
-        </PivotControls>
-      ) : (
-        sphere
-      )}
-    </group>
-  );
 };
-export default NodeSphere;
+export default MeasurablePointSphere;

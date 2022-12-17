@@ -12,6 +12,7 @@ import {setMovingMode} from '@store/reducers/uiTempGeometryDesigner';
 import useUpdateEffect from '@app/hooks/useUpdateEffect';
 import NodeSphere from './NodeSphere';
 import {PivotControls} from './PivotControls/PivotControls';
+import MeasurablePoint from './MeasurablePointSphere';
 
 const Body = (props: {element: IBody}) => {
   const {element} = props;
@@ -23,10 +24,12 @@ const Body = (props: {element: IBody}) => {
 
   const handleOnDoubleClick = React.useCallback(
     (e: ThreeEvent<MouseEvent>) => {
+      if (!meshRef.current.visible) return;
+      if (store.getState().uitgd.uiDisabled) return;
       e.stopPropagation();
       dispatch(selectElement({absPath: element.absPath}));
     },
-    [element.absPath]
+    [element.absPath, store]
   );
   const isFrame = isBodyOfFrame(element);
 
@@ -41,6 +44,7 @@ const Body = (props: {element: IBody}) => {
   });
 
   const nodes = element.getPoints();
+  const measurablePoints = element.getMeasurablePoints();
   const getInitialPosition = React.useCallback(() => {
     const state = store.getState();
     const point =
@@ -135,6 +139,9 @@ const Body = (props: {element: IBody}) => {
         </mesh>
         {nodes.map((node) => (
           <NodeSphere node={node} key={node.nodeID} />
+        ))}
+        {measurablePoints.map((p) => (
+          <MeasurablePoint node={p} key={p.nodeID} />
         ))}
       </group>
       {moveThisComponent ? (

@@ -13,6 +13,7 @@ import {setMovingMode} from '@store/reducers/uiTempGeometryDesigner';
 import useUpdateEffect from '@app/hooks/useUpdateEffect';
 import NodeSphere from './NodeSphere';
 import {PivotControls} from './PivotControls/PivotControls';
+import MeasurablePoint from './MeasurablePointSphere';
 
 const BellCrank = (props: {element: IBellCrank}) => {
   const {element} = props;
@@ -25,10 +26,12 @@ const BellCrank = (props: {element: IBellCrank}) => {
 
   const handleOnDoubleClick = React.useCallback(
     (e: ThreeEvent<MouseEvent>) => {
+      if (!meshRefs.current[0].current?.visible) return;
+      if (store.getState().uitgd.uiDisabled) return;
       e.stopPropagation();
       dispatch(selectElement({absPath: element.absPath}));
     },
-    [element.absPath]
+    [element.absPath, store]
   );
 
   const moveThisComponent = useSelector((state: RootState) => {
@@ -94,6 +97,7 @@ const BellCrank = (props: {element: IBellCrank}) => {
   });
 
   const nodes = element.getPoints();
+  const measurablePoints = element.getMeasurablePoints();
   let pts = nodes.map((p) => p.value.applyMatrix3(coMatrix));
   const bellCrankPlane: [Vector3, Vector3, Vector3] = [
     pts[2],
@@ -155,6 +159,9 @@ const BellCrank = (props: {element: IBellCrank}) => {
         ))}
         {nodes.map((node) => (
           <NodeSphere node={node} key={node.nodeID} />
+        ))}
+        {measurablePoints.map((p) => (
+          <MeasurablePoint node={p} key={p.nodeID} />
         ))}
       </group>
       {moveThisComponent ? (

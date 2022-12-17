@@ -9,6 +9,7 @@ import {ISpringDumper, transQuaternion} from '@gd/IElements';
 import {getMatrix3} from '@gd/NamedValues';
 import {Line2} from 'three-stdlib';
 import NodeSphere from './NodeSphere';
+import MeasurablePoint from './MeasurablePointSphere';
 
 const SpringDumper = (props: {element: ISpringDumper}) => {
   const {element} = props;
@@ -20,10 +21,12 @@ const SpringDumper = (props: {element: ISpringDumper}) => {
 
   const handleOnDoubleClick = React.useCallback(
     (e: ThreeEvent<MouseEvent>) => {
+      if (!meshRef.current.visible) return;
+      if (store.getState().uitgd.uiDisabled) return;
       e.stopPropagation();
       dispatch(selectElement({absPath: element.absPath}));
     },
-    [element.absPath]
+    [element.absPath, store]
   );
 
   useFrame(() => {
@@ -57,6 +60,7 @@ const SpringDumper = (props: {element: ISpringDumper}) => {
   });
 
   const nodes = element.getPoints();
+  const measurablePoints = element.getMeasurablePoints();
   const pts = nodes.map((p) => p.value.applyMatrix3(coMatrix));
   const groupRef = React.useRef<THREE.Group>(null!);
   const meshRef = React.useRef<Line2>(null!);
@@ -66,6 +70,9 @@ const SpringDumper = (props: {element: ISpringDumper}) => {
       <Line points={pts} color="pink" lineWidth={4} ref={meshRef} />
       {nodes.map((node) => (
         <NodeSphere node={node} key={node.nodeID} />
+      ))}
+      {measurablePoints.map((p) => (
+        <MeasurablePoint node={p} key={p.nodeID} />
       ))}
     </group>
   );
