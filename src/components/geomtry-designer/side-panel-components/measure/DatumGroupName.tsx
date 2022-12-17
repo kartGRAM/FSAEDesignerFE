@@ -65,14 +65,24 @@ export const DatumGroupName = React.memo((props: {group: IDatumGroup}) => {
   );
 
   return !rename ? (
-    <Typography
-      onDoubleClick={handleNameDblClick}
-      onClick={(e) => {
-        e.stopPropagation();
-      }}
-    >
-      {group.name}
-    </Typography>
+    <>
+      <Typography
+        onDoubleClick={handleNameDblClick}
+        onClick={(e) => e.stopPropagation()}
+        color="inherit"
+        variant="subtitle1"
+        sx={{whiteSpace: 'nowrap'}}
+      >
+        {group.name}
+      </Typography>
+      <Typography
+        sx={{
+          flex: '1 1 100%'
+        }}
+      >
+        {' '}
+      </Typography>
+    </>
   ) : (
     <TextField
       inputRef={ref}
@@ -87,6 +97,7 @@ export const DatumGroupName = React.memo((props: {group: IDatumGroup}) => {
       error={nameFormik.touched.name && Boolean(nameFormik.errors.name)}
       helperText={nameFormik.touched.name && nameFormik.errors.name}
       sx={{
+        flex: '1 1 100%',
         '& legend': {display: 'none'},
         '& fieldset': {top: 0}
       }}

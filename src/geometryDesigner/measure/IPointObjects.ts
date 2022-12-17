@@ -15,6 +15,13 @@ export interface IElementPoint extends IPoint {
   getData(): IDataElementPoint;
 }
 
+export function isElementPoint(
+  point: IPoint | undefined
+): point is IElementPoint {
+  if (!point) return false;
+  return point.className === 'ElementPoint';
+}
+
 export interface IDataElementPoint extends IDataPoint {
   className: 'ElementPoint';
   element: NodeID;

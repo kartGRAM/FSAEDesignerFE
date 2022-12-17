@@ -47,6 +47,15 @@ export interface IPlane extends IDatumObject {
   getThreePlane(): THREE.Plane;
 }
 
+export function isPlane(datum: any): datum is IPlane {
+  try {
+    if (datum.isPlane) return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 export interface IDataPlane extends IDataDatumObject {
   isDataPlane: true;
 }
@@ -54,6 +63,15 @@ export interface IDataPlane extends IDataDatumObject {
 export interface ILine extends IDatumObject {
   isLine: true;
   getThreeLine(): THREE.Line;
+}
+
+export function isLine(datum: any): datum is ILine {
+  try {
+    if (datum.isLine) return true;
+    return false;
+  } catch {
+    return false;
+  }
 }
 
 export interface IDataLine extends IDataDatumObject {

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react';
 import DialogTitle from '@mui/material/DialogTitle';
 import Dialog from '@mui/material/Dialog';
@@ -10,9 +9,6 @@ import {
   setMovePointOnMoved
 } from '@store/reducers/uiTempGeometryDesigner';
 import {INamedVector3} from '@gd/INamedValues';
-import {setPointOffsetToolDialogInitialPosition} from '@store/reducers/uiGeometryDesigner';
-import Paper, {PaperProps} from '@mui/material/Paper';
-import Draggable from 'react-draggable';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import {Vector3} from 'three';

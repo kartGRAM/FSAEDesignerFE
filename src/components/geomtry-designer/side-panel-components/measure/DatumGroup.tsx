@@ -17,8 +17,13 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {DatumDialog} from './DatumDialog';
+import AddBoxIcon from '@mui/icons-material/AddBox';
+import Toolbar from '@mui/material/Toolbar';
+import DeleteIcon from '@mui/icons-material/Delete';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
 import {DatumGroupName} from './DatumGroupName';
+import {DatumDialog} from './DatumDialog';
 
 export function DatumGroupTable(props: {
   datumGroup: IDatumGroup;
@@ -33,8 +38,10 @@ export function DatumGroupTable(props: {
   const [dialogTarget, setDialogTarget] = React.useState<string>('');
   const datumObjects = datumGroup.children;
 
-  const onDatumDblClick = (datum: IDatumObject) => {
-    setDialogTarget(datum.nodeID);
+  const onDatumDblClick = (datum: IDatumObject | undefined) => {
+    let id = 'new';
+    if (datum) id = datum.nodeID;
+    setDialogTarget(id);
   };
   const dialogTargetObject = datumObjects.find(
     (datum) => datum.nodeID === dialogTarget
@@ -50,7 +57,7 @@ export function DatumGroupTable(props: {
           else setExpanded('');
         }}
         sx={{
-          backgroundColor: datumGroup.nodeID === expanded ? '#cdf8e6' : '#eee',
+          backgroundColor: datumGroup.nodeID === expanded ? '#f5fff5' : '#ddd',
           ml: 1,
           mr: 1,
           '&.Mui-expanded': {
@@ -72,8 +79,29 @@ export function DatumGroupTable(props: {
           }}
         >
           <DatumGroupName group={datumGroup} />
+          <Tooltip
+            title="Add a new datum object"
+            sx={{flex: '1'}}
+            componentsProps={{
+              popper: {
+                sx: {
+                  zIndex: 12500000000
+                }
+              }
+            }}
+          >
+            <IconButton
+              onClick={(e) => {
+                e.stopPropagation();
+                onDatumDblClick(undefined);
+              }}
+              disabled={datumGroup.nodeID !== expanded}
+            >
+              <AddBoxIcon />
+            </IconButton>
+          </Tooltip>
         </AccordionSummary>
-        <AccordionDetails sx={{padding: 0}}>
+        <AccordionDetails sx={{pt: 0, pb: 1, pl: 1, pr: 1}}>
           <TableContainer
             component={Paper}
             sx={{

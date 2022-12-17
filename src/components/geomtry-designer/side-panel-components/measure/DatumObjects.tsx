@@ -152,7 +152,7 @@ export default function DatumObjects() {
           ) : null}
         </Toolbar>
       </AccordionSummary>
-      <AccordionDetails sx={{padding: 0}}>
+      <AccordionDetails sx={{padding: 0, pb: 3}}>
         {datumGroups.length === 0 ? (
           <Box
             component="div"
