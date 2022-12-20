@@ -14,12 +14,19 @@ export function getPointObjectClass(point: IPoint): PointClasses | '' {
   return '';
 }
 
-export function PointObject(params: {point?: IPoint; type: PointClasses | ''}) {
-  const {point, type} = params;
+export function PointObject(params: {
+  point?: IPoint;
+  type: PointClasses | '';
+  setApplyReady: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
+  const {point, type, setApplyReady} = params;
   let content: JSX.Element | null = null;
   if (type === 'ElementPoint')
     content = (
-      <ElementPoint elementPoint={isElementPoint(point) ? point : undefined} />
+      <ElementPoint
+        elementPoint={isElementPoint(point) ? point : undefined}
+        setApplyReady={setApplyReady}
+      />
     );
   return content;
 }

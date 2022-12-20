@@ -21,6 +21,7 @@ import OutlinedInput from '@mui/material/OutlinedInput';
 import MenuItem from '@mui/material/MenuItem';
 import {setUIDisabled} from '@store/reducers/uiTempGeometryDesigner';
 import Box from '@mui/material/Box';
+import Divider from '@mui/material/Divider';
 import {
   getPointObjectClass,
   PointObject,
@@ -56,6 +57,8 @@ export function DatumDialog(props: {
     getDatumClass(datum)
   );
 
+  const [applyReady, setApplyReady] = React.useState(false);
+
   let datumTypesSelectable = [getDatumType(datum)];
   if (datumTypesSelectable[0] === '') datumTypesSelectable = [...datumTypes];
 
@@ -66,6 +69,7 @@ export function DatumDialog(props: {
           <PointObject
             point={isPoint(datum) ? datum : undefined}
             type={datumClass as PointClasses | ''}
+            setApplyReady={setApplyReady}
           />
         ]
       : datumType === 'Line'
@@ -105,6 +109,7 @@ export function DatumDialog(props: {
       dispatch(setUIDisabled(true));
     } else {
       dispatch(setUIDisabled(false));
+      setApplyReady(false);
     }
   }, [open]);
 
@@ -196,12 +201,17 @@ export function DatumDialog(props: {
             </Select>
           </FormControl>
         </Box>
+        <Divider sx={{mb: 2}} />
         {content}
       </DialogContent>
       <DialogActions>
         <Button onClick={handleCancel}>Cancel</Button>
-        <Button onClick={handleApply}>Appy</Button>
-        <Button onClick={handleOK}>OK</Button>
+        <Button onClick={handleApply} disabled={!applyReady}>
+          Appy
+        </Button>
+        <Button onClick={handleOK} disabled={!applyReady}>
+          OK
+        </Button>
       </DialogActions>
     </Dialog>
   );

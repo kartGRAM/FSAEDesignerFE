@@ -9,7 +9,10 @@ import store, {RootState} from '@store/store';
 import {isElement} from '@gd/IElements';
 import {getMatrix3} from '@gd/NamedValues';
 import {INamedVector3} from '@gd/INamedValues';
-import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
+import {
+  setSelectedPoint,
+  setMeasureElementPointSelected
+} from '@store/reducers/uiTempGeometryDesigner';
 import {Paper, Typography} from '@mui/material';
 
 const MeasurablePointSphere = (props: {node: INamedVector3}) => {
@@ -27,10 +30,9 @@ const MeasurablePointSphere = (props: {node: INamedVector3}) => {
 
   const handleOnDoubleClick = React.useCallback(
     (e: ThreeEvent<MouseEvent>) => {
+      if (!meshRef.current?.visible) return;
       e.stopPropagation();
-      const state = store.getState().uitgd;
-      if (state.gdSceneState.measureElementPointSetterCallback)
-        state.gdSceneState.measureElementPointSetterCallback(node);
+      dispatch(setMeasureElementPointSelected(node.nodeID));
     },
     [node.nodeID]
   );
@@ -38,11 +40,12 @@ const MeasurablePointSphere = (props: {node: INamedVector3}) => {
   const [show, setShow] = React.useState(false);
 
   useFrame(() => {
-    const pwcs = store.getState().uitgd.gdSceneState.selectedPoint ?? [];
-    const isSelected = pwcs.find((pwc) => pwc.point.nodeID === node.nodeID);
+    const isSelected =
+      store.getState().uitgd.gdSceneState.measureElementPointSelected ===
+      node.nodeID;
     let color = 0x00ff00;
     if (isSelected) {
-      color = isSelected.color ?? 0xff0000;
+      color = 0xff0000;
       meshRef.current?.scale.set(1.1, 1.1, 1.1);
     } else {
       meshRef.current?.scale.set(1.0, 1.0, 1.0);
