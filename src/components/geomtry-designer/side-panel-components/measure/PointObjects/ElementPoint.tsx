@@ -2,6 +2,8 @@ import React from 'react';
 import store, {RootState} from '@store/store';
 import {useSelector, useDispatch} from 'react-redux';
 import {IElementPoint} from '@gd/measure/IPointObjects';
+import {ElementPoint as ElementPointObject} from '@gd/measure/PointObjects';
+import {IDatumObject} from '@gd/measure/IDatumObjects';
 import Box from '@mui/material/Box';
 import {setComponentVisualizationMode} from '@store/reducers/uiGeometryDesigner';
 import {
@@ -15,7 +17,7 @@ import useUpdateEffect from '@app/hooks/useUpdateEffect';
 
 export function ElementPoint(props: {
   elementPoint?: IElementPoint;
-  setApplyReady: React.Dispatch<React.SetStateAction<boolean>>;
+  setApplyReady: React.Dispatch<React.SetStateAction<IDatumObject | undefined>>;
 }) {
   const {elementPoint, setApplyReady} = props;
   const collectedAssembly = useSelector(
@@ -62,11 +64,22 @@ export function ElementPoint(props: {
 
   useUpdateEffect(() => {
     if (selectedPoint !== '') {
-      setApplyReady(true);
+      for (const child of collectedAssembly?.children ?? []) {
+        for (const p of child.getMeasurablePoints()) {
+          if (p.nodeID === selectedPoint) {
+            const obj: IElementPoint = new ElementPointObject({
+              name: `datum point ${p.name}`,
+              element: p.parent!.nodeID,
+              point: p.nodeID
+            });
+            setApplyReady(obj);
+          }
+        }
+      }
     } else {
-      setApplyReady(false);
+      setApplyReady(undefined);
     }
-  });
+  }, [selectedPoint]);
 
   return (
     <Box component="div">

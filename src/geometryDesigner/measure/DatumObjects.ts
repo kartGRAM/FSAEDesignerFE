@@ -44,4 +44,6 @@ export abstract class DatumObject implements IDatumObject {
       visibility: this.visibility
     };
   }
+
+  abstract copy(other: IDatumObject): void;
 }

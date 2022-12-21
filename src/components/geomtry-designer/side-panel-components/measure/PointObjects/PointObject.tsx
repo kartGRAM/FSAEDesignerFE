@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
-import {IPoint} from '@gd/measure/IDatumObjects';
+import {IPoint, IDatumObject} from '@gd/measure/IDatumObjects';
 import {isElementPoint} from '@gd/measure/IPointObjects';
 import Box from '@mui/material/Box';
 import {ElementPoint} from './ElementPoint';
@@ -17,7 +17,7 @@ export function getPointObjectClass(point: IPoint): PointClasses | '' {
 export function PointObject(params: {
   point?: IPoint;
   type: PointClasses | '';
-  setApplyReady: React.Dispatch<React.SetStateAction<boolean>>;
+  setApplyReady: React.Dispatch<React.SetStateAction<IDatumObject | undefined>>;
 }) {
   const {point, type, setApplyReady} = params;
   let content: JSX.Element | null = null;

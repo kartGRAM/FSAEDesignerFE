@@ -13,6 +13,7 @@ export interface IDatumObject {
   visibility: boolean;
   readonly description: string;
   getData(): IDataDatumObject;
+  copy(other: IDatumObject): void;
   update(ref: DatumDict, collectedAssembly: IAssembly): void;
 }
 

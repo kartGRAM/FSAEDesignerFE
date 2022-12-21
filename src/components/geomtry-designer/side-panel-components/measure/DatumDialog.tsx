@@ -41,9 +41,10 @@ type DatumClasses = PointClasses | LineClasses | PlaneClasses;
 export function DatumDialog(props: {
   open: boolean;
   close: () => void;
+  apply: (datum: IDatumObject) => void;
   datum?: IDatumObject;
 }) {
-  const {open, close, datum} = props;
+  const {open, close, datum, apply} = props;
 
   const dispatch = useDispatch();
 
@@ -57,7 +58,9 @@ export function DatumDialog(props: {
     getDatumClass(datum)
   );
 
-  const [applyReady, setApplyReady] = React.useState(false);
+  const [applyReady, setApplyReady] = React.useState<IDatumObject | undefined>(
+    undefined
+  );
 
   let datumTypesSelectable = [getDatumType(datum)];
   if (datumTypesSelectable[0] === '') datumTypesSelectable = [...datumTypes];
@@ -95,13 +98,16 @@ export function DatumDialog(props: {
   };
 
   const handleOK = () => {
+    if (!applyReady) return;
+    apply(applyReady);
     close();
   };
   const handleCancel = () => {
     close();
   };
   const handleApply = () => {
-    close();
+    if (!applyReady) return;
+    apply(applyReady);
   };
 
   React.useEffect(() => {
@@ -109,7 +115,6 @@ export function DatumDialog(props: {
       dispatch(setUIDisabled(true));
     } else {
       dispatch(setUIDisabled(false));
-      setApplyReady(false);
     }
   }, [open]);
 

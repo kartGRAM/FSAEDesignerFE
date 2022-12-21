@@ -3,12 +3,15 @@
 import {
   isDataDatumObject,
   IPoint,
+  isPoint,
   IDataPoint,
+  IDatumObject,
   DatumDict
 } from '@gd/measure/IDatumObjects';
 import {
   IDataElementPoint,
   IElementPoint,
+  isElementPoint,
   isDataElementPoint
 } from '@gd/measure/IPointObjects';
 import {Vector3} from 'three';
@@ -85,6 +88,15 @@ export class ElementPoint extends Point implements IElementPoint {
     this.storedValue = new Vector3();
     if (isDataDatumObject(params) && isDataElementPoint(params)) {
       this.storedValue = new Vector3(...Object.values(params.lastPosition));
+    }
+  }
+
+  copy(other: IDatumObject): void {
+    if (isPoint(other) && isElementPoint(other)) {
+      this.element = other.element;
+      this.point = other.point;
+    } else {
+      throw new Error('型不一致');
     }
   }
 }

@@ -27,8 +27,9 @@ export function DatumGroupTable(props: {
   datumGroup: IDatumGroup;
   expanded: string;
   setExpanded: React.Dispatch<React.SetStateAction<string>>;
+  update: () => void;
 }) {
-  const {datumGroup, expanded, setExpanded} = props;
+  const {datumGroup, expanded, setExpanded, update} = props;
   const enabledColorLight: number = useSelector(
     (state: RootState) => state.uigd.present.enabledColorLight
   );
@@ -44,6 +45,16 @@ export function DatumGroupTable(props: {
   const dialogTargetObject = datumObjects.find(
     (datum) => datum.nodeID === dialogTarget
   );
+
+  const onDatumDialogApply = (datum: IDatumObject) => {
+    if (dialogTargetObject) {
+      dialogTargetObject.copy(datum);
+    } else {
+      datumGroup.children.push(datum);
+      setDialogTarget(datum.nodeID);
+    }
+    update();
+  };
 
   return (
     <>
@@ -164,7 +175,9 @@ export function DatumGroupTable(props: {
         close={() => {
           setDialogTarget('');
         }}
+        apply={onDatumDialogApply}
         datum={dialogTargetObject}
+        key={dialogTargetObject?.nodeID}
       />
     </>
   );

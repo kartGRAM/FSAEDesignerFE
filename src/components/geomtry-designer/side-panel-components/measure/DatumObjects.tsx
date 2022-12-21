@@ -17,6 +17,7 @@ import Tooltip from '@mui/material/Tooltip';
 import {datumObjectAccordionDefaultExpandedChange} from '@store/reducers/uiGeometryDesigner';
 import {DatumGroup} from '@gd/measure/DatumManager';
 import {setConfirmDialogProps} from '@store/reducers/uiTempGeometryDesigner';
+import {setDatumObjects} from '@store/reducers/dataGeometryDesigner';
 import {DatumGroupTable} from './DatumGroup';
 
 export default function DatumObjects() {
@@ -42,6 +43,11 @@ export default function DatumObjects() {
       datumManager.addGroup(group);
       datumManager.dispatch();
     }
+  };
+
+  const update = () => {
+    if (!datumManager) return;
+    dispatch(setDatumObjects(datumManager.getData()));
   };
 
   const removeDatumGroup = async (nodeID: string) => {
@@ -172,6 +178,7 @@ export default function DatumObjects() {
               key={group.nodeID}
               expanded={expanded}
               setExpanded={setExpanded}
+              update={update}
             />
           ))
         )}
