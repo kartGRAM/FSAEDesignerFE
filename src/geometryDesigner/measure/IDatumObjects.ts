@@ -109,7 +109,7 @@ export function isDataPoint(datum: any): datum is IPoint {
 }
 
 export interface IDatumGroup {
-  readonly children: IDatumObject[];
+  children: IDatumObject[];
   readonly nodeID: NodeID;
   name: string;
   visibility: boolean | undefined;

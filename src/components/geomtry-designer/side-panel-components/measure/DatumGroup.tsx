@@ -56,6 +56,13 @@ export function DatumGroupTable(props: {
     update();
   };
 
+  const onDelete = () => {
+    datumGroup.children = datumObjects.filter(
+      (datum) => selected !== datum.nodeID
+    );
+    update();
+  };
+
   return (
     <>
       <Accordion
@@ -66,7 +73,7 @@ export function DatumGroupTable(props: {
           else setExpanded('');
         }}
         sx={{
-          backgroundColor: datumGroup.nodeID === expanded ? '#f5fff5' : '#ddd',
+          backgroundColor: datumGroup.nodeID === expanded ? '#d5ffd5' : '#ddd',
           ml: 1,
           mr: 1,
           '&.Mui-expanded': {
@@ -111,6 +118,31 @@ export function DatumGroupTable(props: {
               </IconButton>
             </span>
           </Tooltip>
+          {selected ? (
+            <Tooltip
+              title="Delete a selected object"
+              sx={{flex: '1'}}
+              componentsProps={{
+                popper: {
+                  sx: {
+                    zIndex: 12500000000
+                  }
+                }
+              }}
+            >
+              <span>
+                <IconButton
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete();
+                  }}
+                  disabled={datumGroup.nodeID !== expanded}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </span>
+            </Tooltip>
+          ) : null}
         </AccordionSummary>
         <AccordionDetails sx={{pt: 0, pb: 1, pl: 1, pr: 1}}>
           <TableContainer

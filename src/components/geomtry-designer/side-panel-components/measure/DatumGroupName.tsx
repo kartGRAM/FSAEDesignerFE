@@ -71,7 +71,7 @@ export const DatumGroupName = React.memo((props: {group: IDatumGroup}) => {
         onClick={(e) => e.stopPropagation()}
         color="inherit"
         variant="subtitle1"
-        sx={{whiteSpace: 'nowrap'}}
+        sx={{whiteSpace: 'nowrap', pt: 0.7, pl: 1}}
       >
         {group.name}
       </Typography>
