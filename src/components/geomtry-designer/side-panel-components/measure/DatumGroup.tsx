@@ -20,6 +20,7 @@ import AddBoxIcon from '@mui/icons-material/AddBox';
 import DeleteIcon from '@mui/icons-material/Delete';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
+import Visibility from '@gdComponents/svgs/Visibility';
 import {DatumGroupName} from './DatumGroupName';
 import {DatumDialog} from './DatumDialog';
 
@@ -33,6 +34,8 @@ export function DatumGroupTable(props: {
   const enabledColorLight: number = useSelector(
     (state: RootState) => state.uigd.present.enabledColorLight
   );
+
+  const [, forceUpdate] = React.useState<boolean>(false);
   const [selected, setSelected] = React.useState<string>('');
   const [dialogTarget, setDialogTarget] = React.useState<string>('');
   const datumObjects = datumGroup.children;
@@ -165,10 +168,10 @@ export function DatumGroupTable(props: {
               <TableHead>
                 <TableRow onClick={() => setSelected('')}>
                   <TableCell>Order</TableCell>
-                  <TableCell>Visible</TableCell>
+                  <TableCell align="left">Visibility</TableCell>
                   <TableCell>Name</TableCell>
-                  <TableCell align="right">Type</TableCell>
-                  <TableCell align="right">description</TableCell>
+                  <TableCell align="left">Type</TableCell>
+                  <TableCell align="left">description</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -188,12 +191,20 @@ export function DatumGroupTable(props: {
                       onDoubleClick={() => onDatumDblClick(datum)}
                     >
                       <TableCell>{idx + 1}</TableCell>
-                      <TableCell align="right">{datum.visibility}</TableCell>
+                      <TableCell align="left">
+                        <Visibility
+                          visible={datum.visibility}
+                          onClick={() => {
+                            datum.visibility = !datum.visibility;
+                            forceUpdate((prev) => !prev);
+                          }}
+                        />
+                      </TableCell>
                       <TableCell sx={{whiteSpace: 'nowrap'}}>
                         {datum.name}
                       </TableCell>
-                      <TableCell align="right">{datum.className}</TableCell>
-                      <TableCell align="right">{datum.description}</TableCell>
+                      <TableCell align="left">{datum.className}</TableCell>
+                      <TableCell align="left">{datum.description}</TableCell>
                     </TableRow>
                   );
                 })}
