@@ -1,5 +1,12 @@
 import {INamedNumber, IDataNumber} from '@gd/INamedValues';
-import {IPlane, IPoint, ILine, NodeID, IDataPlane} from './IDatumObjects';
+import {
+  IPlane,
+  IPoint,
+  ILine,
+  NodeID,
+  IDataPlane,
+  IDataDatumObject
+} from './IDatumObjects';
 
 export interface IFromXYPlane extends IPlane {
   className: 'FromXYPlane';
@@ -74,11 +81,25 @@ export interface IDataAxisPointPlane extends IDataPlane {
 
 export interface IThreePointsPlane extends IPlane {
   className: 'ThreePointsPlane';
-  points: [IPoint, IPoint, IPoint];
+  points: [NodeID, NodeID, NodeID];
   getData(): IDataThreePointsPlane;
+}
+
+export function isThreePointsPlane(
+  plane: IPlane | undefined
+): plane is IThreePointsPlane {
+  if (!plane) return false;
+  return plane.className === 'ThreePointsPlane';
 }
 
 export interface IDataThreePointsPlane extends IDataPlane {
   className: 'ThreePointsPlane';
   points: [NodeID, NodeID, NodeID];
+}
+
+export function isDataThreePointsPlane(
+  data: IDataDatumObject
+): data is IDataThreePointsPlane {
+  if (data.className === 'ThreePointsPlane') return true;
+  return false;
 }

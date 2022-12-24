@@ -59,6 +59,19 @@ export function isPlane(datum: any): datum is IPlane {
 
 export interface IDataPlane extends IDataDatumObject {
   isDataPlane: true;
+  lastPosition: {
+    normal: {x: number; y: number; z: number};
+    constant: number;
+  };
+}
+
+export function isDataPlane(datum: any): datum is IDataPlane {
+  try {
+    if (datum.isDataPlane) return true;
+    return false;
+  } catch {
+    return false;
+  }
 }
 
 export interface ILine extends IDatumObject {
@@ -99,7 +112,7 @@ export interface IDataPoint extends IDataDatumObject {
   lastPosition: {x: number; y: number; z: number};
 }
 
-export function isDataPoint(datum: any): datum is IPoint {
+export function isDataPoint(datum: any): datum is IDataPoint {
   try {
     if (datum.isDataPoint) return true;
     return false;

@@ -49,6 +49,7 @@ export default function Point(params: {point: IPoint}) {
       materialRef.current.color.set(color);
     }
     meshRef.current.visible = point.visibility;
+    meshRef.current.position.copy(point.getThreePoint().applyMatrix3(coMatrix));
   });
 
   return (
