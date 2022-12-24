@@ -72,11 +72,14 @@ export class ElementPoint extends Point implements IElementPoint {
     this.elementBuf = collectedAssembly.children.find(
       (child) => child.nodeID === this.element
     );
+    if (!this.elementBuf) throw new Error('ｺﾝﾎﾟｰﾈﾝﾄが見つからない');
     const point = this.elementBuf
-      ?.getMeasurablePoints()
+      .getMeasurablePoints()
       .find((p) => p.nodeID === this.point);
     if (!point) throw new Error('計測点が見つからない');
-    this.storedValue = point.value;
+    this.storedValue = point.value
+      .applyQuaternion(this.elementBuf.rotation.value)
+      .add(this.elementBuf.position.value);
   }
 
   constructor(

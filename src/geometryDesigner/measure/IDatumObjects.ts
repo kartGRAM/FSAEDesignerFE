@@ -138,6 +138,7 @@ export interface IDatumManager {
 
   getDatumObject(nodeID: NodeID): IDatumObject | undefined;
   getDatumGroup(nodeID: NodeID): IDatumGroup | undefined;
+  getObjectsAll(): IDatumObject[];
 
   update(): void;
   getData(): IDataDatumGroup[];

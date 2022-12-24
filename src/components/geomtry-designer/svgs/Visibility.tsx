@@ -28,7 +28,7 @@ export default function Visibility(props: {
             if (onClick) onClick();
           }}
         >
-          <SvgIcon sx={{color: '#999'}}>
+          <SvgIcon sx={{color: '#666'}}>
             <svg
               version="1.1"
               xmlns="http://www.w3.org/2000/svg"

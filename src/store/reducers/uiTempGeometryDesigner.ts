@@ -16,6 +16,8 @@ import {KinematicSolver} from '@gd/kinematics/Solver';
 export type SidePanelTab =
   | 'elements'
   | 'parameters'
+  | 'measure'
+  | 'controllers'
   | 'analysis'
   | 'style'
   | 'visualization'
@@ -69,6 +71,7 @@ export interface INamedVector3WithColor {
 export interface GDSceneState {
   movingMode: boolean;
   selectedPoint: INamedVector3WithColor[] | null;
+  selectedDatumObject: string;
   viewDirection: Quaternion | undefined;
   orbitControlsEnabled: boolean;
   orbitControlsEnabledManual: boolean;
@@ -103,6 +106,7 @@ const initialState: GDState = {
     orbitControlsEnabled: true,
     orbitControlsEnabledManual: true,
     selectedPoint: null,
+    selectedDatumObject: '',
     viewDirection: undefined,
     resetPositions: false,
     toggle: true, // その打ち消す
@@ -260,6 +264,9 @@ export const uitGeometryDesignerSlice = createSlice({
         state.gdSceneState.selectedPoint = [...point];
       else state.gdSceneState.selectedPoint = [point];
     },
+    setSelectedDatumObject: (state: GDState, action: PayloadAction<string>) => {
+      state.gdSceneState.selectedDatumObject = action.payload;
+    },
     setFormulaDialogOpen: (
       state: GDState,
       action: PayloadAction<{
@@ -387,6 +394,7 @@ export const {
   selectElement,
   selectSidePanelTab,
   setSelectedPoint,
+  setSelectedDatumObject,
   setFormulaDialogOpen,
   setRecordingDialogOpen,
   setOpenDialogOpen,

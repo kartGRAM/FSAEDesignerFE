@@ -98,6 +98,13 @@ export class DatumManager implements IDatumManager {
     return undefined;
   }
 
+  getObjectsAll(): IDatumObject[] {
+    return this.children.reduce((prev, current) => {
+      prev.push(...current.children);
+      return prev;
+    }, [] as IDatumObject[]);
+  }
+
   update(): void {
     const updated: DatumDict = {};
     this.children.forEach((child) =>

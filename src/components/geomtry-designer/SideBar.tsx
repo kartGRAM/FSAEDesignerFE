@@ -53,6 +53,23 @@ interface MyDrawerProps extends DrawerProps {
   bgColor: number;
 }
 
+type Item = {
+  text: SidePanelTab;
+  // eslint-disable-next-line no-undef
+  icon: JSX.Element;
+};
+
+const items: Item[] = [
+  {text: 'elements', icon: <HomeRepairServiceIcon />},
+  {text: 'parameters', icon: <SettingsInputComponentIcon />},
+  {text: 'controllers', icon: <SteeringWheel />},
+  {text: 'measure', icon: <SquareMeasure />},
+  {text: 'analysis', icon: <Graph />},
+  {text: 'style', icon: <BrushIcon />},
+  {text: 'visualization', icon: <ComputerIcon />}
+];
+const items2: Item[] = [{text: 'settings', icon: <SettingsIcon />}];
+
 // eslint-disable-next-line no-undef
 const Drawer = styled<(props: MyDrawerProps) => JSX.Element>(MuiDrawer, {
   shouldForwardProp: (prop) => prop !== 'open' && prop !== 'bgColor'
@@ -110,15 +127,7 @@ export default function MiniDrawer() {
     <Drawer variant="permanent" open={false} bgColor={bgColor} id="gdSideBar">
       <Divider />
       <List>
-        {[
-          {text: 'elements', icon: <HomeRepairServiceIcon />},
-          {text: 'parameters', icon: <SettingsInputComponentIcon />},
-          {text: 'controllers', icon: <SteeringWheel />},
-          {text: 'measure', icon: <SquareMeasure />},
-          {text: 'analysis', icon: <Graph />},
-          {text: 'style', icon: <BrushIcon />},
-          {text: 'visualization', icon: <ComputerIcon />}
-        ].map((item) => (
+        {items.map((item) => (
           <ListItem key={item.text} disablePadding sx={{display: 'block'}}>
             <Tooltip
               placement="right"
@@ -145,11 +154,11 @@ export default function MiniDrawer() {
                       : undefined
                 }}
                 onClick={() => {
-                  panelSelect(item.text as SidePanelTab);
+                  panelSelect(item.text);
                 }}
                 onKeyDown={(e) => {
                   if (e.key === 'enter') {
-                    panelSelect(item.text as SidePanelTab);
+                    panelSelect(item.text);
                   }
                 }}
               >
@@ -178,7 +187,7 @@ export default function MiniDrawer() {
           justifyContent: 'bottom'
         }}
       >
-        {[{text: 'settings', icon: <SettingsIcon />}].map((item) => (
+        {items2.map((item) => (
           <ListItem key={item.text} disablePadding sx={{display: 'block'}}>
             <ListItemButton
               disabled={disabled}
@@ -192,11 +201,11 @@ export default function MiniDrawer() {
                     : undefined
               }}
               onClick={() => {
-                panelSelect(item.text as SidePanelTab);
+                panelSelect(item.text);
               }}
               onKeyDown={(e) => {
                 if (e.key === 'enter') {
-                  panelSelect(item.text as SidePanelTab);
+                  panelSelect(item.text);
                 }
               }}
             >

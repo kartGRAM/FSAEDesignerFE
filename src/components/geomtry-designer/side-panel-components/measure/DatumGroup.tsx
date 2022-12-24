@@ -8,7 +8,8 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import {numberToRgb} from '@app/utils/helpers';
-import {useSelector} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
+import {setSelectedDatumObject} from '@store/reducers/uiTempGeometryDesigner';
 import {RootState} from '@store/store';
 import {alpha} from '@mui/material/styles';
 import {IDatumGroup, IDatumObject} from '@gd/measure/IDatumObjects';
@@ -30,13 +31,18 @@ export function DatumGroupTable(props: {
   setExpanded: React.Dispatch<React.SetStateAction<string>>;
   update: () => void;
 }) {
-  const {datumGroup, expanded, setExpanded, update} = props;
+  const {datumGroup, setExpanded, update} = props;
+  let {expanded} = props;
+  const dispatch = useDispatch();
   const enabledColorLight: number = useSelector(
     (state: RootState) => state.uigd.present.enabledColorLight
   );
 
+  const selected = useSelector(
+    (state: RootState) => state.uitgd.gdSceneState.selectedDatumObject
+  );
+
   const [, forceUpdate] = React.useState<boolean>(false);
-  const [selected, setSelected] = React.useState<string>('');
   const [dialogTarget, setDialogTarget] = React.useState<string>('');
   const datumObjects = datumGroup.children;
 
@@ -66,14 +72,29 @@ export function DatumGroupTable(props: {
     update();
   };
 
+  let selectedInGroup = false;
+  if (
+    datumGroup.nodeID !== expanded &&
+    datumObjects.find((child) => child.nodeID === selected)
+  ) {
+    setExpanded(datumGroup.nodeID);
+    expanded = datumGroup.nodeID;
+    selectedInGroup = true;
+  }
+
   return (
     <>
       <Accordion
         TransitionProps={{unmountOnExit: true}}
         expanded={datumGroup.nodeID === expanded}
         onChange={(e, expanded) => {
-          if (expanded) setExpanded(datumGroup.nodeID);
-          else setExpanded('');
+          if (expanded) {
+            dispatch(setSelectedDatumObject(''));
+            setExpanded(datumGroup.nodeID);
+          } else {
+            dispatch(setSelectedDatumObject(''));
+            setExpanded('');
+          }
         }}
         sx={{
           backgroundColor: datumGroup.nodeID === expanded ? '#d5ffd5' : '#ddd',
@@ -121,7 +142,7 @@ export function DatumGroupTable(props: {
               </IconButton>
             </span>
           </Tooltip>
-          {selected ? (
+          {selectedInGroup ? (
             <Tooltip
               title="Delete a selected object"
               sx={{flex: '1'}}
@@ -166,7 +187,7 @@ export function DatumGroupTable(props: {
               aria-label="a dense table"
             >
               <TableHead>
-                <TableRow onClick={() => setSelected('')}>
+                <TableRow onClick={() => dispatch(setSelectedDatumObject(''))}>
                   <TableCell>Order</TableCell>
                   <TableCell align="left">Visibility</TableCell>
                   <TableCell>Name</TableCell>
@@ -187,7 +208,9 @@ export function DatumGroupTable(props: {
                             ? alpha(numberToRgb(enabledColorLight), 0.5)
                             : 'unset'
                       }}
-                      onClick={() => setSelected(datum.nodeID)}
+                      onClick={() =>
+                        dispatch(setSelectedDatumObject(datum.nodeID))
+                      }
                       onDoubleClick={() => onDatumDblClick(datum)}
                     >
                       <TableCell>{idx + 1}</TableCell>

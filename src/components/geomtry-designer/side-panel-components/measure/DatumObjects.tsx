@@ -18,6 +18,7 @@ import {datumObjectAccordionDefaultExpandedChange} from '@store/reducers/uiGeome
 import {DatumGroup} from '@gd/measure/DatumManager';
 import {setConfirmDialogProps} from '@store/reducers/uiTempGeometryDesigner';
 import {setDatumObjects} from '@store/reducers/dataGeometryDesigner';
+import {setSelectedDatumObject} from '@app/store/reducers/uiTempGeometryDesigner';
 import {DatumGroupTable} from './DatumGroup';
 
 export default function DatumObjects() {
@@ -73,6 +74,12 @@ export default function DatumObjects() {
       }
     }
   };
+
+  React.useEffect(() => {
+    return () => {
+      dispatch(setSelectedDatumObject(''));
+    };
+  }, []);
 
   return (
     <Accordion

@@ -14,6 +14,7 @@ import {numberToRgb} from '@app/utils/helpers';
 import GDSceneToolBar from '@gdComponents/r3f-components/toolbar-components/GDSceneToolBar';
 import {setGDSceneGetThree} from '@store/reducers/uiTempGeometryDesigner';
 
+import DatumObjectsRenderer from '@gdComponents/r3f-components/DatumObjects/DatumObjectsRenderer';
 import {OrbitControls} from './r3f-components/OrbitControls';
 import SelectedPoints from './r3f-components/SelectedPoints';
 import GroundPlane from './r3f-components/GroundPlane';
@@ -102,6 +103,7 @@ export default function GDScene() {
             // <pointLight position={[10, 10, 10]} />
           }
           <Provider store={store}>
+            <DatumObjectsRenderer />
             <CollectedAssembly />
             <OrbitControls />
             <MyKeyboardControls />

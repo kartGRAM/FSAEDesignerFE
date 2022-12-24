@@ -35,7 +35,7 @@ export default function SidePanel() {
   const enabledColorLight: number = useSelector(
     (state: RootState) => state.uigd.present.enabledColorLight
   );
-  const selectedTab: string = useSelector(
+  const selectedTab = useSelector(
     (state: RootState) => state.uitgd.sidePanelState.selectedTab
   );
 
