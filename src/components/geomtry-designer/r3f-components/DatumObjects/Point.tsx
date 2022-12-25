@@ -7,7 +7,8 @@ import {Sphere, Html} from '@react-three/drei';
 import {useSelector, useDispatch} from 'react-redux';
 import {
   selectSidePanelTab,
-  setSelectedDatumObject
+  setSelectedDatumObject,
+  setDatumPointSelected
 } from '@app/store/reducers/uiTempGeometryDesigner';
 import store, {RootState} from '@store/store';
 import {getMatrix3} from '@gd/NamedValues';
@@ -28,6 +29,12 @@ export default function Point(params: {point: IPoint}) {
   const handleOnDoubleClick = (e: ThreeEvent<MouseEvent>) => {
     if (!meshRef.current?.visible) return;
     e.stopPropagation();
+    const state = store.getState().uitgd;
+    if (state.gdSceneState.datumPointSelectMode) {
+      dispatch(setDatumPointSelected(point.nodeID));
+      return;
+    }
+    if (state.uiDisabled) return;
     dispatch(selectSidePanelTab({tab: 'measure'}));
     dispatch(setSelectedDatumObject(point.nodeID));
   };
@@ -36,8 +43,13 @@ export default function Point(params: {point: IPoint}) {
 
   useFrame(() => {
     if (!meshRef.current) return;
-    const isSelected =
-      store.getState().uitgd.gdSceneState.selectedDatumObject === point.nodeID;
+    const state = store.getState().uitgd.gdSceneState;
+    let isSelected = false;
+    if (state.datumPointSelectMode) {
+      isSelected = state.datumPointSelected === point.nodeID;
+    } else {
+      isSelected = state.selectedDatumObject === point.nodeID;
+    }
     let color = 0x00ff00;
     if (isSelected) {
       color = 0xff0000;
@@ -48,7 +60,11 @@ export default function Point(params: {point: IPoint}) {
     if (materialRef.current) {
       materialRef.current.color.set(color);
     }
-    meshRef.current.visible = point.visibility;
+    meshRef.current.visible =
+      state.forceVisibledDatums.includes(point.nodeID) ||
+      state.datumPointSelectMode ||
+      point.visibility;
+    // console.log(point.getThreePoint());
     meshRef.current.position.copy(point.getThreePoint().applyMatrix3(coMatrix));
   });
 

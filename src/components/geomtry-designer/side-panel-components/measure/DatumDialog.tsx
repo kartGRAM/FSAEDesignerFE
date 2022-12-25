@@ -82,7 +82,14 @@ export function DatumDialog(props: {
       : datumType === 'Line'
       ? [lineClasses, null]
       : datumType === 'Plane'
-      ? [planeClasses, null]
+      ? [
+          planeClasses,
+          <PlaneObject
+            plane={isPlane(datum) ? datum : undefined}
+            type={datumClass as PlaneClasses | ''}
+            setApplyReady={setApplyReady}
+          />
+        ]
       : [[], null];
 
   const handleDatumTypeChange = (event: SelectChangeEvent<DatumTypes | ''>) => {

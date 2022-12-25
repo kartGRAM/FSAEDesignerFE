@@ -3,6 +3,8 @@ import {v4 as uuidv4} from 'uuid';
 import {IAssembly} from '@gd/IElements';
 import {ElementPoint} from '@gd/measure/PointObjects';
 import {isDataElementPoint} from '@gd/measure/IPointObjects';
+import {ThreePointsPlane} from '@gd/measure/PlaneObjects';
+import {isDataThreePointsPlane} from '@gd/measure/IPlaneObjects';
 import store from '@store/store';
 import {setDatumObjects} from '@store/reducers/dataGeometryDesigner';
 import {
@@ -133,5 +135,6 @@ export class DatumManager implements IDatumManager {
 
 function getDatumObject(data: IDataDatumObject): IDatumObject {
   if (isDataElementPoint(data)) return new ElementPoint(data);
+  if (isDataThreePointsPlane(data)) return new ThreePointsPlane(data);
   throw new Error('未実装のデータムを検出');
 }

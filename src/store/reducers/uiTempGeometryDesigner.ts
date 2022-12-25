@@ -81,6 +81,9 @@ export interface GDSceneState {
   get: GetState<RootState> | null;
   measureElementPointsMode: boolean;
   measureElementPointSelected?: string;
+  forceVisibledDatums: string[];
+  datumPointSelectMode: boolean;
+  datumPointSelected: string;
 }
 
 export interface GDDialogState {
@@ -113,7 +116,10 @@ const initialState: GDState = {
     assembled: false,
     get: null,
     measureElementPointsMode: false,
-    measureElementPointSelected: undefined
+    measureElementPointSelected: undefined,
+    forceVisibledDatums: [],
+    datumPointSelectMode: false,
+    datumPointSelected: ''
   },
   gdDialogState: {
     copyFromExistingPointsDialogProps: {open: false, onSelected: null},
@@ -371,6 +377,27 @@ export const uitGeometryDesignerSlice = createSlice({
     ) => {
       state.gdSceneState.measureElementPointSelected = action.payload;
     },
+    setDatumPointSelectMode: (
+      state: GDState,
+      action: PayloadAction<boolean>
+    ) => {
+      if (
+        action.payload === false ||
+        action.payload !== state.gdSceneState.datumPointSelectMode
+      ) {
+        state.gdSceneState.datumPointSelected = '';
+      }
+      state.gdSceneState.datumPointSelectMode = action.payload;
+    },
+    setForceVisibledDatums: (
+      state: GDState,
+      action: PayloadAction<string[]>
+    ) => {
+      state.gdSceneState.forceVisibledDatums = [...action.payload];
+    },
+    setDatumPointSelected: (state: GDState, action: PayloadAction<string>) => {
+      state.gdSceneState.datumPointSelected = action.payload;
+    },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setVisibility: (state: GDState) => {
       state.forceCallSelector = !state.forceCallSelector;
@@ -417,6 +444,9 @@ export const {
   setGDSceneGetThree,
   setMeasureElementPointMode,
   setMeasureElementPointSelected,
+  setForceVisibledDatums,
+  setDatumPointSelectMode,
+  setDatumPointSelected,
   setMovingMode
   // setPointOffsetToolDialogProps
 } = uitGeometryDesignerSlice.actions;

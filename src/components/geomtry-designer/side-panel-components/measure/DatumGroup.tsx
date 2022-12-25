@@ -50,6 +50,7 @@ export function DatumGroupTable(props: {
     let id = 'new';
     if (datum) id = datum.nodeID;
     setDialogTarget(id);
+    dispatch(setSelectedDatumObject(''));
   };
   const dialogTargetObject = datumObjects.find(
     (datum) => datum.nodeID === dialogTarget
@@ -73,12 +74,11 @@ export function DatumGroupTable(props: {
   };
 
   let selectedInGroup = false;
-  if (
-    datumGroup.nodeID !== expanded &&
-    datumObjects.find((child) => child.nodeID === selected)
-  ) {
-    setExpanded(datumGroup.nodeID);
-    expanded = datumGroup.nodeID;
+  if (datumObjects.find((child) => child.nodeID === selected)) {
+    if (datumGroup.nodeID !== expanded) {
+      setExpanded(datumGroup.nodeID);
+      expanded = datumGroup.nodeID;
+    }
     selectedInGroup = true;
   }
 
@@ -240,6 +240,7 @@ export function DatumGroupTable(props: {
         open={dialogTarget !== ''}
         close={() => {
           setDialogTarget('');
+          forceUpdate((prev) => !prev);
         }}
         apply={onDatumDialogApply}
         datum={dialogTargetObject}
