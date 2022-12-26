@@ -10,6 +10,7 @@ import Paper from '@mui/material/Paper';
 import {numberToRgb} from '@app/utils/helpers';
 import {useSelector, useDispatch} from 'react-redux';
 import {setSelectedDatumObject} from '@store/reducers/uiTempGeometryDesigner';
+import {setChanged} from '@store/reducers/dataGeometryDesigner';
 import {RootState} from '@store/store';
 import {alpha} from '@mui/material/styles';
 import {IDatumGroup, IDatumObject} from '@gd/measure/IDatumObjects';
@@ -42,7 +43,6 @@ export function DatumGroupTable(props: {
     (state: RootState) => state.uitgd.gdSceneState.selectedDatumObject
   );
 
-  const [, forceUpdate] = React.useState<boolean>(false);
   const [dialogTarget, setDialogTarget] = React.useState<string>('');
   const datumObjects = datumGroup.children;
 
@@ -219,7 +219,7 @@ export function DatumGroupTable(props: {
                           visible={datum.visibility}
                           onClick={() => {
                             datum.visibility = !datum.visibility;
-                            forceUpdate((prev) => !prev);
+                            update();
                           }}
                         />
                       </TableCell>
@@ -240,7 +240,7 @@ export function DatumGroupTable(props: {
         open={dialogTarget !== ''}
         close={() => {
           setDialogTarget('');
-          forceUpdate((prev) => !prev);
+          update();
         }}
         apply={onDatumDialogApply}
         datum={dialogTargetObject}

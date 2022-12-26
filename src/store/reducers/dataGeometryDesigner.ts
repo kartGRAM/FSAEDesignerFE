@@ -156,6 +156,9 @@ export const dataGeometryDesignerSlice = createSlice({
     ) => {
       state.measureTools = action.payload;
       state.changed = true;
+    },
+    setChanged: (state: GDState) => {
+      state.changed = true;
     }
   }
 });
@@ -169,7 +172,8 @@ export const {
   updateAssembly,
   setFormulae,
   setControl,
-  removeControl
+  removeControl,
+  setChanged
 } = dataGeometryDesignerSlice.actions;
 
 export default dataGeometryDesignerSlice.reducer;

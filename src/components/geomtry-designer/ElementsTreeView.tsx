@@ -17,7 +17,10 @@ import {
 import {getNewElement} from '@gd/Elements';
 
 import {numberToRgb, getReversal, unique} from '@app/utils/helpers';
-import {updateAssembly} from '@app/store/reducers/dataGeometryDesigner';
+import {
+  updateAssembly,
+  setChanged
+} from '@app/store/reducers/dataGeometryDesigner';
 import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import usePrevious from '@app/hooks/usePrevious';
@@ -599,6 +602,7 @@ const VisibilityControl = React.memo((props: {absPath: string}) => {
       if (instance) {
         instance.visible.value = event.target.checked;
         dispatch(setVisibility());
+        dispatch(setChanged());
         // dispatch(updateAssembly(instance));
       }
     }
