@@ -46,6 +46,8 @@ export function isDataDatumObject(data: any): data is IDataDatumObject {
 export interface IPlane extends IDatumObject {
   isPlane: true;
   getThreePlane(): THREE.Plane;
+  readonly planeCenter: THREE.Vector3;
+  readonly planeSize: {width: number; height: number};
 }
 
 export function isPlane(datum: any): datum is IPlane {

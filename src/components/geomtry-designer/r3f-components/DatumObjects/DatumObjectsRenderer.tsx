@@ -4,8 +4,9 @@ import THREE from 'three';
 import {useFrame} from '@react-three/fiber';
 import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
-import {isPoint, IDatumObject} from '@gd/measure/IDatumObjects';
+import {isPoint, IDatumObject, isPlane} from '@gd/measure/IDatumObjects';
 import Point from './Point';
+import Plane from './Plane';
 
 export default function DatumObjectRenderer() {
   const datumManager = useSelector(
@@ -23,5 +24,6 @@ export default function DatumObjectRenderer() {
 
 function getDatum(datum: IDatumObject) {
   if (isPoint(datum)) return <Point point={datum} key={datum.nodeID} />;
+  if (isPlane(datum)) return <Plane plane={datum} key={datum.nodeID} />;
   return null;
 }

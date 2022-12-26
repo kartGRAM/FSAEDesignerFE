@@ -17,11 +17,15 @@ import {
   IDataThreePointsPlane,
   isDataThreePointsPlane
 } from '@gd/measure/IPlaneObjects';
-import {Vector3, Plane as ThreePlane} from 'three';
+import {Vector3, Plane as ThreePlane, Vector} from 'three';
 import {DatumObject} from '@gd/measure/DatumObjects';
 import {IAssembly, IElement} from '@gd/IElements';
 
 export abstract class Plane extends DatumObject implements IPlane {
+  abstract get planeCenter(): Vector3;
+
+  abstract get planeSize(): {width: number; height: number};
+
   readonly isPlane = true as const;
 
   abstract get description(): string;
@@ -49,9 +53,24 @@ export abstract class Plane extends DatumObject implements IPlane {
 export class ThreePointsPlane extends Plane implements IThreePointsPlane {
   readonly className = 'ThreePointsPlane' as const;
 
+  get planeCenter(): Vector3 {
+    const points = this.pointsBuf;
+    if (!points) return new Vector3();
+    const v = new Vector3();
+    points.forEach((p) => v.add(p.getThreePoint()));
+    v.multiplyScalar(1 / 3);
+    return v;
+  }
+
+  get planeSize(): {width: number; height: number} {
+    return {width: 300, height: 300};
+  }
+
   points: [string, string, string];
 
   storedValue: ThreePlane;
+
+  pointsBuf: [IPoint, IPoint, IPoint] | undefined;
 
   get description() {
     return `plane from three points`;
@@ -60,8 +79,6 @@ export class ThreePointsPlane extends Plane implements IThreePointsPlane {
   getThreePlane(): ThreePlane {
     return this.storedValue;
   }
-
-  pointsBuf: [IPoint, IPoint, IPoint] | undefined;
 
   getData(): IDataThreePointsPlane {
     const base = super.getDataBase();

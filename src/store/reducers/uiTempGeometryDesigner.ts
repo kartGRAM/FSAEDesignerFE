@@ -84,6 +84,8 @@ export interface GDSceneState {
   forceVisibledDatums: string[];
   datumPointSelectMode: boolean;
   datumPointSelected: string;
+  datumPlaneSelectMode: boolean;
+  datumPlaneSelected: string;
 }
 
 export interface GDDialogState {
@@ -119,7 +121,9 @@ const initialState: GDState = {
     measureElementPointSelected: undefined,
     forceVisibledDatums: [],
     datumPointSelectMode: false,
-    datumPointSelected: ''
+    datumPointSelected: '',
+    datumPlaneSelectMode: false,
+    datumPlaneSelected: ''
   },
   gdDialogState: {
     copyFromExistingPointsDialogProps: {open: false, onSelected: null},

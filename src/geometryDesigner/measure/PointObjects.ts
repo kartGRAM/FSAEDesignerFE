@@ -55,7 +55,7 @@ export class ElementPoint extends Point implements IElementPoint {
   }
 
   getThreePoint(): Vector3 {
-    return this.storedValue;
+    return this.storedValue.clone();
   }
 
   getData(): IDataElementPoint {
