@@ -4,7 +4,14 @@ import {
   INamedVector3,
   IDataVector3
 } from '@gd/INamedValues';
-import {IPlane, IPoint, ILine, NodeID, IDataLine} from './IDatumObjects';
+import {
+  IPlane,
+  IPoint,
+  ILine,
+  NodeID,
+  IDataLine,
+  IDataDatumObject
+} from './IDatumObjects';
 
 export interface ITwoPointsLine extends ILine {
   className: 'TwoPointLine';
@@ -32,13 +39,27 @@ export interface IDataPointDirectionLine extends IDataLine {
 
 export interface ITwoPlaneIntersectionLine extends ILine {
   className: 'TwoPlaneIntersectionLine';
-  planes: [IPlane, IPlane];
+  planes: [NodeID, NodeID];
   getData(): IDataTwoPlaneIntersectionLine;
+}
+
+export function isTwoPlaneIntersectionLine(
+  line: ILine | undefined
+): line is ITwoPlaneIntersectionLine {
+  if (!line) return false;
+  return line.className === 'TwoPlaneIntersectionLine';
 }
 
 export interface IDataTwoPlaneIntersectionLine extends IDataLine {
   className: 'TwoPlaneIntersectionLine';
   planes: [NodeID, NodeID];
+}
+
+export function isDataTwoPlaneIntersectionLine(
+  data: IDataDatumObject
+): data is IDataTwoPlaneIntersectionLine {
+  if (data.className === 'TwoPlaneIntersectionLine') return true;
+  return false;
 }
 
 export interface IFromOtherLine extends ILine {

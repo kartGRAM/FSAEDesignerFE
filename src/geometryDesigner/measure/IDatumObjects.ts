@@ -78,7 +78,9 @@ export function isDataPlane(datum: any): datum is IDataPlane {
 
 export interface ILine extends IDatumObject {
   isLine: true;
-  getThreeLine(): THREE.Line;
+  getThreeLine(): THREE.Line3;
+  readonly lineStart: THREE.Vector3;
+  readonly lineEnd: THREE.Vector3;
 }
 
 export function isLine(datum: any): datum is ILine {
@@ -92,6 +94,10 @@ export function isLine(datum: any): datum is ILine {
 
 export interface IDataLine extends IDataDatumObject {
   isDataLine: true;
+  lastPosition: {
+    direction: {x: number; y: number; z: number};
+    start: {x: number; y: number; z: number};
+  };
 }
 
 export interface IPoint extends IDatumObject {
