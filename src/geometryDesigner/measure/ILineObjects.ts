@@ -5,7 +5,6 @@ import {
   IDataVector3
 } from '@gd/INamedValues';
 import {
-  IPlane,
   IPoint,
   ILine,
   NodeID,

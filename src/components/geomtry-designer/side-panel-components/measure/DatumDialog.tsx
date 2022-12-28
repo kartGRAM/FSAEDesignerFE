@@ -34,12 +34,16 @@ import {
   PlaneClasses,
   planeClasses
 } from './PlaneObjects/PlaneObject';
+import {
+  getLineObjectClass,
+  LineObject,
+  LineClasses,
+  lineClasses
+} from './LineObjects/LineObject';
 
 const datumTypes = ['Plane', 'Line', 'Point'] as const;
 type DatumTypes = typeof datumTypes[number];
 
-const lineClasses = [] as const;
-type LineClasses = typeof lineClasses[number];
 type DatumClasses = PointClasses | LineClasses | PlaneClasses;
 
 export function DatumDialog(props: {
@@ -80,7 +84,14 @@ export function DatumDialog(props: {
           />
         ]
       : datumType === 'Line'
-      ? [lineClasses, null]
+      ? [
+          lineClasses,
+          <LineObject
+            line={isLine(datum) ? datum : undefined}
+            type={datumClass as LineClasses | ''}
+            setApplyReady={setApplyReady}
+          />
+        ]
       : datumType === 'Plane'
       ? [
           planeClasses,

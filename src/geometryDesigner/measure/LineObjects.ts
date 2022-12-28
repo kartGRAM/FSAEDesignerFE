@@ -75,7 +75,7 @@ export class TwoPlaneIntersectionLine
   planeBuf: [IPlane, IPlane] | undefined = undefined;
 
   get description() {
-    return `line from two planes`;
+    return `line of two planes intersection`;
   }
 
   getThreeLine(): Line3 {

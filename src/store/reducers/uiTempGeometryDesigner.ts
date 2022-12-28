@@ -84,6 +84,8 @@ export interface GDSceneState {
   forceVisibledDatums: string[];
   datumPointSelectMode: boolean;
   datumPointSelected: string;
+  datumLineSelectMode: boolean;
+  datumLineSelected: string;
   datumPlaneSelectMode: boolean;
   datumPlaneSelected: string;
 }
@@ -122,6 +124,8 @@ const initialState: GDState = {
     forceVisibledDatums: [],
     datumPointSelectMode: false,
     datumPointSelected: '',
+    datumLineSelectMode: false,
+    datumLineSelected: '',
     datumPlaneSelectMode: false,
     datumPlaneSelected: ''
   },
@@ -393,6 +397,30 @@ export const uitGeometryDesignerSlice = createSlice({
       }
       state.gdSceneState.datumPointSelectMode = action.payload;
     },
+    setDatumLineSelectMode: (
+      state: GDState,
+      action: PayloadAction<boolean>
+    ) => {
+      if (
+        action.payload === false ||
+        action.payload !== state.gdSceneState.datumLineSelectMode
+      ) {
+        state.gdSceneState.datumLineSelected = '';
+      }
+      state.gdSceneState.datumLineSelectMode = action.payload;
+    },
+    setDatumPlaneSelectMode: (
+      state: GDState,
+      action: PayloadAction<boolean>
+    ) => {
+      if (
+        action.payload === false ||
+        action.payload !== state.gdSceneState.datumPlaneSelectMode
+      ) {
+        state.gdSceneState.datumPlaneSelected = '';
+      }
+      state.gdSceneState.datumPlaneSelectMode = action.payload;
+    },
     setForceVisibledDatums: (
       state: GDState,
       action: PayloadAction<string[]>
@@ -401,6 +429,12 @@ export const uitGeometryDesignerSlice = createSlice({
     },
     setDatumPointSelected: (state: GDState, action: PayloadAction<string>) => {
       state.gdSceneState.datumPointSelected = action.payload;
+    },
+    setDatumLineSelected: (state: GDState, action: PayloadAction<string>) => {
+      state.gdSceneState.datumLineSelected = action.payload;
+    },
+    setDatumPlaneSelected: (state: GDState, action: PayloadAction<string>) => {
+      state.gdSceneState.datumPlaneSelected = action.payload;
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setVisibility: (state: GDState) => {
@@ -451,6 +485,10 @@ export const {
   setForceVisibledDatums,
   setDatumPointSelectMode,
   setDatumPointSelected,
+  setDatumLineSelectMode,
+  setDatumLineSelected,
+  setDatumPlaneSelectMode,
+  setDatumPlaneSelected,
   setMovingMode
   // setPointOffsetToolDialogProps
 } = uitGeometryDesignerSlice.actions;

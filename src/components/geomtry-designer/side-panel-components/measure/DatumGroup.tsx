@@ -49,8 +49,8 @@ export function DatumGroupTable(props: {
   const onDatumDblClick = (datum: IDatumObject | undefined) => {
     let id = 'new';
     if (datum) id = datum.nodeID;
-    setDialogTarget(id);
     dispatch(setSelectedDatumObject(''));
+    setDialogTarget(id);
   };
   const dialogTargetObject = datumObjects.find(
     (datum) => datum.nodeID === dialogTarget
@@ -208,9 +208,11 @@ export function DatumGroupTable(props: {
                             ? alpha(numberToRgb(enabledColorLight), 0.5)
                             : 'unset'
                       }}
-                      onClick={() =>
-                        dispatch(setSelectedDatumObject(datum.nodeID))
-                      }
+                      onClick={() => {
+                        if (datum.nodeID !== selected) {
+                          dispatch(setSelectedDatumObject(datum.nodeID));
+                        }
+                      }}
                       onDoubleClick={() => onDatumDblClick(datum)}
                     >
                       <TableCell>{idx + 1}</TableCell>

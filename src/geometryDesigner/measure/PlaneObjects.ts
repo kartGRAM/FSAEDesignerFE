@@ -77,7 +77,7 @@ export class ThreePointsPlane extends Plane implements IThreePointsPlane {
   }
 
   getThreePlane(): ThreePlane {
-    return this.storedValue;
+    return this.storedValue.clone();
   }
 
   getData(): IDataThreePointsPlane {

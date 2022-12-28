@@ -137,6 +137,7 @@ export function ThreePointsPlane(props: {
       {['Select first point', 'Select second point', 'Select third point'].map(
         (str, i) => (
           <FormControl
+            key={str}
             sx={{
               m: 1,
               mt: 3,
