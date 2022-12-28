@@ -96,11 +96,13 @@ export class ThreePointsPlane extends Plane implements IThreePointsPlane {
       return point;
     });
     this.pointsBuf = [points[0], points[1], points[2]];
-    this.storedValue = this.storedValue.setFromCoplanarPoints(
+    const plane = this.storedValue.setFromCoplanarPoints(
       points[0].getThreePoint(),
       points[1].getThreePoint(),
       points[2].getThreePoint()
     );
+    // plane.normal.normalize();
+    this.storedValue = plane;
   }
 
   constructor(

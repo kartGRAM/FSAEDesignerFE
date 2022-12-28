@@ -100,12 +100,15 @@ export class TwoPlaneIntersectionLine
     this.planeBuf = [planes[0], planes[1]];
     const threePlanes = this.planeBuf.map((p) => p.getThreePlane());
     const h = threePlanes.map((p) => p.constant);
-    const n = threePlanes.map((p) => p.normal);
+    const n = threePlanes.map((p) => p.normal.clone());
     const dot = n[0].dot(n[1]);
-    const coef1 = (h[0] - h[1] * dot) / (1 - dot * dot);
-    const coef2 = (-h[0] * dot - h[1]) / (1 - dot * dot);
-    const cross = n[0].clone().cross(n[1]);
-    const start = n[0].multiplyScalar(coef1).add(n[1].multiplyScalar(coef2));
+    const coef1 = (-h[0] + h[1] * dot) / (1 - dot * dot);
+    const coef2 = (h[0] * dot - h[1]) / (1 - dot * dot);
+    const cross = n[0].clone().cross(n[1]).normalize().multiplyScalar(400);
+    const start = n[0]
+      .clone()
+      .multiplyScalar(coef1)
+      .add(n[1].clone().multiplyScalar(coef2));
     this.storedValue = new Line3(start, start.clone().add(cross));
   }
 
