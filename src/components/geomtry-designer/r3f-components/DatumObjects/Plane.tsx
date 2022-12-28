@@ -8,7 +8,8 @@ import {Plane as DPlane, Html} from '@react-three/drei';
 import {useSelector, useDispatch} from 'react-redux';
 import {
   selectSidePanelTab,
-  setSelectedDatumObject
+  setSelectedDatumObject,
+  setDatumPlaneSelected
 } from '@app/store/reducers/uiTempGeometryDesigner';
 import store, {RootState} from '@store/store';
 import {getMatrix3} from '@gd/NamedValues';
@@ -31,6 +32,12 @@ export default function Plane(params: {plane: IPlane}) {
   const handleOnDoubleClick = (e: ThreeEvent<MouseEvent>) => {
     if (!meshRef.current?.visible) return;
     e.stopPropagation();
+    const state = store.getState().uitgd;
+    if (state.gdSceneState.datumPlaneSelectMode) {
+      dispatch(setDatumPlaneSelected(plane.nodeID));
+      return;
+    }
+    if (state.uiDisabled) return;
     dispatch(selectSidePanelTab({tab: 'measure'}));
     dispatch(setSelectedDatumObject(plane.nodeID));
   };
@@ -41,13 +48,14 @@ export default function Plane(params: {plane: IPlane}) {
     if (!meshRef.current) return;
     const state = store.getState().uitgd.gdSceneState;
     let isSelected = false;
-    isSelected = state.selectedDatumObject === plane.nodeID;
+    if (state.datumPointSelectMode) {
+      isSelected = state.datumPointSelected === plane.nodeID;
+    } else {
+      isSelected = state.selectedDatumObject === plane.nodeID;
+    }
     let color = 0x00ff00;
     if (isSelected) {
       color = 0xff0000;
-      meshRef.current.scale.set(1.1, 1.1, 1.1);
-    } else {
-      meshRef.current.scale.set(1.0, 1.0, 1.0);
     }
     if (materialRef.current) {
       materialRef.current.color.set(color);
@@ -82,7 +90,12 @@ export default function Plane(params: {plane: IPlane}) {
         }}
         onPointerLeave={() => setShow(false)} // see note 1
       >
-        <meshBasicMaterial color={0x00ff00} ref={materialRef} wireframe />
+        <meshBasicMaterial
+          color={0x00ff00}
+          ref={materialRef}
+          wireframe
+          side={THREE.DoubleSide}
+        />
         {show ? (
           <Html>
             <Paper

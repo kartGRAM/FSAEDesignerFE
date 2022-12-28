@@ -256,7 +256,7 @@ function getDatumClass(datum?: IDatumObject): DatumClasses | '' {
     return getPointObjectClass(datum);
   }
   if (isLine(datum)) {
-    return '';
+    return getLineObjectClass(datum);
   }
   if (isPlane(datum)) {
     return getPlaneObjectClass(datum);

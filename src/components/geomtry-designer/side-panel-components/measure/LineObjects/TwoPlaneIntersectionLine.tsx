@@ -27,8 +27,8 @@ export function TwoPlaneIntersectionLine(props: {
   const ids = [React.useId(), React.useId(), React.useId()];
   const [setterMode, setSetterMode] = React.useState(-1);
 
-  const selectedPoint = useSelector(
-    (state: RootState) => state.uitgd.gdSceneState.datumPointSelected
+  const selectedPlane = useSelector(
+    (state: RootState) => state.uitgd.gdSceneState.datumPlaneSelected
   );
 
   const datumManager = useSelector(
@@ -89,16 +89,16 @@ export function TwoPlaneIntersectionLine(props: {
     if (
       setterMode !== -1 &&
       datumObjectsFiltered[setterMode].find(
-        (datum) => datum.nodeID === selectedPoint
+        (datum) => datum.nodeID === selectedPlane
       )
     ) {
       setPlanes((prev) => {
-        prev[setterMode] = selectedPoint;
+        prev[setterMode] = selectedPlane;
         return [...prev];
       });
     }
     onResetSetterMode();
-  }, [selectedPoint]);
+  }, [selectedPlane]);
 
   React.useEffect(() => {
     if (planes[0] !== '' && planes[1] !== '') {

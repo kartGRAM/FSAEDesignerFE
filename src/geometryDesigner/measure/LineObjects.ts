@@ -58,12 +58,12 @@ export class TwoPlaneIntersectionLine
 {
   get lineStart(): Vector3 {
     if (!this.planeBuf) return new Vector3();
-    return this.storedValue.start;
+    return this.storedValue.start.clone();
   }
 
   get lineEnd(): Vector3 {
     if (!this.planeBuf) return new Vector3();
-    return this.storedValue.end;
+    return this.storedValue.end.clone();
   }
 
   readonly className = 'TwoPlaneIntersectionLine' as const;

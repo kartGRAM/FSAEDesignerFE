@@ -1,61 +1,80 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
-import {IPoint} from '@gd/measure/IDatumObjects';
+import {ILine} from '@gd/measure/IDatumObjects';
 import * as THREE from 'three';
 import {ThreeEvent, useFrame} from '@react-three/fiber';
-import {Sphere, Html} from '@react-three/drei';
+import {Line as DLine, Html} from '@react-three/drei';
 import {useSelector, useDispatch} from 'react-redux';
 import {
   selectSidePanelTab,
-  setSelectedDatumObject
+  setSelectedDatumObject,
+  setDatumLineSelected
 } from '@app/store/reducers/uiTempGeometryDesigner';
 import store, {RootState} from '@store/store';
 import {getMatrix3} from '@gd/NamedValues';
 import {Paper, Typography} from '@mui/material';
+import {Line2} from 'three-stdlib';
 
-export default function Point(params: {point: IPoint}) {
-  const {point} = params;
+export default function Line(params: {line: ILine}) {
+  const {line} = params;
 
   const coMatrix = getMatrix3(
     useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
   );
-  const position = point.getThreePoint().applyMatrix3(coMatrix);
-  const materialRef = React.useRef<THREE.MeshBasicMaterial>(null);
-  const meshRef = React.useRef<THREE.Mesh>(null);
+  const meshRef = React.useRef<Line2>(null);
 
   const dispatch = useDispatch();
 
   const handleOnDoubleClick = (e: ThreeEvent<MouseEvent>) => {
     if (!meshRef.current?.visible) return;
     e.stopPropagation();
+    const state = store.getState().uitgd;
+    if (state.gdSceneState.datumPlaneSelectMode) {
+      dispatch(setDatumLineSelected(line.nodeID));
+      return;
+    }
+    if (state.uiDisabled) return;
     dispatch(selectSidePanelTab({tab: 'measure'}));
-    dispatch(setSelectedDatumObject(point.nodeID));
+    dispatch(setSelectedDatumObject(line.nodeID));
   };
 
   const [show, setShow] = React.useState(false);
 
   useFrame(() => {
     if (!meshRef.current) return;
-    const isSelected =
-      store.getState().uitgd.gdSceneState.selectedDatumObject === point.nodeID;
+    const state = store.getState().uitgd.gdSceneState;
+    let isSelected = false;
+    if (state.datumLineSelectMode) {
+      isSelected = state.datumLineSelected === line.nodeID;
+    } else {
+      isSelected = state.selectedDatumObject === line.nodeID;
+    }
     let color = 0x00ff00;
     if (isSelected) {
       color = 0xff0000;
-      meshRef.current.scale.set(1.1, 1.1, 1.1);
-    } else {
-      meshRef.current.scale.set(1.0, 1.0, 1.0);
     }
-    if (materialRef.current) {
-      materialRef.current.color.set(color);
+    if (meshRef.current) {
+      meshRef.current.material.color.set(color);
     }
-    meshRef.current.visible = point.visibility;
+
+    const begin = line.lineStart.applyMatrix3(coMatrix);
+    const end = line.lineEnd.applyMatrix3(coMatrix);
+
+    meshRef.current.visible =
+      state.forceVisibledDatums.includes(line.nodeID) ||
+      state.datumLineSelectMode ||
+      line.visibility;
   });
 
+  const points = [line.lineStart, line.lineEnd].map((p) =>
+    p.applyMatrix3(coMatrix)
+  );
+
   return (
-    <Sphere
-      position={position}
+    <DLine
+      points={points}
+      lineWidth={4}
       ref={meshRef}
-      args={[5, 16, 16]}
       onDoubleClick={(e) => {
         handleOnDoubleClick(e);
       }}
@@ -64,7 +83,6 @@ export default function Point(params: {point: IPoint}) {
       }}
       onPointerLeave={() => setShow(false)} // see note 1
     >
-      <meshBasicMaterial color={0x00ff00} ref={materialRef} />
       {show ? (
         <Html>
           <Paper
@@ -96,7 +114,7 @@ export default function Point(params: {point: IPoint}) {
                 whiteSpace: 'nowrap'
               }}
             >
-              &nbsp;{point.name}
+              &nbsp;{line.name}
             </Typography>
             <Typography
               variant="caption"
@@ -108,11 +126,11 @@ export default function Point(params: {point: IPoint}) {
                 whiteSpace: 'nowrap'
               }}
             >
-              {point.description}
+              {line.description}
             </Typography>
           </Paper>
         </Html>
       ) : null}
-    </Sphere>
+    </DLine>
   );
 }
