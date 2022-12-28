@@ -60,6 +60,16 @@ export default function Line(params: {line: ILine}) {
     const begin = line.lineStart.applyMatrix3(coMatrix);
     const end = line.lineEnd.applyMatrix3(coMatrix);
 
+    const start = meshRef.current.geometry.attributes.instanceStart
+      .array as Float32Array;
+    start[0] = begin.x;
+    start[1] = begin.y;
+    start[2] = begin.z;
+    start[3] = end.x;
+    start[4] = end.y;
+    start[5] = end.z;
+    meshRef.current.geometry.attributes.instanceStart.needsUpdate = true;
+
     meshRef.current.visible =
       state.forceVisibledDatums.includes(line.nodeID) ||
       state.datumLineSelectMode ||
