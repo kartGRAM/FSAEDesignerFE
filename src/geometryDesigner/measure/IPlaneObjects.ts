@@ -68,15 +68,29 @@ export interface IDataPointNormalLinePlane extends IDataPlane {
 
 export interface IAxisPointPlane extends IPlane {
   className: 'AxisPointPlane';
-  point: IPoint;
-  normal: ILine;
+  point: NodeID;
+  line: NodeID;
   getData(): IDataAxisPointPlane;
+}
+
+export function isAxisPointPlane(
+  plane: IPlane | undefined
+): plane is IAxisPointPlane {
+  if (!plane) return false;
+  return plane.className === 'AxisPointPlane';
 }
 
 export interface IDataAxisPointPlane extends IDataPlane {
   className: 'AxisPointPlane';
   point: NodeID;
-  normal: NodeID;
+  line: NodeID;
+}
+
+export function isDataAxisPointPlane(
+  data: IDataDatumObject
+): data is IDataAxisPointPlane {
+  if (data.className === 'AxisPointPlane') return true;
+  return false;
 }
 
 export interface IThreePointsPlane extends IPlane {

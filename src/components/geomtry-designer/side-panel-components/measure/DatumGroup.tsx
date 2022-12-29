@@ -23,6 +23,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import Visibility from '@gdComponents/svgs/Visibility';
+import {v4 as uuidv4} from 'uuid';
 import {DatumGroupName} from './DatumGroupName';
 import {DatumDialog} from './DatumDialog';
 
@@ -61,7 +62,7 @@ export function DatumGroupTable(props: {
       dialogTargetObject.copy(datum);
     } else {
       datumGroup.children.push(datum);
-      setDialogTarget(datum.nodeID);
+      setDialogTarget(`new${uuidv4()}`);
     }
     update();
   };
@@ -244,7 +245,7 @@ export function DatumGroupTable(props: {
         }}
         apply={onDatumDialogApply}
         datum={dialogTargetObject}
-        key={dialogTargetObject?.nodeID}
+        key={dialogTargetObject?.nodeID ?? dialogTarget}
       />
     </>
   );

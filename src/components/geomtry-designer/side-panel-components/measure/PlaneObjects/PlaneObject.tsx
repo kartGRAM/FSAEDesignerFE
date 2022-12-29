@@ -2,14 +2,16 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import {IPlane, IDatumObject} from '@gd/measure/IDatumObjects';
-import {isThreePointsPlane} from '@gd/measure/IPlaneObjects';
+import {isThreePointsPlane, isAxisPointPlane} from '@gd/measure/IPlaneObjects';
 import {ThreePointsPlane} from './ThreePointsPlane';
+import {AxisPointPlane} from './AxisPointPlane';
 
-export const planeClasses = ['ThreePointsPlane'] as const;
+export const planeClasses = ['ThreePointsPlane', 'AxisPointPlane'] as const;
 export type PlaneClasses = typeof planeClasses[number];
 
 export function getPlaneObjectClass(point: IPlane): PlaneClasses | '' {
   if (isThreePointsPlane(point)) return 'ThreePointsPlane';
+  if (isAxisPointPlane(point)) return 'AxisPointPlane';
   return '';
 }
 
@@ -24,6 +26,13 @@ export function PlaneObject(params: {
     content = (
       <ThreePointsPlane
         threePointsPlane={isThreePointsPlane(plane) ? plane : undefined}
+        setApplyReady={setApplyReady}
+      />
+    );
+  else if (type === 'AxisPointPlane')
+    content = (
+      <AxisPointPlane
+        plane={isAxisPointPlane(plane) ? plane : undefined}
         setApplyReady={setApplyReady}
       />
     );

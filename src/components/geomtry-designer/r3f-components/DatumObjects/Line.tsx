@@ -3,7 +3,7 @@ import React from 'react';
 import {ILine} from '@gd/measure/IDatumObjects';
 import * as THREE from 'three';
 import {ThreeEvent, useFrame} from '@react-three/fiber';
-import {Line as DLine, Html} from '@react-three/drei';
+import {Line as DLine, Html, Sphere} from '@react-three/drei';
 import {useSelector, useDispatch} from 'react-redux';
 import {
   selectSidePanelTab,
@@ -22,6 +22,8 @@ export default function Line(params: {line: ILine}) {
     useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
   );
   const meshRef = React.useRef<Line2>(null);
+  const sphereMeshRef = React.useRef<THREE.Mesh>(null);
+  const materialRef = React.useRef<THREE.MeshBasicMaterial>(null!);
 
   const dispatch = useDispatch();
 
@@ -29,7 +31,7 @@ export default function Line(params: {line: ILine}) {
     if (!meshRef.current?.visible) return;
     e.stopPropagation();
     const state = store.getState().uitgd;
-    if (state.gdSceneState.datumPlaneSelectMode) {
+    if (state.gdSceneState.datumLineSelectMode) {
       dispatch(setDatumLineSelected(line.nodeID));
       return;
     }
@@ -41,7 +43,7 @@ export default function Line(params: {line: ILine}) {
   const [show, setShow] = React.useState(false);
 
   useFrame(() => {
-    if (!meshRef.current) return;
+    if (!meshRef.current || !sphereMeshRef.current) return;
     const state = store.getState().uitgd.gdSceneState;
     let isSelected = false;
     if (state.datumLineSelectMode) {
@@ -53,12 +55,12 @@ export default function Line(params: {line: ILine}) {
     if (isSelected) {
       color = 0xff0000;
     }
-    if (meshRef.current) {
-      meshRef.current.material.color.set(color);
-    }
+    meshRef.current.material.color.set(color);
+    materialRef.current.color.set(color);
 
     const begin = line.lineStart.applyMatrix3(coMatrix);
     const end = line.lineEnd.applyMatrix3(coMatrix);
+    sphereMeshRef.current.position.copy(begin);
 
     const start = meshRef.current.geometry.attributes.instanceStart
       .array as Float32Array;
@@ -82,66 +84,82 @@ export default function Line(params: {line: ILine}) {
   const position = points[0].clone().add(points[1]).multiplyScalar(0.5);
 
   return (
-    <DLine
-      points={points}
-      lineWidth={4}
-      ref={meshRef}
-      onDoubleClick={(e) => {
-        handleOnDoubleClick(e);
-      }}
-      onPointerEnter={() => {
-        if (meshRef.current?.visible) setShow(true);
-      }}
-      onPointerLeave={() => setShow(false)} // see note 1
-    >
-      {show ? (
-        <Html position={position}>
-          <Paper
-            elevation={3}
-            sx={{
-              userSelect: 'none',
-              transform: 'translate3d(20px, -50%, 0)',
-              paddingTop: 0.7,
-              paddingBottom: 0.7,
-              paddingLeft: 1,
-              paddingRight: 1,
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                top: '50%',
-                left: '-10px',
-                height: '1px',
-                width: '40px',
-                background: 'white'
-              }
-            }}
-          >
-            <Typography
-              variant="body1"
-              gutterBottom
+    <>
+      <Sphere
+        args={[3, 8, 8]}
+        position={points[0]}
+        ref={sphereMeshRef}
+        onDoubleClick={(e) => {
+          handleOnDoubleClick(e);
+        }}
+        onPointerEnter={() => {
+          if (meshRef.current?.visible) setShow(true);
+        }}
+        onPointerLeave={() => setShow(false)} // see note 1
+      >
+        <meshBasicMaterial color={0x00ff00} ref={materialRef} />
+      </Sphere>
+      <DLine
+        points={points}
+        lineWidth={4}
+        ref={meshRef}
+        onDoubleClick={(e) => {
+          handleOnDoubleClick(e);
+        }}
+        onPointerEnter={() => {
+          if (meshRef.current?.visible) setShow(true);
+        }}
+        onPointerLeave={() => setShow(false)} // see note 1
+      >
+        {show ? (
+          <Html position={position}>
+            <Paper
+              elevation={3}
               sx={{
-                padding: 0,
-                margin: 0,
-                whiteSpace: 'nowrap'
+                userSelect: 'none',
+                transform: 'translate3d(20px, -50%, 0)',
+                paddingTop: 0.7,
+                paddingBottom: 0.7,
+                paddingLeft: 1,
+                paddingRight: 1,
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: '50%',
+                  left: '-10px',
+                  height: '1px',
+                  width: '40px',
+                  background: 'white'
+                }
               }}
             >
-              &nbsp;{line.name}
-            </Typography>
-            <Typography
-              variant="caption"
-              display="block"
-              gutterBottom
-              sx={{
-                padding: 0,
-                margin: 0,
-                whiteSpace: 'nowrap'
-              }}
-            >
-              {line.description}
-            </Typography>
-          </Paper>
-        </Html>
-      ) : null}
-    </DLine>
+              <Typography
+                variant="body1"
+                gutterBottom
+                sx={{
+                  padding: 0,
+                  margin: 0,
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                &nbsp;{line.name}
+              </Typography>
+              <Typography
+                variant="caption"
+                display="block"
+                gutterBottom
+                sx={{
+                  padding: 0,
+                  margin: 0,
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {line.description}
+              </Typography>
+            </Paper>
+          </Html>
+        ) : null}
+      </DLine>
+    </>
   );
 }

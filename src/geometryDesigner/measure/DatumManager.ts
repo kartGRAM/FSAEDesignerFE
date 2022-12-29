@@ -3,9 +3,12 @@ import {v4 as uuidv4} from 'uuid';
 import {IAssembly} from '@gd/IElements';
 import {ElementPoint, FixedPoint} from '@gd/measure/PointObjects';
 import {isDataElementPoint} from '@gd/measure/IPointObjects';
-import {ThreePointsPlane} from '@gd/measure/PlaneObjects';
+import {ThreePointsPlane, AxisPointPlane} from '@gd/measure/PlaneObjects';
 import {TwoPlaneIntersectionLine} from '@gd/measure/LineObjects';
-import {isDataThreePointsPlane} from '@gd/measure/IPlaneObjects';
+import {
+  isDataThreePointsPlane,
+  isDataAxisPointPlane
+} from '@gd/measure/IPlaneObjects';
 import {isDataTwoPlaneIntersectionLine} from '@gd/measure/ILineObjects';
 import store from '@store/store';
 import {setDatumObjects} from '@store/reducers/dataGeometryDesigner';
@@ -158,5 +161,6 @@ function getDatumObject(data: IDataDatumObject): IDatumObject {
   if (isDataThreePointsPlane(data)) return new ThreePointsPlane(data);
   if (isDataTwoPlaneIntersectionLine(data))
     return new TwoPlaneIntersectionLine(data);
+  if (isDataAxisPointPlane(data)) return new AxisPointPlane(data);
   throw new Error('未実装のデータムを検出');
 }

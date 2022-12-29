@@ -17,3 +17,16 @@ export function getIntersectionLineFromTwoPlanes(
     .add(n[1].clone().multiplyScalar(coef2));
   return new THREE.Line3(start, start.clone().add(cross));
 }
+
+export function getPlaneFromAxisAndPoint(
+  point: THREE.Vector3,
+  axis: THREE.Line3
+) {
+  const normal = point
+    .clone()
+    .sub(axis.start)
+    .cross(axis.delta(new THREE.Vector3()))
+    .normalize();
+  const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(normal, point);
+  return plane;
+}
