@@ -1824,8 +1824,7 @@ export class Tire extends Element implements ITire {
     if (isDataElement(params)) {
       this.leftBearingNodeID = params.leftBearingNodeID;
       this.rightBearingNodeID = params.rightBearingNodeID;
-      this.groundingPointNodeID =
-        params.groundingPointNodeID ?? this.groundingPointNodeID;
+      this.groundingPointNodeID = params.groundingPointNodeID;
     }
 
     this.tireCenter = new NamedVector3({

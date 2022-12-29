@@ -32,13 +32,20 @@ export function getDataToSave(
   note: string,
   overwrite: boolean = false
 ): FormData {
-  const state = store.getState().dgd.present;
+  const rootState = store.getState();
+  const state = rootState.dgd.present;
+
+  let {topAssembly} = state;
+  if (rootState.uitgd.assembly) {
+    topAssembly = rootState.uitgd.assembly.getDataElement(state);
+  }
+
   const data = new FormData();
   const values: SavedDataToSend = {
     id: state.id,
     name: filename,
     note,
-    content: JSON.stringify(state.topAssembly),
+    content: JSON.stringify(topAssembly),
     formulae: JSON.stringify(state.formulae),
     controls: JSON.stringify(state.controls),
     datumObjects: JSON.stringify(state.datumObjects),
