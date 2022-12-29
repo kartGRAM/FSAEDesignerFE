@@ -1,7 +1,7 @@
 /* eslint-disable max-classes-per-file */
 import {v4 as uuidv4} from 'uuid';
 import {IAssembly} from '@gd/IElements';
-import {ElementPoint} from '@gd/measure/PointObjects';
+import {ElementPoint, FixedPoint} from '@gd/measure/PointObjects';
 import {isDataElementPoint} from '@gd/measure/IPointObjects';
 import {ThreePointsPlane} from '@gd/measure/PlaneObjects';
 import {TwoPlaneIntersectionLine} from '@gd/measure/LineObjects';
@@ -17,7 +17,8 @@ import {
   IDataDatumGroup,
   IDatumManager,
   DatumDict,
-  isDataDatumGroup
+  isDataDatumGroup,
+  isPoint
 } from './IDatumObjects';
 
 export class DatumGroup implements IDatumGroup {
@@ -48,7 +49,24 @@ export class DatumGroup implements IDatumGroup {
 
   update(ref: DatumDict, collectedAssembly: IAssembly): void {
     this.children.forEach((child) => {
-      child.update(ref, collectedAssembly);
+      try {
+        child.update(ref, collectedAssembly);
+      } catch (e) {
+        if (isPoint(child)) {
+          const {x, y, z} = child.getThreePoint();
+          child = new FixedPoint({
+            name: child.name,
+            position: {
+              x,
+              y,
+              z
+            },
+            nodeID: child.nodeID
+          });
+        } else {
+          throw e;
+        }
+      }
       ref[child.nodeID] = child;
     });
   }

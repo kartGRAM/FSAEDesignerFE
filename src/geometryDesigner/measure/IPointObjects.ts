@@ -41,9 +41,20 @@ export interface IFixedPoint extends IPoint {
   getData(): IDataFixedPoint;
 }
 
+export function isFixedPoint(point: IPoint | undefined): point is IFixedPoint {
+  if (!point) return false;
+  return point.className === 'FixedPoint';
+}
+
 export interface IDataFixedPoint extends IDataPoint {
   className: 'FixedPoint';
   position: IDataVector3;
+}
+export function isDataFixedPoint(
+  data: IDataDatumObject
+): data is IDataFixedPoint {
+  if (data.className === 'FixedPoint') return true;
+  return false;
 }
 
 export interface IPlaneLineIntersection extends IPoint {

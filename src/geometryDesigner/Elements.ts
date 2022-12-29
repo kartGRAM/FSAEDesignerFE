@@ -1,6 +1,7 @@
 /* eslint-disable max-classes-per-file */
 /* eslint-disable class-methods-use-this */
 import {Vector3, Quaternion} from 'three';
+import * as THREE from 'three';
 import {
   NamedVector3,
   NamedMatrix3,
@@ -25,6 +26,7 @@ import {AtLeast1, AtLeast2} from '@app/utils/atLeast';
 import {v4 as uuidv4} from 'uuid';
 import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {minus} from '@app/utils/helpers';
+import {getIntersectionLineFromTwoPlanes} from '@utils/threeUtils';
 import {getRootNode} from './INode';
 import {
   trans,
@@ -1666,6 +1668,8 @@ export class Tire extends Element implements ITire {
 
   rightBearingNodeID: string;
 
+  groundingPointNodeID: string;
+
   visible: NamedBooleanOrUndefined;
 
   mass: NamedNumber;
@@ -1722,6 +1726,33 @@ export class Tire extends Element implements ITire {
 
   getPoints(): INamedVector3[] {
     return [this.leftBearing, this.rightBearing];
+  }
+
+  getMeasurablePoints(): INamedVector3[] {
+    const points = super.getMeasurablePoints();
+    const normal = new Vector3(0, 1, 0).applyQuaternion(this.rotation.value);
+    const center = this.tireCenter.value;
+    const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(
+      normal,
+      center
+    );
+    const ground = new THREE.Plane(new Vector3(0, 0, 1), 0);
+    const line = getIntersectionLineFromTwoPlanes(plane, ground);
+    const gPoint = line
+      .closestPointToPoint(center, false, new Vector3())
+      .sub(center)
+      .normalize()
+      .multiplyScalar(this.diameter / 2)
+      .add(center);
+    const gPointNamed = new NamedVector3({
+      name: 'groundingPoint',
+      parent: this,
+      value: gPoint,
+      update: () => {},
+      nodeID: this.groundingPointNodeID
+    });
+
+    return [...points, gPointNamed];
   }
 
   getPointsNodeIDs(): string[] {
@@ -1789,9 +1820,12 @@ export class Tire extends Element implements ITire {
 
     this.leftBearingNodeID = uuidv4();
     this.rightBearingNodeID = uuidv4();
+    this.groundingPointNodeID = uuidv4();
     if (isDataElement(params)) {
       this.leftBearingNodeID = params.leftBearingNodeID;
       this.rightBearingNodeID = params.rightBearingNodeID;
+      this.groundingPointNodeID =
+        params.groundingPointNodeID ?? this.groundingPointNodeID;
     }
 
     this.tireCenter = new NamedVector3({
@@ -1862,7 +1896,8 @@ export class Tire extends Element implements ITire {
           .setValue(minus(mir.toRightBearing.getStringValue()))
           .getData(state),
         leftBearingNodeID: this.leftBearingNodeID,
-        rightBearingNodeID: this.rightBearingNodeID
+        rightBearingNodeID: this.rightBearingNodeID,
+        groundingPointNodeID: this.groundingPointNodeID
       };
     }
     return {
@@ -1871,7 +1906,8 @@ export class Tire extends Element implements ITire {
       toLeftBearing: this.toLeftBearing.getData(state),
       toRightBearing: this.toRightBearing.getData(state),
       leftBearingNodeID: this.leftBearingNodeID,
-      rightBearingNodeID: this.rightBearingNodeID
+      rightBearingNodeID: this.rightBearingNodeID,
+      groundingPointNodeID: this.groundingPointNodeID
     };
   }
 }

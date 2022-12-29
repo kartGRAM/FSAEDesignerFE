@@ -191,7 +191,6 @@ export function DatumGroupTable(props: {
                   <TableCell>Order</TableCell>
                   <TableCell align="left">Visibility</TableCell>
                   <TableCell>Name</TableCell>
-                  <TableCell align="left">Type</TableCell>
                   <TableCell align="left">description</TableCell>
                 </TableRow>
               </TableHead>
@@ -228,7 +227,6 @@ export function DatumGroupTable(props: {
                       <TableCell sx={{whiteSpace: 'nowrap'}}>
                         {datum.name}
                       </TableCell>
-                      <TableCell align="left">{datum.className}</TableCell>
                       <TableCell align="left">{datum.description}</TableCell>
                     </TableRow>
                   );

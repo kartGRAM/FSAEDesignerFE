@@ -9,6 +9,10 @@ import {
   DatumDict
 } from '@gd/measure/IDatumObjects';
 import {
+  IFixedPoint,
+  IDataFixedPoint,
+  isFixedPoint,
+  isDataFixedPoint,
   IDataElementPoint,
   IElementPoint,
   isElementPoint,
@@ -17,6 +21,9 @@ import {
 import {Vector3} from 'three';
 import {DatumObject} from '@gd/measure/DatumObjects';
 import {IAssembly, IElement} from '@gd/IElements';
+import {INamedVector3} from '@gd/INamedValues';
+import {NamedVector3} from '@gd/NamedValues';
+import store from '@store/store';
 
 export abstract class Point extends DatumObject implements IPoint {
   abstract get description(): string;
@@ -35,6 +42,63 @@ export abstract class Point extends DatumObject implements IPoint {
       isDataPoint: true,
       lastPosition: {x, y, z}
     };
+  }
+}
+
+export class FixedPoint extends Point implements IFixedPoint {
+  readonly className = 'FixedPoint' as const;
+
+  position: INamedVector3;
+
+  // eslint-disable-next-line class-methods-use-this
+  get description() {
+    return `fixed point`;
+  }
+
+  getThreePoint(): Vector3 {
+    return this.position.value;
+  }
+
+  getData(): IDataFixedPoint {
+    const base = super.getDataBase();
+    const state = store.getState().dgd.present;
+    return {
+      ...base,
+      className: this.className,
+      position: this.position.getData(state)
+    };
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  update(): void {}
+
+  constructor(
+    params:
+      | {
+          name: string;
+          position: {
+            x: number | string;
+            y: number | string;
+            z: number | string;
+          };
+          nodeID?: string;
+        }
+      | IDataFixedPoint
+  ) {
+    super(params);
+    const {position, nodeID} = params;
+    this.position = new NamedVector3({value: {...position}});
+    if (isDataDatumObject(params) && isDataFixedPoint(params)) {
+      this.position = new NamedVector3(params.position);
+    }
+  }
+
+  copy(other: IDatumObject): void {
+    if (isPoint(other) && isFixedPoint(other)) {
+      this.position.value = other.position.value;
+    } else {
+      throw new Error('型不一致');
+    }
   }
 }
 

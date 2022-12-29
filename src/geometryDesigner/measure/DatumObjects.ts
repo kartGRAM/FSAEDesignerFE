@@ -23,13 +23,13 @@ export abstract class DatumObject implements IDatumObject {
 
   abstract update(ref: DatumDict, collectedAssembly: IAssembly): void;
 
-  constructor(params: {name: string} | IDatumObject) {
+  constructor(params: {name: string; nodeID?: string} | IDatumObject) {
     this.name = params.name;
     if (isDataDatumObject(params)) {
       this.nodeID = params.nodeID;
       this.visibility = params.visibility;
     } else {
-      this.nodeID = uuidv4();
+      this.nodeID = params.nodeID ?? uuidv4();
     }
   }
 

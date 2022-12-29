@@ -79,6 +79,7 @@ export default function Line(params: {line: ILine}) {
   const points = [line.lineStart, line.lineEnd].map((p) =>
     p.applyMatrix3(coMatrix)
   );
+  const position = points[0].clone().add(points[1]).multiplyScalar(0.5);
 
   return (
     <DLine
@@ -94,7 +95,7 @@ export default function Line(params: {line: ILine}) {
       onPointerLeave={() => setShow(false)} // see note 1
     >
       {show ? (
-        <Html>
+        <Html position={position}>
           <Paper
             elevation={3}
             sx={{

@@ -252,6 +252,7 @@ export interface IDataTire extends IDataElement {
   toRightBearing: IDataNumber;
   leftBearingNodeID: string;
   rightBearingNodeID: string;
+  groundingPointNodeID?: string;
 }
 
 export interface ILinearBushing extends IElement {
