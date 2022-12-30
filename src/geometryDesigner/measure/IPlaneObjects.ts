@@ -15,10 +15,24 @@ export interface IFromBasePlane extends IPlane {
   getData(): IDataFromBasePlane;
 }
 
+export function isFromBasePlane(
+  plane: IPlane | undefined
+): plane is IFromBasePlane {
+  if (!plane) return false;
+  return plane.className === 'FromBasePlane';
+}
+
 export interface IDataFromBasePlane extends IDataPlane {
   className: 'FromBasePlane';
   direction: BasePlane;
   distance: IDataNumber;
+}
+
+export function isDataFromBasePlane(
+  data: IDataDatumObject
+): data is IDataFromBasePlane {
+  if (data.className === 'FromBasePlane') return true;
+  return false;
 }
 
 export interface IPointNormalLinePlane extends IPlane {

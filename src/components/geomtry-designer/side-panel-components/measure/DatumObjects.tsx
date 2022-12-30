@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import Button from '@mui/material/Button';
@@ -121,47 +122,44 @@ export default function DatumObjects() {
             Datum Groups & Datum Objects
           </Typography>
           {datumObjectsAccExpanded ? (
-            <>
-              {datumGroups.length !== 0 ? (
-                <Tooltip
-                  title="Add a new group"
-                  sx={{flex: '1'}}
-                  componentsProps={{
-                    popper: {
-                      sx: {
-                        zIndex: 12500000000
-                      }
+            expanded !== '' ? (
+              <Tooltip
+                title="Delete"
+                sx={{flex: '1'}}
+                componentsProps={{
+                  popper: {
+                    sx: {
+                      zIndex: 12500000000
                     }
+                  }
+                }}
+              >
+                <IconButton
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeDatumGroup(expanded);
                   }}
                 >
-                  <IconButton onClick={addNewDatumGroup}>
-                    <AddBoxIcon />
-                  </IconButton>
-                </Tooltip>
-              ) : null}
-              {expanded !== '' ? (
-                <Tooltip
-                  title="Delete"
-                  sx={{flex: '1'}}
-                  componentsProps={{
-                    popper: {
-                      sx: {
-                        zIndex: 12500000000
-                      }
+                  <DeleteIcon />
+                </IconButton>
+              </Tooltip>
+            ) : datumGroups.length !== 0 ? (
+              <Tooltip
+                title="Add a new group"
+                sx={{flex: '1'}}
+                componentsProps={{
+                  popper: {
+                    sx: {
+                      zIndex: 12500000000
                     }
-                  }}
-                >
-                  <IconButton
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeDatumGroup(expanded);
-                    }}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </Tooltip>
-              ) : null}
-            </>
+                  }
+                }}
+              >
+                <IconButton onClick={addNewDatumGroup}>
+                  <AddBoxIcon />
+                </IconButton>
+              </Tooltip>
+            ) : null
           ) : null}
         </Toolbar>
       </AccordionSummary>
