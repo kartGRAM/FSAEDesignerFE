@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable class-methods-use-this */
 /* eslint-disable max-classes-per-file */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -15,14 +16,22 @@ import {
 } from '@gd/measure/IDatumObjects';
 import {
   BasePlane,
-  IThreePointsPlane,
-  isThreePointsPlane,
-  IDataThreePointsPlane,
-  isDataThreePointsPlane,
+  IFromBasePlane,
+  isFromBasePlane,
+  IDataFromBasePlane,
+  isDataFromBasePlane,
+  IPointNormalPlane,
+  isPointNormalPlane,
+  IDataPointNormalPlane,
+  isDataPointNormalPlane,
   IFromElementBasePlane,
   isFromElementBasePlane,
   IDataFromElementBasePlane,
   isDataFromElementBasePlane,
+  IThreePointsPlane,
+  isThreePointsPlane,
+  IDataThreePointsPlane,
+  isDataThreePointsPlane,
   IAxisPointPlane,
   isAxisPointPlane,
   IDataAxisPointPlane,
@@ -32,8 +41,13 @@ import {Vector3, Plane as ThreePlane} from 'three';
 import {DatumObject} from '@gd/measure/DatumObjects';
 import {IAssembly, IElement} from '@gd/IElements';
 import {getPlaneFromAxisAndPoint} from '@utils/threeUtils';
-import {INamedNumber} from '@gd/INamedValues';
-import {NamedNumber} from '@gd/NamedValues';
+import {
+  INamedNumber,
+  INamedVector3,
+  isNamedVector3,
+  isNamedData
+} from '@gd/INamedValues';
+import {NamedNumber, NamedVector3} from '@gd/NamedValues';
 import store from '@store/store';
 
 function getNormalFromBasePlane(direction: BasePlane) {
@@ -72,6 +86,205 @@ export abstract class Plane extends DatumObject implements IPlane {
         constant
       }
     };
+  }
+}
+
+export class FromBasePlane extends Plane implements IFromBasePlane {
+  readonly className = 'FromBasePlane' as const;
+
+  get planeCenter(): Vector3 {
+    return new Vector3().add(
+      this.storedValue.normal.clone().multiplyScalar(this.distance.value)
+    );
+  }
+
+  get planeSize(): {width: number; height: number} {
+    return {width: 300, height: 300};
+  }
+
+  direction: BasePlane;
+
+  distance: INamedNumber;
+
+  storedValue: ThreePlane;
+
+  get description() {
+    return `${this.distance.value}mm from ${this.direction} plane`;
+  }
+
+  getThreePlane(): ThreePlane {
+    return this.storedValue.clone();
+  }
+
+  getData(): IDataFromBasePlane {
+    const base = super.getDataBase();
+    const state = store.getState().dgd.present;
+    return {
+      ...base,
+      className: this.className,
+      direction: this.direction,
+      distance: this.distance.getData(state)
+    };
+  }
+
+  update(): void {
+    const normal = getNormalFromBasePlane(this.direction);
+    this.storedValue = new ThreePlane().setFromNormalAndCoplanarPoint(
+      normal,
+      new Vector3()
+    );
+  }
+
+  constructor(
+    params:
+      | {
+          name: string;
+          direction: BasePlane;
+          distance: string | number;
+        }
+      | IDataFromBasePlane
+  ) {
+    super(params);
+    this.direction = params.direction;
+    this.distance = new NamedNumber({value: params.distance});
+    this.storedValue = new ThreePlane();
+    if (isDataDatumObject(params) && isDataFromBasePlane(params)) {
+      const {lastPosition} = params;
+      const {x, y, z} = lastPosition.normal;
+      this.storedValue = new ThreePlane(
+        new Vector3(x, y, z),
+        lastPosition.constant
+      );
+    }
+  }
+
+  copy(other: IDatumObject): void {
+    if (isPlane(other) && isFromBasePlane(other)) {
+      this.direction = other.direction;
+      this.distance.setValue(other.distance.getStringValue());
+    } else {
+      throw new Error('型不一致');
+    }
+  }
+}
+
+export class PointNormalPlane extends Plane implements IPointNormalPlane {
+  readonly className = 'PointNormalPlane' as const;
+
+  get planeCenter(): Vector3 {
+    if (isNamedVector3(this.point)) {
+      return this.point.value;
+    }
+    return this.pointBuf?.getThreePoint() ?? new Vector3();
+  }
+
+  get planeSize(): {width: number; height: number} {
+    return {width: 300, height: 300};
+  }
+
+  point: string | INamedVector3;
+
+  pointBuf: IPoint | undefined = undefined;
+
+  normal: string | INamedVector3;
+
+  storedValue: ThreePlane;
+
+  get description() {
+    return `plane from normal and point`;
+  }
+
+  getThreePlane(): ThreePlane {
+    return this.storedValue.clone();
+  }
+
+  getData(): IDataPointNormalPlane {
+    const base = super.getDataBase();
+    const state = store.getState().dgd.present;
+    return {
+      ...base,
+      className: this.className,
+      point: isNamedVector3(this.point)
+        ? this.point.getData(state)
+        : (this.point as string),
+      normal: isNamedVector3(this.normal)
+        ? this.normal.getData(state)
+        : (this.normal as string)
+    };
+  }
+
+  update(ref: DatumDict): void {
+    let point: Vector3 | undefined;
+    this.pointBuf = undefined;
+    if (isNamedVector3(this.point)) {
+      point = this.point.value;
+    } else {
+      const tmp = ref[this.point];
+      if (isPoint(tmp)) {
+        this.pointBuf = tmp;
+        point = this.pointBuf.getThreePoint();
+      }
+    }
+    if (!point) throw new Error('計測点が見つからない');
+    let normal: Vector3 | undefined;
+    if (isNamedVector3(this.normal)) {
+      normal = this.normal.value;
+    } else {
+      const tmp = ref[this.normal];
+      if (isPoint(tmp)) normal = tmp.getThreePoint();
+    }
+    if (!normal) throw new Error('データム軸が見つからない');
+    normal.normalize();
+    // plane.normal.normalize();
+  }
+
+  constructor(
+    params:
+      | {
+          name: string;
+          point: string | INamedVector3;
+          normal: string | INamedVector3;
+        }
+      | IDataPointNormalPlane
+  ) {
+    super(params);
+    this.storedValue = new ThreePlane();
+    const {point, normal} = params;
+    this.point = isNamedVector3(point)
+      ? new NamedVector3({value: point.getStringValue()})
+      : isNamedData(point)
+      ? new NamedVector3(point)
+      : point;
+    this.normal = isNamedVector3(normal)
+      ? new NamedVector3({value: normal.getStringValue()})
+      : isNamedData(normal)
+      ? new NamedVector3(normal)
+      : normal;
+    if (isDataDatumObject(params) && isDataPointNormalPlane(params)) {
+      const {lastPosition} = params;
+      const {x, y, z} = lastPosition.normal;
+      this.storedValue = new ThreePlane(
+        new Vector3(x, y, z),
+        lastPosition.constant
+      );
+    }
+  }
+
+  copy(other: IDatumObject): void {
+    if (isPlane(other) && isPointNormalPlane(other)) {
+      if (isNamedVector3(other.point)) {
+        this.point = new NamedVector3({value: other.point.getStringValue()});
+      } else {
+        this.point = other.point;
+      }
+      if (isNamedVector3(other.normal)) {
+        this.normal = new NamedVector3({value: other.normal.getStringValue()});
+      } else {
+        this.normal = other.normal;
+      }
+    } else {
+      throw new Error('型不一致');
+    }
   }
 }
 

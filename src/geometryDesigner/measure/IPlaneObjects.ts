@@ -35,30 +35,30 @@ export function isDataFromBasePlane(
   return false;
 }
 
-export interface IPointNormalLinePlane extends IPlane {
-  className: 'PointNormalLinePlane';
+export interface IPointNormalPlane extends IPlane {
+  className: 'PointNormalPlane';
   point: NodeID | INamedVector3;
   normal: NodeID | INamedVector3;
-  getData(): IDataPointNormalLinePlane;
+  getData(): IDataPointNormalPlane;
 }
 
-export function isPointNormalLinePlane(
+export function isPointNormalPlane(
   plane: IPlane | undefined
-): plane is IPointNormalLinePlane {
+): plane is IPointNormalPlane {
   if (!plane) return false;
-  return plane.className === 'PointNormalLinePlane';
+  return plane.className === 'PointNormalPlane';
 }
 
-export interface IDataPointNormalLinePlane extends IDataPlane {
-  className: 'PointNormalLinePlane';
+export interface IDataPointNormalPlane extends IDataPlane {
+  className: 'PointNormalPlane';
   point: NodeID | IDataVector3;
   normal: NodeID | IDataVector3;
 }
 
-export function isDataPointNomalLinePlane(
+export function isDataPointNormalPlane(
   data: IDataDatumObject
-): data is IDataPointNormalLinePlane {
-  if (data.className === 'PointNormalLinePlane') return true;
+): data is IDataPointNormalPlane {
+  if (data.className === 'PointNormalPlane') return true;
   return false;
 }
 
