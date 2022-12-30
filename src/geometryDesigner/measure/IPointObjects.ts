@@ -2,7 +2,6 @@ import {INamedVector3, IDataVector3} from '@gd/INamedValues';
 import {
   IPlane,
   IPoint,
-  ILine,
   NodeID,
   IDataPoint,
   IDataDatumObject
@@ -50,6 +49,7 @@ export interface IDataFixedPoint extends IDataPoint {
   className: 'FixedPoint';
   position: IDataVector3;
 }
+
 export function isDataFixedPoint(
   data: IDataDatumObject
 ): data is IDataFixedPoint {
@@ -59,15 +59,28 @@ export function isDataFixedPoint(
 
 export interface IPlaneLineIntersection extends IPoint {
   className: 'PlaneLineIntersection';
-  plane: IPlane;
-  line: ILine;
-  getData(): IDataElementPoint;
+  plane: NodeID;
+  line: NodeID;
+  getData(): IDataPlaneLineIntersection;
 }
 
-export interface IDataPlaneLineIntersection extends IPoint {
+export function isPlaneLineIntersection(
+  point: IPoint | undefined
+): point is IPlaneLineIntersection {
+  if (!point) return false;
+  return point.className === 'PlaneLineIntersection';
+}
+
+export interface IDataPlaneLineIntersection extends IDataPoint {
   className: 'PlaneLineIntersection';
   plane: NodeID;
   line: NodeID;
+}
+
+export function isDataPlaneLineIntersection(
+  data: IDataDatumObject
+): data is IDataPlaneLineIntersection {
+  return data.className === 'PlaneLineIntersection';
 }
 
 export interface IProjectionPointToPlane extends IPoint {

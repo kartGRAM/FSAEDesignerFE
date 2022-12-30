@@ -3,7 +3,11 @@
 import {
   isDataDatumObject,
   IPoint,
+  ILine,
+  IPlane,
   isPoint,
+  isLine,
+  isPlane,
   IDataPoint,
   IDatumObject,
   DatumDict
@@ -13,6 +17,10 @@ import {
   IDataFixedPoint,
   isFixedPoint,
   isDataFixedPoint,
+  IPlaneLineIntersection,
+  IDataPlaneLineIntersection,
+  isPlaneLineIntersection,
+  isDataPlaneLineIntersection,
   IDataElementPoint,
   IElementPoint,
   isElementPoint,
@@ -24,6 +32,7 @@ import {IAssembly, IElement} from '@gd/IElements';
 import {INamedVector3} from '@gd/INamedValues';
 import {NamedVector3} from '@gd/NamedValues';
 import store from '@store/store';
+import {getIntersectionOfPlaneAndLine} from '@utils/threeUtils';
 
 export abstract class Point extends DatumObject implements IPoint {
   abstract get description(): string;
@@ -162,6 +171,80 @@ export class ElementPoint extends Point implements IElementPoint {
     if (isPoint(other) && isElementPoint(other)) {
       this.element = other.element;
       this.point = other.point;
+    } else {
+      throw new Error('型不一致');
+    }
+  }
+}
+
+export class PlaneLineIntersection
+  extends Point
+  implements IPlaneLineIntersection
+{
+  readonly className = 'PlaneLineIntersection' as const;
+
+  plane: string;
+
+  line: string;
+
+  storedValue: Vector3;
+
+  planeBuf: IPlane | undefined = undefined;
+
+  lineBuf: ILine | undefined = undefined;
+
+  // eslint-disable-next-line class-methods-use-this
+  get description() {
+    return `intersection point of line and plane`;
+  }
+
+  getThreePoint(): Vector3 {
+    return this.storedValue.clone();
+  }
+
+  getData(): IDataPlaneLineIntersection {
+    const base = super.getDataBase();
+    return {
+      ...base,
+      className: this.className,
+      plane: this.plane,
+      line: this.line
+    };
+  }
+
+  update(ref: DatumDict): void {
+    const plane = ref[this.plane];
+    if (!plane || !isPlane(plane))
+      throw new Error('データム平面が見つからない');
+    const line = ref[this.line];
+    if (!line || !isLine(line)) throw new Error('データム軸が見つからない');
+    this.planeBuf = plane;
+    this.lineBuf = line;
+    // plane.normal.normalize();
+    this.storedValue = getIntersectionOfPlaneAndLine(
+      plane.getThreePlane(),
+      line.getThreeLine()
+    );
+  }
+
+  constructor(
+    params:
+      | {name: string; plane: string; line: string}
+      | IDataPlaneLineIntersection
+  ) {
+    super(params);
+    this.plane = params.plane;
+    this.line = params.line;
+    this.storedValue = new Vector3();
+    if (isDataDatumObject(params) && isDataPlaneLineIntersection(params)) {
+      this.storedValue = new Vector3(...Object.values(params.lastPosition));
+    }
+  }
+
+  copy(other: IDatumObject): void {
+    if (isPoint(other) && isPlaneLineIntersection(other)) {
+      this.plane = other.plane;
+      this.line = other.line;
     } else {
       throw new Error('型不一致');
     }

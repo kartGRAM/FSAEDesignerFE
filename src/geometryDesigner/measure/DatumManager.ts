@@ -1,8 +1,16 @@
 /* eslint-disable max-classes-per-file */
 import {v4 as uuidv4} from 'uuid';
 import {IAssembly} from '@gd/IElements';
-import {ElementPoint, FixedPoint} from '@gd/measure/PointObjects';
-import {isDataElementPoint} from '@gd/measure/IPointObjects';
+import {
+  ElementPoint,
+  FixedPoint,
+  PlaneLineIntersection
+} from '@gd/measure/PointObjects';
+import {
+  isDataFixedPoint,
+  isDataElementPoint,
+  isDataPlaneLineIntersection
+} from '@gd/measure/IPointObjects';
 import {ThreePointsPlane, AxisPointPlane} from '@gd/measure/PlaneObjects';
 import {TwoPlaneIntersectionLine} from '@gd/measure/LineObjects';
 import {
@@ -157,10 +165,14 @@ export class DatumManager implements IDatumManager {
 }
 
 function getDatumObject(data: IDataDatumObject): IDatumObject {
+  if (isDataFixedPoint(data)) return new FixedPoint(data);
   if (isDataElementPoint(data)) return new ElementPoint(data);
-  if (isDataThreePointsPlane(data)) return new ThreePointsPlane(data);
+  if (isDataPlaneLineIntersection(data)) return new PlaneLineIntersection(data);
+
   if (isDataTwoPlaneIntersectionLine(data))
     return new TwoPlaneIntersectionLine(data);
+
+  if (isDataThreePointsPlane(data)) return new ThreePointsPlane(data);
   if (isDataAxisPointPlane(data)) return new AxisPointPlane(data);
   throw new Error('未実装のデータムを検出');
 }

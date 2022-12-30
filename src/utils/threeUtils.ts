@@ -30,3 +30,24 @@ export function getPlaneFromAxisAndPoint(
   const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(normal, point);
   return plane;
 }
+
+export function getIntersectionOfPlaneAndLine(
+  plane: THREE.Plane,
+  line: THREE.Line3
+) {
+  const direction = line.delta(new THREE.Vector3());
+
+  const denominator = plane.normal.dot(direction);
+
+  if (denominator === 0) {
+    return new THREE.Vector3(
+      Number.MAX_VALUE,
+      Number.MAX_VALUE,
+      Number.MAX_VALUE
+    );
+  }
+
+  const t = -(line.start.dot(plane.normal) + plane.constant) / denominator;
+
+  return direction.clone().multiplyScalar(t).add(line.start);
+}
