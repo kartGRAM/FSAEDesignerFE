@@ -76,6 +76,7 @@ export default function Line(params: {line: ILine}) {
       state.forceVisibledDatums.includes(line.nodeID) ||
       state.datumLineSelectMode ||
       line.visibility;
+    sphereMeshRef.current.visible = meshRef.current.visible;
   });
 
   const points = [line.lineStart, line.lineEnd].map((p) =>

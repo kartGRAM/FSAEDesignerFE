@@ -82,6 +82,7 @@ export interface GDSceneState {
   measureElementPointsMode: boolean;
   measureElementPointSelected?: string;
   forceVisibledDatums: string[];
+  datumElementSelectMode: boolean;
   datumPointSelectMode: boolean;
   datumPointSelected: string;
   datumLineSelectMode: boolean;
@@ -122,6 +123,7 @@ const initialState: GDState = {
     measureElementPointsMode: false,
     measureElementPointSelected: undefined,
     forceVisibledDatums: [],
+    datumElementSelectMode: false,
     datumPointSelectMode: false,
     datumPointSelected: '',
     datumLineSelectMode: false,
@@ -385,6 +387,18 @@ export const uitGeometryDesignerSlice = createSlice({
     ) => {
       state.gdSceneState.measureElementPointSelected = action.payload;
     },
+    setDatumElementSelectMode: (
+      state: GDState,
+      action: PayloadAction<boolean>
+    ) => {
+      if (
+        action.payload === false ||
+        action.payload !== state.gdSceneState.datumElementSelectMode
+      ) {
+        state.selectedElementAbsPath = '';
+      }
+      state.gdSceneState.datumElementSelectMode = action.payload;
+    },
     setDatumPointSelectMode: (
       state: GDState,
       action: PayloadAction<boolean>
@@ -483,6 +497,7 @@ export const {
   setMeasureElementPointMode,
   setMeasureElementPointSelected,
   setForceVisibledDatums,
+  setDatumElementSelectMode,
   setDatumPointSelectMode,
   setDatumPointSelected,
   setDatumLineSelectMode,
