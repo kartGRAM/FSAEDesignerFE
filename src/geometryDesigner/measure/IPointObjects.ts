@@ -108,3 +108,14 @@ export interface IDataProjectionPointToLine extends IDataPoint {
   plane: NodeID;
   line: NodeID;
 }
+
+export interface IClosestPointOfTwoLines extends IPoint {
+  className: 'ClosestPointOfTwoLines';
+  lines: [NodeID, NodeID];
+  getData(): IDataClosestPointOfTwoLines;
+}
+
+export interface IDataClosestPointOfTwoLines extends IDataPoint {
+  className: 'ClosestPointOfTwoLines';
+  lines: [NodeID, NodeID];
+}

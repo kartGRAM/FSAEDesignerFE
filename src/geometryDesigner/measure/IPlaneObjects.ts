@@ -1,12 +1,10 @@
-import {INamedNumber, IDataNumber} from '@gd/INamedValues';
 import {
-  IPlane,
-  IPoint,
-  ILine,
-  NodeID,
-  IDataPlane,
-  IDataDatumObject
-} from './IDatumObjects';
+  INamedNumber,
+  IDataNumber,
+  INamedVector3,
+  IDataVector3
+} from '@gd/INamedValues';
+import {IPlane, NodeID, IDataPlane, IDataDatumObject} from './IDatumObjects';
 
 export type BasePlane = 'XY' | 'YZ' | 'ZX';
 
@@ -21,6 +19,33 @@ export interface IDataFromBasePlane extends IDataPlane {
   className: 'FromBasePlane';
   direction: BasePlane;
   distance: IDataNumber;
+}
+
+export interface IPointNormalLinePlane extends IPlane {
+  className: 'PointNormalLinePlane';
+  point: NodeID | INamedVector3;
+  normal: NodeID | INamedVector3;
+  getData(): IDataPointNormalLinePlane;
+}
+
+export function isPointNormalLinePlane(
+  plane: IPlane | undefined
+): plane is IPointNormalLinePlane {
+  if (!plane) return false;
+  return plane.className === 'PointNormalLinePlane';
+}
+
+export interface IDataPointNormalLinePlane extends IDataPlane {
+  className: 'PointNormalLinePlane';
+  point: NodeID | IDataVector3;
+  normal: NodeID | IDataVector3;
+}
+
+export function isDataPointNomalLinePlane(
+  data: IDataDatumObject
+): data is IDataPointNormalLinePlane {
+  if (data.className === 'PointNormalLinePlane') return true;
+  return false;
 }
 
 export interface IFromElementBasePlane extends IPlane {
@@ -62,19 +87,6 @@ export interface IFromOtherPlane extends IPlane {
 export interface IDataFromOtherPlane extends IDataPlane {
   className: 'FromOtherPlane';
   distance: IDataNumber;
-}
-
-export interface IPointNormalLinePlane extends IPlane {
-  className: 'PointNormalLinePlane';
-  point: IPoint;
-  normal: ILine;
-  getData(): IDataPointNormalLinePlane;
-}
-
-export interface IDataPointNormalLinePlane extends IDataPlane {
-  className: 'PointNormalLinePlane';
-  point: NodeID;
-  normal: NodeID;
 }
 
 export interface IAxisPointPlane extends IPlane {

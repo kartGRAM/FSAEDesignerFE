@@ -17,10 +17,23 @@ export interface ITwoPointsLine extends ILine {
   points: [IPoint, IPoint];
   getData(): IDataTwoPointsLine;
 }
+export function isTwoPointsLine(
+  line: ILine | undefined
+): line is ITwoPointsLine {
+  if (!line) return false;
+  return line.className === 'TwoPointsLine';
+}
 
 export interface IDataTwoPointsLine extends IDataLine {
   className: 'TwoPointsLine';
   point: [NodeID, NodeID];
+}
+
+export function isDataTwoPointsLine(
+  data: IDataDatumObject
+): data is IDataTwoPointsLine {
+  if (data.className === 'TwoPointsLine') return true;
+  return false;
 }
 
 export interface IPointDirectionLine extends ILine {
