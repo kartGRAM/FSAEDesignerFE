@@ -14,19 +14,37 @@ import {
   DatumDict
 } from '@gd/measure/IDatumObjects';
 import {
+  BasePlane,
   IThreePointsPlane,
   isThreePointsPlane,
   IDataThreePointsPlane,
   isDataThreePointsPlane,
+  IFromElementBasePlane,
+  isFromElementBasePlane,
+  IDataFromElementBasePlane,
+  isDataFromElementBasePlane,
   IAxisPointPlane,
   isAxisPointPlane,
   IDataAxisPointPlane,
   isDataAxisPointPlane
 } from '@gd/measure/IPlaneObjects';
-import {Vector3, Plane as ThreePlane, Vector} from 'three';
+import {Vector3, Plane as ThreePlane} from 'three';
 import {DatumObject} from '@gd/measure/DatumObjects';
 import {IAssembly, IElement} from '@gd/IElements';
 import {getPlaneFromAxisAndPoint} from '@utils/threeUtils';
+import {INamedNumber} from '@gd/INamedValues';
+import {NamedNumber} from '@gd/NamedValues';
+import store from '@store/store';
+
+function getNormalFromBasePlane(direction: BasePlane) {
+  if (direction === 'XY') {
+    return new Vector3(0, 0, 1);
+  }
+  if (direction === 'YZ') {
+    return new Vector3(1, 0, 0);
+  }
+  return new Vector3(0, 1, 0);
+}
 
 export abstract class Plane extends DatumObject implements IPlane {
   abstract get planeCenter(): Vector3;
@@ -54,6 +72,109 @@ export abstract class Plane extends DatumObject implements IPlane {
         constant
       }
     };
+  }
+}
+
+export class FromElementBasePlane
+  extends Plane
+  implements IFromElementBasePlane
+{
+  readonly className = 'FromElementBasePlane' as const;
+
+  get planeCenter(): Vector3 {
+    const element = this.elementBuf;
+    if (!element) return new Vector3();
+    const position = element.position.value;
+    return position.add(
+      this.storedValue.normal.clone().multiplyScalar(this.distance.value)
+    );
+  }
+
+  get planeSize(): {width: number; height: number} {
+    return {width: 300, height: 300};
+  }
+
+  element: string;
+
+  direction: BasePlane;
+
+  distance: INamedNumber;
+
+  elementBuf: IElement | undefined = undefined;
+
+  storedValue: ThreePlane;
+
+  get description() {
+    const element = this.elementBuf;
+    return `${this.distance.value}mm from
+            ${element?.name.value}'s ${this.direction} plane`;
+  }
+
+  getThreePlane(): ThreePlane {
+    return this.storedValue.clone();
+  }
+
+  getData(): IDataFromElementBasePlane {
+    const base = super.getDataBase();
+    const state = store.getState().dgd.present;
+    return {
+      ...base,
+      className: this.className,
+      element: this.element,
+      direction: this.direction,
+      distance: this.distance.getData(state)
+    };
+  }
+
+  update(ref: DatumDict, collectedAssembly: IAssembly): void {
+    this.elementBuf = collectedAssembly.children.find(
+      (child) => child.nodeID === this.element
+    );
+    if (!this.elementBuf) throw new Error('ｺﾝﾎﾟｰﾈﾝﾄが見つからない');
+    const position = this.elementBuf.position.value;
+    const rotation = this.elementBuf.rotation.value;
+    const normal = getNormalFromBasePlane(this.direction).applyQuaternion(
+      rotation
+    );
+    this.storedValue = new ThreePlane().setFromNormalAndCoplanarPoint(
+      normal,
+      position.add(normal.clone().multiplyScalar(this.distance.value))
+    );
+  }
+
+  constructor(
+    params:
+      | {
+          name: string;
+          element: string;
+          direction: BasePlane;
+          distance: string | number;
+        }
+      | IDataFromElementBasePlane
+  ) {
+    super(params);
+    this.element = params.element;
+    this.direction = params.direction;
+    this.distance = new NamedNumber({value: params.distance});
+    this.storedValue = new ThreePlane();
+    if (isDataDatumObject(params) && isDataFromElementBasePlane(params)) {
+      const {lastPosition} = params;
+      const {x, y, z} = lastPosition.normal;
+      this.storedValue = new ThreePlane(
+        new Vector3(x, y, z),
+        lastPosition.constant
+      );
+    }
+  }
+
+  copy(other: IDatumObject): void {
+    if (isPlane(other) && isFromElementBasePlane(other)) {
+      this.element = other.element;
+      this.direction = other.direction;
+      this.distance.setValue(other.distance.getStringValue());
+    } else {
+      throw new Error('型不一致');
+    }
   }
 }
 

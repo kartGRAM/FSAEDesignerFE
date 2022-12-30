@@ -104,7 +104,7 @@ export class FixedPoint extends Point implements IFixedPoint {
 
   copy(other: IDatumObject): void {
     if (isPoint(other) && isFixedPoint(other)) {
-      this.position.value = other.position.value;
+      this.position.setValue(other.position.getStringValue());
     } else {
       throw new Error('型不一致');
     }

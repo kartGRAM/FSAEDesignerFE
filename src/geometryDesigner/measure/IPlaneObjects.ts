@@ -8,37 +8,48 @@ import {
   IDataDatumObject
 } from './IDatumObjects';
 
-export interface IFromXYPlane extends IPlane {
-  className: 'FromXYPlane';
+export type BasePlane = 'XY' | 'YZ' | 'ZX';
+
+export interface IFromBasePlane extends IPlane {
+  className: 'FromBasePlane';
+  direction: BasePlane;
   distance: INamedNumber;
-  getData(): IDataFromXYPlane;
+  getData(): IDataFromBasePlane;
 }
 
-export interface IDataFromXYPlane extends IDataPlane {
-  className: 'FromXYPlane';
+export interface IDataFromBasePlane extends IDataPlane {
+  className: 'FromBasePlane';
+  direction: BasePlane;
   distance: IDataNumber;
 }
 
-export interface IFromYZPlane extends IPlane {
-  className: 'FromYZPlane';
+export interface IFromElementBasePlane extends IPlane {
+  className: 'FromElementBasePlane';
+  element: NodeID;
+  direction: BasePlane;
   distance: INamedNumber;
-  getData(): IDataFromYZPlane;
+  getData(): IDataFromElementBasePlane;
 }
 
-export interface IDataFromYZPlane extends IDataPlane {
-  className: 'FromYZPlane';
+export function isFromElementBasePlane(
+  plane: IPlane | undefined
+): plane is IFromElementBasePlane {
+  if (!plane) return false;
+  return plane.className === 'FromElementBasePlane';
+}
+
+export interface IDataFromElementBasePlane extends IDataPlane {
+  className: 'FromElementBasePlane';
+  element: NodeID;
+  direction: BasePlane;
   distance: IDataNumber;
 }
 
-export interface IFromZXPlane extends IPlane {
-  className: 'FromZXPlane';
-  distance: INamedNumber;
-  getData(): IDataFromZXPlane;
-}
-
-export interface IDataFromZXPlane extends IDataPlane {
-  className: 'FromZXPlane';
-  distance: IDataNumber;
+export function isDataFromElementBasePlane(
+  data: IDataDatumObject
+): data is IDataFromElementBasePlane {
+  if (data.className === 'FromElementBasePlane') return true;
+  return false;
 }
 
 export interface IFromOtherPlane extends IPlane {
