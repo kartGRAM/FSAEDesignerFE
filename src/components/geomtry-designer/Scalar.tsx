@@ -20,10 +20,12 @@ export interface Props {
   onRemove?: () => void;
   onFocusChanged?: (focus: boolean) => () => void;
   disabled?: boolean;
+  onUpdate?: () => void;
 }
 
 export default function Scalar(props: Props) {
-  const {value, unit, removable, onRemove, onFocusChanged, disabled} = props;
+  const {value, unit, removable, onRemove, onFocusChanged, disabled, onUpdate} =
+    props;
   const dispatch = useDispatch();
   const sValue = value.getStringValue();
 
@@ -59,7 +61,8 @@ export default function Scalar(props: Props) {
     }),
     onSubmit: (values) => {
       value.setValue(values.value);
-      dispatch(updateAssembly(value));
+      if (value.parent) dispatch(updateAssembly(value));
+      if (onUpdate) onUpdate();
     }
   });
 

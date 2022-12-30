@@ -103,8 +103,8 @@ export const dataGeometryDesignerSlice = createSlice({
           // eslint-disable-next-line no-console
           console.log(e);
         }
+        state.changed = true;
       }
-      state.changed = true;
     },
     setFormulae: (
       state: GDState,

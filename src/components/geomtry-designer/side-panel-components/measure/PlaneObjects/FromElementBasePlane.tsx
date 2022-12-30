@@ -2,7 +2,7 @@
 import React from 'react';
 import store, {RootState} from '@store/store';
 import {useSelector, useDispatch} from 'react-redux';
-import {IFromElementBasePlane} from '@gd/measure/IPlaneObjects';
+import {BasePlane, IFromElementBasePlane} from '@gd/measure/IPlaneObjects';
 import {FromElementBasePlane as FromElementBasePlaneObject} from '@gd/measure/PlaneObjects';
 import {IDatumObject, isPoint, isLine} from '@gd/measure/IDatumObjects';
 import Box from '@mui/material/Box';
@@ -15,6 +15,10 @@ import {
 } from '@store/reducers/uiTempGeometryDesigner';
 import MenuItem from '@mui/material/MenuItem';
 import Target from '@gdComponents/svgs/Target';
+import Scalar from '@gdComponents/Scalar';
+import {NamedNumber} from '@gd/NamedValues';
+
+const directions: BasePlane[] = ['XY', 'YZ', 'ZX'];
 
 export function FromElementBasePlane(props: {
   plane?: IFromElementBasePlane;
@@ -43,6 +47,8 @@ export function FromElementBasePlane(props: {
     (child) => child.nodeID === plane?.element
   );
   const [element, setElement] = React.useState(defaultElement?.nodeID ?? '');
+  const [distance, setDistance] = React.useState(new NamedNumber({value: 0}));
+  const [direction, setDirection] = React.useState<BasePlane | ''>('');
 
   const handleGetElement = () => {
     dispatch(setDatumElementSelectMode(true));
@@ -78,21 +84,18 @@ export function FromElementBasePlane(props: {
   }, [selectedElement]);
 
   React.useEffect(() => {
-    if (point !== '' && line !== '') {
+    if (element !== '' && direction !== '') {
       const obj: IFromElementBasePlane = new FromElementBasePlaneObject({
         name: `datum point`,
-        point,
-        line
+        element,
+        distance: distance.getStringValue(),
+        direction
       });
       setApplyReady(obj);
     } else {
       setApplyReady(undefined);
     }
-    dispatch(setForceVisibledDatums([point, line]));
-    return () => {
-      dispatch(setForceVisibledDatums([]));
-    };
-  }, [element]);
+  }, [element, distance, direction]);
 
   return (
     <Box component="div">
@@ -132,6 +135,50 @@ export function FromElementBasePlane(props: {
           disabled={selectMode}
         />
       </FormControl>
+      <FormControl
+        sx={{
+          m: 1,
+          mt: 3,
+          minWidth: 250,
+          display: 'flex',
+          flexDirection: 'row'
+        }}
+      >
+        <InputLabel htmlFor={ids[0]}>Select direction</InputLabel>
+        <Select
+          disabled={selectMode}
+          value={direction}
+          id={ids[1]}
+          label="Select direction"
+          onChange={(e) => setDirection(e.target.value as BasePlane)}
+          sx={{flexGrow: '1'}}
+          MenuProps={{
+            sx: {zIndex: 150000000000}
+          }}
+        >
+          <MenuItem aria-label="None" value="">
+            <em>None</em>
+          </MenuItem>
+          {directions.map((direction) => (
+            <MenuItem value={direction} key={direction}>
+              {direction}
+            </MenuItem>
+          ))}
+        </Select>
+        <Target
+          title="Select a component"
+          onClick={handleGetElement}
+          disabled={selectMode}
+        />
+      </FormControl>
+      <Scalar
+        value={distance}
+        unit="mm"
+        disabled={selectMode}
+        onUpdate={() => {
+          setDistance(new NamedNumber({value: distance.getStringValue()}));
+        }}
+      />
     </Box>
   );
 }

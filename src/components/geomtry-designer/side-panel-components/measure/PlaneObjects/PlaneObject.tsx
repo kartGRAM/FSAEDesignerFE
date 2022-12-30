@@ -2,16 +2,26 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import {IPlane, IDatumObject} from '@gd/measure/IDatumObjects';
-import {isThreePointsPlane, isAxisPointPlane} from '@gd/measure/IPlaneObjects';
+import {
+  isThreePointsPlane,
+  isAxisPointPlane,
+  isFromElementBasePlane
+} from '@gd/measure/IPlaneObjects';
 import {ThreePointsPlane} from './ThreePointsPlane';
 import {AxisPointPlane} from './AxisPointPlane';
+import {FromElementBasePlane} from './FromElementBasePlane';
 
-export const planeClasses = ['ThreePointsPlane', 'AxisPointPlane'] as const;
+export const planeClasses = [
+  'ThreePointsPlane',
+  'AxisPointPlane',
+  'FromElementBasePlane'
+] as const;
 export type PlaneClasses = typeof planeClasses[number];
 
 export function getPlaneObjectClass(point: IPlane): PlaneClasses | '' {
   if (isThreePointsPlane(point)) return 'ThreePointsPlane';
   if (isAxisPointPlane(point)) return 'AxisPointPlane';
+  if (isFromElementBasePlane(point)) return 'FromElementBasePlane';
   return '';
 }
 
@@ -33,6 +43,13 @@ export function PlaneObject(params: {
     content = (
       <AxisPointPlane
         plane={isAxisPointPlane(plane) ? plane : undefined}
+        setApplyReady={setApplyReady}
+      />
+    );
+  else if (type === '')
+    content = (
+      <FromElementBasePlane
+        plane={isFromElementBasePlane(plane) ? plane : undefined}
         setApplyReady={setApplyReady}
       />
     );
