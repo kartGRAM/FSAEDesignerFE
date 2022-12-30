@@ -8,6 +8,33 @@ import {IPlane, NodeID, IDataPlane, IDataDatumObject} from './IDatumObjects';
 
 export type BasePlane = 'XY' | 'YZ' | 'ZX';
 
+export interface INormalConstantPlane extends IPlane {
+  className: 'NormalConstantPlane';
+  normal: NodeID | INamedVector3;
+  distance: INamedNumber;
+  getData(): IDataNormalConstantPlane;
+}
+
+export function isNormalConstantPlane(
+  plane: IPlane | undefined
+): plane is INormalConstantPlane {
+  if (!plane) return false;
+  return plane.className === 'NormalConstantPlane';
+}
+
+export interface IDataNormalConstantPlane extends IDataPlane {
+  className: 'NormalConstantPlane';
+  normal: NodeID | IDataVector3;
+  distance: IDataNumber;
+}
+
+export function isDataNormalConstantPlane(
+  data: IDataNormalConstantPlane
+): data is IDataNormalConstantPlane {
+  if (data.className === 'NormalConstantPlane') return true;
+  return false;
+}
+
 export interface IFromBasePlane extends IPlane {
   className: 'FromBasePlane';
   direction: BasePlane;
