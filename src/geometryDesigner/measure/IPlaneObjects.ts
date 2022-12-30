@@ -125,9 +125,23 @@ export interface IFromOtherPlane extends IPlane {
   getData(): IDataFromOtherPlane;
 }
 
+export function isFromOtherPlane(
+  plane: IPlane | undefined
+): plane is IFromOtherPlane {
+  if (!plane) return false;
+  return plane.className === 'FromOtherPlane';
+}
+
 export interface IDataFromOtherPlane extends IDataPlane {
   className: 'FromOtherPlane';
   distance: IDataNumber;
+}
+
+export function isDataFromOtherPlane(
+  data: IDataFromOtherPlane
+): data is IDataFromOtherPlane {
+  if (data.className === 'FromOtherPlane') return true;
+  return false;
 }
 
 export interface IAxisPointPlane extends IPlane {
