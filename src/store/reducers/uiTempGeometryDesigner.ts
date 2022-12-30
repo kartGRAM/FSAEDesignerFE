@@ -242,10 +242,12 @@ export const uitGeometryDesignerSlice = createSlice({
       state: GDState,
       action: PayloadAction<{
         absPath: string;
+        cancelTabChange?: boolean;
       }>
     ) => {
       state.selectedElementAbsPath = action.payload.absPath;
-      state.sidePanelState.selectedTab = 'parameters';
+      if (!action.payload.cancelTabChange)
+        state.sidePanelState.selectedTab = 'parameters';
     },
     setGlobalSelected: (
       state: GDState,

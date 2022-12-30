@@ -46,7 +46,7 @@ export function PlaneObject(params: {
         setApplyReady={setApplyReady}
       />
     );
-  else if (type === '')
+  else if (type === 'FromElementBasePlane')
     content = (
       <FromElementBasePlane
         plane={isFromElementBasePlane(plane) ? plane : undefined}

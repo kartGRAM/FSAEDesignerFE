@@ -25,9 +25,16 @@ const Body = (props: {element: IBody}) => {
   const handleOnDoubleClick = React.useCallback(
     (e: ThreeEvent<MouseEvent>) => {
       if (!meshRef.current.visible) return;
-      if (store.getState().uitgd.uiDisabled) return;
+      const state = store.getState().uitgd;
+      if (!state.gdSceneState.datumElementSelectMode && state.uiDisabled)
+        return;
       e.stopPropagation();
-      dispatch(selectElement({absPath: element.absPath}));
+      dispatch(
+        selectElement({
+          absPath: element.absPath,
+          cancelTabChange: state.gdSceneState.datumElementSelectMode
+        })
+      );
     },
     [element.absPath, store]
   );

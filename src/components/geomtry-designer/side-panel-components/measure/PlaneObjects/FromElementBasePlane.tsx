@@ -47,8 +47,12 @@ export function FromElementBasePlane(props: {
     (child) => child.nodeID === plane?.element
   );
   const [element, setElement] = React.useState(defaultElement?.nodeID ?? '');
-  const [distance, setDistance] = React.useState(new NamedNumber({value: 0}));
-  const [direction, setDirection] = React.useState<BasePlane | ''>('');
+  const [distance, setDistance] = React.useState(
+    new NamedNumber({value: plane?.distance.getStringValue() ?? 0})
+  );
+  const [direction, setDirection] = React.useState<BasePlane | ''>(
+    plane?.direction ?? ''
+  );
 
   const handleGetElement = () => {
     dispatch(setDatumElementSelectMode(true));
@@ -86,7 +90,7 @@ export function FromElementBasePlane(props: {
   React.useEffect(() => {
     if (element !== '' && direction !== '') {
       const obj: IFromElementBasePlane = new FromElementBasePlaneObject({
-        name: `datum point`,
+        name: `datum plane`,
         element,
         distance: distance.getStringValue(),
         direction
@@ -176,7 +180,12 @@ export function FromElementBasePlane(props: {
         unit="mm"
         disabled={selectMode}
         onUpdate={() => {
-          setDistance(new NamedNumber({value: distance.getStringValue()}));
+          setDistance(
+            new NamedNumber({
+              name: 'distance',
+              value: distance.getStringValue()
+            })
+          );
         }}
       />
     </Box>
