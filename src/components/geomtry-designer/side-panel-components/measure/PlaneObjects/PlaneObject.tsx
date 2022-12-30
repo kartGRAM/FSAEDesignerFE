@@ -5,15 +5,18 @@ import {IPlane, IDatumObject} from '@gd/measure/IDatumObjects';
 import {
   isThreePointsPlane,
   isAxisPointPlane,
+  isFromBasePlane,
   isFromElementBasePlane
 } from '@gd/measure/IPlaneObjects';
 import {ThreePointsPlane} from './ThreePointsPlane';
 import {AxisPointPlane} from './AxisPointPlane';
 import {FromElementBasePlane} from './FromElementBasePlane';
+import {FromBasePlane} from './FromBasePlane';
 
 export const planeClasses = [
   'ThreePointsPlane',
   'AxisPointPlane',
+  'FromBasePlane',
   'FromElementBasePlane'
 ] as const;
 export type PlaneClasses = typeof planeClasses[number];
@@ -21,6 +24,7 @@ export type PlaneClasses = typeof planeClasses[number];
 export function getPlaneObjectClass(point: IPlane): PlaneClasses | '' {
   if (isThreePointsPlane(point)) return 'ThreePointsPlane';
   if (isAxisPointPlane(point)) return 'AxisPointPlane';
+  if (isFromBasePlane(point)) return 'FromBasePlane';
   if (isFromElementBasePlane(point)) return 'FromElementBasePlane';
   return '';
 }
@@ -50,6 +54,13 @@ export function PlaneObject(params: {
     content = (
       <FromElementBasePlane
         plane={isFromElementBasePlane(plane) ? plane : undefined}
+        setApplyReady={setApplyReady}
+      />
+    );
+  else if (type === 'FromBasePlane')
+    content = (
+      <FromBasePlane
+        plane={isFromBasePlane(plane) ? plane : undefined}
         setApplyReady={setApplyReady}
       />
     );

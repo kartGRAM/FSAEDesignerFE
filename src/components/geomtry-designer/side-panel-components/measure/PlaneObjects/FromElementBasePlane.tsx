@@ -148,7 +148,7 @@ export function FromElementBasePlane(props: {
           flexDirection: 'row'
         }}
       >
-        <InputLabel htmlFor={ids[0]}>Select direction</InputLabel>
+        <InputLabel htmlFor={ids[1]}>Select direction</InputLabel>
         <Select
           disabled={selectMode}
           value={direction}
@@ -169,11 +169,6 @@ export function FromElementBasePlane(props: {
             </MenuItem>
           ))}
         </Select>
-        <Target
-          title="Select a component"
-          onClick={handleGetElement}
-          disabled={selectMode}
-        />
       </FormControl>
       <Scalar
         value={distance}

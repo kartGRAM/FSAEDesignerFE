@@ -14,12 +14,14 @@ import {
 import {
   ThreePointsPlane,
   FromElementBasePlane,
+  FromBasePlane,
   AxisPointPlane
 } from '@gd/measure/PlaneObjects';
 import {TwoPlaneIntersectionLine} from '@gd/measure/LineObjects';
 import {
   isDataThreePointsPlane,
   isDataFromElementBasePlane,
+  isDataFromBasePlane,
   isDataAxisPointPlane
 } from '@gd/measure/IPlaneObjects';
 import {isDataTwoPlaneIntersectionLine} from '@gd/measure/ILineObjects';
@@ -180,5 +182,6 @@ function getDatumObject(data: IDataDatumObject): IDatumObject {
   if (isDataThreePointsPlane(data)) return new ThreePointsPlane(data);
   if (isDataAxisPointPlane(data)) return new AxisPointPlane(data);
   if (isDataFromElementBasePlane(data)) return new FromElementBasePlane(data);
+  if (isDataFromBasePlane(data)) return new FromBasePlane(data);
   throw new Error('未実装のデータムを検出');
 }

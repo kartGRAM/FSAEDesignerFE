@@ -1,0 +1,89 @@
+import React from 'react';
+import {BasePlane, IFromBasePlane} from '@gd/measure/IPlaneObjects';
+import {FromBasePlane as FromBasePlaneObject} from '@gd/measure/PlaneObjects';
+import {IDatumObject} from '@gd/measure/IDatumObjects';
+import Box from '@mui/material/Box';
+import FormControl from '@mui/material/FormControl';
+import Select from '@mui/material/Select';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import Scalar from '@gdComponents/Scalar';
+import {NamedNumber} from '@gd/NamedValues';
+
+const directions: BasePlane[] = ['XY', 'YZ', 'ZX'];
+
+export function FromBasePlane(props: {
+  plane?: IFromBasePlane;
+  setApplyReady: React.Dispatch<React.SetStateAction<IDatumObject | undefined>>;
+}) {
+  const {plane, setApplyReady} = props;
+
+  const ids = [React.useId()];
+
+  const [distance, setDistance] = React.useState(
+    new NamedNumber({value: plane?.distance.getStringValue() ?? 0})
+  );
+  const [direction, setDirection] = React.useState<BasePlane | ''>(
+    plane?.direction ?? ''
+  );
+
+  React.useEffect(() => {
+    if (direction !== '') {
+      const obj: IFromBasePlane = new FromBasePlaneObject({
+        name: `datum plane`,
+        distance: distance.getStringValue(),
+        direction
+      });
+      setApplyReady(obj);
+    } else {
+      setApplyReady(undefined);
+    }
+  }, [distance, direction]);
+
+  return (
+    <Box component="div">
+      <FormControl
+        sx={{
+          m: 1,
+          mt: 3,
+          minWidth: 250,
+          display: 'flex',
+          flexDirection: 'row'
+        }}
+      >
+        <InputLabel htmlFor={ids[0]}>Select direction</InputLabel>
+        <Select
+          value={direction}
+          id={ids[0]}
+          label="Select direction"
+          onChange={(e) => setDirection(e.target.value as BasePlane)}
+          sx={{flexGrow: '1'}}
+          MenuProps={{
+            sx: {zIndex: 150000000000}
+          }}
+        >
+          <MenuItem aria-label="None" value="">
+            <em>None</em>
+          </MenuItem>
+          {directions.map((direction) => (
+            <MenuItem value={direction} key={direction}>
+              {direction}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+      <Scalar
+        value={distance}
+        unit="mm"
+        onUpdate={() => {
+          setDistance(
+            new NamedNumber({
+              name: 'distance',
+              value: distance.getStringValue()
+            })
+          );
+        }}
+      />
+    </Box>
+  );
+}
