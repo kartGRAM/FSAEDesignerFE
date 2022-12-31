@@ -16,6 +16,10 @@ import {
 } from '@gd/measure/IDatumObjects';
 import {
   BasePlane,
+  INormalConstantPlane,
+  isNormalConstantPlane,
+  IDataNormalConstantPlane,
+  isDataNormalConstantPlane,
   IFromBasePlane,
   isFromBasePlane,
   IDataFromBasePlane,
@@ -86,6 +90,103 @@ export abstract class Plane extends DatumObject implements IPlane {
         constant
       }
     };
+  }
+}
+
+export class NormalConstantPlane extends Plane implements INormalConstantPlane {
+  readonly className = 'NormalConstantPlane' as const;
+
+  get planeCenter(): Vector3 {
+    const distance = this.distance.value;
+    const {normal} = this.storedValue;
+    return normal.clone().multiplyScalar(distance);
+  }
+
+  get planeSize(): {width: number; height: number} {
+    return {width: 300, height: 300};
+  }
+
+  normal: string | INamedVector3;
+
+  normalBuf: ILine | undefined;
+
+  distance: INamedNumber;
+
+  storedValue: ThreePlane;
+
+  get description() {
+    return `plane from normal and constant`;
+  }
+
+  getThreePlane(): ThreePlane {
+    return this.storedValue.clone();
+  }
+
+  getData(): IDataNormalConstantPlane {
+    const base = super.getDataBase();
+    const state = store.getState().dgd.present;
+    return {
+      ...base,
+      className: this.className,
+      normal: isNamedVector3(this.normal)
+        ? this.normal.getData(state)
+        : (this.normal as string),
+      distance: this.distance.getData(state)
+    };
+  }
+
+  update(ref: DatumDict): void {
+    let normal: Vector3 | undefined;
+    if (isNamedVector3(this.normal)) {
+      normal = this.normal.value;
+    } else {
+      const tmp = ref[this.normal];
+      if (isPoint(tmp)) normal = tmp.getThreePoint();
+    }
+    if (!normal) throw new Error('データム軸が見つからない');
+    normal.normalize();
+    const distance = this.distance.value;
+    this.storedValue = new ThreePlane(normal, distance);
+  }
+
+  constructor(
+    params:
+      | {
+          name: string;
+          distance: string | number | INamedNumber;
+          normal: string | INamedVector3;
+        }
+      | IDataNormalConstantPlane
+  ) {
+    super(params);
+    this.storedValue = new ThreePlane();
+    const {distance, normal} = params;
+    this.distance = new NamedNumber({value: params.distance});
+    this.normal =
+      isNamedVector3(normal) || isNamedData(normal)
+        ? new NamedVector3({value: normal})
+        : normal;
+    if (isDataDatumObject(params) && isDataNormalConstantPlane(params)) {
+      const {lastPosition} = params;
+      const {x, y, z} = lastPosition.normal;
+      this.storedValue = new ThreePlane(
+        new Vector3(x, y, z),
+        lastPosition.constant
+      );
+    }
+  }
+
+  copy(other: IDatumObject): void {
+    if (isPlane(other) && isNormalConstantPlane(other)) {
+      if (isNamedVector3(other.normal)) {
+        this.normal = new NamedVector3({value: other.normal.getStringValue()});
+      } else {
+        this.normal = other.normal;
+      }
+      this.distance.setValue(other.distance.getStringValue());
+    } else {
+      throw new Error('型不一致');
+    }
   }
 }
 
@@ -250,16 +351,14 @@ export class PointNormalPlane extends Plane implements IPointNormalPlane {
     super(params);
     this.storedValue = new ThreePlane();
     const {point, normal} = params;
-    this.point = isNamedVector3(point)
-      ? new NamedVector3({value: point.getStringValue()})
-      : isNamedData(point)
-      ? new NamedVector3(point)
-      : point;
-    this.normal = isNamedVector3(normal)
-      ? new NamedVector3({value: normal.getStringValue()})
-      : isNamedData(normal)
-      ? new NamedVector3(normal)
-      : normal;
+    this.point =
+      isNamedVector3(point) || isNamedData(point)
+        ? new NamedVector3({value: point})
+        : point;
+    this.normal =
+      isNamedVector3(normal) || isNamedData(normal)
+        ? new NamedVector3({value: normal})
+        : normal;
     if (isDataDatumObject(params) && isDataPointNormalPlane(params)) {
       const {lastPosition} = params;
       const {x, y, z} = lastPosition.normal;
