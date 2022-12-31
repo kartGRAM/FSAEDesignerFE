@@ -172,7 +172,9 @@ export class DatumManager implements IDatumManager {
 }
 
 function getDatumObject(data: IDataDatumObject): IDatumObject {
-  if (isDataFixedPoint(data)) return new FixedPoint(data);
+  if (isDataFixedPoint(data)) {
+    return new FixedPoint(data);
+  }
   if (isDataElementPoint(data)) return new ElementPoint(data);
   if (isDataPlaneLineIntersection(data)) return new PlaneLineIntersection(data);
 

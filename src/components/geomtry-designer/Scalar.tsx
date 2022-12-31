@@ -1,7 +1,6 @@
 import React, {useState} from 'react';
-import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
+import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
-import InputAdornment from '@mui/material/InputAdornment';
 import {INamedNumber} from '@gd/INamedValues';
 import Typography from '@mui/material/Typography';
 import {useDispatch} from 'react-redux';
@@ -12,6 +11,7 @@ import Toolbar from '@mui/material/Toolbar';
 import DeleteIcon from '@mui/icons-material/Delete';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
+import {ValueField} from './ValueField';
 
 export interface Props {
   value: INamedNumber;
@@ -193,25 +193,3 @@ export default function Scalar(props: Props) {
     </Box>
   );
 }
-
-interface ValueFieldProps extends OutlinedTextFieldProps {
-  unit: string;
-}
-
-const ValueField = (props: ValueFieldProps) => {
-  const {unit} = props;
-  return (
-    <TextField
-      size="small"
-      // margin="none"
-      {...props}
-      InputProps={{
-        endAdornment: <InputAdornment position="end">{unit}</InputAdornment>
-      }}
-      sx={{
-        margin: 1
-        // width: '15ch'
-      }}
-    />
-  );
-};

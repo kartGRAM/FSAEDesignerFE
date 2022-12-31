@@ -16,6 +16,7 @@ import DialogRoot from '@gdComponents/dialog-components/DialogRoot';
 import {numberToRgb} from '@app/utils/helpers';
 import Box from '@mui/material/Box';
 import shortCutKeys from '@gd/ShortCutKeys';
+import CssBaseLine from '@mui/material/CssBaseline';
 
 const GeometryDesigner = () => {
   const isFullScreen = useSelector(
@@ -39,59 +40,63 @@ const GeometryDesigner = () => {
   });
 
   return (
-    <div>
-      <ContentHeader title="Geomtry Designer" />
-      <section className="content">
-        <div
-          className={`container-fluid p-0
+    <CssBaseLine>
+      <div>
+        <ContentHeader title="Geomtry Designer" />
+        <section className="content">
+          <div
+            className={`container-fluid p-0
           ${isFullScreen ? 'fullscreen' : 'content-full-height'}
           d-flex flex-column
           `}
-          style={{zIndex: fullScreenZ}}
-        >
-          <DialogRoot />
-          <GDAppBar />
-
-          <Box
-            component="div"
-            className="position-relative w-100 d-flex"
-            sx={{
-              height: 'calc(100% - 36px)'
-            }}
+            style={{zIndex: fullScreenZ}}
           >
-            <MiniDrawer />
+            <DialogRoot />
+            <GDAppBar />
 
-            <div
-              className="h-100 w-100 position-relative d-flex"
-              id="gdMainWindow"
+            <Box
+              component="div"
+              className="position-relative w-100 d-flex"
+              sx={{
+                height: 'calc(100% - 36px)'
+              }}
             >
-              <SidePanel />
-              <Box
-                component="div"
-                className="h-100 w-100 position-relative"
-                sx={{
-                  paddingLeft: '2px',
-                  backgroundColor: numberToRgb(bgColor)
-                }}
+              <MiniDrawer />
+
+              <div
+                className="h-100 w-100 position-relative d-flex"
+                id="gdMainWindow"
               >
-                <GDScene />
-                <button
-                  type="button"
-                  className="btn btn-tool fullscreen-btn"
-                  onClick={() => dispatch(toggleFullScreen())}
+                <SidePanel />
+                <Box
+                  component="div"
+                  className="h-100 w-100 position-relative"
+                  sx={{
+                    paddingLeft: '2px',
+                    backgroundColor: numberToRgb(bgColor)
+                  }}
                 >
-                  <i
-                    className={`fas fa-${isFullScreen ? 'compress' : 'expand'}`}
-                  />
-                </button>
-                <ElementsTreeView />
-                <AssemblyCreactor />
-              </Box>
-            </div>
-          </Box>
-        </div>
-      </section>
-    </div>
+                  <GDScene />
+                  <button
+                    type="button"
+                    className="btn btn-tool fullscreen-btn"
+                    onClick={() => dispatch(toggleFullScreen())}
+                  >
+                    <i
+                      className={`fas fa-${
+                        isFullScreen ? 'compress' : 'expand'
+                      }`}
+                    />
+                  </button>
+                  <ElementsTreeView />
+                  <AssemblyCreactor />
+                </Box>
+              </div>
+            </Box>
+          </div>
+        </section>
+      </div>
+    </CssBaseLine>
   );
 };
 

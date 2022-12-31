@@ -96,10 +96,7 @@ export class FixedPoint extends Point implements IFixedPoint {
   ) {
     super(params);
     const {position, nodeID} = params;
-    this.position = new NamedVector3({value: {...position}});
-    if (isDataDatumObject(params) && isDataFixedPoint(params)) {
-      this.position = new NamedVector3(params.position);
-    }
+    this.position = new NamedVector3({value: position});
   }
 
   copy(other: IDatumObject): void {

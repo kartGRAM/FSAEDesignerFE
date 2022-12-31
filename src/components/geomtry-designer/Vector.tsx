@@ -1,8 +1,7 @@
 /* eslint-disable no-nested-ternary */
 import React, {useState} from 'react';
-import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
+import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
-import InputAdornment from '@mui/material/InputAdornment';
 import {DeltaXYZ} from '@gd/NamedValues';
 import {INamedVector3, IPointOffsetTool} from '@gd/INamedValues';
 import Typography from '@mui/material/Typography';
@@ -40,8 +39,8 @@ import Move from '@gdComponents/svgs/Move';
 import Direction from '@gdComponents/svgs/Direction';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
-
 import {numberToRgb, toFixedNoZero} from '@app/utils/helpers';
+import {ValueField} from './ValueField';
 
 export interface Props {
   vector: INamedVector3;
@@ -51,6 +50,8 @@ export interface Props {
   disableSceneButton?: boolean;
   directionMode?: boolean;
   isNode?: boolean;
+  onUpdate?: () => void;
+  unit?: string;
 }
 
 const Vector = React.memo((props: Props) => {
@@ -61,8 +62,10 @@ const Vector = React.memo((props: Props) => {
     disabled,
     disableSceneButton,
     directionMode,
-    isNode
+    isNode,
+    onUpdate
   } = props;
+  const unit = props.unit ?? 'mm';
   const dispatch = useDispatch();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const point = (
@@ -109,12 +112,13 @@ const Vector = React.memo((props: Props) => {
     }),
     onSubmit: (values) => {
       vector.setValue(values);
-      dispatch(updateAssembly(vector));
+      if (vector.parent) dispatch(updateAssembly(vector));
+      if (onUpdate) onUpdate();
     }
   });
 
   React.useEffect(() => {
-    if (focused) dispatch(setSelectedPoint({point: vector}));
+    if (focused && !directionMode) dispatch(setSelectedPoint({point: vector}));
   }, [focused, vector]);
 
   const ref = React.useRef<HTMLInputElement>(null);
@@ -290,6 +294,7 @@ const Vector = React.memo((props: Props) => {
           }}
         >
           <ValueField
+            unit={unit}
             inputRef={refOfVectorField}
             disabled={disabled}
             onChange={handleChange}
@@ -302,6 +307,7 @@ const Vector = React.memo((props: Props) => {
             onBlur={formik.handleBlur}
           />
           <ValueField
+            unit={unit}
             disabled={disabled}
             onChange={handleChange}
             onBlur={formik.handleBlur}
@@ -313,6 +319,7 @@ const Vector = React.memo((props: Props) => {
             helperText={formik.touched.y && formik.errors.y}
           />
           <ValueField
+            unit={unit}
             disabled={disabled}
             onChange={handleChange}
             onBlur={formik.handleBlur}
@@ -323,54 +330,60 @@ const Vector = React.memo((props: Props) => {
             error={formik.touched.z && Boolean(formik.errors.z)}
             helperText={formik.touched.z && formik.errors.z}
           />
-          {!disableSceneButton ? (
-            !directionMode ? (
-              <>
-                <Target
-                  disabled={disabled}
-                  title="Copy from existing points"
-                  onClick={() => {
-                    dispatch(
-                      setCopyFromExistingPointsDialogProps({
-                        open: true,
-                        onSelected: (p) => {
-                          if (isElement(vector.parent)) {
-                            p.sub(vector.parent.position.value);
+
+          <Box
+            component="div"
+            sx={{display: 'flex', flexDirection: 'row', pt: 1}}
+          >
+            {!disableSceneButton ? (
+              !directionMode ? (
+                <>
+                  <Target
+                    disabled={disabled}
+                    title="Copy from existing points"
+                    onClick={() => {
+                      dispatch(
+                        setCopyFromExistingPointsDialogProps({
+                          open: true,
+                          onSelected: (p) => {
+                            if (isElement(vector.parent)) {
+                              p.sub(vector.parent.position.value);
+                            }
+                            formik.setFieldValue('x', p.x);
+                            formik.setFieldValue('y', p.y);
+                            formik.setFieldValue('z', p.z);
+                            setTimeout(formik.handleSubmit, 0);
                           }
-                          formik.setFieldValue('x', p.x);
-                          formik.setFieldValue('y', p.y);
-                          formik.setFieldValue('z', p.z);
-                          setTimeout(formik.handleSubmit, 0);
-                        }
-                      })
-                    );
-                  }}
-                />
-                <Move
-                  disabled={disabled}
-                  title="Move this point dynamically"
-                  onClick={() => {
-                    dispatch(
-                      setMovePointDialogProps({
-                        open: true,
-                        target: vector,
-                        onMoved: (delta) => {
-                          const v = vector.value;
-                          v.add(delta);
-                          formik.setFieldValue('x', toFixedNoZero(v.x, 3));
-                          formik.setFieldValue('y', toFixedNoZero(v.y, 3));
-                          formik.setFieldValue('z', toFixedNoZero(v.z, 3));
-                          setTimeout(formik.handleSubmit, 0);
-                        }
-                      })
-                    );
-                  }}
-                />
-              </>
-            ) : (
-              <Direction title="Copy from existing normal vector." />
-            )
-          ) : null}
+                        })
+                      );
+                    }}
+                  />
+                  <Move
+                    disabled={disabled}
+                    title="Move this point dynamically"
+                    onClick={() => {
+                      dispatch(
+                        setMovePointDialogProps({
+                          open: true,
+                          target: vector,
+                          onMoved: (delta) => {
+                            const v = vector.value;
+                            v.add(delta);
+                            formik.setFieldValue('x', toFixedNoZero(v.x, 3));
+                            formik.setFieldValue('y', toFixedNoZero(v.y, 3));
+                            formik.setFieldValue('z', toFixedNoZero(v.z, 3));
+                            setTimeout(formik.handleSubmit, 0);
+                          }
+                        })
+                      );
+                    }}
+                  />
+                </>
+              ) : (
+                <Direction title="Copy from existing normal vector." />
+              )
+            ) : null}
+          </Box>
         </Box>
       </form>
       <Accordion
@@ -550,20 +563,3 @@ const PointOffsetList = React.memo(
     );
   }
 );
-
-const ValueField = React.memo((props: OutlinedTextFieldProps) => {
-  return (
-    <TextField
-      size="small"
-      // margin="none"
-      {...props}
-      InputProps={{
-        endAdornment: <InputAdornment position="end">mm</InputAdornment>
-      }}
-      sx={{
-        margin: 1
-        // width: '15ch'
-      }}
-    />
-  );
-});
