@@ -18,7 +18,10 @@ import {
   AxisPointPlane,
   NormalConstantPlane
 } from '@gd/measure/PlaneObjects';
-import {TwoPlaneIntersectionLine} from '@gd/measure/LineObjects';
+import {
+  PointDirectionLine,
+  TwoPlaneIntersectionLine
+} from '@gd/measure/LineObjects';
 import {
   isDataThreePointsPlane,
   isDataFromElementBasePlane,
@@ -26,7 +29,10 @@ import {
   isDataNormalConstantPlane,
   isDataAxisPointPlane
 } from '@gd/measure/IPlaneObjects';
-import {isDataTwoPlaneIntersectionLine} from '@gd/measure/ILineObjects';
+import {
+  isDataPointDirectionLine,
+  isDataTwoPlaneIntersectionLine
+} from '@gd/measure/ILineObjects';
 import store from '@store/store';
 import {setDatumObjects} from '@store/reducers/dataGeometryDesigner';
 import {
@@ -189,6 +195,7 @@ function getDatumObject(data: IDataDatumObject): IDatumObject {
   if (isDataElementPoint(data)) return new ElementPoint(data);
   if (isDataPlaneLineIntersection(data)) return new PlaneLineIntersection(data);
 
+  if (isDataPointDirectionLine(data)) return new PointDirectionLine(data);
   if (isDataTwoPlaneIntersectionLine(data))
     return new TwoPlaneIntersectionLine(data);
 

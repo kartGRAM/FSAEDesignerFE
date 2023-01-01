@@ -2,14 +2,22 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import {ILine, IDatumObject} from '@gd/measure/IDatumObjects';
-import {isTwoPlaneIntersectionLine} from '@gd/measure/ILineObjects';
+import {
+  isPointDirectionLine,
+  isTwoPlaneIntersectionLine
+} from '@gd/measure/ILineObjects';
 import {TwoPlaneIntersectionLine} from './TwoPlaneIntersectionLine';
+import {PointDirectionLine} from './PointDirectionLine';
 
-export const lineClasses = ['TwoPlaneIntersectionLine'] as const;
+export const lineClasses = [
+  'PointDirectionLine',
+  'TwoPlaneIntersectionLine'
+] as const;
 export type LineClasses = typeof lineClasses[number];
 
 export function getLineObjectClass(line: ILine): LineClasses | '' {
   if (isTwoPlaneIntersectionLine(line)) return 'TwoPlaneIntersectionLine';
+  if (isPointDirectionLine(line)) return 'PointDirectionLine';
   return '';
 }
 
@@ -20,7 +28,14 @@ export function LineObject(params: {
 }) {
   const {line, type, setApplyReady} = params;
   let content: JSX.Element | null = null;
-  if (type === 'TwoPlaneIntersectionLine')
+  if (type === 'PointDirectionLine')
+    content = (
+      <PointDirectionLine
+        line={isPointDirectionLine(line) ? line : undefined}
+        setApplyReady={setApplyReady}
+      />
+    );
+  else if (type === 'TwoPlaneIntersectionLine')
     content = (
       <TwoPlaneIntersectionLine
         line={isTwoPlaneIntersectionLine(line) ? line : undefined}

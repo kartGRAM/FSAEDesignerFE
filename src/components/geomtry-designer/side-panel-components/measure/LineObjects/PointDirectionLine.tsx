@@ -8,9 +8,8 @@ import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
-import Scalar from '@gdComponents/Scalar';
 import store, {RootState} from '@store/store';
-import {NamedNumber, NamedVector3} from '@gd/NamedValues';
+import {NamedVector3} from '@gd/NamedValues';
 import {isNamedVector3} from '@gd/INamedValues';
 import {
   setDatumPointSelectMode,
@@ -28,7 +27,7 @@ export type DirectionType = typeof directionTypes[number];
 export const pointTypes = ['datum point', 'constant vector'] as const;
 export type PointType = typeof pointTypes[number];
 
-export function NormalConstantPlane(props: {
+export function PointDirectionLine(props: {
   line?: IPointDirectionLine;
   setApplyReady: React.Dispatch<React.SetStateAction<IDatumObject | undefined>>;
 }) {
@@ -41,12 +40,12 @@ export function NormalConstantPlane(props: {
 
   const ids = [React.useId(), React.useId(), React.useId(), React.useId()];
 
-  const [directionType, setDirectionType] = React.useState<string>(
-    isNamedVector3(line?.direction) ? 'constant vector' : 'datum line'
+  const [pointType, setPointType] = React.useState<string>(
+    isNamedVector3(line?.point) ? 'constant vector' : 'datum point'
   );
 
-  const [pointType, setPointType] = React.useState<string>(
-    isNamedVector3(line?.direction) ? 'constant vector' : 'datum point'
+  const [directionType, setDirectionType] = React.useState<string>(
+    isNamedVector3(line?.direction) ? 'constant vector' : 'datum line'
   );
 
   const selectMode = useSelector(
@@ -196,7 +195,7 @@ export function NormalConstantPlane(props: {
             >{`Select ${value.name} type`}</InputLabel>
             <Select
               disabled={selectMode}
-              value={directionType}
+              value={[pointType, directionType][i]}
               id={ids[i]}
               label={`Select ${value.name} type`}
               onChange={(e) =>
@@ -227,12 +226,12 @@ export function NormalConstantPlane(props: {
                 flexDirection: 'row'
               }}
             >
-              <InputLabel htmlFor={ids[i + 1]}>{value.select[i]}</InputLabel>
+              <InputLabel htmlFor={ids[i + 1]}>{value.select}</InputLabel>
               <Select
                 disabled={selectMode}
                 value={[nPoint, nDirection][i]}
                 id={ids[i + 1]}
-                label={value.select[i]}
+                label={value.select}
                 onChange={(e) => [setNPoint, setNDirection][i](e.target.value)}
                 sx={{flexGrow: '1'}}
                 MenuProps={{

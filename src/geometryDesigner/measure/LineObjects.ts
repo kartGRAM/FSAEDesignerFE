@@ -136,7 +136,10 @@ export class PointDirectionLine extends Line implements IPointDirectionLine {
     if (!direction) throw new Error('データム軸が見つからない');
     direction.normalize();
 
-    this.storedValue = new Line3(point, point.clone().add(direction));
+    this.storedValue = new Line3(
+      point,
+      point.clone().add(direction.clone().multiplyScalar(300))
+    );
   }
 
   constructor(
