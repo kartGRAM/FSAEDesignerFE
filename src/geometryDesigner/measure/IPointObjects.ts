@@ -1,4 +1,9 @@
-import {INamedVector3, IDataVector3} from '@gd/INamedValues';
+import {
+  INamedNumber,
+  IDataNumber,
+  INamedVector3,
+  IDataVector3
+} from '@gd/INamedValues';
 import {
   IPlane,
   IPoint,
@@ -112,10 +117,25 @@ export interface IDataProjectionPointToLine extends IDataPoint {
 export interface IClosestPointOfTwoLines extends IPoint {
   className: 'ClosestPointOfTwoLines';
   lines: [NodeID, NodeID];
+  weight: INamedNumber;
   getData(): IDataClosestPointOfTwoLines;
+}
+
+export function isClosestPointOfTwoLines(
+  point: IPoint | undefined
+): point is IClosestPointOfTwoLines {
+  if (!point) return false;
+  return point.className === 'ClosestPointOfTwoLines';
 }
 
 export interface IDataClosestPointOfTwoLines extends IDataPoint {
   className: 'ClosestPointOfTwoLines';
   lines: [NodeID, NodeID];
+  weight: IDataNumber;
+}
+
+export function isDataClosestPointOfTwoLines(
+  data: IDataDatumObject
+): data is IDataClosestPointOfTwoLines {
+  return data.className === 'ClosestPointOfTwoLines';
 }

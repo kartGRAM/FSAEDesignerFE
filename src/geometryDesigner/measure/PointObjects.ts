@@ -16,21 +16,24 @@ import {
   IFixedPoint,
   IDataFixedPoint,
   isFixedPoint,
-  isDataFixedPoint,
   IPlaneLineIntersection,
-  IDataPlaneLineIntersection,
   isPlaneLineIntersection,
+  IDataPlaneLineIntersection,
   isDataPlaneLineIntersection,
-  IDataElementPoint,
+  IClosestPointOfTwoLines,
+  isClosestPointOfTwoLines,
+  IDataClosestPointOfTwoLines,
+  isDataClosestPointOfTwoLines,
   IElementPoint,
   isElementPoint,
+  IDataElementPoint,
   isDataElementPoint
 } from '@gd/measure/IPointObjects';
 import {Vector3} from 'three';
 import {DatumObject} from '@gd/measure/DatumObjects';
 import {IAssembly, IElement} from '@gd/IElements';
-import {INamedVector3} from '@gd/INamedValues';
-import {NamedVector3} from '@gd/NamedValues';
+import {INamedVector3, INamedNumber} from '@gd/INamedValues';
+import {NamedVector3, NamedNumber} from '@gd/NamedValues';
 import store from '@store/store';
 import {getIntersectionOfPlaneAndLine} from '@utils/threeUtils';
 
@@ -99,7 +102,7 @@ export class FixedPoint extends Point implements IFixedPoint {
       | IDataFixedPoint
   ) {
     super(params);
-    const {position, nodeID} = params;
+    const {position} = params;
     this.position = new NamedVector3({value: position});
   }
 
@@ -232,6 +235,69 @@ export class PlaneLineIntersection
     if (isPoint(other) && isPlaneLineIntersection(other)) {
       this.plane = other.plane;
       this.line = other.line;
+    } else {
+      throw new Error('型不一致');
+    }
+  }
+}
+
+export class ClosestPointOfTwoLines
+  extends Point
+  implements IClosestPointOfTwoLines
+{
+  readonly className = 'ClosestPointOfTwoLines' as const;
+
+  lines: [string, string];
+
+  lineBuf: [IPlane, IPlane] | undefined = undefined;
+
+  weight: INamedNumber;
+
+  get description() {
+    return `closest point of two lines. weight is ${this.weight.value}`;
+  }
+
+  getData(): IDataClosestPointOfTwoLines {
+    const base = super.getDataBase();
+    const state = store.getState().dgd.present;
+    return {
+      ...base,
+      className: this.className,
+      lines: [...this.lines],
+      weight: this.weight.getData(state)
+    };
+  }
+
+  update(ref: DatumDict): void {
+    const lines = this.lines.map((l) => {
+      const line = ref[l];
+      if (!line || !isPlane(line)) throw new Error('軸が見つからない');
+      return line;
+    });
+    this.lineBuf = [lines[0], lines[1]];
+  }
+
+  constructor(
+    params:
+      | {
+          name: string;
+          lines: [string, string];
+          weight: string | number | INamedNumber;
+        }
+      | IDataClosestPointOfTwoLines
+  ) {
+    super(params);
+    this.lines = [...params.lines];
+    this.weight = new NamedNumber({value: params.weight});
+    if (isDataDatumObject(params) && isDataClosestPointOfTwoLines(params)) {
+      this.storedValue = new Vector3(...Object.values(params.lastPosition));
+    }
+  }
+
+  copy(other: IDatumObject): void {
+    if (isPoint(other) && isClosestPointOfTwoLines(other)) {
+      this.lines = [...other.lines];
+      this.weight.setValue(other.weight.getStringValue());
     } else {
       throw new Error('型不一致');
     }
