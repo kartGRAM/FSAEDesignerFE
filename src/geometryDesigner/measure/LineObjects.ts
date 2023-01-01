@@ -33,11 +33,15 @@ export abstract class Line extends DatumObject implements ILine {
 
   abstract get description(): string;
 
-  abstract getThreeLine(): Line3;
+  protected storedValue: Line3 = new Line3();
+
+  getThreeLine(): Line3 {
+    return this.storedValue.clone();
+  }
 
   abstract getData(): IDataLine;
 
-  getDataBase(): IDataLine {
+  protected getDataBase(): IDataLine {
     const base = super.getDataBase();
     const line = this.getThreeLine();
     const {x, y, z} = line.start;
@@ -50,6 +54,13 @@ export abstract class Line extends DatumObject implements ILine {
         start: {x, y, z}
       }
     };
+  }
+
+  protected setLastPosition(params: IDataLine) {
+    const lp = params.lastPosition;
+    const start = new Vector3(...Object.values(lp.start));
+    const direction = new Vector3(...Object.values(lp.direction));
+    this.storedValue = new Line3(start, start.clone().add(direction));
   }
 }
 
@@ -71,16 +82,10 @@ export class TwoPlaneIntersectionLine
 
   planes: [string, string];
 
-  storedValue: Line3;
-
   planeBuf: [IPlane, IPlane] | undefined = undefined;
 
   get description() {
     return `line of two planes intersection`;
-  }
-
-  getThreeLine(): Line3 {
-    return this.storedValue.clone();
   }
 
   getData(): IDataTwoPlaneIntersectionLine {
@@ -113,12 +118,8 @@ export class TwoPlaneIntersectionLine
   ) {
     super(params);
     this.planes = [params.planes[0], params.planes[1]];
-    this.storedValue = new Line3();
     if (isDataDatumObject(params) && isDataTwoPlaneIntersectionLine(params)) {
-      const lp = params.lastPosition;
-      const start = new Vector3(...Object.values(lp.start));
-      const direction = new Vector3(...Object.values(lp.direction));
-      this.storedValue = new Line3(start, start.clone().add(direction));
+      this.setLastPosition(params);
     }
   }
 

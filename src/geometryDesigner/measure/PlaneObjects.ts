@@ -77,7 +77,7 @@ export abstract class Plane extends DatumObject implements IPlane {
 
   abstract getData(): IDataPlane;
 
-  getDataBase(): IDataPlane {
+  protected getDataBase(): IDataPlane {
     const base = super.getDataBase();
     const plane = this.getThreePlane();
     const {x, y, z} = plane.normal;
@@ -92,13 +92,13 @@ export abstract class Plane extends DatumObject implements IPlane {
     };
   }
 
-  storedValue: ThreePlane = new ThreePlane();
+  protected storedValue: ThreePlane = new ThreePlane();
 
   getThreePlane(): ThreePlane {
     return this.storedValue.clone();
   }
 
-  setLastPosition(params: IDataPlane) {
+  protected setLastPosition(params: IDataPlane) {
     const {lastPosition} = params;
     const {x, y, z} = lastPosition.normal;
     this.storedValue = new ThreePlane(

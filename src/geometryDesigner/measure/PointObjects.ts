@@ -39,11 +39,15 @@ export abstract class Point extends DatumObject implements IPoint {
 
   readonly isPoint = true as const;
 
-  abstract getThreePoint(): Vector3;
+  protected storedValue: Vector3 = new Vector3();
+
+  getThreePoint(): Vector3 {
+    return this.storedValue.clone();
+  }
 
   abstract getData(): IDataPoint;
 
-  getDataBase(): IDataPoint {
+  protected getDataBase(): IDataPoint {
     const base = super.getDataBase();
     const {x, y, z} = this.getThreePoint();
     return {
@@ -64,10 +68,6 @@ export class FixedPoint extends Point implements IFixedPoint {
     return `fixed point`;
   }
 
-  getThreePoint(): Vector3 {
-    return this.position.value;
-  }
-
   getData(): IDataFixedPoint {
     const base = super.getDataBase();
     const state = store.getState().dgd.present;
@@ -76,6 +76,10 @@ export class FixedPoint extends Point implements IFixedPoint {
       className: this.className,
       position: this.position.getData(state)
     };
+  }
+
+  getThreePoint(): Vector3 {
+    return this.position.value.clone();
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -115,17 +119,11 @@ export class ElementPoint extends Point implements IElementPoint {
 
   point: string;
 
-  storedValue: Vector3;
-
   elementBuf: IElement | undefined = undefined;
 
   get description() {
     const element = this.elementBuf;
     return `element point of ${element?.name.value}`;
-  }
-
-  getThreePoint(): Vector3 {
-    return this.storedValue.clone();
   }
 
   getData(): IDataElementPoint {
@@ -158,7 +156,6 @@ export class ElementPoint extends Point implements IElementPoint {
     super(params);
     this.element = params.element;
     this.point = params.point;
-    this.storedValue = new Vector3();
     if (isDataDatumObject(params) && isDataElementPoint(params)) {
       this.storedValue = new Vector3(...Object.values(params.lastPosition));
     }
@@ -184,8 +181,6 @@ export class PlaneLineIntersection
 
   line: string;
 
-  storedValue: Vector3;
-
   planeBuf: IPlane | undefined = undefined;
 
   lineBuf: ILine | undefined = undefined;
@@ -193,10 +188,6 @@ export class PlaneLineIntersection
   // eslint-disable-next-line class-methods-use-this
   get description() {
     return `intersection point of line and plane`;
-  }
-
-  getThreePoint(): Vector3 {
-    return this.storedValue.clone();
   }
 
   getData(): IDataPlaneLineIntersection {
@@ -232,7 +223,6 @@ export class PlaneLineIntersection
     super(params);
     this.plane = params.plane;
     this.line = params.line;
-    this.storedValue = new Vector3();
     if (isDataDatumObject(params) && isDataPlaneLineIntersection(params)) {
       this.storedValue = new Vector3(...Object.values(params.lastPosition));
     }

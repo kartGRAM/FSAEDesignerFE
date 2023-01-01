@@ -35,7 +35,7 @@ export abstract class DatumObject implements IDatumObject {
 
   abstract get description(): string;
 
-  getDataBase(): IDataDatumObject {
+  protected getDataBase(): IDataDatumObject {
     return {
       isDataDatumObject: true,
       nodeID: this.nodeID,
