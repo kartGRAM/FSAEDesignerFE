@@ -249,7 +249,7 @@ export class ClosestPointOfTwoLines
 
   lines: [string, string];
 
-  lineBuf: [IPlane, IPlane] | undefined = undefined;
+  lineBuf: [ILine, ILine] | undefined = undefined;
 
   weight: INamedNumber;
 
@@ -271,10 +271,29 @@ export class ClosestPointOfTwoLines
   update(ref: DatumDict): void {
     const lines = this.lines.map((l) => {
       const line = ref[l];
-      if (!line || !isPlane(line)) throw new Error('軸が見つからない');
+      if (!line || !isLine(line)) throw new Error('軸が見つからない');
       return line;
     });
+
     this.lineBuf = [lines[0], lines[1]];
+    const threeLines = lines.map((line) => line.getThreeLine());
+    const m = threeLines.map((line) => line.delta(new Vector3()).normalize());
+    const x = threeLines.map((line) => line.start.clone());
+    const mm = m[0].dot(m[1]);
+
+    const lhs = [
+      m[0].clone().sub(m[1].clone().multiplyScalar(mm)),
+      m[1].clone().sub(m[0].clone().multiplyScalar(mm))
+    ];
+    const rhs = [x[1].clone().sub(x[0]), x[0].clone().sub(x[1])];
+    const k = lhs.map((_, i) =>
+      x[i].add(m[i].multiplyScalar(lhs[i].dot(rhs[i]) / (1 - mm * mm)))
+    );
+
+    let t = this.weight.value;
+    // eslint-disable-next-line no-nested-ternary
+    t = t < 0 ? 0 : t > 1 ? 1 : t;
+    this.storedValue = k[0].multiplyScalar(t).add(k[1].multiplyScalar(1 - t));
   }
 
   constructor(
