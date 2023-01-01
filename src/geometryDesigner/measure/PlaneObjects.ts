@@ -46,10 +46,12 @@ import {DatumObject} from '@gd/measure/DatumObjects';
 import {IAssembly, IElement} from '@gd/IElements';
 import {getPlaneFromAxisAndPoint} from '@utils/threeUtils';
 import {
+  FunctionVector3,
   INamedNumber,
   INamedVector3,
   isNamedVector3,
-  isNamedData
+  isNamedData,
+  isFunctionVector3
 } from '@gd/INamedValues';
 import {NamedNumber, NamedVector3} from '@gd/NamedValues';
 import store from '@store/store';
@@ -154,7 +156,7 @@ export class NormalConstantPlane extends Plane implements INormalConstantPlane {
       | {
           name: string;
           distance: string | number | INamedNumber;
-          normal: string | INamedVector3;
+          normal: string | INamedVector3 | FunctionVector3;
         }
       | IDataNormalConstantPlane
   ) {
@@ -163,7 +165,7 @@ export class NormalConstantPlane extends Plane implements INormalConstantPlane {
     const {distance, normal} = params;
     this.distance = new NamedNumber({value: distance});
     this.normal =
-      isNamedVector3(normal) || isNamedData(normal)
+      isNamedVector3(normal) || isNamedData(normal) || isFunctionVector3(normal)
         ? new NamedVector3({value: normal})
         : normal;
     if (
@@ -349,8 +351,8 @@ export class PointNormalPlane extends Plane implements IPointNormalPlane {
     params:
       | {
           name: string;
-          point: string | INamedVector3;
-          normal: string | INamedVector3;
+          point: string | INamedVector3 | FunctionVector3;
+          normal: string | INamedVector3 | FunctionVector3;
         }
       | IDataPointNormalPlane
   ) {
@@ -358,13 +360,19 @@ export class PointNormalPlane extends Plane implements IPointNormalPlane {
     this.storedValue = new ThreePlane();
     const {point, normal} = params;
     this.point =
-      isNamedVector3(point) || isNamedData(point)
+      isNamedVector3(point) || isNamedData(point) || isFunctionVector3(point)
         ? new NamedVector3({value: point})
         : point;
     this.normal =
-      isNamedVector3(normal) || isNamedData(normal)
+      isNamedVector3(normal) || isNamedData(normal) || isFunctionVector3(normal)
         ? new NamedVector3({value: normal})
         : normal;
+    if (
+      isNamedVector3(this.normal) &&
+      this.normal.value.lengthSq() < Number.EPSILON
+    ) {
+      this.normal.value = new Vector3(1, 0, 0);
+    }
     if (isDataDatumObject(params) && isDataPointNormalPlane(params)) {
       const {lastPosition} = params;
       const {x, y, z} = lastPosition.normal;

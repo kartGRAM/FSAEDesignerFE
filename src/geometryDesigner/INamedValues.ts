@@ -9,6 +9,18 @@ export type FunctionVector3 = {
   z: number | string;
 };
 
+export function isFunctionVector3(vec: any): vec is FunctionVector3 {
+  try {
+    const {x, y, z} = vec;
+    const xt = typeof x === 'number' || typeof x === 'string';
+    const yt = typeof y === 'number' || typeof y === 'string';
+    const zt = typeof z === 'number' || typeof z === 'string';
+    return xt && yt && zt;
+  } catch {
+    return false;
+  }
+}
+
 export interface INamedValue extends IBidirectionalNode {
   isNamedValue: true;
   parent: IBidirectionalNode | null;

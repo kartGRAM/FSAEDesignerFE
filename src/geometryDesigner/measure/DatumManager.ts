@@ -38,7 +38,8 @@ import {
   IDatumManager,
   DatumDict,
   isDataDatumGroup,
-  isPoint
+  isPoint,
+  isPlane
 } from './IDatumObjects';
 
 export class DatumGroup implements IDatumGroup {
@@ -82,6 +83,14 @@ export class DatumGroup implements IDatumGroup {
               z
             },
             nodeID: child.nodeID
+          });
+        } else if (isPlane(child)) {
+          const plane = child.getThreePlane();
+          child = new NormalConstantPlane({
+            name: child.name,
+            nodeID: child.nodeID,
+            normal: plane.normal,
+            distance: plane.constant
           });
         } else {
           throw e;

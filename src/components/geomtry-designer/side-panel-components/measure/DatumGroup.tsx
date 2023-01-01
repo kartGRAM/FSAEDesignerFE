@@ -53,6 +53,7 @@ export function DatumGroupTable(props: {
     dispatch(setSelectedDatumObject(''));
     setDialogTarget(id);
   };
+
   const dialogTargetObject = datumObjects.find(
     (datum) => datum.nodeID === dialogTarget
   );
