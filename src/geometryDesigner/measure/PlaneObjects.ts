@@ -141,7 +141,7 @@ export class NormalConstantPlane extends Plane implements INormalConstantPlane {
       normal = this.normal.value;
     } else {
       const tmp = ref[this.normal];
-      if (isPoint(tmp)) normal = tmp.getThreePoint();
+      if (isLine(tmp)) normal = tmp.getThreeLine().delta(new Vector3());
     }
     if (!normal) throw new Error('データム軸が見つからない');
     normal.normalize();
@@ -161,11 +161,17 @@ export class NormalConstantPlane extends Plane implements INormalConstantPlane {
     super(params);
     this.storedValue = new ThreePlane();
     const {distance, normal} = params;
-    this.distance = new NamedNumber({value: params.distance});
+    this.distance = new NamedNumber({value: distance});
     this.normal =
       isNamedVector3(normal) || isNamedData(normal)
         ? new NamedVector3({value: normal})
         : normal;
+    if (
+      isNamedVector3(this.normal) &&
+      this.normal.value.lengthSq() < Number.EPSILON
+    ) {
+      this.normal.value = new Vector3(1, 0, 0);
+    }
     if (isDataDatumObject(params) && isDataNormalConstantPlane(params)) {
       const {lastPosition} = params;
       const {x, y, z} = lastPosition.normal;

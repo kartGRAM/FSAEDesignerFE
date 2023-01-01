@@ -3,6 +3,7 @@
 import React from 'react';
 import {IPlane, IDatumObject} from '@gd/measure/IDatumObjects';
 import {
+  isNormalConstantPlane,
   isThreePointsPlane,
   isAxisPointPlane,
   isFromBasePlane,
@@ -12,8 +13,10 @@ import {ThreePointsPlane} from './ThreePointsPlane';
 import {AxisPointPlane} from './AxisPointPlane';
 import {FromElementBasePlane} from './FromElementBasePlane';
 import {FromBasePlane} from './FromBasePlane';
+import {NormalConstantPlane} from './NormalConstantPlane';
 
 export const planeClasses = [
+  'NormalConstantPlane',
   'ThreePointsPlane',
   'AxisPointPlane',
   'FromBasePlane',
@@ -21,11 +24,12 @@ export const planeClasses = [
 ] as const;
 export type PlaneClasses = typeof planeClasses[number];
 
-export function getPlaneObjectClass(point: IPlane): PlaneClasses | '' {
-  if (isThreePointsPlane(point)) return 'ThreePointsPlane';
-  if (isAxisPointPlane(point)) return 'AxisPointPlane';
-  if (isFromBasePlane(point)) return 'FromBasePlane';
-  if (isFromElementBasePlane(point)) return 'FromElementBasePlane';
+export function getPlaneObjectClass(plane: IPlane): PlaneClasses | '' {
+  if (isNormalConstantPlane(plane)) return 'NormalConstantPlane';
+  if (isThreePointsPlane(plane)) return 'ThreePointsPlane';
+  if (isAxisPointPlane(plane)) return 'AxisPointPlane';
+  if (isFromBasePlane(plane)) return 'FromBasePlane';
+  if (isFromElementBasePlane(plane)) return 'FromElementBasePlane';
   return '';
 }
 
@@ -40,6 +44,13 @@ export function PlaneObject(params: {
     content = (
       <ThreePointsPlane
         threePointsPlane={isThreePointsPlane(plane) ? plane : undefined}
+        setApplyReady={setApplyReady}
+      />
+    );
+  else if (type === 'NormalConstantPlane')
+    content = (
+      <NormalConstantPlane
+        plane={isNormalConstantPlane(plane) ? plane : undefined}
         setApplyReady={setApplyReady}
       />
     );

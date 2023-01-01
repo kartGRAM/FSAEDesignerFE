@@ -29,7 +29,7 @@ export interface IDataNormalConstantPlane extends IDataPlane {
 }
 
 export function isDataNormalConstantPlane(
-  data: IDataNormalConstantPlane
+  data: IDataDatumObject
 ): data is IDataNormalConstantPlane {
   if (data.className === 'NormalConstantPlane') return true;
   return false;

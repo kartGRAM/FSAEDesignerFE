@@ -32,10 +32,15 @@ export function NormalConstantPlane(props: {
   const ids = [React.useId(), React.useId()];
 
   const [distance, setDistance] = React.useState(
-    new NamedNumber({value: plane?.distance.getStringValue() ?? 0})
+    new NamedNumber({
+      name: 'normal',
+      value: plane?.distance.getStringValue() ?? 0
+    })
   );
 
-  const [normalType, setNormalType] = React.useState<NormalType>('datum line');
+  const [normalType, setNormalType] = React.useState<NormalType>(
+    isNamedVector3(plane?.normal) ? 'constant vector' : 'datum line'
+  );
 
   const selectMode = useSelector(
     (state: RootState) => state.uitgd.gdSceneState.datumLineSelectMode
@@ -97,13 +102,13 @@ export function NormalConstantPlane(props: {
       const obj: INormalConstantPlane = new NormalConstantPlaneObject({
         name: `datum plane`,
         distance: distance.getStringValue(),
-        normal
+        normal: line
       });
       setApplyReady(obj);
     } else {
       setApplyReady(undefined);
     }
-  }, [distance, normalType, line]);
+  }, [normal, distance, normalType, line]);
 
   const shortCutKeys = (e: KeyboardEvent) => {
     if (e.key === 'Escape') {
@@ -134,7 +139,7 @@ export function NormalConstantPlane(props: {
         <InputLabel htmlFor={ids[0]}>Select normal type</InputLabel>
         <Select
           disabled={selectMode}
-          value={line}
+          value={normalType}
           id={ids[0]}
           label="Select normal type"
           onChange={(e) => setNormalType(e.target.value as NormalType)}
