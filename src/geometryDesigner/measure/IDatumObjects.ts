@@ -100,6 +100,15 @@ export interface IDataLine extends IDataDatumObject {
   };
 }
 
+export function isDataLine(datum: any): datum is IDataLine {
+  try {
+    if (datum.isDataLine) return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 export interface IPoint extends IDatumObject {
   isPoint: true;
   getThreePoint(): THREE.Vector3;

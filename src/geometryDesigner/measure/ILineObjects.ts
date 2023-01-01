@@ -12,6 +12,19 @@ import {
   IDataDatumObject
 } from './IDatumObjects';
 
+export interface IPointDirectionLine extends ILine {
+  className: 'PointDirectionLine';
+  point: NodeID | INamedVector3;
+  direction: INamedVector3;
+  getData(): IDataPointDirectionLine;
+}
+
+export interface IDataPointDirectionLine extends IDataLine {
+  className: 'PointDirectionLine';
+  point: NodeID | IDataVector3;
+  direction: IDataVector3;
+}
+
 export interface ITwoPointsLine extends ILine {
   className: 'TwoPointLine';
   points: [IPoint, IPoint];
@@ -34,19 +47,6 @@ export function isDataTwoPointsLine(
 ): data is IDataTwoPointsLine {
   if (data.className === 'TwoPointsLine') return true;
   return false;
-}
-
-export interface IPointDirectionLine extends ILine {
-  className: 'PointDirectionLine';
-  point: IPoint;
-  direction: INamedVector3;
-  getData(): IDataPointDirectionLine;
-}
-
-export interface IDataPointDirectionLine extends IDataLine {
-  className: 'PointDirectionLine';
-  point: NodeID;
-  direction: IDataVector3;
 }
 
 export interface ITwoPlaneIntersectionLine extends ILine {

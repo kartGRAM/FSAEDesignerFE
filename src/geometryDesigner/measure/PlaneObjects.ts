@@ -75,8 +75,6 @@ export abstract class Plane extends DatumObject implements IPlane {
 
   abstract get description(): string;
 
-  abstract getThreePlane(): ThreePlane;
-
   abstract getData(): IDataPlane;
 
   getDataBase(): IDataPlane {
@@ -92,6 +90,21 @@ export abstract class Plane extends DatumObject implements IPlane {
         constant
       }
     };
+  }
+
+  storedValue: ThreePlane = new ThreePlane();
+
+  getThreePlane(): ThreePlane {
+    return this.storedValue.clone();
+  }
+
+  setLastPosition(params: IDataPlane) {
+    const {lastPosition} = params;
+    const {x, y, z} = lastPosition.normal;
+    this.storedValue = new ThreePlane(
+      new Vector3(x, y, z),
+      lastPosition.constant
+    );
   }
 }
 
@@ -114,14 +127,8 @@ export class NormalConstantPlane extends Plane implements INormalConstantPlane {
 
   distance: INamedNumber;
 
-  storedValue: ThreePlane;
-
   get description() {
     return `plane from normal and constant`;
-  }
-
-  getThreePlane(): ThreePlane {
-    return this.storedValue.clone();
   }
 
   getData(): IDataNormalConstantPlane {
@@ -161,7 +168,6 @@ export class NormalConstantPlane extends Plane implements INormalConstantPlane {
       | IDataNormalConstantPlane
   ) {
     super(params);
-    this.storedValue = new ThreePlane();
     const {distance, normal} = params;
     this.distance = new NamedNumber({value: distance});
     this.normal =
@@ -174,13 +180,8 @@ export class NormalConstantPlane extends Plane implements INormalConstantPlane {
     ) {
       this.normal.value = new Vector3(1, 0, 0);
     }
-    if (isDataDatumObject(params) && isDataNormalConstantPlane(params)) {
-      const {lastPosition} = params;
-      const {x, y, z} = lastPosition.normal;
-      this.storedValue = new ThreePlane(
-        new Vector3(x, y, z),
-        lastPosition.constant
-      );
+    if (isDataDatumObject(params) && isDataAxisPointPlane(params)) {
+      this.setLastPosition(params);
     }
   }
 
@@ -215,14 +216,8 @@ export class FromBasePlane extends Plane implements IFromBasePlane {
 
   distance: INamedNumber;
 
-  storedValue: ThreePlane;
-
   get description() {
     return `${this.distance.value}mm from ${this.direction} plane`;
-  }
-
-  getThreePlane(): ThreePlane {
-    return this.storedValue.clone();
   }
 
   getData(): IDataFromBasePlane {
@@ -256,14 +251,8 @@ export class FromBasePlane extends Plane implements IFromBasePlane {
     super(params);
     this.direction = params.direction;
     this.distance = new NamedNumber({value: params.distance});
-    this.storedValue = new ThreePlane();
-    if (isDataDatumObject(params) && isDataFromBasePlane(params)) {
-      const {lastPosition} = params;
-      const {x, y, z} = lastPosition.normal;
-      this.storedValue = new ThreePlane(
-        new Vector3(x, y, z),
-        lastPosition.constant
-      );
+    if (isDataDatumObject(params) && isDataAxisPointPlane(params)) {
+      this.setLastPosition(params);
     }
   }
 
@@ -296,8 +285,6 @@ export class PointNormalPlane extends Plane implements IPointNormalPlane {
   pointBuf: IPoint | undefined = undefined;
 
   normal: string | INamedVector3;
-
-  storedValue: ThreePlane;
 
   get description() {
     return `plane from normal and point`;
@@ -357,7 +344,6 @@ export class PointNormalPlane extends Plane implements IPointNormalPlane {
       | IDataPointNormalPlane
   ) {
     super(params);
-    this.storedValue = new ThreePlane();
     const {point, normal} = params;
     this.point =
       isNamedVector3(point) || isNamedData(point) || isFunctionVector3(point)
@@ -373,13 +359,8 @@ export class PointNormalPlane extends Plane implements IPointNormalPlane {
     ) {
       this.normal.value = new Vector3(1, 0, 0);
     }
-    if (isDataDatumObject(params) && isDataPointNormalPlane(params)) {
-      const {lastPosition} = params;
-      const {x, y, z} = lastPosition.normal;
-      this.storedValue = new ThreePlane(
-        new Vector3(x, y, z),
-        lastPosition.constant
-      );
+    if (isDataDatumObject(params) && isDataAxisPointPlane(params)) {
+      this.setLastPosition(params);
     }
   }
 
@@ -427,8 +408,6 @@ export class FromElementBasePlane
   distance: INamedNumber;
 
   elementBuf: IElement | undefined = undefined;
-
-  storedValue: ThreePlane;
 
   get description() {
     const element = this.elementBuf;
@@ -482,14 +461,8 @@ export class FromElementBasePlane
     this.element = params.element;
     this.direction = params.direction;
     this.distance = new NamedNumber({value: params.distance});
-    this.storedValue = new ThreePlane();
-    if (isDataDatumObject(params) && isDataFromElementBasePlane(params)) {
-      const {lastPosition} = params;
-      const {x, y, z} = lastPosition.normal;
-      this.storedValue = new ThreePlane(
-        new Vector3(x, y, z),
-        lastPosition.constant
-      );
+    if (isDataDatumObject(params) && isDataAxisPointPlane(params)) {
+      this.setLastPosition(params);
     }
   }
 
@@ -521,8 +494,6 @@ export class ThreePointsPlane extends Plane implements IThreePointsPlane {
   }
 
   points: [string, string, string];
-
-  storedValue: ThreePlane;
 
   pointsBuf: [IPoint, IPoint, IPoint] | undefined;
 
@@ -565,15 +536,9 @@ export class ThreePointsPlane extends Plane implements IThreePointsPlane {
       | IDataThreePointsPlane
   ) {
     super(params);
-    this.storedValue = new ThreePlane();
     this.points = [...params.points];
-    if (isDataDatumObject(params) && isDataThreePointsPlane(params)) {
-      const {lastPosition} = params;
-      const {x, y, z} = lastPosition.normal;
-      this.storedValue = new ThreePlane(
-        new Vector3(x, y, z),
-        lastPosition.constant
-      );
+    if (isDataDatumObject(params) && isDataAxisPointPlane(params)) {
+      this.setLastPosition(params);
     }
   }
 
@@ -612,14 +577,8 @@ export class AxisPointPlane extends Plane implements IAxisPointPlane {
 
   lineBuf: ILine | undefined;
 
-  storedValue: ThreePlane;
-
   get description() {
     return `plane from three points`;
-  }
-
-  getThreePlane(): ThreePlane {
-    return this.storedValue.clone();
   }
 
   getData(): IDataAxisPointPlane {
@@ -650,16 +609,10 @@ export class AxisPointPlane extends Plane implements IAxisPointPlane {
     params: {name: string; point: string; line: string} | IDataAxisPointPlane
   ) {
     super(params);
-    this.storedValue = new ThreePlane();
     this.point = params.point;
     this.line = params.line;
     if (isDataDatumObject(params) && isDataAxisPointPlane(params)) {
-      const {lastPosition} = params;
-      const {x, y, z} = lastPosition.normal;
-      this.storedValue = new ThreePlane(
-        new Vector3(x, y, z),
-        lastPosition.constant
-      );
+      this.setLastPosition(params);
     }
   }
 
