@@ -45,6 +45,13 @@ export default function Line(params: {line: ILine}) {
   useFrame(() => {
     if (!meshRef.current || !sphereMeshRef.current) return;
     const state = store.getState().uitgd.gdSceneState;
+    meshRef.current.visible =
+      state.forceVisibledDatums.includes(line.nodeID) ||
+      state.datumLineSelectMode ||
+      line.visibility;
+    sphereMeshRef.current.visible = meshRef.current.visible;
+    if (!meshRef.current.visible) return;
+
     let isSelected = false;
     if (state.datumLineSelectMode) {
       isSelected = state.datumLineSelected === line.nodeID;
@@ -71,12 +78,6 @@ export default function Line(params: {line: ILine}) {
     start[4] = end.y;
     start[5] = end.z;
     meshRef.current.geometry.attributes.instanceStart.needsUpdate = true;
-
-    meshRef.current.visible =
-      state.forceVisibledDatums.includes(line.nodeID) ||
-      state.datumLineSelectMode ||
-      line.visibility;
-    sphereMeshRef.current.visible = meshRef.current.visible;
   });
 
   const points = [line.lineStart, line.lineEnd].map((p) =>

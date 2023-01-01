@@ -1,5 +1,6 @@
 /* eslint-disable max-classes-per-file */
 import {v4 as uuidv4} from 'uuid';
+import * as THREE from 'three';
 import {IAssembly} from '@gd/IElements';
 import {
   ElementPoint,
@@ -45,6 +46,7 @@ import {
   DatumDict,
   isDataDatumGroup,
   isPoint,
+  isLine,
   isPlane
 } from './IDatumObjects';
 
@@ -90,6 +92,16 @@ export class DatumGroup implements IDatumGroup {
             },
             nodeID: child.nodeID
           });
+          child.update(ref, collectedAssembly);
+        } else if (isLine(child)) {
+          const line = child.getThreeLine();
+          child = new PointDirectionLine({
+            name: child.name,
+            nodeID: child.nodeID,
+            point: line.start,
+            direction: line.delta(new THREE.Vector3()).normalize()
+          });
+          child.update(ref, collectedAssembly);
         } else if (isPlane(child)) {
           const plane = child.getThreePlane();
           child = new NormalConstantPlane({
@@ -98,6 +110,7 @@ export class DatumGroup implements IDatumGroup {
             normal: plane.normal,
             distance: plane.constant
           });
+          child.update(ref, collectedAssembly);
         } else {
           throw e;
         }

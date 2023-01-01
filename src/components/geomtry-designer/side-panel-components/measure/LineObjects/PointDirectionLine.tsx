@@ -15,7 +15,8 @@ import {
   setDatumPointSelectMode,
   setDatumPointSelected,
   setDatumLineSelectMode,
-  setDatumLineSelected
+  setDatumLineSelected,
+  setSelectedPoint
 } from '@store/reducers/uiTempGeometryDesigner';
 import {setComponentVisualizationMode} from '@store/reducers/uiGeometryDesigner';
 import Target from '@gdComponents/svgs/Target';
@@ -162,11 +163,13 @@ export function PointDirectionLine(props: {
     setVisModeRestored(
       store.getState().uigd.present.gdSceneState.componentVisualizationMode
     );
+    dispatch(setSelectedPoint(null));
     dispatch(setDatumLineSelectMode(false));
     dispatch(setDatumPointSelectMode(false));
     dispatch(setComponentVisualizationMode('WireFrameOnly'));
     window.addEventListener('keydown', shortCutKeys, true);
     return () => {
+      dispatch(setSelectedPoint(null));
       dispatch(setComponentVisualizationMode(visModeRestored));
       dispatch(setDatumLineSelectMode(false));
       dispatch(setDatumPointSelectMode(false));
