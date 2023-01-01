@@ -15,14 +15,28 @@ import {
 export interface IPointDirectionLine extends ILine {
   className: 'PointDirectionLine';
   point: NodeID | INamedVector3;
-  direction: INamedVector3;
+  direction: NodeID | INamedVector3;
   getData(): IDataPointDirectionLine;
+}
+
+export function isPointDirectionLine(
+  line: ILine | undefined
+): line is IPointDirectionLine {
+  if (!line) return false;
+  return line.className === 'PointDirectionLine';
 }
 
 export interface IDataPointDirectionLine extends IDataLine {
   className: 'PointDirectionLine';
   point: NodeID | IDataVector3;
-  direction: IDataVector3;
+  direction: NodeID | IDataVector3;
+}
+
+export function isDataPointDirectionLine(
+  data: IDataDatumObject
+): data is IDataPointDirectionLine {
+  if (data.className === 'PointDirectionLine') return true;
+  return false;
 }
 
 export interface ITwoPointsLine extends ILine {
@@ -30,6 +44,7 @@ export interface ITwoPointsLine extends ILine {
   points: [IPoint, IPoint];
   getData(): IDataTwoPointsLine;
 }
+
 export function isTwoPointsLine(
   line: ILine | undefined
 ): line is ITwoPointsLine {

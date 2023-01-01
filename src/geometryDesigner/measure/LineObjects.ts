@@ -14,15 +14,29 @@ import {
   DatumDict
 } from '@gd/measure/IDatumObjects';
 import {
-  IDataTwoPlaneIntersectionLine,
+  IPointDirectionLine,
+  isPointDirectionLine,
+  IDataPointDirectionLine,
+  isDataPointDirectionLine,
   ITwoPlaneIntersectionLine,
   isTwoPlaneIntersectionLine,
+  IDataTwoPlaneIntersectionLine,
   isDataTwoPlaneIntersectionLine
 } from '@gd/measure/ILineObjects';
 import {BufferGeometry, Line3, Material, Vector3} from 'three';
 import {DatumObject} from '@gd/measure/DatumObjects';
 import {IAssembly, IElement} from '@gd/IElements';
 import {getIntersectionLineFromTwoPlanes} from '@utils/threeUtils';
+import {
+  FunctionVector3,
+  INamedNumber,
+  INamedVector3,
+  isNamedVector3,
+  isNamedData,
+  isFunctionVector3
+} from '@gd/INamedValues';
+import {NamedVector3} from '@gd/NamedValues';
+import store from '@store/store';
 
 export abstract class Line extends DatumObject implements ILine {
   readonly isLine = true as const;
@@ -61,6 +75,119 @@ export abstract class Line extends DatumObject implements ILine {
     const start = new Vector3(...Object.values(lp.start));
     const direction = new Vector3(...Object.values(lp.direction));
     this.storedValue = new Line3(start, start.clone().add(direction));
+  }
+}
+
+export class PointDirectionLine extends Line implements IPointDirectionLine {
+  get lineStart(): Vector3 {
+    return this.storedValue.start.clone();
+  }
+
+  get lineEnd(): Vector3 {
+    return this.storedValue.end.clone();
+  }
+
+  readonly className = 'PointDirectionLine' as const;
+
+  point: string | INamedVector3;
+
+  pointBuf: IPoint | undefined = undefined;
+
+  direction: string | INamedVector3;
+
+  directionBuf: ILine | undefined = undefined;
+
+  get description() {
+    return `line of two planes intersection`;
+  }
+
+  getData(): IDataPointDirectionLine {
+    const base = super.getDataBase();
+    const state = store.getState().dgd.present;
+    return {
+      ...base,
+      className: this.className,
+      point: isNamedVector3(this.point)
+        ? this.point.getData(state)
+        : this.point,
+      direction: isNamedVector3(this.direction)
+        ? this.direction.getData(state)
+        : this.direction
+    };
+  }
+
+  update(ref: DatumDict): void {
+    let point: Vector3 | undefined;
+    if (isNamedVector3(this.point)) {
+      point = this.point.value;
+    } else {
+      const tmp = ref[this.point];
+      if (isPoint(tmp)) point = tmp.getThreePoint();
+    }
+    if (!point) throw new Error('データム点が見つからない');
+
+    let direction: Vector3 | undefined;
+    if (isNamedVector3(this.direction)) {
+      direction = this.direction.value;
+    } else {
+      const tmp = ref[this.direction];
+      if (isLine(tmp)) direction = tmp.getThreeLine().delta(new Vector3());
+    }
+    if (!direction) throw new Error('データム軸が見つからない');
+    direction.normalize();
+
+    this.storedValue = new Line3(point, point.clone().add(direction));
+  }
+
+  constructor(
+    params:
+      | {
+          name: string;
+          point: string | INamedVector3 | FunctionVector3;
+          direction: string | INamedVector3 | FunctionVector3;
+        }
+      | IDataPointDirectionLine
+  ) {
+    super(params);
+    const {point, direction} = params;
+    this.point =
+      isNamedVector3(point) || isNamedData(point) || isFunctionVector3(point)
+        ? new NamedVector3({value: point})
+        : point;
+    this.direction =
+      isNamedVector3(direction) ||
+      isNamedData(direction) ||
+      isFunctionVector3(direction)
+        ? new NamedVector3({value: direction})
+        : direction;
+    if (
+      isNamedVector3(this.direction) &&
+      this.direction.value.lengthSq() < Number.EPSILON
+    ) {
+      this.direction.value = new Vector3(1, 0, 0);
+    }
+    if (isDataDatumObject(params) && isDataPointDirectionLine(params)) {
+      this.setLastPosition(params);
+    }
+  }
+
+  copy(other: IDatumObject): void {
+    if (isLine(other) && isPointDirectionLine(other)) {
+      if (isNamedVector3(other.point)) {
+        this.point = new NamedVector3({value: other.point.getStringValue()});
+      } else {
+        this.point = other.point;
+      }
+      if (isNamedVector3(other.direction)) {
+        this.direction = new NamedVector3({
+          value: other.direction.getStringValue()
+        });
+      } else {
+        this.direction = other.direction;
+      }
+    } else {
+      throw new Error('型不一致');
+    }
   }
 }
 
