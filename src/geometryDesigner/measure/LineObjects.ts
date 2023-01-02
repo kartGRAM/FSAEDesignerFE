@@ -18,6 +18,10 @@ import {
   isPointDirectionLine,
   IDataPointDirectionLine,
   isDataPointDirectionLine,
+  ITwoPointsLine,
+  isTwoPointsLine,
+  IDataTwoPointsLine,
+  isDataTwoPointsLine,
   ITwoPlaneIntersectionLine,
   isTwoPlaneIntersectionLine,
   IDataTwoPlaneIntersectionLine,
@@ -188,6 +192,65 @@ export class PointDirectionLine extends Line implements IPointDirectionLine {
       } else {
         this.direction = other.direction;
       }
+    } else {
+      throw new Error('型不一致');
+    }
+  }
+}
+
+export class TwoPointsLine extends Line implements ITwoPointsLine {
+  readonly className = 'TwoPointsLine' as const;
+
+  get lineStart(): Vector3 {
+    return this.storedValue.start.clone();
+  }
+
+  get lineEnd(): Vector3 {
+    return this.storedValue.end.clone();
+  }
+
+  points: [string, string];
+
+  pointsBuf: [IPoint, IPoint] | undefined = undefined;
+
+  get description() {
+    return `line from two points`;
+  }
+
+  getData(): IDataTwoPointsLine {
+    const base = super.getDataBase();
+    return {
+      ...base,
+      className: this.className,
+      points: [...this.points]
+    };
+  }
+
+  update(ref: DatumDict): void {
+    const points = this.points.map((p) => {
+      const point = ref[p];
+      if (!point || !isPoint(point))
+        throw new Error('データム点が見つからない');
+      return point;
+    });
+    this.pointsBuf = [points[0], points[1]];
+    const v3 = this.pointsBuf.map((p) => p.getThreePoint());
+    this.storedValue = new Line3(v3[0], v3[1]);
+  }
+
+  constructor(
+    params: {name: string; points: [string, string]} | IDataTwoPointsLine
+  ) {
+    super(params);
+    this.points = [...params.points];
+    if (isDataDatumObject(params) && isDataTwoPointsLine(params)) {
+      this.setLastPosition(params);
+    }
+  }
+
+  copy(other: IDatumObject): void {
+    if (isLine(other) && isTwoPointsLine(other)) {
+      this.points = [...other.points];
     } else {
       throw new Error('型不一致');
     }

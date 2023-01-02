@@ -4,13 +4,7 @@ import {
   INamedVector3,
   IDataVector3
 } from '@gd/INamedValues';
-import {
-  IPoint,
-  ILine,
-  NodeID,
-  IDataLine,
-  IDataDatumObject
-} from './IDatumObjects';
+import {ILine, NodeID, IDataLine, IDataDatumObject} from './IDatumObjects';
 
 export interface IPointDirectionLine extends ILine {
   className: 'PointDirectionLine';
@@ -40,8 +34,8 @@ export function isDataPointDirectionLine(
 }
 
 export interface ITwoPointsLine extends ILine {
-  className: 'TwoPointLine';
-  points: [IPoint, IPoint];
+  className: 'TwoPointsLine';
+  points: [NodeID, NodeID];
   getData(): IDataTwoPointsLine;
 }
 
@@ -54,7 +48,7 @@ export function isTwoPointsLine(
 
 export interface IDataTwoPointsLine extends IDataLine {
   className: 'TwoPointsLine';
-  point: [NodeID, NodeID];
+  points: [NodeID, NodeID];
 }
 
 export function isDataTwoPointsLine(
