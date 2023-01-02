@@ -22,7 +22,7 @@ import {setDatumObjects} from '@store/reducers/dataGeometryDesigner';
 import {setSelectedDatumObject} from '@app/store/reducers/uiTempGeometryDesigner';
 import {DatumGroupTable} from './DatumGroup';
 
-export default function DatumObjects() {
+export default function DatumManager() {
   const dispatch = useDispatch();
   const [expanded, setExpanded] = React.useState<string>('');
   const datumManager = useSelector(

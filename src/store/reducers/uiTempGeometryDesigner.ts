@@ -72,6 +72,7 @@ export interface GDSceneState {
   movingMode: boolean;
   selectedPoint: INamedVector3WithColor[] | null;
   selectedDatumObject: string;
+  selectedMeasureTool: string;
   viewDirection: Quaternion | undefined;
   orbitControlsEnabled: boolean;
   orbitControlsEnabledManual: boolean;
@@ -115,6 +116,7 @@ const initialState: GDState = {
     orbitControlsEnabledManual: true,
     selectedPoint: null,
     selectedDatumObject: '',
+    selectedMeasureTool: '',
     viewDirection: undefined,
     resetPositions: false,
     toggle: true, // その打ち消す
@@ -284,6 +286,9 @@ export const uitGeometryDesignerSlice = createSlice({
     },
     setSelectedDatumObject: (state: GDState, action: PayloadAction<string>) => {
       state.gdSceneState.selectedDatumObject = action.payload;
+    },
+    setSelectedMeasureTool: (state: GDState, action: PayloadAction<string>) => {
+      state.gdSceneState.selectedMeasureTool = action.payload;
     },
     setFormulaDialogOpen: (
       state: GDState,
