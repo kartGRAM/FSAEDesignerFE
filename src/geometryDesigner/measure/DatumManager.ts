@@ -16,10 +16,12 @@ import {
 } from '@gd/measure/PointObjects';
 import {
   isDataPointDirectionLine,
+  isDataTwoPointsLine,
   isDataTwoPlaneIntersectionLine
 } from '@gd/measure/ILineObjects';
 import {
   PointDirectionLine,
+  TwoPointsLine,
   TwoPlaneIntersectionLine
 } from '@gd/measure/LineObjects';
 import {
@@ -211,6 +213,7 @@ function getDatumObject(data: IDataDatumObject): IDatumObject {
     return new ClosestPointOfTwoLines(data);
 
   if (isDataPointDirectionLine(data)) return new PointDirectionLine(data);
+  if (isDataTwoPointsLine(data)) return new TwoPointsLine(data);
   if (isDataTwoPlaneIntersectionLine(data))
     return new TwoPlaneIntersectionLine(data);
 
