@@ -3,22 +3,21 @@ import {v4 as uuidv4} from 'uuid';
 import * as THREE from 'three';
 import {IAssembly} from '@gd/IElements';
 import {
-  ElementPoint,
-  FixedPoint,
-  PlaneLineIntersection
-} from '@gd/measure/PointObjects';
-import {
   isDataFixedPoint,
   isDataElementPoint,
-  isDataPlaneLineIntersection
+  isDataPlaneLineIntersection,
+  isDataClosestPointOfTwoLines
 } from '@gd/measure/IPointObjects';
 import {
-  ThreePointsPlane,
-  FromElementBasePlane,
-  FromBasePlane,
-  AxisPointPlane,
-  NormalConstantPlane
-} from '@gd/measure/PlaneObjects';
+  ElementPoint,
+  FixedPoint,
+  PlaneLineIntersection,
+  ClosestPointOfTwoLines
+} from '@gd/measure/PointObjects';
+import {
+  isDataPointDirectionLine,
+  isDataTwoPlaneIntersectionLine
+} from '@gd/measure/ILineObjects';
 import {
   PointDirectionLine,
   TwoPlaneIntersectionLine
@@ -31,9 +30,12 @@ import {
   isDataAxisPointPlane
 } from '@gd/measure/IPlaneObjects';
 import {
-  isDataPointDirectionLine,
-  isDataTwoPlaneIntersectionLine
-} from '@gd/measure/ILineObjects';
+  ThreePointsPlane,
+  FromElementBasePlane,
+  FromBasePlane,
+  AxisPointPlane,
+  NormalConstantPlane
+} from '@gd/measure/PlaneObjects';
 import store from '@store/store';
 import {setDatumObjects} from '@store/reducers/dataGeometryDesigner';
 import {
@@ -202,11 +204,11 @@ export class DatumManager implements IDatumManager {
 }
 
 function getDatumObject(data: IDataDatumObject): IDatumObject {
-  if (isDataFixedPoint(data)) {
-    return new FixedPoint(data);
-  }
+  if (isDataFixedPoint(data)) return new FixedPoint(data);
   if (isDataElementPoint(data)) return new ElementPoint(data);
   if (isDataPlaneLineIntersection(data)) return new PlaneLineIntersection(data);
+  if (isDataClosestPointOfTwoLines(data))
+    return new ClosestPointOfTwoLines(data);
 
   if (isDataPointDirectionLine(data)) return new PointDirectionLine(data);
   if (isDataTwoPlaneIntersectionLine(data))

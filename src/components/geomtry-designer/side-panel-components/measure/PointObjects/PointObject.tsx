@@ -5,16 +5,19 @@ import {IPoint, IDatumObject} from '@gd/measure/IDatumObjects';
 import {
   isFixedPoint,
   isElementPoint,
+  isClosestPointOfTwoLines,
   isPlaneLineIntersection
 } from '@gd/measure/IPointObjects';
 import {FixedPoint} from './FixedPoint';
 import {ElementPoint} from './ElementPoint';
 import {PlaneLineIntersection} from './PlaneLineIntersection';
+import {ClosestPointOfTwoLines} from './ClosestPointOfTwoLines';
 
 export const pointClasses = [
   'FixedPoint',
   'ElementPoint',
-  'PlaneLineIntersection'
+  'PlaneLineIntersection',
+  'ClosestPointOfTwoLines'
 ] as const;
 export type PointClasses = typeof pointClasses[number];
 
@@ -22,6 +25,7 @@ export function getPointObjectClass(point: IPoint): PointClasses | '' {
   if (isFixedPoint(point)) return 'FixedPoint';
   if (isElementPoint(point)) return 'ElementPoint';
   if (isPlaneLineIntersection(point)) return 'PlaneLineIntersection';
+  if (isClosestPointOfTwoLines(point)) return 'ClosestPointOfTwoLines';
   return '';
 }
 
@@ -50,6 +54,13 @@ export function PointObject(params: {
     content = (
       <PlaneLineIntersection
         point={isPlaneLineIntersection(point) ? point : undefined}
+        setApplyReady={setApplyReady}
+      />
+    );
+  else if (type === 'ClosestPointOfTwoLines')
+    content = (
+      <ClosestPointOfTwoLines
+        point={isClosestPointOfTwoLines(point) ? point : undefined}
         setApplyReady={setApplyReady}
       />
     );
