@@ -4,19 +4,23 @@ import React from 'react';
 import {ILine, IDatumObject} from '@gd/measure/IDatumObjects';
 import {
   isPointDirectionLine,
+  isTwoPointsLine,
   isTwoPlaneIntersectionLine
 } from '@gd/measure/ILineObjects';
 import {TwoPlaneIntersectionLine} from './TwoPlaneIntersectionLine';
+import {TwoPointsLine} from './TwoPointsLine';
 import {PointDirectionLine} from './PointDirectionLine';
 
 export const lineClasses = [
   'PointDirectionLine',
+  'TwoPointsLine',
   'TwoPlaneIntersectionLine'
 ] as const;
 export type LineClasses = typeof lineClasses[number];
 
 export function getLineObjectClass(line: ILine): LineClasses | '' {
   if (isTwoPlaneIntersectionLine(line)) return 'TwoPlaneIntersectionLine';
+  if (isTwoPointsLine(line)) return 'TwoPointsLine';
   if (isPointDirectionLine(line)) return 'PointDirectionLine';
   return '';
 }
@@ -32,6 +36,13 @@ export function LineObject(params: {
     content = (
       <PointDirectionLine
         line={isPointDirectionLine(line) ? line : undefined}
+        setApplyReady={setApplyReady}
+      />
+    );
+  else if (type === 'TwoPointsLine')
+    content = (
+      <TwoPointsLine
+        line={isTwoPointsLine(line) ? line : undefined}
         setApplyReady={setApplyReady}
       />
     );

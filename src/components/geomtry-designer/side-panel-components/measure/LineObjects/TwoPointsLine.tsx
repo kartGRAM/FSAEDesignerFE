@@ -17,7 +17,7 @@ import {
 import MenuItem from '@mui/material/MenuItem';
 import Target from '@gdComponents/svgs/Target';
 
-export function TwoLinesPoint(props: {
+export function TwoPointsLine(props: {
   line?: ITwoPointsLine;
   setApplyReady: React.Dispatch<React.SetStateAction<IDatumObject | undefined>>;
 }) {
