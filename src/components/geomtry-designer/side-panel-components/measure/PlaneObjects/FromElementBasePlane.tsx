@@ -134,6 +134,7 @@ export function FromElementBasePlane(props: {
           ))}
         </Select>
         <Target
+          sx={{mt: 1}}
           title="Select a component"
           onClick={handleGetElement}
           disabled={selectMode}

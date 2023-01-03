@@ -28,6 +28,7 @@ import {v4 as uuidv4} from 'uuid';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Toolbar from '@mui/material/Toolbar';
 import {MeasureToolDialog} from './MeasureToolDialog';
 
 export default function MeasureToolsManager() {
@@ -83,12 +84,30 @@ export default function MeasureToolsManager() {
     update(tools.filter((tool) => selected !== tool.nodeID));
   };
 
+  React.useEffect(() => {
+    return () => {
+      dispatch(setSelectedMeasureTool(''));
+    };
+  }, []);
+
   return (
     <>
       <Accordion
+        sx={{
+          '.MuiAccordionSummary-content': {
+            mt: 0,
+            mb: 0
+          },
+          minHeight: 0,
+          '.Mui-expanded': {
+            mt: 1,
+            mb: 1
+          }
+        }}
         TransitionProps={{unmountOnExit: true}}
         expanded={measureToolsAccExpanded}
         onChange={(e, expanded) => {
+          if (!expanded) dispatch(setSelectedMeasureTool(''));
           dispatch(measureToolsAccordionDefaultExpandedChange(expanded));
         }}
       >
@@ -102,55 +121,71 @@ export default function MeasureToolsManager() {
             }
           }}
         >
-          <Typography>Measure Tools</Typography>
-          {measureToolsAccExpanded && tools.length > 0 ? (
-            <Tooltip
-              title="Add a new measure tool."
-              sx={{flex: '1'}}
-              componentsProps={{
-                popper: {
-                  sx: {
-                    zIndex: 12500000000
-                  }
-                }
-              }}
+          <Toolbar
+            sx={{
+              pl: '0!important',
+              pr: '1rem!important',
+              minHeight: '40px!important',
+              flex: '1'
+            }}
+          >
+            <Typography
+              sx={{flex: '1 1 100%'}}
+              color="inherit"
+              variant="subtitle1"
+              component="div"
             >
-              <span>
-                <IconButton
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onToolDblClick(undefined);
-                  }}
-                >
-                  <AddBoxIcon />
-                </IconButton>
-              </span>
-            </Tooltip>
-          ) : null}
-          {selected !== '' ? (
-            <Tooltip
-              title="Delete a selected tool"
-              sx={{flex: '1'}}
-              componentsProps={{
-                popper: {
-                  sx: {
-                    zIndex: 12500000000
+              Measure Tools
+            </Typography>
+            {measureToolsAccExpanded && tools.length > 0 ? (
+              <Tooltip
+                title="Add a new measure tool."
+                sx={{flex: '1'}}
+                componentsProps={{
+                  popper: {
+                    sx: {
+                      zIndex: 12500000000
+                    }
                   }
-                }
-              }}
-            >
-              <span>
-                <IconButton
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete();
-                  }}
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </span>
-            </Tooltip>
-          ) : null}
+                }}
+              >
+                <span>
+                  <IconButton
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToolDblClick(undefined);
+                    }}
+                  >
+                    <AddBoxIcon />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            ) : null}
+            {selected !== '' ? (
+              <Tooltip
+                title="Delete a selected tool"
+                sx={{flex: '1'}}
+                componentsProps={{
+                  popper: {
+                    sx: {
+                      zIndex: 12500000000
+                    }
+                  }
+                }}
+              >
+                <span>
+                  <IconButton
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete();
+                    }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            ) : null}
+          </Toolbar>
         </AccordionSummary>
         <AccordionDetails sx={{pt: 0, pb: 1, pl: 1, pr: 1}}>
           {tools.length === 0 ? (

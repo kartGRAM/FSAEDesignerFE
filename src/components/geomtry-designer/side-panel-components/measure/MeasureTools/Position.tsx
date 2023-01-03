@@ -150,6 +150,7 @@ export function Position(props: {
             ))}
           </Select>
           <Target
+            sx={{mt: 1}}
             title={str}
             onClick={() => handleGetDatum(i)}
             disabled={selectMode}

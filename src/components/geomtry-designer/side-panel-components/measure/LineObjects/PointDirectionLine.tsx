@@ -251,6 +251,7 @@ export function PointDirectionLine(props: {
                 ))}
               </Select>
               <Target
+                sx={{mt: 1}}
                 title={value.select}
                 onClick={() =>
                   dispatch(

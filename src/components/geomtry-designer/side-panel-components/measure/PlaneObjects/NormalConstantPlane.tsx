@@ -190,6 +190,7 @@ export function NormalConstantPlane(props: {
             ))}
           </Select>
           <Target
+            sx={{mt: 1}}
             title="Select a line"
             onClick={() => dispatch(setDatumLineSelectMode(true))}
             disabled={selectMode}

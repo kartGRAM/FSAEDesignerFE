@@ -2,13 +2,17 @@ import React from 'react';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import SvgIcon from '@mui/material/SvgIcon';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import {SxProps} from '@mui/system';
+import {Theme} from '@mui/material/styles';
 
 export default function Target(props: {
   onClick?: () => void;
   title: string;
   disabled?: boolean;
+  sx?: SxProps<Theme>;
 }) {
-  const {onClick, title, disabled} = props;
+  const {onClick, title, disabled, sx} = props;
   return (
     <Tooltip
       title={title}
@@ -29,6 +33,7 @@ export default function Target(props: {
           onClick={() => {
             if (onClick) onClick();
           }}
+          sx={sx}
         >
           <SvgIcon sx={{color: '#999'}}>
             <svg

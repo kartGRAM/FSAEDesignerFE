@@ -168,6 +168,7 @@ export function ThreePointsPlane(props: {
               ))}
             </Select>
             <Target
+              sx={{mt: 1}}
               title={str}
               onClick={() => handleGetPoint(i)}
               disabled={setterMode !== -1}
