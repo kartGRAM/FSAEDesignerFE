@@ -22,6 +22,7 @@ import MenuItem from '@mui/material/MenuItem';
 import {setUIDisabled} from '@store/reducers/uiTempGeometryDesigner';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
+import {Position} from './MeasureTools/Position';
 
 const measureToolClasses = ['Distance', 'Angle', 'Position'] as const;
 type MeasureToolClasses = typeof measureToolClasses[number];
@@ -77,7 +78,15 @@ export function MeasureToolDialog(props: {
     }
   }, [open]);
 
-  const content = null;
+  let content = null;
+  if (measureToolClass === 'Position') {
+    content = (
+      <Position
+        position={isPosition(tool) ? tool : undefined}
+        setApplyReady={setApplyReady}
+      />
+    );
+  }
 
   return (
     <Dialog
