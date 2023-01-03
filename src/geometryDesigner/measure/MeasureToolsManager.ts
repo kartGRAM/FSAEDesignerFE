@@ -14,9 +14,17 @@ export class MeasureToolsManager implements IMeasureToolsManager {
   }
 
   constructor(datumManager: IDatumManager, data?: IDataMeasureTool[]) {
-    this.children = (data ?? []).map((data) =>
-      getMeasureTool(data, datumManager)
-    );
+    this.children = [];
+    const dataFilled = data ?? [];
+    for (const row of dataFilled) {
+      try {
+        const child = getMeasureTool(row, datumManager);
+        this.children.push(child);
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.log(e);
+      }
+    }
   }
 
   update(): void {

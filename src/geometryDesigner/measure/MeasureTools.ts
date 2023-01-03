@@ -66,7 +66,7 @@ export class Position extends MeasureTool implements IPosition {
     datumManager: IDatumManager
   ) {
     super(params);
-    if (isDataPosition(params)) {
+    if (isDataMeasureTool(params) && isDataPosition(params)) {
       const point = datumManager.getDatumObject(params.point);
       if (!point) throw new Error('pointが見つからない');
       if (!isPoint(point)) throw new Error('datumがIPointでない');

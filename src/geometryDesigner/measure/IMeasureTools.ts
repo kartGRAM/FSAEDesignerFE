@@ -43,22 +43,42 @@ export interface IDistance extends IMeasureTool {
   rhs: IPoint | ILine | IPlane;
 }
 
+export function isDistance(tool: IMeasureTool | undefined): tool is IDistance {
+  if (tool && (tool as IDistance).isDistance) return true;
+  return false;
+}
+
 export interface IDataDistance extends IDataMeasureTool {
-  isDistance: true;
+  isDataDistance: true;
   lhs: NodeID;
   rhs: NodeID;
 }
 
+export function isDataDistance(data: IDataMeasureTool): data is IDataDistance {
+  if ((data as IDataDistance).isDataDistance) return true;
+  return false;
+}
+
 export interface IAngle extends IMeasureTool {
-  isDistance: true;
+  isAngle: true;
   lhs: ILine | IPlane;
   rhs: ILine | IPlane;
 }
 
+export function isAngle(tool: IMeasureTool | undefined): tool is IAngle {
+  if (tool && (tool as IAngle).isAngle) return true;
+  return false;
+}
+
 export interface IDataAngle extends IDataMeasureTool {
-  isDistance: true;
+  isDataAngle: true;
   lhs: NodeID;
   rhs: NodeID;
+}
+
+export function isDataAngle(data: IDataMeasureTool): data is IDataAngle {
+  if ((data as IDataAngle).isDataAngle) return true;
+  return false;
 }
 
 export interface IPosition extends IMeasureTool {
@@ -66,16 +86,17 @@ export interface IPosition extends IMeasureTool {
   point: IPoint;
 }
 
+export function isPosition(tool: IMeasureTool | undefined): tool is IPosition {
+  if (tool && (tool as IPosition).isPosition) return true;
+  return false;
+}
+
 export interface IDataPosition extends IDataMeasureTool {
   isDataPosition: true;
   point: NodeID;
 }
 
-export function isDataPosition(data: any): data is IDataPosition {
-  try {
-    if (data.isDataPosition) return true;
-    return false;
-  } catch {
-    return false;
-  }
+export function isDataPosition(data: IDataMeasureTool): data is IDataPosition {
+  if ((data as IDataPosition).isDataPosition) return true;
+  return false;
 }

@@ -11,10 +11,7 @@ import {numberToRgb} from '@app/utils/helpers';
 import {useSelector, useDispatch} from 'react-redux';
 import {setSelectedMeasureTool} from '@store/reducers/uiTempGeometryDesigner';
 import {measureToolsAccordionDefaultExpandedChange} from '@store/reducers/uiGeometryDesigner';
-import {
-  setMeasureTools,
-  setChanged
-} from '@store/reducers/dataGeometryDesigner';
+import {setMeasureTools} from '@store/reducers/dataGeometryDesigner';
 import {RootState} from '@store/store';
 import {alpha} from '@mui/material/styles';
 import {IMeasureTool} from '@gd/measure/IMeasureTools';
@@ -29,7 +26,8 @@ import Tooltip from '@mui/material/Tooltip';
 import Visibility from '@gdComponents/svgs/Visibility';
 import {v4 as uuidv4} from 'uuid';
 import Typography from '@mui/material/Typography';
-import {DatumGroupName} from './DatumGroupName';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import {MeasureToolDialog} from './MeasureToolDialog';
 
 export default function MeasureToolsManager() {
@@ -105,7 +103,7 @@ export default function MeasureToolsManager() {
           }}
         >
           <Typography>Measure Tools</Typography>
-          {measureToolsAccExpanded ? (
+          {measureToolsAccExpanded && tools.length > 0 ? (
             <Tooltip
               title="Add a new measure tool."
               sx={{flex: '1'}}
@@ -155,71 +153,94 @@ export default function MeasureToolsManager() {
           ) : null}
         </AccordionSummary>
         <AccordionDetails sx={{pt: 0, pb: 1, pl: 1, pr: 1}}>
-          <TableContainer
-            component={Paper}
-            sx={{
-              '&::-webkit-scrollbar': {
-                height: '10px'
-              },
-              '&::-webkit-scrollbar-thumb': {
-                backgroundColor: numberToRgb(enabledColorLight),
-                borderRadius: '5px'
-              }
-            }}
-          >
-            <Table
-              sx={{backgroundColor: alpha('#FFF', 0.0)}}
-              size="small"
-              aria-label="a dense table"
+          {tools.length === 0 ? (
+            <Box
+              component="div"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              padding={3}
             >
-              <TableHead>
-                <TableRow onClick={() => dispatch(setSelectedMeasureTool(''))}>
-                  <TableCell>Order</TableCell>
-                  <TableCell align="left">Visibility</TableCell>
-                  <TableCell>Name</TableCell>
-                  <TableCell align="left">description</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {tools?.map((tool, idx) => {
-                  return (
-                    <TableRow
-                      key={tool.nodeID}
-                      sx={{
-                        '&:last-child td, &:last-child th': {border: 0},
-                        userSelect: 'none',
-                        backgroundColor:
-                          selected === tool.nodeID
-                            ? alpha(numberToRgb(enabledColorLight), 0.5)
-                            : 'unset'
-                      }}
-                      onClick={() => {
-                        if (tool.nodeID !== selected) {
-                          dispatch(setSelectedMeasureTool(tool.nodeID));
-                        }
-                      }}
-                      onDoubleClick={() => onToolDblClick(tool)}
-                    >
-                      <TableCell>{idx + 1}</TableCell>
-                      <TableCell align="left">
-                        <Visibility
-                          visible={tool.visibility}
-                          onClick={() => {
-                            tool.visibility = !tool.visibility;
-                            update(tools);
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell sx={{whiteSpace: 'nowrap'}}>
-                        {tool.name}
-                      </TableCell>
-                      <TableCell align="left">{tool.description}</TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </TableContainer>
+              <Button
+                variant="contained"
+                size="large"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToolDblClick(undefined);
+                }}
+              >
+                Create A New Measure Tool
+              </Button>
+            </Box>
+          ) : (
+            <TableContainer
+              component={Paper}
+              sx={{
+                '& ::-webkit-scrollbar': {
+                  height: '10px'
+                },
+                '&  ::-webkit-scrollbar-thumb': {
+                  backgroundColor: numberToRgb(enabledColorLight),
+                  borderRadius: '5px'
+                }
+              }}
+            >
+              <Table
+                sx={{backgroundColor: alpha('#FFF', 0.0)}}
+                size="small"
+                aria-label="a dense table"
+              >
+                <TableHead>
+                  <TableRow
+                    onClick={() => dispatch(setSelectedMeasureTool(''))}
+                  >
+                    <TableCell>Order</TableCell>
+                    <TableCell align="left">Visibility</TableCell>
+                    <TableCell>Name</TableCell>
+                    <TableCell align="left">description</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {tools?.map((tool, idx) => {
+                    return (
+                      <TableRow
+                        key={tool.nodeID}
+                        sx={{
+                          '&:last-child td, &:last-child th': {border: 0},
+                          userSelect: 'none',
+                          backgroundColor:
+                            selected === tool.nodeID
+                              ? alpha(numberToRgb(enabledColorLight), 0.5)
+                              : 'unset'
+                        }}
+                        onClick={() => {
+                          if (tool.nodeID !== selected) {
+                            dispatch(setSelectedMeasureTool(tool.nodeID));
+                          }
+                        }}
+                        onDoubleClick={() => onToolDblClick(tool)}
+                      >
+                        <TableCell>{idx + 1}</TableCell>
+                        <TableCell align="left">
+                          <Visibility
+                            visible={tool.visibility}
+                            onClick={() => {
+                              tool.visibility = !tool.visibility;
+                              update(tools);
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell sx={{whiteSpace: 'nowrap'}}>
+                          {tool.name}
+                        </TableCell>
+                        <TableCell align="left">{tool.description}</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
         </AccordionDetails>
       </Accordion>
       <MeasureToolDialog

@@ -9,7 +9,12 @@ import {RootState} from '@store/store';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import PaperComponentDraggable from '@gdComponents/PaperComponentDraggable';
-import {IMeasureTool} from '@gd/measure/IMeasureTools';
+import {
+  IMeasureTool,
+  isPosition,
+  isAngle,
+  isDistance
+} from '@gd/measure/IMeasureTools';
 import FormControl from '@mui/material/FormControl';
 import Select, {SelectChangeEvent} from '@mui/material/Select';
 import OutlinedInput from '@mui/material/OutlinedInput';
@@ -17,6 +22,9 @@ import MenuItem from '@mui/material/MenuItem';
 import {setUIDisabled} from '@store/reducers/uiTempGeometryDesigner';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
+
+const measureToolClasses = ['Distance', 'Angle', 'Position'] as const;
+type MeasureToolClasses = typeof measureToolClasses[number];
 
 export function MeasureToolDialog(props: {
   open: boolean;
@@ -31,17 +39,21 @@ export function MeasureToolDialog(props: {
   const zindex =
     useSelector((state: RootState) => state.uitgd.fullScreenZIndex) + 1000;
 
-  const [applyReady, setApplyReady] = React.useState<IDatumObject | undefined>(
+  const [applyReady, setApplyReady] = React.useState<IMeasureTool | undefined>(
     undefined
   );
 
+  const [measureToolClass, setMeasureToolClass] = React.useState<
+    MeasureToolClasses | ''
+  >(getMeasureToolClass(tool));
+
   const handleDatumClassChange = (
-    event: SelectChangeEvent<DatumClasses | ''>
+    event: SelectChangeEvent<MeasureToolClasses | ''>
   ) => {
     const {
       target: {value}
     } = event;
-    setDatumClass(value as DatumClasses | '');
+    setMeasureToolClass(value as MeasureToolClasses | '');
   };
 
   const handleOK = () => {
@@ -65,6 +77,8 @@ export function MeasureToolDialog(props: {
     }
   }, [open]);
 
+  const content = null;
+
   return (
     <Dialog
       open={open}
@@ -82,7 +96,7 @@ export function MeasureToolDialog(props: {
       }}
     >
       <DialogTitle sx={{marginRight: 10}}>
-        {datum ? datum.name : 'New Datum'}
+        {tool ? tool.name : 'New Measure Tool'}
       </DialogTitle>
       <DialogContent>
         <Box
@@ -92,41 +106,10 @@ export function MeasureToolDialog(props: {
           <FormControl size="small">
             <Select
               displayEmpty
-              value={datumType}
-              onChange={handleDatumTypeChange}
-              sx={{
-                '& legend': {display: 'none'},
-                '& fieldset': {top: 0},
-                width: 200
-              }}
-              input={<OutlinedInput sx={{width: 200}} />}
-              renderValue={(selected) => {
-                if (selected.length === 0) {
-                  return <em>Select Datum Type</em>;
-                }
-                return selected;
-              }}
-              MenuProps={{
-                sx: {zIndex: zindex + 100}
-              }}
-            >
-              <MenuItem disabled value="">
-                <em>Select Datum Type</em>
-              </MenuItem>
-              {datumTypesSelectable.map((type) => (
-                <MenuItem key={type} value={type}>
-                  {type}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl size="small">
-            <Select
-              displayEmpty
-              value={datumClass}
+              value={measureToolClass}
               onChange={handleDatumClassChange}
               sx={{
-                ml: 3,
+                ml: 0,
                 '& legend': {display: 'none'},
                 '& fieldset': {top: 0},
                 width: 200
@@ -134,7 +117,7 @@ export function MeasureToolDialog(props: {
               input={<OutlinedInput />}
               renderValue={(selected) => {
                 if (selected.length === 0) {
-                  return <em>Select Datum Class</em>;
+                  return <em>Select a tool type</em>;
                 }
                 return selected;
               }}
@@ -143,9 +126,9 @@ export function MeasureToolDialog(props: {
               }}
             >
               <MenuItem disabled value="">
-                <em>Select Datum Class</em>
+                <em>Select a tool type</em>
               </MenuItem>
-              {selectedClasses.map((type) => (
+              {measureToolClasses.map((type) => (
                 <MenuItem key={type} value={type}>
                   {type}
                 </MenuItem>
@@ -167,4 +150,17 @@ export function MeasureToolDialog(props: {
       </DialogActions>
     </Dialog>
   );
+}
+
+function getMeasureToolClass(tool?: IMeasureTool): MeasureToolClasses | '' {
+  if (isPosition(tool)) {
+    return 'Position';
+  }
+  if (isAngle(tool)) {
+    return 'Angle';
+  }
+  if (isDistance(tool)) {
+    return 'Distance';
+  }
+  return '';
 }
