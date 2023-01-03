@@ -13,6 +13,8 @@ import {
 export abstract class MeasureTool implements IMeasureTool {
   readonly isMeasureTool = true as const;
 
+  abstract get description(): string;
+
   nodeID: string;
 
   abstract get className(): string;
@@ -33,6 +35,8 @@ export abstract class MeasureTool implements IMeasureTool {
     }
   }
 
+  abstract copy(other: IMeasureTool): void;
+
   abstract get value(): {[index: string]: number};
 
   getDataBase(): IDataMeasureTool {
@@ -52,6 +56,10 @@ export class Position extends MeasureTool implements IPosition {
   point: IPoint;
 
   readonly className = 'Position' as const;
+
+  get description(): string {
+    return `XYZ-coordinates of point "${this.point.name}"`;
+  }
 
   constructor(
     params: {name: string; point: IPoint} | IDataPosition,
@@ -83,6 +91,10 @@ export class Position extends MeasureTool implements IPosition {
   get value(): {[index: string]: number} {
     const {x, y, z} = this.point.getThreePoint();
     return {x, y, z};
+  }
+
+  copy(other: Position): void {
+    this.point = other.point;
   }
 }
 

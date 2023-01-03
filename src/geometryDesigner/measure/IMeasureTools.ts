@@ -10,6 +10,8 @@ export interface IMeasureTool {
   getData(): IDataMeasureTool;
   update(): void;
   readonly value: {[index: string]: number};
+  copy(other: IMeasureTool): void;
+  readonly description: string;
 }
 
 export interface IDataMeasureTool {

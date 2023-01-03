@@ -481,6 +481,7 @@ export const {
   selectSidePanelTab,
   setSelectedPoint,
   setSelectedDatumObject,
+  setSelectedMeasureTool,
   setFormulaDialogOpen,
   setRecordingDialogOpen,
   setOpenDialogOpen,
