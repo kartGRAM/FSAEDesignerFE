@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import {Vector3} from 'three';
 import {NodeID, IPoint, ILine, IPlane} from './IDatumObjects';
 
 export interface IMeasureTool {
@@ -41,6 +42,7 @@ export interface IDistance extends IMeasureTool {
   isDistance: true;
   lhs: IPoint | ILine | IPlane;
   rhs: IPoint | ILine | IPlane;
+  getClosestPoints(): [Vector3, Vector3];
 }
 
 export function isDistance(tool: IMeasureTool | undefined): tool is IDistance {

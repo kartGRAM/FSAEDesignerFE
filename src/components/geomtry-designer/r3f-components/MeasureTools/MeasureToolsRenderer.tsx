@@ -27,6 +27,7 @@ export default function MeasureToolsRenderer() {
 }
 
 function getTool(tool: IMeasureTool) {
+  if (!tool.visibility) return null;
   if (isPosition(tool)) return <Position tool={tool} key={tool.nodeID} />;
   if (isAngle(tool)) return null;
   if (isDistance(tool)) return null;

@@ -32,9 +32,11 @@ export function MoveComponentDialog() {
         pointerEvents: 'none'
       }}
     >
-      <DialogTitle sx={{marginRight: 10}}>MoveMode</DialogTitle>
+      <DialogTitle sx={{marginRight: 0}}>
+        Move the selected component
+      </DialogTitle>
       <DialogActions>
-        <Button onClick={handleOK}>OK</Button>
+        <Button onClick={handleOK}>Done</Button>
       </DialogActions>
     </Dialog>
   );

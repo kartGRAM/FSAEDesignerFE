@@ -61,7 +61,7 @@ export const Position = (props: {tool: IPosition}) => {
             paddingBottom: 0.7,
             paddingLeft: 1,
             paddingRight: 1,
-            border: selected ? '2px solid #ffa500' : undefined,
+            backgroundColor: selected ? '#ffa500' : undefined,
             '&::before': {
               content: '""',
               position: 'absolute',
@@ -69,7 +69,7 @@ export const Position = (props: {tool: IPosition}) => {
               left: '-10px',
               height: '1px',
               width: '40px',
-              background: 'white'
+              background: selected ? '#ffa500' : 'white'
             }
           }}
         >

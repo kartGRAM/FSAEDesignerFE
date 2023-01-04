@@ -35,7 +35,10 @@ import {IAssembly, IElement} from '@gd/IElements';
 import {INamedVector3, INamedNumber} from '@gd/INamedValues';
 import {NamedVector3, NamedNumber} from '@gd/NamedValues';
 import store from '@store/store';
-import {getIntersectionOfPlaneAndLine} from '@utils/threeUtils';
+import {
+  getIntersectionOfPlaneAndLine,
+  getClosestPointsOfTwoLines
+} from '@utils/threeUtils';
 
 export abstract class Point extends DatumObject implements IPoint {
   abstract get description(): string;
@@ -277,23 +280,12 @@ export class ClosestPointOfTwoLines
 
     this.lineBuf = [lines[0], lines[1]];
     const threeLines = lines.map((line) => line.getThreeLine());
-    const m = threeLines.map((line) => line.delta(new Vector3()).normalize());
-    const x = threeLines.map((line) => line.start.clone());
-    const mm = m[0].dot(m[1]);
-
-    const lhs = [
-      m[0].clone().sub(m[1].clone().multiplyScalar(mm)),
-      m[1].clone().sub(m[0].clone().multiplyScalar(mm))
-    ];
-    const rhs = [x[1].clone().sub(x[0]), x[0].clone().sub(x[1])];
-    const k = lhs.map((_, i) =>
-      x[i].add(m[i].multiplyScalar(lhs[i].dot(rhs[i]) / (1 - mm * mm)))
-    );
+    const {lhs, rhs} = getClosestPointsOfTwoLines(threeLines[0], threeLines[1]);
 
     let t = this.weight.value;
     // eslint-disable-next-line no-nested-ternary
     t = t < 0 ? 0 : t > 1 ? 1 : t;
-    this.storedValue = k[0].multiplyScalar(t).add(k[1].multiplyScalar(1 - t));
+    this.storedValue = lhs.multiplyScalar(t).add(rhs.multiplyScalar(1 - t));
   }
 
   constructor(
