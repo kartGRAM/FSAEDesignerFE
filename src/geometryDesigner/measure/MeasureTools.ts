@@ -263,5 +263,6 @@ export function getMeasureTool(
   datumManager: IDatumManager
 ) {
   if (isDataPosition(tool)) return new Position(tool, datumManager);
+  if (isDataDistance(tool)) return new Distance(tool, datumManager);
   throw new Error('未実装のツール');
 }
