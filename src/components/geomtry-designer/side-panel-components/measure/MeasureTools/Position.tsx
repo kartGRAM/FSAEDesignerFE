@@ -34,9 +34,7 @@ export function Position(props: {
   );
 
   const selectMode = useSelector(
-    (state: RootState) =>
-      state.uitgd.gdSceneState.datumPointSelectMode ||
-      state.uitgd.gdSceneState.datumLineSelectMode
+    (state: RootState) => state.uitgd.gdSceneState.datumPointSelectMode
   );
 
   const datumManager = useSelector(
