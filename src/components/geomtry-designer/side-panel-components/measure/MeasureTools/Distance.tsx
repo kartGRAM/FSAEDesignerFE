@@ -141,8 +141,6 @@ export function Distance(props: {
       setValue(selectedLineInstance);
     } else if (selectedPlaneInstance) {
       setValue(selectedPlaneInstance);
-    } else {
-      setValue(undefined);
     }
     onResetSetterMode();
   }, [selectedPointInstance, selectedLineInstance, selectedPlaneInstance]);
@@ -190,51 +188,53 @@ export function Distance(props: {
 
   return (
     <Box component="div">
-      {['Select a datum object', 'Select a datum object'].map((str, i) => (
-        <FormControl
-          key={str}
-          sx={{
-            m: 1,
-            mt: 3,
-            minWidth: 250,
-            display: 'flex',
-            flexDirection: 'row'
-          }}
-        >
-          <InputLabel htmlFor={ids[i]}>{str}</InputLabel>
-          <Select
-            disabled={selectMode}
-            value={[lhs, rhs][i]?.nodeID ?? ''}
-            id={ids[i]}
-            label={str}
-            onChange={(e) => handleChanged(e.target.value, i)}
-            sx={{flexGrow: '1'}}
-            MenuProps={{
-              sx: {zIndex: 150000000000}
+      {['Select a datum object', 'Select another datum object'].map(
+        (str, i) => (
+          <FormControl
+            key={str}
+            sx={{
+              m: 1,
+              mt: 3,
+              minWidth: 250,
+              display: 'flex',
+              flexDirection: 'row'
             }}
           >
-            <MenuItem aria-label="None" value="">
-              <em>None</em>
-            </MenuItem>
-            {['datum points', 'datum lines', 'datum planes'].map((group, j) => (
-              <>
-                <ListSubheader>{group}</ListSubheader>
-                {[pointObjects, lineObjects, planeObjects][j].map((datum) => (
-                  <MenuItem value={datum.nodeID} key={datum.nodeID}>
-                    {datum.name}
-                  </MenuItem>
-                ))}
-              </>
-            ))}
-          </Select>
-          <Target
-            sx={{mt: 1}}
-            title={str}
-            onClick={() => handleGetDatum(i)}
-            disabled={selectMode}
-          />
-        </FormControl>
-      ))}
+            <InputLabel htmlFor={ids[i]}>{str}</InputLabel>
+            <Select
+              disabled={selectMode}
+              value={[lhs, rhs][i]?.nodeID ?? ''}
+              id={ids[i]}
+              label={str}
+              onChange={(e) => handleChanged(e.target.value, i)}
+              sx={{flexGrow: '1'}}
+              MenuProps={{
+                sx: {zIndex: 150000000000}
+              }}
+            >
+              <MenuItem aria-label="None" value="">
+                <em>None</em>
+              </MenuItem>
+              {['datum points', 'datum lines', 'datum planes'].map(
+                (group, j) => [
+                  <ListSubheader>{group}</ListSubheader>,
+                  [pointObjects, lineObjects, planeObjects][j].map((datum) => (
+                    <MenuItem value={datum.nodeID} key={datum.nodeID}>
+                      {datum.name}
+                    </MenuItem>
+                  ))
+                ]
+              )}
+            </Select>
+            <Target
+              sx={{mt: 1}}
+              title={str}
+              onClick={() => handleGetDatum(i)}
+              disabled={selectMode}
+            />
+          </FormControl>
+        )
+      )}
     </Box>
   );
 }

@@ -11,6 +11,7 @@ import {
   isAngle
 } from '@gd/measure/IMeasureTools';
 import {Position} from './Position';
+import {Distance} from './Distance';
 
 export default function MeasureToolsRenderer() {
   const measureToolsManager = useSelector(
@@ -29,7 +30,7 @@ export default function MeasureToolsRenderer() {
 function getTool(tool: IMeasureTool) {
   if (!tool.visibility) return null;
   if (isPosition(tool)) return <Position tool={tool} key={tool.nodeID} />;
+  if (isDistance(tool)) return <Distance tool={tool} key={tool.nodeID} />;
   if (isAngle(tool)) return null;
-  if (isDistance(tool)) return null;
   return null;
 }

@@ -45,6 +45,12 @@ export const Distance = (props: {tool: IDistance}) => {
     const points = tool.getClosestPoints().map((p) => p.applyMatrix3(coMatrix));
     const position = points[0].clone().add(points[1]).multiplyScalar(0.5);
 
+    let color: string | number = 'Crimson';
+    if (selected) {
+      color = 0xffa500;
+    }
+    meshRef.current.material.color.set(color);
+
     const begin = points[0];
     const end = points[1];
 
@@ -56,6 +62,7 @@ export const Distance = (props: {tool: IDistance}) => {
     start[3] = end.x;
     start[4] = end.y;
     start[5] = end.z;
+    meshRef.current.geometry.attributes.instanceStart.needsUpdate = true;
 
     groupRef.current.position.copy(position);
     ['distance'].forEach((v, i) => {
