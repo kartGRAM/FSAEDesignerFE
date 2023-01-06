@@ -108,8 +108,7 @@ export default function shortCutKeys(e: KeyboardEvent) {
       store.dispatch(setSelectedMeasureTool(''));
       return;
     }
-
-    store.dispatch(selectElement({absPath: ''}));
+    store.dispatch(selectElement({absPath: '', cancelTabChange: true}));
     store.dispatch(setSelectedPoint(null));
   }
 }

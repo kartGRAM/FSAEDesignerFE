@@ -11,6 +11,7 @@ import ParametersRoot from '@gdComponents/side-panel-components/parameters/Param
 import ElementsRoot from '@gdComponents/side-panel-components/elements/ElementsRoot';
 import MeasureRoot from '@gdComponents/side-panel-components/measure/MeasureRoot';
 import Controllers from '@gdComponents/side-panel-components/controllers/Controllers';
+import Analysis from '@gdComponents/side-panel-components/analysis/Analysis';
 import $ from 'jquery';
 import 'jqueryui';
 
@@ -89,6 +90,8 @@ export default function SidePanel() {
     adContent = <Controllers />;
   } else if (selectedTab === 'measure') {
     adContent = <MeasureRoot />;
+  } else if (selectedTab === 'analysis') {
+    adContent = <Analysis />;
   }
 
   return (
