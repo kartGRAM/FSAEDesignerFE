@@ -7,7 +7,6 @@ import {RootState} from '@store/store';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemAvatar from '@mui/material/ListItemAvatar';
-import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Avatar from '@mui/material/Avatar';
 import IconButton from '@mui/material/IconButton';
@@ -22,6 +21,7 @@ import {alpha} from '@mui/material/styles';
 
 export default function Controllers() {
   const dispatch = useDispatch();
+  const [open, setOpen] = React.useState(false);
 
   return (
     <>
@@ -49,7 +49,7 @@ export default function Controllers() {
           <List sx={{whiteSpace: 'nowrap', width: '100%'}}>
             {generate(
               <ListItem>
-                <Button sx={{color: '#222'}}>
+                <Button sx={{color: '#222'}} onClick={() => setOpen(true)}>
                   <ListItemAvatar>
                     <Avatar>
                       <AccountTreeIcon />
