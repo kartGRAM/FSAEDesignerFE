@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 /* eslint-disable no-lone-blocks */
 import {Matrix, SingularValueDecomposition} from 'ml-matrix';
-import {Control} from '@gd/Controls';
+import {Control} from '@gd/controls/Controls';
 import {
   IElement,
   IAssembly,

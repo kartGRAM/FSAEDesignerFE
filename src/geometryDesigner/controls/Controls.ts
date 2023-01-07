@@ -4,7 +4,7 @@ import {
   ControllerTypes,
   ILinearBushingControl,
   isILinearBushingControl
-} from '@gd/IControls';
+} from '@gd/controls/IControls';
 import {v4 as uuidv4} from 'uuid';
 import {
   LinearBushingSingleEnd,

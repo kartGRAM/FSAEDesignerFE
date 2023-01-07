@@ -18,7 +18,6 @@ import TimeLine from '@mui/icons-material/Timeline';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import Toolbar from '@mui/material/Toolbar';
 import {alpha} from '@mui/material/styles';
-
 import {FlowCanvas} from '@gdComponents/side-panel-components/analysis/FlowCanvas';
 
 export default function Controllers() {

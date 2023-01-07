@@ -1,6 +1,6 @@
 import React from 'react';
-import {LinearBushingControl} from '@gd/Controls';
-import {IControl, isILinearBushingControl} from '@gd/IControls';
+import {LinearBushingControl} from '@gd/controls/Controls';
+import {IControl, isILinearBushingControl} from '@gd/controls/IControls';
 import {useSelector} from 'react-redux';
 import store, {RootState} from '@store/store';
 import {IElement, isLinearBushing} from '@gd/IElements';

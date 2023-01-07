@@ -1,5 +1,5 @@
 import {IDataAssembly} from '@app/geometryDesigner/IElements';
-import {IControl} from '@gd/IControls';
+import {IControl} from '@gd/controls/IControls';
 import {IDataDatumGroup} from '@gd/measure/IDatumObjects';
 import {IDataMeasureTool} from '@gd/measure/IMeasureTools';
 import {IDataFormula} from '@gd/IFormula';

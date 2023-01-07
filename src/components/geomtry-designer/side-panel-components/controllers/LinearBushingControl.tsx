@@ -1,6 +1,6 @@
 import React from 'react';
-import {LinearBushingControl} from '@gd/Controls';
-import {IControl} from '@gd/IControls';
+import {LinearBushingControl} from '@gd/controls/Controls';
+import {IControl} from '@gd/controls/IControls';
 import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import Slider from '@mui/material/Slider';

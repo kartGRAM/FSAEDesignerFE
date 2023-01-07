@@ -1,7 +1,7 @@
 import {useFrame} from '@react-three/fiber';
 import {useSelector} from 'react-redux';
 import {useKeyboardControls} from '@react-three/drei';
-import {getControl, Control} from '@gd/Controls';
+import {getControl, Control} from '@gd/controls/Controls';
 import {RootState} from '@store/store';
 
 export const KeyboardControls = () => {

@@ -13,7 +13,7 @@ import {setControl, removeControl} from '@store/reducers/dataGeometryDesigner';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import {alpha} from '@mui/material/styles';
-import {IControl} from '@gd/IControls';
+import {IControl} from '@gd/controls/IControls';
 import FullLayoutKeyboard, {keysInv} from './FullLayoutKeyboard';
 import {ControlDefinition} from './ControlDefinition';
 
