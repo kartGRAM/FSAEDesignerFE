@@ -1,9 +1,9 @@
-import {getDataToSave} from '@app/utils/axios';
+import {getDataToSave, getSetTopAssemblyParams} from '@gd/ISaveData';
 import axios, {AxiosRequestConfig, AxiosPromise} from 'axios';
 import {RefetchOptions} from 'axios-hooks';
 import {Dispatch, AnyAction} from 'redux';
 import {setTopAssembly} from '@store/reducers/dataGeometryDesigner';
-import {getSetTopAssemblyParams} from '@gd/ISaveData';
+
 import store from '@store/store';
 import {
   setConfirmDialogProps,
@@ -39,7 +39,8 @@ export default async function saveAs(params: {
   const {id} = store.getState().dgd.present;
   const zindex = (params.zindex ?? fullScreenZIndex + 10000) + 1;
   const filename = tfilename ?? store.getState().dgd.present.filename;
-  const note = tnote ?? store.getState().dgd.present.note;
+  const rootState = store.getState();
+  const note = tnote ?? rootState.dgd.present.note;
   try {
     if (overwrite && id === Number.MAX_SAFE_INTEGER && !skipIDCheck) {
       dispatch(
@@ -51,7 +52,7 @@ export default async function saveAs(params: {
       );
     } else {
       const res: any = await updateDataFuncAxiosHooks({
-        data: getDataToSave(filename, note, overwrite),
+        data: getDataToSave(rootState, filename, note, overwrite),
         headers: {
           'content-type': 'multipart/form-data'
         }

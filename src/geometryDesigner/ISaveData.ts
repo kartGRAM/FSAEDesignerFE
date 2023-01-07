@@ -3,6 +3,8 @@ import {IControl} from '@gd/IControls';
 import {IDataDatumGroup} from '@gd/measure/IDatumObjects';
 import {IDataMeasureTool} from '@gd/measure/IMeasureTools';
 import {IDataFormula} from '@gd/IFormula';
+import {getScreenShot} from '@gdComponents/GDScene';
+import {RootState} from '@store/store';
 
 export interface SavedData {
   id: number;
@@ -16,19 +18,6 @@ export interface SavedData {
   controls: IControl[];
   datumObjects: IDataDatumGroup[];
   measureTools: IDataMeasureTool[];
-}
-
-export interface SavedDataToSend {
-  id: number;
-  name: string;
-  overwrite: boolean;
-  clientLastUpdated: string;
-  note: string;
-  content: string;
-  formulae: string;
-  controls: string;
-  datumObjects: string;
-  measureTools: string;
 }
 
 export function getSetTopAssemblyParams(data: any): SavedData {
@@ -45,20 +34,58 @@ export function getSetTopAssemblyParams(data: any): SavedData {
   };
 }
 
+export interface SaveDataToSend {
+  id: number;
+  name: string;
+  overwrite: boolean;
+  clientLastUpdated: string;
+  note: string;
+  content: string;
+  formulae: string;
+  controls: string;
+  datumObjects: string;
+  measureTools: string;
+}
+
+export function getDataToSave(
+  rootState: RootState,
+  filename: string,
+  note: string,
+  overwrite: boolean = false
+): FormData {
+  const state = rootState.dgd.present;
+
+  let {topAssembly} = state;
+  if (rootState.uitgd.assembly) {
+    topAssembly = rootState.uitgd.assembly.getDataElement(state);
+  }
+
+  const data = new FormData();
+  const values: SaveDataToSend = {
+    id: state.id,
+    name: filename,
+    note,
+    content: JSON.stringify(topAssembly),
+    formulae: JSON.stringify(state.formulae),
+    controls: JSON.stringify(state.controls),
+    datumObjects: JSON.stringify(state.datumObjects),
+    measureTools: JSON.stringify(state.measureTools),
+    clientLastUpdated: state.lastUpdated,
+    overwrite
+  };
+  Object.keys(values).forEach((key) => {
+    data.append(key, (values as any)[key]);
+  });
+  data.append('thumbnail', getScreenShot() ?? '', 'image.png');
+  return data;
+}
+
 export function getListSetTopAssemblyParams(listedData: any): SavedData[] {
   const ret = listedData.map(
     (data: any): SavedData => ({
-      id: data.id as number,
-      filename: data.name as string,
-      note: data.note as string,
-      lastUpdated: data.lastUpdated as string,
       created: data.created as string,
       thumbnail: data.thumbnail ? (data.thumbnail as string) : undefined,
-      topAssembly: convertJsonToDataAssembly(data.content as string),
-      formulae: convertJsonToDataFormula(data.formulae as string),
-      controls: convertJsonToControls(data.controls as string),
-      datumObjects: convertJsonToDatumObjects(data.datumObjects as string),
-      measureTools: convertJsonToMeasureTools(data.measureTools as string)
+      ...getSetTopAssemblyParams(data)
     })
   );
   return ret;

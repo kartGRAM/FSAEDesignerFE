@@ -1,42 +1,40 @@
 import * as React from 'react';
 import DialogTitle from '@mui/material/DialogTitle';
 import Dialog from '@mui/material/Dialog';
-import {useSelector, useDispatch} from 'react-redux';
+import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
-import {setTestFlowCanvasOpen} from '@store/reducers/uiTempGeometryDesigner';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
-import PaperComponentDraggable from '@gdComponents/PaperComponentDraggable';
+import {DialogContent} from '@mui/material';
 
-export function FlowCanvas() {
-  const open = useSelector(
-    (state: RootState) => state.uitgd.isTestFlowCanvasOpen
-  );
-
+export function FlowCanvas(props: {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+}) {
+  const {open, setOpen} = props;
   const zindex =
     useSelector((state: RootState) => state.uitgd.fullScreenZIndex) + 1000;
-  const dispatch = useDispatch();
 
   const handleOK = () => {
-    dispatch(setTestFlowCanvasOpen(false));
+    setOpen(false);
   };
 
   return (
     <Dialog
+      onClose={handleOK}
       open={open}
-      components={{Backdrop: undefined}}
-      PaperComponent={PaperComponentDraggable}
       aria-labelledby="draggable-dialog-title"
       sx={{
-        zIndex: `${zindex}!important`,
-        pointerEvents: 'none'
+        zIndex: `${zindex}!important`
       }}
+      PaperProps={{sx: {width: '100%', maxWidth: 'unset', height: '100%'}}}
     >
       <DialogTitle sx={{marginRight: 0}}>
         Move the selected component
       </DialogTitle>
+      <DialogContent />
       <DialogActions>
-        <Button onClick={handleOK}>Done</Button>
+        <Button onClick={handleOK}>Close</Button>
       </DialogActions>
     </Dialog>
   );

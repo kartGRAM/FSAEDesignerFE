@@ -18,12 +18,12 @@ import TimeLine from '@mui/icons-material/Timeline';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import Toolbar from '@mui/material/Toolbar';
 import {alpha} from '@mui/material/styles';
-import {setTestFlowCanvasOpen} from '@app/store/reducers/uiTempGeometryDesigner';
 
 import {FlowCanvas} from '@gdComponents/side-panel-components/analysis/FlowCanvas';
 
 export default function Controllers() {
   const dispatch = useDispatch();
+  const [open, setOpen] = React.useState(false);
 
   return (
     <>
@@ -51,10 +51,7 @@ export default function Controllers() {
           <List sx={{whiteSpace: 'nowrap', width: '100%'}}>
             {generate(
               <ListItem>
-                <Button
-                  sx={{color: '#222'}}
-                  onClick={() => dispatch(setTestFlowCanvasOpen(true))}
-                >
+                <Button sx={{color: '#222'}} onClick={() => setOpen(true)}>
                   <ListItemAvatar>
                     <Avatar>
                       <AccountTreeIcon />
@@ -124,9 +121,9 @@ export default function Controllers() {
               </ListItem>
             )}
           </List>
+          <FlowCanvas open={open} setOpen={setOpen} />
         </Box>
       </Box>
-      <FlowCanvas />
     </>
   );
 }

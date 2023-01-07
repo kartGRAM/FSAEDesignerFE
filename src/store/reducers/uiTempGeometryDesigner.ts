@@ -43,7 +43,6 @@ export interface GlobalSelected {
 export interface GDState {
   uiDisabled: boolean;
   isFullScreen: boolean;
-  isTestFlowCanvasOpen: boolean;
   fullScreenZIndex: number;
   selectedElementAbsPath: string;
   sidePanelState: SidePanelState;
@@ -107,7 +106,6 @@ export interface GDDialogState {
 
 const initialState: GDState = {
   isFullScreen: true,
-  isTestFlowCanvasOpen: false,
   fullScreenZIndex: 10000000,
   uiDisabled: false,
   selectedElementAbsPath: '',
@@ -238,9 +236,6 @@ export const uitGeometryDesignerSlice = createSlice({
     toggleFullScreen: (state: GDState) => {
       state.isFullScreen = !state.isFullScreen;
       state.fullScreenZIndex = state.isFullScreen ? 1000000 : 0;
-    },
-    setTestFlowCanvasOpen: (state: GDState, action: PayloadAction<boolean>) => {
-      state.isTestFlowCanvasOpen = action.payload;
     },
     setUIDisabled: (state: GDState, action: PayloadAction<boolean>) => {
       state.uiDisabled = action.payload;
@@ -481,7 +476,6 @@ export const {
   setMeasureToolsManager,
   setKinematicSolver,
   setUIDisabled,
-  setTestFlowCanvasOpen,
   toggleFullScreen,
   selectElement,
   selectSidePanelTab,

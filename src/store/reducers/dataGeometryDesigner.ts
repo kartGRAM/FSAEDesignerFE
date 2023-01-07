@@ -1,6 +1,5 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {
-  IDataAssembly,
   IAssembly,
   isElement,
   isAssembly
@@ -12,21 +11,12 @@ import {IControl} from '@gd/IControls';
 import {IDataDatumGroup} from '@gd/measure/IDatumObjects';
 import {IDataMeasureTool} from '@gd/measure/IMeasureTools';
 import {IDataMatrix3} from '@gd/INamedValues';
-import {IDataFormula, validateAll /* , replaceVariable */} from '@gd/IFormula';
+import {validateAll /* , replaceVariable */} from '@gd/IFormula';
 import {DateTime} from 'luxon';
 import {SavedData} from '@gd/ISaveData';
 
-export interface GDState {
-  id: number;
-  filename: string;
-  note: string;
-  lastUpdated: string;
+export interface GDState extends SavedData {
   transCoordinateMatrix: IDataMatrix3;
-  topAssembly?: IDataAssembly;
-  formulae: IDataFormula[];
-  controls: IControl[];
-  datumObjects: IDataDatumGroup[];
-  measureTools: IDataMeasureTool[];
   changed: boolean;
 }
 
