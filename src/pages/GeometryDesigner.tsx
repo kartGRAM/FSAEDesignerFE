@@ -51,6 +51,7 @@ const GeometryDesigner = () => {
           d-flex flex-column
           `}
             style={{zIndex: fullScreenZ}}
+            id="gdAppArea"
           >
             <DialogRoot />
             <GDAppBar />

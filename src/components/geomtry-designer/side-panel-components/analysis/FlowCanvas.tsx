@@ -19,15 +19,24 @@ export function FlowCanvas(props: {
     setOpen(false);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const window = document.getElementById('gdAppArea');
+
   return (
     <Dialog
+      container={window}
       onClose={handleOK}
       open={open}
+      maxWidth={false}
       aria-labelledby="draggable-dialog-title"
       sx={{
-        zIndex: `${zindex}!important`
+        position: 'absolute',
+        zIndex: `${zindex}!important`,
+        overflow: 'hidden'
       }}
-      PaperProps={{sx: {width: '100%', maxWidth: 'unset', height: '100%'}}}
+      PaperProps={{
+        sx: {width: 'calc(100% - 10rem)', height: 'calc(100% - 10rem)'}
+      }}
     >
       <DialogTitle sx={{marginRight: 0}}>
         Move the selected component
