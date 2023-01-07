@@ -13,6 +13,7 @@ import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import {Vector3} from 'three';
 import PaperComponentDraggable from '@gdComponents/PaperComponentDraggable';
+import {setMovePointDialogPosition} from '@store/reducers/uiGeometryDesigner';
 
 export interface MovePointDialogProps {
   open: boolean;
@@ -59,7 +60,14 @@ export function MovePointDialog() {
     <Dialog
       open={open}
       components={{Backdrop: undefined}}
-      PaperComponent={PaperComponentDraggable}
+      PaperComponent={(props) =>
+        PaperComponentDraggable({
+          ...props,
+          position: (state: RootState) =>
+            state.uigd.present.dialogState.movePointDialogInitialPosition,
+          setPosition: setMovePointDialogPosition
+        })
+      }
       aria-labelledby="draggable-dialog-title"
       sx={{
         zIndex: `${zindex}!important`,

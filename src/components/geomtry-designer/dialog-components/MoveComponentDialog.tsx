@@ -7,6 +7,7 @@ import {setMovingMode} from '@store/reducers/uiTempGeometryDesigner';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import PaperComponentDraggable from '@gdComponents/PaperComponentDraggable';
+import {setMoveDialogPosition} from '@store/reducers/uiGeometryDesigner';
 
 export function MoveComponentDialog() {
   const open = useSelector(
@@ -25,7 +26,14 @@ export function MoveComponentDialog() {
     <Dialog
       open={open}
       components={{Backdrop: undefined}}
-      PaperComponent={PaperComponentDraggable}
+      PaperComponent={(props) =>
+        PaperComponentDraggable({
+          ...props,
+          position: (state: RootState) =>
+            state.uigd.present.dialogState.moveDialogInitialPosition,
+          setPosition: setMoveDialogPosition
+        })
+      }
       aria-labelledby="draggable-dialog-title"
       sx={{
         zIndex: `${zindex}!important`,

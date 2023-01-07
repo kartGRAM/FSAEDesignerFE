@@ -36,7 +36,31 @@ export interface MeasurePanelState {
 }
 
 export interface DialogState {
+  recordingDialogInitialPosition: {
+    x: number | null;
+    y: number | null;
+  };
   pointOffsetToolDialogInitialPosition: {
+    x: number | null;
+    y: number | null;
+  };
+  movePointDialogInitialPosition: {
+    x: number | null;
+    y: number | null;
+  };
+  copyFromExistingPointDialogInitialPosition: {
+    x: number | null;
+    y: number | null;
+  };
+  measureToolDialogInitialPosition: {
+    x: number | null;
+    y: number | null;
+  };
+  datumDialogInitialPosition: {
+    x: number | null;
+    y: number | null;
+  };
+  moveDialogInitialPosition: {
     x: number | null;
     y: number | null;
   };
@@ -98,11 +122,36 @@ const initialState: GDState = {
     MeasureToolsExpanded: true
   },
   dialogState: {
+    recordingDialogInitialPosition: {
+      x: null,
+      y: null
+    },
     pointOffsetToolDialogInitialPosition: {
+      x: null,
+      y: null
+    },
+    movePointDialogInitialPosition: {
+      x: null,
+      y: null
+    },
+    copyFromExistingPointDialogInitialPosition: {
+      x: null,
+      y: null
+    },
+    measureToolDialogInitialPosition: {
+      x: null,
+      y: null
+    },
+    datumDialogInitialPosition: {
+      x: null,
+      y: null
+    },
+    moveDialogInitialPosition: {
       x: null,
       y: null
     }
   },
+
   gdSceneState: {
     showGroundPlaneGrid: false,
     assemblyMode: 'FixedFrame',
@@ -148,11 +197,48 @@ export const uiGeometryDesignerSlice = createSlice({
     ) => {
       state.measurePanelState.MeasureToolsExpanded = action.payload;
     },
-    setPointOffsetToolDialogInitialPosition: (
+    setRecordingDialogPosition: (
+      state: GDState,
+      action: PayloadAction<{x: number | null; y: number | null}>
+    ) => {
+      state.dialogState.recordingDialogInitialPosition = action.payload;
+    },
+    setPointOffsetToolDialogPosition: (
       state: GDState,
       action: PayloadAction<{x: number | null; y: number | null}>
     ) => {
       state.dialogState.pointOffsetToolDialogInitialPosition = action.payload;
+    },
+    setMovePointDialogPosition: (
+      state: GDState,
+      action: PayloadAction<{x: number | null; y: number | null}>
+    ) => {
+      state.dialogState.movePointDialogInitialPosition = action.payload;
+    },
+    setCopyFromExistingPointDialogPosition: (
+      state: GDState,
+      action: PayloadAction<{x: number | null; y: number | null}>
+    ) => {
+      state.dialogState.copyFromExistingPointDialogInitialPosition =
+        action.payload;
+    },
+    setMoveDialogPosition: (
+      state: GDState,
+      action: PayloadAction<{x: number | null; y: number | null}>
+    ) => {
+      state.dialogState.moveDialogInitialPosition = action.payload;
+    },
+    setDatumDialogPosition: (
+      state: GDState,
+      action: PayloadAction<{x: number | null; y: number | null}>
+    ) => {
+      state.dialogState.moveDialogInitialPosition = action.payload;
+    },
+    setMeasureToolDialogPosition: (
+      state: GDState,
+      action: PayloadAction<{x: number | null; y: number | null}>
+    ) => {
+      state.dialogState.measureToolDialogInitialPosition = action.payload;
     },
     setProjectionMode: (
       state: GDState,
@@ -180,7 +266,13 @@ export const {
   resizePanel,
   kinematicParamsDefaultExpandedChange,
   dynamicParamsDefaultExpandedChange,
-  setPointOffsetToolDialogInitialPosition,
+  setRecordingDialogPosition,
+  setPointOffsetToolDialogPosition,
+  setMovePointDialogPosition,
+  setCopyFromExistingPointDialogPosition,
+  setDatumDialogPosition,
+  setMeasureToolDialogPosition,
+  setMoveDialogPosition,
   setProjectionMode,
   setGroundPlaneShow,
   setComponentVisualizationMode,

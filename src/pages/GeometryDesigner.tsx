@@ -13,7 +13,6 @@ import GDScene from '@app/components/geomtry-designer/GDScene';
 import AssemblyCreactor from '@gdComponents/AssemblyCreator';
 import SidePanel from '@gdComponents/SidePanel';
 import DialogRoot from '@gdComponents/dialog-components/DialogRoot';
-import {FlowCanvas} from '@gdComponents/side-panel-components/analysis/FlowCanvas';
 import {numberToRgb} from '@app/utils/helpers';
 import Box from '@mui/material/Box';
 import shortCutKeys from '@gd/ShortCutKeys';
@@ -23,6 +22,7 @@ const GeometryDesigner = () => {
   const isFullScreen = useSelector(
     (state: RootState) => state.uitgd.isFullScreen
   );
+
   const fullScreenZ = useSelector(
     (state: RootState) => state.uitgd.fullScreenZIndex
   );
@@ -63,7 +63,6 @@ const GeometryDesigner = () => {
               }}
             >
               <MiniDrawer />
-              <FlowCanvas open setOpen={() => {}} />
               <div
                 className="h-100 w-100 position-relative d-flex"
                 id="gdMainWindow"

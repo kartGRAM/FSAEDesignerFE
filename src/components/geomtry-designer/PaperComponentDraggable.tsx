@@ -1,16 +1,19 @@
 import * as React from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 import {RootState} from '@store/store';
-import {setPointOffsetToolDialogInitialPosition} from '@store/reducers/uiGeometryDesigner';
 import Paper, {PaperProps} from '@mui/material/Paper';
 import Draggable from 'react-draggable';
 
-export default function PaperComponentDraggable(props: PaperProps) {
+interface Props extends PaperProps {
+  position: (state: RootState) => {x: number | null; y: number | null};
+  setPosition: (payload: {x: number | null; y: number | null}) => any;
+}
+
+export default function PaperComponentDraggable(props: Props) {
   const dispatch = useDispatch();
-  const {x, y} = useSelector(
-    (state: RootState) =>
-      state.uigd.present.dialogState.pointOffsetToolDialogInitialPosition
-  );
+  const {position, setPosition} = props;
+  const {x, y} = useSelector(position);
+
   return (
     <Draggable
       bounds="parent"
@@ -19,7 +22,7 @@ export default function PaperComponentDraggable(props: PaperProps) {
       defaultPosition={x && y ? {x, y} : undefined}
       onStop={(e, data) => {
         dispatch(
-          setPointOffsetToolDialogInitialPosition({
+          setPosition({
             x: data.lastX,
             y: data.lastY
           })

@@ -22,6 +22,7 @@ import MenuItem from '@mui/material/MenuItem';
 import {setUIDisabled} from '@store/reducers/uiTempGeometryDesigner';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
+import {setMeasureToolDialogPosition} from '@store/reducers/uiGeometryDesigner';
 import {Position} from './MeasureTools/Position';
 import {Distance} from './MeasureTools/Distance';
 
@@ -100,7 +101,14 @@ export function MeasureToolDialog(props: {
     <Dialog
       open={open}
       components={{Backdrop: undefined}}
-      PaperComponent={PaperComponentDraggable}
+      PaperComponent={(props) =>
+        PaperComponentDraggable({
+          ...props,
+          position: (state: RootState) =>
+            state.uigd.present.dialogState.measureToolDialogInitialPosition,
+          setPosition: setMeasureToolDialogPosition
+        })
+      }
       aria-labelledby="draggable-dialog-title"
       sx={{
         zIndex: `${zindex}!important`,

@@ -13,6 +13,8 @@ import Button from '@mui/material/Button';
 import {Vector3} from 'three';
 import PaperComponentDraggable from '@gdComponents/PaperComponentDraggable';
 
+import {setCopyFromExistingPointDialogPosition} from '@store/reducers/uiGeometryDesigner';
+
 export interface CopyFromExistingPointsDialogProps {
   open: boolean;
   onSelected: ((p: Vector3) => void) | null;
@@ -53,7 +55,15 @@ export function CopyFromExistingPointsDialog() {
     <Dialog
       open={open}
       components={{Backdrop: undefined}}
-      PaperComponent={PaperComponentDraggable}
+      PaperComponent={(props) =>
+        PaperComponentDraggable({
+          ...props,
+          position: (state: RootState) =>
+            state.uigd.present.dialogState
+              .copyFromExistingPointDialogInitialPosition,
+          setPosition: setCopyFromExistingPointDialogPosition
+        })
+      }
       aria-labelledby="draggable-dialog-title"
       sx={{
         zIndex: `${zindex}!important`,

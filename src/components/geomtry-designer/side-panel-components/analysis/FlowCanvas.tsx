@@ -1,88 +1,43 @@
 import * as React from 'react';
-import Box from '@mui/material/Box';
-import List from '@mui/material/List';
-import Divider from '@mui/material/Divider';
-import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
-import InboxIcon from '@mui/icons-material/MoveToInbox';
-import MailIcon from '@mui/icons-material/Mail';
-import MuiDrawer, {DrawerProps} from '@mui/material/Drawer';
-import {styled} from '@mui/material/styles';
+import DialogTitle from '@mui/material/DialogTitle';
+import Dialog from '@mui/material/Dialog';
+import {useSelector, useDispatch} from 'react-redux';
+import {RootState} from '@store/store';
+import {setTestFlowCanvasOpen} from '@store/reducers/uiTempGeometryDesigner';
+import DialogActions from '@mui/material/DialogActions';
+import Button from '@mui/material/Button';
+import PaperComponentDraggable from '@gdComponents/PaperComponentDraggable';
 
-export function FlowCanvas(props: {
-  open: boolean;
-  setOpen: (open: boolean) => void;
-}) {
-  const {open, setOpen} = props;
-  const toggleDrawer =
-    (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
-      if (
-        event.type === 'keydown' &&
-        ((event as React.KeyboardEvent).key === 'Tab' ||
-          (event as React.KeyboardEvent).key === 'Shift')
-      ) {
-        return;
-      }
-      setOpen(open);
-    };
-
-  const list = (
-    <Box
-      component="div"
-      role="presentation"
-      onClick={toggleDrawer(false)}
-      onKeyDown={toggleDrawer(false)}
-    >
-      <List>
-        {['Inbox', 'Starred', 'Send email', 'Drafts'].map((text, index) => (
-          <ListItem key={text} disablePadding>
-            <ListItemButton>
-              <ListItemIcon>
-                {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-              </ListItemIcon>
-              <ListItemText primary={text} />
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
-      <Divider />
-      <List>
-        {['All mail', 'Trash', 'Spam'].map((text, index) => (
-          <ListItem key={text} disablePadding>
-            <ListItemButton>
-              <ListItemIcon>
-                {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-              </ListItemIcon>
-              <ListItemText primary={text} />
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
-    </Box>
+export function FlowCanvas() {
+  const open = useSelector(
+    (state: RootState) => state.uitgd.isTestFlowCanvasOpen
   );
+
+  const zindex =
+    useSelector((state: RootState) => state.uitgd.fullScreenZIndex) + 1000;
+  const dispatch = useDispatch();
+
+  const handleOK = () => {
+    dispatch(setTestFlowCanvasOpen(false));
+  };
 
   return (
-    <Drawer anchor="right" open={open} onClose={toggleDrawer(false)}>
-      {list}
-    </Drawer>
+    <Dialog
+      open={open}
+      components={{Backdrop: undefined}}
+      PaperComponent={PaperComponentDraggable}
+      aria-labelledby="draggable-dialog-title"
+      sx={{
+        zIndex: `${zindex}!important`,
+        pointerEvents: 'none'
+      }}
+    >
+      <DialogTitle sx={{marginRight: 0}}>
+        Move the selected component
+      </DialogTitle>
+      <DialogActions>
+        <Button onClick={handleOK}>Done</Button>
+      </DialogActions>
+    </Dialog>
   );
 }
-
-// eslint-disable-next-line no-undef
-const Drawer = styled<(props: DrawerProps) => JSX.Element>(MuiDrawer)(() => ({
-  zIndex: 100000000,
-  flexShrink: 0,
-  whiteSpace: 'nowrap',
-  boxSizing: 'border-box',
-  '& .MuiDrawer-root': {
-    position: 'static',
-    width: '50%',
-    height: '100%'
-  },
-  '& .MuiPaper-root': {
-    position: 'static',
-    height: '100%'
-  }
-}));

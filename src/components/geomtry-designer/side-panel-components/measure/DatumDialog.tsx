@@ -22,6 +22,7 @@ import MenuItem from '@mui/material/MenuItem';
 import {setUIDisabled} from '@store/reducers/uiTempGeometryDesigner';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
+import {setDatumDialogPosition} from '@store/reducers/uiGeometryDesigner';
 import {
   getPointObjectClass,
   PointObject,
@@ -144,7 +145,14 @@ export function DatumDialog(props: {
     <Dialog
       open={open}
       components={{Backdrop: undefined}}
-      PaperComponent={PaperComponentDraggable}
+      PaperComponent={(props) =>
+        PaperComponentDraggable({
+          ...props,
+          position: (state: RootState) =>
+            state.uigd.present.dialogState.datumDialogInitialPosition,
+          setPosition: setDatumDialogPosition
+        })
+      }
       aria-labelledby="draggable-dialog-title"
       sx={{
         zIndex: `${zindex}!important`,

@@ -21,6 +21,7 @@ import {DeltaXYZ} from '@gdComponents/dialog-components/PointOffsetToolDialogCom
 import {DirectionLength} from '@gdComponents/dialog-components/PointOffsetToolDialogComponents/DirectionLength';
 import Divider from '@mui/material/Divider';
 import PaperComponentDraggable from '@gdComponents/PaperComponentDraggable';
+import {setPointOffsetToolDialogPosition} from '@store/reducers/uiGeometryDesigner';
 
 export interface PointOffsetToolDialogProps {
   open: boolean;
@@ -94,7 +95,14 @@ export function PointOffsetToolDialog(props: PointOffsetToolDialogProps) {
       open={open}
       // onClose={onClose}
       components={{Backdrop: undefined}}
-      PaperComponent={PaperComponentDraggable}
+      PaperComponent={(props) =>
+        PaperComponentDraggable({
+          ...props,
+          position: (state: RootState) =>
+            state.uigd.present.dialogState.pointOffsetToolDialogInitialPosition,
+          setPosition: setPointOffsetToolDialogPosition
+        })
+      }
       aria-labelledby="draggable-dialog-title"
       sx={{
         zIndex: `${zindex}!important`,

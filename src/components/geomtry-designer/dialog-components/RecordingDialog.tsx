@@ -15,6 +15,7 @@ import Stack from '@mui/material/Stack';
 import IconButton from '@mui/material/IconButton';
 import useUpdateEffect from '@app/hooks/useUpdateEffect';
 import {getCanvas} from '@gdComponents/GDScene';
+import {setRecordingDialogPosition} from '@store/reducers/uiGeometryDesigner';
 
 export function RecordingDialog() {
   const open = useSelector(
@@ -75,7 +76,14 @@ export function RecordingDialog() {
     <Dialog
       open={open}
       components={{Backdrop: undefined}}
-      PaperComponent={PaperComponentDraggable}
+      PaperComponent={(props) =>
+        PaperComponentDraggable({
+          ...props,
+          position: (state: RootState) =>
+            state.uigd.present.dialogState.recordingDialogInitialPosition,
+          setPosition: setRecordingDialogPosition
+        })
+      }
       aria-labelledby="draggable-dialog-title"
       sx={{
         zIndex: `${zindex}!important`,
