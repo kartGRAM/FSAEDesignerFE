@@ -120,3 +120,7 @@ export function inverseKeyValue(obj: {[index: string]: string}) {
     return ret;
   }, {} as {[index: string]: string});
 }
+
+export function isObject(value): boolean {
+  return value !== null && typeof value === 'object';
+}

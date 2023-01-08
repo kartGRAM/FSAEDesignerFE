@@ -75,6 +75,7 @@
     "react-simple-keyboard": "^3.4.240",
     "react-spring": "^9.5.4",
     "react-toastify": "9.0.5",
+    "reactflow": "^11.4.0",
     "redux": "4.2.0",
     "redux-localstorage-simple": "^2.5.1",
     "redux-logger": "3.0.6",
