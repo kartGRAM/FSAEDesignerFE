@@ -34,7 +34,9 @@ export class CaseStartNode extends FlowNode implements ICaseStartNode {
   }
 
   constructor(
-    params: {name: string; position: {x: number; y: number}} | IDataFlowNode
+    params:
+      | {name: string; position: {x: number; y: number}}
+      | IDataCaseStartNode
   ) {
     super(params);
     // eslint-disable-next-line no-empty

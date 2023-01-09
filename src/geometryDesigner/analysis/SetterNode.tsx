@@ -45,7 +45,7 @@ export class SetterNode extends ActionNode implements ISetterNode {
   }
 
   constructor(
-    params: {name: string; position: {x: number; y: number}} | IDataActionNode
+    params: {name: string; position: {x: number; y: number}} | IDataSetterNode
   ) {
     super(params);
     // eslint-disable-next-line no-empty

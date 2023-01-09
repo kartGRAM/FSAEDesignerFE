@@ -39,7 +39,7 @@ export class StartNode extends ActionNode implements IStartNode {
   }
 
   constructor(
-    params: {name: string; position: {x: number; y: number}} | IDataActionNode
+    params: {name: string; position: {x: number; y: number}} | IDataStartNode
   ) {
     super(params);
     // eslint-disable-next-line no-empty

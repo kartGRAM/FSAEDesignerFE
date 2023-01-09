@@ -62,9 +62,12 @@ export abstract class FlowNode implements IFlowNode {
   abstract acceptable(other: IFlowNode): boolean;
 }
 
+export const edgeClasses = ['default'] as const;
+type EdgeClasses = typeof edgeClasses[number];
 export interface IDataEdge {
+  isDataEdge: true;
   readonly id: string;
-  readonly className: string;
+  readonly className: EdgeClasses;
   source: string;
   target: string;
 }
@@ -75,4 +78,8 @@ export function isFlowNode(node: any): node is IFlowNode {
 
 export function isDataFlowNode(node: any): node is IDataFlowNode {
   return isObject(node) && node.isDataFlowNode;
+}
+
+export function isDataEdge(edge: any): edge is IDataEdge {
+  return isObject(edge) && edge.isDataEdge;
 }

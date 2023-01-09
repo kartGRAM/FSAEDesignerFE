@@ -33,7 +33,7 @@ export class CaseEndNode extends FlowNode implements ICaseEndNode {
   }
 
   constructor(
-    params: {name: string; position: {x: number; y: number}} | IDataFlowNode
+    params: {name: string; position: {x: number; y: number}} | IDataCaseEndNode
   ) {
     super(params);
     // eslint-disable-next-line no-empty

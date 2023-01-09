@@ -45,7 +45,7 @@ export class SweepNode extends ActionNode implements ISweepNode {
   }
 
   constructor(
-    params: {name: string; position: {x: number; y: number}} | IDataActionNode
+    params: {name: string; position: {x: number; y: number}} | IDataSweepNode
   ) {
     super(params);
     // eslint-disable-next-line no-empty
