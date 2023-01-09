@@ -13,7 +13,8 @@ export function FlowCanvas(props: {
 }) {
   const {open, setOpen} = props;
   const zindex =
-    useSelector((state: RootState) => state.uitgd.fullScreenZIndex) + 1000;
+    useSelector((state: RootState) => state.uitgd.fullScreenZIndex) +
+    10000000000;
 
   const handleOK = () => {
     setOpen(false);

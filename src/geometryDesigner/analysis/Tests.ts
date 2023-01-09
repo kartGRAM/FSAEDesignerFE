@@ -1,19 +1,23 @@
 import {Node, Edge} from 'reactFlow';
 import {v4 as uuidv4} from 'uuid';
 import {IFlowNode, IDataEdge} from './FlowNode';
+import {StartNode} from './StartNode';
 import {ITest, IDataTest, isDataTest} from './ITest';
 import {getEdge, getFlowNode} from './RestoreData';
 
-class Test implements ITest {
+export class Test implements ITest {
   name: string;
+
+  description: string;
 
   nodeID: string = uuidv4();
 
   getData(): IDataTest {
-    const {name, nodeID, edges, nodes} = this;
+    const {name, description, nodeID, edges, nodes} = this;
     return {
       isDataTest: true,
       name,
+      description,
       nodeID,
       nodes: nodes.map((node) => node.getData()),
       edges: [...edges]
@@ -27,16 +31,20 @@ class Test implements ITest {
     };
   }
 
-  nodes: IFlowNode[] = [];
+  nodes: IFlowNode[];
 
   edges: IDataEdge[] = [];
 
-  constructor(params: {name: string} | IDataTest) {
+  constructor(params: {name: string; description: string} | IDataTest) {
     this.name = params.name;
+    this.description = params.description;
+    this.nodes = [
+      new StartNode({name: 'start(assemble)', position: {x: 50, y: 300}})
+    ];
     if (isDataTest(params)) {
       this.nodeID = params.nodeID;
       this.edges = [...params.edges];
-      this.nodes =
+      this.nodes = params.nodes.map((node) => getFlowNode(node));
     }
   }
 }

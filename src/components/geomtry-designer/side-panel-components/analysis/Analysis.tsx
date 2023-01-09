@@ -23,6 +23,11 @@ import {FlowCanvas} from '@gdComponents/side-panel-components/analysis/FlowCanva
 export default function Controllers() {
   const dispatch = useDispatch();
   const [open, setOpen] = React.useState(false);
+  const dataTests = useSelector(
+    (state: RootState) => state.dgd.present.analysis
+  );
+  const loadedTests = useSelector((state: RootState) => state.uitgd.tests);
+  const handleCreateTest = () => {};
 
   return (
     <>
@@ -35,7 +40,7 @@ export default function Controllers() {
         justifyContent="center"
       >
         <Box component="div" padding={3}>
-          <Button variant="contained" size="large" onClick={() => {}}>
+          <Button variant="contained" size="large" onClick={handleCreateTest}>
             Create a New Test
           </Button>
         </Box>
@@ -48,7 +53,7 @@ export default function Controllers() {
           sx={{backgroundColor: '#FFF', minWidth: 'fit-content', width: '100%'}}
         >
           <List sx={{whiteSpace: 'nowrap', width: '100%'}}>
-            {generate(
+            {dataTests.map((test) => (
               <ListItem>
                 <Button sx={{color: '#222'}} onClick={() => setOpen(true)}>
                   <ListItemAvatar>
@@ -57,8 +62,8 @@ export default function Controllers() {
                     </Avatar>
                   </ListItemAvatar>
                   <ListItemText
-                    primary="Single-line item"
-                    secondary="Secondary text"
+                    primary={test.name}
+                    secondary={test.description}
                   />
                 </Button>
                 <Toolbar
@@ -118,19 +123,11 @@ export default function Controllers() {
                   </IconButton>
                 </Toolbar>
               </ListItem>
-            )}
+            ))}
           </List>
           <FlowCanvas open={open} setOpen={setOpen} />
         </Box>
       </Box>
     </>
-  );
-}
-
-function generate(element: React.ReactElement) {
-  return [0, 1, 2].map((value) =>
-    React.cloneElement(element, {
-      key: value
-    })
   );
 }

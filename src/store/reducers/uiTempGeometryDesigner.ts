@@ -10,6 +10,7 @@ import {IMeasureToolsManager} from '@gd/measure/IMeasureTools';
 import {Quaternion, Vector3} from 'three';
 import {RootState} from '@react-three/fiber';
 import {GetState} from 'zustand';
+import {ITest} from '@gd/analysis/ITest';
 import {KinematicSolver} from '@gd/kinematics/Solver';
 // import {PointOffsetToolDialogProps} from '@gdComponents/dialog-components/PointOffsetToolDialog';
 
@@ -53,7 +54,7 @@ export interface GDState {
   kinematicSolver: KinematicSolver | undefined;
   datumManager: IDatumManager | undefined;
   measureToolsManager: IMeasureToolsManager | undefined;
-
+  tests: ITest[];
   treeViewDragExpanded: string[];
   draggingNewElement: Elements | null;
   draggingElementAbsPath: string;
@@ -146,6 +147,7 @@ const initialState: GDState = {
   },
   datumManager: undefined,
   measureToolsManager: undefined,
+  tests: [],
   assembly: undefined,
   collectedAssembly: undefined,
   kinematicSolver: undefined,
@@ -206,6 +208,13 @@ export const uitGeometryDesignerSlice = createSlice({
       }>
     ) => {
       state.measureToolsManager = action.payload.measureToolsManager;
+    },
+    setTests: (state: GDState, action: PayloadAction<ITest>) => {
+      const test = action.payload;
+      state.tests = [
+        ...state.tests.filter((t) => t.nodeID !== test.nodeID),
+        test
+      ];
     },
     setKinematicSolver: (
       state: GDState,
@@ -474,6 +483,7 @@ export const {
   setAssemblyAndCollectedAssembly,
   setDatumManager,
   setMeasureToolsManager,
+  setTests,
   setKinematicSolver,
   setUIDisabled,
   toggleFullScreen,

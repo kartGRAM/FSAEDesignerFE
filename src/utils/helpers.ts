@@ -85,6 +85,7 @@ export function toFixedNoZero(
   if (n !== 0 && !n) return null;
   return n.toFixed(fractionDigits).replace(reToFixedNoZero, '');
 }
+
 export const capitalize = (
   [first, ...rest]: string,
   lowerRest: boolean = false
