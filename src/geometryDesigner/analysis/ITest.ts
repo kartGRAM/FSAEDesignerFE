@@ -4,7 +4,7 @@ export interface ITest {
   name: string;
   readonly nodeID: string;
   getData(): IDataTest;
-  getRFNodesAndEdges(): {nodes: IRFNode[]; edges: IRFEdge};
+  getRFNodesAndEdges(): {nodes: IRFNode[]; edges: IRFEdge[]};
 }
 
 export interface IDataTest {

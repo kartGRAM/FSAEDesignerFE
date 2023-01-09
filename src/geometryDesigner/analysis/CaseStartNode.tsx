@@ -1,28 +1,29 @@
 /* eslint-disable class-methods-use-this */
 import {Node as IRFNode} from 'reactFlow';
 import {IFlowNode, isDataFlowNode, IDataFlowNode, FlowNode} from './FlowNode';
-import {isControlNode} from './TypeGuards';
+import {isStartNode, isCaseEndNode, isAssemblyControlNode} from './TypeGuards';
 
-const className = 'CaseEnd' as const;
+const className = 'CaseStart' as const;
 type ClassName = typeof className;
 
-export interface ICaseEndNode extends IFlowNode {
+export interface ICaseStartNode extends IFlowNode {
   className: ClassName;
 }
 
-export interface IDataCaseEndNode extends IDataFlowNode {
+export interface IDataCaseStartNode extends IDataFlowNode {
   className: ClassName;
 }
 
-export class CaseEndNode extends FlowNode implements ICaseEndNode {
+export class CaseStartNode extends FlowNode implements ICaseStartNode {
   readonly className = className;
 
   acceptable(node: IFlowNode): boolean {
-    if (isControlNode(node)) return true;
+    if (isStartNode(node) || isCaseEndNode(node) || isAssemblyControlNode(node))
+      return true;
     return false;
   }
 
-  getData(): IDataCaseEndNode {
+  getData(): IDataCaseStartNode {
     const data = super.getData();
     return {...data, className: this.className};
   }
@@ -37,17 +38,17 @@ export class CaseEndNode extends FlowNode implements ICaseEndNode {
   ) {
     super(params);
     // eslint-disable-next-line no-empty
-    if (isDataFlowNode(params) && isDataCaseEndNode(params)) {
+    if (isDataFlowNode(params) && isDataCaseStartNode(params)) {
     }
   }
 }
 
-export function isCaseEndNode(node: IFlowNode): node is ICaseEndNode {
+export function isCaseStartNode(node: IFlowNode): node is ICaseStartNode {
   return node.className === className;
 }
 
-export function isDataCaseEndNode(
+export function isDataCaseStartNode(
   node: IDataFlowNode
-): node is IDataCaseEndNode {
+): node is IDataCaseStartNode {
   return node.className === className;
 }
