@@ -121,6 +121,6 @@ export function inverseKeyValue(obj: {[index: string]: string}) {
   }, {} as {[index: string]: string});
 }
 
-export function isObject(value): boolean {
+export function isObject(value: any): boolean {
   return value !== null && typeof value === 'object';
 }

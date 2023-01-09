@@ -62,6 +62,13 @@ export abstract class FlowNode implements IFlowNode {
   abstract acceptable(other: IFlowNode): boolean;
 }
 
+export interface IDataEdge {
+  readonly id: string;
+  readonly className: string;
+  source: string;
+  target: string;
+}
+
 export function isFlowNode(node: any): node is IFlowNode {
   return isObject(node) && node.isFlowNode;
 }

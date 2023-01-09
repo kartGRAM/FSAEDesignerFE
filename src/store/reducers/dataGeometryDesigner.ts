@@ -10,6 +10,7 @@ import {IBidirectionalNode, getRootNode} from '@gd/INode';
 import {IControl} from '@gd/controls/IControls';
 import {IDataDatumGroup} from '@gd/measure/IDatumObjects';
 import {IDataMeasureTool} from '@gd/measure/IMeasureTools';
+import {IDataTest} from '@gd/analysis/ITest';
 import {IDataMatrix3} from '@gd/INamedValues';
 import {validateAll /* , replaceVariable */} from '@gd/IFormula';
 import {DateTime} from 'luxon';
@@ -38,6 +39,7 @@ const initialState: GDState = {
   controls: [],
   datumObjects: [],
   measureTools: [],
+  analysis: [],
   changed: false
 };
 
@@ -62,6 +64,9 @@ export const dataGeometryDesignerSlice = createSlice({
       state.lastUpdated = DateTime.local().toString();
       state.formulae = initialState.formulae;
       state.controls = initialState.controls;
+      state.datumObjects = initialState.datumObjects;
+      state.measureTools = initialState.measureTools;
+      state.analysis = initialState.analysis;
       state.topAssembly = action.payload?.getDataElement(state);
       state.changed = false;
     },
@@ -76,6 +81,7 @@ export const dataGeometryDesignerSlice = createSlice({
       state.controls = action.payload.controls;
       state.datumObjects = action.payload.datumObjects;
       state.measureTools = action.payload.measureTools;
+      state.analysis = action.payload.analysis;
       state.changed = false;
     },
     updateAssembly: (
@@ -145,6 +151,10 @@ export const dataGeometryDesignerSlice = createSlice({
       action: PayloadAction<IDataMeasureTool[]>
     ) => {
       state.measureTools = action.payload;
+      state.changed = true;
+    },
+    setTests: (state: GDState, action: PayloadAction<IDataTest[]>) => {
+      state.analysis = action.payload;
       state.changed = true;
     },
     setChanged: (state: GDState) => {

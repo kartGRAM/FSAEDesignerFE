@@ -2,6 +2,7 @@ import {IDataAssembly} from '@app/geometryDesigner/IElements';
 import {IControl} from '@gd/controls/IControls';
 import {IDataDatumGroup} from '@gd/measure/IDatumObjects';
 import {IDataMeasureTool} from '@gd/measure/IMeasureTools';
+import {IDataTest} from '@gd/analysis/ITest';
 import {IDataFormula} from '@gd/IFormula';
 import {getScreenShot} from '@gdComponents/GDScene';
 import {RootState} from '@store/store';
@@ -18,6 +19,7 @@ export interface SavedData {
   controls: IControl[];
   datumObjects: IDataDatumGroup[];
   measureTools: IDataMeasureTool[];
+  analysis: IDataTest[];
 }
 
 export function getSetTopAssemblyParams(data: any): SavedData {
@@ -45,6 +47,7 @@ export interface SaveDataToSend {
   controls: string;
   datumObjects: string;
   measureTools: string;
+  analysis: string;
 }
 
 export function getDataToSave(
@@ -70,6 +73,7 @@ export function getDataToSave(
     controls: JSON.stringify(state.controls),
     datumObjects: JSON.stringify(state.datumObjects),
     measureTools: JSON.stringify(state.measureTools),
+    analysis: JSON.stringify(state.analysis),
     clientLastUpdated: state.lastUpdated,
     overwrite
   };
