@@ -2,8 +2,13 @@
 import {Node as IRFNode} from 'reactFlow';
 import {IFlowNode, isDataFlowNode, IDataFlowNode} from './FlowNode';
 import {IActionNode, IDataActionNode, ActionNode} from './ActionNode';
+import {
+  isStartNode,
+  isAssemblyControlNode,
+  isCaseControlNode
+} from './TypeGuards';
 
-const className = 'Stter' as const;
+const className = 'Sweep' as const;
 type ClassName = typeof className;
 
 export interface ISetterNode extends IActionNode {
@@ -19,7 +24,13 @@ export class SetterNode extends ActionNode implements ISetterNode {
 
   readonly className = className;
 
-  acceptable(): boolean {
+  acceptable(node: IFlowNode): boolean {
+    if (
+      isStartNode(node) ||
+      isAssemblyControlNode(node) ||
+      isCaseControlNode(node)
+    )
+      return true;
     return false;
   }
 
