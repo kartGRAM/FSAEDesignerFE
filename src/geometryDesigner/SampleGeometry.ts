@@ -406,6 +406,7 @@ export const getSampleData = async (): Promise<SavedData> => {
     controls: [],
     datumObjects: [],
     measureTools: [],
+    analysis: [],
     topAssembly: getKZRR11Assy().getDataElement(store.getState().dgd.present)
     // topAssembly: getUprightAssy().getDataElement(store.getState().dgd.present)
   };

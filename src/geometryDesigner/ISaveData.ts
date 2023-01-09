@@ -32,7 +32,8 @@ export function getSetTopAssemblyParams(data: any): SavedData {
     formulae: convertJsonToDataFormula(data.formulae as string),
     controls: convertJsonToControls(data.controls as string),
     datumObjects: convertJsonToDatumObjects(data.datumObjects as string),
-    measureTools: convertJsonToMeasureTools(data.measureTools as string)
+    measureTools: convertJsonToMeasureTools(data.measureTools as string),
+    analysis: convertJsonToAnalysis(data.analysis as string)
   };
 }
 
@@ -142,6 +143,17 @@ function convertJsonToDatumObjects(content: string): IDataDatumGroup[] {
 function convertJsonToMeasureTools(content: string): IDataMeasureTool[] {
   try {
     const data = JSON.parse(content) as IDataMeasureTool[];
+    return data;
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    // console.log(err);
+    return [];
+  }
+}
+
+function convertJsonToAnalysis(content: string): IDataTest[] {
+  try {
+    const data = JSON.parse(content) as IDataTest[];
     return data;
   } catch (err) {
     // eslint-disable-next-line no-console
