@@ -209,12 +209,16 @@ export const uitGeometryDesignerSlice = createSlice({
     ) => {
       state.measureToolsManager = action.payload.measureToolsManager;
     },
-    setTests: (state: GDState, action: PayloadAction<ITest>) => {
+    setTest: (state: GDState, action: PayloadAction<ITest>) => {
       const test = action.payload;
       state.tests = [
         ...state.tests.filter((t) => t.nodeID !== test.nodeID),
         test
       ];
+    },
+    removeTest: (state: GDState, action: PayloadAction<ITest>) => {
+      const test = action.payload;
+      state.tests = [...state.tests.filter((t) => t.nodeID !== test.nodeID)];
     },
     setKinematicSolver: (
       state: GDState,
@@ -483,7 +487,8 @@ export const {
   setAssemblyAndCollectedAssembly,
   setDatumManager,
   setMeasureToolsManager,
-  setTests,
+  setTest,
+  removeTest,
   setKinematicSolver,
   setUIDisabled,
   toggleFullScreen,

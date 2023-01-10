@@ -5,6 +5,8 @@ import {IDataFlowNode, IDataEdge, IFlowNode} from './FlowNode';
 export interface ITest {
   name: string;
   description: string;
+  done: boolean;
+  ready: boolean;
   readonly nodeID: string;
   getData(): IDataTest;
   getRFNodesAndEdges(): {nodes: IRFNode[]; edges: IRFEdge[]};

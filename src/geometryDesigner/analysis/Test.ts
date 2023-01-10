@@ -12,6 +12,10 @@ export class Test implements ITest {
 
   nodeID: string = uuidv4();
 
+  done = false;
+
+  ready = false;
+
   getData(): IDataTest {
     const {name, description, nodeID, edges, nodes} = this;
     return {

@@ -172,6 +172,7 @@ export const {
   updateAssembly,
   setFormulae,
   setControl,
+  setTests,
   removeControl,
   setChanged
 } = dataGeometryDesignerSlice.actions;
