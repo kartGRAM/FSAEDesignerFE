@@ -1,4 +1,4 @@
-import {Node, Edge} from 'reactFlow';
+import {Node, Edge} from 'reactflow';
 import {v4 as uuidv4} from 'uuid';
 import {IFlowNode, IDataEdge} from './FlowNode';
 import {StartNode} from './StartNode';

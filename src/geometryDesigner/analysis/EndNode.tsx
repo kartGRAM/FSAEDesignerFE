@@ -5,18 +5,18 @@ import {Node as IRFNode} from 'reactflow';
 import {IActionNode, IDataActionNode, ActionNode} from './ActionNode';
 import {isDataFlowNode, IFlowNode, IDataFlowNode} from './FlowNode';
 
-const className = 'Start' as const;
+const className = 'End' as const;
 type ClassName = typeof className;
 
-export interface IStartNode extends IActionNode {
+export interface IEndNode extends IActionNode {
   className: ClassName;
 }
 
-export interface IDataStartNode extends IDataActionNode {
+export interface IDataEndNode extends IDataActionNode {
   className: ClassName;
 }
 
-export class StartNode extends ActionNode implements IStartNode {
+export class EndNode extends ActionNode implements IEndNode {
   action(): void {
     const {dispatch} = store;
     dispatch(setAssembled(true));
@@ -28,7 +28,7 @@ export class StartNode extends ActionNode implements IStartNode {
     return false;
   }
 
-  getData(): IDataStartNode {
+  getData(): IDataEndNode {
     const data = super.getData();
     return {...data, className: this.className};
   }
@@ -39,19 +39,19 @@ export class StartNode extends ActionNode implements IStartNode {
   }
 
   constructor(
-    params: {name: string; position: {x: number; y: number}} | IDataStartNode
+    params: {name: string; position: {x: number; y: number}} | IDataEndNode
   ) {
     super(params);
     // eslint-disable-next-line no-empty
-    if (isDataFlowNode(params) && isDataStartNode(params)) {
+    if (isDataFlowNode(params) && isDataEndNode(params)) {
     }
   }
 }
 
-export function isStartNode(node: IFlowNode): node is IStartNode {
+export function isEndNode(node: IFlowNode): node is IEndNode {
   return node.className === className;
 }
 
-export function isDataStartNode(node: IDataFlowNode): node is IDataStartNode {
+export function isDataEndNode(node: IDataFlowNode): node is IDataEndNode {
   return node.className === className;
 }

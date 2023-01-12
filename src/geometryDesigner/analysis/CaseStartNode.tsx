@@ -1,5 +1,5 @@
 /* eslint-disable class-methods-use-this */
-import {Node as IRFNode} from 'reactFlow';
+import {Node as IRFNode} from 'reactflow';
 import {IFlowNode, isDataFlowNode, IDataFlowNode, FlowNode} from './FlowNode';
 import {isStartNode, isCaseEndNode, isAssemblyControlNode} from './TypeGuards';
 

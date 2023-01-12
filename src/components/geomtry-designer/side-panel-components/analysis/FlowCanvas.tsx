@@ -4,7 +4,9 @@ import Dialog from '@mui/material/Dialog';
 import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
 import DialogActions from '@mui/material/DialogActions';
+import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
 import {DialogContent} from '@mui/material';
 import {useState, useCallback} from 'react';
 import ReactFlow, {
@@ -16,7 +18,12 @@ import ReactFlow, {
   Edge,
   NodeChange,
   EdgeChange,
-  Connection
+  Connection,
+  Background,
+  BackgroundVariant,
+  Panel,
+  MiniMap,
+  Controls
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
@@ -45,10 +52,14 @@ export function FlowCanvas(props: {
 
   const [nodes, setNodes] = useState<Node[]>(initialNodes);
   const [edges, setEdges] = useState<Edge[]>(initialEdges);
+  const [variant, setVariant] = useState<BackgroundVariant>(
+    BackgroundVariant.Lines
+  );
 
   const onNodesChange = useCallback(
-    (changes: NodeChange[]) =>
-      setNodes((nds) => applyNodeChanges(changes, nds)),
+    (changes: NodeChange[]) => {
+      setNodes((nds) => applyNodeChanges(changes, nds));
+    },
     [setNodes]
   );
   const onEdgesChange = useCallback(
@@ -72,6 +83,7 @@ export function FlowCanvas(props: {
 
   return (
     <Dialog
+      TransitionProps={{unmountOnExit: true}}
       container={window}
       onClose={handleOK}
       open={open}
@@ -96,7 +108,25 @@ export function FlowCanvas(props: {
           onConnect={onConnect}
           fitView
           fitViewOptions={fitViewOptions}
-        />
+        >
+          <Background color="#99b3ec" variant={variant} />
+          <MiniMap nodeStrokeWidth={3} zoomable pannable />
+          <Panel position="top-left">
+            <Box component="div" sx={{backgroundColor: '#FFFFFF'}}>
+              <Typography>Grid:</Typography>
+              <Button onClick={() => setVariant(BackgroundVariant.Dots)}>
+                dots
+              </Button>
+              <Button onClick={() => setVariant(BackgroundVariant.Lines)}>
+                lines
+              </Button>
+              <Button onClick={() => setVariant(BackgroundVariant.Cross)}>
+                cross
+              </Button>
+            </Box>
+          </Panel>
+          <Controls />
+        </ReactFlow>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleOK}>Close</Button>

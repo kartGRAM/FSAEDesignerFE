@@ -1,4 +1,4 @@
-import {Node as IRFNode, Edge as IRFEdge} from 'reactFlow';
+import {Node as IRFNode, Edge as IRFEdge} from 'reactflow';
 import {isObject} from '@app/utils/helpers';
 import {IDataFlowNode, IDataEdge, IFlowNode} from './FlowNode';
 

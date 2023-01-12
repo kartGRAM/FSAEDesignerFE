@@ -1,4 +1,4 @@
-import {Node as IRFNode} from 'reactFlow';
+import {Node as IRFNode} from 'reactflow';
 import {v4 as uuidv4} from 'uuid';
 import {isObject} from '@app/utils/helpers';
 

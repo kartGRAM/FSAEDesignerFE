@@ -87,6 +87,7 @@ const TestRow = (props: {test: IDataTest}) => {
   dispatch(setTest(loadedTest));
 
   const [open, setOpen] = React.useState(false);
+  const openId = React.useRef<number>(1);
 
   const handleOpen = () => {
     setOpen(true);
@@ -115,6 +116,12 @@ const TestRow = (props: {test: IDataTest}) => {
       dispatch(removeTest(loadedTest));
     }
   };
+
+  React.useEffect(() => {
+    if (!open) {
+      openId.current += 1;
+    }
+  }, [open]);
 
   return (
     <>
@@ -196,7 +203,12 @@ const TestRow = (props: {test: IDataTest}) => {
           </Tooltip>
         </Toolbar>
       </ListItem>
-      <FlowCanvas open={open} setOpen={setOpen} nodeID={test.nodeID} />
+      <FlowCanvas
+        key={openId.current}
+        open={open}
+        setOpen={setOpen}
+        nodeID={test.nodeID}
+      />
     </>
   );
 };

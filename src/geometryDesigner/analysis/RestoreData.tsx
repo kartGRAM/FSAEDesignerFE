@@ -1,4 +1,4 @@
-import {Edge} from 'reactFlow';
+import {Edge} from 'reactflow';
 import {IDataEdge, IDataFlowNode, IFlowNode} from './FlowNode';
 import {StartNode, isDataStartNode} from './StartNode';
 import {CaseStartNode, isDataCaseStartNode} from './CaseStartNode';
