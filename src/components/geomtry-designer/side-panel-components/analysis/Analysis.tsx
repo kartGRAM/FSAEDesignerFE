@@ -70,7 +70,7 @@ export default function Controllers() {
           >
             <List sx={{whiteSpace: 'nowrap', width: '100%'}}>
               {dataTests.map((test) => (
-                <TestRow test={test} />
+                <TestRow test={test} key={test.nodeID} />
               ))}
             </List>
           </Box>
@@ -84,7 +84,6 @@ const TestRow = (props: {test: IDataTest}) => {
   const {test} = props;
   const loadedTest = new Test(test);
   const dispatch = useDispatch();
-  dispatch(setTest(loadedTest));
 
   const [open, setOpen] = React.useState(false);
   const openId = React.useRef<number>(1);
@@ -122,6 +121,10 @@ const TestRow = (props: {test: IDataTest}) => {
       openId.current += 1;
     }
   }, [open]);
+
+  React.useEffect(() => {
+    dispatch(setTest(loadedTest));
+  });
 
   return (
     <>

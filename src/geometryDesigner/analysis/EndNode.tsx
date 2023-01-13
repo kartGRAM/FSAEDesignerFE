@@ -1,9 +1,10 @@
 /* eslint-disable class-methods-use-this */
 import {setAssembled} from '@store/reducers/uiTempGeometryDesigner';
 import store from '@store/store';
-import {Node as IRFNode} from 'reactflow';
+import {Node as IRFNode, Position} from 'reactflow';
 import {IActionNode, IDataActionNode, ActionNode} from './ActionNode';
 import {isDataFlowNode, IFlowNode, IDataFlowNode} from './FlowNode';
+import {isCaseEndNode} from './TypeGuards';
 
 const className = 'End' as const;
 type ClassName = typeof className;
@@ -24,7 +25,8 @@ export class EndNode extends ActionNode implements IEndNode {
 
   readonly className = className;
 
-  acceptable(): boolean {
+  acceptable(node: IFlowNode): boolean {
+    if (isCaseEndNode(node)) return true;
     return false;
   }
 
@@ -35,7 +37,12 @@ export class EndNode extends ActionNode implements IEndNode {
 
   getRFNode(): IRFNode {
     const rfNode = super.getRFNode();
-    return {...rfNode, data: this.name};
+    return {
+      ...rfNode,
+      data: {label: this.name},
+      targetPosition: Position.Left,
+      sourcePosition: Position.Right
+    };
   }
 
   constructor(

@@ -30,7 +30,7 @@ export class CaseStartNode extends FlowNode implements ICaseStartNode {
 
   getRFNode(): IRFNode {
     const rfNode = super.getRFNode();
-    return {...rfNode, data: this.name};
+    return {...rfNode, data: {label: this.name}};
   }
 
   constructor(

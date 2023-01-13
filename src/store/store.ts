@@ -58,6 +58,8 @@ const store = configureStore({
           'uitGeometryDesigner/setMovePointDialogProps',
           'uitGeometryDesigner/setMovePointOnMoved',
           'uitGeometryDesigner/setSaveAsDialogProps',
+          'uitGeometryDesigner/setTest',
+          'uitGeometryDesigner/removeTest',
           'uitGeometryDesigner/setConfirmDialogProps'
         ],
         ignoredPaths: [
@@ -66,6 +68,7 @@ const store = configureStore({
           'uitgd.collectedAssembly',
           'uitgd.datumManager',
           `uitgd.measureToolsManager`,
+          'uitgd.tests',
           'uitgd.gdSceneState.selectedPoint',
           'uitgd.gdSceneState.measureElementPointSetterCallback',
           'uitgd.gdSceneState.get',

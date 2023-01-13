@@ -29,7 +29,7 @@ export class CaseEndNode extends FlowNode implements ICaseEndNode {
 
   getRFNode(): IRFNode {
     const rfNode = super.getRFNode();
-    return {...rfNode, data: this.name};
+    return {...rfNode, data: {label: this.name}};
   }
 
   constructor(

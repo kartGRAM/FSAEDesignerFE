@@ -1,6 +1,7 @@
 import {Edge} from 'reactflow';
 import {IDataEdge, IDataFlowNode, IFlowNode} from './FlowNode';
 import {StartNode, isDataStartNode} from './StartNode';
+import {EndNode, isDataEndNode} from './EndNode';
 import {CaseStartNode, isDataCaseStartNode} from './CaseStartNode';
 import {CaseEndNode, isDataCaseEndNode} from './CaseEndNode';
 import {SetterNode, isDataSetterNode} from './SetterNode';
@@ -15,6 +16,7 @@ export function getEdge(edge: IDataEdge): Edge {
 
 export function getFlowNode(node: IDataFlowNode): IFlowNode {
   if (isDataStartNode(node)) return new StartNode(node);
+  if (isDataEndNode(node)) return new EndNode(node);
   if (isDataCaseStartNode(node)) return new CaseStartNode(node);
   if (isDataCaseEndNode(node)) return new CaseEndNode(node);
   if (isDataSetterNode(node)) return new SetterNode(node);

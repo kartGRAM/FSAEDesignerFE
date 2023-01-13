@@ -2,6 +2,7 @@ import {IFlowNode} from './FlowNode';
 import {ISetterNode, isSetterNode} from './SetterNode';
 import {ISweepNode, isSweepNode} from './SweepNode';
 import {isStartNode} from './StartNode';
+import {isEndNode} from './EndNode';
 import {ICaseStartNode, isCaseStartNode} from './CaseStartNode';
 import {ICaseEndNode, isCaseEndNode} from './CaseEndNode';
 
@@ -17,4 +18,11 @@ export function isCaseControlNode(
   return isCaseStartNode(node) || isCaseEndNode(node);
 }
 
-export {isStartNode, isCaseStartNode, isCaseEndNode, isSetterNode, isSweepNode};
+export {
+  isStartNode,
+  isEndNode,
+  isCaseStartNode,
+  isCaseEndNode,
+  isSetterNode,
+  isSweepNode
+};

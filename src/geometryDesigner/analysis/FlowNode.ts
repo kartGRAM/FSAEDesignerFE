@@ -56,7 +56,7 @@ export abstract class FlowNode implements IFlowNode {
 
   getRFNode(): IRFNode {
     const {position} = this;
-    return {id: this.nodeID, position, data: this.name};
+    return {id: this.nodeID, position, data: {label: this.name}};
   }
 
   abstract acceptable(other: IFlowNode): boolean;

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react';
 import DialogTitle from '@mui/material/DialogTitle';
 import Dialog from '@mui/material/Dialog';
@@ -10,7 +11,6 @@ import Box from '@mui/material/Box';
 import {DialogContent} from '@mui/material';
 import {useState, useCallback} from 'react';
 import ReactFlow, {
-  addEdge,
   FitViewOptions,
   applyNodeChanges,
   applyEdgeChanges,
@@ -23,13 +23,26 @@ import ReactFlow, {
   BackgroundVariant,
   Panel,
   MiniMap,
+  Position,
   Controls
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
 const initialNodes: Node[] = [
-  {id: '1', data: {label: 'Node 1'}, position: {x: 5, y: 5}},
-  {id: '2', data: {label: 'Node 2'}, position: {x: 5, y: 100}}
+  {
+    id: '1',
+    data: {label: 'Node 1'},
+    position: {x: 5, y: 5},
+    targetPosition: Position.Left,
+    sourcePosition: Position.Right
+  },
+  {
+    id: '2',
+    data: {label: 'Node 2'},
+    position: {x: 5, y: 100},
+    targetPosition: Position.Left,
+    sourcePosition: Position.Right
+  }
 ];
 
 const initialEdges: Edge[] = [{id: 'e1-2', source: '1', target: '2'}];
@@ -50,29 +63,19 @@ export function FlowCanvas(props: {
     state.uitgd.tests.find((t) => t.nodeID === nodeID)
   );
 
-  const [nodes, setNodes] = useState<Node[]>(initialNodes);
-  const [edges, setEdges] = useState<Edge[]>(initialEdges);
+  const onNodesChange = (changes: NodeChange[]) => {};
+
+  const onEdgesChange = (changes: EdgeChange[]) => {};
+
+  const onConnect = (connection: Connection) => {};
+
   const [variant, setVariant] = useState<BackgroundVariant>(
     BackgroundVariant.Lines
   );
 
-  const onNodesChange = useCallback(
-    (changes: NodeChange[]) => {
-      setNodes((nds) => applyNodeChanges(changes, nds));
-    },
-    [setNodes]
-  );
-  const onEdgesChange = useCallback(
-    (changes: EdgeChange[]) =>
-      setEdges((eds) => applyEdgeChanges(changes, eds)),
-    [setEdges]
-  );
-  const onConnect = useCallback(
-    (connection: Connection) => setEdges((eds) => addEdge(connection, eds)),
-    [setEdges]
-  );
-
   if (!test) return null;
+
+  const {nodes, edges} = test.getRFNodesAndEdges();
 
   const handleOK = () => {
     setOpen(false);

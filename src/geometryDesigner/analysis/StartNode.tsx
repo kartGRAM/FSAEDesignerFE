@@ -1,7 +1,7 @@
 /* eslint-disable class-methods-use-this */
 import {setAssembled} from '@store/reducers/uiTempGeometryDesigner';
 import store from '@store/store';
-import {Node as IRFNode} from 'reactflow';
+import {Node as IRFNode, Position} from 'reactflow';
 import {IActionNode, IDataActionNode, ActionNode} from './ActionNode';
 import {isDataFlowNode, IFlowNode, IDataFlowNode} from './FlowNode';
 
@@ -35,7 +35,12 @@ export class StartNode extends ActionNode implements IStartNode {
 
   getRFNode(): IRFNode {
     const rfNode = super.getRFNode();
-    return {...rfNode, data: this.name};
+    return {
+      ...rfNode,
+      data: {label: this.name},
+      type: 'input',
+      sourcePosition: Position.Right
+    };
   }
 
   constructor(
