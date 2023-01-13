@@ -1,6 +1,8 @@
 /* eslint-disable class-methods-use-this */
-import {Node as IRFNode} from 'reactflow';
-import {IFlowNode, isDataFlowNode, IDataFlowNode} from './FlowNode';
+import * as React from 'react';
+import {Node as IRFNode, XYPosition} from 'reactflow';
+import Sweep from '@gdComponents/svgs/Sweep';
+import {IFlowNode, isDataFlowNode, IDataFlowNode, Item} from './FlowNode';
 import {IActionNode, IDataActionNode, ActionNode} from './ActionNode';
 import {
   isStartNode,
@@ -42,6 +44,16 @@ export class SweepNode extends ActionNode implements ISweepNode {
   getRFNode(): IRFNode {
     const rfNode = super.getRFNode();
     return {...rfNode, data: {label: this.name}};
+  }
+
+  static getItem(): Item {
+    return {
+      className,
+      icon: <Sweep title="Sweeper" />,
+      text: 'Sweep parameters',
+      onDrop: (position: XYPosition) =>
+        new SweepNode({name: 'Parameter sweep', position})
+    };
   }
 
   constructor(

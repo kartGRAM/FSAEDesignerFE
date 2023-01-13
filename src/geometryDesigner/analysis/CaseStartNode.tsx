@@ -1,6 +1,14 @@
 /* eslint-disable class-methods-use-this */
-import {Node as IRFNode} from 'reactflow';
-import {IFlowNode, isDataFlowNode, IDataFlowNode, FlowNode} from './FlowNode';
+import * as React from 'react';
+import {Node as IRFNode, XYPosition} from 'reactflow';
+import CaseStart from '@gdComponents/svgs/CaseStart';
+import {
+  IFlowNode,
+  isDataFlowNode,
+  IDataFlowNode,
+  FlowNode,
+  Item
+} from './FlowNode';
 import {isStartNode, isCaseEndNode, isAssemblyControlNode} from './TypeGuards';
 
 const className = 'CaseStart' as const;
@@ -31,6 +39,16 @@ export class CaseStartNode extends FlowNode implements ICaseStartNode {
   getRFNode(): IRFNode {
     const rfNode = super.getRFNode();
     return {...rfNode, data: {label: this.name}};
+  }
+
+  static getItem(): Item {
+    return {
+      className,
+      icon: <CaseStart title="Case Start" />,
+      text: 'Case start',
+      onDrop: (position: XYPosition) =>
+        new CaseStartNode({name: 'Case start', position})
+    };
   }
 
   constructor(

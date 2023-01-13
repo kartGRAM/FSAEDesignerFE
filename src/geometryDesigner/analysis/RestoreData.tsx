@@ -1,5 +1,5 @@
 import {Edge} from 'reactflow';
-import {IDataEdge, IDataFlowNode, IFlowNode} from './FlowNode';
+import {IDataEdge, IDataFlowNode, IFlowNode, Item} from './FlowNode';
 import {StartNode, isDataStartNode} from './StartNode';
 import {EndNode, isDataEndNode} from './EndNode';
 import {CaseStartNode, isDataCaseStartNode} from './CaseStartNode';
@@ -22,4 +22,14 @@ export function getFlowNode(node: IDataFlowNode): IFlowNode {
   if (isDataSetterNode(node)) return new SetterNode(node);
   if (isDataSweepNode(node)) return new SweepNode(node);
   throw new Error('未実装のnode');
+}
+
+export function getItems(): Item[] {
+  return [
+    CaseStartNode.getItem(),
+    CaseEndNode.getItem(),
+    'divider',
+    SetterNode.getItem(),
+    SweepNode.getItem()
+  ];
 }

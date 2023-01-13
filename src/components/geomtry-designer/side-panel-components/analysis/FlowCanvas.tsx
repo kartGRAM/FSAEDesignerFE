@@ -139,7 +139,9 @@ export function FlowCanvas(props: {
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleOK}>Close</Button>
+        <Button onClick={handleOK}>Apply</Button>
+        <Button onClick={handleOK}>OK</Button>
+        <Button onClick={handleOK}>Cancel</Button>
       </DialogActions>
     </Dialog>
   );

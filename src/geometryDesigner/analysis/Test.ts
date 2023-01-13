@@ -44,8 +44,8 @@ export class Test implements ITest {
     this.name = params.name;
     this.description = params.description;
     this.nodes = [
-      new StartNode({name: 'start(assemble)', position: {x: 0, y: 300}}),
-      new EndNode({name: 'end', position: {x: 1000, y: 300}})
+      new StartNode({name: 'assemble & start test', position: {x: 0, y: 0}}),
+      new EndNode({name: 'test end', position: {x: 1000, y: 0}})
     ];
     if (isDataTest(params)) {
       this.nodeID = params.nodeID;

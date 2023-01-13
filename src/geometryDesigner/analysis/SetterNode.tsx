@@ -1,6 +1,8 @@
 /* eslint-disable class-methods-use-this */
-import {Node as IRFNode} from 'reactflow';
-import {IFlowNode, isDataFlowNode, IDataFlowNode} from './FlowNode';
+import * as React from 'react';
+import {Node as IRFNode, XYPosition} from 'reactflow';
+import Tuning from '@gdComponents/svgs/Tuning';
+import {IFlowNode, isDataFlowNode, IDataFlowNode, Item} from './FlowNode';
 import {IActionNode, IDataActionNode, ActionNode} from './ActionNode';
 import {
   isStartNode,
@@ -8,7 +10,7 @@ import {
   isCaseControlNode
 } from './TypeGuards';
 
-const className = 'Sweep' as const;
+const className = 'Setter' as const;
 type ClassName = typeof className;
 
 export interface ISetterNode extends IActionNode {
@@ -42,6 +44,16 @@ export class SetterNode extends ActionNode implements ISetterNode {
   getRFNode(): IRFNode {
     const rfNode = super.getRFNode();
     return {...rfNode, data: {label: this.name}};
+  }
+
+  static getItem(): Item {
+    return {
+      className,
+      icon: <Tuning title="Setter" />,
+      text: 'Set parameters',
+      onDrop: (position: XYPosition) =>
+        new SetterNode({name: 'Parameter settings', position})
+    };
   }
 
   constructor(
