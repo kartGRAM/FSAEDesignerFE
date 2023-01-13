@@ -27,6 +27,7 @@ import ReactFlow, {
   Controls
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+import {ItemBox} from './ItemBox';
 
 const initialNodes: Node[] = [
   {
@@ -101,35 +102,41 @@ export function FlowCanvas(props: {
         sx: {width: 'calc(100% - 10rem)', height: 'calc(100% - 10rem)'}
       }}
     >
-      <DialogTitle sx={{marginRight: 0}}>{test.name}</DialogTitle>
-      <DialogContent>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          fitView
-          fitViewOptions={fitViewOptions}
-        >
-          <Background color="#99b3ec" variant={variant} />
-          <MiniMap nodeStrokeWidth={3} zoomable pannable />
-          <Panel position="top-left">
-            <Box component="div" sx={{backgroundColor: '#FFFFFF'}}>
-              <Typography>Grid:</Typography>
-              <Button onClick={() => setVariant(BackgroundVariant.Dots)}>
-                dots
-              </Button>
-              <Button onClick={() => setVariant(BackgroundVariant.Lines)}>
-                lines
-              </Button>
-              <Button onClick={() => setVariant(BackgroundVariant.Cross)}>
-                cross
-              </Button>
-            </Box>
-          </Panel>
-          <Controls />
-        </ReactFlow>
+      <DialogTitle sx={{pb: 0}}>{test.name}</DialogTitle>
+      <DialogTitle sx={{pt: 0, lineHeight: 0.2}}>
+        <Typography variant="caption">{test.description}</Typography>
+      </DialogTitle>
+      <DialogContent sx={{display: 'flex', flexDirection: 'row'}}>
+        <ItemBox />
+        <Box component="div" sx={{flexGrow: 1, border: '2px solid #aaa'}}>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            fitView
+            fitViewOptions={fitViewOptions}
+          >
+            <Background color="#99b3ec" variant={variant} />
+            <MiniMap nodeStrokeWidth={3} zoomable pannable />
+            <Panel position="top-left">
+              <Box component="div" sx={{backgroundColor: '#FFFFFF'}}>
+                <Typography>Grid:</Typography>
+                <Button onClick={() => setVariant(BackgroundVariant.Dots)}>
+                  dots
+                </Button>
+                <Button onClick={() => setVariant(BackgroundVariant.Lines)}>
+                  lines
+                </Button>
+                <Button onClick={() => setVariant(BackgroundVariant.Cross)}>
+                  cross
+                </Button>
+              </Box>
+            </Panel>
+            <Controls />
+          </ReactFlow>
+        </Box>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleOK}>Close</Button>
