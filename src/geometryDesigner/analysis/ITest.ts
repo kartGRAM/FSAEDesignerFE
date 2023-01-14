@@ -8,10 +8,14 @@ export interface ITest {
   done: boolean;
   ready: boolean;
   readonly nodeID: string;
+  addNode(node: IFlowNode): void;
+  removeNode(node: IFlowNode): void;
+  addEdge(edge: IDataEdge): void;
+  removeEdge(edge: IDataEdge): void;
   getData(): IDataTest;
   getRFNodesAndEdges(): {nodes: IRFNode[]; edges: IRFEdge[]};
-  nodes: IFlowNode[];
-  edges: IDataEdge[];
+  readonly nodes: IFlowNode[];
+  readonly edges: IDataEdge[];
 }
 
 export interface IDataTest {

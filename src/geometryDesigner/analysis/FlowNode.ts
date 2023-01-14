@@ -84,13 +84,11 @@ export function isDataEdge(edge: any): edge is IDataEdge {
   return isObject(edge) && edge.isDataEdge;
 }
 
-export type Item =
-  | {
-      className: string;
-      // eslint-disable-next-line no-undef
-      icon: JSX.Element;
-      // eslint-disable-next-line no-undef
-      text: string | JSX.Element;
-      onDrop: (position: XYPosition) => IFlowNode;
-    }
-  | 'divider';
+export type Item = {
+  className: string;
+  // eslint-disable-next-line no-undef
+  icon: JSX.Element;
+  // eslint-disable-next-line no-undef
+  text: string | JSX.Element;
+  onDrop: (position: XYPosition) => IFlowNode;
+};

@@ -24,7 +24,7 @@ export function getFlowNode(node: IDataFlowNode): IFlowNode {
   throw new Error('未実装のnode');
 }
 
-export function getItems(): Item[] {
+export function getItems(): (Item | 'divider')[] {
   return [
     CaseStartNode.getItem(),
     CaseEndNode.getItem(),

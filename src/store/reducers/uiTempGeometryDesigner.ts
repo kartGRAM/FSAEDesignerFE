@@ -11,6 +11,7 @@ import {Quaternion, Vector3} from 'three';
 import {RootState} from '@react-three/fiber';
 import {GetState} from 'zustand';
 import {ITest} from '@gd/analysis/ITest';
+import {Item as TestFlowNodeItem} from '@gd/analysis/FlowNode';
 import {KinematicSolver} from '@gd/kinematics/Solver';
 // import {PointOffsetToolDialogProps} from '@gdComponents/dialog-components/PointOffsetToolDialog';
 
@@ -58,6 +59,7 @@ export interface GDState {
   treeViewDragExpanded: string[];
   draggingNewElement: Elements | null;
   draggingElementAbsPath: string;
+  draggingNewTestFlowNode: TestFlowNodeItem | null;
   globalSelected: GlobalSelected | null;
   clipbord: ClipboardObject | null;
 
@@ -154,6 +156,7 @@ const initialState: GDState = {
   treeViewDragExpanded: [],
   draggingNewElement: null,
   draggingElementAbsPath: '',
+  draggingNewTestFlowNode: null,
   globalSelected: null,
   clipbord: null,
   forceCallSelector: true
@@ -237,6 +240,12 @@ export const uitGeometryDesignerSlice = createSlice({
       action: PayloadAction<string>
     ) => {
       state.draggingElementAbsPath = action.payload;
+    },
+    setDraggingNewTestFlowNode: (
+      state: GDState,
+      action: PayloadAction<TestFlowNodeItem | null>
+    ) => {
+      state.draggingNewTestFlowNode = action.payload;
     },
     treeViewDragExpanded: (state: GDState, action: PayloadAction<string[]>) => {
       state.treeViewDragExpanded = action.payload;
@@ -509,6 +518,8 @@ export const {
   treeViewDragExpanded,
   setDraggingNewElement,
   setDraggingElementAbsPath,
+
+  setDraggingNewTestFlowNode,
   resetDragState,
   setVisibility,
   setAssembled,

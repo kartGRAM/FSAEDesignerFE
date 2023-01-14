@@ -17,6 +17,31 @@ export class Test implements ITest {
 
   ready = false;
 
+  addNode(node: IFlowNode): void {
+    this.nodes = [...this.nodes.filter((n) => n.nodeID !== node.nodeID), node];
+  }
+
+  removeNode(node: IFlowNode): void {
+    this.nodes = [...this.nodes.filter((n) => n.nodeID !== node.nodeID)];
+  }
+
+  addEdge(edge: IDataEdge): void {
+    this.edges = [
+      ...this.edges.filter(
+        (e) => !(e.source === edge.source && e.target === edge.target)
+      ),
+      edge
+    ];
+  }
+
+  removeEdge(edge: IDataEdge): void {
+    this.edges = [
+      ...this.edges.filter(
+        (e) => !(e.source === edge.source && e.target === edge.target)
+      )
+    ];
+  }
+
   getData(): IDataTest {
     const {name, description, nodeID, edges, nodes} = this;
     return {

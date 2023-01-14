@@ -28,6 +28,7 @@ import {
   setTest,
   removeTest
 } from '@store/reducers/uiTempGeometryDesigner';
+import {ReactFlowProvider} from 'reactflow';
 
 export default function Controllers() {
   const dispatch = useDispatch();
@@ -206,12 +207,14 @@ const TestRow = (props: {test: IDataTest}) => {
           </Tooltip>
         </Toolbar>
       </ListItem>
-      <FlowCanvas
-        key={openId.current}
-        open={open}
-        setOpen={setOpen}
-        nodeID={test.nodeID}
-      />
+      <ReactFlowProvider>
+        <FlowCanvas
+          key={openId.current}
+          open={open}
+          setOpen={setOpen}
+          nodeID={test.nodeID}
+        />
+      </ReactFlowProvider>
     </>
   );
 };

@@ -2,8 +2,8 @@
 import * as React from 'react';
 import DialogTitle from '@mui/material/DialogTitle';
 import Dialog from '@mui/material/Dialog';
-import {useSelector} from 'react-redux';
-import {RootState} from '@store/store';
+import {useSelector, useDispatch} from 'react-redux';
+import store, {RootState} from '@store/store';
 import DialogActions from '@mui/material/DialogActions';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
@@ -24,29 +24,13 @@ import ReactFlow, {
   Panel,
   MiniMap,
   Position,
+  useStore,
   Controls
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+import {setDraggingNewTestFlowNode} from '@store/reducers/uiTempGeometryDesigner';
 import {ItemBox} from './ItemBox';
 
-const initialNodes: Node[] = [
-  {
-    id: '1',
-    data: {label: 'Node 1'},
-    position: {x: 5, y: 5},
-    targetPosition: Position.Left,
-    sourcePosition: Position.Right
-  },
-  {
-    id: '2',
-    data: {label: 'Node 2'},
-    position: {x: 5, y: 100},
-    targetPosition: Position.Left,
-    sourcePosition: Position.Right
-  }
-];
-
-const initialEdges: Edge[] = [{id: 'e1-2', source: '1', target: '2'}];
 const fitViewOptions: FitViewOptions = {
   padding: 0.2
 };
@@ -63,6 +47,7 @@ export function FlowCanvas(props: {
   const test = useSelector((state: RootState) =>
     state.uitgd.tests.find((t) => t.nodeID === nodeID)
   );
+  const dispatch = useDispatch();
 
   const onNodesChange = (changes: NodeChange[]) => {};
 
@@ -74,16 +59,52 @@ export function FlowCanvas(props: {
     BackgroundVariant.Lines
   );
 
-  if (!test) return null;
+  const [tempNode, setTempNode] = React.useState<Node | null>(null);
+  const [viewX, viewY, zoom] = useStore((state) => state.transform);
+  const ref = React.useRef<HTMLDivElement>(null);
 
+  if (!test) return null;
   const {nodes, edges} = test.getRFNodesAndEdges();
 
   const handleOK = () => {
     setOpen(false);
   };
 
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const item = store.getState().uitgd.draggingNewTestFlowNode;
+    if (!item || !ref.current) {
+      setTempNode(null);
+      return;
+    }
+    const {top, left} = ref.current.getBoundingClientRect();
+    const x = (e.clientX - left - viewX) / zoom;
+    const y = (e.clientY - top - viewY) / zoom;
+    if (tempNode) {
+      setTempNode((prev) => (prev ? {...prev, position: {x, y}} : null));
+      return;
+    }
+    const tmpNode = item.onDrop({x, y}).getRFNode();
+    setTempNode(tmpNode);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const item = store.getState().uitgd.draggingNewTestFlowNode;
+    if (!item || !ref.current) return;
+    const {top, left} = ref.current.getBoundingClientRect();
+    const x = (e.clientX - left - viewX) / zoom;
+    const y = (e.clientY - top - viewY) / zoom;
+    test.addNode(item.onDrop({x, y}));
+    dispatch(setDraggingNewTestFlowNode(null));
+    setTempNode(null);
+  };
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const window = document.getElementById('gdAppArea');
+
+  if (tempNode) nodes.push(tempNode);
 
   return (
     <Dialog
@@ -110,6 +131,7 @@ export function FlowCanvas(props: {
         <ItemBox />
         <Box component="div" sx={{flexGrow: 1, border: '2px solid #aaa'}}>
           <ReactFlow
+            ref={ref}
             nodes={nodes}
             edges={edges}
             onNodesChange={onNodesChange}
@@ -117,6 +139,8 @@ export function FlowCanvas(props: {
             onConnect={onConnect}
             fitView
             fitViewOptions={fitViewOptions}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
           >
             <Background color="#99b3ec" variant={variant} />
             <MiniMap nodeStrokeWidth={3} zoomable pannable />
