@@ -8,9 +8,11 @@ export default function CircleNode(props: {
 }) {
   const {data, selected} = props;
   const {icon} = data;
+
   return (
     <>
       <Avatar
+        draggable
         sx={{
           border: `solid ${selected ? '1.4px #000' : ' 0.7px #888'}`,
           bgcolor: '#FFF'

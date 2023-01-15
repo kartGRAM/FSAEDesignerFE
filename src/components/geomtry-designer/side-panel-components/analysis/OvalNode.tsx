@@ -19,8 +19,8 @@ export default function OvalNode(props: {
         component="div"
         sx={{
           p: 1,
-          pl: 1.5,
-          pr: 1.5,
+          pl: 2,
+          pr: 2,
           border: `solid ${selected ? '1.4px #000' : ' 0.7px #888'}`,
           borderRadius: '1000000px',
           bgcolor: '#FFF',

@@ -30,6 +30,9 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import {setDraggingNewTestFlowNode} from '@store/reducers/uiTempGeometryDesigner';
 import useUpdate from '@app/hooks/useUpdate';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import {alpha} from '@mui/material/styles';
+import Fade from '@mui/material/Fade';
 import {ItemBox} from './ItemBox';
 import CircleNode from './CircleNode';
 import CardNode from './CardNode';
@@ -52,13 +55,27 @@ export function FlowCanvas(props: {
     }),
     []
   );
+
   const {nodeID, open, setOpen} = props;
+
   const zindex =
     useSelector((state: RootState) => state.uitgd.fullScreenZIndex) +
     10000000000;
   const test = useSelector((state: RootState) =>
     state.uitgd.tests.find((t) => t.nodeID === nodeID)
   );
+  const [variant, setVariant] = useState<BackgroundVariant>(
+    BackgroundVariant.Lines
+  );
+  const [tempNode, setTempNode] = React.useState<Node | null>(null);
+  useSelector((state: RootState) => {
+    if (!state.uitgd.draggingNewTestFlowNode && tempNode) setTempNode(null);
+    return false;
+  });
+  const [viewX, viewY, zoom] = useStore((state) => state.transform);
+  const [dragging, setDragging] = React.useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
+
   const dispatch = useDispatch();
   const update = useUpdate();
 
@@ -85,18 +102,6 @@ export function FlowCanvas(props: {
   const onEdgesChange = (changes: EdgeChange[]) => {};
 
   const onConnect = (connection: Connection) => {};
-
-  const [variant, setVariant] = useState<BackgroundVariant>(
-    BackgroundVariant.Lines
-  );
-
-  const [tempNode, setTempNode] = React.useState<Node | null>(null);
-  useSelector((state: RootState) => {
-    if (!state.uitgd.draggingNewTestFlowNode && tempNode) setTempNode(null);
-    return false;
-  });
-  const [viewX, viewY, zoom] = useStore((state) => state.transform);
-  const ref = React.useRef<HTMLDivElement>(null);
 
   if (!test) return null;
   const {nodes, edges} = test.getRFNodesAndEdges();
@@ -142,6 +147,19 @@ export function FlowCanvas(props: {
     test.addNode(item.onDrop({x, y}));
     setTempNode(null);
   };
+
+  const handleDeleteDrop = () => {
+    console.log('drop');
+  };
+
+  const handleDragStart = () => {
+    setDragging(true);
+  };
+
+  const handleDragEnd = () => {
+    setDragging(false);
+  };
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const window = document.getElementById('gdAppArea');
 
@@ -180,6 +198,8 @@ export function FlowCanvas(props: {
             onConnect={onConnect}
             fitView
             fitViewOptions={fitViewOptions}
+            onNodeDragStart={handleDragStart}
+            onNodeDragStop={handleDragEnd}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
             nodeTypes={nodeTypes}
@@ -199,6 +219,32 @@ export function FlowCanvas(props: {
                   cross
                 </Button>
               </Box>
+            </Panel>
+            <Panel position="top-center" style={{width: '50%', margin: '0px'}}>
+              <Fade in={dragging}>
+                <Box
+                  component="div"
+                  sx={{
+                    height: '20%',
+                    p: 3,
+                    borderRadius: '0% 0% 30px 30px',
+                    bgcolor: alpha('#000', 0.7),
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    color: 'white',
+                    '&:hover': {
+                      bgcolor: alpha('#A00', 0.9),
+                      color: 'white'
+                    }
+                  }}
+                  onDrop={handleDeleteDrop}
+                >
+                  <DeleteForeverIcon fontSize="large" />
+                  <Typography>Remove</Typography>
+                </Box>
+              </Fade>
             </Panel>
             <Controls />
           </ReactFlow>

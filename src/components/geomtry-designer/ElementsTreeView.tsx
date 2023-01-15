@@ -15,7 +15,6 @@ import {
   isMirror as isMirrorCheck
 } from '@gd/IElements';
 import {getNewElement} from '@gd/Elements';
-
 import {numberToRgb, getReversal, unique} from '@app/utils/helpers';
 import {
   updateAssembly,
