@@ -27,7 +27,6 @@ export default function ParametersRoot() {
     (state: RootState) => state.uitgd.selectedElementAbsPath
   );
   const topAssy = useSelector((state: RootState) => state.uitgd.assembly);
-
   const dispatch = useDispatch();
   React.useEffect(() => {
     return () => {
@@ -36,7 +35,7 @@ export default function ParametersRoot() {
   }, []);
 
   const element = getElementByPath(topAssy, path);
-  // eslint-disable-next-line no-undef
+
   let component: JSX.Element | null = null;
   if (element && isAArm(element)) {
     component = <AArmConfig element={element} key={element.absPath} />;

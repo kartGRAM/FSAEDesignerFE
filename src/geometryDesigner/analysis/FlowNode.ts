@@ -86,9 +86,9 @@ export function isDataEdge(edge: any): edge is IDataEdge {
 
 export type Item = {
   className: string;
-  // eslint-disable-next-line no-undef
+
   icon: JSX.Element;
-  // eslint-disable-next-line no-undef
+
   text: string | JSX.Element;
   onDrop: (position: XYPosition) => IFlowNode;
 };

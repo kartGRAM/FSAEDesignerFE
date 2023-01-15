@@ -60,6 +60,7 @@ const store = configureStore({
           'uitGeometryDesigner/setSaveAsDialogProps',
           'uitGeometryDesigner/setTest',
           'uitGeometryDesigner/removeTest',
+          'uitGeometryDesigner/setDraggingNewTestFlowNode',
           'uitGeometryDesigner/setConfirmDialogProps'
         ],
         ignoredPaths: [
@@ -77,6 +78,7 @@ const store = configureStore({
           'uitgd.gdDialogState.copyFromExistingPointsOnSelected',
           'uitgd.gdDialogState.movePointDialogProps',
           'uitgd.gdDialogState.movePointOnMoved',
+          'uitgd.draggingNewTestFlowNode',
           'uitgd.gdDialogState.confirmDialogProps'
         ],
         warnAfter: 128

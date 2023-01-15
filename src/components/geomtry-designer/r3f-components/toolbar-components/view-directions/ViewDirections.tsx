@@ -14,7 +14,6 @@ import Isometric from './Isometric';
 
 export default function ViewDirections() {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  // eslint-disable-next-line no-undef
   const [current, setCurrent] = React.useState<JSX.Element>(<Front />);
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {

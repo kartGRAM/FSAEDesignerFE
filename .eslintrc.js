@@ -28,6 +28,18 @@ module.exports = {
       version: 'detect'
     }
   },
+  globals: {
+    React: true,
+    google: true,
+    mount: true,
+    mountWithRouter: true,
+    shallow: true,
+    shallowWithRouter: true,
+    context: true,
+    expect: true,
+    jsdom: true,
+    JSX: true
+  },
   rules: {
     'react/jsx-filename-extension': [2, {extensions: ['.jsx', '.tsx']}],
     'react/jsx-props-no-spreading': ['off'],
@@ -74,5 +86,13 @@ module.exports = {
           '`with` is disallowed in strict mode because it makes code impossible to predict and optimize.'
       }
     ]
-  }
+  },
+  overrides: [
+    {
+      files: ['*.ts', '*.tsx'],
+      rules: {
+        'no-undef': 'off'
+      }
+    }
+  ]
 };

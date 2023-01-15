@@ -1,5 +1,7 @@
 import {Node, Edge} from 'reactflow';
 import {v4 as uuidv4} from 'uuid';
+import store from '@store/store';
+import {setTests} from '@store/reducers/dataGeometryDesigner';
 import {IFlowNode, IDataEdge} from './FlowNode';
 import {StartNode} from './StartNode';
 import {EndNode} from './EndNode';
@@ -13,33 +15,29 @@ export class Test implements ITest {
 
   nodeID: string = uuidv4();
 
+  changed = false;
+
   done = false;
 
   ready = false;
 
   addNode(node: IFlowNode): void {
-    this.nodes = [...this.nodes.filter((n) => n.nodeID !== node.nodeID), node];
+    this.nodes[node.nodeID] = node;
+    this.changed = true;
   }
 
   removeNode(node: IFlowNode): void {
-    this.nodes = [...this.nodes.filter((n) => n.nodeID !== node.nodeID)];
+    delete this.nodes[node.nodeID];
+    this.changed = true;
   }
 
   addEdge(edge: IDataEdge): void {
-    this.edges = [
-      ...this.edges.filter(
-        (e) => !(e.source === edge.source && e.target === edge.target)
-      ),
-      edge
-    ];
+    this.edges[`${edge.source}@${edge.target}`] = edge;
+    this.changed = true;
   }
 
   removeEdge(edge: IDataEdge): void {
-    this.edges = [
-      ...this.edges.filter(
-        (e) => !(e.source === edge.source && e.target === edge.target)
-      )
-    ];
+    delete this.edges[`${edge.source}@${edge.target}`];
   }
 
   getData(): IDataTest {
@@ -49,21 +47,35 @@ export class Test implements ITest {
       name,
       description,
       nodeID,
-      nodes: nodes.map((node) => node.getData()),
-      edges: [...edges]
+      nodes: Object.values(nodes).map((node) => node.getData()),
+      edges: [...Object.values(edges)]
     };
   }
 
   getRFNodesAndEdges(): {nodes: Node[]; edges: Edge[]} {
     return {
-      nodes: this.nodes.map((node) => node.getRFNode()),
-      edges: this.edges.map((edge) => getEdge(edge))
+      nodes: Object.values(this.nodes).map((node) => node.getRFNode()),
+      edges: Object.values(this.edges).map((edge) => getEdge(edge))
     };
   }
 
-  nodes: IFlowNode[];
+  dispatch(): void {
+    const tests = store.getState().dgd.present.analysis;
+    store.dispatch(
+      setTests(
+        tests.map((test) => {
+          if (test.nodeID !== this.nodeID) return test;
+          return this.getData();
+        })
+      )
+    );
 
-  edges: IDataEdge[] = [];
+    this.changed = false;
+  }
+
+  nodes: {[index: string]: IFlowNode};
+
+  edges: {[index: string]: IDataEdge} = {};
 
   constructor(params: {name: string; description: string} | IDataTest) {
     this.name = params.name;
@@ -71,11 +83,20 @@ export class Test implements ITest {
     this.nodes = [
       new StartNode({name: 'assemble & start test', position: {x: 0, y: 0}}),
       new EndNode({name: 'test end', position: {x: 1000, y: 0}})
-    ];
+    ].reduce((prev, current) => {
+      prev[current.nodeID] = current;
+      return prev;
+    }, {} as {[index: string]: IFlowNode});
     if (isDataTest(params)) {
       this.nodeID = params.nodeID;
-      this.edges = [...params.edges];
-      this.nodes = params.nodes.map((node) => getFlowNode(node));
+      this.edges = params.edges.reduce((prev, current) => {
+        prev[`${current.source}@${current.target}`] = current;
+        return prev;
+      }, {} as {[index: string]: IDataEdge});
+      this.nodes = params.nodes.reduce((prev, current) => {
+        prev[current.nodeID] = getFlowNode(current);
+        return prev;
+      }, {} as {[index: string]: IFlowNode});
     }
   }
 }

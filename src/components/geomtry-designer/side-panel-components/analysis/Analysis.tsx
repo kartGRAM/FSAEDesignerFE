@@ -219,7 +219,6 @@ const TestRow = (props: {test: IDataTest}) => {
   );
 };
 
-// eslint-disable-next-line no-undef
 const Tooltip = (props: {children: JSX.Element; title: string}) => {
   const {children, title} = props;
   return (

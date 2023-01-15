@@ -29,7 +29,9 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import {setDraggingNewTestFlowNode} from '@store/reducers/uiTempGeometryDesigner';
+import useUpdate from '@app/hooks/useUpdate';
 import {ItemBox} from './ItemBox';
+import CircleNode from './CircleNode';
 
 const fitViewOptions: FitViewOptions = {
   padding: 0.2
@@ -40,6 +42,12 @@ export function FlowCanvas(props: {
   open: boolean;
   setOpen: (open: boolean) => void;
 }) {
+  const nodeTypes = React.useMemo(
+    () => ({
+      circle: CircleNode
+    }),
+    []
+  );
   const {nodeID, open, setOpen} = props;
   const zindex =
     useSelector((state: RootState) => state.uitgd.fullScreenZIndex) +
@@ -48,8 +56,23 @@ export function FlowCanvas(props: {
     state.uitgd.tests.find((t) => t.nodeID === nodeID)
   );
   const dispatch = useDispatch();
+  const update = useUpdate();
 
-  const onNodesChange = (changes: NodeChange[]) => {};
+  const onNodesChange = (changes: NodeChange[]) => {
+    const needToUpdate = {_: false};
+    changes.forEach((change) => {
+      if (change.type === 'add' || change.type === 'reset') return;
+      const item = test?.nodes[change.id];
+      if (!item) return;
+      if (change.type === 'position' && change.position) {
+        item.position = {...change.position};
+        test.addNode(item);
+        needToUpdate._ = true;
+      }
+    });
+
+    if (needToUpdate._) update();
+  };
 
   const onEdgesChange = (changes: EdgeChange[]) => {};
 
@@ -60,14 +83,25 @@ export function FlowCanvas(props: {
   );
 
   const [tempNode, setTempNode] = React.useState<Node | null>(null);
+  useSelector((state: RootState) => {
+    if (!state.uitgd.draggingNewTestFlowNode && tempNode) setTempNode(null);
+    return false;
+  });
   const [viewX, viewY, zoom] = useStore((state) => state.transform);
   const ref = React.useRef<HTMLDivElement>(null);
 
   if (!test) return null;
   const {nodes, edges} = test.getRFNodesAndEdges();
 
-  const handleOK = () => {
+  const handleCancel = () => {
     setOpen(false);
+  };
+  const handleApply = () => {
+    test.dispatch();
+  };
+  const handleOK = () => {
+    handleApply();
+    handleCancel();
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -98,7 +132,6 @@ export function FlowCanvas(props: {
     const x = (e.clientX - left - viewX) / zoom;
     const y = (e.clientY - top - viewY) / zoom;
     test.addNode(item.onDrop({x, y}));
-    dispatch(setDraggingNewTestFlowNode(null));
     setTempNode(null);
   };
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -141,6 +174,7 @@ export function FlowCanvas(props: {
             fitViewOptions={fitViewOptions}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
+            nodeTypes={nodeTypes}
           >
             <Background color="#99b3ec" variant={variant} />
             <MiniMap nodeStrokeWidth={3} zoomable pannable />
@@ -163,9 +197,13 @@ export function FlowCanvas(props: {
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleOK}>Apply</Button>
-        <Button onClick={handleOK}>OK</Button>
-        <Button onClick={handleOK}>Cancel</Button>
+        <Button onClick={handleApply} disabled={!test.changed}>
+          Apply
+        </Button>
+        <Button onClick={handleOK} disabled={!test.changed}>
+          OK
+        </Button>
+        <Button onClick={handleCancel}>Cancel</Button>
       </DialogActions>
     </Dialog>
   );

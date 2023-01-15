@@ -37,13 +37,17 @@ export class CaseEndNode extends FlowNode implements ICaseEndNode {
 
   getRFNode(): IRFNode {
     const rfNode = super.getRFNode();
-    return {...rfNode, data: {label: this.name}};
+    return {
+      ...rfNode,
+      type: 'circle',
+      data: {label: this.name, icon: <CaseEnd title={this.name} />}
+    };
   }
 
   static getItem(): Item {
     return {
       className,
-      icon: <CaseEnd title="Case Start" />,
+      icon: <CaseEnd title="Case End" />,
       text: 'Case end',
       onDrop: (position: XYPosition) =>
         new CaseEndNode({name: 'Case end', position})

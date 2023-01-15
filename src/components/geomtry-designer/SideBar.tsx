@@ -55,7 +55,7 @@ interface MyDrawerProps extends DrawerProps {
 
 type Item = {
   text: SidePanelTab;
-  // eslint-disable-next-line no-undef
+
   icon: JSX.Element;
 };
 
@@ -70,7 +70,6 @@ const items: Item[] = [
 ];
 const items2: Item[] = [{text: 'settings', icon: <SettingsIcon />}];
 
-// eslint-disable-next-line no-undef
 const Drawer = styled<(props: MyDrawerProps) => JSX.Element>(MuiDrawer, {
   shouldForwardProp: (prop) => prop !== 'open' && prop !== 'bgColor'
 })(({theme, open, bgColor}) => ({

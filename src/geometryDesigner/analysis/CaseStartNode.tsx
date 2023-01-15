@@ -38,7 +38,11 @@ export class CaseStartNode extends FlowNode implements ICaseStartNode {
 
   getRFNode(): IRFNode {
     const rfNode = super.getRFNode();
-    return {...rfNode, data: {label: this.name}};
+    return {
+      ...rfNode,
+      type: 'circle',
+      data: {label: this.name, icon: <CaseStart title={this.name} />}
+    };
   }
 
   static getItem(): Item {

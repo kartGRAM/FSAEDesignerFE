@@ -59,7 +59,7 @@ export function PointOffsetToolDialog(props: PointOffsetToolDialogProps) {
   const handleOKClick = () => {
     handleOK.callback();
   };
-  // eslint-disable-next-line no-undef
+
   let component: JSX.Element | null = null;
   if (type === 'DeltaXYZ') {
     component = (

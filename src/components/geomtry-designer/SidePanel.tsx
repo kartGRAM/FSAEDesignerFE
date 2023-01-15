@@ -79,7 +79,6 @@ export default function SidePanel() {
     }
   }, [dispatch]);
 
-  // eslint-disable-next-line no-undef
   let adContent: JSX.Element | null = null;
 
   if (selectedTab === 'elements') {

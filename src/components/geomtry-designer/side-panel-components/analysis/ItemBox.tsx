@@ -29,9 +29,10 @@ export function ItemBox() {
     []
   );
 
-  const handleDragEnd = React.useCallback(() => {
-    dispatch(setDraggingNewTestFlowNode(null));
-  }, []);
+  const handleDragEnd = React.useCallback(
+    () => setTimeout(() => dispatch(setDraggingNewTestFlowNode(null)), 100),
+    []
+  );
 
   return (
     <Box component="div">
