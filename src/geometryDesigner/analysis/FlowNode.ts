@@ -6,6 +6,7 @@ export interface IFlowNode {
   isFlowNode: true;
   readonly nodeID: string;
   readonly className: string;
+  selected: boolean;
   name: string;
   position: {x: number; y: number};
   getData(): IDataFlowNode;
@@ -27,6 +28,8 @@ export abstract class FlowNode implements IFlowNode {
   readonly nodeID: string = uuidv4();
 
   abstract readonly className: string;
+
+  selected: boolean = false;
 
   name: string;
 
@@ -55,8 +58,8 @@ export abstract class FlowNode implements IFlowNode {
   }
 
   getRFNode(): IRFNode {
-    const {position} = this;
-    return {id: this.nodeID, position, data: {label: this.name}};
+    const {position, selected} = this;
+    return {id: this.nodeID, position, data: {label: this.name}, selected};
   }
 
   abstract acceptable(other: IFlowNode): boolean;

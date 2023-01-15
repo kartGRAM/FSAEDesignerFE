@@ -32,6 +32,8 @@ import {setDraggingNewTestFlowNode} from '@store/reducers/uiTempGeometryDesigner
 import useUpdate from '@app/hooks/useUpdate';
 import {ItemBox} from './ItemBox';
 import CircleNode from './CircleNode';
+import CardNode from './CardNode';
+import OvalNode from './OvalNode';
 
 const fitViewOptions: FitViewOptions = {
   padding: 0.2
@@ -44,7 +46,9 @@ export function FlowCanvas(props: {
 }) {
   const nodeTypes = React.useMemo(
     () => ({
-      circle: CircleNode
+      card: CardNode,
+      circle: CircleNode,
+      oval: OvalNode
     }),
     []
   );
@@ -64,7 +68,11 @@ export function FlowCanvas(props: {
       if (change.type === 'add' || change.type === 'reset') return;
       const item = test?.nodes[change.id];
       if (!item) return;
-      if (change.type === 'position' && change.position) {
+      if (change.type === 'select') {
+        item.selected = change.selected;
+        test.addNode(item);
+        needToUpdate._ = true;
+      } else if (change.type === 'position' && change.position) {
         item.position = {...change.position};
         test.addNode(item);
         needToUpdate._ = true;

@@ -43,7 +43,15 @@ export class SetterNode extends ActionNode implements ISetterNode {
 
   getRFNode(): IRFNode {
     const rfNode = super.getRFNode();
-    return {...rfNode, data: {label: this.name}};
+    return {
+      ...rfNode,
+      type: 'card',
+      data: {
+        label: this.name,
+        source: true,
+        target: true
+      }
+    };
   }
 
   static getItem(): Item {

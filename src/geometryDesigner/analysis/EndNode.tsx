@@ -1,7 +1,7 @@
 /* eslint-disable class-methods-use-this */
 import {setAssembled} from '@store/reducers/uiTempGeometryDesigner';
 import store from '@store/store';
-import {Node as IRFNode, Position} from 'reactflow';
+import {Node as IRFNode} from 'reactflow';
 import {IActionNode, IDataActionNode, ActionNode} from './ActionNode';
 import {isDataFlowNode, IFlowNode, IDataFlowNode} from './FlowNode';
 import {isCaseEndNode} from './TypeGuards';
@@ -39,9 +39,8 @@ export class EndNode extends ActionNode implements IEndNode {
     const rfNode = super.getRFNode();
     return {
       ...rfNode,
-      data: {label: this.name},
-      targetPosition: Position.Left,
-      sourcePosition: Position.Right
+      type: 'oval',
+      data: {label: this.name, source: true, target: true}
     };
   }
 
