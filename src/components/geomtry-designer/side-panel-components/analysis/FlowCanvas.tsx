@@ -28,7 +28,10 @@ import ReactFlow, {
   Controls
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import {setDraggingNewTestFlowNode} from '@store/reducers/uiTempGeometryDesigner';
+import {
+  setDraggingNewTestFlowNode,
+  setConfirmDialogProps
+} from '@store/reducers/uiTempGeometryDesigner';
 import useUpdate from '@app/hooks/useUpdate';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import {alpha} from '@mui/material/styles';
@@ -42,20 +45,17 @@ const fitViewOptions: FitViewOptions = {
   padding: 0.2
 };
 
+const nodeTypes = {
+  card: CardNode,
+  circle: CircleNode,
+  oval: OvalNode
+} as const;
+
 export function FlowCanvas(props: {
   nodeID: string;
   open: boolean;
   setOpen: (open: boolean) => void;
 }) {
-  const nodeTypes = React.useMemo(
-    () => ({
-      card: CardNode,
-      circle: CircleNode,
-      oval: OvalNode
-    }),
-    []
-  );
-
   const {nodeID, open, setOpen} = props;
 
   const zindex =
@@ -74,6 +74,7 @@ export function FlowCanvas(props: {
   });
   const [viewX, viewY, zoom] = useStore((state) => state.transform);
   const [dragging, setDragging] = React.useState(false);
+  const [overDelete, setOverDelete] = React.useState(false);
   const ref = React.useRef<HTMLDivElement>(null);
 
   const dispatch = useDispatch();
@@ -148,16 +149,41 @@ export function FlowCanvas(props: {
     setTempNode(null);
   };
 
-  const handleDeleteDrop = () => {
-    console.log('drop');
-  };
-
   const handleDragStart = () => {
     setDragging(true);
   };
 
-  const handleDragEnd = () => {
+  const handleDragEnd = async (_: any, node: Node) => {
     setDragging(false);
+    if (overDelete) {
+      const item = test.nodes[node.id];
+      if (item) {
+        if (!item.isInitialState) {
+          const ret = await new Promise<string>((resolve) => {
+            dispatch(
+              setConfirmDialogProps({
+                zindex: zindex + 10000 + 1,
+                onClose: resolve,
+                title: 'Warning',
+                message: `Once you delete a node, it cannot be restored.`,
+                buttons: [
+                  {text: 'OK', res: 'ok'},
+                  {text: 'Cancel', res: 'cancel', autoFocus: true}
+                ]
+              })
+            );
+          });
+          dispatch(setConfirmDialogProps(undefined));
+          if (ret === 'ok') {
+            test.removeNode(item);
+            update();
+          }
+        } else {
+          test.removeNode(item);
+          update();
+        }
+      }
+    }
   };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -224,6 +250,12 @@ export function FlowCanvas(props: {
               <Fade in={dragging}>
                 <Box
                   component="div"
+                  onMouseOver={() => {
+                    setOverDelete(true);
+                  }}
+                  onMouseLeave={() => {
+                    setOverDelete(false);
+                  }}
                   sx={{
                     height: '20%',
                     p: 3,
@@ -239,7 +271,6 @@ export function FlowCanvas(props: {
                       color: 'white'
                     }
                   }}
-                  onDrop={handleDeleteDrop}
                 >
                   <DeleteForeverIcon fontSize="large" />
                   <Typography>Remove</Typography>

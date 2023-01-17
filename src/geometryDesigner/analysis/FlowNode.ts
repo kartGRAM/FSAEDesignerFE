@@ -8,6 +8,7 @@ export interface IFlowNode {
   readonly className: string;
   selected: boolean;
   name: string;
+  isInitialState: boolean;
   position: {x: number; y: number};
   getData(): IDataFlowNode;
   getRFNode(): IRFNode;
@@ -19,6 +20,7 @@ export interface IDataFlowNode {
   readonly nodeID: string;
   readonly className: string;
   name: string;
+  isInitialState: boolean;
   position: {x: number; y: number};
 }
 
@@ -30,6 +32,8 @@ export abstract class FlowNode implements IFlowNode {
   abstract readonly className: string;
 
   selected: boolean = false;
+
+  isInitialState: boolean = true;
 
   name: string;
 
@@ -43,16 +47,18 @@ export abstract class FlowNode implements IFlowNode {
     this.position = position;
     if (isDataFlowNode(params)) {
       this.nodeID = params.nodeID;
+      this.isInitialState = params.isInitialState;
     }
   }
 
   getData(): IDataFlowNode {
-    const {nodeID, name, position, className} = this;
+    const {nodeID, name, isInitialState, position, className} = this;
     return {
       isDataFlowNode: true,
       className,
       nodeID,
       name,
+      isInitialState,
       position
     };
   }
