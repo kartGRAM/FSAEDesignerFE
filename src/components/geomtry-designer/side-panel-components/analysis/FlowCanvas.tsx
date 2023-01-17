@@ -149,8 +149,8 @@ export function FlowCanvas(props: {
     setTempNode(null);
   };
 
-  const handleDragStart = () => {
-    setDragging(true);
+  const handleDrag = () => {
+    if (!dragging) setDragging(true);
   };
 
   const handleDragEnd = async (_: any, node: Node) => {
@@ -224,7 +224,7 @@ export function FlowCanvas(props: {
             onConnect={onConnect}
             fitView
             fitViewOptions={fitViewOptions}
-            onNodeDragStart={handleDragStart}
+            onNodeDrag={handleDrag}
             onNodeDragStop={handleDragEnd}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
