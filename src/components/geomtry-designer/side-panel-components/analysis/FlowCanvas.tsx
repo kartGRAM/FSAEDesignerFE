@@ -96,15 +96,23 @@ export function FlowCanvas(props: {
         item.position = {...change.position};
         test.addNode(item);
         needToUpdate._ = true;
+      } else {
+        console.log(change.type);
       }
     });
 
     if (needToUpdate._) update();
   };
 
-  const onEdgesChange = (changes: EdgeChange[]) => {};
+  const onEdgesChange = (changes: EdgeChange[]) => {
+    console.log('aaa');
+  };
 
-  const onConnect = (connection: Connection) => {};
+  const onConnect = (connection: Connection) => {
+    if (!connection.source || !connection.target) return;
+    test?.tryConnect(connection.source, connection.target);
+    update();
+  };
 
   if (!test) return null;
   const {nodes, edges} = test.getRFNodesAndEdges();
@@ -117,6 +125,10 @@ export function FlowCanvas(props: {
   };
   const handleOK = () => {
     handleApply();
+    handleCancel();
+  };
+  const handleClose = (_: any, reason: string) => {
+    if (reason === 'escapeKeyDown') return;
     handleCancel();
   };
 
@@ -198,7 +210,7 @@ export function FlowCanvas(props: {
     <Dialog
       TransitionProps={{unmountOnExit: true}}
       container={window}
-      onClose={handleOK}
+      onClose={handleClose}
       open={open}
       maxWidth={false}
       aria-labelledby="draggable-dialog-title"

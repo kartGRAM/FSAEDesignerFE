@@ -27,6 +27,7 @@ export class SetterNode extends ActionNode implements ISetterNode {
   readonly className = className;
 
   acceptable(node: IFlowNode): boolean {
+    if (node.nodeID === this.nodeID) return false;
     if (
       isStartNode(node) ||
       isAssemblyControlNode(node) ||

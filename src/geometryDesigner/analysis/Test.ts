@@ -40,6 +40,20 @@ export class Test implements ITest {
     delete this.edges[`${edge.source}@${edge.target}`];
   }
 
+  tryConnect(source: string, target: string) {
+    const tNode: IFlowNode | undefined = this.nodes[target];
+    const sNode: IFlowNode | undefined = this.nodes[source];
+    if (!tNode || !sNode) return;
+    if (!tNode.acceptable(sNode)) return;
+    this.addEdge({
+      isDataEdge: true,
+      id: uuidv4(),
+      className: 'default',
+      source,
+      target
+    });
+  }
+
   getData(): IDataTest {
     const {name, description, nodeID, edges, nodes} = this;
     return {

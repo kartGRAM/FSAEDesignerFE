@@ -13,6 +13,7 @@ export interface ITest {
   removeNode(node: IFlowNode): void;
   addEdge(edge: IDataEdge): void;
   removeEdge(edge: IDataEdge): void;
+  tryConnect(source: string, target: string): void;
   getData(): IDataTest;
   getRFNodesAndEdges(): {nodes: IRFNode[]; edges: IRFEdge[]};
   dispatch(): void;
