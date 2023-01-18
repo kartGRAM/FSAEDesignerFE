@@ -6,7 +6,7 @@ import {IActionNode, IDataActionNode, ActionNode} from './ActionNode';
 import {isDataFlowNode, IFlowNode, IDataFlowNode} from './FlowNode';
 import {isCaseEndNode} from './TypeGuards';
 
-const className = 'End' as const;
+export const className = 'End' as const;
 type ClassName = typeof className;
 
 export interface IEndNode extends IActionNode {

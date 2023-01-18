@@ -5,7 +5,7 @@ import {Node as IRFNode} from 'reactflow';
 import {IActionNode, IDataActionNode, ActionNode} from './ActionNode';
 import {isDataFlowNode, IFlowNode, IDataFlowNode} from './FlowNode';
 
-const className = 'Start' as const;
+export const className = 'Start' as const;
 type ClassName = typeof className;
 
 export interface IStartNode extends IActionNode {

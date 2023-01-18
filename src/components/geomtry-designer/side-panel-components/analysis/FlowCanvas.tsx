@@ -32,6 +32,8 @@ import {
   setDraggingNewTestFlowNode,
   setConfirmDialogProps
 } from '@store/reducers/uiTempGeometryDesigner';
+import {className as STARTNODE} from '@gd/analysis/StartNode';
+import {className as ENDNODE} from '@gd/analysis/EndNode';
 import useUpdate from '@app/hooks/useUpdate';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import {alpha} from '@mui/material/styles';
@@ -158,6 +160,7 @@ export function FlowCanvas(props: {
     if (overDelete) {
       const item = test.nodes[node.id];
       if (item) {
+        if (item.className === STARTNODE || item.className === ENDNODE) return;
         if (!item.isInitialState) {
           const ret = await new Promise<string>((resolve) => {
             dispatch(
@@ -247,7 +250,7 @@ export function FlowCanvas(props: {
               </Box>
             </Panel>
             <Panel position="top-center" style={{width: '50%', margin: '0px'}}>
-              <Fade in={dragging}>
+              <Fade in={dragging} unmountOnExit>
                 <Box
                   component="div"
                   onMouseOver={() => {
