@@ -1,5 +1,6 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {alpha} from '@mui/material/styles';
+import {BackgroundVariant} from 'reactflow';
 
 export interface IAssemblyTreeViewState {
   fontColor: number;
@@ -17,6 +18,7 @@ export interface IAppBarState {
   backgroundColor: number;
   fontColor: number;
 }
+
 export interface ISidePanelState {
   backgroundColor: number;
   minWidth: number;
@@ -33,6 +35,10 @@ export interface GDParameterConfigState {
 export interface MeasurePanelState {
   DatumObjectsExpanded: boolean;
   MeasureToolsExpanded: boolean;
+}
+
+export interface AnalysisPanelState {
+  flowCanvasBackgroundVariant: BackgroundVariant;
 }
 
 export interface DialogState {
@@ -84,6 +90,7 @@ export interface GDState {
   assemblyTreeViewState: IAssemblyTreeViewState;
   parameterConfigState: GDParameterConfigState;
   measurePanelState: MeasurePanelState;
+  analysisPanelState: AnalysisPanelState;
   dialogState: DialogState;
   gdSceneState: GDSceneState;
 }
@@ -120,6 +127,9 @@ const initialState: GDState = {
   measurePanelState: {
     DatumObjectsExpanded: true,
     MeasureToolsExpanded: true
+  },
+  analysisPanelState: {
+    flowCanvasBackgroundVariant: BackgroundVariant.Dots
   },
   dialogState: {
     recordingDialogInitialPosition: {
@@ -184,7 +194,6 @@ export const uiGeometryDesignerSlice = createSlice({
     ) => {
       state.parameterConfigState.dynamicParamsExpanded = action.payload;
     },
-
     datumObjectAccordionDefaultExpandedChange: (
       state: GDState,
       action: PayloadAction<boolean>
@@ -258,6 +267,12 @@ export const uiGeometryDesignerSlice = createSlice({
       action: PayloadAction<'ShowAllNodes' | 'WireFrameOnly'>
     ) => {
       state.gdSceneState.componentVisualizationMode = action.payload;
+    },
+    setFlowCanvasBackgroundVariant: (
+      state: GDState,
+      action: PayloadAction<BackgroundVariant>
+    ) => {
+      state.analysisPanelState.flowCanvasBackgroundVariant = action.payload;
     }
   }
 });
@@ -278,7 +293,8 @@ export const {
   setComponentVisualizationMode,
   toggleFixSpringDumperDuaringControl,
   datumObjectAccordionDefaultExpandedChange,
-  measureToolsAccordionDefaultExpandedChange
+  measureToolsAccordionDefaultExpandedChange,
+  setFlowCanvasBackgroundVariant
 } = uiGeometryDesignerSlice.actions;
 
 export default uiGeometryDesignerSlice.reducer;

@@ -21,8 +21,20 @@ export default function CardNode(props: {
         <CardHeader title={label} />
         <CardContent>{content}</CardContent>
       </Card>
-      {target ? <Handle position={Position.Left} type="target" /> : null}
-      {source ? <Handle position={Position.Right} type="source" /> : null}
+      {target ? (
+        <Handle
+          position={Position.Left}
+          type="target"
+          style={{width: '12px', height: '12px', left: '-6px'}}
+        />
+      ) : null}
+      {source ? (
+        <Handle
+          position={Position.Right}
+          type="source"
+          style={{width: '12px', height: '12px', right: '-6px'}}
+        />
+      ) : null}
     </>
   );
 }

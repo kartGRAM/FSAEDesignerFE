@@ -95,7 +95,7 @@ export class Test implements ITest {
     this.name = params.name;
     this.description = params.description;
     this.nodes = [
-      new StartNode({name: 'assemble & start test', position: {x: 0, y: 0}}),
+      new StartNode({name: 'assemble & test start', position: {x: 0, y: 0}}),
       new EndNode({name: 'test end', position: {x: 1000, y: 0}})
     ].reduce((prev, current) => {
       prev[current.nodeID] = current;

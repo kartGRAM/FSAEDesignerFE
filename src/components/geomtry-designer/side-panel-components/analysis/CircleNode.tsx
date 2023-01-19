@@ -20,8 +20,16 @@ export default function CircleNode(props: {
       >
         {icon}
       </Avatar>
-      <Handle position={Position.Left} type="target" />
-      <Handle position={Position.Right} type="source" />
+      <Handle
+        position={Position.Left}
+        type="target"
+        style={{width: '12px', height: '12px', left: '-8px'}}
+      />
+      <Handle
+        position={Position.Right}
+        type="source"
+        style={{width: '12px', height: '12px', right: '-8px'}}
+      />
     </>
   );
 }

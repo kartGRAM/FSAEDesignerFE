@@ -61,7 +61,7 @@ export class SetterNode extends ActionNode implements ISetterNode {
       icon: <Tuning title="Setter" />,
       text: 'Set parameters',
       onDrop: (position: XYPosition) =>
-        new SetterNode({name: 'Parameter settings', position})
+        new SetterNode({name: 'Parameter setting', position})
     };
   }
 

@@ -36,6 +36,7 @@ import {className as STARTNODE} from '@gd/analysis/StartNode';
 import {className as ENDNODE} from '@gd/analysis/EndNode';
 import useUpdate from '@app/hooks/useUpdate';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import {setFlowCanvasBackgroundVariant} from '@store/reducers/uiGeometryDesigner';
 import {alpha} from '@mui/material/styles';
 import Fade from '@mui/material/Fade';
 import {ItemBox} from './ItemBox';
@@ -66,9 +67,11 @@ export function FlowCanvas(props: {
   const test = useSelector((state: RootState) =>
     state.uitgd.tests.find((t) => t.nodeID === nodeID)
   );
-  const [variant, setVariant] = useState<BackgroundVariant>(
-    BackgroundVariant.Lines
+  const variant = useSelector(
+    (state: RootState) =>
+      state.uigd.present.analysisPanelState.flowCanvasBackgroundVariant
   );
+
   const [tempNode, setTempNode] = React.useState<Node | null>(null);
   useSelector((state: RootState) => {
     if (!state.uitgd.draggingNewTestFlowNode && tempNode) setTempNode(null);
@@ -250,13 +253,31 @@ export function FlowCanvas(props: {
             <Panel position="top-left">
               <Box component="div" sx={{backgroundColor: '#FFFFFF'}}>
                 <Typography>Grid:</Typography>
-                <Button onClick={() => setVariant(BackgroundVariant.Dots)}>
+                <Button
+                  onClick={() =>
+                    dispatch(
+                      setFlowCanvasBackgroundVariant(BackgroundVariant.Dots)
+                    )
+                  }
+                >
                   dots
                 </Button>
-                <Button onClick={() => setVariant(BackgroundVariant.Lines)}>
+                <Button
+                  onClick={() =>
+                    dispatch(
+                      setFlowCanvasBackgroundVariant(BackgroundVariant.Lines)
+                    )
+                  }
+                >
                   lines
                 </Button>
-                <Button onClick={() => setVariant(BackgroundVariant.Cross)}>
+                <Button
+                  onClick={() =>
+                    dispatch(
+                      setFlowCanvasBackgroundVariant(BackgroundVariant.Cross)
+                    )
+                  }
+                >
                   cross
                 </Button>
               </Box>
