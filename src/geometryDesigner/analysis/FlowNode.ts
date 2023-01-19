@@ -6,6 +6,7 @@ export interface IFlowNode {
   isFlowNode: true;
   readonly nodeID: string;
   readonly className: string;
+  targetHandleConnected: boolean;
   selected: boolean;
   name: string;
   isInitialState: boolean;
@@ -19,6 +20,7 @@ export interface IDataFlowNode {
   isDataFlowNode: true;
   readonly nodeID: string;
   readonly className: string;
+  readonly targetHandleConnected: boolean;
   name: string;
   isInitialState: boolean;
   position: {x: number; y: number};
@@ -39,6 +41,8 @@ export abstract class FlowNode implements IFlowNode {
 
   position: {x: number; y: number};
 
+  targetHandleConnected: boolean = false;
+
   constructor(
     params: {name: string; position: {x: number; y: number}} | IDataFlowNode
   ) {
@@ -52,12 +56,20 @@ export abstract class FlowNode implements IFlowNode {
   }
 
   getData(): IDataFlowNode {
-    const {nodeID, name, isInitialState, position, className} = this;
+    const {
+      nodeID,
+      name,
+      isInitialState,
+      position,
+      className,
+      targetHandleConnected
+    } = this;
     return {
       isDataFlowNode: true,
       className,
       nodeID,
       name,
+      targetHandleConnected,
       isInitialState,
       position
     };
@@ -68,7 +80,11 @@ export abstract class FlowNode implements IFlowNode {
     return {id: this.nodeID, position, data: {label: this.name}, selected};
   }
 
-  abstract acceptable(other: IFlowNode): boolean;
+  acceptable(other: IFlowNode): boolean {
+    if (this.targetHandleConnected) return false;
+    if (other.nodeID === this.nodeID) return false;
+    return true;
+  }
 }
 
 export const edgeClasses = ['default'] as const;

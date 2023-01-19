@@ -26,7 +26,7 @@ export class CaseEndNode extends FlowNode implements ICaseEndNode {
   readonly className = className;
 
   acceptable(node: IFlowNode): boolean {
-    if (node.nodeID === this.nodeID) return false;
+    if (!super.acceptable(node)) return false;
     if (isAssemblyControlNode(node)) return true;
     return false;
   }

@@ -26,7 +26,7 @@ export class CaseStartNode extends FlowNode implements ICaseStartNode {
   readonly className = className;
 
   acceptable(node: IFlowNode): boolean {
-    if (node.nodeID === this.nodeID) return false;
+    if (!super.acceptable(node)) return false;
     if (isStartNode(node) || isCaseEndNode(node) || isAssemblyControlNode(node))
       return true;
     return false;

@@ -26,7 +26,7 @@ export class EndNode extends ActionNode implements IEndNode {
   readonly className = className;
 
   acceptable(node: IFlowNode): boolean {
-    if (node.nodeID === this.nodeID) return false;
+    if (!super.acceptable(node)) return false;
     if (isCaseEndNode(node)) return true;
     return false;
   }

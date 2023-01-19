@@ -4,7 +4,7 @@ import store from '@store/store';
 import {setTests} from '@store/reducers/dataGeometryDesigner';
 import {IFlowNode, IDataEdge} from './FlowNode';
 import {StartNode} from './StartNode';
-import {EndNode} from './EndNode';
+import {EndNode, isEndNode} from './EndNode';
 import {ITest, IDataTest, isDataTest} from './ITest';
 import {getEdge, getFlowNode} from './RestoreData';
 
@@ -37,7 +37,15 @@ export class Test implements ITest {
   }
 
   removeEdge(edge: IDataEdge): void {
+    const removingEdge: IDataEdge | undefined =
+      this.edges[`${edge.source}@${edge.target}`];
+    const node = this.nodes[removingEdge.target];
+    if (removingEdge && node) {
+      node.targetHandleConnected = false;
+    }
+
     delete this.edges[`${edge.source}@${edge.target}`];
+    this.changed = true;
   }
 
   tryConnect(source: string, target: string) {
@@ -45,6 +53,9 @@ export class Test implements ITest {
     const sNode: IFlowNode | undefined = this.nodes[source];
     if (!tNode || !sNode) return;
     if (!tNode.acceptable(sNode)) return;
+    if (!isEndNode(tNode)) {
+      tNode.targetHandleConnected = true;
+    }
     this.addEdge({
       isDataEdge: true,
       id: uuidv4(),

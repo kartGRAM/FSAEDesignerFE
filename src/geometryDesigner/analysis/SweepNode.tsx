@@ -27,7 +27,7 @@ export class SweepNode extends ActionNode implements ISweepNode {
   readonly className = className;
 
   acceptable(node: IFlowNode): boolean {
-    if (node.nodeID === this.nodeID) return false;
+    if (!super.acceptable(node)) return false;
     if (
       isStartNode(node) ||
       isAssemblyControlNode(node) ||
