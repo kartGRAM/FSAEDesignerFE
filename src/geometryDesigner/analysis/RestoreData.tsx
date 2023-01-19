@@ -1,4 +1,4 @@
-import {Edge} from 'reactflow';
+import {Edge, MarkerType} from 'reactflow';
 import {IDataEdge, IDataFlowNode, IFlowNode, Item} from './FlowNode';
 import {StartNode, isDataStartNode} from './StartNode';
 import {EndNode, isDataEndNode} from './EndNode';
@@ -9,7 +9,7 @@ import {SweepNode, isDataSweepNode} from './SweepNode';
 
 export function getEdge(edge: IDataEdge): Edge {
   if (edge.className === 'default') {
-    return edge;
+    return {...edge, markerEnd: {type: MarkerType.Arrow}};
   }
   throw new Error('未実装のedge');
 }

@@ -81,6 +81,7 @@ export function FlowCanvas(props: {
   const [dragging, setDragging] = React.useState(false);
   const [overDelete, setOverDelete] = React.useState(false);
   const ref = React.useRef<HTMLDivElement>(null);
+  const edgeUpdateSuccessful = React.useRef(true);
 
   const dispatch = useDispatch();
   const update = useUpdate();
@@ -116,6 +117,23 @@ export function FlowCanvas(props: {
     test?.tryConnect(connection.source, connection.target);
     update();
   };
+
+  const onEdgeUpdateStart = useCallback(() => {
+    edgeUpdateSuccessful.current = false;
+  }, []);
+
+  const onEdgeUpdate = useCallback((oldEdge, newConnection) => {
+    edgeUpdateSuccessful.current = true;
+    setEdges((els) => updateEdge(oldEdge, newConnection, els));
+  }, []);
+
+  const onEdgeUpdateEnd = useCallback((_, edge) => {
+    if (!edgeUpdateSuccessful.current) {
+      setEdges((eds) => eds.filter((e) => e.id !== edge.id));
+    }
+
+    edgeUpdateSuccessful.current = true;
+  }, []);
 
   if (!test) return null;
   const {nodes, edges} = test.getRFNodesAndEdges();
@@ -246,6 +264,9 @@ export function FlowCanvas(props: {
             onNodeDragStop={handleDragEnd}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
+            onEdgeUpdate={onEdgeUpdate}
+            onEdgeUpdateStart={onEdgeUpdateStart}
+            onEdgeUpdateEnd={onEdgeUpdateEnd}
             nodeTypes={nodeTypes}
           >
             <Background color="#99b3ec" variant={variant} />
