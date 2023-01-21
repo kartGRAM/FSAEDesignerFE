@@ -108,9 +108,7 @@ export function FlowCanvas(props: {
     if (needToUpdate._) update();
   };
 
-  const onEdgesChange = (changes: EdgeChange[]) => {
-    console.log('aaa');
-  };
+  const onEdgesChange = (changes: EdgeChange[]) => {};
 
   const onConnect = (connection: Connection) => {
     if (!connection.source || !connection.target) return;
@@ -122,18 +120,23 @@ export function FlowCanvas(props: {
     edgeUpdateSuccessful.current = false;
   }, []);
 
-  const onEdgeUpdate = useCallback((oldEdge, newConnection) => {
+  const onEdgeUpdate = (oldEdge: Edge, connection: Connection) => {
+    const edge = test?.edges[oldEdge.id];
+    if (!test || !edge) return;
+    if (!connection.source || !connection.target) return;
+    if (test.tryConnect(connection.source, connection.target)) return;
+    test.removeEdge(edge);
     edgeUpdateSuccessful.current = true;
-    setEdges((els) => updateEdge(oldEdge, newConnection, els));
-  }, []);
+    update();
+  };
 
-  const onEdgeUpdateEnd = useCallback((_, edge) => {
-    if (!edgeUpdateSuccessful.current) {
-      setEdges((eds) => eds.filter((e) => e.id !== edge.id));
+  const onEdgeUpdateEnd = (_: any, edge: Edge) => {
+    if (!edgeUpdateSuccessful.current && test) {
+      test.removeEdge(edge);
+      update();
     }
-
     edgeUpdateSuccessful.current = true;
-  }, []);
+  };
 
   if (!test) return null;
   const {nodes, edges} = test.getRFNodesAndEdges();

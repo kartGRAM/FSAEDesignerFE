@@ -26,8 +26,9 @@ export class Test implements ITest {
     this.changed = true;
   }
 
-  removeNode(node: IFlowNode): void {
-    delete this.nodes[node.nodeID];
+  removeNode(node: {nodeID: string}): void {
+    const id = node.nodeID;
+    delete this.nodes[id];
     this.changed = true;
   }
 
@@ -36,33 +37,33 @@ export class Test implements ITest {
     this.changed = true;
   }
 
-  removeEdge(edge: IDataEdge): void {
-    const removingEdge: IDataEdge | undefined =
-      this.edges[`${edge.source}@${edge.target}`];
+  removeEdge(edge: {source: string; target: string}): void {
+    const id = `${edge.source}@${edge.target}`;
+    const removingEdge: IDataEdge | undefined = this.edges[id];
     const node = this.nodes[removingEdge.target];
     if (removingEdge && node) {
       node.targetHandleConnected = false;
     }
-
-    delete this.edges[`${edge.source}@${edge.target}`];
+    delete this.edges[id];
     this.changed = true;
   }
 
   tryConnect(source: string, target: string) {
     const tNode: IFlowNode | undefined = this.nodes[target];
     const sNode: IFlowNode | undefined = this.nodes[source];
-    if (!tNode || !sNode) return;
-    if (!tNode.acceptable(sNode)) return;
+    if (!tNode || !sNode) return false;
+    if (!tNode.acceptable(sNode)) return false;
     if (!isEndNode(tNode)) {
       tNode.targetHandleConnected = true;
     }
     this.addEdge({
       isDataEdge: true,
-      id: uuidv4(),
+      id: `${source}@${target}`,
       className: 'default',
       source,
       target
     });
+    return true;
   }
 
   getData(): IDataTest {

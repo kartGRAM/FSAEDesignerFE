@@ -10,10 +10,10 @@ export interface ITest {
   readonly changed: boolean;
   readonly nodeID: string;
   addNode(node: IFlowNode): void;
-  removeNode(node: IFlowNode): void;
+  removeNode(node: {nodeID: string}): void;
   addEdge(edge: IDataEdge): void;
-  removeEdge(edge: IDataEdge): void;
-  tryConnect(source: string, target: string): void;
+  removeEdge(edge: {source: string; target: string}): void;
+  tryConnect(source: string, target: string): boolean;
   getData(): IDataTest;
   getRFNodesAndEdges(): {nodes: IRFNode[]; edges: IRFEdge[]};
   dispatch(): void;
