@@ -124,9 +124,9 @@ export function FlowCanvas(props: {
     const edge = test?.edges[oldEdge.id];
     if (!test || !edge) return;
     if (!connection.source || !connection.target) return;
-    if (test.tryConnect(connection.source, connection.target)) return;
-    test.removeEdge(edge);
     edgeUpdateSuccessful.current = true;
+    if (!test.tryConnect(connection.source, connection.target)) return;
+    test.removeEdge(edge);
     update();
   };
 

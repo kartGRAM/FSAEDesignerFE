@@ -53,6 +53,7 @@ export class Test implements ITest {
     const sNode: IFlowNode | undefined = this.nodes[source];
     if (!tNode || !sNode) return false;
     if (!tNode.acceptable(sNode)) return false;
+    if (this.edges[`${source}@${target}`]) return false;
     if (!isEndNode(tNode)) {
       tNode.targetHandleConnected = true;
     }
@@ -68,13 +69,17 @@ export class Test implements ITest {
 
   getData(): IDataTest {
     const {name, description, nodeID, edges, nodes} = this;
+    const nodeIDs = Object.values(nodes).map((node) => node.nodeID);
+    const cleanedEdges = Object.values(edges).filter(
+      (edge) => nodeIDs.includes(edge.source) && nodeIDs.includes(edge.target)
+    );
     return {
       isDataTest: true,
       name,
       description,
       nodeID,
       nodes: Object.values(nodes).map((node) => node.getData()),
-      edges: [...Object.values(edges)]
+      edges: cleanedEdges
     };
   }
 
