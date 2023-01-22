@@ -52,13 +52,19 @@ export class SweepNode extends ActionNode implements ISweepNode {
       className,
       icon: <Sweep title="Sweeper" />,
       text: 'Sweep parameters',
-      onDrop: (position: XYPosition) =>
-        new SweepNode({name: 'Parameter sweep', position})
+      onDrop: (position: XYPosition, temporary: boolean) =>
+        new SweepNode({
+          name: 'Parameter sweep',
+          position,
+          nodeID: temporary ? 'temp' : undefined
+        })
     };
   }
 
   constructor(
-    params: {name: string; position: {x: number; y: number}} | IDataSweepNode
+    params:
+      | {name: string; position: {x: number; y: number}; nodeID?: string}
+      | IDataSweepNode
   ) {
     super(params);
     // eslint-disable-next-line no-empty

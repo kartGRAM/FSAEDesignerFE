@@ -41,7 +41,10 @@ export class CaseEndNode extends FlowNode implements ICaseEndNode {
     return {
       ...rfNode,
       type: 'circle',
-      data: {label: this.name, icon: <CaseEnd title={this.name} />}
+      data: {
+        label: this.name,
+        icon: <CaseEnd title={this.name} />
+      }
     };
   }
 
@@ -50,13 +53,19 @@ export class CaseEndNode extends FlowNode implements ICaseEndNode {
       className,
       icon: <CaseEnd title="Case End" />,
       text: 'Case end',
-      onDrop: (position: XYPosition) =>
-        new CaseEndNode({name: 'Case end', position})
+      onDrop: (position: XYPosition, temporary: boolean) =>
+        new CaseEndNode({
+          name: 'Case end',
+          position,
+          nodeID: temporary ? 'temp' : undefined
+        })
     };
   }
 
   constructor(
-    params: {name: string; position: {x: number; y: number}} | IDataCaseEndNode
+    params:
+      | {name: string; position: {x: number; y: number}; nodeID?: string}
+      | IDataCaseEndNode
   ) {
     super(params);
     // eslint-disable-next-line no-empty

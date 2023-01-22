@@ -74,9 +74,9 @@ export function FlowCanvas(props: {
   );
 
   const [tempNode, setTempNode] = React.useState<Node | null>(null);
-  useSelector((state: RootState) => {
+  const draggingNewNode = useSelector((state: RootState) => {
     if (!state.uitgd.draggingNewTestFlowNode && tempNode) setTempNode(null);
-    return false;
+    return !!state.uitgd.draggingNewTestFlowNode;
   });
   const [viewX, viewY, zoom] = useStore((state) => state.transform);
   const [dragging, setDragging] = React.useState(false);
@@ -157,21 +157,24 @@ export function FlowCanvas(props: {
   const handleCancel = () => {
     setOpen(false);
   };
+
   const handleApply = () => {
     test.dispatch();
   };
+
   const handleOK = () => {
     handleApply();
     handleCancel();
   };
+
   const handleClose = (_: any, reason: string) => {
     if (reason === 'escapeKeyDown') return;
     handleCancel();
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.stopPropagation();
     e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
     const item = store.getState().uitgd.draggingNewTestFlowNode;
     if (!item || !ref.current) {
       setTempNode(null);
@@ -184,20 +187,20 @@ export function FlowCanvas(props: {
       setTempNode((prev) => (prev ? {...prev, position: {x, y}} : null));
       return;
     }
-    const tmpNode = item.onDrop({x, y}).getRFNode();
+    const tmpNode = item.onDrop({x, y}, true).getRFNode();
     setTempNode(tmpNode);
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.stopPropagation();
     e.preventDefault();
     const item = store.getState().uitgd.draggingNewTestFlowNode;
     if (!item || !ref.current) return;
     const {top, left} = ref.current.getBoundingClientRect();
     const x = (e.clientX - left - viewX) / zoom;
     const y = (e.clientY - top - viewY) / zoom;
-    test.addNode(item.onDrop({x, y}));
+    test.addNode(item.onDrop({x, y}, false));
     setTempNode(null);
+    // update();
   };
 
   const handleDrag = () => {
@@ -266,7 +269,16 @@ export function FlowCanvas(props: {
       </DialogTitle>
       <DialogContent sx={{display: 'flex', flexDirection: 'row'}}>
         <ItemBox />
-        <Box component="div" sx={{flexGrow: 1, border: '2px solid #aaa'}}>
+        <Box
+          component="div"
+          sx={{
+            flexGrow: 1,
+            border: '2px solid #aaa',
+            '& .react-flow *': draggingNewNode
+              ? {pointerEvents: 'none!important'}
+              : undefined
+          }}
+        >
           <ReactFlow
             ref={ref}
             nodes={nodes}

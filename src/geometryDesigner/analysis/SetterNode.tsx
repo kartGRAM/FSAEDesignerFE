@@ -60,13 +60,19 @@ export class SetterNode extends ActionNode implements ISetterNode {
       className,
       icon: <Tuning title="Setter" />,
       text: 'Set parameters',
-      onDrop: (position: XYPosition) =>
-        new SetterNode({name: 'Parameter setting', position})
+      onDrop: (position: XYPosition, temporary: boolean) =>
+        new SetterNode({
+          name: 'Parameter setting',
+          position,
+          nodeID: temporary ? 'temp' : undefined
+        })
     };
   }
 
   constructor(
-    params: {name: string; position: {x: number; y: number}} | IDataSetterNode
+    params:
+      | {name: string; position: {x: number; y: number}; nodeID?: string}
+      | IDataSetterNode
   ) {
     super(params);
     // eslint-disable-next-line no-empty

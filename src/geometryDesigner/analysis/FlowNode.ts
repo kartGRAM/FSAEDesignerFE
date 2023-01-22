@@ -44,13 +44,15 @@ export abstract class FlowNode implements IFlowNode {
   targetHandleConnected: boolean = false;
 
   constructor(
-    params: {name: string; position: {x: number; y: number}} | IDataFlowNode
+    params:
+      | {name: string; position: {x: number; y: number}; nodeID?: string}
+      | IDataFlowNode
   ) {
     const {name, position} = params;
     this.name = name;
     this.position = position;
+    if (params.nodeID) this.nodeID = params.nodeID;
     if (isDataFlowNode(params)) {
-      this.nodeID = params.nodeID;
       this.isInitialState = params.isInitialState;
     }
   }
@@ -116,5 +118,5 @@ export type Item = {
   icon: JSX.Element;
 
   text: string | JSX.Element;
-  onDrop: (position: XYPosition) => IFlowNode;
+  onDrop: (position: XYPosition, temporary: boolean) => IFlowNode;
 };

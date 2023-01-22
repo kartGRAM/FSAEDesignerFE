@@ -42,7 +42,10 @@ export class CaseStartNode extends FlowNode implements ICaseStartNode {
     return {
       ...rfNode,
       type: 'circle',
-      data: {label: this.name, icon: <CaseStart title={this.name} />}
+      data: {
+        label: this.name,
+        icon: <CaseStart title={this.name} />
+      }
     };
   }
 
@@ -51,14 +54,18 @@ export class CaseStartNode extends FlowNode implements ICaseStartNode {
       className,
       icon: <CaseStart title="Case Start" />,
       text: 'Case start',
-      onDrop: (position: XYPosition) =>
-        new CaseStartNode({name: 'Case start', position})
+      onDrop: (position: XYPosition, temporary: boolean) =>
+        new CaseStartNode({
+          name: 'Case start',
+          position,
+          nodeID: temporary ? 'temp' : undefined
+        })
     };
   }
 
   constructor(
     params:
-      | {name: string; position: {x: number; y: number}}
+      | {name: string; position: {x: number; y: number}; nodeID?: string}
       | IDataCaseStartNode
   ) {
     super(params);

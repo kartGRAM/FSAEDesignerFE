@@ -29,6 +29,7 @@ export default function OvalNode(props: {
           justifyContent: 'center',
           alignItems: 'center'
         }}
+        onDragOver={(e) => e.preventDefault()}
       >
         {icon}
         <Typography variant="h5">{label}</Typography>

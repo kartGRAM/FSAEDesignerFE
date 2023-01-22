@@ -17,13 +17,18 @@ export default function CircleNode(props: {
           border: `solid ${selected ? '1.4px #000' : ' 0.7px #888'}`,
           bgcolor: '#FFF'
         }}
+        onDragOver={(e) => e.preventDefault()}
       >
         {icon}
       </Avatar>
       <Handle
         position={Position.Left}
         type="target"
-        style={{width: '12px', height: '12px', left: '-8px'}}
+        style={{
+          width: '12px',
+          height: '12px',
+          left: '-8px'
+        }}
       />
       <Handle
         position={Position.Right}

@@ -30,7 +30,7 @@ export function ItemBox() {
   );
 
   const handleDragEnd = React.useCallback(
-    () => setTimeout(() => dispatch(setDraggingNewTestFlowNode(null)), 100),
+    () => dispatch(setDraggingNewTestFlowNode(null)),
     []
   );
 
