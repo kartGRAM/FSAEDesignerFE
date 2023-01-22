@@ -9,7 +9,15 @@ import {SweepNode, isDataSweepNode} from './SweepNode';
 
 export function getEdge(edge: IDataEdge): Edge {
   if (edge.className === 'default') {
-    return {...edge, markerEnd: {type: MarkerType.Arrow}};
+    return {
+      ...edge,
+      type: 'smoothstep',
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        color: edge.selected ? '#333' : '#999'
+      },
+      style: {strokeWidth: 5, stroke: edge.selected ? '#333' : '#999'}
+    };
   }
   throw new Error('未実装のedge');
 }

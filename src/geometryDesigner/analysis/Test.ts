@@ -62,7 +62,8 @@ export class Test implements ITest {
       id: `${source}@${target}`,
       className: 'default',
       source,
-      target
+      target,
+      selected: false
     });
     return true;
   }
@@ -121,7 +122,7 @@ export class Test implements ITest {
     if (isDataTest(params)) {
       this.nodeID = params.nodeID;
       this.edges = params.edges.reduce((prev, current) => {
-        prev[`${current.source}@${current.target}`] = current;
+        prev[`${current.source}@${current.target}`] = {...current};
         return prev;
       }, {} as {[index: string]: IDataEdge});
       this.nodes = params.nodes.reduce((prev, current) => {

@@ -25,7 +25,8 @@ import ReactFlow, {
   MiniMap,
   Position,
   useStore,
-  Controls
+  Controls,
+  ConnectionLineType
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import {
@@ -108,7 +109,19 @@ export function FlowCanvas(props: {
     if (needToUpdate._) update();
   };
 
-  const onEdgesChange = (changes: EdgeChange[]) => {};
+  const onEdgesChange = (changes: EdgeChange[]) => {
+    const needToUpdate = {_: false};
+    changes.forEach((change) => {
+      if (change.type === 'select') {
+        const item = test?.edges[change.id];
+        if (!item) return;
+        item.selected = change.selected;
+        needToUpdate._ = true;
+      }
+    });
+
+    if (needToUpdate._) update();
+  };
 
   const onConnect = (connection: Connection) => {
     if (!connection.source || !connection.target) return;
@@ -130,7 +143,7 @@ export function FlowCanvas(props: {
     update();
   };
 
-  const onEdgeUpdateEnd = (_: any, edge: Edge) => {
+  const onEdgeUpdateEnd = (_: MouseEvent, edge: Edge) => {
     if (!edgeUpdateSuccessful.current && test) {
       test.removeEdge(edge);
       update();
@@ -271,6 +284,8 @@ export function FlowCanvas(props: {
             onEdgeUpdateStart={onEdgeUpdateStart}
             onEdgeUpdateEnd={onEdgeUpdateEnd}
             nodeTypes={nodeTypes}
+            connectionLineType={ConnectionLineType.SmoothStep}
+            connectionLineStyle={{strokeWidth: 5}}
           >
             <Background color="#99b3ec" variant={variant} />
             <MiniMap nodeStrokeWidth={3} zoomable pannable />

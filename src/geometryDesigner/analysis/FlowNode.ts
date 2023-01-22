@@ -95,6 +95,7 @@ export interface IDataEdge {
   readonly className: EdgeClasses;
   source: string;
   target: string;
+  selected: boolean;
 }
 
 export function isFlowNode(node: any): node is IFlowNode {
