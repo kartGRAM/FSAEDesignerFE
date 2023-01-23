@@ -44,7 +44,16 @@ export class SweepNode extends ActionNode implements ISweepNode {
 
   getRFNode(): IRFNode {
     const rfNode = super.getRFNode();
-    return {...rfNode, data: {label: this.name}};
+
+    return {
+      ...rfNode,
+      type: 'card',
+      data: {
+        label: this.name,
+        source: true,
+        target: true
+      }
+    };
   }
 
   static getItem(): Item {

@@ -102,7 +102,7 @@ export function FlowCanvas(props: {
         test.addNode(item);
         needToUpdate._ = true;
       } else {
-        console.log(change.type);
+        // console.log(change.type);
       }
     });
 
@@ -117,6 +117,8 @@ export function FlowCanvas(props: {
         if (!item) return;
         item.selected = change.selected;
         needToUpdate._ = true;
+      } else {
+        console.log(change.type);
       }
     });
 
@@ -199,8 +201,6 @@ export function FlowCanvas(props: {
     const x = (e.clientX - left - viewX) / zoom;
     const y = (e.clientY - top - viewY) / zoom;
     test.addNode(item.onDrop({x, y}, false));
-    setTempNode(null);
-    // update();
   };
 
   const handleDrag = () => {
@@ -238,6 +238,20 @@ export function FlowCanvas(props: {
           update();
         }
       }
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (e.key === 'Escape') {
+      Object.values(test.nodes).forEach((node) => {
+        node.selected = false;
+      });
+      Object.values(test.edges).forEach((edge) => {
+        edge.selected = false;
+      });
+      update();
     }
   };
 
@@ -288,6 +302,7 @@ export function FlowCanvas(props: {
             onConnect={onConnect}
             fitView
             fitViewOptions={fitViewOptions}
+            onKeyDown={handleKeyDown}
             onNodeDrag={handleDrag}
             onNodeDragStop={handleDragEnd}
             onDragOver={handleDragOver}

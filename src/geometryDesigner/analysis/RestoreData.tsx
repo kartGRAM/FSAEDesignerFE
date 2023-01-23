@@ -16,7 +16,7 @@ export function getEdge(edge: IDataEdge): Edge {
         type: MarkerType.ArrowClosed,
         color: edge.selected ? '#333' : '#999'
       },
-      style: {strokeWidth: 5, stroke: edge.selected ? '#333' : '#999'}
+      style: {strokeWidth: 4, stroke: edge.selected ? '#333' : '#999'}
     };
   }
   throw new Error('未実装のedge');
