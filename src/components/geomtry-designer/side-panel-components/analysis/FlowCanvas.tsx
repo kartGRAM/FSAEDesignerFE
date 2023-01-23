@@ -244,15 +244,6 @@ export function FlowCanvas(props: {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     e.stopPropagation();
     e.preventDefault();
-    if (e.key === 'Escape') {
-      Object.values(test.nodes).forEach((node) => {
-        node.selected = false;
-      });
-      Object.values(test.edges).forEach((edge) => {
-        edge.selected = false;
-      });
-      update();
-    }
   };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
