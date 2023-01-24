@@ -14,6 +14,7 @@ export interface IFlowNode {
   getData(): IDataFlowNode;
   getRFNode(): IRFNode;
   acceptable(other: IFlowNode): boolean;
+  getSize(): {width: number; height: number};
 }
 
 export interface IDataFlowNode {
@@ -86,6 +87,14 @@ export abstract class FlowNode implements IFlowNode {
     if (this.targetHandleConnected) return false;
     if (other.nodeID === this.nodeID) return false;
     return true;
+  }
+
+  getSize(): {width: number; height: number} {
+    const element = document.querySelectorAll(`[data-id="${this.nodeID}"]`)[0];
+    if (!element) return {width: 0, height: 0};
+    const width = element.scrollWidth;
+    const height = element.scrollHeight;
+    return {width, height};
   }
 }
 
