@@ -248,13 +248,7 @@ export function FlowCanvas(props: {
   };
 
   const arrange = () => {
-    arrangeNodes(
-      test.startNode,
-      test.nodes,
-      Object.values(test.edges),
-      200,
-      50
-    );
+    arrangeNodes(test.startNode, test.nodes, Object.values(test.edges), 0, 50);
     update();
   };
 

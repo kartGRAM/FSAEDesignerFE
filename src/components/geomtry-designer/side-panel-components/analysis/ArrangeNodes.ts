@@ -2,6 +2,7 @@ import {IFlowNode, IDataEdge} from '@gd/analysis/FlowNode';
 
 interface NodeWithEdge extends IFlowNode {
   cost: number;
+  endCost: number;
   done: boolean;
   children: NodeWithEdge[];
   width: number;
@@ -33,23 +34,27 @@ export default function arrangeNodes(
   });
   const startNodeWithEdge = nodesWithEdge[startNode.nodeID];
   if (!startNodeWithEdge) return;
-  // ダイクストラ法にてパスツリーを作る。
+  // ダイクストラ法もどきにてパスツリーを作る。
+  // 機能上ないはずだが循環があると無限ループする注意
   {
     const queue = new PriorityQueue<NodeWithEdge>();
     const startNode = startNodeWithEdge;
     queue.push(startNode);
     while (queue.length !== 0) {
       const node = queue.pop();
-      node.done = true;
       const size = nodes[node.nodeID].getSize();
       node.width = size.width;
       node.height = size.height;
       node.children.forEach((child) => {
-        if (child.done) return;
         const cost = node.cost + node.width + wSpace;
         if (child.cost < cost) {
           child.cost = cost;
           child.parent = node.nodeID;
+          let parent = child.parent as string | undefined;
+          while (parent) {
+            nodesWithEdge[parent].endCost = cost;
+            parent = nodesWithEdge[parent].parent;
+          }
         }
         queue.push(child);
       });
@@ -68,7 +73,7 @@ function arrangeImpl(params: {
   original: {[indes: string]: IFlowNode};
 }): void {
   const {node, hSpace, wSpace, original} = params;
-  node.children.sort((lhs, rhs) => rhs.cost - lhs.cost);
+  node.children.sort((lhs, rhs) => rhs.endCost - lhs.endCost);
   node.stackedHeightUpperHarf = node.height / 2;
   node.stackedHeightBottomHarf = node.height / 2;
   let childrenHeightBottomHarf = 0;
@@ -96,13 +101,18 @@ function arrangeImpl(params: {
 
     // 子を整列する。
     const x = node.width + wSpace;
-    const y = node.height / 2 - child.height / 2 + offset;
+    const y =
+      node.height / 2 -
+      child.height / 2 +
+      offset +
+      (i > 0 ? child.stackedHeightUpperHarf : 0);
     if (i === 0) {
       offset += child.stackedHeightBottomHarf + hSpace;
     } else {
       offset +=
-        child.stackedHeightBottomHarf + child.stackedHeightUpperHarf + hSpace;
+        child.stackedHeightUpperHarf + child.stackedHeightBottomHarf + hSpace;
     }
+
     setPositionRecursive({node: child, delta: {x, y}, original});
   });
 }
@@ -127,6 +137,7 @@ function createNode(node: IFlowNode): NodeWithEdge {
   return {
     ...node,
     cost: 0,
+    endCost: 0,
     done: false,
     children: [],
     parent: undefined,
