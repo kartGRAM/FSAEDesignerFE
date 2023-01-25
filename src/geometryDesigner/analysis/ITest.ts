@@ -1,6 +1,8 @@
 import {Node as IRFNode, Edge as IRFEdge} from 'reactflow';
 import {isObject} from '@app/utils/helpers';
 import {IDataFlowNode, IDataEdge, IFlowNode} from './FlowNode';
+import {IStartNode} from './StartNode';
+import {IEndNode} from './EndNode';
 
 export interface ITest {
   name: string;
@@ -9,6 +11,8 @@ export interface ITest {
   readonly ready: boolean;
   readonly changed: boolean;
   readonly nodeID: string;
+  readonly startNode: IStartNode;
+  readonly endNode: IEndNode;
   addNode(node: IFlowNode): void;
   removeNode(node: {nodeID: string}): void;
   addEdge(edge: IDataEdge): void;

@@ -3,8 +3,8 @@ import {v4 as uuidv4} from 'uuid';
 import store from '@store/store';
 import {setTests} from '@store/reducers/dataGeometryDesigner';
 import {IFlowNode, IDataEdge} from './FlowNode';
-import {StartNode} from './StartNode';
-import {EndNode, isEndNode} from './EndNode';
+import {StartNode, isStartNode, IStartNode} from './StartNode';
+import {EndNode, isEndNode, IEndNode} from './EndNode';
 import {ITest, IDataTest, isDataTest} from './ITest';
 import {getEdge, getFlowNode} from './RestoreData';
 
@@ -109,13 +109,23 @@ export class Test implements ITest {
 
   edges: {[index: string]: IDataEdge} = {};
 
+  startNode: IStartNode;
+
+  endNode: IEndNode;
+
   constructor(params: {name: string; description: string} | IDataTest) {
     this.name = params.name;
     this.description = params.description;
-    this.nodes = [
-      new StartNode({name: 'assemble & test start', position: {x: 0, y: 0}}),
-      new EndNode({name: 'test end', position: {x: 1000, y: 0}})
-    ].reduce((prev, current) => {
+    this.startNode = new StartNode({
+      name: 'assemble & test start',
+      position: {x: 0, y: 0}
+    });
+    this.endNode = new EndNode({
+      name: 'test end',
+      position: {x: 1000, y: 0}
+    });
+
+    this.nodes = [this.startNode, this.endNode].reduce((prev, current) => {
       prev[current.nodeID] = current;
       return prev;
     }, {} as {[index: string]: IFlowNode});
@@ -126,7 +136,10 @@ export class Test implements ITest {
         return prev;
       }, {} as {[index: string]: IDataEdge});
       this.nodes = params.nodes.reduce((prev, current) => {
-        prev[current.nodeID] = getFlowNode(current);
+        const node = getFlowNode(current);
+        if (isStartNode(node)) this.startNode = node;
+        if (isEndNode(node)) this.endNode = node;
+        prev[current.nodeID] = node;
         return prev;
       }, {} as {[index: string]: IFlowNode});
     }

@@ -44,6 +44,7 @@ import {ItemBox} from './ItemBox';
 import CircleNode from './CircleNode';
 import CardNode from './CardNode';
 import OvalNode from './OvalNode';
+import arrangeNodes from './ArrangeNodes';
 
 const fitViewOptions: FitViewOptions = {
   padding: 0.2
@@ -246,6 +247,17 @@ export function FlowCanvas(props: {
     e.preventDefault();
   };
 
+  const arrange = () => {
+    arrangeNodes(
+      test.startNode,
+      test.nodes,
+      Object.values(test.edges),
+      200,
+      50
+    );
+    update();
+  };
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const window = document.getElementById('gdAppArea');
 
@@ -337,6 +349,7 @@ export function FlowCanvas(props: {
                 >
                   cross
                 </Button>
+                <Button onClick={arrange}>arrange</Button>
               </Box>
             </Panel>
             <Panel position="top-center" style={{width: '50%', margin: '0px'}}>
