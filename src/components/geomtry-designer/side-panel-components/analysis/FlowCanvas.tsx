@@ -25,6 +25,7 @@ import ReactFlow, {
   MiniMap,
   Position,
   useStore,
+  useReactFlow,
   Controls,
   ConnectionLineType
 } from 'reactflow';
@@ -80,6 +81,7 @@ export function FlowCanvas(props: {
     return !!state.uitgd.draggingNewTestFlowNode;
   });
   const [viewX, viewY, zoom] = useStore((state) => state.transform);
+  const {fitView} = useReactFlow();
   const [dragging, setDragging] = React.useState(false);
   const [overDelete, setOverDelete] = React.useState(false);
   const ref = React.useRef<HTMLDivElement>(null);
@@ -153,6 +155,11 @@ export function FlowCanvas(props: {
     }
     edgeUpdateSuccessful.current = true;
   };
+
+  const [onArrange, setOnArrange] = React.useState(false);
+  React.useLayoutEffect(() => {
+    fitView();
+  }, [onArrange]);
 
   if (!test) return null;
   const {nodes, edges} = test.getRFNodesAndEdges();
@@ -248,8 +255,8 @@ export function FlowCanvas(props: {
   };
 
   const arrange = () => {
-    arrangeNodes(test.startNode, test.nodes, Object.values(test.edges), 0, 50);
-    update();
+    arrangeNodes(test.startNode, test.nodes, Object.values(test.edges), 50, 50);
+    setOnArrange((prev) => !prev);
   };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

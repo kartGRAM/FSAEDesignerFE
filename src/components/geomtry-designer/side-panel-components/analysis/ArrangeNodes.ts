@@ -3,6 +3,7 @@ import {IFlowNode, IDataEdge} from '@gd/analysis/FlowNode';
 interface NodeWithEdge extends IFlowNode {
   cost: number;
   endCost: number;
+  isEndNode: boolean;
   done: boolean;
   children: NodeWithEdge[];
   width: number;
@@ -31,35 +32,43 @@ export default function arrangeNodes(
     if (!nodesWithEdge[edge.target])
       nodesWithEdge[edge.target] = createNode(nodes[edge.target]);
     nodesWithEdge[edge.source].children.push(nodesWithEdge[edge.target]);
+    nodesWithEdge[edge.source].isEndNode = false;
   });
   const startNodeWithEdge = nodesWithEdge[startNode.nodeID];
   if (!startNodeWithEdge) return;
-  // ダイクストラ法もどきにてパスツリーを作る。
-  // 機能上ないはずだが循環があると無限ループする注意
-  {
-    const queue = new PriorityQueue<NodeWithEdge>();
-    const startNode = startNodeWithEdge;
-    queue.push(startNode);
-    while (queue.length !== 0) {
-      const node = queue.pop();
-      const size = nodes[node.nodeID].getSize();
-      node.width = size.width;
-      node.height = size.height;
-      node.children.forEach((child) => {
-        const cost = node.cost + node.width + wSpace;
-        if (child.cost < cost) {
-          child.cost = cost;
-          child.parent = node.nodeID;
-          let parent = child.parent as string | undefined;
-          while (parent) {
-            nodesWithEdge[parent].endCost = cost;
-            parent = nodesWithEdge[parent].parent;
-          }
+  // ヘルマンフォード法にて最長パスツリーを作る。閉路は認めない
+  startNodeWithEdge.cost = 0;
+  Object.values(nodesWithEdge).forEach((_, i) => {
+    edges.forEach((edge) => {
+      const from = nodesWithEdge[edge.source];
+      const to = nodesWithEdge[edge.target];
+      if (from.width === -1) {
+        const size = nodes[from.nodeID].getSize();
+        from.width = size.width;
+        from.height = size.height;
+      }
+      const cost = from.cost + from.width + wSpace;
+      if (to.cost < cost) {
+        to.cost = cost;
+        to.parent = from.nodeID;
+        if (i === Object.keys(nodesWithEdge).length - 1) {
+          throw new Error('テストに閉経路がある');
         }
-        queue.push(child);
-      });
+      }
+    });
+  });
+  const endNodes = Object.values(nodesWithEdge).filter(
+    (node) => node.isEndNode
+  );
+  endNodes.forEach((node) => {
+    node.endCost = node.cost;
+    let {parent} = node;
+    while (parent) {
+      if (nodesWithEdge[parent].endCost < node.cost)
+        nodesWithEdge[parent].endCost = node.cost;
+      parent = nodesWithEdge[parent].parent;
     }
-  }
+  });
   // 深さ優先探索にてそろえる
   startNodeWithEdge.position = {x: 0, y: 0};
   nodes[startNodeWithEdge.nodeID].position = startNodeWithEdge.position;
@@ -138,6 +147,7 @@ function createNode(node: IFlowNode): NodeWithEdge {
     ...node,
     cost: 0,
     endCost: 0,
+    isEndNode: true,
     done: false,
     children: [],
     parent: undefined,
@@ -146,35 +156,4 @@ function createNode(node: IFlowNode): NodeWithEdge {
     stackedHeightBottomHarf: -1,
     stackedHeightUpperHarf: -1
   };
-}
-
-class PriorityQueue<T extends {cost: number; nodeID: string}> {
-  items: {[index: string]: T} = {};
-
-  pop(): T {
-    let id = '';
-    let maxCost = -1;
-    Object.values(this.items).forEach((item) => {
-      if (item.cost > maxCost) {
-        id = item.nodeID;
-        maxCost = item.cost;
-      }
-    });
-    const ret = this.items[id];
-    delete this.items[id];
-    return ret;
-  }
-
-  push(item: T): void {
-    if (this.constains(item)) return;
-    this.items[item.nodeID] = item;
-  }
-
-  constains(item: T): boolean {
-    return !!this.items[item.nodeID];
-  }
-
-  get length(): number {
-    return Object.keys(this.items).length;
-  }
 }
