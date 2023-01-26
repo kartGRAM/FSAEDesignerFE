@@ -157,9 +157,13 @@ export function FlowCanvas(props: {
   };
 
   const [onArrange, setOnArrange] = React.useState(false);
-  React.useLayoutEffect(() => {
+  React.useEffect(() => {
     fitView();
   }, [onArrange]);
+
+  React.useEffect(() => {
+    if (dragging === false && overDelete) setOverDelete(false);
+  }, [dragging]);
 
   if (!test) return null;
   const {nodes, edges} = test.getRFNodesAndEdges();

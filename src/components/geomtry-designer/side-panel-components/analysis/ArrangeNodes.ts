@@ -32,13 +32,13 @@ export default function arrangeNodes(
     if (!nodesWithEdge[edge.target])
       nodesWithEdge[edge.target] = createNode(nodes[edge.target]);
     nodesWithEdge[edge.source].children.push(nodesWithEdge[edge.target]);
-    nodesWithEdge[edge.source].isEndNode = false;
   });
   const startNodeWithEdge = nodesWithEdge[startNode.nodeID];
   if (!startNodeWithEdge) return;
   // ヘルマンフォード法にて最長パスツリーを作る。閉路は認めない
   startNodeWithEdge.cost = 0;
-  Object.values(nodesWithEdge).forEach((_, i) => {
+  const vNodesWithEdge = Object.values(nodesWithEdge);
+  vNodesWithEdge.forEach((_, i) => {
     cleanedEdges.forEach((edge) => {
       const from = nodesWithEdge[edge.source];
       const to = nodesWithEdge[edge.target];
@@ -57,9 +57,14 @@ export default function arrangeNodes(
       }
     });
   });
-  const endNodes = Object.values(nodesWithEdge).filter(
-    (node) => node.isEndNode
-  );
+  // 不要なnodeのChilderenを消す
+  vNodesWithEdge.forEach((node) => {
+    node.children = node.children.filter(
+      (child) => child.parent === node.nodeID
+    );
+    if (node.children.length === 0) node.isEndNode = true;
+  });
+  const endNodes = vNodesWithEdge.filter((node) => node.isEndNode);
   endNodes.forEach((node) => {
     node.endCost = node.cost;
 
@@ -87,13 +92,14 @@ function arrangeImpl(params: {
 }): void {
   const {node, hSpace, wSpace, original} = params;
   node.children.sort((lhs, rhs) => {
-    const cost = rhs.endCost - lhs.endCost;
+    return rhs.endCost - lhs.endCost;
+    /* const cost = rhs.endCost - lhs.endCost;
     // どちらかが長い場合はそちらを上側に描写
     if (cost !== 0) return cost;
     // 同じ場合は。親が自分の場合を優先
     if (lhs.parent === node.nodeID && rhs.parent === node.nodeID) return 0;
     if (lhs.parent === node.nodeID) return -Number.EPSILON;
-    return Number.EPSILON;
+    return Number.EPSILON; */
   });
   node.stackedHeightUpperHarf = node.height / 2;
   node.stackedHeightBottomHarf = node.height / 2;
@@ -159,7 +165,7 @@ function createNode(node: IFlowNode): NodeWithEdge {
     ...node,
     cost: 0,
     endCost: 0,
-    isEndNode: true,
+    isEndNode: false,
     done: false,
     children: [],
     parent: undefined,
