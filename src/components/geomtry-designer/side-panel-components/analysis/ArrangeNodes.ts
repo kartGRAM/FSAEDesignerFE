@@ -39,7 +39,7 @@ export default function arrangeNodes(
   // ヘルマンフォード法にて最長パスツリーを作る。閉路は認めない
   startNodeWithEdge.cost = 0;
   Object.values(nodesWithEdge).forEach((_, i) => {
-    edges.forEach((edge) => {
+    cleanedEdges.forEach((edge) => {
       const from = nodesWithEdge[edge.source];
       const to = nodesWithEdge[edge.target];
       if (from.width === -1) {
@@ -62,6 +62,10 @@ export default function arrangeNodes(
   );
   endNodes.forEach((node) => {
     node.endCost = node.cost;
+
+    const size = nodes[node.nodeID].getSize();
+    node.width = size.width;
+    node.height = size.height;
     let {parent} = node;
     while (parent) {
       if (nodesWithEdge[parent].endCost < node.cost)
@@ -82,7 +86,15 @@ function arrangeImpl(params: {
   original: {[indes: string]: IFlowNode};
 }): void {
   const {node, hSpace, wSpace, original} = params;
-  node.children.sort((lhs, rhs) => rhs.endCost - lhs.endCost);
+  node.children.sort((lhs, rhs) => {
+    const cost = rhs.endCost - lhs.endCost;
+    // どちらかが長い場合はそちらを上側に描写
+    if (cost !== 0) return cost;
+    // 同じ場合は。親が自分の場合を優先
+    if (lhs.parent === node.nodeID && rhs.parent === node.nodeID) return 0;
+    if (lhs.parent === node.nodeID) return -Number.EPSILON;
+    return Number.EPSILON;
+  });
   node.stackedHeightUpperHarf = node.height / 2;
   node.stackedHeightBottomHarf = node.height / 2;
   let childrenHeightBottomHarf = 0;
