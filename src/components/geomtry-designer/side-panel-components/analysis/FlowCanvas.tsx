@@ -163,7 +163,7 @@ export function FlowCanvas(props: {
 
   React.useEffect(() => {
     if (dragging === false && overDelete) setOverDelete(false);
-  }, [dragging]);
+  }, [dragging, overDelete]);
 
   if (!test) return null;
   const {nodes, edges} = test.getRFNodesAndEdges();
