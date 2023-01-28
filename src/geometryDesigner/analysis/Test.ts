@@ -34,17 +34,14 @@ export class Test implements ITest {
 
   addEdge(edge: IDataEdge): void {
     this.edges[`${edge.source}@${edge.target}`] = edge;
+    this.edgesFromTarget[edge.target] = edge;
     this.changed = true;
   }
 
   removeEdge(edge: {source: string; target: string}): void {
     const id = `${edge.source}@${edge.target}`;
-    const removingEdge: IDataEdge | undefined = this.edges[id];
-    const node = this.nodes[removingEdge.target];
-    if (removingEdge && node) {
-      node.targetHandleConnected = false;
-    }
     delete this.edges[id];
+    delete this.edgesFromTarget[edge.target];
     this.changed = true;
   }
 
@@ -52,11 +49,8 @@ export class Test implements ITest {
     const tNode: IFlowNode | undefined = this.nodes[target];
     const sNode: IFlowNode | undefined = this.nodes[source];
     if (!tNode || !sNode) return false;
-    if (!tNode.acceptable(sNode)) return false;
+    if (!tNode.acceptable(sNode, this.edgesFromTarget)) return false;
     if (this.edges[`${source}@${target}`]) return false;
-    if (!isEndNode(tNode)) {
-      tNode.targetHandleConnected = true;
-    }
     this.addEdge({
       isDataEdge: true,
       id: `${source}@${target}`,
@@ -109,6 +103,8 @@ export class Test implements ITest {
 
   edges: {[index: string]: IDataEdge} = {};
 
+  edgesFromTarget: {[index: string]: IDataEdge} = {};
+
   startNode: IStartNode;
 
   endNode: IEndNode;
@@ -133,6 +129,7 @@ export class Test implements ITest {
       this.nodeID = params.nodeID;
       this.edges = params.edges.reduce((prev, current) => {
         prev[`${current.source}@${current.target}`] = {...current};
+        this.edgesFromTarget[current.target] = {...current};
         return prev;
       }, {} as {[index: string]: IDataEdge});
       this.nodes = params.nodes.reduce((prev, current) => {

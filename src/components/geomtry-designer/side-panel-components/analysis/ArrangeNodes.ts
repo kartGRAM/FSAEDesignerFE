@@ -64,6 +64,7 @@ export default function arrangeNodes(
     );
     if (node.children.length === 0) node.isEndNode = true;
   });
+  // 並び変え用に葉のコストを親まで伝える
   const endNodes = vNodesWithEdge.filter((node) => node.isEndNode);
   endNodes.forEach((node) => {
     node.endCost = node.cost;

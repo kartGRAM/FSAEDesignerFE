@@ -7,7 +7,8 @@ import {
   isDataFlowNode,
   IDataFlowNode,
   FlowNode,
-  Item
+  Item,
+  IDataEdge
 } from './FlowNode';
 import {isAssemblyControlNode} from './TypeGuards';
 
@@ -25,8 +26,8 @@ export interface IDataCaseEndNode extends IDataFlowNode {
 export class CaseEndNode extends FlowNode implements ICaseEndNode {
   readonly className = className;
 
-  acceptable(node: IFlowNode): boolean {
-    if (!super.acceptable(node)) return false;
+  acceptable(node: IFlowNode, edges: {[index: string]: IDataEdge}): boolean {
+    if (!super.acceptable(node, edges)) return false;
     if (isAssemblyControlNode(node)) return true;
     return false;
   }

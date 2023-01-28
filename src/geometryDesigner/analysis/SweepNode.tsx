@@ -2,7 +2,13 @@
 import * as React from 'react';
 import {Node as IRFNode, XYPosition} from 'reactflow';
 import Sweep from '@gdComponents/svgs/Sweep';
-import {IFlowNode, isDataFlowNode, IDataFlowNode, Item} from './FlowNode';
+import {
+  IFlowNode,
+  isDataFlowNode,
+  IDataFlowNode,
+  Item,
+  IDataEdge
+} from './FlowNode';
 import {IActionNode, IDataActionNode, ActionNode} from './ActionNode';
 import {
   isStartNode,
@@ -26,8 +32,8 @@ export class SweepNode extends ActionNode implements ISweepNode {
 
   readonly className = className;
 
-  acceptable(node: IFlowNode): boolean {
-    if (!super.acceptable(node)) return false;
+  acceptable(node: IFlowNode, edges: {[index: string]: IDataEdge}): boolean {
+    if (!super.acceptable(node, edges)) return false;
     if (
       isStartNode(node) ||
       isAssemblyControlNode(node) ||

@@ -3,7 +3,7 @@ import {setAssembled} from '@store/reducers/uiTempGeometryDesigner';
 import store from '@store/store';
 import {Node as IRFNode} from 'reactflow';
 import {IActionNode, IDataActionNode, ActionNode} from './ActionNode';
-import {isDataFlowNode, IFlowNode, IDataFlowNode} from './FlowNode';
+import {isDataFlowNode, IFlowNode, IDataFlowNode, IDataEdge} from './FlowNode';
 import {isCaseEndNode} from './TypeGuards';
 
 export const className = 'End' as const;
@@ -25,8 +25,8 @@ export class EndNode extends ActionNode implements IEndNode {
 
   readonly className = className;
 
-  acceptable(node: IFlowNode): boolean {
-    if (!super.acceptable(node)) return false;
+  acceptable(node: IFlowNode, edges: {[index: string]: IDataEdge}): boolean {
+    if (!super.acceptable(node, edges)) return false;
     if (isCaseEndNode(node)) return true;
     return false;
   }
