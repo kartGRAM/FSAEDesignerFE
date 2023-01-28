@@ -36,6 +36,7 @@ export class CaseStartNode extends FlowNode implements ICaseStartNode {
     let parent = edges[node.nodeID];
     while (parent) {
       const parentNode = nodes[parent.source];
+      if (parentNode && isCaseEndNode(parentNode)) break;
       if (parentNode && isCaseStartNode(parentNode)) return false;
       parent = edges[parent.source];
     }

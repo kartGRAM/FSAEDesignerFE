@@ -35,10 +35,12 @@ export class CaseEndNode extends FlowNode implements ICaseEndNode {
     // CaseStartが上流にない場合はNG
     let parent = edges[node.nodeID];
     while (parent) {
+      const parentNode = nodes[parent.source];
+      // 先にCaseEndNodeが見つかったらNG
+      if (parentNode && isCaseEndNode(parentNode)) return false;
+      if (parentNode && isCaseStartNode(parentNode)) break;
       parent = edges[parent.source];
       if (!parent) return false;
-      const parentNode = nodes[parent.source];
-      if (parentNode && isCaseStartNode(parentNode)) break;
     }
 
     if (isAssemblyControlNode(node)) return true;

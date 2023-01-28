@@ -23,18 +23,21 @@ export class Test implements ITest {
 
   addNode(node: IFlowNode): void {
     this.nodes[node.nodeID] = node;
+    this.cleanData();
     this.changed = true;
   }
 
   removeNode(node: {nodeID: string}): void {
     const id = node.nodeID;
     delete this.nodes[id];
+    this.cleanData();
     this.changed = true;
   }
 
   addEdge(edge: IDataEdge): void {
     this.edges[`${edge.source}@${edge.target}`] = edge;
     this.edgesFromTarget[edge.target] = edge;
+    this.cleanData();
     this.changed = true;
   }
 
@@ -42,6 +45,7 @@ export class Test implements ITest {
     const id = `${edge.source}@${edge.target}`;
     delete this.edges[id];
     delete this.edgesFromTarget[edge.target];
+    this.cleanData();
     this.changed = true;
   }
 
@@ -63,19 +67,44 @@ export class Test implements ITest {
     return true;
   }
 
+  cleanData() {
+    const {nodes} = this;
+    const edgeFromSourceNode: {[index: string]: IDataEdge[]} = {};
+    const nodeIDs = Object.values(nodes).map((node) => {
+      edgeFromSourceNode[node.nodeID] = [];
+      return node.nodeID;
+    });
+    const edges = Object.values(this.edges);
+    const deleteEdge = (edge: IDataEdge) => {
+      delete this.edges[`${edge.source}@${edge.target}`];
+      delete this.edgesFromTarget[edge.target];
+    };
+
+    const toTestEndEdges: IDataEdge[] = [];
+    edges.forEach((edge) => {
+      if (!nodeIDs.includes(edge.source) || !nodeIDs.includes(edge.target)) {
+        deleteEdge(edge);
+        return;
+      }
+      if (edge.target === this.endNode.nodeID) toTestEndEdges.push(edge);
+      edgeFromSourceNode[edge.source].push(edge);
+    });
+    // testEndに行くCaseEndがそのあとにほかのテストがある場合、無駄なのでEdgeを削除
+    toTestEndEdges.forEach((edge) => {
+      if (edgeFromSourceNode[edge.source].length > 1) deleteEdge(edge);
+    });
+  }
+
   getData(): IDataTest {
+    this.cleanData();
     const {name, description, nodeID, edges, nodes} = this;
-    const nodeIDs = Object.values(nodes).map((node) => node.nodeID);
-    const cleanedEdges = Object.values(edges).filter(
-      (edge) => nodeIDs.includes(edge.source) && nodeIDs.includes(edge.target)
-    );
     return {
       isDataTest: true,
       name,
       description,
       nodeID,
       nodes: Object.values(nodes).map((node) => node.getData()),
-      edges: cleanedEdges
+      edges: Object.values(edges)
     };
   }
 
