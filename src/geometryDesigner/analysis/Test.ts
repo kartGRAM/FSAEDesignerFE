@@ -49,7 +49,8 @@ export class Test implements ITest {
     const tNode: IFlowNode | undefined = this.nodes[target];
     const sNode: IFlowNode | undefined = this.nodes[source];
     if (!tNode || !sNode) return false;
-    if (!tNode.acceptable(sNode, this.edgesFromTarget)) return false;
+    if (!tNode.acceptable(sNode, this.nodes, this.edgesFromTarget))
+      return false;
     if (this.edges[`${source}@${target}`]) return false;
     this.addEdge({
       isDataEdge: true,

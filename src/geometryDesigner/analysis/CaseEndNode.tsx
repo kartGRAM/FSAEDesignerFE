@@ -26,8 +26,18 @@ export interface IDataCaseEndNode extends IDataFlowNode {
 export class CaseEndNode extends FlowNode implements ICaseEndNode {
   readonly className = className;
 
-  acceptable(node: IFlowNode, edges: {[index: string]: IDataEdge}): boolean {
-    if (!super.acceptable(node, edges)) return false;
+  acceptable(
+    node: IFlowNode,
+    nodes: {[index: string]: IFlowNode},
+    edges: {[index: string]: IDataEdge}
+  ): boolean {
+    if (!super.acceptable(node, nodes, edges)) return false;
+    // CaseStartが上流にない場合はNG
+    let parent = edges[node.nodeID];
+    while (parent) {
+      parent = edges[parent.source];
+    }
+
     if (isAssemblyControlNode(node)) return true;
     return false;
   }

@@ -15,6 +15,7 @@ export interface IFlowNode {
   getRFNode(): IRFNode;
   acceptable(
     other: IFlowNode,
+    nodes: {[index: string]: IFlowNode},
     edges: {[index: TargetNodeID]: IDataEdge}
   ): boolean;
   getSize(): {width: number; height: number};
@@ -77,6 +78,7 @@ export abstract class FlowNode implements IFlowNode {
 
   acceptable(
     other: IFlowNode,
+    nodes: {[index: string]: IFlowNode},
     edges: {[index: TargetNodeID]: IDataEdge}
   ): boolean {
     if (edges[this.nodeID] && this.className !== 'End') return false;

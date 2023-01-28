@@ -25,8 +25,12 @@ export class EndNode extends ActionNode implements IEndNode {
 
   readonly className = className;
 
-  acceptable(node: IFlowNode, edges: {[index: string]: IDataEdge}): boolean {
-    if (!super.acceptable(node, edges)) return false;
+  acceptable(
+    node: IFlowNode,
+    nodes: {[index: string]: IFlowNode},
+    edges: {[index: string]: IDataEdge}
+  ): boolean {
+    if (!super.acceptable(node, nodes, edges)) return false;
     if (isCaseEndNode(node)) return true;
     return false;
   }
