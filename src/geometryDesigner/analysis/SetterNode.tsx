@@ -34,8 +34,8 @@ export class SetterNode extends ActionNode implements ISetterNode {
 
   acceptable(
     node: IFlowNode,
-    nodes: {[index: string]: IFlowNode},
-    edges: {[index: string]: IDataEdge}
+    nodes: {[index: string]: IFlowNode | undefined},
+    edges: {[index: string]: IDataEdge | undefined}
   ): boolean {
     if (!super.acceptable(node, nodes, edges)) return false;
     if (

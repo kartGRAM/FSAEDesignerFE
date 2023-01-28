@@ -10,7 +10,7 @@ import {
   Item,
   IDataEdge
 } from './FlowNode';
-import {isAssemblyControlNode} from './TypeGuards';
+import {isAssemblyControlNode, isCaseStartNode} from './TypeGuards';
 
 const className = 'CaseEnd' as const;
 type ClassName = typeof className;
@@ -28,14 +28,17 @@ export class CaseEndNode extends FlowNode implements ICaseEndNode {
 
   acceptable(
     node: IFlowNode,
-    nodes: {[index: string]: IFlowNode},
-    edges: {[index: string]: IDataEdge}
+    nodes: {[index: string]: IFlowNode | undefined},
+    edges: {[index: string]: IDataEdge | undefined}
   ): boolean {
     if (!super.acceptable(node, nodes, edges)) return false;
     // CaseStartが上流にない場合はNG
     let parent = edges[node.nodeID];
     while (parent) {
       parent = edges[parent.source];
+      if (!parent) return false;
+      const parentNode = nodes[parent.source];
+      if (parentNode && isCaseStartNode(parentNode)) break;
     }
 
     if (isAssemblyControlNode(node)) return true;

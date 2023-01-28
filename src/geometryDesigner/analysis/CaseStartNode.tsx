@@ -28,10 +28,18 @@ export class CaseStartNode extends FlowNode implements ICaseStartNode {
 
   acceptable(
     node: IFlowNode,
-    nodes: {[index: string]: IFlowNode},
-    edges: {[index: string]: IDataEdge}
+    nodes: {[index: string]: IFlowNode | undefined},
+    edges: {[index: string]: IDataEdge | undefined}
   ): boolean {
     if (!super.acceptable(node, nodes, edges)) return false;
+    // CaseStartが上流にある場合はNG
+    let parent = edges[node.nodeID];
+    while (parent) {
+      const parentNode = nodes[parent.source];
+      if (parentNode && isCaseStartNode(parentNode)) return false;
+      parent = edges[parent.source];
+    }
+
     if (isStartNode(node) || isCaseEndNode(node) || isAssemblyControlNode(node))
       return true;
     return false;
