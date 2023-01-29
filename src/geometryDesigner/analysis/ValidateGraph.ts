@@ -9,13 +9,13 @@ import {
 type TargetNodeID = string;
 type SourceNodeID = string;
 export default function validateGraph(
-  nodes: {[index: string]: IFlowNode},
-  edgesFromTarget: {[index: TargetNodeID]: IDataEdge},
+  nodes: {[index: string]: IFlowNode | undefined},
+  edgesFromTarget: {[index: TargetNodeID]: IDataEdge | undefined},
   edgesFromSource: {[index: SourceNodeID]: IDataEdge[]}
 ): boolean {
   const vNodes = Object.values(nodes);
-  const caseStartNodes = vNodes.filter((node) => isCaseStartNode(node));
-  const caseEndNodes = vNodes.filter((node) => isCaseEndNode(node));
+  const caseStartNodes = vNodes.filter((node) => isCaseStartNode(node!));
+  const caseEndNodes = vNodes.filter((node) => isCaseEndNode(node!));
 
   for (const node of caseStartNodes) {
     // caseStartはCaseEndNodeに到達するまでに子に複数の枝を持ってはいけない
@@ -38,7 +38,7 @@ export default function validateGraph(
       if (isCaseEndNode(parent)) break;
       if (parent !== node && isCaseStartNode(parent)) return false;
       const edge = edgesFromTarget[parent.nodeID];
-      parent = nodes[edge.source];
+      parent = nodes[edge?.source ?? ''];
     }
   }
 
@@ -47,12 +47,16 @@ export default function validateGraph(
     let parent = node;
     while (parent) {
       // CaseStartNodeに到達する前に、別のCaseEndNodeに到達したのでおかしい
-      if (parent !== node && isCaseEndNode(parent)) return false;
+      if (parent !== node && isCaseEndNode(parent)) {
+        return false;
+      }
       // CaseStartNodeに到達する前に、StartNodeまで遡れてしまった
-      if (isStartNode(parent)) return false;
+      if (isStartNode(parent)) {
+        return false;
+      }
       if (isCaseStartNode(parent)) break;
       const edge = edgesFromTarget[parent.nodeID];
-      parent = nodes[edge.source];
+      parent = nodes[edge?.source ?? ''];
     }
   }
 

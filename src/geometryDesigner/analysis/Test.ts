@@ -79,6 +79,9 @@ export class Test implements ITest {
     edges.push(edgeToAppend);
     const edgesFromSourceNode: {[index: string]: IDataEdge[]} = {};
     const edgesFromTarget: {[index: string]: IDataEdge} = {};
+    Object.values(this.nodes).forEach((node) => {
+      edgesFromSourceNode[node.nodeID] = [];
+    });
     edges.forEach((edge) => {
       edgesFromSourceNode[edge.source].push(edge);
       edgesFromTarget[edge.target] = edge;
