@@ -11,7 +11,7 @@ export function getEdge(edge: IDataEdge): Edge {
   if (edge.className === 'default') {
     return {
       ...edge,
-      type: 'smoothstep',
+      type: 'default',
       markerEnd: {
         type: MarkerType.ArrowClosed,
         color: edge.selected ? '#333' : '#999'

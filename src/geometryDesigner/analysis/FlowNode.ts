@@ -101,6 +101,9 @@ export interface IDataEdge {
   isDataEdge: true;
   readonly id: string;
   readonly className: EdgeClasses;
+  data?: {
+    toEndNode: boolean;
+  };
   source: string;
   target: string;
   selected: boolean;

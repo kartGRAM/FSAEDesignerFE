@@ -35,6 +35,9 @@ export class Test implements ITest {
   }
 
   addEdge(edge: IDataEdge): void {
+    if (edge.target === this.endNode.nodeID) {
+      edge.data = {...edge.data, toEndNode: true};
+    }
     this.edges[`${edge.source}@${edge.target}`] = edge;
     this.edgesFromTarget[edge.target] = edge;
     this.cleanData();

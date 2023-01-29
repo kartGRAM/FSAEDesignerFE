@@ -33,6 +33,7 @@ export class CaseStartNode extends FlowNode implements ICaseStartNode {
   ): boolean {
     if (!super.acceptable(node, nodes, edges)) return false;
     // CaseStartが上流にある場合はNG
+    if (isCaseEndNode(node)) return true;
     let parent = edges[node.nodeID];
     while (parent) {
       const parentNode = nodes[parent.source];

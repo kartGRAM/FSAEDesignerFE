@@ -45,6 +45,7 @@ import {ItemBox} from './ItemBox';
 import CircleNode from './CircleNode';
 import CardNode from './CardNode';
 import OvalNode from './OvalNode';
+import CustomSmoothStepEdge from './CustomSmoothStepEdge';
 import arrangeNodes from './ArrangeNodes';
 
 const fitViewOptions: FitViewOptions = {
@@ -55,6 +56,10 @@ const nodeTypes = {
   card: CardNode,
   circle: CircleNode,
   oval: OvalNode
+} as const;
+
+const edgeTypes = {
+  default: CustomSmoothStepEdge
 } as const;
 
 export function FlowCanvas(props: {
@@ -121,7 +126,7 @@ export function FlowCanvas(props: {
         item.selected = change.selected;
         needToUpdate._ = true;
       } else {
-        console.log(change.type);
+        // console.log(change.type);
       }
     });
 
@@ -259,7 +264,15 @@ export function FlowCanvas(props: {
   };
 
   const arrange = () => {
-    arrangeNodes(test.startNode, test.nodes, Object.values(test.edges), 50, 50);
+    const {widthSpaceAligningNodes, heightSpaceAligningNodes} =
+      store.getState().uigd.present.analysisPanelState;
+    arrangeNodes(
+      test.startNode,
+      test.nodes,
+      Object.values(test.edges),
+      widthSpaceAligningNodes,
+      heightSpaceAligningNodes
+    );
     setOnArrange((prev) => !prev);
   };
 
@@ -319,6 +332,7 @@ export function FlowCanvas(props: {
             onEdgeUpdateStart={onEdgeUpdateStart}
             onEdgeUpdateEnd={onEdgeUpdateEnd}
             nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
             connectionLineType={ConnectionLineType.SmoothStep}
             connectionLineStyle={{strokeWidth: 5}}
           >

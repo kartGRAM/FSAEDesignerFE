@@ -39,6 +39,8 @@ export interface MeasurePanelState {
 
 export interface AnalysisPanelState {
   flowCanvasBackgroundVariant: BackgroundVariant;
+  widthSpaceAligningNodes: number;
+  heightSpaceAligningNodes: number;
 }
 
 export interface DialogState {
@@ -129,7 +131,9 @@ const initialState: GDState = {
     MeasureToolsExpanded: true
   },
   analysisPanelState: {
-    flowCanvasBackgroundVariant: BackgroundVariant.Dots
+    flowCanvasBackgroundVariant: BackgroundVariant.Dots,
+    widthSpaceAligningNodes: 50,
+    heightSpaceAligningNodes: 50
   },
   dialogState: {
     recordingDialogInitialPosition: {
