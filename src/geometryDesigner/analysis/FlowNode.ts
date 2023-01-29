@@ -86,7 +86,7 @@ export abstract class FlowNode implements IFlowNode {
   acceptable(
     other: IFlowNode,
     nodes: {[index: string]: IFlowNode | undefined},
-    edgesFromTarget: {[index: string]: IDataEdge | undefined},
+    edgesFromTarget: {[index: TargetNodeID]: IDataEdge | undefined},
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     edgesFromSource: {[index: SourceNodeID]: IDataEdge[]}
   ): boolean {

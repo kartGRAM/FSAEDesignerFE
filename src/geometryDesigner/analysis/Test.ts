@@ -7,6 +7,7 @@ import {StartNode, isStartNode, IStartNode} from './StartNode';
 import {EndNode, isEndNode, IEndNode} from './EndNode';
 import {ITest, IDataTest, isDataTest} from './ITest';
 import {getEdge, getFlowNode} from './RestoreData';
+import validateGraph from './ValidateGraph';
 
 export class Test implements ITest {
   name: string;
@@ -65,24 +66,37 @@ export class Test implements ITest {
       return false;
     }
     if (this.edges[`${source}@${target}`]) return false;
-    this.addEdge({
+
+    const edgeToAppend: IDataEdge = {
       isDataEdge: true,
       id: `${source}@${target}`,
       className: 'default',
       source,
       target,
       selected: false
+    };
+    const edges = Object.values(this.edges);
+    edges.push(edgeToAppend);
+    const edgesFromSourceNode: {[index: string]: IDataEdge[]} = {};
+    const edgesFromTarget: {[index: string]: IDataEdge} = {};
+    edges.forEach((edge) => {
+      edgesFromSourceNode[edge.source].push(edge);
+      edgesFromTarget[edge.target] = edge;
     });
+    if (!validateGraph(this.nodes, edgesFromTarget, edgesFromSourceNode))
+      return false;
+
+    this.addEdge(edgeToAppend);
     return true;
   }
 
   cleanData() {
     const {nodes} = this;
-    this.edgesFromSourceNode = {};
-    this.edgesFromTarget = {};
+    const edgesFromSourceNode: {[index: string]: IDataEdge[]} = {};
+    const edgesFromTarget: {[index: string]: IDataEdge} = {};
 
     const nodeIDs = Object.values(nodes).map((node) => {
-      this.edgesFromSourceNode[node.nodeID] = [];
+      edgesFromSourceNode[node.nodeID] = [];
       return node.nodeID;
     });
     const edges = Object.values(this.edges);
@@ -97,13 +111,15 @@ export class Test implements ITest {
         return;
       }
       if (edge.target === this.endNode.nodeID) toTestEndEdges.push(edge);
-      this.edgesFromSourceNode[edge.source].push(edge);
-      this.edgesFromTarget[edge.target] = edge;
+      edgesFromSourceNode[edge.source].push(edge);
+      edgesFromTarget[edge.target] = edge;
     });
     // testEndに行くCaseEndがそのあとにほかのテストがある場合、無駄なのでEdgeを削除
     toTestEndEdges.forEach((edge) => {
-      if (this.edgesFromSourceNode[edge.source].length > 1) deleteEdge(edge);
+      if (edgesFromSourceNode[edge.source].length > 1) deleteEdge(edge);
     });
+    this.edgesFromSourceNode = edgesFromSourceNode;
+    this.edgesFromTarget = edgesFromTarget;
   }
 
   getData(): IDataTest {
