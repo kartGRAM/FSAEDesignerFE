@@ -54,10 +54,16 @@ export class Test implements ITest {
     const tNode: IFlowNode | undefined = this.nodes[target];
     const sNode: IFlowNode | undefined = this.nodes[source];
     if (!tNode || !sNode) return false;
-    if (!tNode.acceptable(sNode, this.nodes, this.edgesFromTarget))
+    if (
+      !tNode.acceptable(
+        sNode,
+        this.nodes,
+        this.edgesFromTarget,
+        this.edgesFromSourceNode
+      )
+    ) {
       return false;
-    if (!sNode.connectable(tNode, this.nodes, this.edgeFromSourceNode))
-      return false;
+    }
     if (this.edges[`${source}@${target}`]) return false;
     this.addEdge({
       isDataEdge: true,
@@ -72,11 +78,11 @@ export class Test implements ITest {
 
   cleanData() {
     const {nodes} = this;
-    this.edgeFromSourceNode = {};
+    this.edgesFromSourceNode = {};
     this.edgesFromTarget = {};
 
     const nodeIDs = Object.values(nodes).map((node) => {
-      this.edgeFromSourceNode[node.nodeID] = [];
+      this.edgesFromSourceNode[node.nodeID] = [];
       return node.nodeID;
     });
     const edges = Object.values(this.edges);
@@ -91,12 +97,12 @@ export class Test implements ITest {
         return;
       }
       if (edge.target === this.endNode.nodeID) toTestEndEdges.push(edge);
-      this.edgeFromSourceNode[edge.source].push(edge);
+      this.edgesFromSourceNode[edge.source].push(edge);
       this.edgesFromTarget[edge.target] = edge;
     });
     // testEndに行くCaseEndがそのあとにほかのテストがある場合、無駄なのでEdgeを削除
     toTestEndEdges.forEach((edge) => {
-      if (this.edgeFromSourceNode[edge.source].length > 1) deleteEdge(edge);
+      if (this.edgesFromSourceNode[edge.source].length > 1) deleteEdge(edge);
     });
   }
 
@@ -140,7 +146,7 @@ export class Test implements ITest {
 
   edgesFromTarget: {[index: string]: IDataEdge} = {};
 
-  edgeFromSourceNode: {[index: string]: IDataEdge[]} = {};
+  edgesFromSourceNode: {[index: string]: IDataEdge[]} = {};
 
   startNode: IStartNode;
 

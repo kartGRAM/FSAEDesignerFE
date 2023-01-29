@@ -35,9 +35,10 @@ export class SweepNode extends ActionNode implements ISweepNode {
   acceptable(
     node: IFlowNode,
     nodes: {[index: string]: IFlowNode | undefined},
-    edges: {[index: string]: IDataEdge | undefined}
+    edges: {[index: string]: IDataEdge | undefined},
+    edgesFromSource: {[index: string]: IDataEdge[]}
   ): boolean {
-    if (!super.acceptable(node, nodes, edges)) return false;
+    if (!super.acceptable(node, nodes, edges, edgesFromSource)) return false;
     if (
       isStartNode(node) ||
       isAssemblyControlNode(node) ||

@@ -4,6 +4,11 @@ import {isObject} from '@app/utils/helpers';
 
 type TargetNodeID = string;
 type SourceNodeID = string;
+
+export const endNodeClassName = 'End' as const;
+export const caseEndNodeClassName = 'CaseEnd' as const;
+export const caseStartNodeClassName = 'CaseStart' as const;
+
 export interface IFlowNode {
   isFlowNode: true;
   readonly nodeID: string;
@@ -17,13 +22,8 @@ export interface IFlowNode {
   acceptable(
     other: IFlowNode,
     nodes: {[index: string]: IFlowNode | undefined},
-    edges: {[index: TargetNodeID]: IDataEdge | undefined}
-  ): boolean;
-
-  connectable(
-    other: IFlowNode,
-    nodes: {[index: string]: IFlowNode | undefined},
-    edges: {[index: SourceNodeID]: IDataEdge[]}
+    edgesFromTarget: {[index: TargetNodeID]: IDataEdge | undefined},
+    edgesFromSource: {[index: SourceNodeID]: IDataEdge[]}
   ): boolean;
   getSize(): {width: number; height: number};
 }
@@ -86,15 +86,13 @@ export abstract class FlowNode implements IFlowNode {
   acceptable(
     other: IFlowNode,
     nodes: {[index: string]: IFlowNode | undefined},
-    edges: {[index: string]: IDataEdge | undefined}
+    edgesFromTarget: {[index: string]: IDataEdge | undefined},
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    edgesFromSource: {[index: SourceNodeID]: IDataEdge[]}
   ): boolean {
-    if (edges[this.nodeID] && this.className !== 'End') return false;
+    if (edgesFromTarget[this.nodeID] && this.className !== endNodeClassName)
+      return false;
     if (other.nodeID === this.nodeID) return false;
-    return true;
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  connectable() {
     return true;
   }
 
