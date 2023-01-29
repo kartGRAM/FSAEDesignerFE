@@ -39,7 +39,6 @@ export class Test implements ITest {
       edge.data = {...edge.data, toEndNode: true};
     }
     this.edges[`${edge.source}@${edge.target}`] = edge;
-    this.edgesFromTarget[edge.target] = edge;
     this.cleanData();
     this.changed = true;
   }
@@ -47,7 +46,6 @@ export class Test implements ITest {
   removeEdge(edge: {source: string; target: string}): void {
     const id = `${edge.source}@${edge.target}`;
     delete this.edges[id];
-    delete this.edgesFromTarget[edge.target];
     this.cleanData();
     this.changed = true;
   }
@@ -57,6 +55,8 @@ export class Test implements ITest {
     const sNode: IFlowNode | undefined = this.nodes[source];
     if (!tNode || !sNode) return false;
     if (!tNode.acceptable(sNode, this.nodes, this.edgesFromTarget))
+      return false;
+    if (!sNode.connectable(tNode, this.nodes, this.edgeFromSourceNode))
       return false;
     if (this.edges[`${source}@${target}`]) return false;
     this.addEdge({
@@ -72,15 +72,16 @@ export class Test implements ITest {
 
   cleanData() {
     const {nodes} = this;
-    const edgeFromSourceNode: {[index: string]: IDataEdge[]} = {};
+    this.edgeFromSourceNode = {};
+    this.edgesFromTarget = {};
+
     const nodeIDs = Object.values(nodes).map((node) => {
-      edgeFromSourceNode[node.nodeID] = [];
+      this.edgeFromSourceNode[node.nodeID] = [];
       return node.nodeID;
     });
     const edges = Object.values(this.edges);
     const deleteEdge = (edge: IDataEdge) => {
       delete this.edges[`${edge.source}@${edge.target}`];
-      delete this.edgesFromTarget[edge.target];
     };
 
     const toTestEndEdges: IDataEdge[] = [];
@@ -90,11 +91,12 @@ export class Test implements ITest {
         return;
       }
       if (edge.target === this.endNode.nodeID) toTestEndEdges.push(edge);
-      edgeFromSourceNode[edge.source].push(edge);
+      this.edgeFromSourceNode[edge.source].push(edge);
+      this.edgesFromTarget[edge.target] = edge;
     });
     // testEndに行くCaseEndがそのあとにほかのテストがある場合、無駄なのでEdgeを削除
     toTestEndEdges.forEach((edge) => {
-      if (edgeFromSourceNode[edge.source].length > 1) deleteEdge(edge);
+      if (this.edgeFromSourceNode[edge.source].length > 1) deleteEdge(edge);
     });
   }
 
@@ -138,6 +140,8 @@ export class Test implements ITest {
 
   edgesFromTarget: {[index: string]: IDataEdge} = {};
 
+  edgeFromSourceNode: {[index: string]: IDataEdge[]} = {};
+
   startNode: IStartNode;
 
   endNode: IEndNode;
@@ -162,7 +166,6 @@ export class Test implements ITest {
       this.nodeID = params.nodeID;
       this.edges = params.edges.reduce((prev, current) => {
         prev[`${current.source}@${current.target}`] = {...current};
-        this.edgesFromTarget[current.target] = {...current};
         return prev;
       }, {} as {[index: string]: IDataEdge});
       this.nodes = params.nodes.reduce((prev, current) => {
@@ -173,5 +176,6 @@ export class Test implements ITest {
         return prev;
       }, {} as {[index: string]: IFlowNode});
     }
+    this.cleanData();
   }
 }

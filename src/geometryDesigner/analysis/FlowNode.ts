@@ -3,6 +3,7 @@ import {v4 as uuidv4} from 'uuid';
 import {isObject} from '@app/utils/helpers';
 
 type TargetNodeID = string;
+type SourceNodeID = string;
 export interface IFlowNode {
   isFlowNode: true;
   readonly nodeID: string;
@@ -17,6 +18,12 @@ export interface IFlowNode {
     other: IFlowNode,
     nodes: {[index: string]: IFlowNode | undefined},
     edges: {[index: TargetNodeID]: IDataEdge | undefined}
+  ): boolean;
+
+  connectable(
+    other: IFlowNode,
+    nodes: {[index: string]: IFlowNode | undefined},
+    edges: {[index: SourceNodeID]: IDataEdge[]}
   ): boolean;
   getSize(): {width: number; height: number};
 }
@@ -83,6 +90,11 @@ export abstract class FlowNode implements IFlowNode {
   ): boolean {
     if (edges[this.nodeID] && this.className !== 'End') return false;
     if (other.nodeID === this.nodeID) return false;
+    return true;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  connectable() {
     return true;
   }
 
