@@ -34,9 +34,9 @@ const GeometryDesigner = () => {
 
   React.useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    window.addEventListener('keydown', shortCutKeys, true);
+    window.addEventListener('keydown', shortCutKeys, false);
     return () => {
-      window.removeEventListener('keydown', shortCutKeys, true);
+      window.removeEventListener('keydown', shortCutKeys, false);
     };
   });
 

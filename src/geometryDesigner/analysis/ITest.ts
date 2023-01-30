@@ -17,6 +17,11 @@ export interface ITest {
   removeNode(node: {nodeID: string}): void;
   addEdge(edge: IDataEdge): void;
   removeEdge(edge: {source: string; target: string}): void;
+
+  arrange(
+    widthSpaceAligningNodes: number,
+    heightSpaceAligningNodes: number
+  ): void;
   tryConnect(source: string, target: string): boolean;
   getData(): IDataTest;
   getRFNodesAndEdges(): {nodes: IRFNode[]; edges: IRFEdge[]};

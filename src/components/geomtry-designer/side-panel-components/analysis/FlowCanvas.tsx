@@ -46,7 +46,6 @@ import CircleNode from './CircleNode';
 import CardNode from './CardNode';
 import OvalNode from './OvalNode';
 import CustomSmoothStepEdge from './CustomSmoothStepEdge';
-import arrangeNodes from './ArrangeNodes';
 
 const fitViewOptions: FitViewOptions = {
   padding: 0.2
@@ -266,13 +265,7 @@ export function FlowCanvas(props: {
   const arrange = () => {
     const {widthSpaceAligningNodes, heightSpaceAligningNodes} =
       store.getState().uigd.present.analysisPanelState;
-    arrangeNodes(
-      test.startNode,
-      test.nodes,
-      Object.values(test.edges),
-      widthSpaceAligningNodes,
-      heightSpaceAligningNodes
-    );
+    test.arrange(widthSpaceAligningNodes, heightSpaceAligningNodes);
     setOnArrange((prev) => !prev);
   };
 
@@ -297,6 +290,7 @@ export function FlowCanvas(props: {
       PaperProps={{
         sx: {width: 'calc(100% - 10rem)', height: 'calc(100% - 10rem)'}
       }}
+      onKeyDown={handleKeyDown}
     >
       <DialogTitle sx={{pb: 0}}>{test.name}</DialogTitle>
       <DialogTitle sx={{pt: 0, lineHeight: 0.2}}>
@@ -323,7 +317,6 @@ export function FlowCanvas(props: {
             onConnect={onConnect}
             fitView
             fitViewOptions={fitViewOptions}
-            onKeyDown={handleKeyDown}
             onNodeDrag={handleDrag}
             onNodeDragStop={handleDragEnd}
             onDragOver={handleDragOver}

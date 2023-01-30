@@ -8,6 +8,7 @@ import {EndNode, isEndNode, IEndNode} from './EndNode';
 import {ITest, IDataTest, isDataTest} from './ITest';
 import {getEdge, getFlowNode} from './RestoreData';
 import validateGraph from './ValidateGraph';
+import arrangeNodes from './ArrangeNodes';
 
 export class Test implements ITest {
   name: string;
@@ -48,6 +49,20 @@ export class Test implements ITest {
     const id = `${edge.source}@${edge.target}`;
     delete this.edges[id];
     this.cleanData();
+    this.changed = true;
+  }
+
+  arrange(
+    widthSpaceAligningNodes: number,
+    heightSpaceAligningNodes: number
+  ): void {
+    arrangeNodes(
+      this.startNode,
+      this.nodes,
+      Object.values(this.edges),
+      widthSpaceAligningNodes,
+      heightSpaceAligningNodes
+    );
     this.changed = true;
   }
 
