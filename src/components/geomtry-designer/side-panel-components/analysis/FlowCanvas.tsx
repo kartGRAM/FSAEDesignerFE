@@ -135,6 +135,7 @@ export function FlowCanvas(props: {
   const onConnect = (connection: Connection) => {
     if (!connection.source || !connection.target) return;
     test?.tryConnect(connection.source, connection.target);
+    test?.saveLocalState();
     update();
   };
 
@@ -155,6 +156,7 @@ export function FlowCanvas(props: {
   const onEdgeUpdateEnd = (_: MouseEvent, edge: Edge) => {
     if (!edgeUpdateSuccessful.current && test) {
       test.removeEdge(edge);
+      test.saveLocalState();
       update();
     }
     edgeUpdateSuccessful.current = true;
@@ -217,6 +219,7 @@ export function FlowCanvas(props: {
     const x = (e.clientX - left - viewX) / zoom;
     const y = (e.clientY - top - viewY) / zoom;
     test.addNode(item.onDrop({x, y}, false));
+    test.saveLocalState();
   };
 
   const handleDrag = () => {
@@ -255,6 +258,7 @@ export function FlowCanvas(props: {
         }
       }
     }
+    test.saveLocalState();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -266,6 +270,7 @@ export function FlowCanvas(props: {
     const {widthSpaceAligningNodes, heightSpaceAligningNodes} =
       store.getState().uigd.present.analysisPanelState;
     test.arrange(widthSpaceAligningNodes, heightSpaceAligningNodes);
+    test.saveLocalState();
     setOnArrange((prev) => !prev);
   };
 

@@ -17,6 +17,9 @@ export interface ITest {
   removeNode(node: {nodeID: string}): void;
   addEdge(edge: IDataEdge): void;
   removeEdge(edge: {source: string; target: string}): void;
+  saveLocalState(): void;
+  localRedo(): void;
+  localUndo(): void;
 
   arrange(
     widthSpaceAligningNodes: number,

@@ -23,6 +23,55 @@ export class Test implements ITest {
 
   ready = false;
 
+  localStates: IDataTest[] = [];
+
+  indexOfHistory: number = -1;
+
+  saveLocalState(): void {
+    this.localStates = this.localStates.slice(0, this.indexOfHistory);
+    this.localStates.push(this.getData());
+  }
+
+  loadLocalState(data: IDataTest) {
+    this.name = data.name;
+    this.description = data.description;
+    this.nodeID = data.nodeID;
+    this.edges = data.edges.reduce((prev, current) => {
+      prev[`${current.source}@${current.target}`] = {...current};
+      return prev;
+    }, {} as {[index: string]: IDataEdge});
+    this.nodes = data.nodes.reduce((prev, current) => {
+      const node = getFlowNode(current);
+      if (isStartNode(node)) this.startNode = node;
+      if (isEndNode(node)) this.endNode = node;
+      prev[current.nodeID] = node;
+      return prev;
+    }, {} as {[index: string]: IFlowNode});
+    this.cleanData();
+  }
+
+  localRedo(): void {
+    if (this.indexOfHistory >= -1) return;
+    this.indexOfHistory++;
+    this.loadLocalState(
+      this.localStates[this.localStates.length + this.indexOfHistory]
+    );
+    this.changed = true;
+  }
+
+  localUndo(): void {
+    if (this.localStates.length + this.indexOfHistory <= 0) return;
+    this.indexOfHistory--;
+    this.loadLocalState(
+      this.localStates[this.localStates.length + this.indexOfHistory]
+    );
+    this.changed = true;
+
+    if (this.localStates.length + this.indexOfHistory <= 0) {
+      this.changed = false;
+    }
+  }
+
   addNode(node: IFlowNode): void {
     this.nodes[node.nodeID] = node;
     this.cleanData();
@@ -203,19 +252,7 @@ export class Test implements ITest {
       return prev;
     }, {} as {[index: string]: IFlowNode});
     if (isDataTest(params)) {
-      this.nodeID = params.nodeID;
-      this.edges = params.edges.reduce((prev, current) => {
-        prev[`${current.source}@${current.target}`] = {...current};
-        return prev;
-      }, {} as {[index: string]: IDataEdge});
-      this.nodes = params.nodes.reduce((prev, current) => {
-        const node = getFlowNode(current);
-        if (isStartNode(node)) this.startNode = node;
-        if (isEndNode(node)) this.endNode = node;
-        prev[current.nodeID] = node;
-        return prev;
-      }, {} as {[index: string]: IFlowNode});
+      this.loadLocalState(params);
     }
-    this.cleanData();
   }
 }
