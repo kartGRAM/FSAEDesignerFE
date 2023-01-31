@@ -41,6 +41,10 @@ import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import {setFlowCanvasBackgroundVariant} from '@store/reducers/uiGeometryDesigner';
 import {alpha} from '@mui/material/styles';
 import Fade from '@mui/material/Fade';
+import RedoIcon from '@mui/icons-material/Redo';
+import UndoIcon from '@mui/icons-material/Undo';
+import Tooltip from '@mui/material/Tooltip';
+import IconButton from '@mui/material/IconButton';
 import {ItemBox} from './ItemBox';
 import CircleNode from './CircleNode';
 import CardNode from './CardNode';
@@ -274,6 +278,16 @@ export function FlowCanvas(props: {
     setOnArrange((prev) => !prev);
   };
 
+  const redo = () => {
+    test.localRedo();
+    update();
+  };
+
+  const undo = () => {
+    test.localUndo();
+    update();
+  };
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const window = document.getElementById('gdAppArea');
 
@@ -367,6 +381,38 @@ export function FlowCanvas(props: {
                   cross
                 </Button>
                 <Button onClick={arrange}>arrange</Button>
+                <Tooltip
+                  title="Undo"
+                  componentsProps={{
+                    popper: {
+                      sx: {
+                        zIndex: 12500000000
+                      }
+                    }
+                  }}
+                >
+                  <span>
+                    <IconButton disabled={!test.undoable} onClick={undo}>
+                      <UndoIcon />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+                <Tooltip
+                  title="Redo"
+                  componentsProps={{
+                    popper: {
+                      sx: {
+                        zIndex: 12500000000
+                      }
+                    }
+                  }}
+                >
+                  <span>
+                    <IconButton disabled={!test.redoable} onClick={redo}>
+                      <RedoIcon />
+                    </IconButton>
+                  </span>
+                </Tooltip>
               </Box>
             </Panel>
             <Panel position="top-center" style={{width: '50%', margin: '0px'}}>

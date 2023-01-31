@@ -13,6 +13,8 @@ export interface ITest {
   readonly nodeID: string;
   readonly startNode: IStartNode;
   readonly endNode: IEndNode;
+  readonly redoable: boolean;
+  readonly undoable: boolean;
   addNode(node: IFlowNode): void;
   removeNode(node: {nodeID: string}): void;
   addEdge(edge: IDataEdge): void;

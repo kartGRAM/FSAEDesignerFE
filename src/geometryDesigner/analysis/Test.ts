@@ -28,7 +28,10 @@ export class Test implements ITest {
   indexOfHistory: number = -1;
 
   saveLocalState(): void {
-    this.localStates = this.localStates.slice(0, this.indexOfHistory);
+    this.localStates = this.localStates.slice(
+      0,
+      this.indexOfHistory + 1 === 0 ? undefined : this.indexOfHistory
+    );
     this.localStates.push(this.getData());
   }
 
@@ -70,6 +73,16 @@ export class Test implements ITest {
     if (this.localStates.length + this.indexOfHistory <= 0) {
       this.changed = false;
     }
+  }
+
+  get redoable(): boolean {
+    if (this.indexOfHistory >= -1) return false;
+    return true;
+  }
+
+  get undoable(): boolean {
+    if (this.localStates.length + this.indexOfHistory <= 0) return false;
+    return true;
   }
 
   addNode(node: IFlowNode): void {
