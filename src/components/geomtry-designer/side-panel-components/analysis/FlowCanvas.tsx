@@ -178,8 +178,29 @@ export function FlowCanvas(props: {
   if (!test) return null;
   const {nodes, edges} = test.getRFNodesAndEdges();
 
-  const handleCancel = () => {
-    setOpen(false);
+  const handleCancel = async () => {
+    if (test.changed) {
+      const ret = await new Promise<string>((resolve) => {
+        dispatch(
+          setConfirmDialogProps({
+            zindex: zindex + 10000 + 1,
+            onClose: resolve,
+            title: 'Warning',
+            message: `All changes will not be reflected. Is that okay?`,
+            buttons: [
+              {text: 'OK', res: 'ok'},
+              {text: 'Cancel', res: 'cancel', autoFocus: true}
+            ]
+          })
+        );
+      });
+      dispatch(setConfirmDialogProps(undefined));
+      if (ret === 'ok') {
+        setOpen(false);
+      }
+    } else {
+      setOpen(false);
+    }
   };
 
   const handleApply = () => {
@@ -191,9 +212,9 @@ export function FlowCanvas(props: {
     handleCancel();
   };
 
-  const handleClose = (_: any, reason: string) => {
+  const handleClose = async (_: any, reason: string) => {
     if (reason === 'escapeKeyDown') return;
-    handleCancel();
+    await handleCancel();
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -268,6 +289,10 @@ export function FlowCanvas(props: {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     e.stopPropagation();
     e.preventDefault();
+    if (e.ctrlKey) {
+      if (e.key === 'z') undo();
+      else if (e.key === 'y') redo();
+    }
   };
 
   const arrange = () => {
@@ -392,7 +417,11 @@ export function FlowCanvas(props: {
                   }}
                 >
                   <span>
-                    <IconButton disabled={!test.undoable} onClick={undo}>
+                    <IconButton
+                      disabled={!test.undoable}
+                      onClick={undo}
+                      color="primary"
+                    >
                       <UndoIcon />
                     </IconButton>
                   </span>
@@ -408,7 +437,11 @@ export function FlowCanvas(props: {
                   }}
                 >
                   <span>
-                    <IconButton disabled={!test.redoable} onClick={redo}>
+                    <IconButton
+                      disabled={!test.redoable}
+                      onClick={redo}
+                      color="primary"
+                    >
                       <RedoIcon />
                     </IconButton>
                   </span>

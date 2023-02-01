@@ -25,14 +25,15 @@ export class Test implements ITest {
 
   localStates: IDataTest[] = [];
 
-  indexOfHistory: number = -1;
+  indexOfHistory: number = 0;
 
   saveLocalState(): void {
     this.localStates = this.localStates.slice(
       0,
-      this.indexOfHistory + 1 === 0 ? undefined : this.indexOfHistory
+      this.localStates.length + this.indexOfHistory
     );
     this.localStates.push(this.getData());
+    this.indexOfHistory = 0;
   }
 
   loadLocalState(data: IDataTest) {
@@ -54,34 +55,36 @@ export class Test implements ITest {
   }
 
   localRedo(): void {
-    if (this.indexOfHistory >= -1) return;
+    if (this.indexOfHistory >= 0) return;
     this.indexOfHistory++;
     this.loadLocalState(
-      this.localStates[this.localStates.length + this.indexOfHistory]
+      this.localStates[this.localStates.length + this.indexOfHistory - 1]
     );
     this.changed = true;
   }
 
   localUndo(): void {
-    if (this.localStates.length + this.indexOfHistory <= 0) return;
+    const idx = this.localStates.length + this.indexOfHistory - 1;
+    if (idx <= 0) return;
+
     this.indexOfHistory--;
-    this.loadLocalState(
-      this.localStates[this.localStates.length + this.indexOfHistory]
-    );
+    const newIdx = this.localStates.length + this.indexOfHistory - 1;
+    this.loadLocalState(this.localStates[newIdx]);
     this.changed = true;
 
-    if (this.localStates.length + this.indexOfHistory <= 0) {
+    if (newIdx === 0) {
       this.changed = false;
     }
   }
 
   get redoable(): boolean {
-    if (this.indexOfHistory >= -1) return false;
+    if (this.indexOfHistory >= 0) return false;
     return true;
   }
 
   get undoable(): boolean {
-    if (this.localStates.length + this.indexOfHistory <= 0) return false;
+    const idx = this.localStates.length + this.indexOfHistory - 1;
+    if (idx <= 0) return false;
     return true;
   }
 
@@ -267,5 +270,6 @@ export class Test implements ITest {
     if (isDataTest(params)) {
       this.loadLocalState(params);
     }
+    this.saveLocalState();
   }
 }
