@@ -251,47 +251,70 @@ export function FlowCanvas(props: {
     if (!dragging) setDragging(true);
   };
 
+  const deleteNode = async (nodeID: string): Promise<boolean> => {
+    const item = test.nodes[nodeID];
+    if (item) {
+      if (item.className === STARTNODE || item.className === ENDNODE)
+        return false;
+      if (!item.isInitialState) {
+        const ret = await new Promise<string>((resolve) => {
+          dispatch(
+            setConfirmDialogProps({
+              zindex: zindex + 10000 + 1,
+              onClose: resolve,
+              title: 'Warning',
+              message: `Once you delete a node, it cannot be restored.`,
+              buttons: [
+                {text: 'OK', res: 'ok'},
+                {text: 'Cancel', res: 'cancel', autoFocus: true}
+              ]
+            })
+          );
+        });
+        dispatch(setConfirmDialogProps(undefined));
+        if (ret === 'ok') {
+          test.removeNode(item);
+          update();
+          return true;
+        }
+        return false;
+      }
+      test.removeNode(item);
+      update();
+
+      return true;
+    }
+    return false;
+  };
+
   const handleDragEnd = async (_: any, node: Node) => {
     setDragging(false);
     if (overDelete) {
-      const item = test.nodes[node.id];
-      if (item) {
-        if (item.className === STARTNODE || item.className === ENDNODE) return;
-        if (!item.isInitialState) {
-          const ret = await new Promise<string>((resolve) => {
-            dispatch(
-              setConfirmDialogProps({
-                zindex: zindex + 10000 + 1,
-                onClose: resolve,
-                title: 'Warning',
-                message: `Once you delete a node, it cannot be restored.`,
-                buttons: [
-                  {text: 'OK', res: 'ok'},
-                  {text: 'Cancel', res: 'cancel', autoFocus: true}
-                ]
-              })
-            );
-          });
-          dispatch(setConfirmDialogProps(undefined));
-          if (ret === 'ok') {
-            test.removeNode(item);
-            update();
-          }
-        } else {
-          test.removeNode(item);
-          update();
-        }
-      }
+      await deleteNode(node.id);
     }
     test.saveLocalState();
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLDivElement>) => {
     e.stopPropagation();
     e.preventDefault();
     if (e.ctrlKey) {
       if (e.key === 'z') undo();
       else if (e.key === 'y') redo();
+      return;
+    }
+    if (e.key === 'Delete') {
+      let changed = false;
+      Object.values(test.nodes).forEach(async (node) => {
+        if (node.selected && (await deleteNode(node.nodeID))) changed = true;
+      });
+      Object.values(test.edges).forEach(async (edge) => {
+        if (edge.selected) {
+          test.removeEdge(edge);
+          changed = true;
+        }
+      });
+      if (changed) test.saveLocalState();
     }
   };
 
@@ -334,7 +357,7 @@ export function FlowCanvas(props: {
       PaperProps={{
         sx: {width: 'calc(100% - 10rem)', height: 'calc(100% - 10rem)'}
       }}
-      onKeyDown={handleKeyDown}
+      // onKeyDown={handleKeyDown}
     >
       <DialogTitle sx={{pb: 0}}>{test.name}</DialogTitle>
       <DialogTitle sx={{pt: 0, lineHeight: 0.2}}>
