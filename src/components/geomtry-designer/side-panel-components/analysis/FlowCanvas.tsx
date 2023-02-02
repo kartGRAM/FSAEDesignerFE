@@ -85,9 +85,10 @@ export function FlowCanvas(props: {
       state.uigd.present.analysisPanelState.flowCanvasBackgroundVariant
   );
 
-  const [tempNode, setTempNode] = React.useState<Node | null>(null);
+  const [tempNodes, setTempNodes] = React.useState<Node[]>([]);
   const draggingNewNode = useSelector((state: RootState) => {
-    if (!state.uitgd.draggingNewTestFlowNode && tempNode) setTempNode(null);
+    if (!state.uitgd.draggingNewTestFlowNode && tempNodes.length)
+      setTempNodes([]);
     return !!state.uitgd.draggingNewTestFlowNode;
   });
   const [viewX, viewY, zoom] = useStore((state) => state.transform);
@@ -232,18 +233,17 @@ export function FlowCanvas(props: {
     e.dataTransfer.dropEffect = 'move';
     const item = store.getState().uitgd.draggingNewTestFlowNode;
     if (!item || !ref.current) {
-      setTempNode(null);
       return;
     }
     const {top, left} = ref.current.getBoundingClientRect();
     const x = (e.clientX - left - viewX) / zoom;
     const y = (e.clientY - top - viewY) / zoom;
-    if (tempNode) {
-      setTempNode((prev) => (prev ? {...prev, position: {x, y}} : null));
+    if (tempNodes.length) {
+      setTempNodes((prev) => prev.map((node) => ({...node, position: {x, y}})));
       return;
     }
     const tmpNode = item.onDrop({x, y}, true).getRFNode();
-    setTempNode(tmpNode);
+    setTempNodes([tmpNode]);
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -306,7 +306,7 @@ export function FlowCanvas(props: {
   };
 
   const handleKeyDown = async (e: React.KeyboardEvent<HTMLDivElement>) => {
-    e.preventDefault();
+    // e.preventDefault();
     if (e.ctrlKey) {
       if (e.key === 'z') undo();
       else if (e.key === 'y') redo();
@@ -354,7 +354,7 @@ export function FlowCanvas(props: {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const window = document.getElementById('gdAppArea');
 
-  if (tempNode) nodes.push(tempNode);
+  if (tempNodes) nodes.push(...tempNodes);
 
   return (
     <Dialog
