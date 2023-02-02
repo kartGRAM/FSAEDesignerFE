@@ -20,6 +20,7 @@ import {getCameraQuaternion} from '@utils/three';
 
 export default function shortCutKeys(e: KeyboardEvent) {
   const state = store.getState();
+  if (state.uitgd.uiDisabledAll) return;
   if (e.key === 'F8') {
     const {get} = state.uitgd.gdSceneState;
     if (get) {

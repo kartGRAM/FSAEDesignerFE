@@ -32,13 +32,15 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import {
   setDraggingNewTestFlowNode,
-  setConfirmDialogProps
+  setConfirmDialogProps,
+  setAllUIDisabled
 } from '@store/reducers/uiTempGeometryDesigner';
 import {className as STARTNODE} from '@gd/analysis/StartNode';
 import {className as ENDNODE} from '@gd/analysis/EndNode';
 import useUpdate from '@app/hooks/useUpdate';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import {setFlowCanvasBackgroundVariant} from '@store/reducers/uiGeometryDesigner';
+
 import {alpha} from '@mui/material/styles';
 import Fade from '@mui/material/Fade';
 import RedoIcon from '@mui/icons-material/Redo';
@@ -167,6 +169,14 @@ export function FlowCanvas(props: {
   };
 
   const [onArrange, setOnArrange] = React.useState(false);
+
+  React.useEffect(() => {
+    dispatch(setAllUIDisabled(true));
+    return () => {
+      dispatch(setAllUIDisabled(false));
+    };
+  }, []);
+
   React.useEffect(() => {
     fitView();
   }, [onArrange]);
@@ -296,7 +306,6 @@ export function FlowCanvas(props: {
   };
 
   const handleKeyDown = async (e: React.KeyboardEvent<HTMLDivElement>) => {
-    e.stopPropagation();
     e.preventDefault();
     if (e.ctrlKey) {
       if (e.key === 'z') undo();
@@ -304,17 +313,23 @@ export function FlowCanvas(props: {
       return;
     }
     if (e.key === 'Delete') {
-      let changed = false;
-      Object.values(test.nodes).forEach(async (node) => {
-        if (node.selected && (await deleteNode(node.nodeID))) changed = true;
-      });
-      Object.values(test.edges).forEach(async (edge) => {
-        if (edge.selected) {
-          test.removeEdge(edge);
-          changed = true;
+      const changed = {_: false};
+      await Object.values(test.nodes).forEach(async (node) => {
+        if (node.selected) {
+          const result = await deleteNode(node.nodeID);
+          if (result) changed._ = true;
         }
       });
-      if (changed) test.saveLocalState();
+      await Object.values(test.edges).forEach(async (edge) => {
+        if (edge.selected) {
+          test.removeEdge(edge);
+          changed._ = true;
+        }
+      });
+      if (changed._) {
+        test.saveLocalState();
+        update();
+      }
     }
   };
 
@@ -357,7 +372,7 @@ export function FlowCanvas(props: {
       PaperProps={{
         sx: {width: 'calc(100% - 10rem)', height: 'calc(100% - 10rem)'}
       }}
-      // onKeyDown={handleKeyDown}
+      onKeyDown={handleKeyDown}
     >
       <DialogTitle sx={{pb: 0}}>{test.name}</DialogTitle>
       <DialogTitle sx={{pt: 0, lineHeight: 0.2}}>

@@ -44,6 +44,7 @@ export interface GlobalSelected {
 
 export interface GDState {
   uiDisabled: boolean;
+  uiDisabledAll: boolean;
   isFullScreen: boolean;
   fullScreenZIndex: number;
   selectedElementAbsPath: string;
@@ -111,6 +112,7 @@ const initialState: GDState = {
   isFullScreen: true,
   fullScreenZIndex: 10000000,
   uiDisabled: false,
+  uiDisabledAll: false,
   selectedElementAbsPath: '',
   sidePanelState: {selectedTab: 'elements'},
   gdSceneState: {
@@ -261,6 +263,9 @@ export const uitGeometryDesignerSlice = createSlice({
     },
     setUIDisabled: (state: GDState, action: PayloadAction<boolean>) => {
       state.uiDisabled = action.payload;
+    },
+    setAllUIDisabled: (state: GDState, action: PayloadAction<boolean>) => {
+      state.uiDisabledAll = action.payload;
     },
     selectElement: (
       state: GDState,
@@ -500,6 +505,7 @@ export const {
   removeTest,
   setKinematicSolver,
   setUIDisabled,
+  setAllUIDisabled,
   toggleFullScreen,
   selectElement,
   selectSidePanelTab,
