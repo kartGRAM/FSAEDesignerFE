@@ -239,6 +239,18 @@ export class Test implements ITest {
     this.changed = false;
   }
 
+  copySelectedNodes(): {nodes: IFlowNode[]; edges: IDataEdge[]} {
+    const nodes = Object.values(this.nodes).filter((node) => node.selected);
+    const selectedNodeIDs = nodes.map((node) => node.nodeID);
+    const edges = Object.values(this.edges).filter(
+      (edge) =>
+        edge.selected &&
+        selectedNodeIDs.includes(edge.source) &&
+        selectedNodeIDs.includes(edge.target)
+    );
+    return {nodes, edges};
+  }
+
   nodes: {[index: string]: IFlowNode};
 
   edges: {[index: string]: IDataEdge} = {};

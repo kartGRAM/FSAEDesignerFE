@@ -22,6 +22,7 @@ export interface ITest {
   saveLocalState(): void;
   localRedo(): void;
   localUndo(): void;
+  copySelectedNodes(): {nodes: IFlowNode[]; edges: IDataEdge[]};
 
   arrange(
     widthSpaceAligningNodes: number,

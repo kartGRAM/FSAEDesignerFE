@@ -9,11 +9,9 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import {DialogContent} from '@mui/material';
-import {useState, useCallback} from 'react';
+import {useCallback} from 'react';
 import ReactFlow, {
   FitViewOptions,
-  applyNodeChanges,
-  applyEdgeChanges,
   Node,
   Edge,
   NodeChange,
@@ -23,7 +21,6 @@ import ReactFlow, {
   BackgroundVariant,
   Panel,
   MiniMap,
-  Position,
   useStore,
   useReactFlow,
   Controls,
@@ -31,7 +28,6 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import {
-  setDraggingNewTestFlowNode,
   setConfirmDialogProps,
   setAllUIDisabled
 } from '@store/reducers/uiTempGeometryDesigner';
@@ -40,13 +36,13 @@ import {className as ENDNODE} from '@gd/analysis/EndNode';
 import useUpdate from '@app/hooks/useUpdate';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import {setFlowCanvasBackgroundVariant} from '@store/reducers/uiGeometryDesigner';
-
 import {alpha} from '@mui/material/styles';
 import Fade from '@mui/material/Fade';
 import RedoIcon from '@mui/icons-material/Redo';
 import UndoIcon from '@mui/icons-material/Undo';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
+import {IFlowNode, IDataEdge} from '@gd/analysis/FlowNode';
 import {ItemBox} from './ItemBox';
 import CircleNode from './CircleNode';
 import CardNode from './CardNode';
@@ -85,10 +81,17 @@ export function FlowCanvas(props: {
       state.uigd.present.analysisPanelState.flowCanvasBackgroundVariant
   );
 
-  const [tempNodes, setTempNodes] = React.useState<Node[]>([]);
+  const [tempNodes, setTempNodes] = React.useState<{
+    nodes: Node[];
+    edges: Edge[];
+  }>({nodes: [], edges: []});
+  const [clipboard, setClipboard] = React.useState<{
+    nodes: IFlowNode[];
+    edges: IDataEdge[];
+  }>({nodes: [], edges: []});
   const draggingNewNode = useSelector((state: RootState) => {
-    if (!state.uitgd.draggingNewTestFlowNode && tempNodes.length)
-      setTempNodes([]);
+    if (!state.uitgd.draggingNewTestFlowNode && tempNodes.nodes.length)
+      setTempNodes({nodes: [], edges: []});
     return !!state.uitgd.draggingNewTestFlowNode;
   });
   const [viewX, viewY, zoom] = useStore((state) => state.transform);
@@ -228,6 +231,18 @@ export function FlowCanvas(props: {
     await handleCancel();
   };
 
+  const handleMouseOver = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (ref.current && tempNodes.nodes.length) {
+      const {top, left} = ref.current.getBoundingClientRect();
+      const x = (e.clientX - left - viewX) / zoom;
+      const y = (e.clientY - top - viewY) / zoom;
+      setTempNodes((prev) => ({
+        nodes: prev.nodes.map((node) => ({...node, position: {x, y}})),
+        edges: prev.edges
+      }));
+    }
+  };
+
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
@@ -238,12 +253,15 @@ export function FlowCanvas(props: {
     const {top, left} = ref.current.getBoundingClientRect();
     const x = (e.clientX - left - viewX) / zoom;
     const y = (e.clientY - top - viewY) / zoom;
-    if (tempNodes.length) {
-      setTempNodes((prev) => prev.map((node) => ({...node, position: {x, y}})));
+    if (tempNodes.nodes.length) {
+      setTempNodes((prev) => ({
+        nodes: prev.nodes.map((node) => ({...node, position: {x, y}})),
+        edges: prev.edges
+      }));
       return;
     }
     const tmpNode = item.onDrop({x, y}, true).getRFNode();
-    setTempNodes([tmpNode]);
+    setTempNodes({nodes: [tmpNode], edges: []});
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -351,10 +369,27 @@ export function FlowCanvas(props: {
     update();
   };
 
+  const copy = async () => {
+    await navigator.clipboard.writeText('');
+    setClipboard(test.copySelectedNodes());
+  };
+
+  const paste = async () => {
+    const otherData = await navigator.clipboard.readText();
+    if (otherData) {
+      setClipboard({
+        nodes: [],
+        edges: []
+      });
+      return;
+    }
+    const {nodes, edges} = clipboard;
+  };
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const window = document.getElementById('gdAppArea');
 
-  if (tempNodes) nodes.push(...tempNodes);
+  if (tempNodes.nodes) nodes.push(...tempNodes.nodes);
 
   return (
     <Dialog
@@ -401,6 +436,7 @@ export function FlowCanvas(props: {
             fitViewOptions={fitViewOptions}
             onNodeDrag={handleDrag}
             onNodeDragStop={handleDragEnd}
+            onMouseOver={handleMouseOver}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
             onEdgeUpdate={onEdgeUpdate}
