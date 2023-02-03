@@ -2,6 +2,7 @@
 import * as React from 'react';
 import {Node as IRFNode, XYPosition} from 'reactflow';
 import Sweep from '@gdComponents/svgs/Sweep';
+import {v4 as uuidv4} from 'uuid';
 import {
   IFlowNode,
   isDataFlowNode,
@@ -90,6 +91,10 @@ export class SweepNode extends ActionNode implements ISweepNode {
     // eslint-disable-next-line no-empty
     if (isDataFlowNode(params) && isDataSweepNode(params)) {
     }
+  }
+
+  clone(): ISweepNode {
+    return new SweepNode({...this.getData(), nodeID: uuidv4()});
   }
 }
 

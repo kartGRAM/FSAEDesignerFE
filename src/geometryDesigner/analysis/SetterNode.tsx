@@ -2,6 +2,7 @@
 import * as React from 'react';
 import {Node as IRFNode, XYPosition} from 'reactflow';
 import Tuning from '@gdComponents/svgs/Tuning';
+import {v4 as uuidv4} from 'uuid';
 import {
   IFlowNode,
   isDataFlowNode,
@@ -89,6 +90,10 @@ export class SetterNode extends ActionNode implements ISetterNode {
     // eslint-disable-next-line no-empty
     if (isDataFlowNode(params) && isDataSetterNode(params)) {
     }
+  }
+
+  clone(): ISetterNode {
+    return new SetterNode({...this.getData(), nodeID: uuidv4()});
   }
 }
 

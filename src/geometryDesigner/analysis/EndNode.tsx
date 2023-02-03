@@ -2,6 +2,7 @@
 import {setAssembled} from '@store/reducers/uiTempGeometryDesigner';
 import store from '@store/store';
 import {Node as IRFNode} from 'reactflow';
+import {v4 as uuidv4} from 'uuid';
 import {IActionNode, IDataActionNode, ActionNode} from './ActionNode';
 import {
   isDataFlowNode,
@@ -63,6 +64,10 @@ export class EndNode extends ActionNode implements IEndNode {
     // eslint-disable-next-line no-empty
     if (isDataFlowNode(params) && isDataEndNode(params)) {
     }
+  }
+
+  clone(): IEndNode {
+    return new EndNode({...this.getData(), nodeID: uuidv4()});
   }
 }
 

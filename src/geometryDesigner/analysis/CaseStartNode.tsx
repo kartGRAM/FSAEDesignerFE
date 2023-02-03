@@ -2,6 +2,7 @@
 import * as React from 'react';
 import {Node as IRFNode, XYPosition} from 'reactflow';
 import CaseStart from '@gdComponents/svgs/CaseStart';
+import {v4 as uuidv4} from 'uuid';
 import {
   IFlowNode,
   isDataFlowNode,
@@ -80,6 +81,10 @@ export class CaseStartNode extends FlowNode implements ICaseStartNode {
     // eslint-disable-next-line no-empty
     if (isDataFlowNode(params) && isDataCaseStartNode(params)) {
     }
+  }
+
+  clone(): ICaseStartNode {
+    return new CaseStartNode({...this.getData(), nodeID: uuidv4()});
   }
 }
 

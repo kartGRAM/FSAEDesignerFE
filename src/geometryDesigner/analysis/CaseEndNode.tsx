@@ -2,6 +2,7 @@
 import * as React from 'react';
 import {Node as IRFNode, XYPosition} from 'reactflow';
 import CaseEnd from '@gdComponents/svgs/CaseEnd';
+import {v4 as uuidv4} from 'uuid';
 import {
   IFlowNode,
   isDataFlowNode,
@@ -79,6 +80,10 @@ export class CaseEndNode extends FlowNode implements ICaseEndNode {
     // eslint-disable-next-line no-empty
     if (isDataFlowNode(params) && isDataCaseEndNode(params)) {
     }
+  }
+
+  clone(): ICaseEndNode {
+    return new CaseEndNode({...this.getData(), nodeID: uuidv4()});
   }
 }
 

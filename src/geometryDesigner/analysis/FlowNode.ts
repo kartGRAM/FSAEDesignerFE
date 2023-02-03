@@ -25,6 +25,7 @@ export interface IFlowNode {
     edgesFromTarget: {[index: TargetNodeID]: IDataEdge | undefined},
     edgesFromSource: {[index: SourceNodeID]: IDataEdge[]}
   ): boolean;
+  clone(): IFlowNode;
   getSize(): {width: number; height: number};
 }
 
@@ -103,6 +104,8 @@ export abstract class FlowNode implements IFlowNode {
     const height = element.scrollHeight;
     return {width, height};
   }
+
+  abstract clone(): IFlowNode;
 }
 
 export const edgeClasses = ['default'] as const;
