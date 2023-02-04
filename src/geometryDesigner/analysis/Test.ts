@@ -9,6 +9,7 @@ import {ITest, IDataTest, isDataTest} from './ITest';
 import {getEdge, getFlowNode} from './RestoreData';
 import validateGraph from './ValidateGraph';
 import arrangeNodes from './ArrangeNodes';
+import {IClipboardFlowNodes} from './ClipboardFlowNode';
 
 export class Test implements ITest {
   name: string;
@@ -239,8 +240,10 @@ export class Test implements ITest {
     this.changed = false;
   }
 
-  copySelectedNodes(): {nodes: IFlowNode[]; edges: IDataEdge[]} {
-    const nodes = Object.values(this.nodes).filter((node) => node.selected);
+  copySelectedNodes(): IClipboardFlowNodes {
+    const nodes = Object.values(this.nodes)
+      .filter((node) => node.selected)
+      .map((node) => node.getData());
     const selectedNodeIDs = nodes.map((node) => node.nodeID);
     const edges = Object.values(this.edges).filter(
       (edge) =>
@@ -248,7 +251,7 @@ export class Test implements ITest {
         selectedNodeIDs.includes(edge.source) &&
         selectedNodeIDs.includes(edge.target)
     );
-    return {nodes, edges};
+    return {isClipboardFlowNodes: true, isClipboardItem: true, nodes, edges};
   }
 
   nodes: {[index: string]: IFlowNode};

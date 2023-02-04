@@ -3,6 +3,7 @@ import {isObject} from '@app/utils/helpers';
 import {IDataFlowNode, IDataEdge, IFlowNode} from './FlowNode';
 import {IStartNode} from './StartNode';
 import {IEndNode} from './EndNode';
+import {IClipboardFlowNodes} from './ClipboardFlowNode';
 
 export interface ITest {
   name: string;
@@ -22,7 +23,7 @@ export interface ITest {
   saveLocalState(): void;
   localRedo(): void;
   localUndo(): void;
-  copySelectedNodes(): {nodes: IFlowNode[]; edges: IDataEdge[]};
+  copySelectedNodes(): IClipboardFlowNodes;
 
   arrange(
     widthSpaceAligningNodes: number,

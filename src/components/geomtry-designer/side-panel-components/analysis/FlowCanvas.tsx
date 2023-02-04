@@ -43,6 +43,12 @@ import UndoIcon from '@mui/icons-material/Undo';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import {IFlowNode, IDataEdge} from '@gd/analysis/FlowNode';
+import {
+  convertJsonToClipboardFlowNodes,
+  getFlowNodesFromClipboard,
+  getJsonFromClipboardFlowNodes,
+  getRFFlowNodesFromClipboard
+} from '@gd/analysis/ClipboardFlowNode';
 import {ItemBox} from './ItemBox';
 import CircleNode from './CircleNode';
 import CardNode from './CardNode';
@@ -84,10 +90,6 @@ export function FlowCanvas(props: {
   const [tempNodes, setTempNodes] = React.useState<{
     nodes: Node[];
     edges: Edge[];
-  }>({nodes: [], edges: []});
-  const [clipboard, setClipboard] = React.useState<{
-    nodes: IFlowNode[];
-    edges: IDataEdge[];
   }>({nodes: [], edges: []});
   const draggingNewNode = useSelector((state: RootState) => {
     if (!state.uitgd.draggingNewTestFlowNode && tempNodes.nodes.length)
@@ -328,6 +330,8 @@ export function FlowCanvas(props: {
     if (e.ctrlKey) {
       if (e.key === 'z') undo();
       else if (e.key === 'y') redo();
+      else if (e.key === 'c') copy();
+      else if (e.key === 'v') paste();
       return;
     }
     if (e.key === 'Delete') {
@@ -370,20 +374,22 @@ export function FlowCanvas(props: {
   };
 
   const copy = async () => {
-    await navigator.clipboard.writeText('');
-    setClipboard(test.copySelectedNodes());
+    const item = test.copySelectedNodes();
+    if (item.nodes.length) {
+      const data = getJsonFromClipboardFlowNodes(item);
+      await navigator.clipboard.writeText(data);
+    }
   };
 
   const paste = async () => {
-    const otherData = await navigator.clipboard.readText();
-    if (otherData) {
-      setClipboard({
-        nodes: [],
-        edges: []
-      });
-      return;
+    const data = await navigator.clipboard.readText();
+    const item = convertJsonToClipboardFlowNodes(data);
+    if (item) {
+      const nodesAndEdges = getRFFlowNodesFromClipboard(item);
+      setTempNodes(nodesAndEdges);
+    } else {
+      setTempNodes({nodes: [], edges: []});
     }
-    const {nodes, edges} = clipboard;
   };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
