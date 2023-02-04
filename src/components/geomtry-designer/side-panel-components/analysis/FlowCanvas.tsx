@@ -11,6 +11,7 @@ import Box from '@mui/material/Box';
 import {DialogContent} from '@mui/material';
 import {useCallback} from 'react';
 import ReactFlow, {
+  XYPosition,
   FitViewOptions,
   Node,
   Edge,
@@ -91,11 +92,10 @@ export function FlowCanvas(props: {
     nodes: Node[];
     edges: Edge[];
   }>({nodes: [], edges: []});
-  const draggingNewNode = useSelector((state: RootState) => {
-    if (!state.uitgd.draggingNewTestFlowNode && tempNodes.nodes.length)
-      setTempNodes({nodes: [], edges: []});
-    return !!state.uitgd.draggingNewTestFlowNode;
-  });
+  const [pasting, setPasting] = React.useState(false);
+  const draggingNewNode = useSelector(
+    (state: RootState) => !!state.uitgd.draggingNewTestFlowNode
+  );
   const [viewX, viewY, zoom] = useStore((state) => state.transform);
   const {fitView} = useReactFlow();
   const [dragging, setDragging] = React.useState(false);
@@ -191,6 +191,8 @@ export function FlowCanvas(props: {
     if (dragging === false && overDelete) setOverDelete(false);
   }, [dragging, overDelete]);
 
+  if (tempNodes.nodes.length && !pasting && !draggingNewNode)
+    setTempNodes({nodes: [], edges: []});
   if (!test) return null;
   const {nodes, edges} = test.getRFNodesAndEdges();
 
@@ -233,7 +235,7 @@ export function FlowCanvas(props: {
     await handleCancel();
   };
 
-  const handleMouseOver = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (ref.current && tempNodes.nodes.length) {
       const {top, left} = ref.current.getBoundingClientRect();
       const x = (e.clientX - left - viewX) / zoom;
@@ -243,6 +245,26 @@ export function FlowCanvas(props: {
         edges: prev.edges
       }));
     }
+  };
+
+  const handleClick = async () => {
+    if (!pasting) return;
+    const data = await navigator.clipboard.readText();
+    const item = convertJsonToClipboardFlowNodes(data);
+    if (item) {
+      const {nodes, edges} = getFlowNodesFromClipboard(item);
+      const tempPositions = tempNodes.nodes.reduce((prev, node) => {
+        prev[node.id] = node.position;
+        return prev;
+      }, {} as {[index: string]: XYPosition});
+      nodes.forEach((node) => {
+        node.position = tempPositions[node.nodeID];
+        test.addNode(node);
+      });
+      edges.forEach((edge) => test.tryConnect(edge.source, edge.target));
+    }
+    setTempNodes({nodes: [], edges: []});
+    setPasting(false);
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -386,6 +408,7 @@ export function FlowCanvas(props: {
     const item = convertJsonToClipboardFlowNodes(data);
     if (item) {
       const nodesAndEdges = getRFFlowNodesFromClipboard(item);
+      setPasting(true);
       setTempNodes(nodesAndEdges);
     } else {
       setTempNodes({nodes: [], edges: []});
@@ -442,7 +465,8 @@ export function FlowCanvas(props: {
             fitViewOptions={fitViewOptions}
             onNodeDrag={handleDrag}
             onNodeDragStop={handleDragEnd}
-            onMouseOver={handleMouseOver}
+            onMouseMove={handleMouseMove}
+            onClick={handleClick}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
             onEdgeUpdate={onEdgeUpdate}

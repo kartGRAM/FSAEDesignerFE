@@ -243,14 +243,29 @@ export class Test implements ITest {
   copySelectedNodes(): IClipboardFlowNodes {
     const nodes = Object.values(this.nodes)
       .filter((node) => node.selected)
-      .map((node) => node.getData());
-    const selectedNodeIDs = nodes.map((node) => node.nodeID);
-    const edges = Object.values(this.edges).filter(
-      (edge) =>
-        edge.selected &&
-        selectedNodeIDs.includes(edge.source) &&
-        selectedNodeIDs.includes(edge.target)
-    );
+      .map((node) => ({
+        ...node.getData(),
+        orgNodeID: node.nodeID,
+        nodeID: uuidv4()
+      }));
+    const newNodeIDs = nodes.reduce((prev, node) => {
+      prev[node.orgNodeID] = node.nodeID;
+      return prev;
+    }, {} as {[index: string]: string});
+
+    const selectedNodeIDs = Object.keys(newNodeIDs);
+    const edges = Object.values(this.edges)
+      .filter(
+        (edge) =>
+          edge.selected &&
+          selectedNodeIDs.includes(edge.source) &&
+          selectedNodeIDs.includes(edge.target)
+      )
+      .map((edge) => ({
+        ...edge,
+        source: newNodeIDs[edge.source],
+        target: newNodeIDs[edge.target]
+      }));
     return {isClipboardFlowNodes: true, isClipboardItem: true, nodes, edges};
   }
 
