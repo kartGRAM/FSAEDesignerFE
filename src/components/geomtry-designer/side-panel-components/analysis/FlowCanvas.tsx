@@ -461,6 +461,7 @@ export function FlowCanvas(props: {
 
       nodesAndEdges.edges = edges.map((edge) => ({
         ...edge,
+        id: `${newNodeIDs[edge.source]}@${newNodeIDs[edge.target]}`,
         source: newNodeIDs[edge.source],
         target: newNodeIDs[edge.target]
       }));
