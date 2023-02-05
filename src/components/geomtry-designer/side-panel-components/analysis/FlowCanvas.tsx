@@ -376,7 +376,15 @@ export function FlowCanvas(props: {
       else if (e.key === 'c') copy();
       else if (e.key === 'v') paste();
     } else if (e.key === 'Escape') {
-      setPasting(false);
+      const needToUpdate = {_: false};
+      Object.values(test.nodes).forEach((node) => {
+        if (node.selected) {
+          node.selected = false;
+          needToUpdate._ = true;
+        }
+      });
+      if (pasting) setPasting(false);
+      else if (needToUpdate._) update();
     } else if (e.key === 'Delete') {
       const changed = {_: false};
       await Object.values(test.nodes).forEach(async (node) => {
