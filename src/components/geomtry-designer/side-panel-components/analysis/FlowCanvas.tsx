@@ -50,6 +50,7 @@ import {
   getJsonFromClipboardFlowNodes,
   getRFFlowNodesFromClipboard
 } from '@gd/analysis/ClipboardFlowNode';
+import {v4 as uuidv4} from 'uuid';
 import {ItemBox} from './ItemBox';
 import CircleNode from './CircleNode';
 import CardNode from './CardNode';
@@ -267,15 +268,19 @@ export function FlowCanvas(props: {
     const item = convertJsonToClipboardFlowNodes(data);
     if (item) {
       const {nodes, edges} = getFlowNodesFromClipboard(item);
-      const tempPositions = tempNodes.nodes.reduce((prev, node) => {
-        prev[node.id] = node.position;
+      const inheritedParams = tempNodes.nodes.reduce((prev, node) => {
+        prev[node.data.oldID] = {position: node.position, nodeID: node.id};
         return prev;
-      }, {} as {[index: string]: XYPosition});
+      }, {} as {[index: string]: {position: XYPosition; nodeID: string}});
       nodes.forEach((node) => {
-        node.position = tempPositions[node.nodeID];
+        const {position, nodeID} = inheritedParams[node.nodeID];
+        node.position = position;
+        node.nodeID = nodeID;
         test.addNode(node);
       });
-      edges.forEach((edge) => test.tryConnect(edge.source, edge.target));
+      tempNodes.edges.forEach((edge) =>
+        test.tryConnect(edge.source, edge.target)
+      );
     }
     setTempNodes({nodes: [], edges: []});
     setPasting(false);
@@ -353,10 +358,12 @@ export function FlowCanvas(props: {
     return false;
   };
 
-  const handleDragEnd = async (_: any, node: Node) => {
+  const handleDragEnd = async (_: any, __: Node, nodes: Node[]) => {
     setDragging(false);
     if (overDelete) {
-      await deleteNode(node.id);
+      nodes.forEach(async (node) => {
+        await deleteNode(node.id);
+      });
     }
     test.saveLocalState();
   };
@@ -442,6 +449,21 @@ export function FlowCanvas(props: {
         const oy = node.data.offset.y;
         node.position = {x: x + ox, y: y + oy};
       });
+      const {nodes, edges} = nodesAndEdges;
+
+      const newNodeIDs = nodes.reduce((prev, node) => {
+        const newID = uuidv4();
+        prev[node.id] = newID;
+        node.data = {...node.data, oldID: node.id};
+        node.id = newID;
+        return prev;
+      }, {} as {[index: string]: string});
+
+      nodesAndEdges.edges = edges.map((edge) => ({
+        ...edge,
+        source: newNodeIDs[edge.source],
+        target: newNodeIDs[edge.target]
+      }));
       setPasting(true);
       setTempNodes(nodesAndEdges);
     } else {
@@ -453,6 +475,7 @@ export function FlowCanvas(props: {
   const window = document.getElementById('gdAppArea');
 
   if (tempNodes.nodes) nodes.push(...tempNodes.nodes);
+  if (tempNodes.edges) edges.push(...tempNodes.edges);
 
   return (
     <Dialog
@@ -510,6 +533,7 @@ export function FlowCanvas(props: {
             edgeTypes={edgeTypes}
             connectionLineType={ConnectionLineType.SmoothStep}
             connectionLineStyle={{strokeWidth: 5}}
+            multiSelectionKeyCode="Control"
           >
             <Background color="#99b3ec" variant={variant} />
             <MiniMap nodeStrokeWidth={3} zoomable pannable />

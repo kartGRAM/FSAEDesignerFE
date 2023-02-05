@@ -11,7 +11,7 @@ export const caseStartNodeClassName = 'CaseStart' as const;
 
 export interface IFlowNode {
   isFlowNode: true;
-  readonly nodeID: string;
+  nodeID: string;
   readonly className: string;
   selected: boolean;
   name: string;
