@@ -211,7 +211,7 @@ export function FlowCanvas(props: {
             zindex: zindex + 10000 + 1,
             onClose: resolve,
             title: 'Warning',
-            message: `All changes will not be reflected. Is that okay?`,
+            message: `All changes will not be saved. Are you okay?`,
             buttons: [
               {text: 'OK', res: 'ok'},
               {text: 'Cancel', res: 'cancel', autoFocus: true}
