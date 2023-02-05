@@ -97,6 +97,7 @@ export function FlowCanvas(props: {
     (state: RootState) => !!state.uitgd.draggingNewTestFlowNode
   );
   const [viewX, viewY, zoom] = useStore((state) => state.transform);
+  const mousePosition = React.useRef({x: 0, y: 0});
   const {fitView} = useReactFlow();
   const [dragging, setDragging] = React.useState(false);
   const [overDelete, setOverDelete] = React.useState(false);
@@ -194,6 +195,11 @@ export function FlowCanvas(props: {
   if (tempNodes.nodes.length && !pasting && !draggingNewNode)
     setTempNodes({nodes: [], edges: []});
   if (!test) return null;
+
+  // ******************************************************************
+  // これより下にhookはNG
+  // ******************************************************************
+
   const {nodes, edges} = test.getRFNodesAndEdges();
 
   const handleCancel = async () => {
@@ -236,18 +242,26 @@ export function FlowCanvas(props: {
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (ref.current && tempNodes.nodes.length) {
+    if (ref.current) {
       const {top, left} = ref.current.getBoundingClientRect();
       const x = (e.clientX - left - viewX) / zoom;
       const y = (e.clientY - top - viewY) / zoom;
+      mousePosition.current = {x, y};
+    }
+    if (tempNodes.nodes.length) {
+      const {x, y} = mousePosition.current;
       setTempNodes((prev) => ({
-        nodes: prev.nodes.map((node) => ({...node, position: {x, y}})),
+        nodes: prev.nodes.map((node) => ({
+          ...node,
+          position: {x: x + node.data.offset.x, y: y + node.data.offset.y}
+        })),
         edges: prev.edges
       }));
     }
   };
 
   const handleClick = async () => {
+    document.getSelection()?.removeAllRanges();
     if (!pasting) return;
     const data = await navigator.clipboard.readText();
     const item = convertJsonToClipboardFlowNodes(data);
@@ -354,9 +368,9 @@ export function FlowCanvas(props: {
       else if (e.key === 'y') redo();
       else if (e.key === 'c') copy();
       else if (e.key === 'v') paste();
-      return;
-    }
-    if (e.key === 'Delete') {
+    } else if (e.key === 'Escape') {
+      setPasting(false);
+    } else if (e.key === 'Delete') {
       const changed = {_: false};
       await Object.values(test.nodes).forEach(async (node) => {
         if (node.selected) {
@@ -408,6 +422,26 @@ export function FlowCanvas(props: {
     const item = convertJsonToClipboardFlowNodes(data);
     if (item) {
       const nodesAndEdges = getRFFlowNodesFromClipboard(item);
+      const minX = nodesAndEdges.nodes.reduce(
+        (prev, node) => Math.min(prev, node.position.x),
+        Number.MAX_SAFE_INTEGER
+      );
+      const minY = nodesAndEdges.nodes.reduce(
+        (prev, node) => Math.min(prev, node.position.y),
+        Number.MAX_SAFE_INTEGER
+      );
+      const {x, y} = mousePosition.current;
+      nodesAndEdges.nodes.forEach((node) => {
+        node.data = {
+          ...node.data,
+          offset: {x: node.position.x - minX, y: node.position.y - minY}
+        };
+      });
+      nodesAndEdges.nodes.forEach((node) => {
+        const ox = node.data.offset.x;
+        const oy = node.data.offset.y;
+        node.position = {x: x + ox, y: y + oy};
+      });
       setPasting(true);
       setTempNodes(nodesAndEdges);
     } else {
