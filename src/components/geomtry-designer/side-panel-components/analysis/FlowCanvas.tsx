@@ -167,7 +167,7 @@ export function FlowCanvas(props: {
     update();
   };
 
-  const onEdgeUpdateEnd = (_: MouseEvent, edge: Edge) => {
+  const onEdgeUpdateEnd = (_: MouseEvent | TouchEvent, edge: Edge) => {
     if (!edgeUpdateSuccessful.current && test) {
       test.removeEdge(edge);
       test.saveLocalState();
@@ -358,7 +358,7 @@ export function FlowCanvas(props: {
     return false;
   };
 
-  const handleDragEnd = async (_: any, __: Node, nodes: Node[]) => {
+  const handleDragEnd = async (_: any, __: any, nodes: Node[]) => {
     setDragging(false);
     if (overDelete) {
       nodes.forEach(async (node) => {
@@ -522,7 +522,11 @@ export function FlowCanvas(props: {
             fitView
             fitViewOptions={fitViewOptions}
             onNodeDrag={handleDrag}
+            onSelectionDrag={handleDrag}
             onNodeDragStop={handleDragEnd}
+            onSelectionDragStop={async (e, nodes) =>
+              handleDragEnd(e, undefined, nodes)
+            }
             onMouseMove={handleMouseMove}
             onClick={handleClick}
             onDragOver={handleDragOver}
