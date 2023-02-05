@@ -242,7 +242,7 @@ export class Test implements ITest {
 
   copySelectedNodes(): IClipboardFlowNodes {
     const nodes = Object.values(this.nodes)
-      .filter((node) => node.selected)
+      .filter((node) => node.selected && !isStartNode(node) && !isEndNode(node))
       .map((node) => ({
         ...node.getData()
       }));
