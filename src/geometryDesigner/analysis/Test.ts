@@ -28,13 +28,14 @@ export class Test implements ITest {
 
   indexOfHistory: number = 0;
 
-  saveLocalState(): void {
+  saveLocalState(changed: boolean = true): void {
     this.localStates = this.localStates.slice(
       0,
       this.localStates.length + this.indexOfHistory
     );
     this.localStates.push(this.getData());
     this.indexOfHistory = 0;
+    if (changed) this.changed = true;
   }
 
   loadLocalState(data: IDataTest) {
@@ -92,14 +93,12 @@ export class Test implements ITest {
   addNode(node: IFlowNode): void {
     this.nodes[node.nodeID] = node;
     this.cleanData();
-    this.changed = true;
   }
 
   removeNode(node: {nodeID: string}): void {
     const id = node.nodeID;
     delete this.nodes[id];
     this.cleanData();
-    this.changed = true;
   }
 
   addEdge(edge: IDataEdge): void {
@@ -108,14 +107,12 @@ export class Test implements ITest {
     }
     this.edges[`${edge.source}@${edge.target}`] = edge;
     this.cleanData();
-    this.changed = true;
   }
 
   removeEdge(edge: {source: string; target: string}): void {
     const id = `${edge.source}@${edge.target}`;
     delete this.edges[id];
     this.cleanData();
-    this.changed = true;
   }
 
   arrange(
@@ -129,7 +126,6 @@ export class Test implements ITest {
       widthSpaceAligningNodes,
       heightSpaceAligningNodes
     );
-    this.changed = true;
   }
 
   tryConnect(source: string, target: string) {
@@ -288,6 +284,6 @@ export class Test implements ITest {
     if (isDataTest(params)) {
       this.loadLocalState(params);
     }
-    this.saveLocalState();
+    this.saveLocalState(false);
   }
 }

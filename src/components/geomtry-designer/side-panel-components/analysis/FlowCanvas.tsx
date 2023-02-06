@@ -56,6 +56,8 @@ import CircleNode from './CircleNode';
 import CardNode from './CardNode';
 import OvalNode from './OvalNode';
 import CustomSmoothStepEdge from './CustomSmoothStepEdge';
+import TestName from './TestName';
+import TestDescription from './TestDescription';
 
 const fitViewOptions: FitViewOptions = {
   padding: 0.2
@@ -179,11 +181,12 @@ export function FlowCanvas(props: {
   const [onArrange, setOnArrange] = React.useState(false);
 
   React.useEffect(() => {
-    dispatch(setAllUIDisabled(true));
+    if (open) dispatch(setAllUIDisabled(true));
+    else dispatch(setAllUIDisabled(false));
     return () => {
       dispatch(setAllUIDisabled(false));
     };
-  }, []);
+  }, [open]);
 
   React.useEffect(() => {
     fitView();
@@ -504,10 +507,8 @@ export function FlowCanvas(props: {
       }}
       onKeyDown={handleKeyDown}
     >
-      <DialogTitle sx={{pb: 0}}>{test.name}</DialogTitle>
-      <DialogTitle sx={{pt: 0, lineHeight: 0.2}}>
-        <Typography variant="caption">{test.description}</Typography>
-      </DialogTitle>
+      <TestName test={test} parentUpdate={update} />
+      <TestDescription test={test} parentUpdate={update} />
       <DialogContent sx={{display: 'flex', flexDirection: 'row'}}>
         <ItemBox />
         <Box
