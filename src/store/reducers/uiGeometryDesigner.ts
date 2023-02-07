@@ -117,7 +117,7 @@ const initialState: GDState = {
   },
   sidePanelState: {
     backgroundColor: 0x2e2e2e,
-    minWidth: 200,
+    minWidth: 300,
     collapsed: false,
     fontColor: 0xcccccc,
     panelWidth: 450

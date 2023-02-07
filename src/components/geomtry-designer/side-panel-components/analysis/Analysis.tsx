@@ -30,7 +30,7 @@ import {
 } from '@store/reducers/uiTempGeometryDesigner';
 import {ReactFlowProvider} from 'reactflow';
 
-export default function Controllers() {
+export default function Analysis() {
   const dispatch = useDispatch();
   const dataTests = useSelector(
     (state: RootState) => state.dgd.present.analysis
@@ -61,11 +61,11 @@ export default function Controllers() {
             component="div"
             display="flex"
             alignItems="center"
-            justifyContent="center"
+            justifyContent="start"
             padding={3}
             sx={{
               backgroundColor: '#FFF',
-              minWidth: 'fit-content',
+              // minWidth: 'fit-content',
               width: '100%'
             }}
           >
@@ -129,14 +129,25 @@ const TestRow = (props: {test: IDataTest}) => {
 
   return (
     <>
-      <ListItem>
+      <ListItem sx={{width: '100%', pl: 0}}>
         <Button sx={{color: '#222'}} onClick={handleOpen}>
           <ListItemAvatar>
             <Avatar>
               <AccountTreeIcon />
             </Avatar>
           </ListItemAvatar>
-          <ListItemText primary={test.name} secondary={test.description} />
+          <ListItemText
+            primary={test.name}
+            secondary={test.description}
+            sx={{
+              overflow: 'hidden',
+              '& p,span': {
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
+              }
+            }}
+          />
         </Button>
         <Toolbar
           sx={{
