@@ -3,6 +3,7 @@ import * as React from 'react';
 import {Node as IRFNode, XYPosition} from 'reactflow';
 import CaseStart from '@gdComponents/svgs/CaseStart';
 import {v4 as uuidv4} from 'uuid';
+import FlowNodeDialog from '@gdComponents/side-panel-components/analysis/FlowNodeDialog';
 import {
   IFlowNode,
   isDataFlowNode,
@@ -53,7 +54,7 @@ export class CaseStartNode extends FlowNode implements ICaseStartNode {
       type: 'circle',
       data: {
         label: this.name,
-        icon: <CaseStart title={this.name} />
+        icon: <CaseStartIcon node={this} />
       }
     };
   }
@@ -96,4 +97,23 @@ export function isDataCaseStartNode(
   node: IDataFlowNode
 ): node is IDataCaseStartNode {
   return node.className === className;
+}
+
+function CaseStartIcon(props: {node: CaseStartNode}) {
+  const {node} = props;
+  const [open, setOpen] = React.useState(false);
+
+  const handleClose = async (_: any, reason: string) => {
+    if (reason === 'escapeKeyDown') return;
+    setOpen(false);
+  };
+
+  return (
+    <>
+      <CaseStart title={node.name} onDoubleClick={() => setOpen(true)} />
+      <FlowNodeDialog title={node.name} open={open} onClose={handleClose}>
+        <span>content</span>
+      </FlowNodeDialog>
+    </>
+  );
 }

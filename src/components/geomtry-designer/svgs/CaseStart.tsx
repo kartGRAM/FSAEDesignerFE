@@ -8,11 +8,12 @@ import {Theme} from '@mui/material/styles';
 
 export default function CaseStart(props: {
   onClick?: () => void;
+  onDoubleClick?: () => void;
   title: string;
   disabled?: boolean;
   sx?: SxProps<Theme>;
 }) {
-  const {onClick, title, disabled, sx} = props;
+  const {onClick, onDoubleClick, title, disabled, sx} = props;
   return (
     <Tooltip
       title={title}
@@ -32,6 +33,9 @@ export default function CaseStart(props: {
           disabled={disabled}
           onClick={() => {
             if (onClick) onClick();
+          }}
+          onDoubleClick={() => {
+            if (onDoubleClick) onDoubleClick();
           }}
           sx={sx}
         >

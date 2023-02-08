@@ -47,9 +47,18 @@ export abstract class FlowNode implements IFlowNode {
 
   selected: boolean = false;
 
-  isInitialState: boolean = true;
+  isInitialState: boolean;
 
-  name: string;
+  private _name: string = '';
+
+  get name(): string {
+    return this._name;
+  }
+
+  set name(value: string) {
+    this._name = value;
+    this.isInitialState = false;
+  }
 
   position: {x: number; y: number};
 
@@ -61,6 +70,8 @@ export abstract class FlowNode implements IFlowNode {
     const {name, position} = params;
     this.name = name;
     this.position = position;
+
+    this.isInitialState = true;
     if (params.nodeID) this.nodeID = params.nodeID;
     if (isDataFlowNode(params)) {
       this.isInitialState = params.isInitialState;

@@ -496,7 +496,6 @@ export function FlowCanvas(props: {
       onClose={handleClose}
       open={open}
       maxWidth={false}
-      aria-labelledby="draggable-dialog-title"
       sx={{
         position: 'absolute',
         zIndex: `${zindex}!important`,
