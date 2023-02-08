@@ -58,6 +58,7 @@ const TestName = React.memo(
         e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement, Element>
       ) => {
         setRename(false);
+        nameFormik.handleSubmit();
         nameFormik.handleBlur(e);
       },
       [nameFormik]
