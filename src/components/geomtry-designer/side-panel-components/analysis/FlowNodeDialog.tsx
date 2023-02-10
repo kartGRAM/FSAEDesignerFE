@@ -14,11 +14,31 @@ export default function FlowNodeDialog(props: {
   title: string;
   open: boolean;
   onClose: (event: any, reason: string) => void;
+  onApply?: () => void;
+  onCancel?: () => boolean;
+  applyDisabled: boolean;
 }) {
-  const {children, title, open, onClose} = props;
+  const {children, title, open, onClose, onApply, onCancel, applyDisabled} =
+    props;
   const zindex =
     useSelector((state: RootState) => state.uitgd.fullScreenZIndex) +
     10000000001;
+
+  const handleApply = () => {
+    if (onApply) onApply();
+  };
+
+  const handleOK = () => {
+    if (onApply) onApply();
+    onClose('', 'okClick');
+  };
+
+  const handleCancel = () => {
+    if (onCancel) {
+      if (!onCancel()) return;
+    }
+    onClose('', 'cancelClick');
+  };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const window = document.getElementById('gdAppArea');
@@ -34,15 +54,18 @@ export default function FlowNodeDialog(props: {
         zIndex: `${zindex}!important`,
         overflow: 'hidden'
       }}
+      PaperProps={{
+        sx: {minWidth: '60%', height: '60%'}
+      }}
     >
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>{children}</DialogContent>
 
       <DialogActions>
-        <Button onClick={handleApply} disabled={!test.changed}>
+        <Button onClick={handleApply} disabled={!applyDisabled}>
           Apply
         </Button>
-        <Button onClick={handleOK} disabled={!test.changed}>
+        <Button onClick={handleOK} disabled={!applyDisabled}>
           OK
         </Button>
         <Button onClick={handleCancel}>Cancel</Button>
