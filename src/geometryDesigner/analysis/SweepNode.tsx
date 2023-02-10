@@ -16,6 +16,7 @@ import {
   isAssemblyControlNode,
   isCaseControlNode
 } from './TypeGuards';
+import {ITest} from './ITest';
 
 const className = 'Sweep' as const;
 type ClassName = typeof className;

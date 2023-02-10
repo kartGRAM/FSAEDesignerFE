@@ -12,6 +12,7 @@ import {
   endNodeClassName
 } from './FlowNode';
 import {isCaseEndNode} from './TypeGuards';
+import {ITest} from './ITest';
 
 export const className = endNodeClassName;
 type ClassName = typeof className;

@@ -5,6 +5,7 @@ import {Node as IRFNode} from 'reactflow';
 import {v4 as uuidv4} from 'uuid';
 import {IActionNode, IDataActionNode, ActionNode} from './ActionNode';
 import {isDataFlowNode, IFlowNode, IDataFlowNode} from './FlowNode';
+import {ITest} from './ITest';
 
 export const className = 'Start' as const;
 type ClassName = typeof className;

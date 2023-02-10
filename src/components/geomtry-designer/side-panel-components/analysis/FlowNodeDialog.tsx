@@ -6,6 +6,7 @@ import {
   Button,
   DialogActions
 } from '@mui/material';
+import {PaperProps} from '@mui/material/Paper';
 import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
 
@@ -16,10 +17,19 @@ export default function FlowNodeDialog(props: {
   onClose: (event: any, reason: string) => void;
   onApply?: () => void;
   onCancel?: () => boolean;
-  applyDisabled: boolean;
+  applyDisabled?: boolean;
+  paperProps?: PaperProps;
 }) {
-  const {children, title, open, onClose, onApply, onCancel, applyDisabled} =
-    props;
+  const {
+    children,
+    title,
+    open,
+    onClose,
+    onApply,
+    onCancel,
+    applyDisabled,
+    paperProps
+  } = props;
   const zindex =
     useSelector((state: RootState) => state.uitgd.fullScreenZIndex) +
     10000000001;
@@ -54,9 +64,11 @@ export default function FlowNodeDialog(props: {
         zIndex: `${zindex}!important`,
         overflow: 'hidden'
       }}
-      PaperProps={{
-        sx: {minWidth: '60%', height: '60%'}
-      }}
+      PaperProps={
+        paperProps || {
+          sx: {minWidth: '60%', height: '60%'}
+        }
+      }
     >
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>{children}</DialogContent>

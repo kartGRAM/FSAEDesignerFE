@@ -4,6 +4,7 @@ import {Node as IRFNode, XYPosition} from 'reactflow';
 import CaseStart from '@gdComponents/svgs/CaseStart';
 import {v4 as uuidv4} from 'uuid';
 import FlowNodeDialog from '@gdComponents/side-panel-components/analysis/FlowNodeDialog';
+import {Typography} from '@mui/material';
 import {
   IFlowNode,
   isDataFlowNode,
@@ -13,6 +14,7 @@ import {
   IDataEdge,
   caseStartNodeClassName
 } from './FlowNode';
+import {ITest} from './ITest';
 import {isStartNode, isCaseEndNode, isAssemblyControlNode} from './TypeGuards';
 
 export const className = caseStartNodeClassName;
@@ -47,14 +49,14 @@ export class CaseStartNode extends FlowNode implements ICaseStartNode {
     return {...data, className: this.className};
   }
 
-  getRFNode(): IRFNode {
-    const rfNode = super.getRFNode();
+  getRFNode(parentTest: ITest): IRFNode {
+    const rfNode = super.getRFNode(parentTest);
     return {
       ...rfNode,
       type: 'circle',
       data: {
         label: this.name,
-        icon: <CaseStartIcon node={this} />
+        icon: <CaseStartIcon node={this} test={parentTest} />
       }
     };
   }
@@ -99,8 +101,8 @@ export function isDataCaseStartNode(
   return node.className === className;
 }
 
-function CaseStartIcon(props: {node: CaseStartNode}) {
-  const {node} = props;
+function CaseStartIcon(props: {node: CaseStartNode; test: ITest}) {
+  const {node, test} = props;
   const [open, setOpen] = React.useState(false);
 
   const handleClose = async (_: any, reason: string) => {
@@ -116,8 +118,11 @@ function CaseStartIcon(props: {node: CaseStartNode}) {
         open={open}
         onClose={handleClose}
         applyDisabled={false}
+        paperProps={{}}
       >
-        <span>content</span>
+        <Typography variant="body2">
+          Only node name change is possible.
+        </Typography>
       </FlowNodeDialog>
     </>
   );

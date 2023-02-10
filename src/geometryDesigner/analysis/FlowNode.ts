@@ -1,6 +1,7 @@
 import {Node as IRFNode, XYPosition} from 'reactflow';
 import {v4 as uuidv4} from 'uuid';
 import {isObject} from '@app/utils/helpers';
+import {ITest} from './ITest';
 
 type TargetNodeID = string;
 type SourceNodeID = string;
@@ -18,7 +19,7 @@ export interface IFlowNode {
   isInitialState: boolean;
   position: {x: number; y: number};
   getData(): IDataFlowNode;
-  getRFNode(): IRFNode;
+  getRFNode(parentTest: ITest): IRFNode;
   acceptable(
     other: IFlowNode,
     nodes: {[index: string]: IFlowNode | undefined},
@@ -90,7 +91,8 @@ export abstract class FlowNode implements IFlowNode {
     };
   }
 
-  getRFNode(): IRFNode {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  getRFNode(parentTest: ITest): IRFNode {
     const {position, selected} = this;
     return {id: this.nodeID, position, data: {label: this.name}, selected};
   }

@@ -13,6 +13,7 @@ import {
   caseEndNodeClassName
 } from './FlowNode';
 import {isAssemblyControlNode} from './TypeGuards';
+import {ITest} from './ITest';
 
 export const className = caseEndNodeClassName;
 type ClassName = typeof className;
