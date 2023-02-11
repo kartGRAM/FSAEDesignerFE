@@ -18,8 +18,9 @@ export interface IFlowNode {
   name: string;
   isInitialState: boolean;
   position: {x: number; y: number};
+  extraFlags: any;
   getData(): IDataFlowNode;
-  getRFNode(parentTest: ITest): IRFNode;
+  getRFNode(parentTest?: ITest, canvasUpdate?: () => void): IRFNode;
   acceptable(
     other: IFlowNode,
     nodes: {[index: string]: IFlowNode | undefined},
@@ -92,7 +93,7 @@ export abstract class FlowNode implements IFlowNode {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getRFNode(parentTest: ITest): IRFNode {
+  getRFNode(parentTest?: ITest, canvasUpdate?: () => void): IRFNode {
     const {position, selected} = this;
     return {id: this.nodeID, position, data: {label: this.name}, selected};
   }
@@ -119,6 +120,8 @@ export abstract class FlowNode implements IFlowNode {
   }
 
   abstract clone(): IFlowNode;
+
+  extraFlags: any = {};
 }
 
 export const edgeClasses = ['default'] as const;

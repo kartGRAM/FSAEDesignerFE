@@ -16,11 +16,16 @@ export interface ITest {
   readonly endNode: IEndNode;
   readonly redoable: boolean;
   readonly undoable: boolean;
+  undoBlockPoint: string;
   addNode(node: IFlowNode): void;
   removeNode(node: {nodeID: string}): void;
   addEdge(edge: IDataEdge): void;
   removeEdge(edge: {source: string; target: string}): void;
   saveLocalState(): void;
+  asLastestState(): void;
+  getLocalStateID(): string;
+  squashLocalStates(from: string, to: string): void;
+  loadLocalState(id: string): void;
   localRedo(): void;
   localUndo(): void;
   copySelectedNodes(): IClipboardFlowNodes;
@@ -31,7 +36,10 @@ export interface ITest {
   ): void;
   tryConnect(source: string, target: string): boolean;
   getData(): IDataTest;
-  getRFNodesAndEdges(): {nodes: IRFNode[]; edges: IRFEdge[]};
+  getRFNodesAndEdges(canvasUpdate: () => void): {
+    nodes: IRFNode[];
+    edges: IRFEdge[];
+  };
   dispatch(): void;
   readonly nodes: {[index: string]: IFlowNode};
   readonly edges: {[index: string]: IDataEdge};
@@ -44,8 +52,9 @@ export interface IDataTest {
   readonly description: string;
   readonly nodes: IDataFlowNode[];
   readonly edges: IDataEdge[];
+  readonly localStateID?: string;
 }
 
-export function isDataTest(edge: any): edge is IDataTest {
-  return isObject(edge) && edge.isDataTest;
+export function isDataTest(test: any): test is IDataTest {
+  return isObject(test) && test.isDataTest;
 }

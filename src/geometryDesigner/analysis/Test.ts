@@ -28,6 +28,8 @@ export class Test implements ITest {
 
   indexOfHistory: number = 0;
 
+  undoBlockPoint: string = '';
+
   saveLocalState(changed: boolean = true): void {
     this.localStates = this.localStates.slice(
       0,
@@ -38,22 +40,62 @@ export class Test implements ITest {
     if (changed) this.changed = true;
   }
 
-  loadLocalState(data: IDataTest) {
-    this.name = data.name;
-    this.description = data.description;
-    this.nodeID = data.nodeID;
-    this.edges = data.edges.reduce((prev, current) => {
-      prev[`${current.source}@${current.target}`] = {...current};
-      return prev;
-    }, {} as {[index: string]: IDataEdge});
-    this.nodes = data.nodes.reduce((prev, current) => {
-      const node = getFlowNode(current);
-      if (isStartNode(node)) this.startNode = node;
-      if (isEndNode(node)) this.endNode = node;
-      prev[current.nodeID] = node;
-      return prev;
-    }, {} as {[index: string]: IFlowNode});
-    this.cleanData();
+  getLocalStateID(): string {
+    return this.localStates[this.localStates.length + this.indexOfHistory - 1]
+      .localStateID!;
+  }
+
+  squashLocalStates(from: string, to: string) {
+    const iFrom = this.localStates.findIndex(
+      (state) => state.localStateID === from
+    );
+    const iTo = this.localStates.findIndex(
+      (state) => state.localStateID === to
+    );
+
+    if (iFrom >= 0 && iTo > iFrom + 1) {
+      this.localStates = this.localStates.filter(
+        (_, i) => i <= iFrom || i >= iTo
+      );
+    }
+  }
+
+  asLastestState() {
+    this.localStates = this.localStates.slice(
+      0,
+      this.localStates.length + this.indexOfHistory
+    );
+    this.indexOfHistory = 0;
+  }
+
+  loadLocalState(dataOrLocalStateID: IDataTest | string) {
+    if (isDataTest(dataOrLocalStateID)) {
+      const data = dataOrLocalStateID;
+      this.name = data.name;
+      this.description = data.description;
+      this.nodeID = data.nodeID;
+      this.edges = data.edges.reduce((prev, current) => {
+        prev[`${current.source}@${current.target}`] = {...current};
+        return prev;
+      }, {} as {[index: string]: IDataEdge});
+      this.nodes = data.nodes.reduce((prev, current) => {
+        const node = getFlowNode(current);
+        if (isStartNode(node)) this.startNode = node;
+        if (isEndNode(node)) this.endNode = node;
+        prev[current.nodeID] = node;
+        return prev;
+      }, {} as {[index: string]: IFlowNode});
+      this.cleanData();
+    } else {
+      const idx = this.localStates.findIndex(
+        (state) => state.localStateID === dataOrLocalStateID
+      );
+      if (idx >= 0) {
+        const data = this.localStates[idx];
+        this.indexOfHistory = idx + 1 - this.localStates.length;
+        this.loadLocalState(data);
+      }
+    }
   }
 
   localRedo(): void {
@@ -68,6 +110,7 @@ export class Test implements ITest {
   localUndo(): void {
     const idx = this.localStates.length + this.indexOfHistory - 1;
     if (idx <= 0) return;
+    if (this.localStates[idx].localStateID === this.undoBlockPoint) return;
 
     this.indexOfHistory--;
     const newIdx = this.localStates.length + this.indexOfHistory - 1;
@@ -211,13 +254,16 @@ export class Test implements ITest {
       description,
       nodeID,
       nodes: Object.values(nodes).map((node) => node.getData()),
-      edges: Object.values(edges)
+      edges: Object.values(edges),
+      localStateID: uuidv4()
     };
   }
 
-  getRFNodesAndEdges(): {nodes: Node[]; edges: Edge[]} {
+  getRFNodesAndEdges(canvasUpdate: () => void): {nodes: Node[]; edges: Edge[]} {
     return {
-      nodes: Object.values(this.nodes).map((node) => node.getRFNode(this)),
+      nodes: Object.values(this.nodes).map((node) =>
+        node.getRFNode(this, canvasUpdate)
+      ),
       edges: Object.values(this.edges).map((edge) => getEdge(edge))
     };
   }

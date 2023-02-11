@@ -6,8 +6,9 @@ import {
   Button,
   DialogActions
 } from '@mui/material';
+import {setConfirmDialogProps} from '@store/reducers/uiTempGeometryDesigner';
 import {PaperProps} from '@mui/material/Paper';
-import {useSelector} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 import {RootState} from '@store/store';
 import {IFlowNode} from '@gd/analysis/FlowNode';
 import {ITest} from '@gd/analysis/ITest';
@@ -20,43 +21,74 @@ export default function FlowNodeDialog(props: {
   test: ITest;
   node: IFlowNode;
   open: boolean;
-  onClose: (event: any, reason: string) => void;
+  onClose: () => void;
   onApply?: () => void;
-  onCancel?: () => boolean;
-  applyDisabled?: boolean;
+  onCancel?: () => void;
   paperProps?: PaperProps;
 }) {
-  const {
-    children,
-    open,
-    node,
-    test,
-    onClose,
-    onApply,
-    onCancel,
-    applyDisabled,
-    paperProps
-  } = props;
+  const {children, open, node, test, onClose, onApply, onCancel, paperProps} =
+    props;
+
+  const [stateAtOpen, setStateAtOpen] = React.useState<string>('');
+  test.undoBlockPoint = stateAtOpen;
+  const dispatch = useDispatch();
+
+  React.useEffect(() => {
+    if (open) {
+      setStateAtOpen(test.getLocalStateID());
+      test.undoBlockPoint = stateAtOpen;
+    } else {
+      test.undoBlockPoint = '';
+    }
+  }, [open]);
+
   const zindex =
     useSelector((state: RootState) => state.uitgd.fullScreenZIndex) +
     10000000001;
 
+  const changed = stateAtOpen !== test.getLocalStateID();
   const update = useUpdate();
 
   const handleApply = () => {
     if (onApply) onApply();
+    test.asLastestState();
+    const lastestID = test.getLocalStateID();
+    test.squashLocalStates(stateAtOpen, lastestID);
+    setStateAtOpen(lastestID);
   };
 
-  const handleOK = () => {
-    if (onApply) onApply();
-    onClose('', 'okClick');
+  const handleOK = async () => {
+    handleApply();
+    onClose();
   };
 
-  const handleCancel = () => {
-    if (onCancel) {
-      if (!onCancel()) return;
+  const handleCancel = async () => {
+    if (changed) {
+      const ret = await new Promise<string>((resolve) => {
+        dispatch(
+          setConfirmDialogProps({
+            zindex: zindex + 10000 + 1,
+            onClose: resolve,
+            title: 'Warning',
+            message: `All changes will not be saved. Are you okay?`,
+            buttons: [
+              {text: 'OK', res: 'ok'},
+              {text: 'Cancel', res: 'cancel', autoFocus: true}
+            ]
+          })
+        );
+      });
+      dispatch(setConfirmDialogProps(undefined));
+      if (ret !== 'ok') {
+        return;
+      }
     }
-    onClose('', 'cancelClick');
+    if (onCancel) {
+      onCancel();
+    }
+    test.loadLocalState(stateAtOpen);
+    test.asLastestState();
+    onClose();
   };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -64,10 +96,10 @@ export default function FlowNodeDialog(props: {
   return (
     <Dialog
       open={open}
-      TransitionProps={{unmountOnExit: true}}
       container={window}
       maxWidth={false}
-      onClose={onClose}
+      TransitionProps={{unmountOnExit: true}}
+      onClose={handleCancel}
       sx={{
         position: 'absolute',
         zIndex: `${zindex}!important`,
@@ -84,12 +116,15 @@ export default function FlowNodeDialog(props: {
         initialValue={node.name}
         validation={Yup.string().required('required')}
         onSubmit={(value) => {
-          node.name = value;
-          test.saveLocalState();
-          update();
+          if (node.name !== value) {
+            node.name = value;
+            test.saveLocalState();
+            update();
+          }
         }}
         textFieldProps={{
           sx: {
+            pt: 1,
             pl: 1,
             pr: 1,
             '& legend': {display: 'none'},
@@ -103,10 +138,10 @@ export default function FlowNodeDialog(props: {
       <DialogContent>{children}</DialogContent>
 
       <DialogActions>
-        <Button onClick={handleApply} disabled={!applyDisabled}>
+        <Button onClick={handleApply} disabled={!changed}>
           Apply
         </Button>
-        <Button onClick={handleOK} disabled={!applyDisabled}>
+        <Button onClick={handleOK} disabled={!changed}>
           OK
         </Button>
         <Button onClick={handleCancel}>Cancel</Button>

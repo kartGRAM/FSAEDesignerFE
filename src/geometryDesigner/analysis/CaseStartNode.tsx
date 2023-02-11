@@ -49,14 +49,20 @@ export class CaseStartNode extends FlowNode implements ICaseStartNode {
     return {...data, className: this.className};
   }
 
-  getRFNode(parentTest: ITest): IRFNode {
-    const rfNode = super.getRFNode(parentTest);
+  getRFNode(parentTest?: ITest, canvasUpdate?: () => void): IRFNode {
+    const rfNode = super.getRFNode(parentTest, canvasUpdate);
     return {
       ...rfNode,
       type: 'circle',
       data: {
         label: this.name,
-        icon: <CaseStartIcon node={this} test={parentTest} />
+        icon: (
+          <CaseStartIcon
+            node={this}
+            test={parentTest}
+            canvasUpdate={canvasUpdate}
+          />
+        )
       }
     };
   }
@@ -101,30 +107,36 @@ export function isDataCaseStartNode(
   return node.className === className;
 }
 
-function CaseStartIcon(props: {node: CaseStartNode; test: ITest}) {
-  const {node, test} = props;
+function CaseStartIcon(props: {
+  node: CaseStartNode;
+  test?: ITest;
+  canvasUpdate?: () => void;
+}) {
+  const {node, test, canvasUpdate} = props;
   const [open, setOpen] = React.useState(false);
 
-  const handleClose = async (_: any, reason: string) => {
-    if (reason === 'escapeKeyDown') return;
+  const handleClose = async () => {
     setOpen(false);
+    if (canvasUpdate) canvasUpdate();
   };
 
   return (
     <>
       <CaseStart title={node.name} onDoubleClick={() => setOpen(true)} />
-      <FlowNodeDialog
-        node={node}
-        test={test}
-        open={open}
-        onClose={handleClose}
-        applyDisabled={false}
-        paperProps={{}}
-      >
-        <Typography variant="body2">
-          Only node name change is possible.
-        </Typography>
-      </FlowNodeDialog>
+      {test && open ? (
+        <FlowNodeDialog
+          key={node.nodeID}
+          node={node}
+          test={test}
+          open={open}
+          onClose={handleClose}
+          paperProps={{}}
+        >
+          <Typography variant="body2">
+            Only node name change is possible.
+          </Typography>
+        </FlowNodeDialog>
+      ) : null}
     </>
   );
 }

@@ -122,6 +122,7 @@ export function FlowCanvas(props: {
         needToUpdate._ = true;
       } else if (change.type === 'position' && change.position) {
         item.position = {...change.position};
+        item.extraFlags = {...item.extraFlags, moved: true};
         test.addNode(item);
         needToUpdate._ = true;
       } else {
@@ -204,7 +205,7 @@ export function FlowCanvas(props: {
   // これより下にhookはNG
   // ******************************************************************
 
-  const {nodes, edges} = test.getRFNodesAndEdges();
+  const {nodes, edges} = test.getRFNodesAndEdges(update);
 
   const handleCancel = async () => {
     if (test.changed) {
@@ -362,13 +363,20 @@ export function FlowCanvas(props: {
   };
 
   const handleDragEnd = async (_: any, __: any, nodes: Node[]) => {
-    setDragging(false);
     if (overDelete) {
       nodes.forEach(async (node) => {
         await deleteNode(node.id);
       });
+      test.saveLocalState();
+    } else {
+      for (const node of nodes) {
+        if (test.nodes[node.id]?.extraFlags.moved) {
+          test.saveLocalState();
+          break;
+        }
+      }
     }
-    test.saveLocalState();
+    setDragging(false);
   };
 
   const handleKeyDown = async (e: React.KeyboardEvent<HTMLDivElement>) => {

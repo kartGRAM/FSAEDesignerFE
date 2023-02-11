@@ -51,6 +51,12 @@ const TestName = React.memo(
       (e: React.KeyboardEvent<HTMLDivElement>) => {
         if (e.key === 'Enter') {
           formik.handleSubmit();
+          e.stopPropagation();
+          e.preventDefault();
+        } else if (e.key === 'Escape') {
+          setRename(false);
+          e.stopPropagation();
+          e.preventDefault();
         }
       },
       [formik]
