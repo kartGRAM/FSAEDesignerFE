@@ -46,8 +46,8 @@ export class CaseEndNode extends FlowNode implements ICaseEndNode {
     return {...data, className: this.className};
   }
 
-  getRFNode(): IRFNode {
-    const rfNode = super.getRFNode();
+  getRFNode(test: ITest): IRFNode {
+    const rfNode = super.getRFNode(test);
     return {
       ...rfNode,
       type: 'circle',

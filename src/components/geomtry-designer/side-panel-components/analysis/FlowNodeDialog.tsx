@@ -9,10 +9,16 @@ import {
 import {PaperProps} from '@mui/material/Paper';
 import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
+import {IFlowNode} from '@gd/analysis/FlowNode';
+import {ITest} from '@gd/analysis/ITest';
+import EditableTypography from '@gdComponents/EditableTypography';
+import useUpdate from '@app/hooks/useUpdate';
+import * as Yup from 'yup';
 
 export default function FlowNodeDialog(props: {
   children: JSX.Element | JSX.Element[];
-  title: string;
+  test: ITest;
+  node: IFlowNode;
   open: boolean;
   onClose: (event: any, reason: string) => void;
   onApply?: () => void;
@@ -22,8 +28,9 @@ export default function FlowNodeDialog(props: {
 }) {
   const {
     children,
-    title,
     open,
+    node,
+    test,
     onClose,
     onApply,
     onCancel,
@@ -33,6 +40,8 @@ export default function FlowNodeDialog(props: {
   const zindex =
     useSelector((state: RootState) => state.uitgd.fullScreenZIndex) +
     10000000001;
+
+  const update = useUpdate();
 
   const handleApply = () => {
     if (onApply) onApply();
@@ -70,7 +79,27 @@ export default function FlowNodeDialog(props: {
         }
       }
     >
-      <DialogTitle>{title}</DialogTitle>
+      <EditableTypography
+        typography={<DialogTitle>{node.name}</DialogTitle>}
+        initialValue={node.name}
+        validation={Yup.string().required('required')}
+        onSubmit={(value) => {
+          node.name = value;
+          test.saveLocalState();
+          update();
+        }}
+        textFieldProps={{
+          sx: {
+            pl: 1,
+            pr: 1,
+            '& legend': {display: 'none'},
+            '& fieldset': {top: 0}
+          },
+          InputProps: {
+            sx: {color: '#000'}
+          }
+        }}
+      />
       <DialogContent>{children}</DialogContent>
 
       <DialogActions>

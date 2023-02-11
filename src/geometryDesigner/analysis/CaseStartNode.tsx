@@ -114,7 +114,8 @@ function CaseStartIcon(props: {node: CaseStartNode; test: ITest}) {
     <>
       <CaseStart title={node.name} onDoubleClick={() => setOpen(true)} />
       <FlowNodeDialog
-        title={node.name}
+        node={node}
+        test={test}
         open={open}
         onClose={handleClose}
         applyDisabled={false}

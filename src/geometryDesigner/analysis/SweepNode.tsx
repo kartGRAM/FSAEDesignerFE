@@ -55,8 +55,8 @@ export class SweepNode extends ActionNode implements ISweepNode {
     return {...data, className: this.className};
   }
 
-  getRFNode(): IRFNode {
-    const rfNode = super.getRFNode();
+  getRFNode(test: ITest): IRFNode {
+    const rfNode = super.getRFNode(test);
 
     return {
       ...rfNode,

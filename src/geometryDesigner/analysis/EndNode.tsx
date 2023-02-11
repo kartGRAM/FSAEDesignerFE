@@ -49,8 +49,8 @@ export class EndNode extends ActionNode implements IEndNode {
     return {...data, className: this.className};
   }
 
-  getRFNode(): IRFNode {
-    const rfNode = super.getRFNode();
+  getRFNode(test: ITest): IRFNode {
+    const rfNode = super.getRFNode(test);
     return {
       ...rfNode,
       type: 'oval',

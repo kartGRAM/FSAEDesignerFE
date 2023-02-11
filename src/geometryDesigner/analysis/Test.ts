@@ -217,7 +217,7 @@ export class Test implements ITest {
 
   getRFNodesAndEdges(): {nodes: Node[]; edges: Edge[]} {
     return {
-      nodes: Object.values(this.nodes).map((node) => node.getRFNode()),
+      nodes: Object.values(this.nodes).map((node) => node.getRFNode(this)),
       edges: Object.values(this.edges).map((edge) => getEdge(edge))
     };
   }

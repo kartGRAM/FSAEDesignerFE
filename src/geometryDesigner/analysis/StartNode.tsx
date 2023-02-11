@@ -35,8 +35,8 @@ export class StartNode extends ActionNode implements IStartNode {
     return {...data, className: this.className};
   }
 
-  getRFNode(): IRFNode {
-    const rfNode = super.getRFNode();
+  getRFNode(test: ITest): IRFNode {
+    const rfNode = super.getRFNode(test);
     return {
       ...rfNode,
       type: 'oval',
