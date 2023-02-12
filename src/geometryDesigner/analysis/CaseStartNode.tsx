@@ -123,7 +123,7 @@ function CaseStartIcon(props: {
   return (
     <>
       <CaseStart title={node.name} onDoubleClick={() => setOpen(true)} />
-      {test && open ? (
+      {test ? (
         <FlowNodeDialog
           key={node.nodeID}
           node={node}

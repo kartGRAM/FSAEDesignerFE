@@ -30,13 +30,12 @@ export default function FlowNodeDialog(props: {
     props;
 
   const [stateAtOpen, setStateAtOpen] = React.useState<string>('');
-  test.undoBlockPoint = stateAtOpen;
+  if (open) test.undoBlockPoint = stateAtOpen;
   const dispatch = useDispatch();
 
   React.useEffect(() => {
     if (open) {
       setStateAtOpen(test.getLocalStateID());
-      test.undoBlockPoint = stateAtOpen;
     } else {
       test.undoBlockPoint = '';
     }
@@ -98,7 +97,7 @@ export default function FlowNodeDialog(props: {
       open={open}
       container={window}
       maxWidth={false}
-      TransitionProps={{unmountOnExit: true}}
+      // TransitionProps={{unmountOnExit: true}}
       onClose={handleCancel}
       sx={{
         position: 'absolute',
