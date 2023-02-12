@@ -3,6 +3,8 @@ import * as React from 'react';
 import {Node as IRFNode, XYPosition} from 'reactflow';
 import Tuning from '@gdComponents/svgs/Tuning';
 import {v4 as uuidv4} from 'uuid';
+import FlowNodeDialog from '@gdComponents/side-panel-components/analysis/FlowNodeDialog';
+import {CardNodeProps} from '@gdComponents/side-panel-components/analysis/CardNode';
 import {
   IFlowNode,
   isDataFlowNode,
@@ -55,15 +57,16 @@ export class SetterNode extends ActionNode implements ISetterNode {
     return {...data, className: this.className};
   }
 
-  getRFNode(test: ITest): IRFNode {
-    const rfNode = super.getRFNode(test);
+  getRFNode(test: ITest, canvasUpdate?: () => void): IRFNode & CardNodeProps {
+    const rfNode = super.getRFNode(test, canvasUpdate);
     return {
       ...rfNode,
       type: 'card',
       data: {
         label: this.name,
         source: true,
-        target: true
+        target: true,
+        useDialog: () => useSetterDialog({node: this, test, canvasUpdate})
       }
     };
   }
@@ -104,4 +107,34 @@ export function isSetterNode(node: IFlowNode): node is ISetterNode {
 
 export function isDataSetterNode(node: IDataFlowNode): node is IDataSetterNode {
   return node.className === className;
+}
+
+function useSetterDialog(props: {
+  node: SetterNode;
+  test?: ITest;
+  canvasUpdate?: () => void;
+}): [JSX.Element | null, React.Dispatch<React.SetStateAction<boolean>>] {
+  const {node, test, canvasUpdate} = props;
+  const [open, setOpen] = React.useState(false);
+
+  const handleClose = async () => {
+    setOpen(false);
+    if (canvasUpdate) canvasUpdate();
+  };
+
+  return [
+    test ? (
+      <FlowNodeDialog
+        key={node.nodeID}
+        node={node}
+        test={test}
+        open={open}
+        onClose={handleClose}
+        paperProps={{}}
+      >
+        <span>content</span>
+      </FlowNodeDialog>
+    ) : null,
+    setOpen
+  ];
 }

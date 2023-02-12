@@ -3,6 +3,8 @@ import * as React from 'react';
 import {Node as IRFNode, XYPosition} from 'reactflow';
 import Sweep from '@gdComponents/svgs/Sweep';
 import {v4 as uuidv4} from 'uuid';
+import {CardNodeProps} from '@gdComponents/side-panel-components/analysis/CardNode';
+import FlowNodeDialog from '@gdComponents/side-panel-components/analysis/FlowNodeDialog';
 import {
   IFlowNode,
   isDataFlowNode,
@@ -55,8 +57,8 @@ export class SweepNode extends ActionNode implements ISweepNode {
     return {...data, className: this.className};
   }
 
-  getRFNode(test: ITest): IRFNode {
-    const rfNode = super.getRFNode(test);
+  getRFNode(test: ITest, canvasUpdate?: () => void): IRFNode & CardNodeProps {
+    const rfNode = super.getRFNode(test, canvasUpdate);
 
     return {
       ...rfNode,
@@ -64,7 +66,8 @@ export class SweepNode extends ActionNode implements ISweepNode {
       data: {
         label: this.name,
         source: true,
-        target: true
+        target: true,
+        useDialog: () => useSweepDialog({node: this, test, canvasUpdate})
       }
     };
   }
@@ -105,4 +108,34 @@ export function isSweepNode(node: IFlowNode): node is ISweepNode {
 
 export function isDataSweepNode(node: IDataFlowNode): node is IDataSweepNode {
   return node.className === className;
+}
+
+function useSweepDialog(props: {
+  node: SweepNode;
+  test?: ITest;
+  canvasUpdate?: () => void;
+}): [JSX.Element | null, React.Dispatch<React.SetStateAction<boolean>>] {
+  const {node, test, canvasUpdate} = props;
+  const [open, setOpen] = React.useState(false);
+
+  const handleClose = async () => {
+    setOpen(false);
+    if (canvasUpdate) canvasUpdate();
+  };
+
+  return [
+    test ? (
+      <FlowNodeDialog
+        key={node.nodeID}
+        node={node}
+        test={test}
+        open={open}
+        onClose={handleClose}
+        paperProps={{}}
+      >
+        <span>content</span>
+      </FlowNodeDialog>
+    ) : null,
+    setOpen
+  ];
 }

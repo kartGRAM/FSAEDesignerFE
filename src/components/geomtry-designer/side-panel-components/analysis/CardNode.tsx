@@ -4,20 +4,30 @@ import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
 import CardContent from '@mui/material/CardContent';
 
-export default function CardNode(props: {
+export type CardNodeProps = {
   data: {
-    label: JSX.Element;
+    label: JSX.Element | string;
     content?: JSX.Element;
+    useDialog: () => [
+      JSX.Element | null,
+      React.Dispatch<React.SetStateAction<boolean>>
+    ];
     source?: boolean;
     target?: boolean;
   };
-  selected: boolean;
-}) {
+  selected?: boolean;
+};
+
+export default function CardNode(props: CardNodeProps) {
   const {data, selected} = props;
-  const {label, source, target, content} = data;
+  const {label, source, target, content, useDialog} = data;
+  const [dialog, setOpen] = useDialog();
+  const handleDoubleClick = () => {
+    setOpen(true);
+  };
   return (
     <>
-      <Card raised={selected}>
+      <Card raised={selected} onDoubleClick={handleDoubleClick}>
         <CardHeader title={label} />
         <CardContent>{content}</CardContent>
       </Card>
@@ -35,6 +45,7 @@ export default function CardNode(props: {
           style={{width: '12px', height: '12px', right: '-6px'}}
         />
       ) : null}
+      {dialog}
     </>
   );
 }

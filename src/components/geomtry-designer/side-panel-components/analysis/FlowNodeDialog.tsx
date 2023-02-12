@@ -50,7 +50,9 @@ export default function FlowNodeDialog(props: {
 
   const handleApply = () => {
     if (onApply) onApply();
-    test.asLastestState();
+    node.isInitialState = false;
+    test.saveLocalState();
+    // test.asLastestState();
     const lastestID = test.getLocalStateID();
     test.squashLocalStates(stateAtOpen, lastestID);
     setStateAtOpen(lastestID);
