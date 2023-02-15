@@ -99,7 +99,7 @@ export default function FlowNodeDialog(props: {
       open={open}
       container={window}
       maxWidth={false}
-      // TransitionProps={{unmountOnExit: true}}
+      TransitionProps={{unmountOnExit: true}}
       onClose={handleCancel}
       sx={{
         position: 'absolute',
@@ -136,7 +136,15 @@ export default function FlowNodeDialog(props: {
           }
         }}
       />
-      <DialogContent>{children}</DialogContent>
+      <DialogContent
+        sx={{
+          '&::-webkit-scrollbar': {
+            display: 'none'
+          }
+        }}
+      >
+        {children}
+      </DialogContent>
 
       <DialogActions>
         <Button onClick={handleApply} disabled={!changed}>

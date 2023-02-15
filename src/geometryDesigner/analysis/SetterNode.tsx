@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable class-methods-use-this */
 import * as React from 'react';
 import {Node as IRFNode, XYPosition} from 'reactflow';
@@ -26,6 +27,8 @@ import Switch from '@mui/material/Switch';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import {visuallyHidden} from '@mui/utils';
+import store from '@store/store';
+import {getControl, Control} from '@gd/controls/Controls';
 import {ITest} from './ITest';
 import {
   isStartNode,
@@ -159,16 +162,33 @@ function useSetterDialog(props: {
   ];
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function SetterContent(props: {node: SetterNode; test: ITest}) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const {node, test} = props;
+  const controls = store
+    .getState()
+    .dgd.present.controls.reduce((prev, current) => {
+      prev[current.nodeID] = getControl(current);
+      return prev;
+    }, {} as {[index: string]: Control});
+  const rowHeight = 33;
+
   const [order, setOrder] = React.useState<Order>('asc');
   const [orderBy, setOrderBy] = React.useState<keyof Data>('calories');
   const [selected, setSelected] = React.useState<readonly string[]>([]);
   const [page, setPage] = React.useState(0);
-  const [dense, setDense] = React.useState(false);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const boxRef = React.useRef<HTMLDivElement>(null);
+  const [rowsPerPage, setRowsPerPage] = React.useState(15);
+  React.useEffect(() => {
+    const resizeObserver = new ResizeObserver(() => {
+      const rows = Math.floor((boxRef.current!.clientHeight - 140) / rowHeight);
+      setRowsPerPage(rows);
+      setPage(0);
+    });
+    resizeObserver.observe(boxRef.current!);
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
 
   const handleRequestSort = (
     event: React.MouseEvent<unknown>,
@@ -212,17 +232,6 @@ function SetterContent(props: {node: SetterNode; test: ITest}) {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  const handleChangeDense = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setDense(event.target.checked);
-  };
-
   const isSelected = (name: string) => selected.indexOf(name) !== -1;
 
   // Avoid a layout jump when reaching the last page with empty rows.
@@ -230,15 +239,18 @@ function SetterContent(props: {node: SetterNode; test: ITest}) {
     page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
 
   return (
-    <Box component="div" sx={{width: '100%'}}>
+    <Box
+      component="div"
+      sx={{
+        width: '100%',
+        height: '100%'
+      }}
+      ref={boxRef}
+    >
       <Paper sx={{width: '100%', mb: 2}}>
         <EnhancedTableToolbar numSelected={selected.length} />
         <TableContainer>
-          <Table
-            sx={{minWidth: 750}}
-            aria-labelledby="tableTitle"
-            size={dense ? 'small' : 'medium'}
-          >
+          <Table sx={{minWidth: 750}} aria-labelledby="tableTitle" size="small">
             <EnhancedTableHead
               numSelected={selected.length}
               order={order}
@@ -293,7 +305,7 @@ function SetterContent(props: {node: SetterNode; test: ITest}) {
               {emptyRows > 0 && (
                 <TableRow
                   style={{
-                    height: (dense ? 33 : 53) * emptyRows
+                    height: rowHeight * emptyRows
                   }}
                 >
                   <TableCell colSpan={6} />
@@ -303,19 +315,14 @@ function SetterContent(props: {node: SetterNode; test: ITest}) {
           </Table>
         </TableContainer>
         <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
           component="div"
           count={rows.length}
           rowsPerPage={rowsPerPage}
+          rowsPerPageOptions={[]}
           page={page}
           onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </Paper>
-      <FormControlLabel
-        control={<Switch checked={dense} onChange={handleChangeDense} />}
-        label="Dense padding"
-      />
     </Box>
   );
 }
