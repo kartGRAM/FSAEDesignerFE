@@ -182,7 +182,7 @@ interface Row {
   targetNodeID: string;
   name: string;
   categories: string;
-  valueFormula: number;
+  valueFormula: string;
   evaluatedValue: number;
 }
 
@@ -218,8 +218,8 @@ function SetterContent(props: {node: ISetterNode; test: ITest}) {
       targetNodeID: setter.targetNodeID,
       name: '',
       categories: setter.type,
-      valueFormula: 0,
-      evaluatedValue: 0
+      valueFormula: setter.valueFormula.formula,
+      evaluatedValue: setter.evaluatedValue
     })
   );
 
