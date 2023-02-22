@@ -22,10 +22,7 @@ import Paper from '@mui/material/Paper';
 import Checkbox from '@mui/material/Checkbox';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Switch from '@mui/material/Switch';
 import DeleteIcon from '@mui/icons-material/Delete';
-import FilterListIcon from '@mui/icons-material/FilterList';
 import {visuallyHidden} from '@mui/utils';
 import store from '@store/store';
 import {getControl, Control} from '@gd/controls/Controls';
@@ -43,22 +40,31 @@ import {
   Item,
   IDataEdge
 } from './FlowNode';
+import {
+  IParameterSetter,
+  IDataParameterSetter,
+  ParameterSetter
+} from './ParameterSetter';
 
 const className = 'Setter' as const;
 type ClassName = typeof className;
 
 export interface ISetterNode extends IActionNode {
   className: ClassName;
+  listSetters: IParameterSetter[];
 }
 
 export interface IDataSetterNode extends IDataActionNode {
   className: ClassName;
+  listSetters: IDataParameterSetter[];
 }
 
 export class SetterNode extends ActionNode implements ISetterNode {
   action(): void {}
 
   readonly className = className;
+
+  listSetters: IParameterSetter[];
 
   acceptable(
     node: IFlowNode,
@@ -78,7 +84,11 @@ export class SetterNode extends ActionNode implements ISetterNode {
 
   getData(): IDataSetterNode {
     const data = super.getData();
-    return {...data, className: this.className};
+    return {
+      ...data,
+      className: this.className,
+      listSetters: this.listSetters.map((setter) => setter.getData())
+    };
   }
 
   getRFNode(test: ITest, canvasUpdate?: () => void): IRFNode & CardNodeProps {
@@ -116,7 +126,11 @@ export class SetterNode extends ActionNode implements ISetterNode {
   ) {
     super(params);
     // eslint-disable-next-line no-empty
+    this.listSetters = [];
     if (isDataFlowNode(params) && isDataSetterNode(params)) {
+      const data = params;
+      if (data.listSetters)
+        this.listSetters = data.listSetters.map((setter) => new Setter(data));
     }
   }
 
@@ -162,7 +176,7 @@ function useSetterDialog(props: {
   ];
 }
 
-function SetterContent(props: {node: SetterNode; test: ITest}) {
+function SetterContent(props: {node: ISetterNode; test: ITest}) {
   const {node, test} = props;
   const controls = store
     .getState()
@@ -173,7 +187,7 @@ function SetterContent(props: {node: SetterNode; test: ITest}) {
   const rowHeight = 33;
 
   const [order, setOrder] = React.useState<Order>('asc');
-  const [orderBy, setOrderBy] = React.useState<keyof Data>('calories');
+  const [orderBy, setOrderBy] = React.useState<keyof Data>('name');
   const [selected, setSelected] = React.useState<readonly string[]>([]);
   const [page, setPage] = React.useState(0);
   const boxRef = React.useRef<HTMLDivElement>(null);
@@ -328,84 +342,10 @@ function SetterContent(props: {node: SetterNode; test: ITest}) {
 }
 
 interface Data {
-  calories: number;
-  carbs: number;
-  fat: number;
   name: string;
-  protein: number;
-}
-
-function createData(
-  name: string,
-  calories: number,
-  fat: number,
-  carbs: number,
-  protein: number
-): Data {
-  return {
-    name,
-    calories,
-    fat,
-    carbs,
-    protein
-  };
-}
-
-const rows = [
-  createData('Cupcake', 305, 3.7, 67, 4.3),
-  createData('Donut', 452, 25.0, 51, 4.9),
-  createData('Eclair', 262, 16.0, 24, 6.0),
-  createData('Frozen yoghurt', 159, 6.0, 24, 4.0),
-  createData('Gingerbread', 356, 16.0, 49, 3.9),
-  createData('Honeycomb', 408, 3.2, 87, 6.5),
-  createData('Ice cream sandwich', 237, 9.0, 37, 4.3),
-  createData('Jelly Bean', 375, 0.0, 94, 0.0),
-  createData('KitKat', 518, 26.0, 65, 7.0),
-  createData('Lollipop', 392, 0.2, 98, 0.0),
-  createData('Marshmallow', 318, 0, 81, 2.0),
-  createData('Nougat', 360, 19.0, 9, 37.0),
-  createData('Oreo', 437, 18.0, 63, 4.0)
-];
-
-function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
-  if (b[orderBy] < a[orderBy]) {
-    return -1;
-  }
-  if (b[orderBy] > a[orderBy]) {
-    return 1;
-  }
-  return 0;
-}
-
-type Order = 'asc' | 'desc';
-
-function getComparator<Key extends keyof any>(
-  order: Order,
-  orderBy: Key
-): (
-  a: {[key in Key]: number | string},
-  b: {[key in Key]: number | string}
-) => number {
-  return order === 'desc'
-    ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
-}
-
-// This method is created for cross-browser compatibility, if you don't
-// need to support IE11, you can use Array.prototype.sort() directly
-function stableSort<T>(
-  array: readonly T[],
-  comparator: (a: T, b: T) => number
-) {
-  const stabilizedThis = array.map((el, index) => [el, index] as [T, number]);
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) {
-      return order;
-    }
-    return a[1] - b[1];
-  });
-  return stabilizedThis.map((el) => el[0]);
+  categories: string;
+  valueFormula: number;
+  evaluatedValue: number;
 }
 
 interface HeadCell {
@@ -420,35 +360,29 @@ const headCells: readonly HeadCell[] = [
     id: 'name',
     numeric: false,
     disablePadding: true,
-    label: 'Dessert (100g serving)'
+    label: 'name'
   },
   {
-    id: 'calories',
+    id: 'categories',
     numeric: true,
     disablePadding: false,
-    label: 'Calories'
+    label: 'categories'
   },
   {
-    id: 'fat',
+    id: 'valueFormula',
     numeric: true,
     disablePadding: false,
-    label: 'Fat (g)'
+    label: 'value'
   },
   {
-    id: 'carbs',
+    id: 'evaluatedValue',
     numeric: true,
     disablePadding: false,
     label: 'Carbs (g)'
-  },
-  {
-    id: 'protein',
-    numeric: true,
-    disablePadding: false,
-    label: 'Protein (g)'
   }
 ];
 
-interface EnhancedTableProps {
+function EnhancedTableHead(props: {
   numSelected: number;
   onRequestSort: (
     event: React.MouseEvent<unknown>,
@@ -458,9 +392,7 @@ interface EnhancedTableProps {
   order: Order;
   orderBy: string;
   rowCount: number;
-}
-
-function EnhancedTableHead(props: EnhancedTableProps) {
+}) {
   const {
     onSelectAllClick,
     order,
@@ -514,11 +446,7 @@ function EnhancedTableHead(props: EnhancedTableProps) {
   );
 }
 
-interface EnhancedTableToolbarProps {
-  numSelected: number;
-}
-
-const EnhancedTableToolbar = (props: EnhancedTableToolbarProps) => {
+const EnhancedTableToolbar = (props: {numSelected: number}) => {
   const {numSelected} = props;
 
   return (
@@ -560,13 +488,31 @@ const EnhancedTableToolbar = (props: EnhancedTableToolbarProps) => {
             <DeleteIcon />
           </IconButton>
         </Tooltip>
-      ) : (
-        <Tooltip title="Filter list">
-          <IconButton>
-            <FilterListIcon />
-          </IconButton>
-        </Tooltip>
-      )}
+      ) : null}
     </Toolbar>
   );
 };
+
+function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
+  if (b[orderBy] < a[orderBy]) {
+    return -1;
+  }
+  if (b[orderBy] > a[orderBy]) {
+    return 1;
+  }
+  return 0;
+}
+
+type Order = 'asc' | 'desc';
+
+function getComparator<Key extends keyof any>(
+  order: Order,
+  orderBy: Key
+): (
+  a: {[key in Key]: number | string},
+  b: {[key in Key]: number | string}
+) => number {
+  return order === 'desc'
+    ? (a, b) => descendingComparator(a, b, orderBy)
+    : (a, b) => -descendingComparator(a, b, orderBy);
+}

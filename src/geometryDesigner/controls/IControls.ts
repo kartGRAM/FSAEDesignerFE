@@ -19,4 +19,4 @@ export function isILinearBushingControl(
   return control.className === 'LinearBushing';
 }
 
-export type ControllerTypes = 'keyboard' | 'joystick';
+export type ControllerTypes = 'keyboard' | 'joystick' | 'notAssigned';
