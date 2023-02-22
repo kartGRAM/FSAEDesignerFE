@@ -130,7 +130,9 @@ export class SetterNode extends ActionNode implements ISetterNode {
     if (isDataFlowNode(params) && isDataSetterNode(params)) {
       const data = params;
       if (data.listSetters)
-        this.listSetters = data.listSetters.map((setter) => new Setter(data));
+        this.listSetters = data.listSetters.map(
+          (setterData) => new ParameterSetter(setterData)
+        );
     }
   }
 
@@ -176,6 +178,14 @@ function useSetterDialog(props: {
   ];
 }
 
+interface Row {
+  targetNodeID: string;
+  name: string;
+  categories: string;
+  valueFormula: number;
+  evaluatedValue: number;
+}
+
 function SetterContent(props: {node: ISetterNode; test: ITest}) {
   const {node, test} = props;
   const controls = store
@@ -187,7 +197,7 @@ function SetterContent(props: {node: ISetterNode; test: ITest}) {
   const rowHeight = 33;
 
   const [order, setOrder] = React.useState<Order>('asc');
-  const [orderBy, setOrderBy] = React.useState<keyof Data>('name');
+  const [orderBy, setOrderBy] = React.useState<keyof Row>('name');
   const [selected, setSelected] = React.useState<readonly string[]>([]);
   const [page, setPage] = React.useState(0);
   const boxRef = React.useRef<HTMLDivElement>(null);
@@ -203,10 +213,19 @@ function SetterContent(props: {node: ISetterNode; test: ITest}) {
       resizeObserver.disconnect();
     };
   }, []);
+  const rows = node.listSetters.map(
+    (setter): Row => ({
+      targetNodeID: setter.targetNodeID,
+      name: '',
+      categories: setter.type,
+      valueFormula: 0,
+      evaluatedValue: 0
+    })
+  );
 
   const handleRequestSort = (
     event: React.MouseEvent<unknown>,
-    property: keyof Data
+    property: keyof Row
   ) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
@@ -215,7 +234,7 @@ function SetterContent(props: {node: ISetterNode; test: ITest}) {
 
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      const newSelecteds = rows.map((n) => n.name);
+      const newSelecteds = rows.map((n) => n.targetNodeID);
       setSelected(newSelecteds);
       return;
     }
@@ -274,9 +293,9 @@ function SetterContent(props: {node: ISetterNode; test: ITest}) {
               rowCount={rows.length}
             />
             <TableBody>
-              {/* if you don't need to support IE11, you can replace the `stableSort` call with:
-              rows.slice().sort(getComparator(order, orderBy)) */}
-              {stableSort(rows, getComparator(order, orderBy))
+              {rows
+                .slice()
+                .sort(getComparator(order, orderBy))
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((row, index) => {
                   const isItemSelected = isSelected(row.name);
@@ -309,10 +328,9 @@ function SetterContent(props: {node: ISetterNode; test: ITest}) {
                       >
                         {row.name}
                       </TableCell>
-                      <TableCell align="right">{row.calories}</TableCell>
-                      <TableCell align="right">{row.fat}</TableCell>
-                      <TableCell align="right">{row.carbs}</TableCell>
-                      <TableCell align="right">{row.protein}</TableCell>
+                      <TableCell align="right">{row.categories}</TableCell>
+                      <TableCell align="right">{row.valueFormula}</TableCell>
+                      <TableCell align="right">{row.evaluatedValue}</TableCell>
                     </TableRow>
                   );
                 })}
@@ -341,16 +359,9 @@ function SetterContent(props: {node: ISetterNode; test: ITest}) {
   );
 }
 
-interface Data {
-  name: string;
-  categories: string;
-  valueFormula: number;
-  evaluatedValue: number;
-}
-
 interface HeadCell {
   disablePadding: boolean;
-  id: keyof Data;
+  id: keyof Row;
   label: string;
   numeric: boolean;
 }
@@ -386,7 +397,7 @@ function EnhancedTableHead(props: {
   numSelected: number;
   onRequestSort: (
     event: React.MouseEvent<unknown>,
-    property: keyof Data
+    property: keyof Row
   ) => void;
   onSelectAllClick: (event: React.ChangeEvent<HTMLInputElement>) => void;
   order: Order;
@@ -402,7 +413,7 @@ function EnhancedTableHead(props: {
     onRequestSort
   } = props;
   const createSortHandler =
-    (property: keyof Data) => (event: React.MouseEvent<unknown>) => {
+    (property: keyof Row) => (event: React.MouseEvent<unknown>) => {
       onRequestSort(event, property);
     };
 
