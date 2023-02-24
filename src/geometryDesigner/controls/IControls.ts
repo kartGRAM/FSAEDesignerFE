@@ -1,5 +1,6 @@
 export interface IControl {
   readonly nodeID: string;
+  readonly name?: string;
   readonly className: string;
   readonly type: ControllerTypes;
   readonly targetElement: string;

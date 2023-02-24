@@ -1,22 +1,25 @@
 import {isObject} from '@utils/helpers';
 import {IControl} from '@gd/controls/IControls';
+import {getControl, Control} from '@gd/controls/Controls';
 import {IFormula, IDataFormula} from '@gd/IFormula';
 import {Formula} from '@gd/Formula';
+import store from '@store/store';
 
 type SetterType = 'GlobalVariable' | 'Control';
 
 export interface IParameterSetter {
   type: SetterType;
-  targetNodeID: string;
+  readonly name: string;
+  target: string;
   valueFormula: IFormula;
-  evaluatedValue: number;
+  readonly evaluatedValue: number;
   getData(): IDataParameterSetter;
 }
 
 export interface IDataParameterSetter {
   isDataParameterSetter: true;
   type: SetterType;
-  targetNodeID: string;
+  target: string;
   valueFormula: IDataFormula;
 }
 
@@ -28,7 +31,19 @@ function isDataParameterSetter(data: any): data is IDataParameterSetter {
 export class ParameterSetter implements IParameterSetter {
   type: SetterType;
 
-  targetNodeID: string;
+  target: string;
+
+  get name(): string {
+    if (this.type === 'Control') {
+      const {control} = this;
+      return control?.name ?? 'component not found';
+    }
+    if (this.type === 'GlobalVariable') {
+      const {globalVariable} = this;
+      return globalVariable?.name ?? 'global variable not found';
+    }
+    return 'error';
+  }
 
   valueFormula: Formula;
 
@@ -41,8 +56,20 @@ export class ParameterSetter implements IParameterSetter {
       isDataParameterSetter: true,
       type: this.type,
       valueFormula: this.valueFormula.getData(),
-      targetNodeID: this.targetNodeID
+      target: this.target
     };
+  }
+
+  get control(): Control | undefined {
+    const {controls} = store.getState().dgd.present;
+    const control = controls.find((c) => c.nodeID === this.target);
+    return control ? getControl(control) : undefined;
+  }
+
+  get globalVariable(): IFormula | undefined {
+    const {formulae} = store.getState().dgd.present;
+    const dataFormula = formulae.find((f) => f.name === this.target);
+    return dataFormula ? new Formula(dataFormula) : undefined;
   }
 
   constructor(
@@ -53,14 +80,14 @@ export class ParameterSetter implements IParameterSetter {
     this.type = params.type;
     if (isDataParameterSetter(params)) {
       const data = params;
-      this.targetNodeID = data.targetNodeID;
+      this.target = data.target;
       this.valueFormula = new Formula(data.valueFormula);
     } else {
-      this.targetNodeID = params.target.nodeID;
+      this.target = params.target.nodeID;
       this.valueFormula = new Formula({
         name: 'SetterValue',
         formula: params.valueFormula,
-        absPath: `setterFor${this.targetNodeID}`
+        absPath: `setterFor${this.target}`
       });
     }
   }

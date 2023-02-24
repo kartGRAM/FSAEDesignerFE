@@ -26,6 +26,9 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import {visuallyHidden} from '@mui/utils';
 import store from '@store/store';
 import {getControl, Control} from '@gd/controls/Controls';
+import {useFormik} from 'formik';
+import yup from '@app/utils/Yup';
+import TextField from '@mui/material/TextField';
 import {ITest} from './ITest';
 import {
   isStartNode,
@@ -199,24 +202,10 @@ function SetterContent(props: {node: ISetterNode; test: ITest}) {
   const [order, setOrder] = React.useState<Order>('asc');
   const [orderBy, setOrderBy] = React.useState<keyof Row>('name');
   const [selected, setSelected] = React.useState<readonly string[]>([]);
-  const [page, setPage] = React.useState(0);
-  const boxRef = React.useRef<HTMLDivElement>(null);
-  const [rowsPerPage, setRowsPerPage] = React.useState(15);
-  React.useEffect(() => {
-    const resizeObserver = new ResizeObserver(() => {
-      const rows = Math.floor((boxRef.current!.clientHeight - 140) / rowHeight);
-      setRowsPerPage(rows);
-      setPage(0);
-    });
-    resizeObserver.observe(boxRef.current!);
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, []);
   const rows = node.listSetters.map(
     (setter): Row => ({
-      targetNodeID: setter.targetNodeID,
-      name: '',
+      targetNodeID: setter.target,
+      name: setter.name,
       categories: setter.type,
       valueFormula: setter.valueFormula.formula,
       evaluatedValue: setter.evaluatedValue
@@ -261,15 +250,7 @@ function SetterContent(props: {node: ISetterNode; test: ITest}) {
     setSelected(newSelected);
   };
 
-  const handleChangePage = (event: unknown, newPage: number) => {
-    setPage(newPage);
-  };
-
   const isSelected = (name: string) => selected.indexOf(name) !== -1;
-
-  // Avoid a layout jump when reaching the last page with empty rows.
-  const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
 
   return (
     <Box
@@ -278,7 +259,6 @@ function SetterContent(props: {node: ISetterNode; test: ITest}) {
         width: '100%',
         height: '100%'
       }}
-      ref={boxRef}
     >
       <Paper sx={{width: '100%', mb: 2}}>
         <EnhancedTableToolbar numSelected={selected.length} />
@@ -296,7 +276,6 @@ function SetterContent(props: {node: ISetterNode; test: ITest}) {
               {rows
                 .slice()
                 .sort(getComparator(order, orderBy))
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((row, index) => {
                   const isItemSelected = isSelected(row.name);
                   const labelId = `enhanced-table-checkbox-${index}`;
@@ -334,26 +313,9 @@ function SetterContent(props: {node: ISetterNode; test: ITest}) {
                     </TableRow>
                   );
                 })}
-              {emptyRows > 0 && (
-                <TableRow
-                  style={{
-                    height: rowHeight * emptyRows
-                  }}
-                >
-                  <TableCell colSpan={6} />
-                </TableRow>
-              )}
             </TableBody>
           </Table>
         </TableContainer>
-        <TablePagination
-          component="div"
-          count={rows.length}
-          rowsPerPage={rowsPerPage}
-          rowsPerPageOptions={[]}
-          page={page}
-          onPageChange={handleChangePage}
-        />
       </Paper>
     </Box>
   );
@@ -371,25 +333,25 @@ const headCells: readonly HeadCell[] = [
     id: 'name',
     numeric: false,
     disablePadding: true,
-    label: 'name'
+    label: 'Name'
   },
   {
     id: 'categories',
     numeric: true,
     disablePadding: false,
-    label: 'categories'
+    label: 'Categories'
   },
   {
     id: 'valueFormula',
     numeric: true,
     disablePadding: false,
-    label: 'value'
+    label: 'Formula'
   },
   {
     id: 'evaluatedValue',
     numeric: true,
     disablePadding: false,
-    label: 'Carbs (g)'
+    label: 'Evaluated Value'
   }
 ];
 
@@ -454,6 +416,128 @@ function EnhancedTableHead(props: {
         ))}
       </TableRow>
     </TableHead>
+  );
+}
+
+function NewRow(props: {
+  setRows: React.Dispatch<React.SetStateAction<Data[]>>;
+  rows: Data[];
+}) {
+  const {rows, setRows} = props;
+  const labelId = React.useId();
+  const nameRef = React.useRef<HTMLInputElement>(null);
+  const formulaRef = React.useRef<HTMLInputElement>(null);
+  const [evaluatedValue, setEvaluatedValue] = React.useState<number | null>(
+    null
+  );
+
+  const onFormulaValidated = (formula: string) => {
+    setEvaluatedValue(evaluate(formula, rows));
+  };
+
+  const schema = yup.lazy((values) =>
+    yup.object({
+      name: yup
+        .string()
+        .required('')
+        .variableNameFirstChar()
+        .variableName()
+        .noMathFunctionsName()
+        .gdVariableNameMustBeUnique(rows),
+      formula: yup
+        .string()
+        .required('')
+        .gdFormulaIsValid(rows, values.name, onFormulaValidated)
+    })
+  );
+
+  const formik = useFormik({
+    enableReinitialize: true,
+    initialValues: {
+      name: '',
+      formula: ''
+    },
+    validationSchema: schema,
+    onSubmit: (values) => {
+      formik.resetForm();
+      setRows((prevState) => [
+        ...prevState,
+        {
+          id: rows.length + 1,
+          name: values.name,
+          formula: values.formula,
+          evaluatedValue: evaluate(values.formula, rows),
+          absPath: 'global'
+        }
+      ]);
+      setTimeout(() => setEvaluatedValue(null), 0);
+    }
+  });
+
+  const onEnter = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter') {
+      formik.handleSubmit();
+      if (nameRef.current) {
+        if (formik.errors.formula !== undefined && formulaRef.current) {
+          formulaRef.current.focus();
+        } else {
+          nameRef.current.focus();
+        }
+      }
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEvaluatedValue(null);
+    formik.handleChange(e);
+  };
+
+  return (
+    <TableRow hover tabIndex={-1} key="newRow">
+      <TableCell padding="checkbox">
+        <Checkbox
+          disabled
+          color="primary"
+          inputProps={{
+            'aria-labelledby': labelId
+          }}
+        />
+      </TableCell>
+      <TableCell align="left" />
+      <TableCell id={labelId} scope="row" padding="none">
+        <TextField
+          inputRef={nameRef}
+          autoFocus
+          hiddenLabel
+          name="name"
+          variant="standard"
+          onBlur={formik.handleBlur}
+          onKeyDown={onEnter}
+          onChange={formik.handleChange}
+          value={formik.values.name}
+          error={
+            formik.touched.name && Boolean(formik.errors.name !== undefined)
+          }
+          helperText={formik.touched.name && formik.errors.name}
+        />
+      </TableCell>
+      <TableCell align="right">
+        <TextField
+          inputRef={formulaRef}
+          hiddenLabel
+          name="formula"
+          variant="standard"
+          onBlur={formik.handleBlur}
+          onKeyDown={onEnter}
+          onChange={handleChange}
+          value={formik.values.formula}
+          error={formik.touched.formula && formik.errors.formula !== undefined}
+          helperText={formik.touched.formula && formik.errors.formula}
+        />
+      </TableCell>
+      <TableCell align="right">{toFixedNoZero(evaluatedValue)}</TableCell>
+      <TableCell align="right" />
+    </TableRow>
   );
 }
 

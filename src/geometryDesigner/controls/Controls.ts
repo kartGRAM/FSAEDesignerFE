@@ -11,11 +11,24 @@ import {
   isLinearBushingSingleEnd
 } from '@gd/kinematics/Constraints';
 import {KinematicSolver} from '@gd/kinematics/Solver';
+import store from '@store/store';
 
 export abstract class Control {
   readonly nodeID: string;
 
   abstract get className(): string;
+
+  private _name: string | undefined;
+
+  abstract nameDefault(): string;
+
+  get name(): string {
+    return this.name ?? this.nameDefault();
+  }
+
+  set name(value: string) {
+    this._name = value;
+  }
 
   type: ControllerTypes;
 
@@ -27,12 +40,14 @@ export abstract class Control {
     control:
       | IControl
       | {
+          name?: string;
           type: ControllerTypes;
           targetElement: string;
           inputButton: string;
           nodeID?: string;
         }
   ) {
+    this._name = control.name;
     this.nodeID = control.nodeID ?? uuidv4();
     this.type = control.type;
     this.targetElement = control.targetElement;
@@ -42,6 +57,7 @@ export abstract class Control {
   getDataControlBase(): IControl {
     return {
       nodeID: this.nodeID,
+      name: this._name,
       className: this.className,
       type: this.type,
       targetElement: this.targetElement,
@@ -76,6 +92,13 @@ export class LinearBushingControl extends Control {
     super(control);
     this.speed = control.speed ?? 10;
     this.reverse = control.reverse ?? false;
+  }
+
+  nameDefault(): string {
+    const elements = store.getState().uitgd.collectedAssembly?.children;
+    const element = elements?.find((e) => e.nodeID === this.targetElement);
+    if (!element) return 'component not found';
+    return `position of ${element.name.value}`;
   }
 
   preprocess(dt: number, solver: KinematicSolver): void {
