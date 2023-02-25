@@ -34,7 +34,7 @@ import TextField from '@mui/material/TextField';
 import {toFixedNoZero} from '@utils/helpers';
 import {Formula} from '@gd/Formula';
 import useUpdate from '@hooks/useUpdate';
-import Select, {SelectChangeEvent} from '@mui/material/Select';
+import NativeSelect, {SelectChangeEvent} from '@mui/material/Select';
 import {ITest} from './ITest';
 import {
   isStartNode,
@@ -437,7 +437,8 @@ function NewRow(props: {test: ITest; node: ISetterNode; update: () => void}) {
   const [selectedObject, setSelectedObject] = React.useState<{
     type: SetterType | 'NotSelected';
     target: string;
-  }>({type: 'NotSelected', target: ''});
+    valueForSelectTag: string;
+  }>({type: 'NotSelected', target: '', valueForSelectTag: ''});
 
   const controls = useSelector(
     (state: RootState) => state.dgd.present.controls
@@ -492,13 +493,22 @@ function NewRow(props: {test: ITest; node: ISetterNode; update: () => void}) {
   };
 
   const handleTargetChanged = (e: SelectChangeEvent<string>) => {
-    if (e.target.value.includes('@Control')) {
-      const nodeID = e.target.value.split('@')[0];
+    const {value} = e.target;
+    if (value.includes('@Control')) {
+      const nodeID = value.split('@')[0];
       const control = controls.find((c) => c.nodeID === nodeID);
       if (!control) return;
-      setSelectedObject({type: 'Control', target: nodeID});
+      setSelectedObject({
+        type: 'Control',
+        target: nodeID,
+        valueForSelectTag: value
+      });
     } else {
-      setSelectedObject({type: 'NotSelected', target: ''});
+      setSelectedObject({
+        type: 'NotSelected',
+        target: '',
+        valueForSelectTag: ''
+      });
     }
   };
 
@@ -514,10 +524,10 @@ function NewRow(props: {test: ITest; node: ISetterNode; update: () => void}) {
         />
       </TableCell>
       <TableCell id={labelId} scope="row" padding="none" align="left">
-        <Select
+        <NativeSelect
           native
-          value={selectedObject.target}
-          label=""
+          variant="standard"
+          value={selectedObject.valueForSelectTag}
           onChange={handleTargetChanged}
         >
           <option aria-label="None" value="" />
@@ -528,7 +538,7 @@ function NewRow(props: {test: ITest; node: ISetterNode; update: () => void}) {
               </option>
             ))}
           </optgroup>
-        </Select>
+        </NativeSelect>
       </TableCell>
       <TableCell align="right" />
       <TableCell align="right">
