@@ -43,6 +43,10 @@ export default function SidePanel() {
   const disabled = useSelector((state: RootState) => state.uitgd.uiDisabled);
   const dispatch = useDispatch();
 
+  const zIndex = useSelector((state: RootState) => {
+    return state.uitgd.fullScreenZIndex + state.uitgd.menuZIndex;
+  });
+
   // ドラッグ中にカーソルがdisabledになるのを防止するため(だけに)、jQueryUIを使用する。
   React.useEffect(() => {
     const resize = (e: any, ui: any) => {
@@ -151,7 +155,7 @@ export default function SidePanel() {
           height: '100%',
           left: `calc(${panelWidth}px - 2px)`,
           width: '4px',
-          zIndex: 1000,
+          zIndex,
           backgroundColor: 'transparent',
           borderColor: alpha('#000000', 0),
           cursor: 'col-resize',

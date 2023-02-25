@@ -373,11 +373,12 @@ const TrashNode = React.memo(() => {
       const {assembly} = store.getState().uitgd;
       const element = getElementByPath(assembly, movingElement);
       if (!element || !element.parent) return;
-      const {fullScreenZIndex} = store.getState().uitgd;
+      const state = store.getState().uitgd;
+      const zIndex = state.fullScreenZIndex + state.dialogZIndex;
       const ret = await new Promise<string>((resolve) => {
         dispatch(
           setConfirmDialogProps({
-            zindex: fullScreenZIndex + 10000 + 1,
+            zindex: zIndex,
             onClose: resolve,
             title: 'Warning',
             message: `Once deleted and saved, it cannot be restored.`,

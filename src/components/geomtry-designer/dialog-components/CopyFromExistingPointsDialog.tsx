@@ -26,8 +26,10 @@ export function CopyFromExistingPointsDialog() {
       state.uitgd.gdDialogState.copyFromExistingPointsDialogProps
   );
 
-  const zindex =
-    useSelector((state: RootState) => state.uitgd.fullScreenZIndex) + 1000;
+  const zindex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex
+  );
   const dispatch = useDispatch();
 
   const handleClose = () => {

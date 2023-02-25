@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import {
   Dialog,
@@ -42,8 +43,7 @@ export default function FlowNodeDialog(props: {
   }, [open]);
 
   const zindex =
-    useSelector((state: RootState) => state.uitgd.fullScreenZIndex) +
-    10000000001;
+    useSelector((state: RootState) => state.uitgd.fullScreenZIndex) + 100001;
 
   const changed = stateAtOpen !== test.getLocalStateID();
   const update = useUpdate();

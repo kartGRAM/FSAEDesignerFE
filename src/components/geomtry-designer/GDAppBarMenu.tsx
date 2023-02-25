@@ -63,16 +63,16 @@ export const GDAppBarMenu = (props: Props) => {
 
     prevOpen.current = open;
   }, [open]);
+  const zIndex = useSelector((state: RootState) => {
+    return state.uitgd.fullScreenZIndex + state.uitgd.menuZIndex;
+  });
 
   return (
     <>
       <Button
         disabled={disabled}
         ref={anchorRef}
-        // onMouseOver={handleOpen}
-        // onMouseLeave={handleClose}
         onClick={handleToggle}
-        // onKeyDown={handleButtonKeyDown}
         sx={{
           color: '#cccccc',
           textTransform: 'none',
@@ -111,7 +111,7 @@ export const GDAppBarMenu = (props: Props) => {
         placement="bottom-start"
         transition
         disablePortal
-        sx={{zIndex: 10}}
+        sx={{zIndex}}
         modifiers={[
           {
             name: 'offset',
@@ -134,7 +134,6 @@ export const GDAppBarMenu = (props: Props) => {
                 <MenuList
                   autoFocusItem={open}
                   onKeyDown={handleListKeyDown}
-                  // onMouseLeave={handleClose}
                   onClick={handleClose}
                   sx={{
                     color: '#cccccc',

@@ -81,8 +81,7 @@ export function FlowCanvas(props: {
   const {nodeID, open, setOpen} = props;
 
   const zindex =
-    useSelector((state: RootState) => state.uitgd.fullScreenZIndex) +
-    10000000000;
+    useSelector((state: RootState) => state.uitgd.fullScreenZIndex) + 100000;
   const test = useSelector((state: RootState) =>
     state.uitgd.tests.find((t) => t.nodeID === nodeID)
   );

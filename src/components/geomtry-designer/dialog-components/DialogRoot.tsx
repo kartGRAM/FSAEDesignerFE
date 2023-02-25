@@ -11,8 +11,9 @@ import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
 
 export default function DialogRoot() {
-  const fullScreenZ = useSelector(
-    (state: RootState) => state.uitgd.fullScreenZIndex
+  const zIndex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex
   );
 
   const saveAsDialogProps = useSelector(
@@ -23,9 +24,9 @@ export default function DialogRoot() {
       <FormulaDialog />
       <OpenDialog
         open
-        zindex={fullScreenZ + 10000}
+        zindex={zIndex}
         sx={{
-          zIndex: `${fullScreenZ + 10000}!important`,
+          zIndex: `${zIndex}!important`,
           backdropFilter: 'blur(3px)'
         }}
       />

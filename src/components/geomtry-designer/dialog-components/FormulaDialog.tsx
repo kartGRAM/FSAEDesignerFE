@@ -486,11 +486,14 @@ interface TableToolbarProps {
 }
 
 const TableToolbar = (props: TableToolbarProps) => {
-  const {numSelected, selectedRows, rows, setRows, zindex, resetSelected} =
+  const {numSelected, selectedRows, rows, zindex, setRows, resetSelected} =
     props;
   const [dialogProps, setDialogProps] = React.useState<
     OnDeleteDialogProps | undefined
   >(undefined);
+
+  const dialogZIndex =
+    useSelector((state: RootState) => state.uitgd.dialogZIndex) + zindex;
 
   const handleDelete = () => {
     const confirm = async () => {
@@ -506,7 +509,7 @@ const TableToolbar = (props: TableToolbarProps) => {
             newValue: number;
           }>((resolve) => {
             setDialogProps({
-              zindex: zindex + 1,
+              zindex: dialogZIndex,
               onClose: resolve,
               name: row.name,
               value: row.evaluatedValue
@@ -606,7 +609,8 @@ export function FormulaDialog() {
   const dispatch = useDispatch();
 
   const zIndex = useSelector(
-    (state: RootState) => state.uitgd.fullScreenZIndex + 10000
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex
   );
 
   const formulae = useSelector(

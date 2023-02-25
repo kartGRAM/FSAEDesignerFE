@@ -122,6 +122,10 @@ export default function MiniDrawer() {
     (state: RootState) => state.uitgd.selectedElementAbsPath
   );
 
+  const zIndex = useSelector((state: RootState) => {
+    return state.uitgd.fullScreenZIndex + state.uitgd.tooltipZIndex;
+  });
+
   return (
     <Drawer variant="permanent" open={false} bgColor={bgColor} id="gdSideBar">
       <Divider />
@@ -134,7 +138,7 @@ export default function MiniDrawer() {
               componentsProps={{
                 popper: {
                   sx: {
-                    zIndex: 12500000000
+                    zIndex
                   }
                 }
               }}

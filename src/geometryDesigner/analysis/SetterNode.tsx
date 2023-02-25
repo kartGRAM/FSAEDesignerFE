@@ -347,7 +347,7 @@ const headCells: readonly HeadCell[] = [
   {
     id: 'categories',
     numeric: true,
-    disablePadding: false,
+    disablePadding: true,
     label: 'Categories'
   },
   {
@@ -434,6 +434,9 @@ function NewRow(props: {test: ITest; node: ISetterNode; update: () => void}) {
   const [evaluatedValue, setEvaluatedValue] = React.useState<number | null>(
     null
   );
+  const formulaRef = React.useRef<HTMLInputElement>(null);
+
+  const [category, setCategory] = React.useState<SetterType | ''>('');
   const [selectedObject, setSelectedObject] = React.useState<{
     type: SetterType | 'NotSelected';
     target: string;
@@ -487,6 +490,10 @@ function NewRow(props: {test: ITest; node: ISetterNode; update: () => void}) {
     }
   };
 
+  const onBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    formik.handleBlur(e);
+  };
+
   const handleFormulaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEvaluatedValue(null);
     formik.handleChange(e);
@@ -503,17 +510,19 @@ function NewRow(props: {test: ITest; node: ISetterNode; update: () => void}) {
         target: nodeID,
         valueForSelectTag: value
       });
+      setCategory('Control');
     } else {
       setSelectedObject({
         type: 'NotSelected',
         target: '',
         valueForSelectTag: ''
       });
+      setCategory('');
     }
   };
 
   return (
-    <TableRow hover tabIndex={-1} key="newRow">
+    <TableRow /* hover tabIndex={-1} */>
       <TableCell padding="checkbox">
         <Checkbox
           disabled
@@ -540,14 +549,18 @@ function NewRow(props: {test: ITest; node: ISetterNode; update: () => void}) {
           </optgroup>
         </NativeSelect>
       </TableCell>
-      <TableCell align="right" />
+      <TableCell align="right" padding="none">
+        {category}
+      </TableCell>
       <TableCell align="right">
         <TextField
           hiddenLabel
           name="formula"
           variant="standard"
-          onBlur={formik.handleBlur}
+          inputRef={formulaRef}
+          onBlur={onBlur}
           onKeyDown={onEnter}
+          onClick={() => formulaRef.current?.focus()}
           onChange={handleFormulaChange}
           value={formik.values.formula}
           error={formik.touched.formula && formik.errors.formula !== undefined}

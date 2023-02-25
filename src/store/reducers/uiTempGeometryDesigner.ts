@@ -47,6 +47,9 @@ export interface GDState {
   uiDisabledAll: boolean;
   isFullScreen: boolean;
   fullScreenZIndex: number;
+  dialogZIndex: number;
+  menuZIndex: number;
+  tooltipZIndex: number;
   selectedElementAbsPath: string;
   sidePanelState: SidePanelState;
   gdSceneState: GDSceneState;
@@ -111,6 +114,9 @@ export interface GDDialogState {
 const initialState: GDState = {
   isFullScreen: true,
   fullScreenZIndex: 10000000,
+  dialogZIndex: 1000000,
+  menuZIndex: 100000,
+  tooltipZIndex: 10000,
   uiDisabled: false,
   uiDisabledAll: false,
   selectedElementAbsPath: '',
