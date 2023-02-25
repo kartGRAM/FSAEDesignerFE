@@ -9,13 +9,18 @@ import {setViewDirection} from '@store/reducers/uiTempGeometryDesigner';
 export default function Fit() {
   const dispatch = useDispatch();
   const get = useSelector((state: RootState) => state.uitgd.gdSceneState.get);
+
+  const zIndex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex + state.uitgd.tooltipZIndex
+  );
   return (
     <Tooltip
       title="Fit within the screen"
       componentsProps={{
         popper: {
           sx: {
-            zIndex: 12500000000
+            zIndex
           }
         }
       }}

@@ -26,8 +26,10 @@ export function MovePointDialog() {
     (state: RootState) => state.uitgd.gdDialogState.movePointDialogProps
   );
 
-  const zindex =
-    useSelector((state: RootState) => state.uitgd.fullScreenZIndex) + 1000;
+  const zindex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex
+  );
   const dispatch = useDispatch();
 
   const deltaRef = React.useRef(new Vector3());

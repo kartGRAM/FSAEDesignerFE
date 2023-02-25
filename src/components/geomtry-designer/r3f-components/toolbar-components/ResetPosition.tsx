@@ -21,13 +21,18 @@ export default function CResetPositions() {
     }
   };
 
+  const zIndex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex + state.uitgd.tooltipZIndex
+  );
+
   return (
     <Tooltip
       title="Reset Positions"
       componentsProps={{
         popper: {
           sx: {
-            zIndex: 12500000000
+            zIndex
           }
         }
       }}

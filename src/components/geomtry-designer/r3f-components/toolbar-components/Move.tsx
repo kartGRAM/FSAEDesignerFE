@@ -46,13 +46,18 @@ export default function Move() {
     dispatch(setMovingMode(!moving));
   };
 
+  const zIndex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex + state.uitgd.tooltipZIndex
+  );
+
   return (
     <Tooltip
       title="Move Selected Components"
       componentsProps={{
         popper: {
           sx: {
-            zIndex: 12500000000
+            zIndex
           }
         }
       }}

@@ -16,13 +16,18 @@ export default function GroundPlaneMode() {
     dispatch(setGroundPlaneShow(!showGrid));
   };
 
+  const zIndex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex + state.uitgd.tooltipZIndex
+  );
+
   return (
     <Tooltip
       title={showGrid ? 'Hide ground plane' : 'Show ground plane'}
       componentsProps={{
         popper: {
           sx: {
-            zIndex: 12500000000
+            zIndex
           }
         }
       }}

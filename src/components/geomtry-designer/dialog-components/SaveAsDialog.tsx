@@ -32,7 +32,8 @@ export function SaveAsDialog(props: SaveAsDialogProps) {
   );
 
   const zindex = useSelector(
-    (state: RootState) => state.uitgd.fullScreenZIndex + 10000
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex
   );
   const filename = useSelector(
     (state: RootState) => state.dgd.present.filename

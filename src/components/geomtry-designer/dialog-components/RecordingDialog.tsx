@@ -31,8 +31,10 @@ export function RecordingDialog() {
   const [rec, setRec] = React.useState(false);
   const [fileURL, setFileURL] = React.useState('#');
 
-  const zindex =
-    useSelector((state: RootState) => state.uitgd.fullScreenZIndex) + 1000;
+  const zindex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex
+  );
 
   useUpdateEffect(() => {
     if (!rec) return () => {};

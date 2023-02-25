@@ -14,8 +14,10 @@ export function MoveComponentDialog() {
     (state: RootState) => state.uitgd.gdSceneState.movingMode
   );
 
-  const zindex =
-    useSelector((state: RootState) => state.uitgd.fullScreenZIndex) + 1000;
+  const zindex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex
+  );
   const dispatch = useDispatch();
 
   const handleOK = () => {

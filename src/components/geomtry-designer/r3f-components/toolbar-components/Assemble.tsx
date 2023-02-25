@@ -17,6 +17,11 @@ export default function Assemble() {
     dispatch(setAssembled(!assembled));
   };
 
+  const zIndex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex + state.uitgd.tooltipZIndex
+  );
+
   return (
     <Tooltip
       title={
@@ -25,7 +30,7 @@ export default function Assemble() {
       componentsProps={{
         popper: {
           sx: {
-            zIndex: 12500000000
+            zIndex
           }
         }
       }}

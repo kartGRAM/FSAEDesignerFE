@@ -45,7 +45,6 @@ const ImageSelectable = styled(Box)(({theme}) => ({
     opacity: 0.7
   },
   '&:hover, &.Mui-focusVisible': {
-    // zIndex: 1,
     '& .MuiImageListItem-root': {
       opacity: 1.0
     }
@@ -55,6 +54,7 @@ const ImageSelectable = styled(Box)(({theme}) => ({
 interface OpenDialogProps extends DialogProps {
   zindex: number;
 }
+
 export function OpenDialog(props: OpenDialogProps) {
   const {zindex, onClose} = props;
 
@@ -92,12 +92,15 @@ export function OpenDialog(props: OpenDialogProps) {
     confirmIfChanged(dispatch, next, zindex);
   };
 
+  const dialogZIndex =
+    useSelector((state: RootState) => state.uitgd.dialogZIndex) + zindex;
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleInfoClick = async (params: SavedData) => {
     await new Promise<string>((resolve) => {
       dispatch(
         setConfirmDialogProps({
-          zindex: zindex + 1,
+          zindex: dialogZIndex,
           onClose: resolve,
           buttons: [{text: 'OK', res: 'cancel', autoFocus: true}],
           title: params.filename,
@@ -136,7 +139,7 @@ note: ${params.note}`}
     const ret = await new Promise<string>((resolve) => {
       dispatch(
         setConfirmDialogProps({
-          zindex: zindex + 1,
+          zindex: dialogZIndex,
           onClose: resolve,
           buttons: [
             {text: 'Confirm', res: 'ok'},

@@ -16,13 +16,18 @@ export default function FixCamera() {
     dispatch(setOrbitControlsEnabledManual(!enabled));
   };
 
+  const zIndex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex + state.uitgd.tooltipZIndex
+  );
+
   return (
     <Tooltip
       title={enabled ? 'Fix Camera Position' : 'Enable Camera Controls'}
       componentsProps={{
         popper: {
           sx: {
-            zIndex: 12500000000
+            zIndex
           }
         }
       }}

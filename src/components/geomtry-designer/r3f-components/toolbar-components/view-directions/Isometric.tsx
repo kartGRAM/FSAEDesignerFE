@@ -3,21 +3,26 @@ import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import SvgIcon from '@mui/material/SvgIcon';
 import {setViewDirection} from '@store/reducers/uiTempGeometryDesigner';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import {Quaternion, Vector3} from 'three';
-import {useDispatch} from 'react-redux';
+import {Vector3} from 'three';
+import {useSelector, useDispatch} from 'react-redux';
+import {RootState} from '@store/store';
 import {getCameraQuaternion} from '@utils/three';
 
 export default function Isometric(props: {onClick?: () => void}) {
   const {onClick} = props;
   const dispatch = useDispatch();
+
+  const zIndex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex + state.uitgd.tooltipZIndex
+  );
   return (
     <Tooltip
       title="Isometric View"
       componentsProps={{
         popper: {
           sx: {
-            zIndex: 12500000000,
+            zIndex,
             '&:hover': {
               display: 'none'
             }

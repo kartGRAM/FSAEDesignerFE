@@ -21,7 +21,8 @@ export interface RenameDialogProps {
 export function RenameDialog(props: RenameDialogProps) {
   const {absPath, onClose} = props;
   const zindex = useSelector(
-    (state: RootState) => state.uitgd.fullScreenZIndex + 10000
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex
   );
   const assembly = useSelector((state: RootState) => state.uitgd.assembly);
   const element = getElementByPath(assembly, absPath);

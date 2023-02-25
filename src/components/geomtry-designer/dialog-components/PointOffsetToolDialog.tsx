@@ -40,8 +40,12 @@ export function PointOffsetToolDialog(props: PointOffsetToolDialogProps) {
     callback: () => {}
   };
 
-  const zindex =
-    useSelector((state: RootState) => state.uitgd.fullScreenZIndex) + 1000;
+  const zindex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex
+  );
+
+  const menuZIndex = useSelector((state: RootState) => state.uitgd.menuZIndex);
   const dispatch = useDispatch();
   React.useEffect(() => {
     if (open) {
@@ -119,7 +123,7 @@ export function PointOffsetToolDialog(props: PointOffsetToolDialogProps) {
             label="Type"
             onChange={handleChange}
             MenuProps={{
-              sx: {zIndex: zindex + 100}
+              sx: {zIndex: zindex + menuZIndex}
             }}
           >
             {listPointOffsetTools.map((name) => (

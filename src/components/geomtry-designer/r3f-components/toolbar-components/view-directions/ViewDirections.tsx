@@ -4,6 +4,8 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import Grid from '@mui/material/Grid';
+import {useSelector} from 'react-redux';
+import {RootState} from '@store/store';
 import Front from './Front';
 import Rear from './Rear';
 import Left from './Left';
@@ -22,6 +24,12 @@ export default function ViewDirections() {
   const handleClose = () => {
     setAnchorEl(null);
   };
+
+  const zIndexM = useSelector(
+    (state: RootState) => state.uitgd.fullScreenZIndex + state.uitgd.menuZIndex
+  );
+  const zIndexT =
+    useSelector((state: RootState) => state.uitgd.tooltipZIndex) + zIndexM;
   return (
     <>
       {current}
@@ -30,7 +38,7 @@ export default function ViewDirections() {
         componentsProps={{
           popper: {
             sx: {
-              zIndex: 12500000000
+              zIndex: zIndexM
             }
           }
         }}
@@ -47,7 +55,7 @@ export default function ViewDirections() {
           'aria-labelledby': 'basic-button'
         }}
         sx={{
-          zIndex: 1250000000,
+          zIndex: zIndexT,
           '.MuiPaper-root': {
             background: '#333'
           },
