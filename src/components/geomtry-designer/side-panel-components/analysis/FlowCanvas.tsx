@@ -80,8 +80,17 @@ export function FlowCanvas(props: {
 }) {
   const {nodeID, open, setOpen} = props;
 
-  const zindex =
-    useSelector((state: RootState) => state.uitgd.fullScreenZIndex) + 100000;
+  const zIndexFlowCanvas = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex
+  );
+  const zIndexConfirm = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex * 2
+  );
+  const zIndexTooltip = useSelector(
+    (state: RootState) => state.uitgd.tooltipZIndex
+  );
   const test = useSelector((state: RootState) =>
     state.uitgd.tests.find((t) => t.nodeID === nodeID)
   );
@@ -211,7 +220,7 @@ export function FlowCanvas(props: {
       const ret = await new Promise<string>((resolve) => {
         dispatch(
           setConfirmDialogProps({
-            zindex: zindex + 10000 + 1,
+            zindex: zIndexConfirm,
             onClose: resolve,
             title: 'Warning',
             message: `All changes will not be saved. Are you okay?`,
@@ -334,7 +343,7 @@ export function FlowCanvas(props: {
         const ret = await new Promise<string>((resolve) => {
           dispatch(
             setConfirmDialogProps({
-              zindex: zindex + 10000 + 1,
+              zindex: zIndexConfirm,
               onClose: resolve,
               title: 'Warning',
               message: `Once you delete a node, it cannot be restored.`,
@@ -505,7 +514,7 @@ export function FlowCanvas(props: {
       maxWidth={false}
       sx={{
         position: 'absolute',
-        zIndex: `${zindex}!important`,
+        zIndex: `${zIndexFlowCanvas}!important`,
         overflow: 'hidden'
       }}
       PaperProps={{
@@ -593,7 +602,7 @@ export function FlowCanvas(props: {
                   componentsProps={{
                     popper: {
                       sx: {
-                        zIndex: 12500000000
+                        zIndex: zIndexFlowCanvas + zIndexTooltip
                       }
                     }
                   }}
@@ -613,7 +622,7 @@ export function FlowCanvas(props: {
                   componentsProps={{
                     popper: {
                       sx: {
-                        zIndex: 12500000000
+                        zIndex: zIndexFlowCanvas + zIndexTooltip
                       }
                     }
                   }}

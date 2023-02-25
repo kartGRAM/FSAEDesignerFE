@@ -326,24 +326,6 @@ export function JointsList(props: {
                   (point) => point.nodeID === selectedPair.rhs?.nodeID
                 );
                 if (lhs && rhs) {
-                  /* if (
-                    isSimplifiedElement(lhs.parent) &&
-                    isSimplifiedElement(rhs.parent)
-                  ) {
-                    await new Promise<string>((resolve) => {
-                      dispatch(
-                        setConfirmDialogProps({
-                          zindex: 130000000000000000,
-                          onClose: resolve,
-                          title: 'Notice',
-                          message: `You can't joint simplified elements.`,
-                          buttons: [{text: 'OK', res: 'ok', autoFocus: true}]
-                        })
-                      );
-                    });
-                    dispatch(setConfirmDialogProps(undefined));
-                    return;
-                  } */
                   assembly.joints.push({lhs: lhs.nodeID, rhs: rhs.nodeID});
                   dispatch(updateAssembly(assembly));
                 }

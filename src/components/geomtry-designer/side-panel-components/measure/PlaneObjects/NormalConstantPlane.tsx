@@ -125,6 +125,13 @@ export function NormalConstantPlane(props: {
     };
   }, []);
 
+  const menuZIndex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex +
+      state.uitgd.menuZIndex +
+      state.uitgd.dialogZIndex
+  );
+
   return (
     <Box component="div">
       <FormControl
@@ -145,7 +152,7 @@ export function NormalConstantPlane(props: {
           onChange={(e) => setNormalType(e.target.value as NormalType)}
           sx={{flexGrow: '1'}}
           MenuProps={{
-            sx: {zIndex: 150000000000}
+            sx: {zIndex: menuZIndex}
           }}
         >
           <MenuItem aria-label="None" value="">
@@ -177,7 +184,7 @@ export function NormalConstantPlane(props: {
             onChange={(e) => setLine(e.target.value)}
             sx={{flexGrow: '1'}}
             MenuProps={{
-              sx: {zIndex: 150000000000}
+              sx: {zIndex: menuZIndex}
             }}
           >
             <MenuItem aria-label="None" value="">

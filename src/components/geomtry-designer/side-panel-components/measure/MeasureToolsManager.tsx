@@ -90,6 +90,11 @@ export default function MeasureToolsManager() {
     };
   }, []);
 
+  const tooltipZIndex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex + state.uitgd.tooltipZIndex
+  );
+
   return (
     <>
       <Accordion
@@ -144,7 +149,7 @@ export default function MeasureToolsManager() {
                 componentsProps={{
                   popper: {
                     sx: {
-                      zIndex: 12500000000
+                      zIndex: tooltipZIndex
                     }
                   }
                 }}
@@ -168,7 +173,7 @@ export default function MeasureToolsManager() {
                 componentsProps={{
                   popper: {
                     sx: {
-                      zIndex: 12500000000
+                      zIndex: tooltipZIndex
                     }
                   }
                 }}

@@ -2,19 +2,26 @@ import React from 'react';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import SvgIcon from '@mui/material/SvgIcon';
+import {useSelector} from 'react-redux';
+import {RootState} from '@store/store';
 
 export default function Direction(props: {
   onClick?: () => void;
   title: string;
 }) {
   const {onClick, title} = props;
+
+  const tooltipZIndex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex + state.uitgd.tooltipZIndex
+  );
   return (
     <Tooltip
       title={title}
       componentsProps={{
         popper: {
           sx: {
-            zIndex: 12500000000,
+            zIndex: tooltipZIndex,
             '&:hover': {
               display: 'none'
             }

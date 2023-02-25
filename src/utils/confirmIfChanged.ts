@@ -11,12 +11,12 @@ export default async function confirmIfChanged(
   zindex?: number
 ) {
   const {changed, filename} = store.getState().dgd.present;
-  const {fullScreenZIndex} = store.getState().uitgd;
+  const {fullScreenZIndex, dialogZIndex} = store.getState().uitgd;
   if (changed) {
     const ret = await new Promise<string>((resolve) => {
       dispatch(
         setConfirmDialogProps({
-          zindex: (zindex ?? fullScreenZIndex + 10000) + 1,
+          zindex: zindex ?? fullScreenZIndex + dialogZIndex * 2,
           onClose: resolve,
           title: 'Warning!',
           message: `${filename} is changed. Do you seve the file?`,

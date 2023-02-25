@@ -57,8 +57,12 @@ export function DatumDialog(props: {
 
   const dispatch = useDispatch();
 
-  const zindex =
-    useSelector((state: RootState) => state.uitgd.fullScreenZIndex) + 1000;
+  const zindex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex
+  );
+
+  const menuZIndex = useSelector((state: RootState) => state.uitgd.menuZIndex);
 
   const [datumType, setDatumType] = React.useState<DatumTypes | ''>(
     getDatumType(datum)
@@ -190,7 +194,7 @@ export function DatumDialog(props: {
                 return selected;
               }}
               MenuProps={{
-                sx: {zIndex: zindex + 100}
+                sx: {zIndex: zindex + menuZIndex}
               }}
             >
               <MenuItem disabled value="">
@@ -222,7 +226,7 @@ export function DatumDialog(props: {
                 return selected;
               }}
               MenuProps={{
-                sx: {zIndex: zindex + 100}
+                sx: {zIndex: zindex + menuZIndex}
               }}
             >
               <MenuItem disabled value="">

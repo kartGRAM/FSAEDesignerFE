@@ -101,6 +101,13 @@ export function FromElementBasePlane(props: {
     }
   }, [element, distance, direction]);
 
+  const menuZIndex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex +
+      state.uitgd.menuZIndex +
+      state.uitgd.dialogZIndex
+  );
+
   return (
     <Box component="div">
       <FormControl
@@ -121,7 +128,7 @@ export function FromElementBasePlane(props: {
           onChange={(e) => setElement(e.target.value)}
           sx={{flexGrow: '1'}}
           MenuProps={{
-            sx: {zIndex: 150000000000}
+            sx: {zIndex: menuZIndex}
           }}
         >
           <MenuItem aria-label="None" value="">
@@ -158,7 +165,7 @@ export function FromElementBasePlane(props: {
           onChange={(e) => setDirection(e.target.value as BasePlane)}
           sx={{flexGrow: '1'}}
           MenuProps={{
-            sx: {zIndex: 150000000000}
+            sx: {zIndex: menuZIndex}
           }}
         >
           <MenuItem aria-label="None" value="">

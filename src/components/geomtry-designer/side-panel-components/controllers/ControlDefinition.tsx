@@ -24,8 +24,12 @@ export interface ControlDefinitionProps {
 export function ControlDefinition(props: ControlDefinitionProps) {
   const {control, disabled, setStaged, inputButton} = props;
 
-  const zindex =
-    useSelector((state: RootState) => state.uitgd.fullScreenZIndex) + 1200;
+  const zindex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex +
+      state.uitgd.dialogZIndex +
+      state.uitgd.menuZIndex
+  );
 
   const [selectedID, setSelectedID] = React.useState<string>(
     control?.targetElement ?? ''

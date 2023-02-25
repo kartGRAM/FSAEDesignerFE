@@ -47,6 +47,11 @@ export function DatumGroupTable(props: {
   const [dialogTarget, setDialogTarget] = React.useState<string>('');
   const datumObjects = datumGroup.children;
 
+  const tooltipZIndex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex + state.uitgd.tooltipZIndex
+  );
+
   const onDatumDblClick = (datum: IDatumObject | undefined) => {
     let id = 'new';
     if (datum) id = datum.nodeID;
@@ -127,7 +132,7 @@ export function DatumGroupTable(props: {
             componentsProps={{
               popper: {
                 sx: {
-                  zIndex: 12500000000
+                  zIndex: tooltipZIndex
                 }
               }
             }}
@@ -151,7 +156,7 @@ export function DatumGroupTable(props: {
               componentsProps={{
                 popper: {
                   sx: {
-                    zIndex: 12500000000
+                    zIndex: tooltipZIndex
                   }
                 }
               }}

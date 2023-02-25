@@ -93,11 +93,16 @@ const TestRow = (props: {test: IDataTest}) => {
     setOpen(true);
   };
 
+  const zindex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex
+  );
+
   const handleDelete = async () => {
     const ret = await new Promise<string>((resolve) => {
       dispatch(
         setConfirmDialogProps({
-          zindex: 125000000000,
+          zindex,
           onClose: resolve,
           buttons: [
             {text: 'OK', res: 'ok'},
@@ -232,13 +237,18 @@ const TestRow = (props: {test: IDataTest}) => {
 
 const Tooltip = (props: {children: JSX.Element; title: string}) => {
   const {children, title} = props;
+
+  const zIndex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex + state.uitgd.tooltipZIndex
+  );
   return (
     <MuiTooltip
       title={title}
       componentsProps={{
         popper: {
           sx: {
-            zIndex: 12500000000,
+            zIndex,
             '&:hover': {
               display: 'none'
             }

@@ -39,8 +39,13 @@ export function MeasureToolDialog(props: {
 
   const dispatch = useDispatch();
 
-  const zindex =
-    useSelector((state: RootState) => state.uitgd.fullScreenZIndex) + 1000;
+  const dialogZIndex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex
+  );
+  const menuZIndex = useSelector(
+    (state: RootState) => state.uitgd.fullScreenZIndex + state.uitgd.menuZIndex
+  );
 
   const [applyReady, setApplyReady] = React.useState<IMeasureTool | undefined>(
     undefined
@@ -111,7 +116,7 @@ export function MeasureToolDialog(props: {
       }
       aria-labelledby="draggable-dialog-title"
       sx={{
-        zIndex: `${zindex}!important`,
+        zIndex: `${dialogZIndex}!important`,
         pointerEvents: 'none'
       }}
       PaperProps={{
@@ -147,7 +152,7 @@ export function MeasureToolDialog(props: {
                 return selected;
               }}
               MenuProps={{
-                sx: {zIndex: zindex + 100}
+                sx: {zIndex: menuZIndex}
               }}
             >
               <MenuItem disabled value="">

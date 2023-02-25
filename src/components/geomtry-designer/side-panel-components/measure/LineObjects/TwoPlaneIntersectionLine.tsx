@@ -116,6 +116,13 @@ export function TwoPlaneIntersectionLine(props: {
     };
   }, [...planes]);
 
+  const menuZIndex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex +
+      state.uitgd.menuZIndex +
+      state.uitgd.dialogZIndex
+  );
+
   return (
     <Box component="div">
       {['Select first plane', 'Select second plane'].map((str, i) => (
@@ -138,7 +145,7 @@ export function TwoPlaneIntersectionLine(props: {
             onChange={(e) => handleChanged(e.target.value, i)}
             sx={{flexGrow: '1'}}
             MenuProps={{
-              sx: {zIndex: 150000000000}
+              sx: {zIndex: menuZIndex}
             }}
           >
             <MenuItem aria-label="None" value="">

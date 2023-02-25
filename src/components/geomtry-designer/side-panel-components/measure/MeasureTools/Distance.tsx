@@ -186,6 +186,13 @@ export function Distance(props: {
     }
   };
 
+  const menuZIndex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex +
+      state.uitgd.menuZIndex +
+      state.uitgd.dialogZIndex
+  );
+
   return (
     <Box component="div">
       {['Select a datum object', 'Select another datum object'].map(
@@ -209,7 +216,7 @@ export function Distance(props: {
               onChange={(e) => handleChanged(e.target.value, i)}
               sx={{flexGrow: '1'}}
               MenuProps={{
-                sx: {zIndex: 150000000000}
+                sx: {zIndex: menuZIndex}
               }}
             >
               <MenuItem aria-label="None" value="">

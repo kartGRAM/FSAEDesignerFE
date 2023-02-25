@@ -34,6 +34,15 @@ export default function DatumManager() {
       state.uigd.present.measurePanelState.DatumObjectsExpanded
   );
 
+  const dialogZIndex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex
+  );
+  const tooltipZIndex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex + state.uitgd.tooltipZIndex
+  );
+
   const addNewDatumGroup = (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ) => {
@@ -57,7 +66,7 @@ export default function DatumManager() {
       const ret = await new Promise<string>((resolve) => {
         dispatch(
           setConfirmDialogProps({
-            zindex: 125000000000,
+            zindex: dialogZIndex,
             onClose: resolve,
             buttons: [
               {text: 'OK', res: 'ok'},
@@ -129,7 +138,7 @@ export default function DatumManager() {
                 componentsProps={{
                   popper: {
                     sx: {
-                      zIndex: 12500000000
+                      zIndex: tooltipZIndex
                     }
                   }
                 }}
@@ -150,7 +159,7 @@ export default function DatumManager() {
                 componentsProps={{
                   popper: {
                     sx: {
-                      zIndex: 12500000000
+                      zIndex: tooltipZIndex
                     }
                   }
                 }}

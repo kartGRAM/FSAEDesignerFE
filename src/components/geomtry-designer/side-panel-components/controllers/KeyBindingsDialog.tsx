@@ -29,8 +29,13 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
   const [selectedKey, setSelectedKey] = React.useState('');
   const [staged, setStaged] = React.useState<null | IControl | string>(null);
 
-  const zindex =
-    useSelector((state: RootState) => state.uitgd.fullScreenZIndex) + 1000;
+  const zindex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex
+  );
+  const dialogZIndex = useSelector(
+    (state: RootState) => state.uitgd.dialogZIndex
+  );
   const dispatch = useDispatch();
 
   const controls = useSelector(
@@ -78,7 +83,7 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
         const ret = await new Promise<string>((resolve) => {
           dispatch(
             setConfirmDialogProps({
-              zindex: zindex + 10000 + 1,
+              zindex: zindex + dialogZIndex,
               onClose: resolve,
               title: 'Confirm',
               message: `Control bindings have been changed. Do you save changes?`,

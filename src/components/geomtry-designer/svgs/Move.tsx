@@ -2,6 +2,8 @@ import React from 'react';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import SvgIcon from '@mui/material/SvgIcon';
+import {useSelector} from 'react-redux';
+import {RootState} from '@store/store';
 
 export default function Move(props: {
   onClick?: () => void;
@@ -9,13 +11,17 @@ export default function Move(props: {
   disabled?: boolean;
 }) {
   const {onClick, title, disabled} = props;
+  const tooltipZIndex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex + state.uitgd.tooltipZIndex
+  );
   return (
     <Tooltip
       title={title}
       componentsProps={{
         popper: {
           sx: {
-            zIndex: 12500000000,
+            zIndex: tooltipZIndex,
             '&:hover': {
               display: 'none'
             }

@@ -42,8 +42,10 @@ export default function FlowNodeDialog(props: {
     }
   }, [open]);
 
-  const zindex =
-    useSelector((state: RootState) => state.uitgd.fullScreenZIndex) + 100001;
+  const zindex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex * 2
+  );
 
   const changed = stateAtOpen !== test.getLocalStateID();
   const update = useUpdate();

@@ -9,6 +9,8 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Scalar from '@gdComponents/Scalar';
 import {NamedNumber} from '@gd/NamedValues';
+import {useSelector} from 'react-redux';
+import {RootState} from '@store/store';
 
 const directions: BasePlane[] = ['XY', 'YZ', 'ZX'];
 
@@ -40,6 +42,13 @@ export function FromBasePlane(props: {
     }
   }, [distance, direction]);
 
+  const menuZIndex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex +
+      state.uitgd.menuZIndex +
+      state.uitgd.dialogZIndex
+  );
+
   return (
     <Box component="div">
       <FormControl
@@ -59,7 +68,7 @@ export function FromBasePlane(props: {
           onChange={(e) => setDirection(e.target.value as BasePlane)}
           sx={{flexGrow: '1'}}
           MenuProps={{
-            sx: {zIndex: 150000000000}
+            sx: {zIndex: menuZIndex}
           }}
         >
           <MenuItem aria-label="None" value="">

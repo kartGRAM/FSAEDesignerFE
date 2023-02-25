@@ -35,9 +35,9 @@ export default async function saveAs(params: {
     updateDataFuncAxiosHooks
   } = params;
 
-  const {fullScreenZIndex} = store.getState().uitgd;
+  const {fullScreenZIndex, dialogZIndex} = store.getState().uitgd;
   const {id} = store.getState().dgd.present;
-  const zindex = (params.zindex ?? fullScreenZIndex + 10000) + 1;
+  const zindex = params.zindex ?? fullScreenZIndex + dialogZIndex * 2;
   const filename = tfilename ?? store.getState().dgd.present.filename;
   const rootState = store.getState();
   const note = tnote ?? rootState.dgd.present.note;
