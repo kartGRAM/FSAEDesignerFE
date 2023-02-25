@@ -113,10 +113,10 @@ export interface GDDialogState {
 
 const initialState: GDState = {
   isFullScreen: true,
-  fullScreenZIndex: 10000000,
-  dialogZIndex: 1000000,
-  menuZIndex: 100000,
-  tooltipZIndex: 10000,
+  fullScreenZIndex: 1000000000,
+  dialogZIndex: 100000000,
+  menuZIndex: 10000000,
+  tooltipZIndex: 1000000,
   uiDisabled: false,
   uiDisabledAll: false,
   selectedElementAbsPath: '',
