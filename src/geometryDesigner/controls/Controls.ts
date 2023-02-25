@@ -23,7 +23,7 @@ export abstract class Control {
   abstract nameDefault(): string;
 
   get name(): string {
-    return this.name ?? this.nameDefault();
+    return this._name ?? this.nameDefault();
   }
 
   set name(value: string) {

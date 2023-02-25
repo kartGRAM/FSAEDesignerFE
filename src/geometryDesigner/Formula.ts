@@ -105,8 +105,16 @@ export class Formula implements IFormula {
     params:
       | {name: string; formula?: string | number; absPath?: string}
       | IDataFormula
+      | string
   ) {
-    const {name, formula, absPath} = params;
+    const {name, formula, absPath} =
+      typeof params !== 'string'
+        ? params
+        : {
+            name: 'tempValue',
+            formula: params,
+            absPath: 'tempValue'
+          };
     this.name = name;
     this._formula = '0';
     this.absPath = absPath ?? 'global';

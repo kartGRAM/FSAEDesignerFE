@@ -5,7 +5,7 @@ import {IFormula, IDataFormula} from '@gd/IFormula';
 import {Formula} from '@gd/Formula';
 import store from '@store/store';
 
-type SetterType = 'GlobalVariable' | 'Control';
+export type SetterType = 'GlobalVariable' | 'Control';
 
 export interface IParameterSetter {
   type: SetterType;

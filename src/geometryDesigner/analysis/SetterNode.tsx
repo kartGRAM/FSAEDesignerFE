@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable class-methods-use-this */
 import * as React from 'react';
+import {useSelector} from 'react-redux';
+import store, {RootState} from '@store/store';
 import {Node as IRFNode, XYPosition} from 'reactflow';
 import Tuning from '@gdComponents/svgs/Tuning';
 import {v4 as uuidv4} from 'uuid';
@@ -24,11 +26,15 @@ import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import DeleteIcon from '@mui/icons-material/Delete';
 import {visuallyHidden} from '@mui/utils';
-import store from '@store/store';
+
 import {getControl, Control} from '@gd/controls/Controls';
 import {useFormik} from 'formik';
 import yup from '@app/utils/Yup';
 import TextField from '@mui/material/TextField';
+import {toFixedNoZero} from '@utils/helpers';
+import {Formula} from '@gd/Formula';
+import useUpdate from '@hooks/useUpdate';
+import Select, {SelectChangeEvent} from '@mui/material/Select';
 import {ITest} from './ITest';
 import {
   isStartNode,
@@ -46,7 +52,8 @@ import {
 import {
   IParameterSetter,
   IDataParameterSetter,
-  ParameterSetter
+  ParameterSetter,
+  SetterType
 } from './ParameterSetter';
 
 const className = 'Setter' as const;
@@ -191,6 +198,7 @@ interface Row {
 
 function SetterContent(props: {node: ISetterNode; test: ITest}) {
   const {node, test} = props;
+  const update = useUpdate();
   const controls = store
     .getState()
     .dgd.present.controls.reduce((prev, current) => {
@@ -313,6 +321,7 @@ function SetterContent(props: {node: ISetterNode; test: ITest}) {
                     </TableRow>
                   );
                 })}
+              <NewRow test={test} node={node} update={update} />
             </TableBody>
           </Table>
         </TableContainer>
@@ -419,77 +428,78 @@ function EnhancedTableHead(props: {
   );
 }
 
-function NewRow(props: {
-  setRows: React.Dispatch<React.SetStateAction<Data[]>>;
-  rows: Data[];
-}) {
-  const {rows, setRows} = props;
+function NewRow(props: {test: ITest; node: ISetterNode; update: () => void}) {
+  const {test, update, node} = props;
   const labelId = React.useId();
-  const nameRef = React.useRef<HTMLInputElement>(null);
-  const formulaRef = React.useRef<HTMLInputElement>(null);
   const [evaluatedValue, setEvaluatedValue] = React.useState<number | null>(
     null
   );
+  const [selectedObject, setSelectedObject] = React.useState<{
+    type: SetterType | 'NotSelected';
+    target: string;
+  }>({type: 'NotSelected', target: ''});
+
+  const controls = useSelector(
+    (state: RootState) => state.dgd.present.controls
+  );
 
   const onFormulaValidated = (formula: string) => {
-    setEvaluatedValue(evaluate(formula, rows));
+    setEvaluatedValue(new Formula(formula).evaluatedValue);
   };
-
-  const schema = yup.lazy((values) =>
-    yup.object({
-      name: yup
-        .string()
-        .required('')
-        .variableNameFirstChar()
-        .variableName()
-        .noMathFunctionsName()
-        .gdVariableNameMustBeUnique(rows),
-      formula: yup
-        .string()
-        .required('')
-        .gdFormulaIsValid(rows, values.name, onFormulaValidated)
-    })
-  );
 
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      name: '',
       formula: ''
     },
-    validationSchema: schema,
+    validationSchema: yup.object({
+      formula: yup
+        .string()
+        .required('')
+        .gdFormulaIsValid(undefined, undefined, onFormulaValidated)
+    }),
     onSubmit: (values) => {
       formik.resetForm();
-      setRows((prevState) => [
-        ...prevState,
-        {
-          id: rows.length + 1,
-          name: values.name,
-          formula: values.formula,
-          evaluatedValue: evaluate(values.formula, rows),
-          absPath: 'global'
-        }
-      ]);
-      setTimeout(() => setEvaluatedValue(null), 0);
+      if (selectedObject.type === 'Control') {
+        const control = controls.find(
+          (c) => c.nodeID === selectedObject.target
+        );
+        if (!control) return;
+
+        const setter = new ParameterSetter({
+          type: 'Control',
+          target: control,
+          valueFormula: values.formula
+        });
+
+        node.listSetters.push(setter);
+
+        test.saveLocalState();
+        update();
+      }
     }
   });
 
   const onEnter = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter') {
       formik.handleSubmit();
-      if (nameRef.current) {
-        if (formik.errors.formula !== undefined && formulaRef.current) {
-          formulaRef.current.focus();
-        } else {
-          nameRef.current.focus();
-        }
-      }
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFormulaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEvaluatedValue(null);
     formik.handleChange(e);
+  };
+
+  const handleTargetChanged = (e: SelectChangeEvent<string>) => {
+    if (e.target.value.includes('@Control')) {
+      const nodeID = e.target.value.split('@')[0];
+      const control = controls.find((c) => c.nodeID === nodeID);
+      if (!control) return;
+      setSelectedObject({type: 'Control', target: nodeID});
+    } else {
+      setSelectedObject({type: 'NotSelected', target: ''});
+    }
   };
 
   return (
@@ -503,40 +513,38 @@ function NewRow(props: {
           }}
         />
       </TableCell>
-      <TableCell align="left" />
-      <TableCell id={labelId} scope="row" padding="none">
-        <TextField
-          inputRef={nameRef}
-          autoFocus
-          hiddenLabel
-          name="name"
-          variant="standard"
-          onBlur={formik.handleBlur}
-          onKeyDown={onEnter}
-          onChange={formik.handleChange}
-          value={formik.values.name}
-          error={
-            formik.touched.name && Boolean(formik.errors.name !== undefined)
-          }
-          helperText={formik.touched.name && formik.errors.name}
-        />
+      <TableCell id={labelId} scope="row" padding="none" align="left">
+        <Select
+          native
+          value={selectedObject.target}
+          label=""
+          onChange={handleTargetChanged}
+        >
+          <option aria-label="None" value="" />
+          <optgroup label="Controls">
+            {controls.map((control) => (
+              <option value={`${control.nodeID}@Control`} key={control.nodeID}>
+                {getControl(control).name}
+              </option>
+            ))}
+          </optgroup>
+        </Select>
       </TableCell>
+      <TableCell align="right" />
       <TableCell align="right">
         <TextField
-          inputRef={formulaRef}
           hiddenLabel
           name="formula"
           variant="standard"
           onBlur={formik.handleBlur}
           onKeyDown={onEnter}
-          onChange={handleChange}
+          onChange={handleFormulaChange}
           value={formik.values.formula}
           error={formik.touched.formula && formik.errors.formula !== undefined}
           helperText={formik.touched.formula && formik.errors.formula}
         />
       </TableCell>
       <TableCell align="right">{toFixedNoZero(evaluatedValue)}</TableCell>
-      <TableCell align="right" />
     </TableRow>
   );
 }
@@ -574,7 +582,7 @@ const EnhancedTableToolbar = (props: {numSelected: number}) => {
           id="tableTitle"
           component="div"
         >
-          Nutrition
+          Parameters
         </Typography>
       )}
       {numSelected > 0 ? (
