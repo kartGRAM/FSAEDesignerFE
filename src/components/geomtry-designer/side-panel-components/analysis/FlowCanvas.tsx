@@ -274,6 +274,8 @@ export function FlowCanvas(props: {
   };
 
   const handleClick = async () => {
+    // Dialog以下のテキストフィールドのフォーカスが得られなくなるので、
+    // Dialog以下のStopPropergationが必須になる
     document.getSelection()?.removeAllRanges();
     if (!pasting) return;
     const data = await navigator.clipboard.readText();

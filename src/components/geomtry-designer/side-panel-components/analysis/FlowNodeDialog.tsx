@@ -98,6 +98,7 @@ export default function FlowNodeDialog(props: {
   const window = document.getElementById('gdAppArea');
   return (
     <Dialog
+      onClick={(e) => e.stopPropagation()}
       open={open}
       container={window}
       maxWidth={false}
@@ -108,11 +109,7 @@ export default function FlowNodeDialog(props: {
         zIndex: `${zindex}!important`,
         overflow: 'hidden'
       }}
-      PaperProps={
-        paperProps || {
-          sx: {minWidth: '60%', height: '60%'}
-        }
-      }
+      PaperProps={paperProps || {sx: {minWidth: '60%', height: '60%'}}}
     >
       <EditableTypography
         typography={<DialogTitle>{node.name}</DialogTitle>}
