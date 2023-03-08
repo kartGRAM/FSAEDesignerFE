@@ -51,6 +51,7 @@ import {
   getRFFlowNodesFromClipboard
 } from '@gd/analysis/ClipboardFlowNode';
 import {v4 as uuidv4} from 'uuid';
+import useTestUpdate from '@hooks/useTestUpdate';
 import {ItemBox} from './ItemBox';
 import CircleNode from './CircleNode';
 import CardNode from './CardNode';
@@ -116,13 +117,62 @@ export function FlowCanvas(props: {
   const edgeUpdateSuccessful = React.useRef(true);
 
   const dispatch = useDispatch();
+  const {updateWithSave, updateOnly} = useTestUpdate(test);
   const update = useUpdate();
+
+  const onEdgeUpdateStart = useCallback(() => {
+    edgeUpdateSuccessful.current = false;
+  }, []);
+
+  const onEdgeUpdate = (oldEdge: Edge, connection: Connection) => {
+    const edge = test?.edges[oldEdge.id];
+    if (!test || !edge) return;
+    if (!connection.source || !connection.target) return;
+    edgeUpdateSuccessful.current = true;
+    if (!test.tryConnect(connection.source, connection.target)) return;
+    test.removeEdge(edge);
+    updateWithSave(test);
+  };
+
+  const onEdgeUpdateEnd = (_: MouseEvent | TouchEvent, edge: Edge) => {
+    if (!edgeUpdateSuccessful.current && test) {
+      test.removeEdge(edge);
+      updateWithSave(test);
+    }
+    edgeUpdateSuccessful.current = true;
+  };
+
+  const [onArrange, setOnArrange] = React.useState(false);
+
+  React.useEffect(() => {
+    if (open) dispatch(setAllUIDisabled(true));
+    else dispatch(setAllUIDisabled(false));
+    return () => {
+      dispatch(setAllUIDisabled(false));
+    };
+  }, [open]);
+
+  React.useEffect(() => {
+    fitView();
+  }, [onArrange]);
+
+  React.useEffect(() => {
+    if (dragging === false && overDelete) setOverDelete(false);
+  }, [dragging, overDelete]);
+
+  if (tempNodes.nodes.length && !pasting && !draggingNewNode)
+    setTempNodes({nodes: [], edges: []});
+  if (!test) return null;
+
+  // ******************************************************************
+  // これより下にhookはNG
+  // ******************************************************************
 
   const onNodesChange = (changes: NodeChange[]) => {
     const needToUpdate = {_: false};
     changes.forEach((change) => {
       if (change.type === 'add' || change.type === 'reset') return;
-      const item = test?.nodes[change.id];
+      const item = test.nodes[change.id];
       if (!item) return;
       if (change.type === 'select') {
         item.selected = change.selected;
@@ -159,59 +209,9 @@ export function FlowCanvas(props: {
 
   const onConnect = (connection: Connection) => {
     if (!connection.source || !connection.target) return;
-    test?.tryConnect(connection.source, connection.target);
-    test?.saveLocalState();
-    update();
+    test.tryConnect(connection.source, connection.target);
+    updateWithSave(test);
   };
-
-  const onEdgeUpdateStart = useCallback(() => {
-    edgeUpdateSuccessful.current = false;
-  }, []);
-
-  const onEdgeUpdate = (oldEdge: Edge, connection: Connection) => {
-    const edge = test?.edges[oldEdge.id];
-    if (!test || !edge) return;
-    if (!connection.source || !connection.target) return;
-    edgeUpdateSuccessful.current = true;
-    if (!test.tryConnect(connection.source, connection.target)) return;
-    test.removeEdge(edge);
-    update();
-  };
-
-  const onEdgeUpdateEnd = (_: MouseEvent | TouchEvent, edge: Edge) => {
-    if (!edgeUpdateSuccessful.current && test) {
-      test.removeEdge(edge);
-      test.saveLocalState();
-      update();
-    }
-    edgeUpdateSuccessful.current = true;
-  };
-
-  const [onArrange, setOnArrange] = React.useState(false);
-
-  React.useEffect(() => {
-    if (open) dispatch(setAllUIDisabled(true));
-    else dispatch(setAllUIDisabled(false));
-    return () => {
-      dispatch(setAllUIDisabled(false));
-    };
-  }, [open]);
-
-  React.useEffect(() => {
-    fitView();
-  }, [onArrange]);
-
-  React.useEffect(() => {
-    if (dragging === false && overDelete) setOverDelete(false);
-  }, [dragging, overDelete]);
-
-  if (tempNodes.nodes.length && !pasting && !draggingNewNode)
-    setTempNodes({nodes: [], edges: []});
-  if (!test) return null;
-
-  // ******************************************************************
-  // これより下にhookはNG
-  // ******************************************************************
 
   const {nodes, edges} = test.getRFNodesAndEdges(update);
 
@@ -359,13 +359,11 @@ export function FlowCanvas(props: {
         dispatch(setConfirmDialogProps(undefined));
         if (ret === 'ok') {
           test.removeNode(item);
-          update();
           return true;
         }
         return false;
       }
       test.removeNode(item);
-      update();
 
       return true;
     }
@@ -374,14 +372,16 @@ export function FlowCanvas(props: {
 
   const handleDragEnd = async (_: any, __: any, nodes: Node[]) => {
     if (overDelete) {
-      nodes.forEach(async (node) => {
-        await deleteNode(node.id);
-      });
-      test.saveLocalState();
+      let needToSave = false;
+      for (const node of nodes) {
+        // eslint-disable-next-line no-await-in-loop
+        needToSave = (await deleteNode(node.id)) || needToSave;
+      }
+      if (needToSave) updateWithSave(test);
     } else {
       for (const node of nodes) {
         if (test.nodes[node.id]?.extraFlags.moved) {
-          test.saveLocalState();
+          updateWithSave(test);
           break;
         }
       }
@@ -421,8 +421,7 @@ export function FlowCanvas(props: {
         }
       });
       if (changed._) {
-        test.saveLocalState();
-        update();
+        updateWithSave(test);
       }
     }
   };
@@ -437,12 +436,12 @@ export function FlowCanvas(props: {
 
   const redo = () => {
     test.localRedo();
-    update();
+    updateOnly(test);
   };
 
   const undo = () => {
     test.localUndo();
-    update();
+    updateOnly(test);
   };
 
   const copy = async () => {
@@ -524,8 +523,8 @@ export function FlowCanvas(props: {
       }}
       onKeyDown={handleKeyDown}
     >
-      <TestName test={test} parentUpdate={update} />
-      <TestDescription test={test} parentUpdate={update} />
+      <TestName test={test} />
+      <TestDescription test={test} />
       <DialogContent sx={{display: 'flex', flexDirection: 'row'}}>
         <ItemBox />
         <Box

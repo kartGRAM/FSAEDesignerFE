@@ -13,6 +13,7 @@ import {GetState} from 'zustand';
 import {ITest} from '@gd/analysis/ITest';
 import {Item as TestFlowNodeItem} from '@gd/analysis/FlowNode';
 import {KinematicSolver} from '@gd/kinematics/Solver';
+
 // import {PointOffsetToolDialogProps} from '@gdComponents/dialog-components/PointOffsetToolDialog';
 
 export type SidePanelTab =
@@ -66,6 +67,7 @@ export interface GDState {
   draggingNewTestFlowNode: TestFlowNodeItem | null;
   globalSelected: GlobalSelected | null;
   clipbord: ClipboardObject | null;
+  testState: GDTestState;
 
   forceCallSelector: boolean;
 }
@@ -109,6 +111,10 @@ export interface GDDialogState {
   openDialogOpen: boolean;
   saveAsDialogProps?: SaveAsDialogProps;
   confirmDialogProps?: ConfirmDialogProps;
+}
+
+export interface GDTestState {
+  notifyChanged: {[index: string]: number};
 }
 
 const initialState: GDState = {
@@ -167,6 +173,9 @@ const initialState: GDState = {
   draggingNewTestFlowNode: null,
   globalSelected: null,
   clipbord: null,
+  testState: {
+    notifyChanged: {}
+  },
   forceCallSelector: true
 };
 
@@ -493,6 +502,28 @@ export const uitGeometryDesignerSlice = createSlice({
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setVisibility: (state: GDState) => {
       state.forceCallSelector = !state.forceCallSelector;
+    },
+
+    saveTestLocalState: (state: GDState, action: PayloadAction<ITest>) => {
+      const test = action.payload;
+      test.saveLocalState();
+      const testState = state.testState.notifyChanged[test.nodeID];
+      if (!testState) {
+        state.testState.notifyChanged[test.nodeID] = 1;
+        return;
+      }
+      state.testState.notifyChanged[test.nodeID] += 1;
+      state.testState.notifyChanged[test.nodeID] %= 10000;
+    },
+    testUpdateNotify: (state: GDState, action: PayloadAction<ITest>) => {
+      const test = action.payload;
+      const testState = state.testState.notifyChanged[test.nodeID];
+      if (!testState) {
+        state.testState.notifyChanged[test.nodeID] = 1;
+        return;
+      }
+      state.testState.notifyChanged[test.nodeID] += 1;
+      state.testState.notifyChanged[test.nodeID] %= 10000;
     }
     /* setPointOffsetToolDialogProps: (
       state: GDState,
@@ -550,7 +581,10 @@ export const {
   setDatumLineSelected,
   setDatumPlaneSelectMode,
   setDatumPlaneSelected,
-  setMovingMode
+  setMovingMode,
+
+  saveTestLocalState,
+  testUpdateNotify
   // setPointOffsetToolDialogProps
 } = uitGeometryDesignerSlice.actions;
 
