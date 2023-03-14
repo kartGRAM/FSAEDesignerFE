@@ -131,13 +131,13 @@ export function FlowCanvas(props: {
     edgeUpdateSuccessful.current = true;
     if (!test.tryConnect(connection.source, connection.target)) return;
     test.removeEdge(edge);
-    updateWithSave(test);
+    updateWithSave();
   };
 
   const onEdgeUpdateEnd = (_: MouseEvent | TouchEvent, edge: Edge) => {
     if (!edgeUpdateSuccessful.current && test) {
       test.removeEdge(edge);
-      updateWithSave(test);
+      updateWithSave();
     }
     edgeUpdateSuccessful.current = true;
   };
@@ -210,7 +210,7 @@ export function FlowCanvas(props: {
   const onConnect = (connection: Connection) => {
     if (!connection.source || !connection.target) return;
     test.tryConnect(connection.source, connection.target);
-    updateWithSave(test);
+    updateWithSave();
   };
 
   const {nodes, edges} = test.getRFNodesAndEdges(update);
@@ -377,11 +377,11 @@ export function FlowCanvas(props: {
         // eslint-disable-next-line no-await-in-loop
         needToSave = (await deleteNode(node.id)) || needToSave;
       }
-      if (needToSave) updateWithSave(test);
+      if (needToSave) updateWithSave();
     } else {
       for (const node of nodes) {
         if (test.nodes[node.id]?.extraFlags.moved) {
-          updateWithSave(test);
+          updateWithSave();
           break;
         }
       }
@@ -421,7 +421,7 @@ export function FlowCanvas(props: {
         }
       });
       if (changed._) {
-        updateWithSave(test);
+        updateWithSave();
       }
     }
   };
@@ -436,12 +436,12 @@ export function FlowCanvas(props: {
 
   const redo = () => {
     test.localRedo();
-    updateOnly(test);
+    updateOnly();
   };
 
   const undo = () => {
     test.localUndo();
-    updateOnly(test);
+    updateOnly();
   };
 
   const copy = async () => {

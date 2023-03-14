@@ -20,7 +20,7 @@ const TestDescription = React.memo((props: {test: ITest}) => {
       validation={Yup.string().required('required')}
       onSubmit={(value) => {
         test.name = value;
-        updateWithSave(test);
+        updateWithSave();
       }}
       textFieldProps={{
         sx: {

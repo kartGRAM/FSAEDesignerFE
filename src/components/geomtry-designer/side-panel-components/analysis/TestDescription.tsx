@@ -21,7 +21,7 @@ export const TestDiscription = React.memo((props: {test: ITest}) => {
       validation={Yup.string().required('required')}
       onSubmit={(value) => {
         test.description = value;
-        updateWithSave(test);
+        updateWithSave();
       }}
       textFieldProps={{
         sx: {

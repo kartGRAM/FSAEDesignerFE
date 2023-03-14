@@ -33,7 +33,7 @@ import yup from '@app/utils/Yup';
 import TextField from '@mui/material/TextField';
 import {toFixedNoZero} from '@utils/helpers';
 import {Formula} from '@gd/Formula';
-import useUpdate from '@hooks/useUpdate';
+import useTestUpdate from '@hooks/useTestUpdate';
 import NativeSelect, {SelectChangeEvent} from '@mui/material/Select';
 import {ITest} from './ITest';
 import {
@@ -198,7 +198,7 @@ interface Row {
 
 function SetterContent(props: {node: ISetterNode; test: ITest}) {
   const {node, test} = props;
-  const update = useUpdate();
+  const {updateWithSave} = useTestUpdate(test);
   const controls = store
     .getState()
     .dgd.present.controls.reduce((prev, current) => {
@@ -321,7 +321,7 @@ function SetterContent(props: {node: ISetterNode; test: ITest}) {
                     </TableRow>
                   );
                 })}
-              <NewRow test={test} node={node} update={update} />
+              <NewRow node={node} updateWithSave={updateWithSave} />
             </TableBody>
           </Table>
         </TableContainer>
@@ -354,7 +354,7 @@ const headCells: readonly HeadCell[] = [
     id: 'valueFormula',
     numeric: true,
     disablePadding: false,
-    label: 'Formula'
+    label: 'Value'
   },
   {
     id: 'evaluatedValue',
@@ -428,8 +428,8 @@ function EnhancedTableHead(props: {
   );
 }
 
-function NewRow(props: {test: ITest; node: ISetterNode; update: () => void}) {
-  const {test, update, node} = props;
+function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
+  const {updateWithSave, node} = props;
   const labelId = React.useId();
   const [evaluatedValue, setEvaluatedValue] = React.useState<number | null>(
     null
@@ -449,6 +449,12 @@ function NewRow(props: {test: ITest; node: ISetterNode; update: () => void}) {
 
   const onFormulaValidated = (formula: string) => {
     setEvaluatedValue(new Formula(formula).evaluatedValue);
+  };
+
+  const reset = () => {
+    setCategory('');
+    setSelectedObject({type: 'NotSelected', target: '', valueForSelectTag: ''});
+    setEvaluatedValue(null);
   };
 
   const formik = useFormik({
@@ -477,9 +483,8 @@ function NewRow(props: {test: ITest; node: ISetterNode; update: () => void}) {
         });
 
         node.listSetters.push(setter);
-
-        test.saveLocalState();
-        update();
+        updateWithSave();
+        reset();
       }
     }
   });
@@ -521,6 +526,12 @@ function NewRow(props: {test: ITest; node: ISetterNode; update: () => void}) {
     }
   };
 
+  const alreadyExistsInSetterList = node.listSetters.map(
+    (setter) => setter.target
+  );
+
+  if (alreadyExistsInSetterList.length === controls.length) return null;
+
   return (
     <TableRow /* hover tabIndex={-1} */>
       <TableCell padding="checkbox">
@@ -541,11 +552,16 @@ function NewRow(props: {test: ITest; node: ISetterNode; update: () => void}) {
         >
           <option aria-label="None" value="" />
           <optgroup label="Controls">
-            {controls.map((control) => (
-              <option value={`${control.nodeID}@Control`} key={control.nodeID}>
-                {getControl(control).name}
-              </option>
-            ))}
+            {controls
+              .filter((c) => !alreadyExistsInSetterList.includes(c.nodeID))
+              .map((control) => (
+                <option
+                  value={`${control.nodeID}@Control`}
+                  key={control.nodeID}
+                >
+                  {getControl(control).name}
+                </option>
+              ))}
           </optgroup>
         </NativeSelect>
       </TableCell>
@@ -554,6 +570,7 @@ function NewRow(props: {test: ITest; node: ISetterNode; update: () => void}) {
       </TableCell>
       <TableCell align="right">
         <TextField
+          disabled={!selectedObject.valueForSelectTag}
           hiddenLabel
           name="formula"
           variant="standard"

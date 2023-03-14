@@ -13,11 +13,11 @@ export default function useTestUpdate(test: ITest | undefined) {
   );
   const dispatch = useDispatch();
   return {
-    updateWithSave: (test: ITest) => {
-      dispatch(saveTestLocalState(test));
+    updateWithSave: () => {
+      if (test) dispatch(saveTestLocalState(test));
     },
-    updateOnly: (test: ITest) => {
-      dispatch(testUpdateNotify(test));
+    updateOnly: () => {
+      if (test) dispatch(testUpdateNotify(test));
     }
   };
 }
