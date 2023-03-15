@@ -285,36 +285,14 @@ function SetterContent(props: {node: ISetterNode; test: ITest}) {
                   const isItemSelected = isSelected(row.targetNodeID);
                   const labelId = `enhanced-table-checkbox-${index}`;
                   return (
-                    <TableRow
-                      hover
-                      onClick={() => handleClick(row.targetNodeID)}
-                      role="checkbox"
-                      aria-checked={isItemSelected}
-                      tabIndex={-1}
-                      key={row.name}
-                      selected={isItemSelected}
-                    >
-                      <TableCell padding="checkbox">
-                        <Checkbox
-                          color="primary"
-                          checked={isItemSelected}
-                          inputProps={{
-                            'aria-labelledby': labelId
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell
-                        component="th"
-                        id={labelId}
-                        scope="row"
-                        padding="none"
-                      >
-                        {row.name}
-                      </TableCell>
-                      <TableCell align="right">{row.categories}</TableCell>
-                      <TableCell align="right">{row.valueFormula}</TableCell>
-                      <TableCell align="right">{row.evaluatedValue}</TableCell>
-                    </TableRow>
+                    <ExistingRow
+                      onClick={handleClick}
+                      node={node}
+                      row={row}
+                      test={test}
+                      isItemSelected={isItemSelected}
+                      labelId={labelId}
+                    />
                   );
                 })}
               <NewRow node={node} updateWithSave={updateWithSave} />
@@ -430,7 +408,6 @@ function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
   const [evaluatedValue, setEvaluatedValue] = React.useState<number | null>(
     null
   );
-  const formulaRef = React.useRef<HTMLInputElement>(null);
 
   const [category, setCategory] = React.useState<SetterType | ''>('');
   const [selectedObject, setSelectedObject] = React.useState<{
@@ -489,10 +466,6 @@ function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
     if (e.key === 'Enter') {
       formik.handleSubmit();
     }
-  };
-
-  const onBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    formik.handleBlur(e);
   };
 
   const handleFormulaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -570,10 +543,8 @@ function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
           hiddenLabel
           name="formula"
           variant="standard"
-          inputRef={formulaRef}
-          onBlur={onBlur}
+          onBlur={formik.handleBlur}
           onKeyDown={onEnter}
-          onClick={() => formulaRef.current?.focus()}
           onChange={handleFormulaChange}
           value={formik.values.formula}
           error={formik.touched.formula && formik.errors.formula !== undefined}
@@ -581,6 +552,89 @@ function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
         />
       </TableCell>
       <TableCell align="right">{toFixedNoZero(evaluatedValue)}</TableCell>
+    </TableRow>
+  );
+}
+
+function ExistingRow(props: {
+  node: ISetterNode;
+  row: Row;
+  test: ITest;
+  isItemSelected: boolean;
+  labelId: string;
+  onClick: (targetNodeID: string) => void;
+}) {
+  const {node, row, test, onClick, isItemSelected, labelId} = props;
+
+  const {updateWithSave} = useTestUpdate(test);
+
+  const formik = useFormik({
+    enableReinitialize: true,
+    initialValues: {
+      formula: row.valueFormula
+    },
+    validationSchema: yup.object({
+      formula: yup
+        .string()
+        .required('')
+        .gdFormulaIsValid(undefined, undefined, undefined)
+    }),
+    onSubmit: (values) => {
+      formik.resetForm();
+      if (row.categories === 'Control') {
+        const setter = node.listSetters.find(
+          (setter) => setter.target === row.targetNodeID
+        );
+        if (!setter) return;
+        setter.valueFormula.formula = values.formula;
+        updateWithSave();
+      }
+    }
+  });
+
+  const onEnter = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter') {
+      formik.handleSubmit();
+    }
+  };
+
+  return (
+    <TableRow
+      hover
+      role="checkbox"
+      aria-checked={isItemSelected}
+      tabIndex={-1}
+      key={row.targetNodeID}
+      selected={isItemSelected}
+    >
+      <TableCell padding="checkbox">
+        <Checkbox
+          onClick={() => onClick(row.targetNodeID)}
+          color="primary"
+          checked={isItemSelected}
+          inputProps={{
+            'aria-labelledby': labelId
+          }}
+        />
+      </TableCell>
+      <TableCell component="th" id={labelId} scope="row" padding="none">
+        {row.name}
+      </TableCell>
+      <TableCell align="right">{row.categories}</TableCell>
+      <TableCell align="right">
+        <TextField
+          hiddenLabel
+          name="formula"
+          variant="standard"
+          onBlur={formik.handleBlur}
+          onKeyDown={onEnter}
+          onChange={formik.handleChange}
+          value={formik.values.formula}
+          error={formik.touched.formula && formik.errors.formula !== undefined}
+          helperText={formik.touched.formula && formik.errors.formula}
+        />
+      </TableCell>
+      <TableCell align="right">{row.evaluatedValue}</TableCell>
     </TableRow>
   );
 }
