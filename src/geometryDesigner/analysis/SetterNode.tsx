@@ -199,14 +199,6 @@ interface Row {
 function SetterContent(props: {node: ISetterNode; test: ITest}) {
   const {node, test} = props;
   const {updateWithSave} = useTestUpdate(test);
-  const controls = store
-    .getState()
-    .dgd.present.controls.reduce((prev, current) => {
-      prev[current.nodeID] = getControl(current);
-      return prev;
-    }, {} as {[index: string]: Control});
-  const rowHeight = 33;
-
   const [order, setOrder] = React.useState<Order>('asc');
   const [orderBy, setOrderBy] = React.useState<keyof Row>('name');
   const [selected, setSelected] = React.useState<readonly string[]>([]);
@@ -238,12 +230,12 @@ function SetterContent(props: {node: ISetterNode; test: ITest}) {
     setSelected([]);
   };
 
-  const handleClick = (event: React.MouseEvent<unknown>, name: string) => {
-    const selectedIndex = selected.indexOf(name);
+  const handleClick = (targetNodeID: string) => {
+    const selectedIndex = selected.indexOf(targetNodeID);
     let newSelected: readonly string[] = [];
 
     if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, name);
+      newSelected = newSelected.concat(selected, targetNodeID);
     } else if (selectedIndex === 0) {
       newSelected = newSelected.concat(selected.slice(1));
     } else if (selectedIndex === selected.length - 1) {
@@ -269,7 +261,12 @@ function SetterContent(props: {node: ISetterNode; test: ITest}) {
       }}
     >
       <Paper sx={{width: '100%', mb: 2}}>
-        <EnhancedTableToolbar numSelected={selected.length} />
+        <EnhancedTableToolbar
+          test={test}
+          selected={selected}
+          node={node}
+          setSelected={setSelected}
+        />
         <TableContainer>
           <Table sx={{minWidth: 750}} aria-labelledby="tableTitle" size="small">
             <EnhancedTableHead
@@ -285,13 +282,12 @@ function SetterContent(props: {node: ISetterNode; test: ITest}) {
                 .slice()
                 .sort(getComparator(order, orderBy))
                 .map((row, index) => {
-                  const isItemSelected = isSelected(row.name);
+                  const isItemSelected = isSelected(row.targetNodeID);
                   const labelId = `enhanced-table-checkbox-${index}`;
-
                   return (
                     <TableRow
                       hover
-                      onClick={(event) => handleClick(event, row.name)}
+                      onClick={() => handleClick(row.targetNodeID)}
                       role="checkbox"
                       aria-checked={isItemSelected}
                       tabIndex={-1}
@@ -589,15 +585,29 @@ function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
   );
 }
 
-const EnhancedTableToolbar = (props: {numSelected: number}) => {
-  const {numSelected} = props;
+const EnhancedTableToolbar = (props: {
+  test: ITest;
+  node: ISetterNode;
+  selected: readonly string[];
+  setSelected: React.Dispatch<React.SetStateAction<readonly string[]>>;
+}) => {
+  const {test, node, selected, setSelected} = props;
+  const {updateWithSave} = useTestUpdate(test);
+
+  const onDeleteClick = () => {
+    node.listSetters = node.listSetters.filter(
+      (setter) => !selected.includes(setter.target)
+    );
+    setSelected([]);
+    updateWithSave();
+  };
 
   return (
     <Toolbar
       sx={{
         pl: {sm: 2},
         pr: {xs: 1, sm: 1},
-        ...(numSelected > 0 && {
+        ...(selected.length > 0 && {
           bgcolor: (theme) =>
             alpha(
               theme.palette.primary.main,
@@ -606,14 +616,14 @@ const EnhancedTableToolbar = (props: {numSelected: number}) => {
         })
       }}
     >
-      {numSelected > 0 ? (
+      {selected.length > 0 ? (
         <Typography
           sx={{flex: '1 1 100%'}}
           color="inherit"
           variant="subtitle1"
           component="div"
         >
-          {numSelected} selected
+          {selected.length} selected
         </Typography>
       ) : (
         <Typography
@@ -625,9 +635,9 @@ const EnhancedTableToolbar = (props: {numSelected: number}) => {
           Parameters
         </Typography>
       )}
-      {numSelected > 0 ? (
+      {selected.length > 0 ? (
         <Tooltip title="Delete">
-          <IconButton>
+          <IconButton onClick={onDeleteClick}>
             <DeleteIcon />
           </IconButton>
         </Tooltip>
