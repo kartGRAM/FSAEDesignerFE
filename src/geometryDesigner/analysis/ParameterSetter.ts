@@ -1,6 +1,7 @@
 import {isObject} from '@utils/helpers';
-import {IControl} from '@gd/controls/IControls';
-import {getControl, Control} from '@gd/controls/Controls';
+import {IDataControl, Control} from '@gd/controls/IControls';
+import {getControl} from '@gd/controls/Controls';
+
 import {IFormula, IDataFormula} from '@gd/IFormula';
 import {Formula} from '@gd/Formula';
 import store from '@store/store';
@@ -74,7 +75,7 @@ export class ParameterSetter implements IParameterSetter {
 
   constructor(
     params:
-      | {type: SetterType; target: IControl; valueFormula: string}
+      | {type: SetterType; target: IDataControl; valueFormula: string}
       | IDataParameterSetter
   ) {
     this.type = params.type;

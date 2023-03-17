@@ -27,7 +27,8 @@ import Tooltip from '@mui/material/Tooltip';
 import DeleteIcon from '@mui/icons-material/Delete';
 import {visuallyHidden} from '@mui/utils';
 
-import {getControl, Control} from '@gd/controls/Controls';
+import {getControl} from '@gd/controls/Controls';
+import {Control} from '@gd/controls/IControls';
 import {useFormik} from 'formik';
 import yup from '@app/utils/Yup';
 import TextField from '@mui/material/TextField';

@@ -1,5 +1,5 @@
 import {IDataAssembly} from '@app/geometryDesigner/IElements';
-import {IControl} from '@gd/controls/IControls';
+import {IDataControl} from '@gd/controls/IControls';
 import {IDataDatumGroup} from '@gd/measure/IDatumObjects';
 import {IDataMeasureTool} from '@gd/measure/IMeasureTools';
 import {IDataTest} from '@gd/analysis/ITest';
@@ -16,7 +16,7 @@ export interface SavedData {
   created?: string;
   topAssembly: IDataAssembly | undefined;
   formulae: IDataFormula[];
-  controls: IControl[];
+  controls: IDataControl[];
   datumObjects: IDataDatumGroup[];
   measureTools: IDataMeasureTool[];
   analysis: IDataTest[];
@@ -118,9 +118,9 @@ function convertJsonToDataFormula(content: string): IDataFormula[] {
   }
 }
 
-function convertJsonToControls(content: string): IControl[] {
+function convertJsonToControls(content: string): IDataControl[] {
   try {
-    const data = JSON.parse(content) as IControl[];
+    const data = JSON.parse(content) as IDataControl[];
     return data;
   } catch (err) {
     // eslint-disable-next-line no-console

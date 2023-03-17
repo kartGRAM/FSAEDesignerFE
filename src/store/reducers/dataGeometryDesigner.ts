@@ -7,7 +7,7 @@ import {
   // getElementByPath
 } from '@app/geometryDesigner/IElements';
 import {IBidirectionalNode, getRootNode} from '@gd/INode';
-import {IControl} from '@gd/controls/IControls';
+import {IDataControl} from '@gd/controls/IControls';
 import {IDataDatumGroup} from '@gd/measure/IDatumObjects';
 import {IDataMeasureTool} from '@gd/measure/IMeasureTools';
 import {IDataTest} from '@gd/analysis/ITest';
@@ -118,7 +118,7 @@ export const dataGeometryDesignerSlice = createSlice({
       }
       state.changed = true;
     },
-    setControl: (state: GDState, action: PayloadAction<IControl>) => {
+    setControl: (state: GDState, action: PayloadAction<IDataControl>) => {
       const control = action.payload;
       const {controls} = state;
       const idx = controls.findIndex(

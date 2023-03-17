@@ -1,6 +1,6 @@
 import React from 'react';
-import {LinearBushingControl} from '@gd/controls/Controls';
-import {IControl} from '@gd/controls/IControls';
+import {LinearBushingControl} from '@gd/controls/LinearBushingControl';
+import {IDataControl} from '@gd/controls/IControls';
 import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import Slider from '@mui/material/Slider';
@@ -13,7 +13,7 @@ import useUpdateEffect from '@app/hooks/useUpdateEffect';
 
 export interface LinearBushingControlProps {
   control: LinearBushingControl;
-  setStaged: React.Dispatch<React.SetStateAction<null | IControl | string>>;
+  setStaged: React.Dispatch<React.SetStateAction<null | IDataControl | string>>;
 }
 
 export function LinearBushingControlSettings(props: LinearBushingControlProps) {

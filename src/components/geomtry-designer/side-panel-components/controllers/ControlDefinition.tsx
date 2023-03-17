@@ -1,6 +1,9 @@
 import React from 'react';
-import {LinearBushingControl} from '@gd/controls/Controls';
-import {IControl, isILinearBushingControl} from '@gd/controls/IControls';
+import {IDataControl} from '@gd/controls/IControls';
+import {
+  LinearBushingControl,
+  isILinearBushingControl
+} from '@gd/controls/LinearBushingControl';
 import {useSelector} from 'react-redux';
 import store, {RootState} from '@store/store';
 import {IElement, isLinearBushing} from '@gd/IElements';
@@ -15,10 +18,10 @@ import usePrevious from '@app/hooks/usePrevious';
 import {LinearBushingControlSettings} from './LinearBushingControl';
 
 export interface ControlDefinitionProps {
-  control: IControl | undefined;
+  control: IDataControl | undefined;
   disabled: boolean;
   inputButton: string;
-  setStaged: React.Dispatch<React.SetStateAction<null | IControl | string>>;
+  setStaged: React.Dispatch<React.SetStateAction<null | IDataControl | string>>;
 }
 
 export function ControlDefinition(props: ControlDefinitionProps) {

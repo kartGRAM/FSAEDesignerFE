@@ -10,7 +10,8 @@ import {
 } from '@store/reducers/uiTempGeometryDesigner';
 // import {getKinematicConstrainedElements} from '@gd/KinematicFunctions';
 import {KinematicSolver} from '@gd/kinematics/Solver';
-import {getControl, Control} from '@gd/controls/Controls';
+import {getControl} from '@gd/controls/Controls';
+import {Control} from '@gd/controls/IControls';
 import {DatumManager} from '@gd/measure/DatumManager';
 import {MeasureToolsManager} from '@gd/measure/MeasureToolsManager';
 

@@ -13,7 +13,7 @@ import {setControl, removeControl} from '@store/reducers/dataGeometryDesigner';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import {alpha} from '@mui/material/styles';
-import {IControl} from '@gd/controls/IControls';
+import {IDataControl} from '@gd/controls/IControls';
 import FullLayoutKeyboard, {keysInv} from './FullLayoutKeyboard';
 import {ControlDefinition} from './ControlDefinition';
 
@@ -27,7 +27,9 @@ const disabledKey =
 export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
   const {open, setOpen} = props;
   const [selectedKey, setSelectedKey] = React.useState('');
-  const [staged, setStaged] = React.useState<null | IControl | string>(null);
+  const [staged, setStaged] = React.useState<null | IDataControl | string>(
+    null
+  );
 
   const zindex = useSelector(
     (state: RootState) =>
