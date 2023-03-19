@@ -1,26 +1,26 @@
 import store from '@store/store';
-import {
-  LinearBushingSingleEnd,
-  isLinearBushingSingleEnd
-} from '@gd/kinematics/Constraints';
+import {BarAndSpheres, isBarAndSpheres} from '@gd/kinematics/Constraints';
 import {KinematicSolver} from '@gd/kinematics/Solver';
 import {Control, IDataControl, ControllerTypes} from './IControls';
 
-export interface IDataLinearBushingControl extends IDataControl {
-  readonly className: 'LinearBushing';
+const className = 'DistanceControl' as const;
+type ClassName = typeof className;
+
+export interface IDataDistanceControl extends IDataControl {
+  readonly className: ClassName;
   readonly reverse: boolean;
   readonly speed: number; // mm/s
 }
 
-export function isDataLinearBushingControl(
+export function isDataDistanceControl(
   control: IDataControl | undefined | null
-): control is IDataLinearBushingControl {
+): control is IDataDistanceControl {
   if (!control) return false;
-  return control.className === 'LinearBushing';
+  return control.className === className;
 }
 
-export class LinearBushingControl extends Control {
-  readonly className = 'LinearBushing' as const;
+export class DistanceControl extends Control {
+  readonly className = className;
 
   reverse: boolean;
 
@@ -28,7 +28,7 @@ export class LinearBushingControl extends Control {
 
   constructor(
     control:
-      | IDataLinearBushingControl
+      | IDataDistanceControl
       | {
           type: ControllerTypes;
           targetElement: string;
@@ -58,12 +58,11 @@ export class LinearBushingControl extends Control {
         ...(current
           .getGroupedConstraints()
           .filter(
-            (c) =>
-              isLinearBushingSingleEnd(c) && c.elementID === this.targetElement
-          ) as LinearBushingSingleEnd[])
+            (c) => isBarAndSpheres(c) && c.elementID === this.targetElement
+          ) as BarAndSpheres[])
       );
       return prev;
-    }, [] as LinearBushingSingleEnd[]);
+    }, [] as BarAndSpheres[]);
     constraints.forEach((constraint) => {
       constraint.dl += deltaDl;
       constraint.dl = Math.min(
@@ -73,7 +72,7 @@ export class LinearBushingControl extends Control {
     });
   }
 
-  getDataControl(): IDataLinearBushingControl {
+  getDataControl(): IDataDistanceControl {
     const data = super.getDataControlBase();
     return {
       ...data,
@@ -86,7 +85,7 @@ export class LinearBushingControl extends Control {
 
 export function isLinearBushingControl(
   control: Control | undefined | null
-): control is LinearBushingControl {
+): control is DistanceControl {
   if (!control) return false;
-  return control.className === 'LinearBushing';
+  return control.className === className;
 }

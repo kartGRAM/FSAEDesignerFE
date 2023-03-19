@@ -1,11 +1,13 @@
 import {IDataControl, Control} from '@gd/controls/IControls';
 import {
   LinearBushingControl,
-  isILinearBushingControl
+  isDataLinearBushingControl
 } from './LinearBushingControl';
+import {DistanceControl, isDataDistanceControl} from './DistanceControl';
 
 export function getControl(control: IDataControl): Control {
-  if (isILinearBushingControl(control))
+  if (isDataLinearBushingControl(control))
     return new LinearBushingControl(control);
+  if (isDataDistanceControl(control)) return new DistanceControl(control);
   throw Error('Not Supported Exception');
 }

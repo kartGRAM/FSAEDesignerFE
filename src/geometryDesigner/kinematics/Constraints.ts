@@ -395,8 +395,10 @@ export class Hinge implements Constraint {
   }
 }
 
+const barAndSpheresClassName = 'BarAndSpheres' as const;
+type BarAndSpheresClassName = typeof barAndSpheresClassName;
 export class BarAndSpheres implements Constraint {
-  readonly className = 'BarAndSpheres';
+  readonly className: BarAndSpheresClassName = barAndSpheresClassName;
 
   // 自由度を1減らす
   constraints(options: ConstraintsOptions) {
@@ -439,6 +441,10 @@ export class BarAndSpheres implements Constraint {
 
   name: string;
 
+  elementID: string;
+
+  controled: boolean;
+
   target: Vector3 = new Vector3();
 
   isFixed: boolean = false;
@@ -458,9 +464,13 @@ export class BarAndSpheres implements Constraint {
     vrhs?: Vector3,
     isSpringDumper?: boolean,
     dlMin?: number,
-    dlMax?: number
+    dlMax?: number,
+    controled?: boolean,
+    elementID?: string
   ) {
     this.name = name;
+    this.controled = controled ?? false;
+    this.elementID = elementID ?? '';
     this.isSpringDumper = isSpringDumper ?? false;
     if (dlMin) this.dlMin = dlMin;
     if (dlMax) this.dlMax = dlMax;
@@ -601,6 +611,12 @@ export class BarAndSpheres implements Constraint {
       }
     }
   }
+}
+
+export function isBarAndSpheres(
+  constraint: Constraint
+): constraint is BarAndSpheres {
+  return constraint.className === barAndSpheresClassName;
 }
 
 export class LinearBushingSingleEnd implements Constraint {

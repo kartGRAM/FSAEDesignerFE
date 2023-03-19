@@ -233,6 +233,7 @@ export class KinematicSolver {
                 pointComponents[points[1].nodeID];
             }
           }
+          const controled = element.nodeID in controls;
           const constraint = new BarAndSpheres(
             `bar object of ${element.name.value}`,
             lhs,
@@ -242,7 +243,9 @@ export class KinematicSolver {
             isFullDegreesComponent(rhs) ? points[1].value : undefined,
             isSpringDumper(element),
             isSpringDumper(element) ? element.dlMin.value : undefined,
-            isSpringDumper(element) ? element.dlMax.value : undefined
+            isSpringDumper(element) ? element.dlMax.value : undefined,
+            controled,
+            element.nodeID
           );
           constraints.push(constraint);
           return;
