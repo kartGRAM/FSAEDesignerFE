@@ -186,6 +186,7 @@ export interface IDataBar extends IDataElement {
 }
 
 export interface ISpringDumper extends IElement {
+  readonly controllable: true;
   readonly fixedPoint: INamedVector3;
   readonly point: INamedVector3;
   readonly dlMin: INamedNumber;

@@ -2,11 +2,15 @@ import React from 'react';
 import {IDataControl} from '@gd/controls/IControls';
 import {
   LinearBushingControl,
-  isILinearBushingControl
+  isDataLinearBushingControl
 } from '@gd/controls/LinearBushingControl';
+import {
+  DistanceControl,
+  isDataDistanceControl
+} from '@gd/controls/DistanceControl';
 import {useSelector} from 'react-redux';
 import store, {RootState} from '@store/store';
-import {IElement, isLinearBushing} from '@gd/IElements';
+import {IElement, isLinearBushing, isSpringDumper} from '@gd/IElements';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
 import MenuItem from '@mui/material/MenuItem';
@@ -16,6 +20,7 @@ import Box from '@mui/material/Box';
 import {alpha} from '@mui/material/styles';
 import usePrevious from '@app/hooks/usePrevious';
 import {LinearBushingControlSettings} from './LinearBushingControl';
+import {DistanceControlSettings} from './DistanceControl';
 
 export interface ControlDefinitionProps {
   control: IDataControl | undefined;
@@ -54,7 +59,7 @@ export function ControlDefinition(props: ControlDefinitionProps) {
   if (inputButton !== '' && element && isLinearBushing(element)) {
     let controlImpl: LinearBushingControl;
     if (
-      isILinearBushingControl(control) &&
+      isDataLinearBushingControl(control) &&
       control.targetElement === element.nodeID
     ) {
       controlImpl = new LinearBushingControl(control);
@@ -73,6 +78,27 @@ export function ControlDefinition(props: ControlDefinitionProps) {
         control={controlImpl}
         setStaged={setStaged}
       />
+    );
+  }
+  if (inputButton !== '' && element && isSpringDumper(element)) {
+    let controlImpl: DistanceControl;
+    if (
+      isDataDistanceControl(control) &&
+      control.targetElement === element.nodeID
+    ) {
+      controlImpl = new DistanceControl(control);
+    } else {
+      controlImpl = new DistanceControl({
+        type: 'keyboard',
+        targetElement: element.nodeID,
+        inputButton
+      });
+      if (prevID !== selectedID) {
+        setTimeout(() => setStaged(controlImpl.getDataControl()), 0);
+      }
+    }
+    components = (
+      <DistanceControlSettings control={controlImpl} setStaged={setStaged} />
     );
   }
 

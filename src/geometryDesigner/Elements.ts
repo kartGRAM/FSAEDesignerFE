@@ -1017,6 +1017,8 @@ export class SpringDumper extends Bar implements ISpringDumper {
     return 'SpringDumper';
   }
 
+  controllable = true as const;
+
   getMirror(): SpringDumper {
     if (isMirror(this)) throw new MirrorError('ミラーはミラーできない');
     const fp = mirrorVec(this.fixedPoint);

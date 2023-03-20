@@ -527,7 +527,7 @@ export class BarAndSpheres implements Constraint {
     let {l2} = this;
     if (this.isSpringDumper && fixSpringDumpersAtCurrentPositions)
       l2 = this.getDistanceOfEndPoints() ** 2;
-    l2 = (Math.sqrt(l2) + this.dl) ** 2;
+    if (this.controled) l2 = (Math.sqrt(l2) + this.dl) ** 2;
     this.setJacobianAndConstraintsImpl(l2, phi_q, phi);
   }
 
