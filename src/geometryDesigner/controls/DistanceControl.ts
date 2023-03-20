@@ -65,10 +65,6 @@ export class DistanceControl extends Control {
     }, [] as BarAndSpheres[]);
     constraints.forEach((constraint) => {
       constraint.dl += deltaDl;
-      constraint.dl = Math.min(
-        constraint.dlMax,
-        Math.max(constraint.dlMin, constraint.dl)
-      );
     });
   }
 

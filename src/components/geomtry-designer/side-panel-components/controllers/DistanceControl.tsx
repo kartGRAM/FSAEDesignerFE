@@ -11,12 +11,12 @@ import {InputBaseComponentProps} from '@mui/material/InputBase';
 import {isNumber} from '@app/utils/helpers';
 import useUpdateEffect from '@app/hooks/useUpdateEffect';
 
-export interface LinearBushingControlProps {
-  control: LinearBushingControl;
+export interface DistanceControlProps {
+  control: DistanceControl;
   setStaged: React.Dispatch<React.SetStateAction<null | IDataControl | string>>;
 }
 
-export function LinearBushingControlSettings(props: LinearBushingControlProps) {
+export function DistanceControlSettings(props: DistanceControlProps) {
   const {control, setStaged} = props;
   const [speed, setSpeed] = React.useState<number | ''>(control.speed);
   const [reverse, setReverse] = React.useState<boolean>(control.reverse);

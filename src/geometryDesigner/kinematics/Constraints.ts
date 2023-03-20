@@ -439,6 +439,19 @@ export class BarAndSpheres implements Constraint {
 
   l2: number;
 
+  private _dl: number = 0;
+
+  set dl(value: number) {
+    if (this.controled) {
+      this._dl = Math.min(this.dlMax, Math.max(this.dlMin, value));
+    }
+  }
+
+  get dl(): number {
+    if (this.controled) return this._dl;
+    return this.getDistanceOfEndPoints() - Math.sqrt(this.l2);
+  }
+
   name: string;
 
   elementID: string;
@@ -471,7 +484,7 @@ export class BarAndSpheres implements Constraint {
     this.name = name;
     this.controled = controled ?? false;
     this.elementID = elementID ?? '';
-    this.isSpringDumper = isSpringDumper ?? false;
+    this.isSpringDumper = (!controled && isSpringDumper) ?? false;
     if (dlMin) this.dlMin = dlMin;
     if (dlMax) this.dlMax = dlMax;
     if (clhs.isFixed) {
@@ -514,6 +527,7 @@ export class BarAndSpheres implements Constraint {
     let {l2} = this;
     if (this.isSpringDumper && fixSpringDumpersAtCurrentPositions)
       l2 = this.getDistanceOfEndPoints() ** 2;
+    l2 = (Math.sqrt(l2) + this.dl) ** 2;
     this.setJacobianAndConstraintsImpl(l2, phi_q, phi);
   }
 
