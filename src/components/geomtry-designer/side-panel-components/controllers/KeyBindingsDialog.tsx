@@ -46,7 +46,9 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
 
   const assignedKeys = controls.map((c) => keysInv(c.inputButton)).join(' ');
 
-  const selectedControl = controls.find((c) => c.inputButton === selectedKey);
+  const selectedControls = controls.filter(
+    (c) => c.inputButton === selectedKey
+  );
 
   React.useEffect(() => {
     if (open) {
@@ -155,13 +157,32 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
         }}
       >
         <FullLayoutKeyboard {...options} />
-        <ControlDefinition
-          setStaged={setStaged}
-          control={selectedControl}
-          disabled={selectedKey === ''}
-          inputButton={selectedKey}
-          key={selectedKey}
-        />
+        {selectedControls.length > 0 ? (
+          [
+            selectedControls.map((control) => (
+              <ControlDefinition
+                setStaged={setStaged}
+                control={control}
+                disabled={selectedKey === ''}
+                inputButton={selectedKey}
+                key={control.nodeID}
+              />
+            )),
+            <ControlDefinition
+              setStaged={setStaged}
+              disabled={selectedKey === ''}
+              inputButton={selectedKey}
+              key={selectedKey}
+            />
+          ]
+        ) : (
+          <ControlDefinition
+            setStaged={setStaged}
+            disabled={selectedKey === ''}
+            inputButton={selectedKey}
+            key={selectedKey}
+          />
+        )}
       </DialogContent>
 
       <DialogActions>

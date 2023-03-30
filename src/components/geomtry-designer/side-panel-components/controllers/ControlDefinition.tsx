@@ -23,7 +23,7 @@ import {LinearBushingControlSettings} from './LinearBushingControl';
 import {DistanceControlSettings} from './DistanceControl';
 
 export interface ControlDefinitionProps {
-  control: IDataControl | undefined;
+  control?: IDataControl;
   disabled: boolean;
   inputButton: string;
   setStaged: React.Dispatch<React.SetStateAction<null | IDataControl | string>>;
