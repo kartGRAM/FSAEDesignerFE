@@ -8,12 +8,16 @@ import {RootState} from '@store/store';
 export const KeyboardControls = () => {
   const [, get] = useKeyboardControls<string>();
 
-  const controls = useSelector((state: RootState) => state.dgd.present.controls)
+  const controlsList = useSelector(
+    (state: RootState) => state.dgd.present.controls
+  )
     .filter((c) => c.type === 'keyboard')
     .reduce((prev, current) => {
-      prev[current.nodeID] = getControl(current);
+      if (!prev[`controls:${current.inputButton}`])
+        prev[`controls:${current.inputButton}`] = [];
+      prev[`controls:${current.inputButton}`].push(getControl(current));
       return prev;
-    }, {} as {[index: string]: Control});
+    }, {} as {[index: string]: Control[]});
 
   const solver = useSelector((state: RootState) => state.uitgd.kinematicSolver);
   const fixSpringDumperDuaringControl = useSelector(
@@ -31,8 +35,8 @@ export const KeyboardControls = () => {
     Object.keys(state).forEach((key) => {
       if (!state[key]) return;
       needToUpdate.value = true;
-      const control = controls[key];
-      if (control) control.preprocess(delta, solver);
+      const controls = controlsList[key];
+      controls.forEach((control) => control.preprocess(delta, solver));
     });
     time.value += delta;
     if (!needToUpdate.value) return;

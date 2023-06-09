@@ -122,9 +122,8 @@ export const dataGeometryDesignerSlice = createSlice({
       const control = action.payload;
       const {controls} = state;
       const idx = controls.findIndex(
-        (c) =>
-          c.nodeID === control.nodeID ||
-          (c.type === control.type && c.inputButton === control.inputButton)
+        (c) => c.nodeID === control.nodeID /* ||
+          (c.type === control.type && c.inputButton === control.inputButton) */
       );
       if (idx !== -1) {
         controls[idx] = control;

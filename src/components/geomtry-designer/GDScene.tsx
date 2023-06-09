@@ -50,7 +50,10 @@ export default function GDScene() {
   const controls = useSelector(
     (state: RootState) => state.dgd.present.controls
   ).filter((c) => c.type === 'keyboard');
-  const map = controls.map((c) => ({name: c.nodeID, keys: [c.inputButton]}));
+  const map = controls.map((c) => ({
+    name: `controls:${c.inputButton}`,
+    keys: [c.inputButton]
+  }));
   map.push(
     ...[
       {name: 'fixY', keys: ['F5']},
