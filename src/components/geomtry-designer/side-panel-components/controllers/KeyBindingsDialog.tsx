@@ -9,6 +9,7 @@ import {
   setConfirmDialogProps
 } from '@store/reducers/uiTempGeometryDesigner';
 import {setControl, removeControl} from '@store/reducers/dataGeometryDesigner';
+import {Divider} from '@mui/material';
 
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
@@ -160,13 +161,16 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
         <FullLayoutKeyboard {...options} />
         {[
           ...selectedControls.map((control) => (
-            <ControlDefinition
-              setStaged={setStaged}
-              control={control}
-              disabled={selectedKey === ''}
-              inputButton={selectedKey}
-              key={control.nodeID}
-            />
+            <>
+              <ControlDefinition
+                setStaged={setStaged}
+                control={control}
+                disabled={selectedKey === ''}
+                inputButton={selectedKey}
+                key={control.nodeID}
+              />
+              <Divider key={`${control.nodeID}hr`} />
+            </>
           )),
           <ControlDefinition
             setStaged={setStaged}
