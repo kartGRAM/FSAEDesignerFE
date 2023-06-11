@@ -35,6 +35,10 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
     control?.targetElement ?? ''
   );
 
+  const [selectedPoint, setSelectedPoint] = React.useState<string>(
+    control?.pointID ?? ''
+  );
+
   const zindex = useSelector(
     (state: RootState) =>
       state.uitgd.fullScreenZIndex +
@@ -49,6 +53,8 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
     prev[current.className].push(current);
     return prev;
   }, {} as {[index: string]: IElement[]});
+  const element = elements.find((element) => element.nodeID === selectedID);
+  const points = element?.getPoints() ?? [];
 
   const handleSliderSpeedChange = (
     event: Event,
@@ -84,12 +90,10 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
     <>
       <Box
         component="div"
-        sx={{display: 'flex', flexDirection: 'row', width: '100%'}}
+        sx={{display: 'flex', flexDirection: 'row', width: '100%', mt: 0.7}}
       >
-        <FormControl sx={{m: 3, minWidth: 320}}>
-          <InputLabel htmlFor="component-select">
-            Select a controllable component
-          </InputLabel>
+        <FormControl sx={{minWidth: 320}}>
+          <InputLabel htmlFor="component-select">Select a component</InputLabel>
           <Select
             value={selectedID}
             label="Select a component"
@@ -118,6 +122,33 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
               .flat()}
           </Select>
         </FormControl>
+        <FormControl sx={{ml: 3, minWidth: 320}}>
+          <InputLabel htmlFor="component-select">Select a node</InputLabel>
+          <Select
+            value={selectedPoint}
+            label="Select a node"
+            MenuProps={{
+              sx: {zIndex: zindex}
+            }}
+            onChange={(e) => {
+              setSelectedPoint(e.target.value);
+            }}
+          >
+            <MenuItem value="">
+              <em>None</em>
+            </MenuItem>
+            {points.map((p) => (
+              <MenuItem value={p.nodeID} key={p.nodeID}>
+                {p.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
+      <Box
+        component="div"
+        sx={{display: 'flex', flexDirection: 'row', width: '100%', mt: 3}}
+      >
         <Box component="div" sx={{flexGrow: 1, mt: 0.7}}>
           <Slider
             size="small"

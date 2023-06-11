@@ -62,7 +62,6 @@ export function ControlDefinition(props: ControlDefinitionProps) {
 
   let components = null;
   const element = elements.find((e) => e.nodeID === selectedID);
-  const pointToPlane = false;
   if (inputButton !== '' && element && isLinearBushing(element)) {
     let controlImpl: LinearBushingControl;
     if (
@@ -108,7 +107,7 @@ export function ControlDefinition(props: ControlDefinitionProps) {
       <DistanceControlSettings control={controlImpl} setStaged={setStaged} />
     );
   }
-  if (inputButton !== '' && pointToPlane) {
+  if (inputButton !== '' && selectedID === 'pointToPlane') {
     let controlImpl: PointToPlaneControl;
     if (isDataPointToPlaneControl(control)) {
       controlImpl = new PointToPlaneControl(control);
@@ -168,6 +167,10 @@ export function ControlDefinition(props: ControlDefinitionProps) {
               ))
             ])
             .flat()}
+          <ListSubheader key="GeometricConstraints">
+            Geometric constraints
+          </ListSubheader>
+          <MenuItem value="pointToPlane">Two-Dimensional Constraint</MenuItem>
         </Select>
       </FormControl>
       <Box component="div" sx={{m: 3}}>
