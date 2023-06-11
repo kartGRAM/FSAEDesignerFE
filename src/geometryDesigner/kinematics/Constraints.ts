@@ -938,3 +938,95 @@ export class QuaternionConstraint implements Constraint {
     return [false, null];
   }
 }
+
+const pointToPlaneClassName = 'PointToPlane' as const;
+type PointToPlaneClassName = typeof pointToPlaneClassName;
+export class PointToPlane implements Constraint {
+  readonly className: PointToPlaneClassName = pointToPlaneClassName;
+
+  // 自由度を1減らす
+  constraints() {
+    return 1;
+  }
+
+  active() {
+    return true;
+  }
+
+  resetStates(): void {}
+
+  readonly isInequalityConstraint = false;
+
+  row: number = -1;
+
+  component: IComponent;
+
+  localVec: Vector3;
+
+  localSkew: Matrix;
+
+  distance: number;
+
+  normal: Vector3;
+
+  name: string;
+
+  elementID: string;
+
+  target: Vector3 = new Vector3();
+
+  get lhs() {
+    return this.component;
+  }
+
+  get rhs() {
+    return this.component;
+  }
+
+  constructor(
+    name: string,
+    component: IComponent,
+    localVec?: Vector3,
+    origin?: Vector3,
+    normal?: Vector3,
+    elementID?: string
+  ) {
+    this.name = name;
+    this.elementID = elementID ?? '';
+    this.component = component;
+    this.localVec = localVec?.clone() ?? new Vector3();
+    this.localSkew = skew(this.localVec).mul(2);
+    this.distance = origin?.length() ?? 0;
+    this.normal = normal?.clone().normalize() ?? new Vector3(0, 0, 1);
+  }
+
+  setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
+    const {row, component, localVec, localSkew, normal, distance} = this;
+    const {col, position} = component;
+    const q = component.quaternion;
+    const A = rotationMatrix(q);
+    const G = decompositionMatrixG(q);
+    const s = localVec.clone().applyQuaternion(q);
+    const nT = new Matrix([[normal.x, normal.y, normal.z]]); // (1x3)
+
+    // 平面拘束
+    phi[row] = position.clone().add(s).dot(normal) - distance;
+    // 平面拘束方程式の変分
+    phi_q.setSubMatrix(nT, row, col + X);
+    if (isFullDegreesComponent(component)) {
+      phi_q.setSubMatrix(nT.mmul(A).mmul(localSkew).mmul(G), row, col + Q0);
+    }
+  }
+
+  setJacobianAndConstraintsInequal() {}
+
+  checkInequalityConstraint(): [boolean, any] {
+    return [false, null];
+  }
+}
+
+export function isPointToPlane(
+  constraint: Constraint
+): constraint is PointToPlane {
+  return constraint.className === pointToPlaneClassName;
+}
