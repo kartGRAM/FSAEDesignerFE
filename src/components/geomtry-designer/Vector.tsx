@@ -48,6 +48,7 @@ export interface Props {
   onRemove?: () => void;
   disabled?: boolean;
   disableSceneButton?: boolean;
+  disablePointOffsetTool?: boolean;
   directionMode?: boolean;
   isNode?: boolean;
   onUpdate?: () => void;
@@ -61,6 +62,7 @@ const Vector = React.memo((props: Props) => {
     onRemove,
     disabled,
     disableSceneButton,
+    disablePointOffsetTool,
     directionMode,
     isNode,
     onUpdate
@@ -386,82 +388,84 @@ const Vector = React.memo((props: Props) => {
           </Box>
         </Box>
       </form>
-      <Accordion
-        TransitionProps={{unmountOnExit: true}}
-        expanded={expanded}
-        onChange={handleAccordionOpen}
-        sx={{
-          backgroundColor: '#eee',
-          ml: 1,
-          mr: 1,
-          '&.Mui-expanded': {
+      {!disablePointOffsetTool ? (
+        <Accordion
+          TransitionProps={{unmountOnExit: true}}
+          expanded={expanded}
+          onChange={handleAccordionOpen}
+          sx={{
+            backgroundColor: '#eee',
             ml: 1,
             mr: 1,
-            mt: 0,
-            mb: 0
-          }
-        }}
-      >
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="panel1a-content"
-          sx={{
-            '.MuiAccordionSummary-content': {
+            '&.Mui-expanded': {
+              ml: 1,
+              mr: 1,
               mt: 0,
               mb: 0
-            },
-            minHeight: 0,
-            '.Mui-expanded': {
-              mt: 1,
-              mb: 1
             }
           }}
         >
-          <Toolbar
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            aria-controls="panel1a-content"
             sx={{
-              pl: '0!important',
-              pr: '1rem!important',
-              minHeight: '40px!important',
-              flex: '1'
+              '.MuiAccordionSummary-content': {
+                mt: 0,
+                mb: 0
+              },
+              minHeight: 0,
+              '.Mui-expanded': {
+                mt: 1,
+                mb: 1
+              }
             }}
           >
-            <Typography
-              sx={{flex: '1 1 100%'}}
-              color="inherit"
-              variant="subtitle1"
-              component="div"
+            <Toolbar
+              sx={{
+                pl: '0!important',
+                pr: '1rem!important',
+                minHeight: '40px!important',
+                flex: '1'
+              }}
             >
-              Point Offset Tools
-            </Typography>
-            {expanded ? (
-              <>
-                {!disabled ? (
-                  <Tooltip title="Add" sx={{flex: '1'}}>
-                    <IconButton onClick={handlePointOffsetToolAdd}>
-                      <AddBoxIcon />
-                    </IconButton>
-                  </Tooltip>
-                ) : null}
-                {selected !== '' && !disabled ? (
-                  <Tooltip title="Delete" sx={{flex: '1'}}>
-                    <IconButton onClick={handlePointOffsetToolDelete}>
-                      <DeleteIcon />
-                    </IconButton>
-                  </Tooltip>
-                ) : null}
-              </>
-            ) : null}
-          </Toolbar>
-        </AccordionSummary>
-        <AccordionDetails sx={{padding: 0}}>
-          <PointOffsetList
-            selected={selected}
-            setSelected={setSelected}
-            vector={vector}
-            disabled={disabled}
-          />
-        </AccordionDetails>
-      </Accordion>
+              <Typography
+                sx={{flex: '1 1 100%'}}
+                color="inherit"
+                variant="subtitle1"
+                component="div"
+              >
+                Point Offset Tools
+              </Typography>
+              {expanded ? (
+                <>
+                  {!disabled ? (
+                    <Tooltip title="Add" sx={{flex: '1'}}>
+                      <IconButton onClick={handlePointOffsetToolAdd}>
+                        <AddBoxIcon />
+                      </IconButton>
+                    </Tooltip>
+                  ) : null}
+                  {selected !== '' && !disabled ? (
+                    <Tooltip title="Delete" sx={{flex: '1'}}>
+                      <IconButton onClick={handlePointOffsetToolDelete}>
+                        <DeleteIcon />
+                      </IconButton>
+                    </Tooltip>
+                  ) : null}
+                </>
+              ) : null}
+            </Toolbar>
+          </AccordionSummary>
+          <AccordionDetails sx={{padding: 0}}>
+            <PointOffsetList
+              selected={selected}
+              setSelected={setSelected}
+              vector={vector}
+              disabled={disabled}
+            />
+          </AccordionDetails>
+        </Accordion>
+      ) : null}
     </Box>
   );
 });

@@ -18,6 +18,7 @@ import FormControl from '@mui/material/FormControl';
 import MenuItem from '@mui/material/MenuItem';
 import ListSubheader from '@mui/material/ListSubheader';
 import Select from '@mui/material/Select';
+import Vector from '@gdComponents/Vector';
 
 export interface PointToPlaneControlProps {
   control: PointToPlaneControl;
@@ -81,10 +82,12 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
   };
 
   useUpdateEffect(() => {
+    control.targetElement = selectedID;
+    control.pointID = selectedPoint;
     control.speed = isNumber(speed) ? speed : 0;
     control.reverse = reverse;
     setStaged(control.getDataControl());
-  }, [speed, reverse]);
+  }, [selectedID, selectedPoint, speed, reverse]);
 
   return (
     <>
@@ -145,6 +148,28 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
           </Select>
         </FormControl>
       </Box>
+      <Vector
+        vector={control.origin}
+        disableSceneButton
+        disablePointOffsetTool
+      />
+      <Vector
+        vector={control.normal}
+        disableSceneButton
+        disablePointOffsetTool
+      />
+      <Box component="div" sx={{flexGrow: 1, mt: 0.7}}>
+        <ValueField
+          value={speed}
+          onChange={handleInputSpeedChange}
+          onBlur={handleBlur}
+          label="Speed"
+          name="speed"
+          variant="outlined"
+          unit="mm/s"
+          inputProps={{min, max, step: 1}}
+        />
+      </Box>
       <Box
         component="div"
         sx={{display: 'flex', flexDirection: 'row', width: '100%', mt: 3}}
@@ -160,18 +185,6 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
             onChange={handleSliderSpeedChange}
           />
         </Box>
-        <ValueField
-          value={speed}
-          onChange={handleInputSpeedChange}
-          onBlur={handleBlur}
-          label="Speed"
-          name="speed"
-          variant="outlined"
-          unit="mm/s"
-          inputProps={{min, max, step: 1}}
-        />
-      </Box>
-      <Box component="div" sx={{flexGrow: 1, mt: 0.7}}>
         <ValueField
           value={speed}
           onChange={handleInputSpeedChange}
