@@ -983,13 +983,29 @@ export class PointToPlane implements Constraint {
     return this.component;
   }
 
+  dlMin: number = Number.MIN_SAFE_INTEGER;
+
+  dlMax: number = Number.MAX_SAFE_INTEGER;
+
+  private _dl: number = 0;
+
+  set dl(value: number) {
+    this._dl = Math.min(this.dlMax, Math.max(this.dlMin, value));
+  }
+
+  get dl(): number {
+    return this._dl;
+  }
+
   constructor(
     name: string,
     component: IComponent,
     localVec?: Vector3,
     origin?: Vector3,
     normal?: Vector3,
-    elementID?: string
+    elementID?: string,
+    dlMin?: number,
+    dlMax?: number
   ) {
     this.name = name;
     this.elementID = elementID ?? '';
@@ -998,10 +1014,12 @@ export class PointToPlane implements Constraint {
     this.localSkew = skew(this.localVec).mul(2);
     this.distance = origin?.length() ?? 0;
     this.normal = normal?.clone().normalize() ?? new Vector3(0, 0, 1);
+    if (dlMin) this.dlMin = dlMin;
+    if (dlMax) this.dlMax = dlMax;
   }
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
-    const {row, component, localVec, localSkew, normal, distance} = this;
+    const {row, component, localVec, localSkew, normal, distance, _dl} = this;
     const {col, position} = component;
     const q = component.quaternion;
     const A = rotationMatrix(q);
@@ -1010,7 +1028,7 @@ export class PointToPlane implements Constraint {
     const nT = new Matrix([[normal.x, normal.y, normal.z]]); // (1x3)
 
     // 平面拘束
-    phi[row] = position.clone().add(s).dot(normal) - distance;
+    phi[row] = position.clone().add(s).dot(normal) - distance + _dl;
     // 平面拘束方程式の変分
     phi_q.setSubMatrix(nT, row, col + X);
     if (isFullDegreesComponent(component)) {

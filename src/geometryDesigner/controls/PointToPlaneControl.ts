@@ -1,6 +1,6 @@
 import store from '@store/store';
 import {IDataVector3, INamedVector3, FunctionVector3} from '@gd/INamedValues';
-import {BarAndSpheres, isBarAndSpheres} from '@gd/kinematics/Constraints';
+import {PointToPlane, isPointToPlane} from '@gd/kinematics/Constraints';
 import {KinematicSolver} from '@gd/kinematics/Solver';
 import {NamedVector3} from '@gd/NamedValues';
 import {Control, IDataControl, ControllerTypes} from './IControls';
@@ -83,6 +83,24 @@ export class PointToPlaneControl extends Control {
   preprocess(dt: number, solver: KinematicSolver): void {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const deltaDl = dt * this.speed * (this.reverse ? -1 : 1);
+    const roots = solver.components.map((c) => c[0]);
+    const constraints = roots.reduce((prev, current) => {
+      prev.push(
+        ...(current
+          .getGroupedConstraints()
+          .filter(
+            (c) => isPointToPlane(c) && c.elementID === this.targetElement
+          ) as PointToPlane[])
+      );
+      return prev;
+    }, [] as PointToPlane[]);
+    constraints.forEach((constraint) => {
+      constraint.dl += deltaDl;
+      constraint.dl = Math.min(
+        constraint.dlMax,
+        Math.max(constraint.dlMin, constraint.dl)
+      );
+    });
   }
 
   getDataControl(): IDataPointToPlaneControl {
