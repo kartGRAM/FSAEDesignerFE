@@ -8,6 +8,11 @@ import {
   DistanceControl,
   isDataDistanceControl
 } from '@gd/controls/DistanceControl';
+import {
+  PointToPlaneControl,
+  isDataPointToPlaneControl
+} from '@gd/controls/PointToPlaneControl';
+
 import {useSelector} from 'react-redux';
 import store, {RootState} from '@store/store';
 import {IElement, isLinearBushing, isSpringDumper} from '@gd/IElements';
@@ -21,6 +26,7 @@ import {alpha} from '@mui/material/styles';
 import usePrevious from '@app/hooks/usePrevious';
 import {LinearBushingControlSettings} from './LinearBushingControl';
 import {DistanceControlSettings} from './DistanceControl';
+import {PointToPlaneControlSettings} from './PointToPlaneControl';
 
 export interface ControlDefinitionProps {
   control?: IDataControl;
@@ -56,6 +62,7 @@ export function ControlDefinition(props: ControlDefinitionProps) {
 
   let components = null;
   const element = elements.find((e) => e.nodeID === selectedID);
+  const pointToPlane = false;
   if (inputButton !== '' && element && isLinearBushing(element)) {
     let controlImpl: LinearBushingControl;
     if (
@@ -99,6 +106,27 @@ export function ControlDefinition(props: ControlDefinitionProps) {
     }
     components = (
       <DistanceControlSettings control={controlImpl} setStaged={setStaged} />
+    );
+  }
+  if (inputButton !== '' && pointToPlane) {
+    let controlImpl: PointToPlaneControl;
+    if (isDataPointToPlaneControl(control)) {
+      controlImpl = new PointToPlaneControl(control);
+    } else {
+      controlImpl = new PointToPlaneControl({
+        type: 'keyboard',
+        targetElement: '',
+        inputButton
+      });
+      if (prevID !== selectedID) {
+        setTimeout(() => setStaged(controlImpl.getDataControl()), 0);
+      }
+    }
+    components = (
+      <PointToPlaneControlSettings
+        control={controlImpl}
+        setStaged={setStaged}
+      />
     );
   }
 

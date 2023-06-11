@@ -1,5 +1,7 @@
 import React from 'react';
-import {DistanceControl} from '@gd/controls/DistanceControl';
+import store, {RootState} from '@store/store';
+import {useSelector} from 'react-redux';
+import {PointToPlaneControl} from '@gd/controls/PointToPlaneControl';
 import {IDataControl} from '@gd/controls/IControls';
 import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -10,18 +12,43 @@ import Checkbox from '@mui/material/Checkbox';
 import {InputBaseComponentProps} from '@mui/material/InputBase';
 import {isNumber} from '@app/utils/helpers';
 import useUpdateEffect from '@app/hooks/useUpdateEffect';
+import {IElement} from '@gd/IElements';
+import InputLabel from '@mui/material/InputLabel';
+import FormControl from '@mui/material/FormControl';
+import MenuItem from '@mui/material/MenuItem';
+import ListSubheader from '@mui/material/ListSubheader';
+import Select from '@mui/material/Select';
 
-export interface DistanceControlProps {
-  control: DistanceControl;
+export interface PointToPlaneControlProps {
+  control: PointToPlaneControl;
   setStaged: React.Dispatch<React.SetStateAction<null | IDataControl | string>>;
 }
 
-export function DistanceControlSettings(props: DistanceControlProps) {
+export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
   const {control, setStaged} = props;
   const [speed, setSpeed] = React.useState<number | ''>(control.speed);
   const [reverse, setReverse] = React.useState<boolean>(control.reverse);
   const max = 400;
   const min = 0;
+
+  const [selectedID, setSelectedID] = React.useState<string>(
+    control?.targetElement ?? ''
+  );
+
+  const zindex = useSelector(
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex +
+      state.uitgd.dialogZIndex +
+      state.uitgd.menuZIndex
+  );
+
+  const state = store.getState();
+  const elements = state.uitgd.collectedAssembly?.children ?? [];
+  const elementsByClass = elements.reduce((prev, current) => {
+    if (!(current.className in prev)) prev[current.className] = [];
+    prev[current.className].push(current);
+    return prev;
+  }, {} as {[index: string]: IElement[]});
 
   const handleSliderSpeedChange = (
     event: Event,
@@ -59,6 +86,38 @@ export function DistanceControlSettings(props: DistanceControlProps) {
         component="div"
         sx={{display: 'flex', flexDirection: 'row', width: '100%'}}
       >
+        <FormControl sx={{m: 3, minWidth: 320}}>
+          <InputLabel htmlFor="component-select">
+            Select a controllable component
+          </InputLabel>
+          <Select
+            value={selectedID}
+            label="Select a component"
+            MenuProps={{
+              sx: {zIndex: zindex}
+            }}
+            onChange={(e) => {
+              setSelectedID(e.target.value);
+              if (e.target.value === '' && control) {
+                setStaged(control.nodeID);
+              }
+            }}
+          >
+            <MenuItem value="">
+              <em>None</em>
+            </MenuItem>
+            {Object.keys(elementsByClass)
+              .map((key) => [
+                <ListSubheader key={key}>{key}</ListSubheader>,
+                ...elementsByClass[key].map((element) => (
+                  <MenuItem value={element.nodeID} key={element.nodeID}>
+                    {element.name.value}
+                  </MenuItem>
+                ))
+              ])
+              .flat()}
+          </Select>
+        </FormControl>
         <Box component="div" sx={{flexGrow: 1, mt: 0.7}}>
           <Slider
             size="small"
@@ -70,6 +129,18 @@ export function DistanceControlSettings(props: DistanceControlProps) {
             onChange={handleSliderSpeedChange}
           />
         </Box>
+        <ValueField
+          value={speed}
+          onChange={handleInputSpeedChange}
+          onBlur={handleBlur}
+          label="Speed"
+          name="speed"
+          variant="outlined"
+          unit="mm/s"
+          inputProps={{min, max, step: 1}}
+        />
+      </Box>
+      <Box component="div" sx={{flexGrow: 1, mt: 0.7}}>
         <ValueField
           value={speed}
           onChange={handleInputSpeedChange}
