@@ -8,8 +8,6 @@ import {Control, IDataControl, ControllerTypes} from './IControls';
 
 export interface IDataLinearBushingControl extends IDataControl {
   readonly className: 'LinearBushing';
-  readonly reverse: boolean;
-  readonly speed: number; // mm/s
 }
 
 export function isDataLinearBushingControl(
@@ -21,10 +19,6 @@ export function isDataLinearBushingControl(
 
 export class LinearBushingControl extends Control {
   readonly className = 'LinearBushing' as const;
-
-  reverse: boolean;
-
-  speed: number; // mm/s
 
   constructor(
     control:

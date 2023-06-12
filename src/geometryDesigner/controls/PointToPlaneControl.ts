@@ -13,8 +13,6 @@ export interface IDataPointToPlaneControl extends IDataControl {
   readonly pointID: string;
   readonly origin: IDataVector3;
   readonly normal: IDataVector3;
-  readonly reverse: boolean;
-  readonly speed: number; // mm/s
 }
 
 export function isDataPointToPlaneControl(
@@ -28,10 +26,6 @@ export class PointToPlaneControl extends Control {
   readonly className = className;
 
   pointID: string;
-
-  reverse: boolean;
-
-  speed: number; // mm/s
 
   origin: NamedVector3;
 
@@ -54,8 +48,6 @@ export class PointToPlaneControl extends Control {
   ) {
     super(control);
     const {origin, normal, pointID} = control;
-    this.speed = control.speed ?? 10;
-    this.reverse = control.reverse ?? false;
 
     this.pointID = pointID ?? '';
 

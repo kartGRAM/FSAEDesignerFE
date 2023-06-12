@@ -8,8 +8,6 @@ type ClassName = typeof className;
 
 export interface IDataDistanceControl extends IDataControl {
   readonly className: ClassName;
-  readonly reverse: boolean;
-  readonly speed: number; // mm/s
 }
 
 export function isDataDistanceControl(

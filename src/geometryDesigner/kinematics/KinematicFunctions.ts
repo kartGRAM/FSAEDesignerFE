@@ -139,7 +139,9 @@ export type JointDict = {[index: string]: JointAsVector3[]};
 
 // 拘束点がgetPointsの何番目か
 export function getIndexOfPoint(element: IElement, v: INamedVector3) {
-  const i = element.getPoints().findIndex((p) => p.nodeID === v.nodeID);
+  const i = element
+    .getMeasurablePoints()
+    .findIndex((p) => p.nodeID === v.nodeID);
   if (i < 0) throw new Error('拘束点が見つからない');
   return i;
 }

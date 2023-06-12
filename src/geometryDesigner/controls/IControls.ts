@@ -8,6 +8,8 @@ export interface IDataControl {
   readonly type: ControllerTypes;
   readonly targetElement: string;
   readonly inputButton: string;
+  readonly reverse: boolean;
+  readonly speed: number; // mm/s or rad/s
 }
 
 export type ControllerTypes = 'keyboard' | 'joystick' | 'notAssigned';
@@ -35,6 +37,10 @@ export abstract class Control {
 
   inputButton: string;
 
+  speed: number;
+
+  reverse: boolean;
+
   constructor(
     control:
       | IDataControl
@@ -43,6 +49,8 @@ export abstract class Control {
           type: ControllerTypes;
           targetElement: string;
           inputButton: string;
+          speed?: number;
+          reverse?: boolean;
           nodeID?: string;
         }
   ) {
@@ -51,16 +59,20 @@ export abstract class Control {
     this.type = control.type;
     this.targetElement = control.targetElement;
     this.inputButton = control.inputButton;
+    this.speed = control.speed ?? 10;
+    this.reverse = control.reverse ?? false;
   }
 
   getDataControlBase(): IDataControl {
     return {
       nodeID: this.nodeID,
-      name: this._name,
+      name: this.name,
       className: this.className,
       type: this.type,
       targetElement: this.targetElement,
-      inputButton: this.inputButton
+      inputButton: this.inputButton,
+      speed: this.speed,
+      reverse: this.reverse
     };
   }
 
