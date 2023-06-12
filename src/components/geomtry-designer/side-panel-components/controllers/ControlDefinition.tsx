@@ -10,7 +10,8 @@ import {
 } from '@gd/controls/DistanceControl';
 import {
   PointToPlaneControl,
-  isDataPointToPlaneControl
+  isDataPointToPlaneControl,
+  className as pointToPlane
 } from '@gd/controls/PointToPlaneControl';
 
 import {useSelector} from 'react-redux';
@@ -46,7 +47,9 @@ export function ControlDefinition(props: ControlDefinitionProps) {
   );
 
   const [selectedID, setSelectedID] = React.useState<string>(
-    control?.targetElement ?? ''
+    isDataPointToPlaneControl(control)
+      ? pointToPlane
+      : control?.targetElement ?? ''
   );
   const prevID = usePrevious(selectedID);
 
@@ -107,7 +110,7 @@ export function ControlDefinition(props: ControlDefinitionProps) {
       <DistanceControlSettings control={controlImpl} setStaged={setStaged} />
     );
   }
-  if (inputButton !== '' && selectedID === 'pointToPlane') {
+  if (inputButton !== '' && selectedID === pointToPlane) {
     let controlImpl: PointToPlaneControl;
     if (isDataPointToPlaneControl(control)) {
       controlImpl = new PointToPlaneControl(control);
@@ -170,7 +173,7 @@ export function ControlDefinition(props: ControlDefinitionProps) {
           <ListSubheader key="GeometricConstraints">
             Geometric constraints
           </ListSubheader>
-          <MenuItem value="pointToPlane">Two-Dimensional Constraint</MenuItem>
+          <MenuItem value={pointToPlane}>Two-Dimensional Constraint</MenuItem>
         </Select>
       </FormControl>
       <Box component="div" sx={{m: 3}}>

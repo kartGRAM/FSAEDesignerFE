@@ -55,7 +55,7 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
     return prev;
   }, {} as {[index: string]: IElement[]});
   const element = elements.find((element) => element.nodeID === selectedID);
-  const points = element?.getPoints() ?? [];
+  const points = element?.getMeasurablePoints() ?? [];
 
   const handleSliderSpeedChange = (
     event: Event,
@@ -93,7 +93,13 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
     <>
       <Box
         component="div"
-        sx={{display: 'flex', flexDirection: 'row', width: '100%', mt: 0.7}}
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          width: '100%',
+          mt: 0.7,
+          ml: 2
+        }}
       >
         <FormControl sx={{minWidth: 320}}>
           <InputLabel htmlFor="component-select">Select a component</InputLabel>
@@ -158,7 +164,7 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
         disableSceneButton
         disablePointOffsetTool
       />
-      <Box component="div" sx={{flexGrow: 1, mt: 0.7}}>
+      <Box component="div" sx={{flexGrow: 1, mt: 4, ml: 2}}>
         <ValueField
           value={speed}
           onChange={handleInputSpeedChange}
@@ -231,7 +237,7 @@ const ValueField = React.memo((props: MyOutlinedTextFieldProps) => {
         inputProps
       }}
       sx={{
-        marginLeft: 3
+        marginLeft: 0
         // width: '15ch'
       }}
     />

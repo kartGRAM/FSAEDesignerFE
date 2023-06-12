@@ -5,7 +5,7 @@ import {KinematicSolver} from '@gd/kinematics/Solver';
 import {NamedVector3} from '@gd/NamedValues';
 import {Control, IDataControl, ControllerTypes} from './IControls';
 
-const className = 'PointToPlaneControl' as const;
+export const className = 'PointToPlaneControl' as const;
 type ClassName = typeof className;
 
 export interface IDataPointToPlaneControl extends IDataControl {
@@ -111,7 +111,7 @@ export class PointToPlaneControl extends Control {
       className: this.className,
       pointID: this.pointID,
       origin: this.origin.getData(state),
-      normal: this.origin.getData(state),
+      normal: this.normal.getData(state),
       speed: this.speed,
       reverse: this.reverse
     };

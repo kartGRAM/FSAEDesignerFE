@@ -80,6 +80,7 @@ const store = configureStore({
           'uitgd.gdDialogState.movePointDialogProps',
           'uitgd.gdDialogState.movePointOnMoved',
           'uitgd.draggingNewTestFlowNode',
+          'uitgd.gdDialogState.saveAsDialogProps.onClose',
           'uitgd.gdDialogState.confirmDialogProps'
         ],
         warnAfter: 128

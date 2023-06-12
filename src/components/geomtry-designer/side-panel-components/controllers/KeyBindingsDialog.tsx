@@ -158,7 +158,7 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
           }
         }}
       >
-        <FullLayoutKeyboard {...options} />
+        <FullLayoutKeyboard {...options} key="keyboad" />
         {[
           ...selectedControls.map((control) => (
             <>
