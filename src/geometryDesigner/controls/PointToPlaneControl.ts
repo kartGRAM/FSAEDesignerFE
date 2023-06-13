@@ -66,7 +66,9 @@ export class PointToPlaneControl extends Control {
     const elements = store.getState().uitgd.collectedAssembly?.children;
     const element = elements?.find((e) => e.nodeID === this.targetElement);
     if (!element) return 'component not found';
-    const point = element.getPoints().find((p) => p.nodeID === this.pointID);
+    const point = element
+      .getMeasurablePoints()
+      .find((p) => p.nodeID === this.pointID);
     if (!point) return 'target point not found';
     return `position of ${point.name} of ${element.name.value}`;
   }

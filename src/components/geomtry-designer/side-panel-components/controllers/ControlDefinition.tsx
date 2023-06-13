@@ -13,6 +13,11 @@ import {
   isDataPointToPlaneControl,
   className as pointToPlane
 } from '@gd/controls/PointToPlaneControl';
+import {
+  ExistingConstraintControl,
+  isDataExistingConstraintControl,
+  className as existingConstraint
+} from '@gd/controls/ExistingConstraintControl';
 
 import {useSelector} from 'react-redux';
 import store, {RootState} from '@store/store';
@@ -28,6 +33,7 @@ import usePrevious from '@app/hooks/usePrevious';
 import {LinearBushingControlSettings} from './LinearBushingControl';
 import {DistanceControlSettings} from './DistanceControl';
 import {PointToPlaneControlSettings} from './PointToPlaneControl';
+import {ExistingConstraintControlSettings} from './ExistingConstraintControl';
 
 export interface ControlDefinitionProps {
   control?: IDataControl;
@@ -47,8 +53,11 @@ export function ControlDefinition(props: ControlDefinitionProps) {
   );
 
   const [selectedID, setSelectedID] = React.useState<string>(
+    // eslint-disable-next-line no-nested-ternary
     isDataPointToPlaneControl(control)
       ? pointToPlane
+      : isDataExistingConstraintControl(control)
+      ? existingConstraint
       : control?.targetElement ?? ''
   );
   const prevID = usePrevious(selectedID);
@@ -131,6 +140,27 @@ export function ControlDefinition(props: ControlDefinitionProps) {
       />
     );
   }
+  if (inputButton !== '' && selectedID === existingConstraint) {
+    let controlImpl: ExistingConstraintControl;
+    if (isDataExistingConstraintControl(control)) {
+      controlImpl = new ExistingConstraintControl(control);
+    } else {
+      controlImpl = new ExistingConstraintControl({
+        type: 'keyboard',
+        targetControl: '',
+        inputButton
+      });
+      if (prevID !== selectedID) {
+        setTimeout(() => setStaged(controlImpl.getDataControl()), 0);
+      }
+    }
+    components = (
+      <ExistingConstraintControlSettings
+        control={controlImpl}
+        setStaged={setStaged}
+      />
+    );
+  }
 
   return (
     <>
@@ -174,6 +204,9 @@ export function ControlDefinition(props: ControlDefinitionProps) {
             Geometric constraints
           </ListSubheader>
           <MenuItem value={pointToPlane}>Two-Dimensional Constraint</MenuItem>
+          <MenuItem value={existingConstraint}>
+            Another Control for Existing Constraint
+          </MenuItem>
         </Select>
       </FormControl>
       <Box component="div" sx={{m: 3}}>

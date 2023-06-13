@@ -3,48 +3,48 @@ import {getControl} from '@gd/controls/Controls';
 import {KinematicSolver} from '@gd/kinematics/Solver';
 import {Control, IDataControl, ControllerTypes} from './IControls';
 
-export const className = 'ExistingConstraintsControl' as const;
+export const className = 'ExistingConstraintControl' as const;
 type ClassName = typeof className;
 
-export interface IDataExistingConstraintsControl extends IDataControl {
+export interface IDataExistingConstraintControl extends IDataControl {
   readonly className: ClassName;
-  readonly targetNodeID: string;
+  readonly targetControl: string;
 }
 
-export function isDataExistingConstraintsControl(
+export function isDataExistingConstraintControl(
   control: IDataControl | undefined | null
-): control is IDataExistingConstraintsControl {
+): control is IDataExistingConstraintControl {
   if (!control) return false;
   return control.className === className;
 }
 
-export class ExistingConstraintsControl extends Control {
+export class ExistingConstraintControl extends Control {
   readonly className = className;
 
-  targetNodeID: string;
+  targetControl: string;
 
   constructor(
     control:
-      | IDataExistingConstraintsControl
+      | IDataExistingConstraintControl
       | {
           type: ControllerTypes;
           inputButton: string;
           nodeID?: string;
           speed?: number;
           reverse?: boolean;
-          targetNodeID?: string;
+          targetControl?: string;
         }
   ) {
     super({...control, targetElement: ''});
     this.speed = control.speed ?? 10;
     this.reverse = control.reverse ?? false;
-    this.targetNodeID = control.targetNodeID ?? '';
+    this.targetControl = control.targetControl ?? '';
   }
 
   nameDefault(): string {
     const {controls} = store.getState().dgd.present;
     const dataControl = controls.find(
-      (control) => control.nodeID === this.targetNodeID
+      (control) => control.nodeID === this.targetControl
     );
     if (!dataControl) return 'target control is not found';
     const control = getControl(dataControl);
@@ -54,7 +54,7 @@ export class ExistingConstraintsControl extends Control {
   preprocess(dt: number, solver: KinematicSolver): void {
     const {controls} = store.getState().dgd.present;
     const dataControl = controls.find(
-      (control) => control.nodeID === this.targetNodeID
+      (control) => control.nodeID === this.targetControl
     );
     if (!dataControl) return;
     const dtMod =
@@ -65,21 +65,21 @@ export class ExistingConstraintsControl extends Control {
     control.preprocess(dtMod, solver);
   }
 
-  getDataControl(): IDataExistingConstraintsControl {
+  getDataControl(): IDataExistingConstraintControl {
     const data = super.getDataControlBase();
     return {
       ...data,
       className: this.className,
-      targetNodeID: this.targetNodeID,
+      targetControl: this.targetControl,
       speed: this.speed,
       reverse: this.reverse
     };
   }
 }
 
-export function isExistingConstraintsControl(
+export function isExistingConstraintControl(
   control: Control | undefined | null
-): control is ExistingConstraintsControl {
+): control is ExistingConstraintControl {
   if (!control) return false;
   return control.className === className;
 }
