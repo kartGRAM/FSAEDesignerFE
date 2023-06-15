@@ -32,6 +32,7 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
   const [staged, setStaged] = React.useState<null | IDataControl | string>(
     null
   );
+  const [prefix, resetNewDefinition] = React.useState<Boolean>(false);
 
   const zindex = useSelector(
     (state: RootState) =>
@@ -66,10 +67,12 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
     if (typeof staged === 'string') {
       dispatch(removeControl(staged));
       setStaged(null);
+      resetNewDefinition((prev) => !prev);
       return;
     }
     dispatch(setControl(staged));
     setStaged(null);
+    resetNewDefinition((prev) => !prev);
   };
 
   const handleClose = () => {
@@ -160,23 +163,23 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
       >
         <FullLayoutKeyboard {...options} key="keyboad" />
         {[
-          ...selectedControls.map((control) => (
-            <>
+          ...selectedControls
+            .map((control) => [
               <ControlDefinition
                 setStaged={setStaged}
                 control={control}
                 disabled={selectedKey === ''}
                 inputButton={selectedKey}
                 key={control.nodeID}
-              />
+              />,
               <Divider key={`${control.nodeID}hr`} />
-            </>
-          )),
+            ])
+            .flat(),
           <ControlDefinition
             setStaged={setStaged}
             disabled={selectedKey === ''}
             inputButton={selectedKey}
-            key={selectedKey}
+            key={prefix + selectedKey}
           />
         ]}
       </DialogContent>
