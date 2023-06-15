@@ -1,8 +1,14 @@
 import store from '@store/store';
-import {IDataVector3, INamedVector3, FunctionVector3} from '@gd/INamedValues';
+import {
+  IDataVector3,
+  INamedVector3,
+  FunctionVector3,
+  IDataNumber,
+  INamedNumber
+} from '@gd/INamedValues';
 import {PointToPlane, isPointToPlane} from '@gd/kinematics/Constraints';
 import {KinematicSolver} from '@gd/kinematics/Solver';
-import {NamedVector3} from '@gd/NamedValues';
+import {NamedVector3, NamedNumber} from '@gd/NamedValues';
 import {Control, IDataControl, ControllerTypes} from './IControls';
 
 export const className = 'PointToPlaneControl' as const;
@@ -13,6 +19,8 @@ export interface IDataPointToPlaneControl extends IDataControl {
   readonly pointID: string;
   readonly origin: IDataVector3;
   readonly normal: IDataVector3;
+  readonly min: IDataNumber;
+  readonly max: IDataNumber;
 }
 
 export function isDataPointToPlaneControl(
@@ -27,9 +35,13 @@ export class PointToPlaneControl extends Control {
 
   pointID: string;
 
-  origin: NamedVector3;
+  origin: INamedVector3;
 
-  normal: NamedVector3;
+  normal: INamedVector3;
+
+  max: INamedNumber;
+
+  min: INamedNumber;
 
   constructor(
     control:
@@ -42,14 +54,23 @@ export class PointToPlaneControl extends Control {
           pointID?: string;
           origin?: FunctionVector3 | IDataVector3 | INamedVector3;
           normal?: FunctionVector3 | IDataVector3 | INamedVector3;
-          speed?: number;
+          max?: string | number | IDataNumber | INamedNumber;
+          min?: string | number | IDataNumber | INamedNumber;
           reverse?: boolean;
         }
   ) {
     super(control);
-    const {origin, normal, pointID} = control;
+    const {origin, normal, pointID, max, min} = control;
 
     this.pointID = pointID ?? '';
+    this.max = new NamedNumber({
+      name: 'max',
+      value: max ?? 10
+    });
+    this.min = new NamedNumber({
+      name: 'min',
+      value: min ?? -10
+    });
 
     this.origin = new NamedVector3({
       name: 'origin',
@@ -106,6 +127,8 @@ export class PointToPlaneControl extends Control {
       pointID: this.pointID,
       origin: this.origin.getData(state),
       normal: this.normal.getData(state),
+      max: this.max.getData(state),
+      min: this.min.getData(state),
       speed: this.speed,
       reverse: this.reverse
     };

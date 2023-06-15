@@ -182,11 +182,15 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={handleApply} disabled={!staged}>
+        <Button onClick={handleApply} key="apply" disabled={!staged}>
           Apply
         </Button>
-        <Button onClick={handleClose}>Cancel</Button>
-        <Button onClick={handleOK}>OK</Button>
+        <Button onClick={handleClose} key="cancel">
+          Cancel
+        </Button>
+        <Button onClick={handleOK} key="OK">
+          OK
+        </Button>
       </DialogActions>
     </Dialog>
   );

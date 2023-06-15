@@ -19,6 +19,7 @@ import MenuItem from '@mui/material/MenuItem';
 import ListSubheader from '@mui/material/ListSubheader';
 import Select from '@mui/material/Select';
 import Vector from '@gdComponents/Vector';
+import Scalar from '@gdComponents/Scalar';
 
 export interface PointToPlaneControlProps {
   control: PointToPlaneControl;
@@ -164,6 +165,13 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
         disableSceneButton
         disablePointOffsetTool
       />
+      <Box
+        component="div"
+        sx={{display: 'flex', flexDirection: 'row', width: '100%'}}
+      >
+        <Scalar value={control.min} unit="mm" />
+        <Scalar value={control.max} unit="mm" />
+      </Box>
       <Box component="div" sx={{flexGrow: 1, mt: 4, ml: 2}}>
         <ValueField
           value={speed}
