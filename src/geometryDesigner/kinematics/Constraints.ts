@@ -961,9 +961,15 @@ export class PointToPlane implements Constraint {
 
   component: IComponent;
 
-  localVec: Vector3;
+  _localVec: (normal: Vector3, distance: number) => Vector3;
 
-  localSkew: Matrix;
+  get localVec(): Vector3 {
+    return this._localVec(this.normal, this.distance);
+  }
+
+  get localSkew(): Matrix {
+    return skew(this._localVec(this.normal, this.distance)).mul(2);
+  }
 
   distance: number;
 
@@ -1000,7 +1006,7 @@ export class PointToPlane implements Constraint {
   constructor(
     name: string,
     component: IComponent,
-    localVec?: Vector3,
+    localVec: (normal: Vector3, distance: number) => Vector3,
     origin?: Vector3,
     normal?: Vector3,
     elementID?: string,
@@ -1010,8 +1016,7 @@ export class PointToPlane implements Constraint {
     this.name = name;
     this.elementID = elementID ?? '';
     this.component = component;
-    this.localVec = localVec?.clone() ?? new Vector3();
-    this.localSkew = skew(this.localVec).mul(2);
+    this._localVec = localVec;
     this.distance = origin?.length() ?? 0;
     this.normal = normal?.clone().normalize() ?? new Vector3(0, 0, 1);
     if (dlMin) this.dlMin = dlMin;
