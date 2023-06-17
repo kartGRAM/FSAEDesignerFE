@@ -15,7 +15,7 @@ export function hasNearestNeighborToPlane(
   object: any
 ): object is INearestNeighborToPlane {
   try {
-    return 'hasNearestNeightborToPlane' in object;
+    return 'hasNearestNeighborToPlane' in object;
   } catch (e) {
     return false;
   }

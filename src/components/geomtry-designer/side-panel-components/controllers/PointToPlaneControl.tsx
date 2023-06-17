@@ -1,4 +1,5 @@
 import React from 'react';
+import {hasNearestNeighborToPlane} from '@gd/SpecialPoints';
 import store, {RootState} from '@store/store';
 import {useSelector} from 'react-redux';
 import {PointToPlaneControl} from '@gd/controls/PointToPlaneControl';
@@ -112,6 +113,7 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
             }}
             onChange={(e) => {
               setSelectedID(e.target.value);
+              setSelectedPoint('');
               if (e.target.value === '' && control) {
                 setStaged(control.nodeID);
               }
@@ -152,6 +154,11 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
                 {p.name}
               </MenuItem>
             ))}
+            {hasNearestNeighborToPlane(element) ? (
+              <MenuItem value="nearestNeighbor" key="nearestNeighbor">
+                nearest neighbor
+              </MenuItem>
+            ) : null}
           </Select>
         </FormControl>
       </Box>
