@@ -38,6 +38,8 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
     control?.targetElement ?? ''
   );
 
+  const [update, setUpdate] = React.useState<boolean>(false);
+
   const [selectedPoint, setSelectedPoint] = React.useState<string>(
     control?.pointID ?? ''
   );
@@ -89,7 +91,7 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
     control.speed = isNumber(speed) ? speed : 0;
     control.reverse = reverse;
     setStaged(control.getDataControl());
-  }, [selectedID, selectedPoint, speed, reverse]);
+  }, [selectedID, selectedPoint, speed, reverse, update]);
 
   return (
     <>
@@ -164,11 +166,13 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
       </Box>
       <Vector
         vector={control.origin}
+        onUpdate={() => setUpdate((prev) => !prev)}
         disableSceneButton
         disablePointOffsetTool
       />
       <Vector
         vector={control.normal}
+        onUpdate={() => setUpdate((prev) => !prev)}
         disableSceneButton
         disablePointOffsetTool
       />

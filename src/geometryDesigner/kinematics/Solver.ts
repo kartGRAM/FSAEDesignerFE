@@ -448,50 +448,54 @@ export class KinematicSolver {
           constraints.push(constraint);
         });
         // 特殊な拘束に対する拘束式を作成(例えば平面へ点を拘束するなど)
-        specialControls[element.nodeID].forEach((control) => {
-          if (isPointToPlaneControl(control)) {
-            if (
-              control.pointID === 'nearestNeighbor' &&
-              hasNearestNeighborToPlane(element)
-            ) {
-              const constraint = new PointToPlane(
-                `Two-dimentional Constraint of nearest neighbor of ${element.name.value}`,
-                component,
-                (normal, distance) => {
-                  return element.getNearestNeighborToPlane(
-                    component.position,
-                    component.quaternion,
-                    normal,
-                    distance
-                  );
-                },
-                control.origin.value,
-                control.normal.value,
-                element.nodeID,
-                control.min.value,
-                control.max.value
-              );
-              constraints.push(constraint);
+        if (specialControls[element.nodeID]) {
+          specialControls[element.nodeID].forEach((control) => {
+            if (isPointToPlaneControl(control)) {
+              if (
+                control.pointID === 'nearestNeighbor' &&
+                hasNearestNeighborToPlane(element)
+              ) {
+                const constraint = new PointToPlane(
+                  `Two-dimentional Constraint of nearest neighbor of ${element.name.value}`,
+                  component,
+                  (normal, distance) => {
+                    return element.getNearestNeighborToPlane(
+                      component.position,
+                      component.quaternion,
+                      normal,
+                      distance
+                    );
+                  },
+                  control.origin.value,
+                  control.normal.value,
+                  element.nodeID,
+                  control.min.value,
+                  control.max.value
+                );
+                constraints.push(constraint);
+              }
+              const points = element.getMeasurablePoints();
+              if (
+                points.map((point) => point.nodeID).includes(control.pointID)
+              ) {
+                const point = points.find(
+                  (point) => point.nodeID === control.pointID
+                )!;
+                const constraint = new PointToPlane(
+                  `Two-dimentional Constraint of ${point.name} of ${element.name.value}`,
+                  component,
+                  () => point.value,
+                  control.origin.value,
+                  control.normal.value,
+                  element.nodeID,
+                  control.min.value,
+                  control.max.value
+                );
+                constraints.push(constraint);
+              }
             }
-            const points = element.getMeasurablePoints();
-            if (points.map((point) => point.nodeID).includes(control.pointID)) {
-              const point = points.find(
-                (point) => point.nodeID === control.pointID
-              )!;
-              const constraint = new PointToPlane(
-                `Two-dimentional Constraint of ${point.name} of ${element.name.value}`,
-                component,
-                () => point.value,
-                control.origin.value,
-                control.normal.value,
-                element.nodeID,
-                control.min.value,
-                control.max.value
-              );
-              constraints.push(constraint);
-            }
-          }
-        });
+          });
+        }
       });
     }
     // ステップ5: グルーピング
@@ -504,6 +508,10 @@ export class KinematicSolver {
           return;
         }
         if (constraint.rhs.isFixed) {
+          constraint.lhs.root.unionFindTreeConstraints.push(constraint);
+          return;
+        }
+        if (constraint.rhs === constraint.lhs) {
           constraint.lhs.root.unionFindTreeConstraints.push(constraint);
           return;
         }
