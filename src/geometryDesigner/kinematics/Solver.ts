@@ -14,9 +14,12 @@ import {
   JointAsVector3
 } from '@gd/IElements';
 import {Vector3, Quaternion} from 'three';
+import {isPointToPlaneControl} from '@gd/controls/PointToPlaneControl';
+import {hasNearestNeighborToPlane} from '@gd/SpecialPoints';
 import {
   getJointDictionary,
   canSimplifyAArm,
+  canSimplifyTire,
   getJointPartner,
   isFixedElement,
   getJointsToOtherComponents,
@@ -37,7 +40,8 @@ import {
   Sphere,
   Hinge,
   BarAndSpheres,
-  LinearBushingSingleEnd
+  LinearBushingSingleEnd,
+  PointToPlane
 } from './Constraints';
 import {
   IComponent,
@@ -61,7 +65,7 @@ export class KinematicSolver {
 
   firstSolved = false;
 
-  constructor(assembly: IAssembly, controls: {[index: string]: Control}) {
+  constructor(assembly: IAssembly, controls: {[index: string]: Control[]}) {
     this.assembly = assembly;
     const {children} = assembly;
     const joints = assembly.getJointsAsVector3();
@@ -78,8 +82,8 @@ export class KinematicSolver {
         if (isSimplifiedElement(element)) return;
         /* 固定コンポーネントはソルバから除外していたが、
          除外しないで、あとから判定させる。
-      if (isFixedElement(element)) return;
-      */
+        if (isFixedElement(element)) return;
+        */
         tempComponents[element.nodeID] = new FullDegreesComponent(element);
         tempElements[element.nodeID] = element;
       });
@@ -98,7 +102,7 @@ export class KinematicSolver {
         // BarはComponent扱いしない
         if (isBar(element) || isSpringDumper(element)) return;
         // Tireはコンポーネント扱いしない
-        if (isTire(element)) return;
+        if (isTire(element) && canSimplifyTire(element, jointDict)) return;
         // LinearBushingはコンポーネント扱いしない
         if (isLinearBushing(element)) return;
         // FixedElementはコンポーネント扱いしない
@@ -135,7 +139,20 @@ export class KinematicSolver {
         }
       });
     }
-    // ステップ3: この時点でElement間の拘束点は2点以下なので、Sphere拘束か
+    // ステップ3: 平面拘束など、一つのコンポーネントに対する拘束式をピックアップする
+    const specialControls: {[index: string]: Control[]} = Object.keys(
+      controls
+    ).reduce((prev, current) => {
+      const temp = controls[current];
+      temp.forEach((control) => {
+        if (isPointToPlaneControl(control)) {
+          if (!prev[current]) prev[current] = [];
+          prev[current].push(control);
+        }
+      });
+      return prev;
+    }, {} as {[index: string]: Control[]});
+    // ステップ4: この時点でElement間の拘束点は2点以下なので、Sphere拘束か
     // Hinge拘束か、BarAndSpher拘束を実施する。
     // この時点でコンポーネント間の拘束はただ1つの拘束式になっている。
     {
@@ -251,7 +268,7 @@ export class KinematicSolver {
           return;
         }
         // Tireはコンポーネント扱いしない
-        if (isTire(element)) {
+        if (isTire(element) && canSimplifyTire(element, jointDict)) {
           const jointl = jointDict[element.leftBearing.nodeID][0];
           const jointr = jointDict[element.rightBearing.nodeID][0];
           jointsDone.add(jointl);
@@ -260,17 +277,14 @@ export class KinematicSolver {
             getJointPartner(jointl, element.leftBearing.nodeID),
             getJointPartner(jointr, element.rightBearing.nodeID)
           ];
-          const elements = points.map((p) => p.parent as IElement);
           this.restorers.push(new TireRestorer(element, points[0], points[1]));
-          // Tireの両端が同じコンポーネントに接続されている場合(通常の状態)であればタイヤは無視する。
-          if (
-            elements[0].nodeID === elements[1].nodeID ||
-            (isFixedElement(elements[0]) && isFixedElement(elements[1]))
-          ) {
-            return;
-          }
+
+          // 2023.06.17 二つ以上のコンポーネントにまたがるタイヤは、
+          // 一つのコンポーネント扱いとするように変更(接地点の計算が面倒極まるため)
+          // 計算負荷は虫すすことにする。
+          // 将来的には方法を考えるかも
           // 以下はかなり特殊な場合（BRGの剛性を再現しているとか）
-          const constraint = new BarAndSpheres(
+          /* const constraint = new BarAndSpheres(
             `bar object of tire ${element.name.value}`,
             tempComponents[elements[0].nodeID],
             tempComponents[elements[1].nodeID],
@@ -279,7 +293,7 @@ export class KinematicSolver {
             points[1].value,
             false
           );
-          constraints.push(constraint);
+          constraints.push(constraint); */
         }
         // LinearBushingはComponent扱いしない
         if (isLinearBushing(element)) {
@@ -378,7 +392,7 @@ export class KinematicSolver {
         // BarはComponent扱いしない
         if (isBar(element) || isSpringDumper(element)) return;
         // Tireはコンポーネント扱いしない
-        if (isTire(element)) return;
+        if (isTire(element) && canSimplifyTire(element, jointDict)) return;
         // LinearBushingはコンポーネント扱いしない
         if (isLinearBushing(element)) return;
         // FixedElementはコンポーネント扱いしない
@@ -424,7 +438,7 @@ export class KinematicSolver {
           } else {
             // 1点拘束
             constraint = new Sphere(
-              `Sphere Constrains to ${element.name.value} and ${otherElement.name.value}`,
+              `Sphere Constraint to ${element.name.value} and ${otherElement.name.value}`,
               component,
               otherComponent,
               vLhs[0],
@@ -433,9 +447,54 @@ export class KinematicSolver {
           }
           constraints.push(constraint);
         });
+        // 特殊な拘束に対する拘束式を作成(例えば平面へ点を拘束するなど)
+        specialControls[element.nodeID].forEach((control) => {
+          if (isPointToPlaneControl(control)) {
+            if (
+              control.pointID === 'nearestNeighbor' &&
+              hasNearestNeighborToPlane(element)
+            ) {
+              const constraint = new PointToPlane(
+                `Two-dimentional Constraint of nearest neighbor of ${element.name.value}`,
+                component,
+                (normal, distance) => {
+                  return element.getNearestNeighborToPlane(
+                    component.position,
+                    component.quaternion,
+                    normal,
+                    distance
+                  );
+                },
+                control.origin.value,
+                control.normal.value,
+                element.nodeID,
+                control.min.value,
+                control.max.value
+              );
+              constraints.push(constraint);
+            }
+            const points = element.getMeasurablePoints();
+            if (points.map((point) => point.nodeID).includes(control.pointID)) {
+              const point = points.find(
+                (point) => point.nodeID === control.pointID
+              )!;
+              const constraint = new PointToPlane(
+                `Two-dimentional Constraint of ${point.name} of ${element.name.value}`,
+                component,
+                () => point.value,
+                control.origin.value,
+                control.normal.value,
+                element.nodeID,
+                control.min.value,
+                control.max.value
+              );
+              constraints.push(constraint);
+            }
+          }
+        });
       });
     }
-    // ステップ4: グルーピング
+    // ステップ5: グルーピング
     // Union Find Treeを用いてグルーピングを実施する。
     {
       constraints.forEach((constraint) => {

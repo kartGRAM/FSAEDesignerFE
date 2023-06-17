@@ -5,6 +5,7 @@ import {
   JointAsVector3,
   IAArm,
   isAArm,
+  ITire,
   IElement,
   isSimplifiedElement
 } from '@gd/IElements';
@@ -245,6 +246,25 @@ export function canSimplifyAArm(aArm: IAArm, jointDict: JointDict): boolean {
   if (isAArm(frame)) return false;
   if (isAArm(upright)) return false;
   return true;
+}
+
+// Tireを単純化できるか？
+export function canSimplifyTire(element: ITire, jointDict: JointDict): boolean {
+  const jointl = jointDict[element.leftBearing.nodeID][0];
+  const jointr = jointDict[element.rightBearing.nodeID][0];
+  const points = [
+    getJointPartner(jointl, element.leftBearing.nodeID),
+    getJointPartner(jointr, element.rightBearing.nodeID)
+  ];
+  const elements = points.map((p) => p.parent as IElement);
+  // Tireの両端が同じコンポーネントに接続されている場合(通常の状態)であればタイヤは無視する。
+  if (
+    elements[0].nodeID === elements[1].nodeID ||
+    (isFixedElement(elements[0]) && isFixedElement(elements[1]))
+  ) {
+    return true;
+  }
+  return false;
 }
 
 // アセンブリモードを得る

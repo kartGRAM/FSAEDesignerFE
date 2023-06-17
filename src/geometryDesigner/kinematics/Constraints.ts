@@ -977,8 +977,6 @@ export class PointToPlane implements Constraint {
 
   name: string;
 
-  elementID: string;
-
   target: Vector3 = new Vector3();
 
   get lhs() {
@@ -1003,22 +1001,24 @@ export class PointToPlane implements Constraint {
     return this._dl;
   }
 
+  elementID: string;
+
   constructor(
     name: string,
     component: IComponent,
     localVec: (normal: Vector3, distance: number) => Vector3,
-    origin?: Vector3,
-    normal?: Vector3,
-    elementID?: string,
+    origin: Vector3,
+    normal: Vector3,
+    elementID: string,
     dlMin?: number,
     dlMax?: number
   ) {
     this.name = name;
-    this.elementID = elementID ?? '';
     this.component = component;
     this._localVec = localVec;
     this.distance = origin?.length() ?? 0;
     this.normal = normal?.clone().normalize() ?? new Vector3(0, 0, 1);
+    this.elementID = elementID;
     if (dlMin) this.dlMin = dlMin;
     if (dlMax) this.dlMax = dlMax;
   }

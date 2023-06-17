@@ -338,12 +338,12 @@ export const isDataAssembly = (
 
 export const isSimplifiedElement = (
   element: any
-): element is IBar | ITire | ISpringDumper => {
+): element is IBar /* | ITire */ | ISpringDumper => {
   if (!isElement(element)) return false;
   if (isBar(element)) return true;
   if (isSpringDumper(element)) return true;
   if (isLinearBushing(element)) return true;
-  if (isTire(element)) return true;
+  // if (isTire(element)) return true;
   return false;
 };
 export const isBar = (element: IElement): element is IBar =>

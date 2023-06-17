@@ -31,6 +31,7 @@ export interface INamedValue extends IBidirectionalNode {
   value: unknown;
   getData(state: GDState): unknown;
   meta?: unknown;
+  onUpdated(newValue: unknown): void;
   // update(newValue: unknown): this;
 }
 

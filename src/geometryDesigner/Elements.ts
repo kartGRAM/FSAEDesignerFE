@@ -17,7 +17,7 @@ import {
   IDataNumber,
   IDataVector3,
   INamedVector3,
-  isNamedVector3,
+  // isNamedVector3,
   INamedMatrix3,
   FunctionVector3,
   IPointOffsetTool
@@ -1715,7 +1715,8 @@ export class Tire extends Element implements ITire {
   private _radius: number;
 
   get radius(): number {
-    return this._radius;
+    return this.tireCenter.value.z;
+    // return this._radius;
   }
 
   rotation: NamedQuaternion;
@@ -1862,20 +1863,20 @@ export class Tire extends Element implements ITire {
     this.tireCenter = new NamedVector3({
       name: 'tireCenter',
       parent: this,
-      value: tireCenter ?? new Vector3(),
-      update: (newValue: FunctionVector3 | INamedVector3) => {
+      value: tireCenter ?? new Vector3()
+      /* update: (newValue: FunctionVector3 | INamedVector3) => {
         this.tireCenter.x.setValue(newValue.x);
-        this.tireCenter.x.setValue(newValue.y);
-        this.tireCenter.y.setValue(newValue.z);
+        this.tireCenter.y.setValue(newValue.y);
+        this.tireCenter.z.setValue(newValue.z);
         if (isNamedVector3(newValue)) {
           this.tireCenter.pointOffsetTools = newValue.pointOffsetTools.map(
             (tool) => tool.copy(this.tireCenter)
           );
         }
-        this._radius = this.tireCenter.y.value;
-      }
+        this._radius = this.tireCenter.z.value;
+      } */
     });
-    this._radius = this.tireCenter.y.value;
+    this._radius = this.tireCenter.z.value;
 
     this.toLeftBearing = new NamedNumber({
       name: 'toLeftBearing',

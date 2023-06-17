@@ -124,14 +124,16 @@ export default function AssemblyCreactor() {
       const state = store.getState();
 
       const assembly = state.uitgd.collectedAssembly;
+      const childrenIDs = assembly?.children.map((child) => child.nodeID);
       const controls = state.dgd.present.controls.reduce((prev, current) => {
-        prev[current.targetElement] = getControl(current);
+        if (childrenIDs?.includes(current.targetElement)) {
+          if (!prev[current.targetElement]) prev[current.targetElement] = [];
+          prev[current.targetElement].push(getControl(current));
+        }
         return prev;
-      }, {} as {[index: string]: Control});
+      }, {} as {[index: string]: Control[]});
       if (assembly) {
         try {
-          // getKinematicConstrainedElements(assembly);
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const solver = new KinematicSolver(assembly, controls);
           dispatch(setKinematicSolver(solver));
         } catch (e) {

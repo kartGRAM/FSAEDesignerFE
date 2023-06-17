@@ -94,9 +94,7 @@ export class PointToPlaneControl extends Control {
     return `position of ${point.name} of ${element.name.value}`;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   preprocess(dt: number, solver: KinematicSolver): void {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const deltaDl = dt * this.speed * (this.reverse ? -1 : 1);
     const roots = solver.components.map((c) => c[0]);
     const constraints = roots.reduce((prev, current) => {

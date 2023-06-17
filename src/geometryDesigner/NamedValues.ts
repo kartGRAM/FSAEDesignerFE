@@ -118,6 +118,8 @@ abstract class NamedValue implements INamedValue {
 
   abstract getData(state: GDState): unknown;
 
+  abstract onUpdated(newValue: unknown): void;
+
   getDataBase() {
     return {
       isNamedData: true as const,
@@ -153,26 +155,31 @@ export class NamedPrimitive<T> extends NamedValue {
 
   private _update: (newValue: T) => void;
 
+  onUpdated: (newValue: T) => void;
+
   get value(): T {
     return this._value;
   }
 
   set value(newValue: T) {
     this._update(newValue);
+    this.onUpdated(newValue);
   }
 
   constructor(params: {
     name: string;
     value: T | IData<T>;
     update?: (newValue: T) => void;
+    onUpdated?: (newValue: T) => void;
     parent?: IBidirectionalNode;
   }) {
-    const {name: defaultName, value, update} = params;
+    const {name: defaultName, value, update, onUpdated} = params;
     super({
       className: `Named${capitalize(typeof value)}`,
       ...params,
       name: isNamedData(value) ? value.name : defaultName
     });
+    this.onUpdated = onUpdated ?? (() => {});
     this._update =
       update ??
       ((newValue: T) => {
@@ -201,10 +208,12 @@ export class NamedNumber extends NamedValue implements INamedNumber {
 
   set value(newValue: number) {
     this._update(newValue);
+    this.onUpdated(this.value);
   }
 
   setValue(newValue: string | number | INamedNumber): INamedNumber {
     this._update(newValue);
+    this.onUpdated(this.value);
     return this;
   }
 
@@ -216,13 +225,16 @@ export class NamedNumber extends NamedValue implements INamedNumber {
     return this.formula.getEvaluatedValue(formulae);
   }
 
+  onUpdated: (newValue: number) => void;
+
   constructor(params: {
     name?: string;
     value: string | number | IDataNumber | INamedNumber;
     update?: (valueOrFormula: string | number | INamedNumber) => void;
+    onUpdated?: (newValue: number) => void;
     parent?: IBidirectionalNode;
   }) {
-    const {name: defaultName, value, update} = params;
+    const {name: defaultName, value, update, onUpdated} = params;
     super({
       className: 'NamedNumber',
       ...params,
@@ -231,6 +243,7 @@ export class NamedNumber extends NamedValue implements INamedNumber {
           ? value.name
           : defaultName ?? 'temporary'
     });
+    this.onUpdated = onUpdated ?? (() => {});
     this._update =
       update ??
       ((newValue: string | number | INamedNumber) => {
@@ -286,21 +299,25 @@ export class NamedBooleanOrUndefined
 
   private _update: (newValue: boolean | undefined) => void;
 
+  onUpdated: (newValue: boolean | undefined) => void;
+
   get value(): boolean | undefined {
     return this._value;
   }
 
   set value(newValue: boolean | undefined) {
     this._update(newValue);
+    this.onUpdated(newValue);
   }
 
   constructor(params: {
     name: string;
     value: boolean | undefined | IData<boolean | undefined>;
     update?: (newValue: boolean | undefined) => void;
+    onUpdated?: (newValue: boolean | undefined) => void;
     parent?: IBidirectionalNode;
   }) {
-    const {name: defaultName, value, update} = params;
+    const {name: defaultName, value, update, onUpdated} = params;
     super({
       className: 'NamedBooleanOrUndefined',
       ...params,
@@ -311,6 +328,7 @@ export class NamedBooleanOrUndefined
       ((newValue: boolean | undefined) => {
         this._value = newValue;
       });
+    this.onUpdated = onUpdated ?? (() => {});
     this._value = isNamedData(value) ? value.value : value;
   }
 
@@ -341,6 +359,8 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
 
   private _update: (newValue: FunctionVector3 | INamedVector3) => void;
 
+  onUpdated: (newValue: Vector3) => void;
+
   get value(): Vector3 {
     const org = this.originalValue;
     this.pointOffsetTools.forEach((tool) => {
@@ -360,6 +380,7 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
 
   setValue(newValue: FunctionVector3 | INamedVector3): INamedVector3 {
     this._update(newValue);
+    this.onUpdated(this.value);
     return this;
   }
 
@@ -376,9 +397,10 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
     parent?: IBidirectionalNode;
     value?: FunctionVector3 | IDataVector3 | INamedVector3;
     update?: (newValue: FunctionVector3 | INamedVector3) => void;
+    onUpdated?: (newValue: Vector3) => void;
     nodeID?: string;
   }) {
-    const {name: defaultName, value, update} = params;
+    const {name: defaultName, value, update, onUpdated} = params;
     super({
       className: 'NamedVector3',
       ...params,
@@ -387,6 +409,7 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
           ? value.name
           : defaultName ?? 'temporary'
     });
+    this.onUpdated = onUpdated ?? (() => {});
     this._update =
       update ??
       ((newValue: FunctionVector3 | INamedVector3) => {
@@ -463,6 +486,8 @@ export function getDummyVector3() {
 export class NamedMatrix3 extends NamedValue implements INamedMatrix3 {
   private _update: (newValue: Matrix3 | INamedMatrix3) => void;
 
+  onUpdated: (newValue: Matrix3 | INamedMatrix3) => void;
+
   _value: Matrix3;
 
   get value(): Matrix3 {
@@ -471,6 +496,7 @@ export class NamedMatrix3 extends NamedValue implements INamedMatrix3 {
 
   set value(newValue: Matrix3) {
     this._update(newValue);
+    this.onUpdated(newValue);
   }
 
   constructor(params: {
@@ -478,8 +504,9 @@ export class NamedMatrix3 extends NamedValue implements INamedMatrix3 {
     parent?: IBidirectionalNode;
     value?: IDataMatrix3 | Matrix3 | INamedMatrix3;
     update?: (newValue: Matrix3 | INamedMatrix3) => void;
+    onUpdated?: (newValue: Matrix3 | INamedMatrix3) => void;
   }) {
-    const {name: defaultName, value, update} = params;
+    const {name: defaultName, value, update, onUpdated} = params;
     super({
       className: 'Matrix3',
       ...params,
@@ -488,6 +515,7 @@ export class NamedMatrix3 extends NamedValue implements INamedMatrix3 {
           ? value.name
           : defaultName ?? 'temporary'
     });
+    this.onUpdated = onUpdated ?? (() => {});
     this._update =
       update ??
       ((newValue: Matrix3 | INamedMatrix3) => {
@@ -519,6 +547,8 @@ export class NamedMatrix3 extends NamedValue implements INamedMatrix3 {
 export class NamedQuaternion extends NamedValue implements INamedQuaternion {
   private _update: (newValue: Quaternion | INamedQuaternion) => void;
 
+  onUpdated: (newValue: Quaternion | INamedQuaternion) => void;
+
   _value: Quaternion;
 
   get value(): Quaternion {
@@ -527,6 +557,7 @@ export class NamedQuaternion extends NamedValue implements INamedQuaternion {
 
   set value(newValue: Quaternion) {
     this._update(newValue);
+    this.onUpdated(newValue);
   }
 
   constructor(params: {
@@ -534,8 +565,9 @@ export class NamedQuaternion extends NamedValue implements INamedQuaternion {
     parent?: IBidirectionalNode;
     value?: IDataQuaternion | Quaternion | INamedQuaternion;
     update?: (newValue: Quaternion | INamedQuaternion) => void;
+    onUpdated?: (newValue: Quaternion | INamedQuaternion) => void;
   }) {
-    const {name: defaultName, value, update} = params;
+    const {name: defaultName, value, update, onUpdated} = params;
     super({
       className: 'Quaternion',
       ...params,
@@ -544,6 +576,7 @@ export class NamedQuaternion extends NamedValue implements INamedQuaternion {
           ? value.name
           : defaultName ?? 'temporary'
     });
+    this.onUpdated = onUpdated ?? (() => {});
     this._update =
       update ??
       ((newValue: Quaternion | INamedQuaternion) => {
