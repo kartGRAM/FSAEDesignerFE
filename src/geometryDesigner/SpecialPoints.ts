@@ -2,6 +2,7 @@ import {Vector3, Quaternion} from 'three';
 
 export interface INearestNeighborToPlane {
   hasNearestNeighborToPlane: true;
+  // あくまでも返すのは、コンポーネントローカル座標における最近傍点であることに注意
   getNearestNeighborToPlane(
     position: Vector3,
     rotation: Quaternion,
