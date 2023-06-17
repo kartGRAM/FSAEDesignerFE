@@ -1,4 +1,5 @@
 import {AtLeast1, AtLeast2} from '@app/utils/atLeast';
+import {INearestNeighborToPlane} from '@gd/SpecialPoints';
 import {Vector3, Matrix3, Quaternion} from 'three';
 import {
   IDataVector3,
@@ -237,7 +238,7 @@ export interface IDataBellCrank extends IDataElement {
   points: IDataVector3[];
 }
 
-export interface ITire extends IElement {
+export interface ITire extends IElement, INearestNeighborToPlane {
   readonly tireCenter: INamedVector3;
   readonly toLeftBearing: INamedNumber;
   readonly toRightBearing: INamedNumber;

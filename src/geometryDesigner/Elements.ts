@@ -17,6 +17,7 @@ import {
   IDataNumber,
   IDataVector3,
   INamedVector3,
+  isNamedVector3,
   INamedMatrix3,
   FunctionVector3,
   IPointOffsetTool
@@ -1666,6 +1667,26 @@ export class Tire extends Element implements ITire {
     return 'Tire';
   }
 
+  hasNearestNeighborToPlane = true as const;
+
+  getNearestNeighborToPlane(
+    position: Vector3,
+    rotation: Quaternion,
+    normal: Vector3,
+    distance: number
+  ): Vector3 {
+    const n = normal.clone().normalize();
+    const planeOrigin = n.clone().multiplyScalar(distance);
+
+    // 平面が原点を通る位置になるように座標変換
+    const deltaV = position.clone().sub(planeOrigin);
+
+    // タイヤの軸の方向ベクトル
+    const axis = new Vector3(0, 1, 0).applyQuaternion(rotation);
+
+    const r = this.radius;
+  }
+
   leftBearingNodeID: string;
 
   rightBearingNodeID: string;
@@ -1687,6 +1708,12 @@ export class Tire extends Element implements ITire {
   initialPosition: NamedVector3;
 
   position: NamedVector3;
+
+  private _radius: number;
+
+  get radius(): number {
+    return this._radius;
+  }
 
   rotation: NamedQuaternion;
 
@@ -1832,8 +1859,21 @@ export class Tire extends Element implements ITire {
     this.tireCenter = new NamedVector3({
       name: 'tireCenter',
       parent: this,
-      value: tireCenter ?? new Vector3()
+      value: tireCenter ?? new Vector3(),
+      update: (newValue: FunctionVector3 | INamedVector3) => {
+        this.tireCenter.x.setValue(newValue.x);
+        this.tireCenter.x.setValue(newValue.y);
+        this.tireCenter.y.setValue(newValue.z);
+        if (isNamedVector3(newValue)) {
+          this.tireCenter.pointOffsetTools = newValue.pointOffsetTools.map(
+            (tool) => tool.copy(this.tireCenter)
+          );
+        }
+        this._radius = this.tireCenter.y.value;
+      }
     });
+    this._radius = this.tireCenter.y.value;
+
     this.toLeftBearing = new NamedNumber({
       name: 'toLeftBearing',
       parent: this,
