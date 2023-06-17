@@ -21,6 +21,7 @@ import ListSubheader from '@mui/material/ListSubheader';
 import Select from '@mui/material/Select';
 import Vector from '@gdComponents/Vector';
 import Scalar from '@gdComponents/Scalar';
+import {NamedVector3, NamedNumber} from '@gd/NamedValues';
 
 export interface PointToPlaneControlProps {
   control: PointToPlaneControl;
@@ -31,14 +32,23 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
   const {control, setStaged} = props;
   const [speed, setSpeed] = React.useState<number | ''>(control.speed);
   const [reverse, setReverse] = React.useState<boolean>(control.reverse);
-  const max = 400;
-  const min = 0;
+  const speedMax = 400;
+  const speedMin = 0;
 
   const [selectedID, setSelectedID] = React.useState<string>(
     control?.targetElement ?? ''
   );
 
-  const [update, setUpdate] = React.useState<boolean>(false);
+  const [normal, setNormal] = React.useState(
+    new NamedVector3({value: control.normal})
+  );
+  const [origin, setOrigin] = React.useState(
+    new NamedVector3({value: control.origin})
+  );
+
+  const [min, setMin] = React.useState(new NamedNumber({value: control.min}));
+
+  const [max, setMax] = React.useState(new NamedNumber({value: control.max}));
 
   const [selectedPoint, setSelectedPoint] = React.useState<string>(
     control?.pointID ?? ''
@@ -75,7 +85,7 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
   };
 
   const handleBlur = () => {
-    if (isNumber(speed) && speed < min) setSpeed(min);
+    if (isNumber(speed) && speed < speedMin) setSpeed(speedMin);
   };
 
   const handleReverseChange = (
@@ -90,8 +100,12 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
     control.pointID = selectedPoint;
     control.speed = isNumber(speed) ? speed : 0;
     control.reverse = reverse;
+    control.normal.setValue(normal);
+    control.origin.setValue(origin);
+    control.min.setValue(min.getStringValue());
+    control.max.setValue(max.getStringValue());
     setStaged(control.getDataControl());
-  }, [selectedID, selectedPoint, speed, reverse, update]);
+  }, [selectedID, selectedPoint, speed, reverse, normal, origin, min, max]);
 
   return (
     <>
@@ -165,14 +179,28 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
         </FormControl>
       </Box>
       <Vector
-        vector={control.origin}
-        onUpdate={() => setUpdate((prev) => !prev)}
+        vector={origin}
+        onUpdate={() => {
+          setOrigin(
+            new NamedVector3({
+              name: 'origin',
+              value: origin.getStringValue()
+            })
+          );
+        }}
         disableSceneButton
         disablePointOffsetTool
       />
       <Vector
-        vector={control.normal}
-        onUpdate={() => setUpdate((prev) => !prev)}
+        vector={normal}
+        onUpdate={() => {
+          setNormal(
+            new NamedVector3({
+              name: 'normal',
+              value: normal.getStringValue()
+            })
+          );
+        }}
         disableSceneButton
         disablePointOffsetTool
       />
@@ -180,8 +208,30 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
         component="div"
         sx={{display: 'flex', flexDirection: 'row', width: '100%'}}
       >
-        <Scalar value={control.min} unit="mm" />
-        <Scalar value={control.max} unit="mm" />
+        <Scalar
+          value={min}
+          onUpdate={() => {
+            setMin(
+              new NamedNumber({
+                name: 'min',
+                value: min.getStringValue()
+              })
+            );
+          }}
+          unit="mm"
+        />
+        <Scalar
+          value={max}
+          onUpdate={() => {
+            setMax(
+              new NamedNumber({
+                name: 'max',
+                value: max.getStringValue()
+              })
+            );
+          }}
+          unit="mm"
+        />
       </Box>
       <Box component="div" sx={{flexGrow: 1, mt: 4, ml: 2}}>
         <ValueField
@@ -205,8 +255,8 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
             aria-label="Small"
             valueLabelDisplay="auto"
             value={isNumber(speed) ? speed : 0}
-            min={min}
-            max={max}
+            min={speedMin}
+            max={speedMax}
             onChange={handleSliderSpeedChange}
           />
         </Box>
@@ -256,7 +306,7 @@ const ValueField = React.memo((props: MyOutlinedTextFieldProps) => {
         inputProps
       }}
       sx={{
-        marginLeft: 0
+        marginLeft: 3
         // width: '15ch'
       }}
     />
