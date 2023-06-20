@@ -451,6 +451,10 @@ export class KinematicSolver {
         if (specialControls[element.nodeID]) {
           specialControls[element.nodeID].forEach((control) => {
             if (isPointToPlaneControl(control)) {
+              // 点を平面に拘束する
+              if (isTire(element) && canSimplifyTire(element, jointDict)) {
+                return;
+              }
               if (
                 control.pointID === 'nearestNeighbor' &&
                 hasNearestNeighborToPlane(element)
@@ -473,6 +477,7 @@ export class KinematicSolver {
                   control.max.value
                 );
                 constraints.push(constraint);
+                return;
               }
               const points = element.getMeasurablePoints();
               if (

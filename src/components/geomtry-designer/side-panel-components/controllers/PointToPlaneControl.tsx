@@ -13,7 +13,7 @@ import Checkbox from '@mui/material/Checkbox';
 import {InputBaseComponentProps} from '@mui/material/InputBase';
 import {isNumber} from '@app/utils/helpers';
 import useUpdateEffect from '@app/hooks/useUpdateEffect';
-import {IElement} from '@gd/IElements';
+import {IElement, isSimplifiedElement, isAArm} from '@gd/IElements';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
 import MenuItem from '@mui/material/MenuItem';
@@ -64,6 +64,7 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
   const state = store.getState();
   const elements = state.uitgd.collectedAssembly?.children ?? [];
   const elementsByClass = elements.reduce((prev, current) => {
+    if (isSimplifiedElement(current) || isAArm(current)) return prev;
     if (!(current.className in prev)) prev[current.className] = [];
     prev[current.className].push(current);
     return prev;

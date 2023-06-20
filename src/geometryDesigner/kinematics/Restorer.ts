@@ -132,6 +132,25 @@ export class TireRestorer implements Restorer {
     this.rightBearing = rightBearing;
   }
 
+  static getTireLocalPosition(
+    tireLeftBearing: Vector3,
+    tireRightBearing: Vector3,
+    targetLeftBearing: Vector3,
+    targetRightBearing: Vector3
+  ): {position: Vector3; rotation: Quaternion} {
+    const fp = tireLeftBearing.clone();
+    const p = tireRightBearing.clone();
+    const fpTo = targetLeftBearing.clone();
+    const pTo = targetRightBearing.clone();
+    const s = p.sub(fp).normalize();
+    const sTo = pTo.sub(fpTo).normalize();
+    const rotation = new Quaternion().setFromUnitVectors(s, sTo);
+
+    const position = fpTo.sub(fp.applyQuaternion(rotation));
+
+    return {position, rotation};
+  }
+
   restore() {
     const fp = this.element.leftBearing.value;
     const fpParent = this.leftBearing.parent as IElement;
@@ -143,16 +162,16 @@ export class TireRestorer implements Restorer {
     const pTo = this.rightBearing.value
       .applyQuaternion(pParent.rotation.value)
       .add(pParent.position.value);
-    const s = this.element.rightBearing.value.sub(fp).normalize(); // 右-左
-    const sTo = pTo.clone().sub(fpTo).normalize(); // 右-左
 
-    this.element.rotation.value = new Quaternion().setFromUnitVectors(s, sTo);
-
-    fp.applyQuaternion(this.element.rotation.value).add(
-      this.element.position.value
+    const {position, rotation} = TireRestorer.getTireLocalPosition(
+      fp,
+      this.element.rightBearing.value,
+      fpTo,
+      pTo
     );
-    const deltaP = fpTo.clone().sub(fp);
-    this.element.position.value = this.element.position.value.add(deltaP);
+
+    this.element.rotation.value = rotation;
+    this.element.position.value = position;
   }
 }
 
