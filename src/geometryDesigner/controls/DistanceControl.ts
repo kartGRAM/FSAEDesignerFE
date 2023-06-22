@@ -48,7 +48,7 @@ export class DistanceControl extends Control {
     return `position of ${element.name.value}`;
   }
 
-  preprocess(dt: number, solver: KinematicSolver): void {
+  preprocess(dt: number, solver: KinematicSolver): number {
     const deltaDl = dt * this.speed * (this.reverse ? -1 : 1);
     const roots = solver.components.map((c) => c[0]);
     const constraints = roots.reduce((prev, current) => {
@@ -63,6 +63,24 @@ export class DistanceControl extends Control {
     }, [] as BarAndSpheres[]);
     constraints.forEach((constraint) => {
       constraint.dl += deltaDl;
+    });
+    return deltaDl;
+  }
+
+  rollback(value: number, solver: KinematicSolver) {
+    const roots = solver.components.map((c) => c[0]);
+    const constraints = roots.reduce((prev, current) => {
+      prev.push(
+        ...(current
+          .getGroupedConstraints()
+          .filter(
+            (c) => isBarAndSpheres(c) && c.elementID === this.targetElement
+          ) as BarAndSpheres[])
+      );
+      return prev;
+    }, [] as BarAndSpheres[]);
+    constraints.forEach((constraint) => {
+      constraint.dl -= value;
     });
   }
 

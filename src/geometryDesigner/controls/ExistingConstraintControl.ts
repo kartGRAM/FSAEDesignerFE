@@ -51,18 +51,28 @@ export class ExistingConstraintControl extends Control {
     return `Onother control of ${control.name}`;
   }
 
-  preprocess(dt: number, solver: KinematicSolver): void {
+  preprocess(dt: number, solver: KinematicSolver): unknown {
     const {controls} = store.getState().dgd.present;
     const dataControl = controls.find(
       (control) => control.nodeID === this.targetControl
     );
-    if (!dataControl) return;
+    if (!dataControl) return 0;
     const dtMod =
       ((dt * this.speed) / dataControl.speed) *
       (this.reverse ? -1 : 1) *
       (dataControl.reverse ? -1 : 1);
     const control = getControl(dataControl);
-    control.preprocess(dtMod, solver);
+    return control.preprocess(dtMod, solver);
+  }
+
+  rollback(value: unknown, solver: KinematicSolver): void {
+    const {controls} = store.getState().dgd.present;
+    const dataControl = controls.find(
+      (control) => control.nodeID === this.targetControl
+    );
+    if (!dataControl) return;
+    const control = getControl(dataControl);
+    control.rollback(value, solver);
   }
 
   getDataControl(): IDataExistingConstraintControl {

@@ -387,6 +387,117 @@ export class KinematicSolver {
         }
       });
       children.forEach((element) => {
+        // 特殊な拘束に対する拘束式を作成(例えば平面へ点を拘束するなど)
+        if (specialControls[element.nodeID]) {
+          specialControls[element.nodeID].forEach((control) => {
+            if (isPointToPlaneControl(control)) {
+              // 点を平面に拘束する
+              if (isTire(element) && canSimplifyTire(element, jointDict)) {
+                const plTo = getJointPartner(
+                  jointDict[element.leftBearing.nodeID][0],
+                  element.leftBearing.nodeID
+                );
+                const prTo = getJointPartner(
+                  jointDict[element.rightBearing.nodeID][0],
+                  element.rightBearing.nodeID
+                ).value;
+                const pl = element.leftBearing.value;
+                const pr = element.rightBearing.value;
+                // タイヤの親コンポーネントとの相対座標及び回転を取得
+                const {position: dp, rotation: dq} =
+                  TireRestorer.getTireLocalPosition(pl, pr, plTo.value, prTo);
+                const parent = plTo.parent as IElement;
+                const pComponent = tempComponents[parent.nodeID];
+                if (control.pointID === 'nearestNeighbor') {
+                  const constraint = new PointToPlane(
+                    `Two-dimentional Constraint of nearest neighbor of ${element.name.value}`,
+                    pComponent,
+                    (normal, distance) => {
+                      // タイヤ空間上へ法線方向を変換するQuaternion
+                      const q = pComponent.quaternion.clone().multiply(dq);
+                      // タイヤ空間内での、平面への最近傍点
+                      const point = element.getNearestNeighborToPlane(
+                        new Vector3(),
+                        q,
+                        normal,
+                        distance
+                      );
+                      return point.applyQuaternion(dq).add(dp);
+                    },
+                    control.origin.value,
+                    control.normal.value,
+                    element.nodeID,
+                    control.min.value,
+                    control.max.value
+                  );
+                  constraints.push(constraint);
+                } else {
+                  const points = element.getMeasurablePoints();
+                  const point = points.find(
+                    (point) => point.nodeID === control.pointID
+                  );
+                  if (point) {
+                    // 親コンポーネント上での座標
+                    const pLocal = point.value.applyQuaternion(dq).add(dp);
+                    const constraint = new PointToPlane(
+                      `Two-dimentional Constraint of ${point.name} of ${element.name.value}`,
+                      pComponent,
+                      () => pLocal,
+                      control.origin.value,
+                      control.normal.value,
+                      element.nodeID,
+                      control.min.value,
+                      control.max.value
+                    );
+                    constraints.push(constraint);
+                  }
+                }
+                return;
+              }
+              if (
+                control.pointID === 'nearestNeighbor' &&
+                hasNearestNeighborToPlane(element)
+              ) {
+                const constraint = new PointToPlane(
+                  `Two-dimentional Constraint of nearest neighbor of ${element.name.value}`,
+                  component,
+                  (normal, distance) => {
+                    return element.getNearestNeighborToPlane(
+                      component.position,
+                      component.quaternion,
+                      normal,
+                      distance
+                    );
+                  },
+                  control.origin.value,
+                  control.normal.value,
+                  element.nodeID,
+                  control.min.value,
+                  control.max.value
+                );
+                constraints.push(constraint);
+                return;
+              }
+              const points = element.getMeasurablePoints();
+              const point = points.find(
+                (point) => point.nodeID === control.pointID
+              );
+              if (point) {
+                const constraint = new PointToPlane(
+                  `Two-dimentional Constraint of ${point.name} of ${element.name.value}`,
+                  component,
+                  () => point.value,
+                  control.origin.value,
+                  control.normal.value,
+                  element.nodeID,
+                  control.min.value,
+                  control.max.value
+                );
+                constraints.push(constraint);
+              }
+            }
+          });
+        }
         // AArmが単独で使われている場合は、BarAndSpheres2つに変更する。
         if (isAArm(element) && canSimplifyAArm(element, jointDict)) return;
         // BarはComponent扱いしない
@@ -447,117 +558,6 @@ export class KinematicSolver {
           }
           constraints.push(constraint);
         });
-        // 特殊な拘束に対する拘束式を作成(例えば平面へ点を拘束するなど)
-        if (specialControls[element.nodeID]) {
-          specialControls[element.nodeID].forEach((control) => {
-            if (isPointToPlaneControl(control)) {
-              // 点を平面に拘束する
-              if (isTire(element) && canSimplifyTire(element, jointDict)) {
-                const plTo = getJointPartner(
-                  jointDict[element.leftBearing.nodeID][0],
-                  element.leftBearing.nodeID
-                );
-                const prTo = getJointPartner(
-                  jointDict[element.rightBearing.nodeID][0],
-                  element.rightBearing.nodeID
-                ).value;
-                const pl = element.leftBearing.value;
-                const pr = element.rightBearing.value;
-                // タイヤの親コンポーネントとの相対座標及び回転を取得
-                const {position: dp, rotation: dq} =
-                  TireRestorer.getTireLocalPosition(pl, pr, plTo.value, prTo);
-                const parent = plTo.parent as IElement;
-                const pComponent = tempComponents[parent.nodeID];
-                if (control.pointID === 'nearestNeighbor') {
-                  const constraint = new PointToPlane(
-                    `Two-dimentional Constraint of nearest neighbor of ${element.name.value}`,
-                    pComponent,
-                    (normal, distance) => {
-                      // タイヤ空間上へ法線方向を変換するQuaternion
-                      const q = pComponent.quaternion.clone().multiply(dq);
-                      // タイヤ空間内での、平面への最近傍点
-                      const point = element.getNearestNeighborToPlane(
-                        new Vector3(),
-                        q,
-                        normal,
-                        distance
-                      );
-                      return point.applyQuaternion(dq).add(dp);
-                    },
-                    control.origin.value,
-                    control.normal.value,
-                    parent.nodeID,
-                    control.min.value,
-                    control.max.value
-                  );
-                  constraints.push(constraint);
-                } else {
-                  const points = element.getMeasurablePoints();
-                  const point = points.find(
-                    (point) => point.nodeID === control.pointID
-                  );
-                  if (point) {
-                    // 親コンポーネント上での座標
-                    const pLocal = point.value.applyQuaternion(dq).add(dp);
-                    const constraint = new PointToPlane(
-                      `Two-dimentional Constraint of ${point.name} of ${element.name.value}`,
-                      pComponent,
-                      () => pLocal,
-                      control.origin.value,
-                      control.normal.value,
-                      parent.nodeID,
-                      control.min.value,
-                      control.max.value
-                    );
-                    constraints.push(constraint);
-                  }
-                }
-                return;
-              }
-              if (
-                control.pointID === 'nearestNeighbor' &&
-                hasNearestNeighborToPlane(element)
-              ) {
-                const constraint = new PointToPlane(
-                  `Two-dimentional Constraint of nearest neighbor of ${element.name.value}`,
-                  component,
-                  (normal, distance) => {
-                    return element.getNearestNeighborToPlane(
-                      component.position,
-                      component.quaternion,
-                      normal,
-                      distance
-                    );
-                  },
-                  control.origin.value,
-                  control.normal.value,
-                  element.nodeID,
-                  control.min.value,
-                  control.max.value
-                );
-                constraints.push(constraint);
-                return;
-              }
-              const points = element.getMeasurablePoints();
-              const point = points.find(
-                (point) => point.nodeID === control.pointID
-              );
-              if (point) {
-                const constraint = new PointToPlane(
-                  `Two-dimentional Constraint of ${point.name} of ${element.name.value}`,
-                  component,
-                  () => point.value,
-                  control.origin.value,
-                  control.normal.value,
-                  element.nodeID,
-                  control.min.value,
-                  control.max.value
-                );
-                constraints.push(constraint);
-              }
-            }
-          });
-        }
       });
     }
     // ステップ5: グルーピング

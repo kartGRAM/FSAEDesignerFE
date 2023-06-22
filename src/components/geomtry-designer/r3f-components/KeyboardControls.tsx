@@ -31,21 +31,30 @@ export const KeyboardControls = () => {
     if (!solver) return;
     if (solver.running) return;
     const state = get() as {[index: string]: boolean};
-    const needToUpdate = {value: false};
+    const rollbackParams: {control: Control; value: unknown}[] = [];
     Object.keys(state).forEach((key) => {
       if (!state[key]) return;
-      needToUpdate.value = true;
       const controls = controlsList[key];
-      controls.forEach((control) => control.preprocess(delta, solver));
-    });
-    time.value += delta;
-    if (!needToUpdate.value) return;
-    solver.solve({
-      constraintsOptions: {
-        fixSpringDumpersAtCurrentPositions: fixSpringDumperDuaringControl
+      controls.forEach((control) => {
+        rollbackParams.push({
+          control,
+          value: control.preprocess(delta, solver)
+        });
+      });
+      time.value += delta;
+      if (!rollbackParams.length) return;
+      try {
+        solver.solve({
+          constraintsOptions: {
+            fixSpringDumpersAtCurrentPositions: fixSpringDumperDuaringControl
+          }
+        });
+      } catch {
+        rollbackParams.forEach(({control, value}) =>
+          control.rollback(value, solver)
+        );
       }
     });
   });
-
   return null;
 };
