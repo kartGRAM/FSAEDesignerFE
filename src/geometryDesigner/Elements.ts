@@ -1712,10 +1712,8 @@ export class Tire extends Element implements ITire {
 
   position: NamedVector3;
 
-  private _radius: number;
-
   get radius(): number {
-    return this._radius;
+    return this.tireCenter.value.z;
   }
 
   rotation: NamedQuaternion;
@@ -1862,12 +1860,8 @@ export class Tire extends Element implements ITire {
     this.tireCenter = new NamedVector3({
       name: 'tireCenter',
       parent: this,
-      value: tireCenter ?? new Vector3(),
-      onUpdated: (newValue) => {
-        this._radius = newValue.z;
-      }
+      value: tireCenter ?? new Vector3()
     });
-    this._radius = this.tireCenter.z.value;
 
     this.toLeftBearing = new NamedNumber({
       name: 'toLeftBearing',

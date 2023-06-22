@@ -387,6 +387,7 @@ export class KinematicSolver {
         }
       });
       children.forEach((element) => {
+        const component = tempComponents[element.nodeID];
         // 特殊な拘束に対する拘束式を作成(例えば平面へ点を拘束するなど)
         if (specialControls[element.nodeID]) {
           specialControls[element.nodeID].forEach((control) => {
@@ -454,6 +455,7 @@ export class KinematicSolver {
                 }
                 return;
               }
+              if (!component) return;
               if (
                 control.pointID === 'nearestNeighbor' &&
                 hasNearestNeighborToPlane(element)
@@ -476,24 +478,24 @@ export class KinematicSolver {
                   control.max.value
                 );
                 constraints.push(constraint);
-                return;
-              }
-              const points = element.getMeasurablePoints();
-              const point = points.find(
-                (point) => point.nodeID === control.pointID
-              );
-              if (point) {
-                const constraint = new PointToPlane(
-                  `Two-dimentional Constraint of ${point.name} of ${element.name.value}`,
-                  component,
-                  () => point.value,
-                  control.origin.value,
-                  control.normal.value,
-                  element.nodeID,
-                  control.min.value,
-                  control.max.value
+              } else {
+                const points = element.getMeasurablePoints();
+                const point = points.find(
+                  (point) => point.nodeID === control.pointID
                 );
-                constraints.push(constraint);
+                if (point) {
+                  const constraint = new PointToPlane(
+                    `Two-dimentional Constraint of ${point.name} of ${element.name.value}`,
+                    component,
+                    () => point.value,
+                    control.origin.value,
+                    control.normal.value,
+                    element.nodeID,
+                    control.min.value,
+                    control.max.value
+                  );
+                  constraints.push(constraint);
+                }
               }
             }
           });
@@ -509,7 +511,6 @@ export class KinematicSolver {
         // FixedElementはコンポーネント扱いしない
         if (isFixedElement(element)) return;
         // 相対固定拘束の場合は、親のみを追加
-        const component = tempComponents[element.nodeID];
         if (component.isRelativeFixed) return;
         // solverにコンポーネントを追加する
         components.push(component);
