@@ -4,6 +4,10 @@ import {
   isBodyOfFrame,
   JointAsVector3,
   IAArm,
+  isBar,
+  isSpringDumper,
+  isTire,
+  isLinearBushing,
   isAArm,
   ITire,
   IElement,
@@ -288,4 +292,21 @@ export function axisRotationFromQuaternion(q: Quaternion) {
     [2 * x * y - 2 * w * z, 1 - 2 * x ** 2 - 2 * z ** 2, 2 * y * z + 2 * w * x],
     [2 * x * z - 2 * w * y, 2 * y * z - 2 * w * x, 1 - 2 * x ** 2 - 2 * y ** 2]
   ]);
+}
+
+export function elementIsComponent(
+  element: IElement,
+  jointDict: JointDict
+): boolean {
+  // AArmが単独で使わている場合は、BarAndSpheres2つに変更する。
+  if (isAArm(element) && canSimplifyAArm(element, jointDict)) return false;
+  // BarはComponent扱いしない
+  if (isBar(element) || isSpringDumper(element)) return false;
+  // Tireはコンポーネント扱いしない
+  if (isTire(element) && canSimplifyTire(element, jointDict)) return false;
+  // LinearBushingはコンポーネント扱いしない
+  if (isLinearBushing(element)) return false;
+  // FixedElementはコンポーネント扱いしない
+  if (isFixedElement(element)) return false;
+  return true;
 }

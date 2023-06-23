@@ -1669,25 +1669,23 @@ export class Tire extends Element implements ITire {
 
   hasNearestNeighborToPlane = true as const;
 
-  getNearestNeighborToPlane(
-    _: Vector3,
-    rotation: Quaternion,
-    normal: Vector3
-  ): Vector3 {
-    const n = normal.clone().applyQuaternion(rotation);
+  getNearestNeighborToPlane(normal: Vector3): Vector3 {
+    const n = normal.clone().normalize();
     // タイヤの軸の方向ベクトル
     const axis = new Vector3(0, 1, 0);
     // 平面に平行なベクトル...②
     const g = axis.clone().cross(n);
+    const r = this.radius;
 
     // ②を軸にaxisを90度回転した単位ベクトルに、半径をかけた点が最近傍点
-    return (
+    const p = (
       g.lengthSq() < Number.EPSILON * 2 ** 8
         ? new Vector3(0, 0, -1)
         : axis.applyQuaternion(
             new Quaternion().setFromAxisAngle(g, -Math.PI / 2)
           )
-    ).multiplyScalar(this.radius);
+    ).multiplyScalar(r);
+    return p.add(this.tireCenter.value);
   }
 
   leftBearingNodeID: string;

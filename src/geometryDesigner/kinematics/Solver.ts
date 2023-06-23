@@ -23,7 +23,8 @@ import {
   getJointPartner,
   isFixedElement,
   getJointsToOtherComponents,
-  getNamedVector3FromJoint
+  getNamedVector3FromJoint,
+  elementIsComponent
 } from './KinematicFunctions';
 import {
   Restorer,
@@ -75,6 +76,7 @@ export class KinematicSolver {
     const jointsDone = new Set<JointAsVector3>();
     const tempComponents: {[index: string]: FullDegreesComponent} = {};
     const tempElements: {[index: string]: IElement} = {};
+
     // ステップ1: ChildrenをComponentに変換する
     {
       children.forEach((element) => {
@@ -97,16 +99,6 @@ export class KinematicSolver {
         [Vector3, Quaternion]
       >();
       children.forEach((element) => {
-        // AArmが単独で使われている場合は、BarAndSpheres2つに変更する。
-        if (isAArm(element) && canSimplifyAArm(element, jointDict)) return;
-        // BarはComponent扱いしない
-        if (isBar(element) || isSpringDumper(element)) return;
-        // Tireはコンポーネント扱いしない
-        if (isTire(element) && canSimplifyTire(element, jointDict)) return;
-        // LinearBushingはコンポーネント扱いしない
-        if (isLinearBushing(element)) return;
-        // FixedElementはコンポーネント扱いしない
-        if (isFixedElement(element)) return;
         // 関連するジョイントを得る(すでに検討済みであれば破棄)
         const [partnerIDs, jDict] = getJointsToOtherComponents(
           jointDict[element.nodeID].filter((joint) => !jointsDone.has(joint)),
@@ -152,11 +144,8 @@ export class KinematicSolver {
       });
       return prev;
     }, {} as {[index: string]: Control[]});
-    // ステップ4: この時点でElement間の拘束点は2点以下なので、Sphere拘束か
-    // Hinge拘束か、BarAndSpher拘束を実施する。
-    // この時点でコンポーネント間の拘束はただ1つの拘束式になっている。
+    // ステップ4: コンポーネント化しないElementを帰化拘束へ変換
     {
-      this.componentsFromNodeID = {};
       const {pointComponents} = this;
       children.forEach((element) => {
         // AArmが単独で使われている場合は、BarAndSpheres2つに変更する。
@@ -386,6 +375,12 @@ export class KinematicSolver {
           });
         }
       });
+    }
+    // ステップ5: この時点でElement間の拘束点は2点以下なので、Sphere拘束か
+    // Hinge拘束か、BarAndSpher拘束を実施する。
+    // この時点でコンポーネント間の拘束はただ1つの拘束式になっている。
+    {
+      this.componentsFromNodeID = {};
       children.forEach((element) => {
         const component = tempComponents[element.nodeID];
         // 特殊な拘束に対する拘束式を作成(例えば平面へ点を拘束するなど)
@@ -410,17 +405,19 @@ export class KinematicSolver {
                 const parent = plTo.parent as IElement;
                 const pComponent = tempComponents[parent.nodeID];
                 if (control.pointID === 'nearestNeighbor') {
+                  const dqi = dq.clone().invert();
                   const constraint = new PointToPlane(
                     `Two-dimentional Constraint of nearest neighbor of ${element.name.value}`,
                     pComponent,
                     (normal, distance) => {
-                      // タイヤ空間上へ法線方向を変換するQuaternion
-                      const q = pComponent.quaternion.clone().multiply(dq);
+                      // タイヤ空間上へ法線方向を変換する
+                      const pcdqi = pComponent.quaternion.clone().invert();
+                      const n = normal
+                        .applyQuaternion(pcdqi)
+                        .applyQuaternion(dqi);
                       // タイヤ空間内での、平面への最近傍点
                       const point = element.getNearestNeighborToPlane(
-                        new Vector3(),
-                        q,
-                        normal,
+                        n,
                         distance
                       );
                       return point.applyQuaternion(dq).add(dp);
@@ -455,7 +452,11 @@ export class KinematicSolver {
                 }
                 return;
               }
-              if (!component) return;
+
+              if (!elementIsComponent(element, jointDict)) return;
+              // 相対固定拘束の場合は、親のみを追加
+              if (component.isRelativeFixed) return;
+
               if (
                 control.pointID === 'nearestNeighbor' &&
                 hasNearestNeighborToPlane(element)
@@ -464,12 +465,7 @@ export class KinematicSolver {
                   `Two-dimentional Constraint of nearest neighbor of ${element.name.value}`,
                   component,
                   (normal, distance) => {
-                    return element.getNearestNeighborToPlane(
-                      component.position,
-                      component.quaternion,
-                      normal,
-                      distance
-                    );
+                    return element.getNearestNeighborToPlane(normal, distance);
                   },
                   control.origin.value,
                   control.normal.value,
@@ -484,10 +480,11 @@ export class KinematicSolver {
                   (point) => point.nodeID === control.pointID
                 );
                 if (point) {
+                  const p = point.value;
                   const constraint = new PointToPlane(
                     `Two-dimentional Constraint of ${point.name} of ${element.name.value}`,
                     component,
-                    () => point.value,
+                    () => p,
                     control.origin.value,
                     control.normal.value,
                     element.nodeID,
@@ -500,16 +497,7 @@ export class KinematicSolver {
             }
           });
         }
-        // AArmが単独で使われている場合は、BarAndSpheres2つに変更する。
-        if (isAArm(element) && canSimplifyAArm(element, jointDict)) return;
-        // BarはComponent扱いしない
-        if (isBar(element) || isSpringDumper(element)) return;
-        // Tireはコンポーネント扱いしない
-        if (isTire(element) && canSimplifyTire(element, jointDict)) return;
-        // LinearBushingはコンポーネント扱いしない
-        if (isLinearBushing(element)) return;
-        // FixedElementはコンポーネント扱いしない
-        if (isFixedElement(element)) return;
+        if (!elementIsComponent(element, jointDict)) return;
         // 相対固定拘束の場合は、親のみを追加
         if (component.isRelativeFixed) return;
         // solverにコンポーネントを追加する

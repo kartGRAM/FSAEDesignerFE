@@ -1025,15 +1025,14 @@ export class PointToPlane implements Constraint {
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
     const {row, component, localVec, localSkew, normal, distance, _dl} = this;
-    const {col, position} = component;
-    const q = component.quaternion;
+    const {col, position, quaternion: q} = component;
     const A = rotationMatrix(q);
     const G = decompositionMatrixG(q);
     const s = localVec.clone().applyQuaternion(q);
     const nT = new Matrix([[normal.x, normal.y, normal.z]]); // (1x3)
 
     // 平面拘束
-    phi[row] = position.clone().add(s).dot(normal) - distance + _dl;
+    phi[row] = position.clone().add(s).dot(normal) - distance - _dl;
     // 平面拘束方程式の変分
     phi_q.setSubMatrix(nT, row, col + X);
     if (isFullDegreesComponent(component)) {
@@ -1041,7 +1040,9 @@ export class PointToPlane implements Constraint {
     }
   }
 
-  setJacobianAndConstraintsInequal() {}
+  setJacobianAndConstraintsInequal() {
+    throw new Error('未実装');
+  }
 
   checkInequalityConstraint(): [boolean, any] {
     return [false, null];
