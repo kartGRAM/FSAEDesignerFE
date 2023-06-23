@@ -181,6 +181,7 @@ export class KinematicSolver {
               element.points[0].value
                 .sub(element.fixedPoints[i].value)
                 .length(),
+              [],
               pBody.value,
               pUpright.value,
               false
@@ -239,25 +240,22 @@ export class KinematicSolver {
                 pointComponents[points[1].nodeID];
             }
           }
-          const controledBy: (string | undefined)[] =
+          const controledBy =
             controls[element.nodeID]?.map((control) => control.nodeID) ?? [];
-          if (controledBy.length === 0) controledBy.push(undefined);
-          controledBy.forEach((controlID) => {
-            const constraint = new BarAndSpheres(
-              `bar object of ${element.name.value}`,
-              lhs,
-              rhs,
-              element.length,
-              isFullDegreesComponent(lhs) ? points[0].value : undefined,
-              isFullDegreesComponent(rhs) ? points[1].value : undefined,
-              isSpringDumper(element),
-              isSpringDumper(element) ? element.dlMin.value : undefined,
-              isSpringDumper(element) ? element.dlMax.value : undefined,
-              controlID,
-              element.nodeID
-            );
-            constraints.push(constraint);
-          });
+          const constraint = new BarAndSpheres(
+            `bar object of ${element.name.value}`,
+            lhs,
+            rhs,
+            element.length,
+            controledBy,
+            isFullDegreesComponent(lhs) ? points[0].value : undefined,
+            isFullDegreesComponent(rhs) ? points[1].value : undefined,
+            isSpringDumper(element),
+            isSpringDumper(element) ? element.dlMin.value : undefined,
+            isSpringDumper(element) ? element.dlMax.value : undefined,
+            element.nodeID
+          );
+          constraints.push(constraint);
           return;
         }
         // Tireはコンポーネント扱いしない
@@ -342,7 +340,7 @@ export class KinematicSolver {
               return;
             }
 
-            const controledBy: (string | undefined)[] =
+            const controledBy =
               controls[element.nodeID]?.map((control) => control.nodeID) ?? [];
             // コントロールされていない場合
             if (!controledBy.length) {
@@ -360,29 +358,26 @@ export class KinematicSolver {
                   lhs,
                   rhs,
                   l,
+                  [],
                   v0,
                   isFullDegreesComponent(rhs) ? points[2].value : undefined
                 );
                 constraints.push(constraint);
               }
-              // 一個だけ追加しておく
-              controledBy.push(undefined);
             }
-            controledBy.forEach((controlID) => {
-              const constraint = new LinearBushingSingleEnd(
-                `Linear bushing object of ${element.name.value}`,
-                tempComponents[elements[0].nodeID],
-                rhs,
-                [points[0].value, points[1].value],
-                element.toPoints[i].value,
-                isFullDegreesComponent(rhs) ? points[2].value : undefined,
-                element.dlMin.value,
-                element.dlMax.value,
-                controlID,
-                element.nodeID
-              );
-              constraints.push(constraint);
-            });
+            const constraint = new LinearBushingSingleEnd(
+              `Linear bushing object of ${element.name.value}`,
+              tempComponents[elements[0].nodeID],
+              rhs,
+              [points[0].value, points[1].value],
+              element.toPoints[i].value,
+              controledBy,
+              isFullDegreesComponent(rhs) ? points[2].value : undefined,
+              element.dlMin.value,
+              element.dlMax.value,
+              element.nodeID
+            );
+            constraints.push(constraint);
           });
         }
       });
@@ -437,7 +432,7 @@ export class KinematicSolver {
                     control.origin.value,
                     control.normal.value,
                     element.nodeID,
-                    control.nodeID,
+                    [control.nodeID],
                     control.min.value,
                     control.max.value
                   );
@@ -457,7 +452,7 @@ export class KinematicSolver {
                       control.origin.value,
                       control.normal.value,
                       element.nodeID,
-                      control.nodeID,
+                      [control.nodeID],
                       control.min.value,
                       control.max.value
                     );
@@ -484,7 +479,7 @@ export class KinematicSolver {
                   control.origin.value,
                   control.normal.value,
                   element.nodeID,
-                  control.nodeID,
+                  [control.nodeID],
                   control.min.value,
                   control.max.value
                 );
@@ -503,7 +498,7 @@ export class KinematicSolver {
                     control.origin.value,
                     control.normal.value,
                     element.nodeID,
-                    control.nodeID,
+                    [control.nodeID],
                     control.min.value,
                     control.max.value
                   );

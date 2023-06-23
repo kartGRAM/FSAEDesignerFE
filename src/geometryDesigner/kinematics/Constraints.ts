@@ -30,7 +30,7 @@ export interface ConstraintsOptions {
 }
 
 export interface Constraint {
-  readonly controledBy: string;
+  readonly controledBy: string[];
   readonly className: string;
   readonly lhs: IComponent;
   readonly rhs: IComponent;
@@ -57,7 +57,7 @@ export interface Constraint {
 export class Sphere implements Constraint {
   readonly className = 'Sphere';
 
-  readonly controledBy = '' as const;
+  readonly controledBy = [];
 
   // 自由度を3減らす
   constraints() {
@@ -226,7 +226,7 @@ export class Sphere implements Constraint {
 export class Hinge implements Constraint {
   readonly className = 'Hinge';
 
-  readonly controledBy = '' as const;
+  readonly controledBy = [];
 
   // 自由度を5減らす
   constraints() {
@@ -480,17 +480,17 @@ export class BarAndSpheres implements Constraint {
     clhs: IComponent,
     crhs: IComponent,
     l: number,
+    controledBy: string[],
     vlhs?: Vector3,
     vrhs?: Vector3,
     isSpringDumper?: boolean,
     dlMin?: number,
     dlMax?: number,
-    controledBy?: string,
     elementID?: string
   ) {
     this.name = name;
-    this.controled = !!controledBy;
-    this.controledBy = controledBy ?? '';
+    this.controled = controledBy.length > 0;
+    this.controledBy = controledBy;
     this.elementID = elementID ?? '';
     this.isSpringDumper = (!this.controled && isSpringDumper) ?? false;
     if (dlMin) this.dlMin = dlMin;
@@ -720,14 +720,14 @@ export class LinearBushingSingleEnd implements Constraint {
     cRodEndSide: IComponent,
     vFixed: [Vector3, Vector3],
     initialLength: number,
+    controledBy: string[],
     vRodEndSide?: Vector3,
     dlMin?: number,
     dlMax?: number,
-    controledBy?: string,
     elementID?: string
   ) {
-    this.controled = !!controledBy;
-    this.controledBy = controledBy ?? '';
+    this.controled = controledBy.length > 0;
+    this.controledBy = controledBy;
     this.elementID = elementID ?? '';
     this.initialLength = initialLength;
     this.center = vFixed[1].clone().add(vFixed[0]).multiplyScalar(0.5);
@@ -894,7 +894,7 @@ export function isLinearBushingSingleEnd(
 export class QuaternionConstraint implements Constraint {
   readonly className = 'QuaternionConstraint';
 
-  readonly controledBy = '' as const;
+  readonly controledBy = [];
 
   // 自由度を1減らす
   constraints() {
@@ -1016,7 +1016,7 @@ export class PointToPlane implements Constraint {
 
   elementID: string;
 
-  readonly controledBy: string;
+  readonly controledBy: string[];
 
   constructor(
     name: string,
@@ -1025,7 +1025,7 @@ export class PointToPlane implements Constraint {
     origin: Vector3,
     normal: Vector3,
     elementID: string,
-    controledBy: string,
+    controledBy: string[],
     dlMin?: number,
     dlMax?: number
   ) {

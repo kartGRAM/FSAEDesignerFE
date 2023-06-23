@@ -54,7 +54,8 @@ export class LinearBushingControl extends Control {
         ...(current
           .getGroupedConstraints()
           .filter(
-            (c) => isLinearBushingSingleEnd(c) && c.controledBy === this.nodeID
+            (c) =>
+              isLinearBushingSingleEnd(c) && c.controledBy.includes(this.nodeID)
           ) as LinearBushingSingleEnd[])
       );
       return prev;
@@ -78,7 +79,8 @@ export class LinearBushingControl extends Control {
         ...(current
           .getGroupedConstraints()
           .filter(
-            (c) => isLinearBushingSingleEnd(c) && c.controledBy === this.nodeID
+            (c) =>
+              isLinearBushingSingleEnd(c) && c.controledBy.includes(this.nodeID)
           ) as LinearBushingSingleEnd[])
       );
       return prev;

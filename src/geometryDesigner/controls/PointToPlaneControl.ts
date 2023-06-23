@@ -104,7 +104,7 @@ export class PointToPlaneControl extends Control {
         ...(current
           .getGroupedConstraints()
           .filter(
-            (c) => isPointToPlane(c) && c.controledBy === this.nodeID
+            (c) => isPointToPlane(c) && c.controledBy.includes(this.nodeID)
           ) as PointToPlane[])
       );
       return prev;
@@ -128,7 +128,7 @@ export class PointToPlaneControl extends Control {
         ...(current
           .getGroupedConstraints()
           .filter(
-            (c) => isPointToPlane(c) && c.controledBy === this.nodeID
+            (c) => isPointToPlane(c) && c.controledBy.includes(this.nodeID)
           ) as PointToPlane[])
       );
       return prev;

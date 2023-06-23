@@ -58,7 +58,7 @@ export class DistanceControl extends Control {
         ...(current
           .getGroupedConstraints()
           .filter(
-            (c) => isBarAndSpheres(c) && c.controledBy === this.nodeID
+            (c) => isBarAndSpheres(c) && c.controledBy.includes(this.nodeID)
           ) as BarAndSpheres[])
       );
       return prev;
@@ -76,7 +76,7 @@ export class DistanceControl extends Control {
         ...(current
           .getGroupedConstraints()
           .filter(
-            (c) => isBarAndSpheres(c) && c.controledBy === this.nodeID
+            (c) => isBarAndSpheres(c) && c.controledBy.includes(this.nodeID)
           ) as BarAndSpheres[])
       );
       return prev;
