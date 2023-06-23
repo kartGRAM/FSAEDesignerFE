@@ -6,7 +6,7 @@ export interface IDataControl {
   readonly name?: string;
   readonly className: string;
   readonly type: ControllerTypes;
-  readonly targetElement: string;
+  readonly targetElements: string[];
   readonly inputButton: string;
   readonly reverse: boolean;
   readonly speed: number; // mm/s or rad/s
@@ -33,7 +33,7 @@ export abstract class Control {
 
   type: ControllerTypes;
 
-  targetElement: string;
+  targetElements: string[];
 
   inputButton: string;
 
@@ -47,7 +47,7 @@ export abstract class Control {
       | {
           name?: string;
           type: ControllerTypes;
-          targetElement: string;
+          targetElements: string[];
           inputButton: string;
           speed?: number;
           reverse?: boolean;
@@ -57,7 +57,7 @@ export abstract class Control {
     this._name = control.name;
     this.nodeID = control.nodeID ?? uuidv4();
     this.type = control.type;
-    this.targetElement = control.targetElement;
+    this.targetElements = control.targetElements ?? [];
     this.inputButton = control.inputButton;
     this.speed = control.speed ?? 10;
     this.reverse = control.reverse ?? false;
@@ -69,7 +69,7 @@ export abstract class Control {
       name: this.name,
       className: this.className,
       type: this.type,
-      targetElement: this.targetElement,
+      targetElements: this.targetElements,
       inputButton: this.inputButton,
       speed: this.speed,
       reverse: this.reverse

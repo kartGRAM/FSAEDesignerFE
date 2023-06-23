@@ -25,7 +25,7 @@ export class LinearBushingControl extends Control {
       | IDataLinearBushingControl
       | {
           type: ControllerTypes;
-          targetElement: string;
+          targetElements: [string];
           inputButton: string;
           nodeID?: string;
           speed?: number;
@@ -39,7 +39,9 @@ export class LinearBushingControl extends Control {
 
   nameDefault(): string {
     const elements = store.getState().uitgd.collectedAssembly?.children;
-    const element = elements?.find((e) => e.nodeID === this.targetElement);
+    const element = elements?.find((e) =>
+      this.targetElements.includes(e.nodeID)
+    );
     if (!element) return 'component not found';
     return `position of ${element.name.value}`;
   }
@@ -52,8 +54,7 @@ export class LinearBushingControl extends Control {
         ...(current
           .getGroupedConstraints()
           .filter(
-            (c) =>
-              isLinearBushingSingleEnd(c) && c.elementID === this.targetElement
+            (c) => isLinearBushingSingleEnd(c) && c.controledBy === this.nodeID
           ) as LinearBushingSingleEnd[])
       );
       return prev;
@@ -77,8 +78,7 @@ export class LinearBushingControl extends Control {
         ...(current
           .getGroupedConstraints()
           .filter(
-            (c) =>
-              isLinearBushingSingleEnd(c) && c.elementID === this.targetElement
+            (c) => isLinearBushingSingleEnd(c) && c.controledBy === this.nodeID
           ) as LinearBushingSingleEnd[])
       );
       return prev;

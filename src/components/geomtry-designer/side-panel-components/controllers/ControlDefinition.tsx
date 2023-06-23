@@ -62,9 +62,13 @@ export function ControlDefinition(props: ControlDefinitionProps) {
     // eslint-disable-next-line no-nested-ternary
     isDataPointToPlaneControl(control)
       ? pointToPlane
-      : isDataExistingConstraintControl(control)
+      : // eslint-disable-next-line no-nested-ternary
+      isDataExistingConstraintControl(control)
       ? existingConstraint
-      : control?.targetElement ?? ''
+      : control?.targetElements[0] ?? ''
+    /*: control?.targetElements
+      ? control.targetElements[0]
+      : '' */
   );
   const prevID = usePrevious(selectedID);
 
@@ -84,13 +88,14 @@ export function ControlDefinition(props: ControlDefinitionProps) {
     let controlImpl: LinearBushingControl;
     if (
       isDataLinearBushingControl(control) &&
-      control.targetElement === element.nodeID
+      /* control.targetElements && */
+      control.targetElements[0] === element.nodeID
     ) {
       controlImpl = new LinearBushingControl(control);
     } else {
       controlImpl = new LinearBushingControl({
         type: 'keyboard',
-        targetElement: element.nodeID,
+        targetElements: [element.nodeID],
         inputButton
       });
       if (prevID !== selectedID) {
@@ -108,13 +113,14 @@ export function ControlDefinition(props: ControlDefinitionProps) {
     let controlImpl: DistanceControl;
     if (
       isDataDistanceControl(control) &&
-      control.targetElement === element.nodeID
+      /* control.targetElements && */
+      control.targetElements[0] === element.nodeID
     ) {
       controlImpl = new DistanceControl(control);
     } else {
       controlImpl = new DistanceControl({
         type: 'keyboard',
-        targetElement: element.nodeID,
+        targetElements: [element.nodeID],
         inputButton
       });
       if (prevID !== selectedID) {
@@ -132,7 +138,7 @@ export function ControlDefinition(props: ControlDefinitionProps) {
     } else {
       controlImpl = new PointToPlaneControl({
         type: 'keyboard',
-        targetElement: '',
+        targetElements: [],
         inputButton
       });
       if (prevID !== selectedID) {

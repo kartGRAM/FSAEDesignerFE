@@ -126,10 +126,13 @@ export default function AssemblyCreactor() {
       const assembly = state.uitgd.collectedAssembly;
       const childrenIDs = assembly?.children.map((child) => child.nodeID);
       const controls = state.dgd.present.controls.reduce((prev, current) => {
-        if (childrenIDs?.includes(current.targetElement)) {
-          if (!prev[current.targetElement]) prev[current.targetElement] = [];
-          prev[current.targetElement].push(getControl(current));
-        }
+        const control = getControl(current);
+        current.targetElements
+          .filter((element) => childrenIDs?.includes(element))
+          .forEach((element) => {
+            if (!prev[element]) prev[element] = [];
+            prev[element].push(control);
+          });
         return prev;
       }, {} as {[index: string]: Control[]});
       if (assembly) {

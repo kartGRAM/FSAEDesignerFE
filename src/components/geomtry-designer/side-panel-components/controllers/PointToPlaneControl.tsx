@@ -36,7 +36,7 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
   const speedMin = 0;
 
   const [selectedID, setSelectedID] = React.useState<string>(
-    control?.targetElement ?? ''
+    control?.targetElements[0] ?? ''
   );
 
   const [normal, setNormal] = React.useState(
@@ -97,7 +97,7 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
   };
 
   useUpdateEffect(() => {
-    control.targetElement = selectedID;
+    control.targetElements = [selectedID];
     control.pointID = selectedPoint;
     control.speed = isNumber(speed) ? speed : 0;
     control.reverse = reverse;

@@ -48,7 +48,7 @@ export class PointToPlaneControl extends Control {
       | IDataPointToPlaneControl
       | {
           type: ControllerTypes;
-          targetElement: string;
+          targetElements: string[];
           inputButton: string;
           nodeID?: string;
           pointID?: string;
@@ -85,7 +85,9 @@ export class PointToPlaneControl extends Control {
 
   nameDefault(): string {
     const elements = store.getState().uitgd.collectedAssembly?.children;
-    const element = elements?.find((e) => e.nodeID === this.targetElement);
+    const element = elements?.find((e) =>
+      this.targetElements.includes(e.nodeID)
+    );
     if (!element) return 'component not found';
     const point = element
       .getMeasurablePoints()
@@ -102,7 +104,7 @@ export class PointToPlaneControl extends Control {
         ...(current
           .getGroupedConstraints()
           .filter(
-            (c) => isPointToPlane(c) && c.elementID === this.targetElement
+            (c) => isPointToPlane(c) && c.controledBy === this.nodeID
           ) as PointToPlane[])
       );
       return prev;
@@ -126,7 +128,7 @@ export class PointToPlaneControl extends Control {
         ...(current
           .getGroupedConstraints()
           .filter(
-            (c) => isPointToPlane(c) && c.elementID === this.targetElement
+            (c) => isPointToPlane(c) && c.controledBy === this.nodeID
           ) as PointToPlane[])
       );
       return prev;

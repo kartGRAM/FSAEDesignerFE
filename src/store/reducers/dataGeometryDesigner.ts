@@ -120,7 +120,9 @@ export const dataGeometryDesignerSlice = createSlice({
     },
     setControl: (state: GDState, action: PayloadAction<IDataControl>) => {
       const control = action.payload;
-      const {controls} = state;
+      const controls = state.controls.filter(
+        (control) => control.targetElements
+      );
       const idx = controls.findIndex(
         (c) => c.nodeID === control.nodeID /* ||
           (c.type === control.type && c.inputButton === control.inputButton) */
@@ -130,12 +132,14 @@ export const dataGeometryDesignerSlice = createSlice({
         state.changed = true;
         return;
       }
-      state.controls = [control, ...state.controls];
+      state.controls = [control, ...controls];
       state.changed = true;
     },
     removeControl: (state: GDState, action: PayloadAction<string>) => {
       const nodeID = action.payload;
-      state.controls = state.controls.filter((c) => c.nodeID !== nodeID);
+      state.controls = state.controls.filter(
+        (c) => c.nodeID !== nodeID && c.targetElements
+      );
       state.changed = true;
     },
     setDatumObjects: (

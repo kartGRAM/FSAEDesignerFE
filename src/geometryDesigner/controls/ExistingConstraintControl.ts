@@ -35,7 +35,7 @@ export class ExistingConstraintControl extends Control {
           targetControl?: string;
         }
   ) {
-    super({...control, targetElement: ''});
+    super({...control, targetElements: []});
     this.speed = control.speed ?? 10;
     this.reverse = control.reverse ?? false;
     this.targetControl = control.targetControl ?? '';

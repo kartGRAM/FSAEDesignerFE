@@ -29,7 +29,7 @@ export class DistanceControl extends Control {
       | IDataDistanceControl
       | {
           type: ControllerTypes;
-          targetElement: string;
+          targetElements: string[];
           inputButton: string;
           nodeID?: string;
           speed?: number;
@@ -43,7 +43,9 @@ export class DistanceControl extends Control {
 
   nameDefault(): string {
     const elements = store.getState().uitgd.collectedAssembly?.children;
-    const element = elements?.find((e) => e.nodeID === this.targetElement);
+    const element = elements?.find((e) =>
+      this.targetElements.includes(e.nodeID)
+    );
     if (!element) return 'component not found';
     return `position of ${element.name.value}`;
   }
@@ -56,7 +58,7 @@ export class DistanceControl extends Control {
         ...(current
           .getGroupedConstraints()
           .filter(
-            (c) => isBarAndSpheres(c) && c.elementID === this.targetElement
+            (c) => isBarAndSpheres(c) && c.controledBy === this.nodeID
           ) as BarAndSpheres[])
       );
       return prev;
@@ -74,7 +76,7 @@ export class DistanceControl extends Control {
         ...(current
           .getGroupedConstraints()
           .filter(
-            (c) => isBarAndSpheres(c) && c.elementID === this.targetElement
+            (c) => isBarAndSpheres(c) && c.controledBy === this.nodeID
           ) as BarAndSpheres[])
       );
       return prev;
