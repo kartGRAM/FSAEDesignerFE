@@ -410,10 +410,11 @@ export class KinematicSolver {
                     `Two-dimentional Constraint of nearest neighbor of ${element.name.value}`,
                     pComponent,
                     (normal, distance) => {
+                      const pdqi = pComponent.quaternion.clone().invert();
                       // タイヤ空間上へ法線方向を変換する
-                      const pcdqi = pComponent.quaternion.clone().invert();
                       const n = normal
-                        .applyQuaternion(pcdqi)
+                        .clone()
+                        .applyQuaternion(pdqi)
                         .applyQuaternion(dqi);
                       // タイヤ空間内での、平面への最近傍点
                       const point = element.getNearestNeighborToPlane(

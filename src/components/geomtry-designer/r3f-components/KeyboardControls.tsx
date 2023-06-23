@@ -49,7 +49,7 @@ export const KeyboardControls = () => {
             fixSpringDumpersAtCurrentPositions: fixSpringDumperDuaringControl
           }
         });
-      } catch {
+      } catch (e: any) {
         rollbackParams.forEach(({control, value}) =>
           control.rollback(value, solver)
         );

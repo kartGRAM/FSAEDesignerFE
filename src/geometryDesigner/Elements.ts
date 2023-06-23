@@ -1678,12 +1678,11 @@ export class Tire extends Element implements ITire {
     const r = this.radius;
 
     // ②を軸にaxisを90度回転した単位ベクトルに、半径をかけた点が最近傍点
+    const q = new Quaternion().setFromAxisAngle(g, -Math.PI / 2);
     const p = (
       g.lengthSq() < Number.EPSILON * 2 ** 8
         ? new Vector3(0, 0, -1)
-        : axis.applyQuaternion(
-            new Quaternion().setFromAxisAngle(g, -Math.PI / 2)
-          )
+        : axis.applyQuaternion(q)
     ).multiplyScalar(r);
     return p.add(this.tireCenter.value);
   }
