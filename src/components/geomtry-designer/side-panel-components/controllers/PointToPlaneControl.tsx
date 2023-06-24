@@ -11,7 +11,7 @@ import Box from '@mui/material/Box';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import {InputBaseComponentProps} from '@mui/material/InputBase';
-import {isNumber} from '@app/utils/helpers';
+import {isNumber, numberToRgb} from '@app/utils/helpers';
 import useUpdateEffect from '@app/hooks/useUpdateEffect';
 import {IElement, isSimplifiedElement, isAArm} from '@gd/IElements';
 import InputLabel from '@mui/material/InputLabel';
@@ -22,6 +22,19 @@ import Select from '@mui/material/Select';
 import Vector from '@gdComponents/Vector';
 import Scalar from '@gdComponents/Scalar';
 import {NamedVector3, NamedNumber} from '@gd/NamedValues';
+import {INamedVector3} from '@gd/INamedValues';
+import {
+  IconButton,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper
+} from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import Table from '@mui/material/Table';
+import {alpha} from '@mui/material/styles';
 
 export interface PointToPlaneControlProps {
   control: PointToPlaneControl;
@@ -35,9 +48,10 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
   const speedMax = 400;
   const speedMin = 0;
 
-  const [selectedID, setSelectedID] = React.useState<string>(
-    control?.targetElements[0] ?? ''
+  const [selectedIDs, setSelectedIDs] = React.useState<string[]>(
+    control.targetElements ?? ['']
   );
+  const [selectedRow, setSelectedRow] = React.useState<string>('');
 
   const [normal, setNormal] = React.useState(
     new NamedVector3({value: control.normal})
@@ -50,15 +64,19 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
 
   const [max, setMax] = React.useState(new NamedNumber({value: control.max}));
 
-  const [selectedPoint, setSelectedPoint] = React.useState<string>(
-    control?.pointID ?? ''
-  );
+  const [selectedPoint, setSelectedPoint] = React.useState<{
+    [index: string]: string;
+  }>(control?.pointIDs ?? {});
 
   const zindex = useSelector(
     (state: RootState) =>
       state.uitgd.fullScreenZIndex +
       state.uitgd.dialogZIndex +
       state.uitgd.menuZIndex
+  );
+
+  const enabledColorLight: number = useSelector(
+    (state: RootState) => state.uigd.present.enabledColorLight
   );
 
   const state = store.getState();
@@ -69,8 +87,14 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
     prev[current.className].push(current);
     return prev;
   }, {} as {[index: string]: IElement[]});
-  const element = elements.find((element) => element.nodeID === selectedID);
-  const points = element?.getMeasurablePoints() ?? [];
+  const selectedElements = elements.filter((element) =>
+    selectedIDs.includes(element.nodeID)
+  );
+
+  const points = selectedElements.reduce((prev, current) => {
+    prev[current.nodeID] = current.getMeasurablePoints();
+    return prev;
+  }, {} as {[index: string]: INamedVector3[]});
 
   const handleSliderSpeedChange = (
     event: Event,
@@ -97,8 +121,11 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
   };
 
   useUpdateEffect(() => {
-    control.targetElements = [selectedID];
-    control.pointID = selectedPoint;
+    const elementIDs = elements.map((e) => e.nodeID);
+    control.targetElements = selectedIDs.filter((id) =>
+      elementIDs.includes(id)
+    );
+    control.pointIDs = selectedPoint;
     control.speed = isNumber(speed) ? speed : 0;
     control.reverse = reverse;
     control.normal.setValue(normal);
@@ -106,7 +133,7 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
     control.min.setValue(min.getStringValue());
     control.max.setValue(max.getStringValue());
     setStaged(control.getDataControl());
-  }, [selectedID, selectedPoint, speed, reverse, normal, origin, min, max]);
+  }, [selectedIDs, selectedPoint, speed, reverse, normal, origin, min, max]);
 
   return (
     <>
@@ -120,64 +147,209 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
           ml: 2
         }}
       >
-        <FormControl sx={{minWidth: 320}}>
-          <InputLabel htmlFor="component-select">Select a component</InputLabel>
-          <Select
-            value={selectedID}
-            label="Select a component"
-            MenuProps={{
-              sx: {zIndex: zindex}
-            }}
-            onChange={(e) => {
-              setSelectedID(e.target.value);
-              setSelectedPoint('');
-              if (e.target.value === '' && control) {
-                setStaged(control.nodeID);
+        {selectedIDs.length < 2 ? (
+          <>
+            <FormControl sx={{minWidth: 320}}>
+              <InputLabel htmlFor="component-select">
+                Select a component
+              </InputLabel>
+              <Select
+                value={selectedIDs[0] ?? ''}
+                label="Select a component"
+                MenuProps={{
+                  sx: {zIndex: zindex}
+                }}
+                onChange={(e) => {
+                  setSelectedIDs([e.target.value]);
+                  setSelectedPoint((prev) => {
+                    prev[e.target.value] = '';
+                    return prev;
+                  });
+                  if (e.target.value === '' && control) {
+                    setStaged(control.nodeID);
+                  }
+                }}
+              >
+                <MenuItem value="">
+                  <em>None</em>
+                </MenuItem>
+                {Object.keys(elementsByClass)
+                  .map((key) => [
+                    <ListSubheader key={key}>{key}</ListSubheader>,
+                    ...elementsByClass[key].map((element) => (
+                      <MenuItem value={element.nodeID} key={element.nodeID}>
+                        {element.name.value}
+                      </MenuItem>
+                    ))
+                  ])
+                  .flat()}
+              </Select>
+            </FormControl>
+            <FormControl sx={{ml: 3, minWidth: 320}}>
+              <InputLabel htmlFor="component-select">Select a node</InputLabel>
+              <Select
+                value={selectedPoint[selectedIDs[0] ?? '']}
+                label="Select a node"
+                MenuProps={{
+                  sx: {zIndex: zindex}
+                }}
+                onChange={(e) => {
+                  setSelectedPoint((prev) => {
+                    selectedPoint[selectedIDs[0] ?? ''] = e.target.value;
+                    return prev;
+                  });
+                }}
+              >
+                <MenuItem value="">
+                  <em>None</em>
+                </MenuItem>
+                {(points[selectedIDs[0] ?? ''] ?? []).map((p) => (
+                  <MenuItem value={p.nodeID} key={p.nodeID}>
+                    {p.name}
+                  </MenuItem>
+                ))}
+                {hasNearestNeighborToPlane(selectedElements[0]) ? (
+                  <MenuItem value="nearestNeighbor" key="nearestNeighbor">
+                    nearest neighbor
+                  </MenuItem>
+                ) : null}
+              </Select>
+            </FormControl>
+            <Box
+              component="div"
+              sx={{
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                ml: 1
+              }}
+            >
+              <IconButton aria-label="add">
+                <AddIcon />
+              </IconButton>
+            </Box>
+          </>
+        ) : (
+          <TableContainer
+            component={Paper}
+            sx={{
+              '& ::-webkit-scrollbar': {
+                height: '10px'
+              },
+              '&  ::-webkit-scrollbar-thumb': {
+                backgroundColor: numberToRgb(enabledColorLight),
+                borderRadius: '5px'
               }
             }}
           >
-            <MenuItem value="">
-              <em>None</em>
-            </MenuItem>
-            {Object.keys(elementsByClass)
-              .map((key) => [
-                <ListSubheader key={key}>{key}</ListSubheader>,
-                ...elementsByClass[key].map((element) => (
-                  <MenuItem value={element.nodeID} key={element.nodeID}>
-                    {element.name.value}
-                  </MenuItem>
-                ))
-              ])
-              .flat()}
-          </Select>
-        </FormControl>
-        <FormControl sx={{ml: 3, minWidth: 320}}>
-          <InputLabel htmlFor="component-select">Select a node</InputLabel>
-          <Select
-            value={selectedPoint}
-            label="Select a node"
-            MenuProps={{
-              sx: {zIndex: zindex}
-            }}
-            onChange={(e) => {
-              setSelectedPoint(e.target.value);
-            }}
-          >
-            <MenuItem value="">
-              <em>None</em>
-            </MenuItem>
-            {points.map((p) => (
-              <MenuItem value={p.nodeID} key={p.nodeID}>
-                {p.name}
-              </MenuItem>
-            ))}
-            {hasNearestNeighborToPlane(element) ? (
-              <MenuItem value="nearestNeighbor" key="nearestNeighbor">
-                nearest neighbor
-              </MenuItem>
-            ) : null}
-          </Select>
-        </FormControl>
+            <Table
+              sx={{backgroundColor: alpha('#FFF', 0.0)}}
+              size="small"
+              aria-label="a dense table"
+            >
+              <TableHead>
+                <TableRow onClick={() => setSelectedRow('')}>
+                  <TableCell>Order</TableCell>
+                  <TableCell align="left">Component Name</TableCell>
+                  <TableCell align="left">Point Name</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {selectedIDs.map((id, idx) => {
+                  return (
+                    <TableRow
+                      key={id}
+                      sx={{
+                        '&:last-child td, &:last-child th': {border: 0},
+                        userSelect: 'none',
+                        backgroundColor:
+                          selectedRow === id
+                            ? alpha(numberToRgb(enabledColorLight), 0.5)
+                            : 'unset'
+                      }}
+                      onClick={() => {
+                        if (id !== selectedRow) {
+                          setSelectedRow(id);
+                        }
+                      }}
+                    >
+                      <TableCell>{idx + 1}</TableCell>
+                      <TableCell align="left">
+                        <Select
+                          value={selectedIDs[idx] ?? ''}
+                          label="Select a component"
+                          MenuProps={{
+                            sx: {zIndex: zindex}
+                          }}
+                          onChange={(e) => {
+                            setSelectedIDs([e.target.value]);
+                            setSelectedPoint((prev) => {
+                              prev[e.target.value] = '';
+                              return prev;
+                            });
+                            if (e.target.value === '' && control) {
+                              setStaged(control.nodeID);
+                            }
+                          }}
+                        >
+                          <MenuItem value="">
+                            <em>None</em>
+                          </MenuItem>
+                          {Object.keys(elementsByClass)
+                            .map((key) => [
+                              <ListSubheader key={key}>{key}</ListSubheader>,
+                              ...elementsByClass[key].map((element) => (
+                                <MenuItem
+                                  value={element.nodeID}
+                                  key={element.nodeID}
+                                >
+                                  {element.name.value}
+                                </MenuItem>
+                              ))
+                            ])
+                            .flat()}
+                        </Select>
+                      </TableCell>
+                      <TableCell align="left">
+                        <Select
+                          value={selectedPoint[selectedIDs[idx] ?? '']}
+                          label="Select a node"
+                          MenuProps={{
+                            sx: {zIndex: zindex}
+                          }}
+                          onChange={(e) => {
+                            setSelectedPoint((prev) => {
+                              selectedPoint[selectedIDs[idx] ?? ''] =
+                                e.target.value;
+                              return prev;
+                            });
+                          }}
+                        >
+                          <MenuItem value="">
+                            <em>None</em>
+                          </MenuItem>
+                          {(points[selectedIDs[idx] ?? ''] ?? []).map((p) => (
+                            <MenuItem value={p.nodeID} key={p.nodeID}>
+                              {p.name}
+                            </MenuItem>
+                          ))}
+                          {hasNearestNeighborToPlane(selectedElements[0]) ? (
+                            <MenuItem
+                              value="nearestNeighbor"
+                              key="nearestNeighbor"
+                            >
+                              nearest neighbor
+                            </MenuItem>
+                          ) : null}
+                        </Select>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
       </Box>
       <Vector
         vector={origin}

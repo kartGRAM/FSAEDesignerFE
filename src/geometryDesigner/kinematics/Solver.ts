@@ -410,7 +410,7 @@ export class KinematicSolver {
                   TireRestorer.getTireLocalPosition(pl, pr, plTo.value, prTo);
                 const parent = plTo.parent as IElement;
                 const pComponent = tempComponents[parent.nodeID];
-                if (control.pointID === 'nearestNeighbor') {
+                if (control.pointIDs[element.nodeID] === 'nearestNeighbor') {
                   const dqi = dq.clone().invert();
                   const constraint = new PointToPlane(
                     `Two-dimentional Constraint of nearest neighbor of ${element.name.value}`,
@@ -440,7 +440,7 @@ export class KinematicSolver {
                 } else {
                   const points = element.getMeasurablePoints();
                   const point = points.find(
-                    (point) => point.nodeID === control.pointID
+                    (point) => point.nodeID === control.pointIDs[element.nodeID]
                   );
                   if (point) {
                     // 親コンポーネント上での座標
@@ -467,7 +467,7 @@ export class KinematicSolver {
               if (component.isRelativeFixed) return;
 
               if (
-                control.pointID === 'nearestNeighbor' &&
+                control.pointIDs[element.nodeID] === 'nearestNeighbor' &&
                 hasNearestNeighborToPlane(element)
               ) {
                 const constraint = new PointToPlane(
@@ -487,7 +487,7 @@ export class KinematicSolver {
               } else {
                 const points = element.getMeasurablePoints();
                 const point = points.find(
-                  (point) => point.nodeID === control.pointID
+                  (point) => point.nodeID === control.pointIDs[element.nodeID]
                 );
                 if (point) {
                   const p = point.value;

@@ -16,7 +16,7 @@ type ClassName = typeof className;
 
 export interface IDataPointToPlaneControl extends IDataControl {
   readonly className: ClassName;
-  readonly pointID: string;
+  readonly pointIDs: {[index: string]: string};
   readonly origin: IDataVector3;
   readonly normal: IDataVector3;
   readonly min: IDataNumber;
@@ -33,7 +33,7 @@ export function isDataPointToPlaneControl(
 export class PointToPlaneControl extends Control {
   readonly className = className;
 
-  pointID: string;
+  pointIDs: {[index: string]: string};
 
   origin: INamedVector3;
 
@@ -51,7 +51,7 @@ export class PointToPlaneControl extends Control {
           targetElements: string[];
           inputButton: string;
           nodeID?: string;
-          pointID?: string;
+          pointIDs?: {[index: string]: string};
           origin?: FunctionVector3 | IDataVector3 | INamedVector3;
           normal?: FunctionVector3 | IDataVector3 | INamedVector3;
           max?: string | number | IDataNumber | INamedNumber;
@@ -60,9 +60,8 @@ export class PointToPlaneControl extends Control {
         }
   ) {
     super(control);
-    const {origin, normal, pointID, max, min} = control;
-
-    this.pointID = pointID ?? '';
+    const {origin, normal, pointIDs, max, min} = control;
+    this.pointIDs = pointIDs ?? {};
     this.max = new NamedNumber({
       name: 'max',
       value: max ?? 10
@@ -91,7 +90,7 @@ export class PointToPlaneControl extends Control {
     if (!element) return 'component not found';
     const point = element
       .getMeasurablePoints()
-      .find((p) => p.nodeID === this.pointID);
+      .find((p) => p.nodeID === this.pointIDs[element.nodeID]);
     if (!point) return 'target point not found';
     return `position of ${point.name} of ${element.name.value}`;
   }
@@ -144,7 +143,7 @@ export class PointToPlaneControl extends Control {
     return {
       ...data,
       className: this.className,
-      pointID: this.pointID,
+      pointIDs: this.pointIDs,
       origin: this.origin.getData(state),
       normal: this.normal.getData(state),
       max: this.max.getData(state),

@@ -120,9 +120,10 @@ export const dataGeometryDesignerSlice = createSlice({
     },
     setControl: (state: GDState, action: PayloadAction<IDataControl>) => {
       const control = action.payload;
-      const controls = state.controls.filter(
-        (control) => control.targetElements
-      );
+      /* const controls = state.controls.filter(
+        (control) => !!control.targetElements
+      ); */
+      const {controls} = state;
       const idx = controls.findIndex(
         (c) => c.nodeID === control.nodeID /* ||
           (c.type === control.type && c.inputButton === control.inputButton) */
