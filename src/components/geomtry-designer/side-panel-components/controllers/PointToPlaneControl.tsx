@@ -48,9 +48,18 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
   const speedMax = 400;
   const speedMin = 0;
 
-  const [selectedIDs, setSelectedIDs] = React.useState<string[]>(
-    control.targetElements ?? ['']
+  const [selectedIDs, setSelectedIDs] = React.useState<
+    {element: string; point: string}[]
+  >(
+    control.targetElements.reduce((prev, current) => {
+      const points = control.pointIDs[current].map((p) => ({
+        element: current,
+        point: p
+      }));
+      return [...prev, ...points];
+    }, [] as {element: string; point: string}[])
   );
+  const selectedElementIDs = selectedIDs.map((r) => r.element);
   const [selectedRow, setSelectedRow] = React.useState<string>('');
 
   const [normal, setNormal] = React.useState(
@@ -63,10 +72,6 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
   const [min, setMin] = React.useState(new NamedNumber({value: control.min}));
 
   const [max, setMax] = React.useState(new NamedNumber({value: control.max}));
-
-  const [selectedPoint, setSelectedPoint] = React.useState<{
-    [index: string]: string;
-  }>(control?.pointIDs ?? {});
 
   const zindex = useSelector(
     (state: RootState) =>
@@ -88,7 +93,7 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
     return prev;
   }, {} as {[index: string]: IElement[]});
   const selectedElements = elements.filter((element) =>
-    selectedIDs.includes(element.nodeID)
+    selectedElementIDs.includes(element.nodeID)
   );
 
   const points = selectedElements.reduce((prev, current) => {
@@ -122,10 +127,19 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
 
   useUpdateEffect(() => {
     const elementIDs = elements.map((e) => e.nodeID);
-    control.targetElements = selectedIDs.filter((id) =>
-      elementIDs.includes(id)
-    );
-    control.pointIDs = selectedPoint;
+    const groupedIDs = selectedIDs.reduce((prev, current) => {
+      if (elementIDs.includes(current.element)) {
+        if (current.point !== '') {
+          if (!prev[current.element]) prev[current.element] = [];
+          if (!prev[current.element].includes(current.point)) {
+            prev[current.element].push(current.point);
+          }
+        }
+      }
+      return prev;
+    }, {} as {[index: string]: string[]});
+    control.targetElements = Object.keys(groupedIDs);
+    control.pointIDs = groupedIDs;
     control.speed = isNumber(speed) ? speed : 0;
     control.reverse = reverse;
     control.normal.setValue(normal);
@@ -133,7 +147,7 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
     control.min.setValue(min.getStringValue());
     control.max.setValue(max.getStringValue());
     setStaged(control.getDataControl());
-  }, [selectedIDs, selectedPoint, speed, reverse, normal, origin, min, max]);
+  }, [selectedIDs, speed, reverse, normal, origin, min, max]);
 
   return (
     <>
@@ -154,20 +168,13 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
                 Select a component
               </InputLabel>
               <Select
-                value={selectedIDs[0] ?? ''}
+                value={selectedIDs[0]?.element ?? ''}
                 label="Select a component"
                 MenuProps={{
                   sx: {zIndex: zindex}
                 }}
                 onChange={(e) => {
-                  setSelectedIDs([e.target.value]);
-                  setSelectedPoint((prev) => {
-                    prev[e.target.value] = '';
-                    return prev;
-                  });
-                  if (e.target.value === '' && control) {
-                    setStaged(control.nodeID);
-                  }
+                  setSelectedIDs([{element: e.target.value, point: ''}]);
                 }}
               >
                 <MenuItem value="">
@@ -188,22 +195,22 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
             <FormControl sx={{ml: 3, minWidth: 320}}>
               <InputLabel htmlFor="component-select">Select a node</InputLabel>
               <Select
-                value={selectedPoint[selectedIDs[0] ?? '']}
+                value={selectedIDs[0]?.point ?? ''}
                 label="Select a node"
                 MenuProps={{
                   sx: {zIndex: zindex}
                 }}
                 onChange={(e) => {
-                  setSelectedPoint((prev) => {
-                    selectedPoint[selectedIDs[0] ?? ''] = e.target.value;
-                    return prev;
+                  setSelectedIDs((prev) => {
+                    prev[0].point = e.target.value;
+                    return [...prev];
                   });
                 }}
               >
                 <MenuItem value="">
                   <em>None</em>
                 </MenuItem>
-                {(points[selectedIDs[0] ?? ''] ?? []).map((p) => (
+                {(points[selectedIDs[0]?.element ?? ''] ?? []).map((p) => (
                   <MenuItem value={p.nodeID} key={p.nodeID}>
                     {p.name}
                   </MenuItem>
@@ -224,7 +231,14 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
                 ml: 1
               }}
             >
-              <IconButton aria-label="add">
+              <IconButton
+                aria-label="add"
+                onClick={() => {
+                  setSelectedIDs((prev) => {
+                    return [...prev, {element: '', point: ''}];
+                  });
+                }}
+              >
                 <AddIcon />
               </IconButton>
             </Box>
@@ -255,7 +269,8 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {selectedIDs.map((id, idx) => {
+                {selectedIDs.map((row, idx) => {
+                  const id = row.element + row.point;
                   return (
                     <TableRow
                       key={id}
@@ -276,20 +291,17 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
                       <TableCell>{idx + 1}</TableCell>
                       <TableCell align="left">
                         <Select
-                          value={selectedIDs[idx] ?? ''}
+                          value={selectedIDs[idx]?.element ?? ''}
                           label="Select a component"
                           MenuProps={{
                             sx: {zIndex: zindex}
                           }}
                           onChange={(e) => {
-                            setSelectedIDs([e.target.value]);
-                            setSelectedPoint((prev) => {
-                              prev[e.target.value] = '';
-                              return prev;
+                            setSelectedIDs((prev) => {
+                              prev[idx].element = e.target.value;
+                              prev[idx].point = '';
+                              return [...prev];
                             });
-                            if (e.target.value === '' && control) {
-                              setStaged(control.nodeID);
-                            }
                           }}
                         >
                           <MenuItem value="">
@@ -312,27 +324,28 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
                       </TableCell>
                       <TableCell align="left">
                         <Select
-                          value={selectedPoint[selectedIDs[idx] ?? '']}
+                          value={selectedIDs[idx]?.point ?? ''}
                           label="Select a node"
                           MenuProps={{
                             sx: {zIndex: zindex}
                           }}
                           onChange={(e) => {
-                            setSelectedPoint((prev) => {
-                              selectedPoint[selectedIDs[idx] ?? ''] =
-                                e.target.value;
-                              return prev;
+                            setSelectedIDs((prev) => {
+                              prev[idx].point = e.target.value;
+                              return [...prev];
                             });
                           }}
                         >
                           <MenuItem value="">
                             <em>None</em>
                           </MenuItem>
-                          {(points[selectedIDs[idx] ?? ''] ?? []).map((p) => (
-                            <MenuItem value={p.nodeID} key={p.nodeID}>
-                              {p.name}
-                            </MenuItem>
-                          ))}
+                          {(points[selectedIDs[idx].element ?? ''] ?? []).map(
+                            (p) => (
+                              <MenuItem value={p.nodeID} key={p.nodeID}>
+                                {p.name}
+                              </MenuItem>
+                            )
+                          )}
                           {hasNearestNeighborToPlane(selectedElements[0]) ? (
                             <MenuItem
                               value="nearestNeighbor"
