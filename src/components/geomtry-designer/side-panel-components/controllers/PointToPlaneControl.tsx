@@ -33,6 +33,7 @@ import {
   Paper
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
 import Table from '@mui/material/Table';
 import {alpha} from '@mui/material/styles';
 
@@ -60,7 +61,7 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
     }, [] as {element: string; point: string}[])
   );
   const selectedElementIDs = selectedIDs.map((r) => r.element);
-  const [selectedRow, setSelectedRow] = React.useState<string>('');
+  const [selectedRow, setSelectedRow] = React.useState<string>('none');
 
   const [normal, setNormal] = React.useState(
     new NamedVector3({value: control.normal})
@@ -244,124 +245,167 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
             </Box>
           </>
         ) : (
-          <TableContainer
-            component={Paper}
-            sx={{
-              '& ::-webkit-scrollbar': {
-                height: '10px'
-              },
-              '&  ::-webkit-scrollbar-thumb': {
-                backgroundColor: numberToRgb(enabledColorLight),
-                borderRadius: '5px'
-              }
-            }}
+          <Box
+            component="div"
+            sx={{display: 'flex', flexDirection: 'column', width: '100%', m: 0}}
           >
-            <Table
-              sx={{backgroundColor: alpha('#FFF', 0.0)}}
-              size="small"
-              aria-label="a dense table"
+            <Box component="div" sx={{display: 'flex', flexDirection: 'row'}}>
+              <IconButton
+                aria-label="add"
+                onClick={() => {
+                  setSelectedIDs((prev) => {
+                    return [...prev, {element: '', point: ''}];
+                  });
+                }}
+              >
+                <AddIcon />
+              </IconButton>
+              <IconButton
+                aria-label="delete"
+                onClick={() => {
+                  setSelectedIDs((prev) => {
+                    return prev.filter(
+                      (row, idx) =>
+                        row.element + row.point + idx.toString() !== selectedRow
+                    );
+                  });
+                  setSelectedRow('none');
+                }}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </Box>
+            <TableContainer
+              component={Paper}
+              sx={{
+                '& ::-webkit-scrollbar': {
+                  height: '10px'
+                },
+                '&  ::-webkit-scrollbar-thumb': {
+                  backgroundColor: numberToRgb(enabledColorLight),
+                  borderRadius: '5px'
+                }
+              }}
             >
-              <TableHead>
-                <TableRow onClick={() => setSelectedRow('')}>
-                  <TableCell>Order</TableCell>
-                  <TableCell align="left">Component Name</TableCell>
-                  <TableCell align="left">Point Name</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {selectedIDs.map((row, idx) => {
-                  const id = row.element + row.point;
-                  return (
-                    <TableRow
-                      key={id}
-                      sx={{
-                        '&:last-child td, &:last-child th': {border: 0},
-                        userSelect: 'none',
-                        backgroundColor:
-                          selectedRow === id
-                            ? alpha(numberToRgb(enabledColorLight), 0.5)
-                            : 'unset'
-                      }}
-                      onClick={() => {
-                        if (id !== selectedRow) {
-                          setSelectedRow(id);
-                        }
-                      }}
-                    >
-                      <TableCell>{idx + 1}</TableCell>
-                      <TableCell align="left">
-                        <Select
-                          value={selectedIDs[idx]?.element ?? ''}
-                          label="Select a component"
-                          MenuProps={{
-                            sx: {zIndex: zindex}
-                          }}
-                          onChange={(e) => {
-                            setSelectedIDs((prev) => {
-                              prev[idx].element = e.target.value;
-                              prev[idx].point = '';
-                              return [...prev];
-                            });
-                          }}
-                        >
-                          <MenuItem value="">
-                            <em>None</em>
-                          </MenuItem>
-                          {Object.keys(elementsByClass)
-                            .map((key) => [
-                              <ListSubheader key={key}>{key}</ListSubheader>,
-                              ...elementsByClass[key].map((element) => (
-                                <MenuItem
-                                  value={element.nodeID}
-                                  key={element.nodeID}
-                                >
-                                  {element.name.value}
-                                </MenuItem>
-                              ))
-                            ])
-                            .flat()}
-                        </Select>
-                      </TableCell>
-                      <TableCell align="left">
-                        <Select
-                          value={selectedIDs[idx]?.point ?? ''}
-                          label="Select a node"
-                          MenuProps={{
-                            sx: {zIndex: zindex}
-                          }}
-                          onChange={(e) => {
-                            setSelectedIDs((prev) => {
-                              prev[idx].point = e.target.value;
-                              return [...prev];
-                            });
-                          }}
-                        >
-                          <MenuItem value="">
-                            <em>None</em>
-                          </MenuItem>
-                          {(points[selectedIDs[idx].element ?? ''] ?? []).map(
-                            (p) => (
-                              <MenuItem value={p.nodeID} key={p.nodeID}>
-                                {p.name}
-                              </MenuItem>
-                            )
-                          )}
-                          {hasNearestNeighborToPlane(selectedElements[0]) ? (
-                            <MenuItem
-                              value="nearestNeighbor"
-                              key="nearestNeighbor"
-                            >
-                              nearest neighbor
+              <Table
+                sx={{backgroundColor: alpha('#FFF', 0.0)}}
+                size="small"
+                aria-label="a dense table"
+              >
+                <TableHead>
+                  <TableRow onClick={() => setSelectedRow('none')}>
+                    <TableCell>Order</TableCell>
+                    <TableCell align="left">Component Name</TableCell>
+                    <TableCell align="left">Point Name</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {selectedIDs.map((row, idx) => {
+                    const id = row.element + row.point + idx.toString();
+                    return (
+                      <TableRow
+                        key={id}
+                        sx={{
+                          '&:last-child td, &:last-child th': {border: 0},
+                          userSelect: 'none',
+                          backgroundColor:
+                            selectedRow === id
+                              ? alpha(numberToRgb(enabledColorLight), 0.5)
+                              : 'unset'
+                        }}
+                        onClick={() => {
+                          if (id !== selectedRow) {
+                            setSelectedRow(id);
+                          }
+                        }}
+                      >
+                        <TableCell>{idx + 1}</TableCell>
+                        <TableCell align="left">
+                          <Select
+                            displayEmpty
+                            value={selectedIDs[idx]?.element ?? ''}
+                            sx={{
+                              ml: 0,
+                              '& legend': {display: 'none'},
+                              '& fieldset': {top: 0},
+                              width: '100%'
+                            }}
+                            MenuProps={{
+                              sx: {zIndex: zindex}
+                            }}
+                            onChange={(e) => {
+                              setSelectedIDs((prev) => {
+                                prev[idx].element = e.target.value;
+                                prev[idx].point = '';
+                                return [...prev];
+                              });
+                            }}
+                          >
+                            <MenuItem value="">
+                              <em>None</em>
                             </MenuItem>
-                          ) : null}
-                        </Select>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                            {Object.keys(elementsByClass)
+                              .map((key) => [
+                                <ListSubheader key={key}>{key}</ListSubheader>,
+                                ...elementsByClass[key].map((element) => (
+                                  <MenuItem
+                                    value={element.nodeID}
+                                    key={element.nodeID}
+                                  >
+                                    {element.name.value}
+                                  </MenuItem>
+                                ))
+                              ])
+                              .flat()}
+                          </Select>
+                        </TableCell>
+                        <TableCell align="left">
+                          <Select
+                            displayEmpty
+                            value={selectedIDs[idx]?.point ?? ''}
+                            sx={{
+                              ml: 0,
+                              '& legend': {display: 'none'},
+                              '& fieldset': {top: 0},
+                              width: '100%'
+                            }}
+                            MenuProps={{
+                              sx: {zIndex: zindex}
+                            }}
+                            onChange={(e) => {
+                              setSelectedIDs((prev) => {
+                                prev[idx].point = e.target.value;
+                                return [...prev];
+                              });
+                            }}
+                          >
+                            <MenuItem value="">
+                              <em>None</em>
+                            </MenuItem>
+                            {(points[selectedIDs[idx].element ?? ''] ?? []).map(
+                              (p) => (
+                                <MenuItem value={p.nodeID} key={p.nodeID}>
+                                  {p.name}
+                                </MenuItem>
+                              )
+                            )}
+                            {hasNearestNeighborToPlane(selectedElements[0]) ? (
+                              <MenuItem
+                                value="nearestNeighbor"
+                                key="nearestNeighbor"
+                              >
+                                nearest neighbor
+                              </MenuItem>
+                            ) : null}
+                          </Select>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
         )}
       </Box>
       <Vector

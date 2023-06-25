@@ -44,7 +44,10 @@ export function MeasureToolDialog(props: {
       state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex
   );
   const menuZIndex = useSelector(
-    (state: RootState) => state.uitgd.fullScreenZIndex + state.uitgd.menuZIndex
+    (state: RootState) =>
+      state.uitgd.fullScreenZIndex +
+      state.uitgd.dialogZIndex +
+      state.uitgd.menuZIndex
   );
 
   const [applyReady, setApplyReady] = React.useState<IMeasureTool | undefined>(
