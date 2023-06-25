@@ -29,6 +29,20 @@ export interface ConstraintsOptions {
   fixSpringDumpersAtCurrentPositions?: boolean;
 }
 
+interface deltaL {
+  hasDl: true;
+  dl: number;
+}
+
+export function hasDl(object: any): object is deltaL {
+  try {
+    if (object.hasDl) return true;
+  } catch {
+    return false;
+  }
+  return false;
+}
+
 export interface Constraint {
   readonly controledBy: string[];
   readonly className: string;
@@ -402,7 +416,7 @@ export class Hinge implements Constraint {
 
 const barAndSpheresClassName = 'BarAndSpheres' as const;
 type BarAndSpheresClassName = typeof barAndSpheresClassName;
-export class BarAndSpheres implements Constraint {
+export class BarAndSpheres implements Constraint, deltaL {
   readonly className: BarAndSpheresClassName = barAndSpheresClassName;
 
   // 自由度を1減らす
@@ -443,6 +457,8 @@ export class BarAndSpheres implements Constraint {
   rLocalSkew: Matrix;
 
   l2: number;
+
+  hasDl = true as const;
 
   private _dl: number = 0;
 
@@ -641,7 +657,7 @@ export function isBarAndSpheres(
   return constraint.className === barAndSpheresClassName;
 }
 
-export class LinearBushingSingleEnd implements Constraint {
+export class LinearBushingSingleEnd implements Constraint, deltaL {
   readonly className = 'LinearBushingSingleEnd';
 
   // 自由度を2減らす
@@ -690,6 +706,8 @@ export class LinearBushingSingleEnd implements Constraint {
   fixedLocalSkew: [Matrix, Matrix];
 
   initialLength: number;
+
+  hasDl = true as const;
 
   dl: number = 0;
 
@@ -954,7 +972,7 @@ export class QuaternionConstraint implements Constraint {
 
 const pointToPlaneClassName = 'PointToPlane' as const;
 type PointToPlaneClassName = typeof pointToPlaneClassName;
-export class PointToPlane implements Constraint {
+export class PointToPlane implements Constraint, deltaL {
   readonly className: PointToPlaneClassName = pointToPlaneClassName;
 
   // 自由度を1減らす
@@ -1005,6 +1023,8 @@ export class PointToPlane implements Constraint {
   dlMax: number = Number.MAX_SAFE_INTEGER;
 
   private _dl: number = 0;
+
+  hasDl = true as const;
 
   set dl(value: number) {
     this._dl = Math.min(this.dlMax, Math.max(this.dlMin, value));

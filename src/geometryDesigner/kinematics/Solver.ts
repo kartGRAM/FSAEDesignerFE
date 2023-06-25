@@ -42,7 +42,8 @@ import {
   Hinge,
   BarAndSpheres,
   LinearBushingSingleEnd,
-  PointToPlane
+  PointToPlane,
+  hasDl
 } from './Constraints';
 import {
   IComponent,
@@ -944,6 +945,13 @@ export class KinematicSolver {
       this.components.forEach((components) => {
         components[0].getGroupedConstraints().forEach((c) => c.resetStates());
         components.forEach((component) => component.restoreInitialQ());
+      });
+
+      const roots = this.components.map((c) => c[0]);
+      roots.forEach((root) => {
+        root.getGroupedConstraints().forEach((c) => {
+          if (hasDl(c)) c.dl = 0;
+        });
       });
       this.postProcess();
     } catch (e) {
