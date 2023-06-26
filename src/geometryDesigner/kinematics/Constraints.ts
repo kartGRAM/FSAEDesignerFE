@@ -1073,6 +1073,7 @@ export class PointToPlane implements Constraint, deltaL {
     // 平面拘束方程式の変分
     phi_q.setSubMatrix(nT, row, col + X);
     if (isFullDegreesComponent(component)) {
+      // (1x3) * (3x3) * (3x3) * (3x4) → (1x4)
       phi_q.setSubMatrix(nT.mmul(A).mmul(localSkew).mmul(G), row, col + Q0);
     }
   }

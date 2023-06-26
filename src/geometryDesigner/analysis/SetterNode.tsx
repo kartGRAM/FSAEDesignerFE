@@ -1,8 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable class-methods-use-this */
 import * as React from 'react';
 import {useSelector} from 'react-redux';
-import store, {RootState} from '@store/store';
+import {RootState} from '@store/store';
 import {Node as IRFNode, XYPosition} from 'reactflow';
 import Tuning from '@gdComponents/svgs/Tuning';
 import {v4 as uuidv4} from 'uuid';
@@ -15,7 +13,6 @@ import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
-import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import TableSortLabel from '@mui/material/TableSortLabel';
 import Toolbar from '@mui/material/Toolbar';
@@ -28,7 +25,6 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import {visuallyHidden} from '@mui/utils';
 
 import {getControl} from '@gd/controls/Controls';
-import {Control} from '@gd/controls/IControls';
 import {useFormik} from 'formik';
 import yup from '@app/utils/Yup';
 import TextField from '@mui/material/TextField';
@@ -71,6 +67,7 @@ export interface IDataSetterNode extends IDataActionNode {
 }
 
 export class SetterNode extends ActionNode implements ISetterNode {
+  // eslint-disable-next-line class-methods-use-this
   action(): void {}
 
   readonly className = className;
@@ -544,7 +541,10 @@ function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
           hiddenLabel
           name="formula"
           variant="standard"
-          onBlur={formik.handleBlur}
+          onBlur={(e) => {
+            formik.handleBlur(e);
+            formik.handleSubmit();
+          }}
           onKeyDown={onEnter}
           onChange={handleFormulaChange}
           value={formik.values.formula}
@@ -627,7 +627,10 @@ function ExistingRow(props: {
           hiddenLabel
           name="formula"
           variant="standard"
-          onBlur={formik.handleBlur}
+          onBlur={(e) => {
+            formik.handleBlur(e);
+            formik.handleSubmit();
+          }}
           onKeyDown={onEnter}
           onChange={formik.handleChange}
           value={formik.values.formula}
