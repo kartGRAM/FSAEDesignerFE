@@ -2,6 +2,9 @@ import * as React from 'react';
 import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
 import {
+  Typography,
+  Tooltip,
+  IconButton,
   Checkbox,
   TableBody,
   TableCell,
@@ -14,6 +17,7 @@ import {
   Table,
   Paper
 } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
 import {Node as IRFNode, XYPosition} from 'reactflow';
 import Sweep from '@gdComponents/svgs/Sweep';
 import {v4 as uuidv4} from 'uuid';
@@ -29,6 +33,7 @@ import yup from '@app/utils/Yup';
 import TextField from '@mui/material/TextField';
 import {toFixedNoZero} from '@utils/helpers';
 import {Formula} from '@gd/Formula';
+import {alpha} from '@mui/material/styles';
 import {
   IParameterSweeper,
   IDataParameterSweeper,
@@ -201,7 +206,8 @@ interface Row {
 function SweepContent(props: {node: ISweepNode; test: ITest}) {
   const {node, test} = props;
   const {updateWithSave} = useTestUpdate(test);
-  const {mode, setMode} = React.useState<Mode>('step');
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [mode, setMode] = React.useState<Mode>('step');
   const [order, setOrder] = React.useState<Order>('asc');
   const [orderBy, setOrderBy] = React.useState<keyof Row>('name');
   const [selected, setSelected] = React.useState<readonly string[]>([]);
@@ -470,7 +476,9 @@ function NewRow(props: {
   const reset = () => {
     setCategory('');
     setSelectedObject({type: 'NotSelected', target: '', valueForSelectTag: ''});
-    setEvaluatedValue(null);
+    setStartValue(null);
+    setEndValue(null);
+    setStepValue(null);
   };
 
   const formik = useFormik({
@@ -662,7 +670,7 @@ function NewRow(props: {
 }
 
 function ExistingRow(props: {
-  node: ISetterNode;
+  node: ISweepNode;
   row: Row;
   test: ITest;
   isItemSelected: boolean;
@@ -676,22 +684,35 @@ function ExistingRow(props: {
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      formula: row.valueFormula
+      startFormula: row.startFormula,
+      endFormula: row.endFormula,
+      stepFormula: row.stepFormula
     },
     validationSchema: yup.object({
-      formula: yup
+      startFormula: yup
+        .string()
+        .required('')
+        .gdFormulaIsValid(undefined, undefined, undefined),
+      endFormula: yup
+        .string()
+        .required('')
+        .gdFormulaIsValid(undefined, undefined, undefined),
+      stepFormula: yup
         .string()
         .required('')
         .gdFormulaIsValid(undefined, undefined, undefined)
+        .gdFormulaNonZero()
     }),
     onSubmit: (values) => {
       formik.resetForm();
       if (row.categories === 'Control') {
-        const setter = node.listSetters.find(
-          (setter) => setter.target === row.targetNodeID
+        const sweeper = node.listSweepers.find(
+          (s) => s.target === row.targetNodeID
         );
-        if (!setter) return;
-        setter.valueFormula.formula = values.formula;
+        if (!sweeper) return;
+        sweeper.startFormula.formula = values.startFormula;
+        sweeper.endFormula.formula = values.endFormula;
+        sweeper.stepFormula.formula = values.stepFormula;
         updateWithSave();
       }
     }
@@ -729,7 +750,7 @@ function ExistingRow(props: {
       <TableCell align="right">
         <TextField
           hiddenLabel
-          name="formula"
+          name="startValue"
           variant="standard"
           onBlur={(e) => {
             formik.handleBlur(e);
@@ -737,19 +758,62 @@ function ExistingRow(props: {
           }}
           onKeyDown={onEnter}
           onChange={formik.handleChange}
-          value={formik.values.formula}
-          error={formik.touched.formula && formik.errors.formula !== undefined}
-          helperText={formik.touched.formula && formik.errors.formula}
+          value={formik.values.startFormula}
+          error={
+            formik.touched.startFormula &&
+            formik.errors.startFormula !== undefined
+          }
+          helperText={formik.touched.startFormula && formik.errors.startFormula}
         />
       </TableCell>
-      <TableCell align="right">{row.evaluatedValue}</TableCell>
+      <TableCell align="right">
+        <TextField
+          hiddenLabel
+          name="endValue"
+          variant="standard"
+          onBlur={(e) => {
+            formik.handleBlur(e);
+            formik.handleSubmit();
+          }}
+          onKeyDown={onEnter}
+          onChange={formik.handleChange}
+          value={formik.values.endFormula}
+          error={
+            formik.touched.endFormula && formik.errors.endFormula !== undefined
+          }
+          helperText={formik.touched.endFormula && formik.errors.endFormula}
+        />
+      </TableCell>
+      <TableCell align="right">
+        <TextField
+          hiddenLabel
+          name="stepValue"
+          variant="standard"
+          onBlur={(e) => {
+            formik.handleBlur(e);
+            formik.handleSubmit();
+          }}
+          onKeyDown={onEnter}
+          onChange={formik.handleChange}
+          value={formik.values.stepFormula}
+          error={
+            formik.touched.stepFormula &&
+            formik.errors.stepFormula !== undefined
+          }
+          helperText={formik.touched.stepFormula && formik.errors.stepFormula}
+        />
+      </TableCell>
+
+      <TableCell align="right">{toFixedNoZero(row.startValue)}</TableCell>
+      <TableCell align="right">{toFixedNoZero(row.endValue)}</TableCell>
+      <TableCell align="right">{toFixedNoZero(row.step)}</TableCell>
     </TableRow>
   );
 }
 
 const EnhancedTableToolbar = (props: {
   test: ITest;
-  node: ISetterNode;
+  node: ISweepNode;
   selected: readonly string[];
   setSelected: React.Dispatch<React.SetStateAction<readonly string[]>>;
 }) => {
@@ -757,8 +821,8 @@ const EnhancedTableToolbar = (props: {
   const {updateWithSave} = useTestUpdate(test);
 
   const onDeleteClick = () => {
-    node.listSetters = node.listSetters.filter(
-      (setter) => !selected.includes(setter.target)
+    node.listSweepers = node.listSweepers.filter(
+      (s) => !selected.includes(s.target)
     );
     setSelected([]);
     updateWithSave();
