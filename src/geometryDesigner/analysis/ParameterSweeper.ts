@@ -8,6 +8,8 @@ import store from '@store/store';
 
 export type SweeperType = 'GlobalVariable' | 'Control';
 
+export type Mode = 'division' | 'step';
+
 export interface IParameterSweeper {
   type: SweeperType;
   readonly name: string;
@@ -19,8 +21,7 @@ export interface IParameterSweeper {
   readonly startValue: number;
   readonly endValue: number;
   readonly stepValue: number;
-  readonly divisionValue: number;
-  mode: 'division' | 'step';
+  mode: Mode;
   getData(): IDataParameterSweeper;
 }
 
@@ -77,10 +78,6 @@ export class ParameterSweeper implements IParameterSweeper {
 
   get stepValue() {
     return this.stepFormula.evaluatedValue;
-  }
-
-  get divisionValue() {
-    return this.divisionFormula.evaluatedValue;
   }
 
   getData(): IDataParameterSweeper {

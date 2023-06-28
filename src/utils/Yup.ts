@@ -3,7 +3,7 @@ import {RequiredStringSchema} from 'yup/lib/string';
 import {AnyObject, Maybe} from 'yup/lib/types';
 import store from '@store/store';
 import {IDataFormula, mathFunctions} from '@gd/IFormula';
-import {validate} from '@gd/Formula';
+import {validate, evaluate} from '@gd/Formula';
 
 // eslint-disable-next-line func-names
 yup.addMethod(yup.string, 'variableNameFirstChar', function () {
@@ -101,6 +101,60 @@ yup.addMethod(
   }
 );
 
+yup.addMethod(
+  yup.string,
+  'gdFormulaPositive',
+  // eslint-disable-next-line func-names
+  function () {
+    return this.test('gdFormulaPositive', '', (value, {createError}) => {
+      if (!value) return true;
+      const ret = evaluate(value);
+      return (
+        ret > 0 ||
+        createError({
+          message: 'The evaluation value must be a positive value.'
+        })
+      );
+    });
+  }
+);
+
+yup.addMethod(
+  yup.string,
+  'gdFormulaNonZero',
+  // eslint-disable-next-line func-names
+  function () {
+    return this.test('gdFormulaNonZero', '', (value, {createError}) => {
+      if (!value) return true;
+      const ret = evaluate(value);
+      return (
+        Math.abs(ret) > Number.EPSILON ||
+        createError({
+          message: 'The evaluation value must be a non-zero value.'
+        })
+      );
+    });
+  }
+);
+
+yup.addMethod(
+  yup.string,
+  'gdFormulaInteger',
+  // eslint-disable-next-line func-names
+  function () {
+    return this.test('gdFormulaInteger', '', (value, {createError}) => {
+      if (!value) return true;
+      const ret = evaluate(value);
+      return (
+        Number.isInteger(ret) ||
+        createError({
+          message: 'The evaluation value must be a integer.'
+        })
+      );
+    });
+  }
+);
+
 declare module 'yup' {
   interface StringSchema<
     TType extends Maybe<string> = string | undefined,
@@ -117,6 +171,9 @@ declare module 'yup' {
       onValidated?: (formula: string) => void
     ): RequiredStringSchema<TType, TContext>;
     variableNameFirstChar(): RequiredStringSchema<TType, TContext>;
+    gdFormulaPositive(): RequiredStringSchema<TType, TContext>;
+    gdFormulaNonZero(): RequiredStringSchema<TType, TContext>;
+    gdFormulaInteger(): RequiredStringSchema<TType, TContext>;
     variableName(): RequiredStringSchema<TType, TContext>;
     noMathFunctionsName(): RequiredStringSchema<TType, TContext>;
   }

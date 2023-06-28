@@ -1,17 +1,48 @@
 import * as React from 'react';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import TableSortLabel from '@mui/material/TableSortLabel';
-import Toolbar from '@mui/material/Toolbar';
+import {useSelector} from 'react-redux';
+import {RootState} from '@store/store';
+import {
+  Checkbox,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TableSortLabel,
+  Toolbar,
+  Box,
+  Table,
+  Paper
+} from '@mui/material';
 import {Node as IRFNode, XYPosition} from 'reactflow';
 import Sweep from '@gdComponents/svgs/Sweep';
 import {v4 as uuidv4} from 'uuid';
 import {CardNodeProps} from '@gdComponents/side-panel-components/analysis/CardNode';
 import FlowNodeDialog from '@gdComponents/side-panel-components/analysis/FlowNodeDialog';
 import useTestUpdate from '@hooks/useTestUpdate';
+import NativeSelect, {SelectChangeEvent} from '@mui/material/Select';
+import {visuallyHidden} from '@mui/utils';
+
+import {getControl} from '@gd/controls/Controls';
+import {useFormik} from 'formik';
+import yup from '@app/utils/Yup';
+import TextField from '@mui/material/TextField';
+import {toFixedNoZero} from '@utils/helpers';
+import {Formula} from '@gd/Formula';
+import {
+  IParameterSweeper,
+  IDataParameterSweeper,
+  ParameterSweeper,
+  SweeperType,
+  Mode
+} from './ParameterSweeper';
+import {ITest} from './ITest';
+import {
+  isStartNode,
+  isAssemblyControlNode,
+  isCaseControlNode
+} from './TypeGuards';
+import {IActionNode, IDataActionNode, ActionNode} from './ActionNode';
 import {
   IFlowNode,
   isDataFlowNode,
@@ -19,23 +50,18 @@ import {
   Item,
   IDataEdge
 } from './FlowNode';
-import {IActionNode, IDataActionNode, ActionNode} from './ActionNode';
-import {
-  isStartNode,
-  isAssemblyControlNode,
-  isCaseControlNode
-} from './TypeGuards';
-import {ITest} from './ITest';
 
 const className = 'Sweep' as const;
 type ClassName = typeof className;
 
 export interface ISweepNode extends IActionNode {
   className: ClassName;
+  listSweepers: IParameterSweeper[];
 }
 
 export interface IDataSweepNode extends IDataActionNode {
   className: ClassName;
+  listSweepers: IDataParameterSweeper[];
 }
 
 export class SweepNode extends ActionNode implements ISweepNode {
@@ -43,6 +69,8 @@ export class SweepNode extends ActionNode implements ISweepNode {
   action(): void {}
 
   readonly className = className;
+
+  listSweepers: IParameterSweeper[];
 
   acceptable(
     node: IFlowNode,
@@ -62,7 +90,11 @@ export class SweepNode extends ActionNode implements ISweepNode {
 
   getData(): IDataSweepNode {
     const data = super.getData();
-    return {...data, className: this.className};
+    return {
+      ...data,
+      className: this.className,
+      listSweepers: this.listSweepers.map((sweeper) => sweeper.getData())
+    };
   }
 
   getRFNode(test: ITest, canvasUpdate?: () => void): IRFNode & CardNodeProps {
@@ -100,8 +132,13 @@ export class SweepNode extends ActionNode implements ISweepNode {
       | IDataSweepNode
   ) {
     super(params);
-    // eslint-disable-next-line no-empty
+    this.listSweepers = [];
     if (isDataFlowNode(params) && isDataSweepNode(params)) {
+      const data = params;
+      if (data.listSweepers)
+        this.listSweepers = data.listSweepers.map(
+          (setterData) => new ParameterSweeper(setterData)
+        );
     }
   }
 
@@ -152,23 +189,33 @@ interface Row {
   targetNodeID: string;
   name: string;
   categories: string;
-  valueFormula: string;
-  evaluatedValue: number;
+  startFormula: string;
+  endFormula: string;
+  stepFormula: string;
+
+  startValue: number;
+  endValue: number;
+  step: number;
 }
 
 function SweepContent(props: {node: ISweepNode; test: ITest}) {
   const {node, test} = props;
   const {updateWithSave} = useTestUpdate(test);
+  const {mode, setMode} = React.useState<Mode>('step');
   const [order, setOrder] = React.useState<Order>('asc');
   const [orderBy, setOrderBy] = React.useState<keyof Row>('name');
   const [selected, setSelected] = React.useState<readonly string[]>([]);
-  const rows = node.listSetters.map(
-    (setter): Row => ({
-      targetNodeID: setter.target,
-      name: setter.name,
-      categories: setter.type,
-      valueFormula: setter.valueFormula.formula,
-      evaluatedValue: setter.evaluatedValue
+  const rows = node.listSweepers.map(
+    (s): Row => ({
+      targetNodeID: s.target,
+      name: s.name,
+      categories: s.type,
+      startFormula: s.startFormula.formula,
+      endFormula: s.endFormula.formula,
+      stepFormula: s.stepFormula.formula,
+      startValue: s.startValue,
+      endValue: s.endValue,
+      step: s.stepValue
     })
   );
 
@@ -255,7 +302,7 @@ function SweepContent(props: {node: ISweepNode; test: ITest}) {
                     />
                   );
                 })}
-              <NewRow node={node} updateWithSave={updateWithSave} />
+              <NewRow node={node} updateWithSave={updateWithSave} mode={mode} />
             </TableBody>
           </Table>
         </TableContainer>
@@ -285,16 +332,40 @@ const headCells: readonly HeadCell[] = [
     label: 'Categories'
   },
   {
-    id: 'valueFormula',
+    id: 'startFormula',
     numeric: true,
     disablePadding: false,
-    label: 'Value'
+    label: 'Start'
   },
   {
-    id: 'evaluatedValue',
+    id: 'endFormula',
     numeric: true,
     disablePadding: false,
-    label: 'Evaluated Value'
+    label: 'End'
+  },
+  {
+    id: 'stepFormula',
+    numeric: true,
+    disablePadding: false,
+    label: 'Step'
+  },
+  {
+    id: 'startValue',
+    numeric: true,
+    disablePadding: false,
+    label: 'Start'
+  },
+  {
+    id: 'endValue',
+    numeric: true,
+    disablePadding: false,
+    label: 'End'
+  },
+  {
+    id: 'step',
+    numeric: true,
+    disablePadding: false,
+    label: 'Step'
   }
 ];
 
@@ -362,16 +433,20 @@ function EnhancedTableHead(props: {
   );
 }
 
-function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
-  const {updateWithSave, node} = props;
+function NewRow(props: {
+  node: ISweepNode;
+  mode: Mode;
+  updateWithSave: () => void;
+}) {
+  const {updateWithSave, node, mode} = props;
   const labelId = React.useId();
-  const [evaluatedValue, setEvaluatedValue] = React.useState<number | null>(
-    null
-  );
+  const [startValue, setStartValue] = React.useState<number | null>(null);
+  const [endValue, setEndValue] = React.useState<number | null>(null);
+  const [stepValue, setStepValue] = React.useState<number | null>(null);
 
-  const [category, setCategory] = React.useState<SetterType | ''>('');
+  const [category, setCategory] = React.useState<SweeperType | ''>('');
   const [selectedObject, setSelectedObject] = React.useState<{
-    type: SetterType | 'NotSelected';
+    type: SweeperType | 'NotSelected';
     target: string;
     valueForSelectTag: string;
   }>({type: 'NotSelected', target: '', valueForSelectTag: ''});
@@ -380,8 +455,16 @@ function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
     (state: RootState) => state.dgd.present.controls
   );
 
-  const onFormulaValidated = (formula: string) => {
-    setEvaluatedValue(new Formula(formula).evaluatedValue);
+  const onStartFormulaValidated = (formula: string) => {
+    setStartValue(new Formula(formula).evaluatedValue);
+  };
+
+  const onEndFormulaValidated = (formula: string) => {
+    setEndValue(new Formula(formula).evaluatedValue);
+  };
+
+  const onStepFormulaValidated = (formula: string) => {
+    setStepValue(new Formula(formula).evaluatedValue);
   };
 
   const reset = () => {
@@ -393,13 +476,24 @@ function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      formula: ''
+      startFormula: '',
+      endFormula: '',
+      stepFormula: ''
     },
     validationSchema: yup.object({
-      formula: yup
+      startFormula: yup
         .string()
         .required('')
-        .gdFormulaIsValid(undefined, undefined, onFormulaValidated)
+        .gdFormulaIsValid(undefined, undefined, onStartFormulaValidated),
+      endFormula: yup
+        .string()
+        .required('')
+        .gdFormulaIsValid(undefined, undefined, onEndFormulaValidated),
+      stepFormula: yup
+        .string()
+        .required('')
+        .gdFormulaIsValid(undefined, undefined, onStepFormulaValidated)
+        .gdFormulaNonZero()
     }),
     onSubmit: (values) => {
       formik.resetForm();
@@ -409,13 +503,16 @@ function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
         );
         if (!control) return;
 
-        const setter = new ParameterSetter({
+        const setter = new ParameterSweeper({
           type: 'Control',
           target: control,
-          valueFormula: values.formula
+          mode,
+          startFormula: values.startFormula,
+          endFormula: values.endFormula,
+          stepFormula: values.stepFormula
         });
 
-        node.listSetters.push(setter);
+        node.listSweepers.push(setter);
         updateWithSave();
         reset();
       }
@@ -429,7 +526,9 @@ function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
   };
 
   const handleFormulaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEvaluatedValue(null);
+    setStartValue(null);
+    setEndValue(null);
+    setStepValue(null);
     formik.handleChange(e);
   };
 
@@ -455,9 +554,7 @@ function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
     }
   };
 
-  const alreadyExistsInSetterList = node.listSetters.map(
-    (setter) => setter.target
-  );
+  const alreadyExistsInSetterList = node.listSweepers.map((s) => s.target);
 
   if (alreadyExistsInSetterList.length === controls.length) return null;
 
@@ -501,7 +598,7 @@ function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
         <TextField
           disabled={!selectedObject.valueForSelectTag}
           hiddenLabel
-          name="formula"
+          name="startValue"
           variant="standard"
           onBlur={(e) => {
             formik.handleBlur(e);
@@ -509,12 +606,57 @@ function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
           }}
           onKeyDown={onEnter}
           onChange={handleFormulaChange}
-          value={formik.values.formula}
-          error={formik.touched.formula && formik.errors.formula !== undefined}
-          helperText={formik.touched.formula && formik.errors.formula}
+          value={formik.values.startFormula}
+          error={
+            formik.touched.startFormula &&
+            formik.errors.startFormula !== undefined
+          }
+          helperText={formik.touched.startFormula && formik.errors.startFormula}
         />
       </TableCell>
-      <TableCell align="right">{toFixedNoZero(evaluatedValue)}</TableCell>
+      <TableCell align="right">
+        <TextField
+          disabled={!selectedObject.valueForSelectTag}
+          hiddenLabel
+          name="endValue"
+          variant="standard"
+          onBlur={(e) => {
+            formik.handleBlur(e);
+            formik.handleSubmit();
+          }}
+          onKeyDown={onEnter}
+          onChange={handleFormulaChange}
+          value={formik.values.endFormula}
+          error={
+            formik.touched.endFormula && formik.errors.endFormula !== undefined
+          }
+          helperText={formik.touched.endFormula && formik.errors.endFormula}
+        />
+      </TableCell>
+      <TableCell align="right">
+        <TextField
+          disabled={!selectedObject.valueForSelectTag}
+          hiddenLabel
+          name="stepValue"
+          variant="standard"
+          onBlur={(e) => {
+            formik.handleBlur(e);
+            formik.handleSubmit();
+          }}
+          onKeyDown={onEnter}
+          onChange={handleFormulaChange}
+          value={formik.values.stepFormula}
+          error={
+            formik.touched.stepFormula &&
+            formik.errors.stepFormula !== undefined
+          }
+          helperText={formik.touched.stepFormula && formik.errors.stepFormula}
+        />
+      </TableCell>
+
+      <TableCell align="right">{toFixedNoZero(startValue)}</TableCell>
+      <TableCell align="right">{toFixedNoZero(endValue)}</TableCell>
+      <TableCell align="right">{toFixedNoZero(stepValue)}</TableCell>
     </TableRow>
   );
 }

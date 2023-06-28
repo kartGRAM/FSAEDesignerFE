@@ -133,7 +133,6 @@ export class SetterNode extends ActionNode implements ISetterNode {
       | IDataSetterNode
   ) {
     super(params);
-    // eslint-disable-next-line no-empty
     this.listSetters = [];
     if (isDataFlowNode(params) && isDataSetterNode(params)) {
       const data = params;
