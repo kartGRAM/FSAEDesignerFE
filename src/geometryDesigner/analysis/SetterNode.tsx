@@ -346,10 +346,11 @@ function SetterContent(props: {node: ISetterNode; test: ITest}) {
                       test={test}
                       isItemSelected={isItemSelected}
                       labelId={labelId}
+                      key={row.targetNodeID}
                     />
                   );
                 })}
-              <NewRow node={node} updateWithSave={updateWithSave} />
+              <NewRow node={node} updateWithSave={updateWithSave} key="new" />
             </TableBody>
           </Table>
         </TableContainer>
