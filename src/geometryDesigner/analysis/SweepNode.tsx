@@ -93,8 +93,8 @@ export class SweepNode extends ActionNode implements ISweepNode {
     return false;
   }
 
-  getData(): IDataSweepNode {
-    const data = super.getData();
+  getData(nodes: {[index: string]: IFlowNode | undefined}): IDataSweepNode {
+    const data = super.getData(nodes);
     return {
       ...data,
       className: this.className,
@@ -147,8 +147,8 @@ export class SweepNode extends ActionNode implements ISweepNode {
     }
   }
 
-  clone(): ISweepNode {
-    return new SweepNode({...this.getData(), nodeID: uuidv4()});
+  clone(nodes: {[index: string]: IFlowNode | undefined}): ISweepNode {
+    return new SweepNode({...this.getData(nodes), nodeID: uuidv4()});
   }
 }
 
@@ -606,7 +606,7 @@ function NewRow(props: {
         <TextField
           disabled={!selectedObject.valueForSelectTag}
           hiddenLabel
-          name="startValue"
+          name="startFormula"
           variant="standard"
           onBlur={(e) => {
             formik.handleBlur(e);
@@ -626,7 +626,7 @@ function NewRow(props: {
         <TextField
           disabled={!selectedObject.valueForSelectTag}
           hiddenLabel
-          name="endValue"
+          name="endFormula"
           variant="standard"
           onBlur={(e) => {
             formik.handleBlur(e);
@@ -645,7 +645,7 @@ function NewRow(props: {
         <TextField
           disabled={!selectedObject.valueForSelectTag}
           hiddenLabel
-          name="stepValue"
+          name="stepFormula"
           variant="standard"
           onBlur={(e) => {
             formik.handleBlur(e);
@@ -750,7 +750,7 @@ function ExistingRow(props: {
       <TableCell align="right">
         <TextField
           hiddenLabel
-          name="startValue"
+          name="startFormula"
           variant="standard"
           onBlur={(e) => {
             formik.handleBlur(e);
@@ -769,7 +769,7 @@ function ExistingRow(props: {
       <TableCell align="right">
         <TextField
           hiddenLabel
-          name="endValue"
+          name="endFormula"
           variant="standard"
           onBlur={(e) => {
             formik.handleBlur(e);
@@ -787,7 +787,7 @@ function ExistingRow(props: {
       <TableCell align="right">
         <TextField
           hiddenLabel
-          name="stepValue"
+          name="stepFormula"
           variant="standard"
           onBlur={(e) => {
             formik.handleBlur(e);

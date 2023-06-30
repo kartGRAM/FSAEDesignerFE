@@ -253,7 +253,7 @@ export class Test implements ITest {
       name,
       description,
       nodeID,
-      nodes: Object.values(nodes).map((node) => node.getData()),
+      nodes: Object.values(nodes).map((node) => node.getData(this.nodes)),
       edges: Object.values(edges),
       localStateID: uuidv4()
     };
@@ -286,7 +286,7 @@ export class Test implements ITest {
     const nodes = Object.values(this.nodes)
       .filter((node) => node.selected && !isStartNode(node) && !isEndNode(node))
       .map((node) => ({
-        ...node.getData()
+        ...node.getData(this.nodes)
       }));
 
     const selectedNodeIDs = nodes.map((node) => node.nodeID);

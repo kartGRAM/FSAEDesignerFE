@@ -41,8 +41,8 @@ export class CaseEndNode extends FlowNode implements ICaseEndNode {
     return false;
   }
 
-  getData(): IDataCaseEndNode {
-    const data = super.getData();
+  getData(nodes: {[index: string]: IFlowNode | undefined}): IDataCaseEndNode {
+    const data = super.getData(nodes);
     return {...data, className: this.className};
   }
 
@@ -83,8 +83,8 @@ export class CaseEndNode extends FlowNode implements ICaseEndNode {
     }
   }
 
-  clone(): ICaseEndNode {
-    return new CaseEndNode({...this.getData(), nodeID: uuidv4()});
+  clone(nodes: {[index: string]: IFlowNode | undefined}): ICaseEndNode {
+    return new CaseEndNode({...this.getData(nodes), nodeID: uuidv4()});
   }
 }
 

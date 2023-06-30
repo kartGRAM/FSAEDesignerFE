@@ -44,8 +44,8 @@ export class EndNode extends ActionNode implements IEndNode {
     return false;
   }
 
-  getData(): IDataEndNode {
-    const data = super.getData();
+  getData(nodes: {[index: string]: IFlowNode | undefined}): IDataEndNode {
+    const data = super.getData(nodes);
     return {...data, className: this.className};
   }
 
@@ -67,8 +67,8 @@ export class EndNode extends ActionNode implements IEndNode {
     }
   }
 
-  clone(): IEndNode {
-    return new EndNode({...this.getData(), nodeID: uuidv4()});
+  clone(nodes: {[index: string]: IFlowNode | undefined}): IEndNode {
+    return new EndNode({...this.getData(nodes), nodeID: uuidv4()});
   }
 }
 

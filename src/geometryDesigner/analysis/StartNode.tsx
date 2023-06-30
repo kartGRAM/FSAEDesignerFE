@@ -30,8 +30,8 @@ export class StartNode extends ActionNode implements IStartNode {
     return false;
   }
 
-  getData(): IDataStartNode {
-    const data = super.getData();
+  getData(nodes: {[index: string]: IFlowNode | undefined}): IDataStartNode {
+    const data = super.getData(nodes);
     return {...data, className: this.className};
   }
 
@@ -56,8 +56,8 @@ export class StartNode extends ActionNode implements IStartNode {
     }
   }
 
-  clone(): IStartNode {
-    return new StartNode({...this.getData(), nodeID: uuidv4()});
+  clone(nodes: {[index: string]: IFlowNode | undefined}): IStartNode {
+    return new StartNode({...this.getData(nodes), nodeID: uuidv4()});
   }
 }
 

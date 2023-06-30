@@ -58,12 +58,16 @@ type ClassName = typeof className;
 
 export interface ISetterNode extends IActionNode {
   className: ClassName;
+  copyFrom: string | undefined;
   listSetters: IParameterSetter[];
+  isModRow: boolean[];
 }
 
 export interface IDataSetterNode extends IDataActionNode {
   className: ClassName;
+  copyFrom: string | undefined;
   listSetters: IDataParameterSetter[];
+  isModRow: boolean[] | undefined;
 }
 
 export class SetterNode extends ActionNode implements ISetterNode {
@@ -73,6 +77,10 @@ export class SetterNode extends ActionNode implements ISetterNode {
   readonly className = className;
 
   listSetters: IParameterSetter[];
+
+  isModRow: boolean[];
+
+  copyFrom: string | undefined;
 
   acceptable(
     node: IFlowNode,
@@ -90,12 +98,27 @@ export class SetterNode extends ActionNode implements ISetterNode {
     return false;
   }
 
-  getData(): IDataSetterNode {
-    const data = super.getData();
+  getData(nodes: {[index: string]: IFlowNode | undefined}): IDataSetterNode {
+    const data = super.getData(nodes);
+    const nodeCopyFrom = nodes[this.copyFrom ?? ''];
+    const copyFrom =
+      nodeCopyFrom && isSetterNode(nodeCopyFrom) ? nodeCopyFrom : undefined;
+
+    const listSetters = copyFrom
+      ? copyFrom.listSetters.map((setter, i) =>
+          !!this.isModRow[i] && this.listSetters[i]
+            ? this.listSetters[i].getData()
+            : setter.getData()
+        )
+      : this.listSetters.map((s) => s.getData());
     return {
       ...data,
+      copyFrom: this.copyFrom,
       className: this.className,
-      listSetters: this.listSetters.map((setter) => setter.getData())
+      listSetters,
+      isModRow: copyFrom
+        ? copyFrom.listSetters.map((_, i) => !!this.isModRow[i])
+        : undefined
     };
   }
 
@@ -129,22 +152,28 @@ export class SetterNode extends ActionNode implements ISetterNode {
 
   constructor(
     params:
-      | {name: string; position: {x: number; y: number}; nodeID?: string}
+      | {
+          name: string;
+          position: {x: number; y: number};
+          nodeID?: string;
+        }
       | IDataSetterNode
   ) {
     super(params);
     this.listSetters = [];
+    this.isModRow = [];
     if (isDataFlowNode(params) && isDataSetterNode(params)) {
       const data = params;
       if (data.listSetters)
         this.listSetters = data.listSetters.map(
           (setterData) => new ParameterSetter(setterData)
         );
+      this.isModRow = data.isModRow?.slice() ?? [];
     }
   }
 
-  clone(): ISetterNode {
-    return new SetterNode({...this.getData(), nodeID: uuidv4()});
+  clone(nodes: {[index: string]: IFlowNode | undefined}): ISetterNode {
+    return new SetterNode({...this.getData(nodes), nodeID: uuidv4()});
   }
 }
 
