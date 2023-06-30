@@ -281,7 +281,7 @@ export function FlowCanvas(props: {
     const data = await navigator.clipboard.readText();
     const item = convertJsonToClipboardFlowNodes(data);
     if (item) {
-      const {nodes, edges} = getFlowNodesFromClipboard(item);
+      const {nodes, edges} = getFlowNodesFromClipboard(item, test.nodes);
       const inheritedParams = tempNodes.nodes.reduce((prev, node) => {
         prev[node.data.oldID] = {position: node.position, nodeID: node.id};
         return prev;
@@ -456,7 +456,7 @@ export function FlowCanvas(props: {
     const data = await navigator.clipboard.readText();
     const item = convertJsonToClipboardFlowNodes(data);
     if (item) {
-      const nodesAndEdges = getRFFlowNodesFromClipboard(item);
+      const nodesAndEdges = getRFFlowNodesFromClipboard(item, test.nodes);
       const minX = nodesAndEdges.nodes.reduce(
         (prev, node) => Math.min(prev, node.position.x),
         Number.MAX_SAFE_INTEGER

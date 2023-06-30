@@ -79,7 +79,7 @@ export class Test implements ITest {
         return prev;
       }, {} as {[index: string]: IDataEdge});
       this.nodes = data.nodes.reduce((prev, current) => {
-        const node = getFlowNode(current);
+        const node = getFlowNode(current, this.nodes);
         if (isStartNode(node)) this.startNode = node;
         if (isEndNode(node)) this.endNode = node;
         prev[current.nodeID] = node;

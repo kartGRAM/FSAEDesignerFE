@@ -58,7 +58,8 @@ type ClassName = typeof className;
 
 export interface ISetterNode extends IActionNode {
   className: ClassName;
-  copyFrom: string | undefined;
+  readonly copyFrom: string | undefined;
+  setCopyFrom(org: ISetterNode): void;
   listSetters: IParameterSetter[];
   isModRow: boolean[];
 }
@@ -80,7 +81,16 @@ export class SetterNode extends ActionNode implements ISetterNode {
 
   isModRow: boolean[];
 
-  copyFrom: string | undefined;
+  private _copyFrom: string | undefined;
+
+  get copyFrom(): string | undefined {
+    return this._copyFrom;
+  }
+
+  setCopyFrom(org: ISetterNode) {
+    this._copyFrom = org.nodeID;
+    this.isModRow = org.listSetters.map(() => false);
+  }
 
   acceptable(
     node: IFlowNode,
@@ -142,11 +152,14 @@ export class SetterNode extends ActionNode implements ISetterNode {
       icon: <Tuning title="Setter" />,
       text: 'Set parameters',
       onDrop: (position: XYPosition, temporary: boolean) =>
-        new SetterNode({
-          name: 'Parameter setting',
-          position,
-          nodeID: temporary ? 'temp' : undefined
-        })
+        new SetterNode(
+          {
+            name: 'Parameter setting',
+            position,
+            nodeID: temporary ? 'temp' : undefined
+          },
+          {}
+        )
     };
   }
 
@@ -157,23 +170,38 @@ export class SetterNode extends ActionNode implements ISetterNode {
           position: {x: number; y: number};
           nodeID?: string;
         }
-      | IDataSetterNode
+      | IDataSetterNode,
+    nodes: {[index: string]: IFlowNode | undefined}
   ) {
     super(params);
     this.listSetters = [];
     this.isModRow = [];
+    this._copyFrom = undefined;
     if (isDataFlowNode(params) && isDataSetterNode(params)) {
       const data = params;
-      if (data.listSetters)
+      const nodeCopyFrom = nodes[data.copyFrom ?? ''];
+      const copyFrom =
+        nodeCopyFrom && isSetterNode(nodeCopyFrom) ? nodeCopyFrom : undefined;
+      if (copyFrom) {
+        this._copyFrom = data.copyFrom;
+        this.isModRow = copyFrom.listSetters.map((_, i) =>
+          data.isModRow ? !!data.isModRow[i] : false
+        );
+        this.listSetters = copyFrom.listSetters.map((s, i) =>
+          this.isModRow[i]
+            ? new ParameterSetter(data.listSetters[i])
+            : new ParameterSetter(s.getData())
+        );
+      } else {
         this.listSetters = data.listSetters.map(
           (setterData) => new ParameterSetter(setterData)
         );
-      this.isModRow = data.isModRow?.slice() ?? [];
+      }
     }
   }
 
   clone(nodes: {[index: string]: IFlowNode | undefined}): ISetterNode {
-    return new SetterNode({...this.getData(nodes), nodeID: uuidv4()});
+    return new SetterNode({...this.getData(nodes), nodeID: uuidv4()}, nodes);
   }
 }
 

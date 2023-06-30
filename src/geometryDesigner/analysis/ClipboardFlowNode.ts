@@ -15,21 +15,27 @@ export function isClipboardFlowNodes(
   return (item as IClipboardFlowNodes).isClipboardFlowNodes;
 }
 
-export function getFlowNodesFromClipboard(item: IClipboardFlowNodes): {
+export function getFlowNodesFromClipboard(
+  item: IClipboardFlowNodes,
+  nodes: {[index: string]: IFlowNode | undefined}
+): {
   nodes: IFlowNode[];
   edges: IDataEdge[];
 } {
   return {
-    nodes: item.nodes.map((node) => getFlowNode(node)),
+    nodes: item.nodes.map((node) => getFlowNode(node, nodes)),
     edges: item.edges
   };
 }
 
-export function getRFFlowNodesFromClipboard(item: IClipboardFlowNodes): {
+export function getRFFlowNodesFromClipboard(
+  item: IClipboardFlowNodes,
+  testNodes: {[index: string]: IFlowNode | undefined}
+): {
   nodes: Node[];
   edges: Edge[];
 } {
-  const {nodes, edges} = getFlowNodesFromClipboard(item);
+  const {nodes, edges} = getFlowNodesFromClipboard(item, testNodes);
   return {
     nodes: nodes.map((node) => node.getRFNode()),
     edges: edges.map((edge) => getEdge(edge))
