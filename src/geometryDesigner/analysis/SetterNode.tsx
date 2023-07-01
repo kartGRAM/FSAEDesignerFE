@@ -89,7 +89,10 @@ export class SetterNode extends ActionNode implements ISetterNode {
 
   setCopyFrom(org: ISetterNode) {
     this._copyFrom = org.nodeID;
-    this.isModRow = org.listSetters.map(() => false);
+    this.isModRow = org.listSetters.reduce((prev, current) => {
+      prev[current.target] = false;
+      return prev;
+    }, {} as {[index: string]: boolean | undefined});
   }
 
   acceptable(
@@ -116,7 +119,7 @@ export class SetterNode extends ActionNode implements ISetterNode {
 
     const listSetters = copyFrom
       ? copyFrom.listSetters.map((setter) => {
-          const mod = this.listSetters.find((d) => d.target === s.target);
+          const mod = this.listSetters.find((d) => d.target === setter.target);
           if (this.isModRow[setter.target] && mod) {
             return mod.getData();
           }
