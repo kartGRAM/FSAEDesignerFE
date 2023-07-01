@@ -61,14 +61,14 @@ export interface ISetterNode extends IActionNode {
   readonly copyFrom: string | undefined;
   setCopyFrom(org: ISetterNode): void;
   listSetters: IParameterSetter[];
-  isModRow: boolean[];
+  isModRow: {[index: string]: boolean | undefined};
 }
 
 export interface IDataSetterNode extends IDataActionNode {
   className: ClassName;
   copyFrom: string | undefined;
   listSetters: IDataParameterSetter[];
-  isModRow: boolean[] | undefined;
+  isModRow: {[index: string]: boolean | undefined};
 }
 
 export class SetterNode extends ActionNode implements ISetterNode {
@@ -79,7 +79,7 @@ export class SetterNode extends ActionNode implements ISetterNode {
 
   listSetters: IParameterSetter[];
 
-  isModRow: boolean[];
+  isModRow: {[index: string]: boolean | undefined};
 
   private _copyFrom: string | undefined;
 
@@ -115,11 +115,13 @@ export class SetterNode extends ActionNode implements ISetterNode {
       nodeCopyFrom && isSetterNode(nodeCopyFrom) ? nodeCopyFrom : undefined;
 
     const listSetters = copyFrom
-      ? copyFrom.listSetters.map((setter, i) =>
-          !!this.isModRow[i] && this.listSetters[i]
-            ? this.listSetters[i].getData()
-            : setter.getData()
-        )
+      ? copyFrom.listSetters.map((setter) => {
+          const mod = this.listSetters.find((d) => d.target === s.target);
+          if (this.isModRow[setter.target] && mod) {
+            return mod.getData();
+          }
+          return setter.getData();
+        })
       : this.listSetters.map((s) => s.getData());
     return {
       ...data,
@@ -127,8 +129,11 @@ export class SetterNode extends ActionNode implements ISetterNode {
       className: this.className,
       listSetters,
       isModRow: copyFrom
-        ? copyFrom.listSetters.map((_, i) => !!this.isModRow[i])
-        : undefined
+        ? copyFrom.listSetters.reduce((prev, current) => {
+            prev[current.target] = this.isModRow[current.target];
+            return prev;
+          }, {} as {[index: string]: boolean | undefined})
+        : {}
     };
   }
 
@@ -175,7 +180,7 @@ export class SetterNode extends ActionNode implements ISetterNode {
   ) {
     super(params);
     this.listSetters = [];
-    this.isModRow = [];
+    this.isModRow = {};
     this._copyFrom = undefined;
     if (isDataFlowNode(params) && isDataSetterNode(params)) {
       const data = params;
@@ -184,14 +189,18 @@ export class SetterNode extends ActionNode implements ISetterNode {
         nodeCopyFrom && isSetterNode(nodeCopyFrom) ? nodeCopyFrom : undefined;
       if (copyFrom) {
         this._copyFrom = data.copyFrom;
-        this.isModRow = copyFrom.listSetters.map((_, i) =>
-          data.isModRow ? !!data.isModRow[i] : false
-        );
-        this.listSetters = copyFrom.listSetters.map((s, i) =>
-          this.isModRow[i]
-            ? new ParameterSetter(data.listSetters[i])
-            : new ParameterSetter(s.getData())
-        );
+        this.isModRow = copyFrom.listSetters.reduce((prev, current) => {
+          prev[current.target] = false;
+          if (data.isModRow[current.target]) {
+            prev[current.target] = true;
+          }
+          return prev;
+        }, {} as {[index: string]: boolean | undefined});
+        this.listSetters = copyFrom.listSetters.map((s) => {
+          const mod = data.listSetters.find((d) => d.target === s.target);
+          if (this.isModRow[s.target] && mod) return new ParameterSetter(mod);
+          return new ParameterSetter(s.getData());
+        });
       } else {
         this.listSetters = data.listSetters.map(
           (setterData) => new ParameterSetter(setterData)
