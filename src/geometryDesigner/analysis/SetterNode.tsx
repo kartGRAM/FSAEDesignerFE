@@ -153,9 +153,9 @@ export class SetterNode extends ActionNode implements ISetterNode {
       : this.listSetters.map((s) => s.getData());
     return {
       ...data,
-      copyFrom: this.copyFrom,
       className: this.className,
       listSetters,
+      copyFrom: this.copyFrom,
       isModRow: copyFrom
         ? copyFrom.listSetters.reduce((prev, current) => {
             prev[current.target] = this.isModRow[current.target];

@@ -61,12 +61,17 @@ type ClassName = typeof className;
 
 export interface ISweepNode extends IActionNode {
   className: ClassName;
+  readonly copyFrom: string | undefined;
+  setCopyFrom(org: IFlowNode | null): void;
   listSweepers: IParameterSweeper[];
+  isModRow: {[index: string]: boolean | undefined};
 }
 
 export interface IDataSweepNode extends IDataActionNode {
   className: ClassName;
   listSweepers: IDataParameterSweeper[];
+  copyFrom: string | undefined;
+  isModRow: {[index: string]: boolean | undefined};
 }
 
 export class SweepNode extends ActionNode implements ISweepNode {
@@ -76,6 +81,47 @@ export class SweepNode extends ActionNode implements ISweepNode {
   readonly className = className;
 
   listSweepers: IParameterSweeper[];
+
+  isModRow: {[index: string]: boolean | undefined};
+
+  private _copyFrom: string | undefined;
+
+  get copyFrom(): string | undefined {
+    return this._copyFrom;
+  }
+
+  setCopyFrom(org: IFlowNode | null) {
+    if (org && isSweepNode(org)) {
+      if (org.nodeID === this._copyFrom) {
+        this.isModRow = org.listSweepers.reduce((prev, current) => {
+          prev[current.target] = false;
+          if (this.isModRow[current.target]) {
+            prev[current.target] = true;
+          }
+          return prev;
+        }, {} as {[index: string]: boolean | undefined});
+        this.listSweepers = org.listSweepers.map((s) => {
+          if (this.isModRow[s.target]) {
+            const mod = this.listSweepers.find((d) => d.target === s.target);
+            if (mod) return mod;
+          }
+          return new ParameterSweeper(s.getData());
+        });
+      } else {
+        this._copyFrom = org.nodeID;
+        this.isModRow = org.listSweepers.reduce((prev, current) => {
+          prev[current.target] = false;
+          return prev;
+        }, {} as {[index: string]: boolean | undefined});
+        this.listSweepers = org.listSweepers.map(
+          (s) => new ParameterSweeper(s.getData())
+        );
+      }
+      return;
+    }
+    this._copyFrom = undefined;
+    this.isModRow = {};
+  }
 
   acceptable(
     node: IFlowNode,
@@ -95,10 +141,30 @@ export class SweepNode extends ActionNode implements ISweepNode {
 
   getData(nodes: {[index: string]: IFlowNode | undefined}): IDataSweepNode {
     const data = super.getData(nodes);
+    const nodeCopyFrom = nodes[this.copyFrom ?? ''];
+    const copyFrom =
+      nodeCopyFrom && isSweepNode(nodeCopyFrom) ? nodeCopyFrom : undefined;
+
+    const listSweepers = copyFrom
+      ? copyFrom.listSweepers.map((setter) => {
+          const mod = this.listSweepers.find((d) => d.target === setter.target);
+          if (this.isModRow[setter.target] && mod) {
+            return mod.getData();
+          }
+          return setter.getData();
+        })
+      : this.listSweepers.map((s) => s.getData());
     return {
       ...data,
       className: this.className,
-      listSweepers: this.listSweepers.map((sweeper) => sweeper.getData())
+      listSweepers,
+      copyFrom: this.copyFrom,
+      isModRow: copyFrom
+        ? copyFrom.listSweepers.reduce((prev, current) => {
+            prev[current.target] = this.isModRow[current.target];
+            return prev;
+          }, {} as {[index: string]: boolean | undefined})
+        : {}
     };
   }
 
@@ -138,17 +204,23 @@ export class SweepNode extends ActionNode implements ISweepNode {
   ) {
     super(params);
     this.listSweepers = [];
+    this.isModRow = {};
+    this._copyFrom = undefined;
     if (isDataFlowNode(params) && isDataSweepNode(params)) {
       const data = params;
-      if (data.listSweepers)
-        this.listSweepers = data.listSweepers.map(
-          (setterData) => new ParameterSweeper(setterData)
-        );
+      this._copyFrom = data.copyFrom;
+      this.listSweepers = data.listSweepers.map(
+        (setterData) => new ParameterSweeper(setterData)
+      );
+      this.isModRow = {...data.isModRow};
     }
   }
 
   clone(nodes: {[index: string]: IFlowNode | undefined}): ISweepNode {
-    return new SweepNode({...this.getData(nodes), nodeID: uuidv4()});
+    const ret = new SweepNode({...this.getData(nodes), nodeID: uuidv4()});
+    const org = nodes[ret.copyFrom ?? ''] ?? null;
+    ret.setCopyFrom(org);
+    return ret;
   }
 }
 
