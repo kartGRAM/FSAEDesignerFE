@@ -22,15 +22,12 @@ export function getEdge(edge: IDataEdge): Edge {
   throw new Error('未実装のedge');
 }
 
-export function getFlowNode(
-  node: IDataFlowNode,
-  nodes: {[index: string]: IFlowNode | undefined}
-): IFlowNode {
+export function getFlowNode(node: IDataFlowNode): IFlowNode {
   if (isDataStartNode(node)) return new StartNode(node);
   if (isDataEndNode(node)) return new EndNode(node);
   if (isDataCaseStartNode(node)) return new CaseStartNode(node);
   if (isDataCaseEndNode(node)) return new CaseEndNode(node);
-  if (isDataSetterNode(node)) return new SetterNode(node, nodes);
+  if (isDataSetterNode(node)) return new SetterNode(node);
   if (isDataSweepNode(node)) return new SweepNode(node);
   throw new Error('未実装のnode');
 }

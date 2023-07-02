@@ -59,7 +59,7 @@ type ClassName = typeof className;
 export interface ISetterNode extends IActionNode {
   className: ClassName;
   readonly copyFrom: string | undefined;
-  setCopyFrom(org: ISetterNode | null): void;
+  setCopyFrom(org: IFlowNode | null): void;
   listSetters: IParameterSetter[];
   isModRow: {[index: string]: boolean | undefined};
 }
@@ -87,17 +87,33 @@ export class SetterNode extends ActionNode implements ISetterNode {
     return this._copyFrom;
   }
 
-  setCopyFrom(org: ISetterNode | null) {
-    if (org) {
-      this._copyFrom = org.nodeID;
-      this.isModRow = org.listSetters.reduce((prev, current) => {
-        prev[current.target] = false;
-        return prev;
-      }, {} as {[index: string]: boolean | undefined});
-      this.listSetters = org.listSetters.map(
-        (s) => new ParameterSetter(s.getData())
-      );
-
+  setCopyFrom(org: IFlowNode | null) {
+    if (org && isSetterNode(org)) {
+      if (org.nodeID === this._copyFrom) {
+        this.isModRow = org.listSetters.reduce((prev, current) => {
+          prev[current.target] = false;
+          if (this.isModRow[current.target]) {
+            prev[current.target] = true;
+          }
+          return prev;
+        }, {} as {[index: string]: boolean | undefined});
+        this.listSetters = org.listSetters.map((s) => {
+          if (this.isModRow[s.target]) {
+            const mod = this.listSetters.find((d) => d.target === s.target);
+            if (mod) return mod;
+          }
+          return new ParameterSetter(s.getData());
+        });
+      } else {
+        this._copyFrom = org.nodeID;
+        this.isModRow = org.listSetters.reduce((prev, current) => {
+          prev[current.target] = false;
+          return prev;
+        }, {} as {[index: string]: boolean | undefined});
+        this.listSetters = org.listSetters.map(
+          (s) => new ParameterSetter(s.getData())
+        );
+      }
       return;
     }
     this._copyFrom = undefined;
@@ -169,14 +185,11 @@ export class SetterNode extends ActionNode implements ISetterNode {
       icon: <Tuning title="Setter" />,
       text: 'Set parameters',
       onDrop: (position: XYPosition, temporary: boolean) =>
-        new SetterNode(
-          {
-            name: 'Parameter setting',
-            position,
-            nodeID: temporary ? 'temp' : undefined
-          },
-          {}
-        )
+        new SetterNode({
+          name: 'Parameter setting',
+          position,
+          nodeID: temporary ? 'temp' : undefined
+        })
     };
   }
 
@@ -187,8 +200,7 @@ export class SetterNode extends ActionNode implements ISetterNode {
           position: {x: number; y: number};
           nodeID?: string;
         }
-      | IDataSetterNode,
-    nodes: {[index: string]: IFlowNode | undefined}
+      | IDataSetterNode
   ) {
     super(params);
     this.listSetters = [];
@@ -196,33 +208,19 @@ export class SetterNode extends ActionNode implements ISetterNode {
     this._copyFrom = undefined;
     if (isDataFlowNode(params) && isDataSetterNode(params)) {
       const data = params;
-      const nodeCopyFrom = nodes[data.copyFrom ?? ''];
-      const copyFrom =
-        nodeCopyFrom && isSetterNode(nodeCopyFrom) ? nodeCopyFrom : undefined;
-      if (copyFrom) {
-        this._copyFrom = data.copyFrom;
-        this.isModRow = copyFrom.listSetters.reduce((prev, current) => {
-          prev[current.target] = false;
-          if (data.isModRow[current.target]) {
-            prev[current.target] = true;
-          }
-          return prev;
-        }, {} as {[index: string]: boolean | undefined});
-        this.listSetters = copyFrom.listSetters.map((s) => {
-          const mod = data.listSetters.find((d) => d.target === s.target);
-          if (this.isModRow[s.target] && mod) return new ParameterSetter(mod);
-          return new ParameterSetter(s.getData());
-        });
-      } else {
-        this.listSetters = data.listSetters.map(
-          (setterData) => new ParameterSetter(setterData)
-        );
-      }
+      this._copyFrom = data.copyFrom;
+      this.listSetters = data.listSetters.map(
+        (setterData) => new ParameterSetter(setterData)
+      );
+      this.isModRow = {...data.isModRow};
     }
   }
 
   clone(nodes: {[index: string]: IFlowNode | undefined}): ISetterNode {
-    return new SetterNode({...this.getData(nodes), nodeID: uuidv4()}, nodes);
+    const ret = new SetterNode({...this.getData(nodes), nodeID: uuidv4()});
+    const org = nodes[ret.copyFrom ?? ''] ?? null;
+    ret.setCopyFrom(org);
+    return ret;
   }
 }
 
@@ -413,7 +411,9 @@ function SetterContent(props: {node: ISetterNode; test: ITest}) {
                     />
                   );
                 })}
-              <NewRow node={node} updateWithSave={updateWithSave} key="new" />
+              {!node.copyFrom ? (
+                <NewRow node={node} updateWithSave={updateWithSave} key="new" />
+              ) : null}
             </TableBody>
           </Table>
         </TableContainer>
@@ -487,6 +487,7 @@ function EnhancedTableHead(props: {
       <TableRow>
         <TableCell padding="checkbox">
           <Checkbox
+            disabled={copyFromOrg}
             color="primary"
             indeterminate={numSelected > 0 && numSelected < rowCount}
             checked={rowCount > 0 && numSelected === rowCount}
@@ -733,6 +734,11 @@ function ExistingRow(props: {
     }
   };
 
+  const color =
+    node.copyFrom && !node.isModRow[row.targetNodeID]
+      ? alpha('#000000', 0.36)
+      : 'unset';
+
   return (
     <TableRow
       hover
@@ -744,7 +750,11 @@ function ExistingRow(props: {
     >
       <TableCell padding="checkbox">
         <Checkbox
-          onClick={() => onClick(row.targetNodeID)}
+          disabled={!!node.copyFrom}
+          onClick={() => {
+            if (node.copyFrom) return;
+            onClick(row.targetNodeID);
+          }}
           color="primary"
           checked={isItemSelected}
           inputProps={{
@@ -752,12 +762,36 @@ function ExistingRow(props: {
           }}
         />
       </TableCell>
-      <TableCell component="th" id={labelId} scope="row" padding="none">
+      {node.copyFrom ? (
+        <TableCell padding="checkbox">
+          <Checkbox
+            color="primary"
+            checked={node.isModRow[row.targetNodeID]}
+            onChange={(e) => {
+              node.isModRow[row.targetNodeID] = e.target.checked;
+              updateWithSave();
+            }}
+            inputProps={{
+              'aria-labelledby': labelId
+            }}
+          />
+        </TableCell>
+      ) : null}
+      <TableCell
+        component="th"
+        id={labelId}
+        scope="row"
+        padding="none"
+        sx={{color}}
+      >
         {row.name}
       </TableCell>
-      <TableCell align="right">{row.categories}</TableCell>
+      <TableCell align="right" sx={{color}}>
+        {row.categories}
+      </TableCell>
       <TableCell align="right">
         <TextField
+          disabled={!!node.copyFrom && !node.isModRow[row.targetNodeID]}
           hiddenLabel
           name="formula"
           variant="standard"
@@ -772,7 +806,9 @@ function ExistingRow(props: {
           helperText={formik.touched.formula && formik.errors.formula}
         />
       </TableCell>
-      <TableCell align="right">{row.evaluatedValue}</TableCell>
+      <TableCell align="right" sx={{color}}>
+        {row.evaluatedValue}
+      </TableCell>
     </TableRow>
   );
 }

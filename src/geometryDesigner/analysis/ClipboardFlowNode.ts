@@ -17,13 +17,20 @@ export function isClipboardFlowNodes(
 
 export function getFlowNodesFromClipboard(
   item: IClipboardFlowNodes,
-  nodes: {[index: string]: IFlowNode | undefined}
+  testNodes: {[index: string]: IFlowNode | undefined}
 ): {
   nodes: IFlowNode[];
   edges: IDataEdge[];
 } {
+  const nodes = item.nodes.map((node) => getFlowNode(node));
+  nodes.forEach((node) => {
+    if (node.copyFrom && node.setCopyFrom) {
+      const org = testNodes[node.copyFrom ?? ''];
+      node.setCopyFrom(org ?? null);
+    }
+  });
   return {
-    nodes: item.nodes.map((node) => getFlowNode(node, nodes)),
+    nodes,
     edges: item.edges
   };
 }

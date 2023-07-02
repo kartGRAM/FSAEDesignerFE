@@ -79,12 +79,18 @@ export class Test implements ITest {
         return prev;
       }, {} as {[index: string]: IDataEdge});
       this.nodes = data.nodes.reduce((prev, current) => {
-        const node = getFlowNode(current, this.nodes);
+        const node = getFlowNode(current);
         if (isStartNode(node)) this.startNode = node;
         if (isEndNode(node)) this.endNode = node;
         prev[current.nodeID] = node;
         return prev;
       }, {} as {[index: string]: IFlowNode});
+      Object.values(this.nodes).forEach((node) => {
+        if (node.copyFrom && node.setCopyFrom) {
+          const org = this.nodes[node.copyFrom ?? ''];
+          node.setCopyFrom(org ?? null);
+        }
+      });
       this.cleanData();
     } else {
       const idx = this.localStates.findIndex(
