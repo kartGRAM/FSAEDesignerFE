@@ -59,7 +59,7 @@ type ClassName = typeof className;
 export interface ISetterNode extends IActionNode {
   className: ClassName;
   readonly copyFrom: string | undefined;
-  setCopyFrom(org: ISetterNode): void;
+  setCopyFrom(org: ISetterNode | null): void;
   listSetters: IParameterSetter[];
   isModRow: {[index: string]: boolean | undefined};
 }
@@ -87,12 +87,21 @@ export class SetterNode extends ActionNode implements ISetterNode {
     return this._copyFrom;
   }
 
-  setCopyFrom(org: ISetterNode) {
-    this._copyFrom = org.nodeID;
-    this.isModRow = org.listSetters.reduce((prev, current) => {
-      prev[current.target] = false;
-      return prev;
-    }, {} as {[index: string]: boolean | undefined});
+  setCopyFrom(org: ISetterNode | null) {
+    if (org) {
+      this._copyFrom = org.nodeID;
+      this.isModRow = org.listSetters.reduce((prev, current) => {
+        prev[current.target] = false;
+        return prev;
+      }, {} as {[index: string]: boolean | undefined});
+      this.listSetters = org.listSetters.map(
+        (s) => new ParameterSetter(s.getData())
+      );
+
+      return;
+    }
+    this._copyFrom = undefined;
+    this.isModRow = {};
   }
 
   acceptable(
@@ -318,6 +327,20 @@ function SetterContent(props: {node: ISetterNode; test: ITest}) {
 
   const isSelected = (name: string) => selected.indexOf(name) !== -1;
 
+  const potentials = Object.values(test.nodes).filter(
+    (n) =>
+      isSetterNode(n) && n.nodeID !== node.nodeID && n.copyFrom === undefined
+  ) as ISetterNode[];
+
+  const selectedCopyOrg =
+    potentials.find((n) => n.nodeID === node.copyFrom)?.nodeID ?? '';
+
+  const onOrgNodeSelected = (e: SelectChangeEvent<string>) => {
+    const org = potentials.find((p) => p.nodeID === e.target.value);
+    node.setCopyFrom(org ?? null);
+    updateWithSave();
+  };
+
   return (
     <Box
       component="div"
@@ -326,6 +349,33 @@ function SetterContent(props: {node: ISetterNode; test: ITest}) {
         height: '100%'
       }}
     >
+      <Box
+        component="div"
+        sx={{
+          pb: 1,
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'start',
+          width: '100%'
+        }}
+      >
+        <Typography sx={{pr: 1}}>Copy from the original.</Typography>
+        <NativeSelect
+          native
+          variant="standard"
+          value={selectedCopyOrg}
+          onChange={onOrgNodeSelected}
+          sx={{minWidth: '200px', pl: 1}}
+        >
+          <option aria-label="None" value="" />
+          {potentials.map((control) => (
+            <option value={control.nodeID} key={control.nodeID}>
+              {control.name}
+            </option>
+          ))}
+        </NativeSelect>
+      </Box>
       <Paper sx={{width: '100%', mb: 2}}>
         <EnhancedTableToolbar
           test={test}
@@ -342,6 +392,7 @@ function SetterContent(props: {node: ISetterNode; test: ITest}) {
               onSelectAllClick={handleSelectAllClick}
               onRequestSort={handleRequestSort}
               rowCount={rows.length}
+              copyFromOrg={!!node.copyFrom}
             />
             <TableBody>
               {rows
@@ -415,6 +466,7 @@ function EnhancedTableHead(props: {
   order: Order;
   orderBy: string;
   rowCount: number;
+  copyFromOrg: boolean;
 }) {
   const {
     onSelectAllClick,
@@ -422,7 +474,8 @@ function EnhancedTableHead(props: {
     orderBy,
     numSelected,
     rowCount,
-    onRequestSort
+    onRequestSort,
+    copyFromOrg
   } = props;
   const createSortHandler =
     (property: keyof Row) => (event: React.MouseEvent<unknown>) => {
@@ -443,6 +496,7 @@ function EnhancedTableHead(props: {
             }}
           />
         </TableCell>
+        {copyFromOrg ? <TableCell padding="checkbox">Modify</TableCell> : null}
         {headCells.map((headCell) => (
           <TableCell
             key={headCell.id}
@@ -579,6 +633,17 @@ function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
           }}
         />
       </TableCell>
+      {node.copyFrom ? (
+        <TableCell padding="checkbox">
+          <Checkbox
+            disabled
+            color="primary"
+            inputProps={{
+              'aria-labelledby': labelId
+            }}
+          />
+        </TableCell>
+      ) : null}
       <TableCell id={labelId} scope="row" padding="none" align="left">
         <NativeSelect
           native
@@ -789,8 +854,8 @@ function getComparator<Key extends keyof any>(
   order: Order,
   orderBy: Key
 ): (
-  a: {[key in Key]: number | string},
-  b: {[key in Key]: number | string}
+  a: {[key in Key]: number | string | boolean},
+  b: {[key in Key]: number | string | boolean}
 ) => number {
   return order === 'desc'
     ? (a, b) => descendingComparator(a, b, orderBy)
