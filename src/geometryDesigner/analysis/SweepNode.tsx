@@ -337,6 +337,20 @@ function SweepContent(props: {node: ISweepNode; test: ITest}) {
 
   const isSelected = (name: string) => selected.indexOf(name) !== -1;
 
+  const potentials = Object.values(test.nodes).filter(
+    (n) =>
+      isSweepNode(n) && n.nodeID !== node.nodeID && n.copyFrom === undefined
+  ) as ISweepNode[];
+
+  const selectedCopyOrg =
+    potentials.find((n) => n.nodeID === node.copyFrom)?.nodeID ?? '';
+
+  const onOrgNodeSelected = (e: SelectChangeEvent<string>) => {
+    const org = potentials.find((p) => p.nodeID === e.target.value);
+    node.setCopyFrom(org ?? null);
+    updateWithSave();
+  };
+
   return (
     <Box
       component="div"
@@ -345,6 +359,33 @@ function SweepContent(props: {node: ISweepNode; test: ITest}) {
         height: '100%'
       }}
     >
+      <Box
+        component="div"
+        sx={{
+          pb: 1,
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'start',
+          width: '100%'
+        }}
+      >
+        <Typography sx={{pr: 1}}>Copy from the original.</Typography>
+        <NativeSelect
+          native
+          variant="standard"
+          value={selectedCopyOrg}
+          onChange={onOrgNodeSelected}
+          sx={{minWidth: '200px', pl: 1}}
+        >
+          <option aria-label="None" value="" />
+          {potentials.map((control) => (
+            <option value={control.nodeID} key={control.nodeID}>
+              {control.name}
+            </option>
+          ))}
+        </NativeSelect>
+      </Box>
       <Paper sx={{width: '100%', mb: 2}}>
         <EnhancedTableToolbar
           test={test}
@@ -361,6 +402,7 @@ function SweepContent(props: {node: ISweepNode; test: ITest}) {
               onSelectAllClick={handleSelectAllClick}
               onRequestSort={handleRequestSort}
               rowCount={rows.length}
+              copyFromOrg={!!node.copyFrom}
             />
             <TableBody>
               {rows
@@ -377,10 +419,19 @@ function SweepContent(props: {node: ISweepNode; test: ITest}) {
                       test={test}
                       isItemSelected={isItemSelected}
                       labelId={labelId}
+                      key={row.targetNodeID}
                     />
                   );
                 })}
-              <NewRow node={node} updateWithSave={updateWithSave} mode={mode} />
+
+              {!node.copyFrom ? (
+                <NewRow
+                  node={node}
+                  updateWithSave={updateWithSave}
+                  mode={mode}
+                  key="new"
+                />
+              ) : null}
             </TableBody>
           </Table>
         </TableContainer>
@@ -457,6 +508,7 @@ function EnhancedTableHead(props: {
   order: Order;
   orderBy: string;
   rowCount: number;
+  copyFromOrg: boolean;
 }) {
   const {
     onSelectAllClick,
@@ -464,6 +516,7 @@ function EnhancedTableHead(props: {
     orderBy,
     numSelected,
     rowCount,
+    copyFromOrg,
     onRequestSort
   } = props;
   const createSortHandler =
@@ -485,6 +538,7 @@ function EnhancedTableHead(props: {
             }}
           />
         </TableCell>
+        {copyFromOrg ? <TableCell padding="checkbox">Modify</TableCell> : null}
         {headCells.map((headCell) => (
           <TableCell
             key={headCell.id}
@@ -796,6 +850,11 @@ function ExistingRow(props: {
     }
   };
 
+  const color =
+    node.copyFrom && !node.isModRow[row.targetNodeID]
+      ? alpha('#000000', 0.36)
+      : 'unset';
+
   return (
     <TableRow
       hover
@@ -815,12 +874,36 @@ function ExistingRow(props: {
           }}
         />
       </TableCell>
-      <TableCell component="th" id={labelId} scope="row" padding="none">
+      {node.copyFrom ? (
+        <TableCell padding="checkbox">
+          <Checkbox
+            color="primary"
+            checked={node.isModRow[row.targetNodeID]}
+            onChange={(e) => {
+              node.isModRow[row.targetNodeID] = e.target.checked;
+              updateWithSave();
+            }}
+            inputProps={{
+              'aria-labelledby': labelId
+            }}
+          />
+        </TableCell>
+      ) : null}
+      <TableCell
+        component="th"
+        id={labelId}
+        scope="row"
+        padding="none"
+        sx={{color}}
+      >
         {row.name}
       </TableCell>
-      <TableCell align="right">{row.categories}</TableCell>
+      <TableCell align="right" sx={{color}}>
+        {row.categories}
+      </TableCell>
       <TableCell align="right">
         <TextField
+          disabled={!!node.copyFrom && !node.isModRow[row.targetNodeID]}
           hiddenLabel
           name="startFormula"
           variant="standard"
@@ -840,6 +923,7 @@ function ExistingRow(props: {
       </TableCell>
       <TableCell align="right">
         <TextField
+          disabled={!!node.copyFrom && !node.isModRow[row.targetNodeID]}
           hiddenLabel
           name="endFormula"
           variant="standard"
@@ -858,6 +942,7 @@ function ExistingRow(props: {
       </TableCell>
       <TableCell align="right">
         <TextField
+          disabled={!!node.copyFrom && !node.isModRow[row.targetNodeID]}
           hiddenLabel
           name="stepFormula"
           variant="standard"
@@ -876,9 +961,15 @@ function ExistingRow(props: {
         />
       </TableCell>
 
-      <TableCell align="right">{toFixedNoZero(row.startValue)}</TableCell>
-      <TableCell align="right">{toFixedNoZero(row.endValue)}</TableCell>
-      <TableCell align="right">{toFixedNoZero(row.step)}</TableCell>
+      <TableCell align="right" sx={{color}}>
+        {toFixedNoZero(row.startValue)}
+      </TableCell>
+      <TableCell align="right" sx={{color}}>
+        {toFixedNoZero(row.endValue)}
+      </TableCell>
+      <TableCell align="right" sx={{color}}>
+        {toFixedNoZero(row.step)}
+      </TableCell>
     </TableRow>
   );
 }
