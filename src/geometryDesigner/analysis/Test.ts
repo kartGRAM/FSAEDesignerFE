@@ -38,6 +38,8 @@ export class Test implements ITest {
     const data = this.getData();
     this.localStates.push(data);
     this.indexOfHistory = 0;
+    // セーブしたものをロードしておくことで、状態を最新とする。
+    // これをやっておかないと、CopyFromが更新されなかったりする。
     this.loadLocalState(data);
     if (changed) this.changed = true;
   }
