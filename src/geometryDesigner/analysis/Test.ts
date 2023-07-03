@@ -35,37 +35,11 @@ export class Test implements ITest {
       0,
       this.localStates.length + this.indexOfHistory
     );
-    this.localStates.push(this.getData());
+    const data = this.getData();
+    this.localStates.push(data);
     this.indexOfHistory = 0;
+    this.loadLocalState(data);
     if (changed) this.changed = true;
-  }
-
-  getLocalStateID(): string {
-    return this.localStates[this.localStates.length + this.indexOfHistory - 1]
-      .localStateID!;
-  }
-
-  squashLocalStates(from: string, to: string) {
-    const iFrom = this.localStates.findIndex(
-      (state) => state.localStateID === from
-    );
-    const iTo = this.localStates.findIndex(
-      (state) => state.localStateID === to
-    );
-
-    if (iFrom >= 0 && iTo > iFrom + 1) {
-      this.localStates = this.localStates.filter(
-        (_, i) => i <= iFrom || i >= iTo
-      );
-    }
-  }
-
-  asLastestState() {
-    this.localStates = this.localStates.slice(
-      0,
-      this.localStates.length + this.indexOfHistory
-    );
-    this.indexOfHistory = 0;
   }
 
   loadLocalState(dataOrLocalStateID: IDataTest | string) {
@@ -102,6 +76,34 @@ export class Test implements ITest {
         this.loadLocalState(data);
       }
     }
+  }
+
+  getLocalStateID(): string {
+    return this.localStates[this.localStates.length + this.indexOfHistory - 1]
+      .localStateID!;
+  }
+
+  squashLocalStates(from: string, to: string) {
+    const iFrom = this.localStates.findIndex(
+      (state) => state.localStateID === from
+    );
+    const iTo = this.localStates.findIndex(
+      (state) => state.localStateID === to
+    );
+
+    if (iFrom >= 0 && iTo > iFrom + 1) {
+      this.localStates = this.localStates.filter(
+        (_, i) => i <= iFrom || i >= iTo
+      );
+    }
+  }
+
+  asLastestState() {
+    this.localStates = this.localStates.slice(
+      0,
+      this.localStates.length + this.indexOfHistory
+    );
+    this.indexOfHistory = 0;
   }
 
   localRedo(): void {
@@ -254,12 +256,20 @@ export class Test implements ITest {
   getData(): IDataTest {
     this.cleanData();
     const {name, description, nodeID, edges, nodes} = this;
+    const dataNodes = [
+      ...Object.values(nodes)
+        .filter((node) => !node.copyFrom)
+        .map((node) => node.getData(this.nodes)),
+      ...Object.values(nodes)
+        .filter((node) => !!node.copyFrom)
+        .map((node) => node.getData(this.nodes))
+    ];
     return {
       isDataTest: true,
       name,
       description,
       nodeID,
-      nodes: Object.values(nodes).map((node) => node.getData(this.nodes)),
+      nodes: dataNodes,
       edges: Object.values(edges),
       localStateID: uuidv4()
     };
