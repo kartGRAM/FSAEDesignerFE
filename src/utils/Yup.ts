@@ -73,7 +73,8 @@ yup.addMethod(
   function (
     formulae?: IDataFormula[],
     temporaryName?: string,
-    onValidated?: (formula: string) => void
+    onValidated?: (formula: string) => void,
+    onInvalidated?: (formula: string) => void
   ) {
     return this.test('gdFormulaIsValid', '', (value, {createError}) => {
       if (!value) return true;
@@ -90,6 +91,8 @@ yup.addMethod(
       );
       if (ret === 'OK' && onValidated) {
         onValidated(value);
+      } else if (onInvalidated) {
+        onInvalidated(value);
       }
       return (
         ret === 'OK' ||
@@ -155,6 +158,28 @@ yup.addMethod(
   }
 );
 
+yup.addMethod(
+  yup.string,
+  'gdFormulaStepValid',
+  // eslint-disable-next-line func-names
+  function (start: number | null, end: number | null) {
+    return this.test('gdFormulaStepValid', '', (value, {createError}) => {
+      if (!value) return true;
+      if (start === null || end === null)
+        return createError({
+          message: 'Start value or End value is invalid.'
+        });
+      const ret = evaluate(value);
+      return (
+        (start < end ? ret > 0 : ret < 0) ||
+        createError({
+          message: 'The evaluation value must be a valid step value.'
+        })
+      );
+    });
+  }
+);
+
 declare module 'yup' {
   interface StringSchema<
     TType extends Maybe<string> = string | undefined,
@@ -168,12 +193,17 @@ declare module 'yup' {
     gdFormulaIsValid(
       formulae?: IDataFormula[],
       temporaryName?: string,
-      onValidated?: (formula: string) => void
+      onValidated?: (formula: string) => void,
+      onInvalidated?: (formula: string) => void
     ): RequiredStringSchema<TType, TContext>;
     variableNameFirstChar(): RequiredStringSchema<TType, TContext>;
     gdFormulaPositive(): RequiredStringSchema<TType, TContext>;
     gdFormulaNonZero(): RequiredStringSchema<TType, TContext>;
     gdFormulaInteger(): RequiredStringSchema<TType, TContext>;
+    gdFormulaStepValid(
+      start: number | null,
+      end: number | null
+    ): RequiredStringSchema<TType, TContext>;
     variableName(): RequiredStringSchema<TType, TContext>;
     noMathFunctionsName(): RequiredStringSchema<TType, TContext>;
   }

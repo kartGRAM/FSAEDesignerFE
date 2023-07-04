@@ -628,6 +628,7 @@ function NewRow(props: {
         .required('')
         .gdFormulaIsValid(undefined, undefined, onStepFormulaValidated)
         .gdFormulaNonZero()
+        .gdFormulaStepValid(startValue, endValue)
     }),
     onSubmit: (values) => {
       formik.resetForm();
@@ -807,6 +808,17 @@ function ExistingRow(props: {
 
   const {updateWithSave} = useTestUpdate(test);
 
+  const [startValue, setStartValue] = React.useState<number | null>(
+    row.startValue
+  );
+  const [endValue, setEndValue] = React.useState<number | null>(row.endValue);
+  const onStartFormulaValidated = (formula: string) => {
+    setStartValue(new Formula(formula).evaluatedValue);
+  };
+  const onEndFormulaValidated = (formula: string) => {
+    setEndValue(new Formula(formula).evaluatedValue);
+  };
+
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
@@ -818,16 +830,21 @@ function ExistingRow(props: {
       startFormula: yup
         .string()
         .required('')
-        .gdFormulaIsValid(undefined, undefined, undefined),
+        .gdFormulaIsValid(undefined, undefined, onStartFormulaValidated, () =>
+          setStartValue(null)
+        ),
       endFormula: yup
         .string()
         .required('')
-        .gdFormulaIsValid(undefined, undefined, undefined),
+        .gdFormulaIsValid(undefined, undefined, onEndFormulaValidated, () =>
+          setEndValue(null)
+        ),
       stepFormula: yup
         .string()
         .required('')
         .gdFormulaIsValid(undefined, undefined, undefined)
         .gdFormulaNonZero()
+        .gdFormulaStepValid(startValue, endValue)
     }),
     onSubmit: (values) => {
       formik.resetForm();
