@@ -15,6 +15,7 @@ import {IDataMatrix3} from '@gd/INamedValues';
 import {validateAll /* , replaceVariable */} from '@gd/IFormula';
 import {DateTime} from 'luxon';
 import {SavedData} from '@gd/ISaveData';
+import {v4 as uuidv4} from 'uuid';
 
 export interface GDState extends SavedData {
   transCoordinateMatrix: IDataMatrix3;
@@ -23,6 +24,7 @@ export interface GDState extends SavedData {
 
 const initialState: GDState = {
   id: Number.MAX_SAFE_INTEGER,
+  idWoTest: uuidv4(),
   filename: 'untitled',
   note: '',
   lastUpdated: DateTime.local().toString(),
@@ -68,6 +70,7 @@ export const dataGeometryDesignerSlice = createSlice({
       state.measureTools = initialState.measureTools;
       state.analysis = initialState.analysis;
       state.topAssembly = action.payload?.getDataElement(state);
+      state.idWoTest = uuidv4();
       state.changed = false;
     },
     setTopAssembly: (state: GDState, action: PayloadAction<SavedData>) => {
@@ -82,6 +85,7 @@ export const dataGeometryDesignerSlice = createSlice({
       state.datumObjects = action.payload.datumObjects;
       state.measureTools = action.payload.measureTools;
       state.analysis = action.payload.analysis;
+      state.idWoTest = uuidv4();
       state.changed = false;
     },
     updateAssembly: (
@@ -99,6 +103,7 @@ export const dataGeometryDesignerSlice = createSlice({
           // eslint-disable-next-line no-console
           console.log(e);
         }
+        state.idWoTest = uuidv4();
         state.changed = true;
       }
     },
@@ -116,6 +121,7 @@ export const dataGeometryDesignerSlice = createSlice({
         state.formulae = action.payload;
         if (state.topAssembly) state.topAssembly = {...state.topAssembly};
       }
+      state.idWoTest = uuidv4();
       state.changed = true;
     },
     setControl: (state: GDState, action: PayloadAction<IDataControl>) => {
@@ -134,6 +140,8 @@ export const dataGeometryDesignerSlice = createSlice({
         return;
       }
       state.controls = [control, ...controls];
+
+      state.idWoTest = uuidv4();
       state.changed = true;
     },
     removeControl: (state: GDState, action: PayloadAction<string>) => {
@@ -141,6 +149,7 @@ export const dataGeometryDesignerSlice = createSlice({
       state.controls = state.controls.filter(
         (c) => c.nodeID !== nodeID && c.targetElements
       );
+      state.idWoTest = uuidv4();
       state.changed = true;
     },
     setDatumObjects: (
@@ -148,6 +157,7 @@ export const dataGeometryDesignerSlice = createSlice({
       action: PayloadAction<IDataDatumGroup[]>
     ) => {
       state.datumObjects = action.payload;
+      state.idWoTest = uuidv4();
       state.changed = true;
     },
     setMeasureTools: (
@@ -155,6 +165,7 @@ export const dataGeometryDesignerSlice = createSlice({
       action: PayloadAction<IDataMeasureTool[]>
     ) => {
       state.measureTools = action.payload;
+      state.idWoTest = uuidv4();
       state.changed = true;
     },
     setTests: (state: GDState, action: PayloadAction<IDataTest[]>) => {

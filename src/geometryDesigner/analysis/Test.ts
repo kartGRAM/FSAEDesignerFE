@@ -5,7 +5,7 @@ import {setTests} from '@store/reducers/dataGeometryDesigner';
 import {IFlowNode, IDataEdge} from './FlowNode';
 import {StartNode, isStartNode, IStartNode} from './StartNode';
 import {EndNode, isEndNode, IEndNode} from './EndNode';
-import {ITest, IDataTest, isDataTest} from './ITest';
+import {ITest, IDataTest, isDataTest, TestResult} from './ITest';
 import {getEdge, getFlowNode} from './RestoreData';
 import validateGraph from './ValidateGraph';
 import arrangeNodes from './ArrangeNodes';
@@ -17,6 +17,8 @@ export class Test implements ITest {
   description: string;
 
   nodeID: string = uuidv4();
+
+  idWoTest: string = '';
 
   changed = false;
 
@@ -50,6 +52,7 @@ export class Test implements ITest {
       this.name = data.name;
       this.description = data.description;
       this.nodeID = data.nodeID;
+      this.idWoTest = data.idWoTest ?? '';
       this.edges = data.edges.reduce((prev, current) => {
         prev[`${current.source}@${current.target}`] = {...current};
         return prev;
@@ -257,7 +260,7 @@ export class Test implements ITest {
 
   getData(): IDataTest {
     this.cleanData();
-    const {name, description, nodeID, edges, nodes} = this;
+    const {name, description, nodeID, edges, nodes, idWoTest} = this;
     const dataNodes = [
       ...Object.values(nodes)
         .filter((node) => !node.copyFrom)
@@ -271,6 +274,7 @@ export class Test implements ITest {
       name,
       description,
       nodeID,
+      idWoTest,
       nodes: dataNodes,
       edges: Object.values(edges),
       localStateID: uuidv4()
@@ -349,5 +353,13 @@ export class Test implements ITest {
       this.loadLocalState(params);
     }
     this.saveLocalState(false);
+  }
+
+  validate(): boolean {
+    throw new Error('Method not implemented.');
+  }
+
+  async run(): Promise<TestResult> {
+    throw new Error('Method not implemented.');
   }
 }

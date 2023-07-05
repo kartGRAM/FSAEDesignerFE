@@ -5,6 +5,8 @@ import {IStartNode} from './StartNode';
 import {IEndNode} from './EndNode';
 import {IClipboardFlowNodes} from './ClipboardFlowNode';
 
+export type TestResult = 'Completed' | 'Solver Error' | 'User Canceled';
+
 export interface ITest {
   name: string;
   description: string;
@@ -12,6 +14,7 @@ export interface ITest {
   readonly ready: boolean;
   readonly changed: boolean;
   readonly nodeID: string;
+  readonly idWoTest: string;
   readonly startNode: IStartNode;
   readonly endNode: IEndNode;
   readonly redoable: boolean;
@@ -29,6 +32,8 @@ export interface ITest {
   localRedo(): void;
   localUndo(): void;
   copySelectedNodes(): IClipboardFlowNodes;
+  validate(): boolean;
+  run(): Promise<TestResult>;
 
   arrange(
     widthSpaceAligningNodes: number,
@@ -53,6 +58,7 @@ export interface IDataTest {
   readonly nodes: IDataFlowNode[];
   readonly edges: IDataEdge[];
   readonly localStateID?: string;
+  readonly idWoTest: string;
 }
 
 export function isDataTest(test: any): test is IDataTest {

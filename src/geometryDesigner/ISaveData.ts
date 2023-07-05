@@ -20,11 +20,14 @@ export interface SavedData {
   datumObjects: IDataDatumGroup[];
   measureTools: IDataMeasureTool[];
   analysis: IDataTest[];
+  // テスト以外に変更がくわえられた場合、このuuidが変わる。
+  idWoTest?: string;
 }
 
 export function getSetTopAssemblyParams(data: any): SavedData {
   return {
     id: data.id as number,
+    idWoTest: data.idWoTest as string,
     filename: data.name as string,
     note: data.note as string,
     lastUpdated: data.lastUpdated as string,
