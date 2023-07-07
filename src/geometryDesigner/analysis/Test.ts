@@ -356,9 +356,15 @@ export class Test implements ITest {
   }
 
   validate(): boolean {
-    throw new Error('Method not implemented.');
+    const nodes = Object.values(this.nodes);
+    for (const node of nodes) {
+      if (!node.validate(this.edgesFromTarget, this.edgesFromSourceNode))
+        return false;
+    }
+    return true;
   }
 
+  // eslint-disable-next-line class-methods-use-this
   async run(): Promise<TestResult> {
     throw new Error('Method not implemented.');
   }

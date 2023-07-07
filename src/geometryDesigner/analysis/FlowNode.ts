@@ -23,6 +23,11 @@ export interface IFlowNode {
   extraFlags: any;
   getData(nodes: {[index: string]: IFlowNode | undefined}): IDataFlowNode;
   getRFNode(parentTest?: ITest, canvasUpdate?: () => void): IRFNode;
+  validate(
+    edgesFromTarget: {[index: TargetNodeID]: IDataEdge | undefined},
+    edgesFromSource: {[index: SourceNodeID]: IDataEdge[]}
+  ): boolean;
+
   acceptable(
     other: IFlowNode,
     nodes: {[index: string]: IFlowNode | undefined},
@@ -113,6 +118,11 @@ export abstract class FlowNode implements IFlowNode {
     if (other.nodeID === this.nodeID) return false;
     return true;
   }
+
+  abstract validate(
+    edgesFromTarget: {[index: TargetNodeID]: IDataEdge | undefined},
+    edgesFromSource: {[index: SourceNodeID]: IDataEdge[]}
+  ): boolean;
 
   getSize(): {width: number; height: number} {
     const element = document.querySelectorAll(`[data-id="${this.nodeID}"]`)[0];

@@ -139,6 +139,18 @@ export class SweepNode extends ActionNode implements ISweepNode {
     return false;
   }
 
+  validate(
+    edgesFromTarget: {[index: string]: IDataEdge | undefined},
+    edgesFromSource: {[index: string]: IDataEdge[]}
+  ): boolean {
+    if (
+      edgesFromSource[this.nodeID]?.length > 0 &&
+      edgesFromTarget[this.nodeID]
+    )
+      return true;
+    return false;
+  }
+
   getData(nodes: {[index: string]: IFlowNode | undefined}): IDataSweepNode {
     const data = super.getData(nodes);
     const nodeCopyFrom = nodes[this.copyFrom ?? ''];

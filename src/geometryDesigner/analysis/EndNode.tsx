@@ -44,6 +44,15 @@ export class EndNode extends ActionNode implements IEndNode {
     return false;
   }
 
+  validate(
+    edgesFromTarget: {[index: string]: IDataEdge | undefined},
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    edgesFromSource: {[index: string]: IDataEdge[]}
+  ): boolean {
+    if (edgesFromTarget[this.nodeID]) return true;
+    return false;
+  }
+
   getData(nodes: {[index: string]: IFlowNode | undefined}): IDataEndNode {
     const data = super.getData(nodes);
     return {...data, className: this.className};

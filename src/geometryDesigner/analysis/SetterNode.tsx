@@ -136,6 +136,18 @@ export class SetterNode extends ActionNode implements ISetterNode {
     return false;
   }
 
+  validate(
+    edgesFromTarget: {[index: string]: IDataEdge | undefined},
+    edgesFromSource: {[index: string]: IDataEdge[]}
+  ): boolean {
+    if (
+      edgesFromSource[this.nodeID]?.length > 0 &&
+      edgesFromTarget[this.nodeID]
+    )
+      return true;
+    return false;
+  }
+
   getData(nodes: {[index: string]: IFlowNode | undefined}): IDataSetterNode {
     const data = super.getData(nodes);
     const nodeCopyFrom = nodes[this.copyFrom ?? ''];

@@ -44,6 +44,18 @@ export class CaseStartNode extends FlowNode implements ICaseStartNode {
     return false;
   }
 
+  validate(
+    edgesFromTarget: {[index: string]: IDataEdge | undefined},
+    edgesFromSource: {[index: string]: IDataEdge[]}
+  ): boolean {
+    if (
+      edgesFromSource[this.nodeID]?.length === 1 &&
+      edgesFromTarget[this.nodeID]
+    )
+      return true;
+    return false;
+  }
+
   getData(nodes: {[index: string]: IFlowNode | undefined}): IDataCaseStartNode {
     const data = super.getData(nodes);
     return {...data, className: this.className};

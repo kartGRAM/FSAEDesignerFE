@@ -4,7 +4,7 @@ import store from '@store/store';
 import {Node as IRFNode} from 'reactflow';
 import {v4 as uuidv4} from 'uuid';
 import {IActionNode, IDataActionNode, ActionNode} from './ActionNode';
-import {isDataFlowNode, IFlowNode, IDataFlowNode} from './FlowNode';
+import {isDataFlowNode, IFlowNode, IDataFlowNode, IDataEdge} from './FlowNode';
 import {ITest} from './ITest';
 
 export const className = 'Start' as const;
@@ -27,6 +27,14 @@ export class StartNode extends ActionNode implements IStartNode {
   readonly className = className;
 
   acceptable(): boolean {
+    return false;
+  }
+
+  validate(
+    edgesFromTarget: {[index: string]: IDataEdge | undefined},
+    edgesFromSource: {[index: string]: IDataEdge[]}
+  ): boolean {
+    if (edgesFromSource[this.nodeID]?.length > 0) return true;
     return false;
   }
 
