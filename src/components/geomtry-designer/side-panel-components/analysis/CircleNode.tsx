@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {Avatar} from '@mui/material';
 import {Handle, Position} from 'reactflow';
+import {WarningBadge} from './WarningBadge';
 
 export default function CircleNode(props: {
   data: {icon: JSX.Element};
@@ -11,16 +12,18 @@ export default function CircleNode(props: {
 
   return (
     <>
-      <Avatar
-        draggable
-        sx={{
-          border: `solid ${selected ? '1.4px #000' : ' 0.7px #888'}`,
-          bgcolor: '#FFF'
-        }}
-        onDragOver={(e) => e.preventDefault()}
-      >
-        {icon}
-      </Avatar>
+      <WarningBadge>
+        <Avatar
+          draggable
+          sx={{
+            border: `solid ${selected ? '1.4px #000' : ' 0.7px #888'}`,
+            bgcolor: '#FFF'
+          }}
+          onDragOver={(e) => e.preventDefault()}
+        >
+          {icon}
+        </Avatar>
+      </WarningBadge>
       <Handle
         position={Position.Left}
         type="target"

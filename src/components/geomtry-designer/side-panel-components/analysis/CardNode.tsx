@@ -3,6 +3,7 @@ import {Handle, Position} from 'reactflow';
 import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
 import CardContent from '@mui/material/CardContent';
+import {WarningBadge} from './WarningBadge';
 
 export type CardNodeProps = {
   data: {
@@ -27,10 +28,12 @@ export default function CardNode(props: CardNodeProps) {
   };
   return (
     <>
-      <Card raised={selected} onDoubleClick={handleDoubleClick}>
-        <CardHeader title={label} />
-        <CardContent>{content}</CardContent>
-      </Card>
+      <WarningBadge>
+        <Card raised={selected} onDoubleClick={handleDoubleClick}>
+          <CardHeader title={label} />
+          <CardContent>{content}</CardContent>
+        </Card>
+      </WarningBadge>
       {target ? (
         <Handle
           position={Position.Left}

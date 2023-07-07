@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {Box, Typography} from '@mui/material';
 import {Handle, Position} from 'reactflow';
+import {WarningBadge} from './WarningBadge';
 
 export default function OvalNode(props: {
   data: {
@@ -15,25 +16,27 @@ export default function OvalNode(props: {
   const {icon, label, source, target} = data;
   return (
     <>
-      <Box
-        component="div"
-        sx={{
-          p: 1,
-          pl: 2,
-          pr: 2,
-          border: `solid ${selected ? '1.4px #000' : ' 0.7px #888'}`,
-          borderRadius: '1000000px',
-          bgcolor: '#FFF',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center'
-        }}
-        onDragOver={(e) => e.preventDefault()}
-      >
-        {icon}
-        <Typography variant="h5">{label}</Typography>
-      </Box>
+      <WarningBadge>
+        <Box
+          component="div"
+          sx={{
+            p: 1,
+            pl: 2,
+            pr: 2,
+            border: `solid ${selected ? '1.4px #000' : ' 0.7px #888'}`,
+            borderRadius: '1000000px',
+            bgcolor: '#FFF',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}
+          onDragOver={(e) => e.preventDefault()}
+        >
+          {icon}
+          <Typography variant="h5">{label}</Typography>
+        </Box>
+      </WarningBadge>
       {target ? (
         <Handle
           position={Position.Left}

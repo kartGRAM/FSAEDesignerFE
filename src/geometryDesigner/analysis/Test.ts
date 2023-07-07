@@ -361,6 +361,11 @@ export class Test implements ITest {
       if (!node.validate(this.edgesFromTarget, this.edgesFromSourceNode))
         return false;
     }
+
+    if (
+      !validateGraph(this.nodes, this.edgesFromTarget, this.edgesFromSourceNode)
+    )
+      return false;
     return true;
   }
 
