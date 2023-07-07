@@ -5,6 +5,7 @@ import CaseStart from '@gdComponents/svgs/CaseStart';
 import {v4 as uuidv4} from 'uuid';
 import FlowNodeDialog from '@gdComponents/side-panel-components/analysis/FlowNodeDialog';
 import {Typography} from '@mui/material';
+import {CircleNodeProps} from '@gdComponents/side-panel-components/analysis/CircleNode';
 import {
   IFlowNode,
   isDataFlowNode,
@@ -61,13 +62,16 @@ export class CaseStartNode extends FlowNode implements ICaseStartNode {
     return {...data, className: this.className};
   }
 
-  getRFNode(parentTest?: ITest, canvasUpdate?: () => void): IRFNode {
+  getRFNode(
+    parentTest?: ITest,
+    canvasUpdate?: () => void
+  ): IRFNode & CircleNodeProps {
     const rfNode = super.getRFNode(parentTest, canvasUpdate);
     return {
       ...rfNode,
       type: 'circle',
       data: {
-        label: this.name,
+        ...rfNode.data,
         icon: (
           <CaseStartIcon
             node={this}

@@ -3,20 +3,23 @@ import {Box, Typography} from '@mui/material';
 import {Handle, Position} from 'reactflow';
 import {WarningBadge} from './WarningBadge';
 
-export default function OvalNode(props: {
+export type OvalNodeProps = {
   data: {
     icon?: JSX.Element;
     label: JSX.Element;
     source?: boolean;
     target?: boolean;
+    warning: boolean;
   };
-  selected: boolean;
-}) {
+  selected?: boolean;
+};
+
+export default function OvalNode(props: OvalNodeProps) {
   const {data, selected} = props;
-  const {icon, label, source, target} = data;
+  const {icon, label, source, target, warning} = data;
   return (
     <>
-      <WarningBadge>
+      <WarningBadge invisible={!warning}>
         <Box
           component="div"
           sx={{

@@ -48,6 +48,10 @@ export interface ITest {
   dispatch(): void;
   readonly nodes: {[index: string]: IFlowNode};
   readonly edges: {[index: string]: IDataEdge};
+
+  readonly edgesFromTarget: {[index: string]: IDataEdge};
+
+  readonly edgesFromSourceNode: {[index: string]: IDataEdge[]};
 }
 
 export interface IDataTest {

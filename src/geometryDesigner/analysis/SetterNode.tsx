@@ -183,7 +183,7 @@ export class SetterNode extends ActionNode implements ISetterNode {
       ...rfNode,
       type: 'card',
       data: {
-        label: this.name,
+        ...rfNode.data,
         source: true,
         target: true,
         useDialog: () => useSetterDialog({node: this, test, canvasUpdate})

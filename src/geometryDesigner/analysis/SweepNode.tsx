@@ -187,7 +187,7 @@ export class SweepNode extends ActionNode implements ISweepNode {
       ...rfNode,
       type: 'card',
       data: {
-        label: this.name,
+        ...rfNode.data,
         source: true,
         target: true,
         useDialog: () => useSweepDialog({node: this, test, canvasUpdate})

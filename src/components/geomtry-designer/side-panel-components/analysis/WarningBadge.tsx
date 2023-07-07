@@ -6,7 +6,7 @@ import {styled} from '@mui/material/styles';
 const StyledBadge = styled(Badge)<BadgeProps>(() => ({
   '& .MuiBadge-badge': {
     aspectRatio: '1',
-    padding: '16px',
+    padding: '12px',
     borderRadius: '1000000px'
   }
 }));
@@ -18,7 +18,7 @@ export function WarningBadge(props: {
   const {invisible, children} = props;
   return (
     <StyledBadge
-      badgeContent={<WarningIcon />}
+      badgeContent={<WarningIcon fontSize="small" sx={{pb: '2px'}} />}
       color="warning"
       invisible={invisible}
     >

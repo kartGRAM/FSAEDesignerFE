@@ -13,6 +13,7 @@ export type CardNodeProps = {
       JSX.Element | null,
       React.Dispatch<React.SetStateAction<boolean>>
     ];
+    warning: boolean;
     source?: boolean;
     target?: boolean;
   };
@@ -21,14 +22,14 @@ export type CardNodeProps = {
 
 export default function CardNode(props: CardNodeProps) {
   const {data, selected} = props;
-  const {label, source, target, content, useDialog} = data;
+  const {label, source, target, content, useDialog, warning} = data;
   const [dialog, setOpen] = useDialog();
   const handleDoubleClick = () => {
     setOpen(true);
   };
   return (
     <>
-      <WarningBadge>
+      <WarningBadge invisible={!warning}>
         <Card raised={selected} onDoubleClick={handleDoubleClick}>
           <CardHeader title={label} />
           <CardContent>{content}</CardContent>

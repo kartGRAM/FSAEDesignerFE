@@ -103,7 +103,22 @@ export abstract class FlowNode implements IFlowNode {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   getRFNode(parentTest?: ITest, canvasUpdate?: () => void): IRFNode {
     const {position, selected} = this;
-    return {id: this.nodeID, position, data: {label: this.name}, selected};
+    let validated = true;
+    if (parentTest) {
+      validated = this.validate(
+        parentTest.edgesFromTarget,
+        parentTest.edgesFromSourceNode
+      );
+    }
+    return {
+      id: this.nodeID,
+      position,
+      data: {
+        label: this.name,
+        warning: !validated
+      },
+      selected
+    };
   }
 
   acceptable(

@@ -3,16 +3,21 @@ import {Avatar} from '@mui/material';
 import {Handle, Position} from 'reactflow';
 import {WarningBadge} from './WarningBadge';
 
-export default function CircleNode(props: {
-  data: {icon: JSX.Element};
-  selected: boolean;
-}) {
+export type CircleNodeProps = {
+  data: {
+    icon: JSX.Element;
+    warning: boolean;
+  };
+  selected?: boolean;
+};
+
+export default function CircleNode(props: CircleNodeProps) {
   const {data, selected} = props;
-  const {icon} = data;
+  const {icon, warning} = data;
 
   return (
     <>
-      <WarningBadge>
+      <WarningBadge invisible={!warning}>
         <Avatar
           draggable
           sx={{

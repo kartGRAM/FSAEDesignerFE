@@ -3,6 +3,7 @@ import {setAssembled} from '@store/reducers/uiTempGeometryDesigner';
 import store from '@store/store';
 import {Node as IRFNode} from 'reactflow';
 import {v4 as uuidv4} from 'uuid';
+import {OvalNodeProps} from '@gdComponents/side-panel-components/analysis/OvalNode';
 import {IActionNode, IDataActionNode, ActionNode} from './ActionNode';
 import {
   isDataFlowNode,
@@ -58,12 +59,12 @@ export class EndNode extends ActionNode implements IEndNode {
     return {...data, className: this.className};
   }
 
-  getRFNode(test: ITest): IRFNode {
+  getRFNode(test: ITest): IRFNode & OvalNodeProps {
     const rfNode = super.getRFNode(test);
     return {
       ...rfNode,
       type: 'oval',
-      data: {label: this.name, source: true, target: true}
+      data: {...rfNode.data, source: true, target: true}
     };
   }
 

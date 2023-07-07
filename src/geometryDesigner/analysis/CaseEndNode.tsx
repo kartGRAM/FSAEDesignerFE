@@ -3,6 +3,7 @@ import * as React from 'react';
 import {Node as IRFNode, XYPosition} from 'reactflow';
 import CaseEnd from '@gdComponents/svgs/CaseEnd';
 import {v4 as uuidv4} from 'uuid';
+import {CircleNodeProps} from '@gdComponents/side-panel-components/analysis/CircleNode';
 import {
   IFlowNode,
   isDataFlowNode,
@@ -58,13 +59,13 @@ export class CaseEndNode extends FlowNode implements ICaseEndNode {
     return {...data, className: this.className};
   }
 
-  getRFNode(test?: ITest): IRFNode {
+  getRFNode(test?: ITest): IRFNode & CircleNodeProps {
     const rfNode = super.getRFNode(test);
     return {
       ...rfNode,
       type: 'circle',
       data: {
-        label: this.name,
+        ...rfNode.data,
         icon: <CaseEnd title={this.name} />
       }
     };
