@@ -59,6 +59,7 @@ import OvalNode from './OvalNode';
 import CustomSmoothStepEdge from './CustomSmoothStepEdge';
 import TestName from './TestName';
 import TestDescription from './TestDescription';
+import {FlowCanvasToolbar} from './FlowCanvasToolbar';
 
 const fitViewOptions: FitViewOptions = {
   padding: 0.2
@@ -523,9 +524,17 @@ export function FlowCanvas(props: {
       }}
       onKeyDown={handleKeyDown}
     >
-      <TestName test={test} />
-      <TestDescription test={test} />
-      <DialogContent sx={{display: 'flex', flexDirection: 'row'}}>
+      <Box
+        component="div"
+        sx={{display: 'flex', flexDirection: 'row', alignItems: 'end', pb: 0.5}}
+      >
+        <Box component="div" sx={{display: 'flex', flexDirection: 'column'}}>
+          <TestName test={test} />
+          <TestDescription test={test} />
+        </Box>
+        <FlowCanvasToolbar test={test} />
+      </Box>
+      <DialogContent sx={{display: 'flex', flexDirection: 'row', pt: 0}}>
         <ItemBox />
         <Box
           component="div"

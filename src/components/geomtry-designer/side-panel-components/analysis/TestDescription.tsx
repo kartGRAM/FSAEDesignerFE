@@ -13,7 +13,7 @@ export const TestDiscription = React.memo((props: {test: ITest}) => {
   return (
     <EditableTypography
       typography={
-        <DialogTitle sx={{pt: 0, lineHeight: 0.2}}>
+        <DialogTitle sx={{pt: 0, pb: 1, lineHeight: 0.2}}>
           <Typography variant="caption">{test.description}</Typography>
         </DialogTitle>
       }
