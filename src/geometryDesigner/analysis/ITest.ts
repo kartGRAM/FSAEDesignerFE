@@ -19,6 +19,9 @@ export interface ITest {
   readonly endNode: IEndNode;
   readonly redoable: boolean;
   readonly undoable: boolean;
+  readonly running: boolean;
+  readonly paused: boolean;
+
   undoBlockPoint: string;
   addNode(node: IFlowNode): void;
   removeNode(node: {nodeID: string}): void;

@@ -369,8 +369,30 @@ export class Test implements ITest {
     return true;
   }
 
+  private _running: boolean = false;
+
+  get running() {
+    return this._running;
+  }
+
+  private set runing(value: boolean) {
+    this._running = true;
+  }
+
+  private _paused: boolean = false;
+
+  get paused() {
+    return this._paused;
+  }
+
+  private set paused(value: boolean) {
+    this._paused = value;
+  }
+
   // eslint-disable-next-line class-methods-use-this
   async run(): Promise<TestResult> {
+    this.runing = true;
+    this.paused = false;
     throw new Error('Method not implemented.');
   }
 }
