@@ -23,10 +23,6 @@ export class Test implements ITest {
 
   changed = false;
 
-  done = false;
-
-  ready = false;
-
   localStates: IDataTest[] = [];
 
   indexOfHistory: number = 0;
@@ -370,6 +366,16 @@ export class Test implements ITest {
     return true;
   }
 
+  private _done: boolean = false;
+
+  get done() {
+    return this._done;
+  }
+
+  private set done(value: boolean) {
+    this._done = value;
+  }
+
   private _running: boolean = false;
 
   get running() {
@@ -409,14 +415,15 @@ export class Test implements ITest {
   }
 
   async run(onRun: () => void): Promise<TestResult> {
+    if (this.running) return 'Continue';
+    this.running = true;
     if (this.paused) {
-      this.running = true;
       this.paused = false;
       onRun();
       return 'Continue';
     }
     try {
-      this.running = true;
+      this.done = false;
       this.paused = false;
       this.onPaused = undefined;
       this.onStopped = undefined;
@@ -432,6 +439,7 @@ export class Test implements ITest {
 
       this.running = false;
       this.paused = false;
+      this.done = true;
       this.onPaused = undefined;
       this.onStopped = undefined;
       return 'Completed';

@@ -15,7 +15,6 @@ export interface ITest {
   name: string;
   description: string;
   readonly done: boolean;
-  readonly ready: boolean;
   readonly changed: boolean;
   readonly nodeID: string;
   readonly idWoTest: string;

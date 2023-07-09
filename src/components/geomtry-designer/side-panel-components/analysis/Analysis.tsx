@@ -174,7 +174,7 @@ const TestRow = (props: {test: IDataTest}) => {
                 e.stopPropagation();
                 e.preventDefault();
               }}
-              disabled={!loadedTest || !loadedTest.ready}
+              disabled={!loadedTest || true}
             >
               <FolderIcon />
             </IconButton>
@@ -188,7 +188,7 @@ const TestRow = (props: {test: IDataTest}) => {
                 e.stopPropagation();
                 e.preventDefault();
               }}
-              disabled={!loadedTest || !loadedTest.ready}
+              disabled={!loadedTest || !loadedTest.validate()}
             >
               <AvTimer />
             </IconButton>
