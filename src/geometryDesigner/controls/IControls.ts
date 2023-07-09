@@ -82,7 +82,7 @@ export abstract class Control {
     value?: number
   ): unknown;
 
-  abstract rollback(value: unknown, solver: KinematicSolver): void;
+  abstract rollback(data: unknown, solver: KinematicSolver): void;
 
   abstract getDataControl(): IDataControl;
 }

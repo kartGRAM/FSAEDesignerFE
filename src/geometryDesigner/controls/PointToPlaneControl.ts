@@ -95,7 +95,7 @@ export class PointToPlaneControl extends Control {
     return `position of ${point.name} of ${element.name.value}`;
   }
 
-  preprocess(dt: number, solver: KinematicSolver): number[] {
+  preprocess(dt: number, solver: KinematicSolver, value?: number): number[] {
     const deltaDl = dt * this.speed * (this.reverse ? -1 : 1);
     const roots = solver.components.map((c) => c[0]);
     const constraints = roots.reduce((prev, current) => {
@@ -111,7 +111,11 @@ export class PointToPlaneControl extends Control {
     const reserved: number[] = [];
     constraints.forEach((constraint) => {
       reserved.push(constraint.dl);
-      constraint.dl += deltaDl;
+      if (value) {
+        constraint.dl = value;
+      } else {
+        constraint.dl += deltaDl;
+      }
       constraint.dl = Math.min(
         constraint.dlMax,
         Math.max(constraint.dlMin, constraint.dl)
