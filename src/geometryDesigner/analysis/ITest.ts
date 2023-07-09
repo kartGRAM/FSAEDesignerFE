@@ -40,7 +40,9 @@ export interface ITest {
   localUndo(): void;
   copySelectedNodes(): IClipboardFlowNodes;
   validate(): boolean;
-  run(): Promise<TestResult>;
+  run(onRun: () => void): Promise<TestResult>;
+  pause(onPaused: () => void): void;
+  stop(onStopped: () => void): void;
 
   arrange(
     widthSpaceAligningNodes: number,

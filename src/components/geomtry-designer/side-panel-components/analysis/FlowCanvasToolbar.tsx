@@ -18,18 +18,39 @@ export function FlowCanvasToolbar(props: {test: ITest}) {
   return (
     <Toolbar sx={{minHeight: 'unset!important', pb: 0}}>
       <MyTooltip title="run">
-        <IconButton sx={{padding: 0.5}} disabled={!isValid || running}>
-          <PlayArrowIcon />
+        <IconButton
+          sx={{padding: 0.5}}
+          disabled={!isValid || running}
+          onClick={async () => {
+            await test.run(updateOnly);
+            updateOnly();
+          }}
+        >
+          <PlayArrowIcon
+            sx={{color: isValid && !running ? '#00aa00' : undefined}}
+          />
         </IconButton>
       </MyTooltip>
       <MyTooltip title="pause">
-        <IconButton sx={{padding: 0.5}} disabled={!running || paused}>
-          <PauseIcon />
+        <IconButton
+          sx={{padding: 0.5}}
+          disabled={!running || paused}
+          onClick={() => {
+            test.pause(updateOnly);
+          }}
+        >
+          <PauseIcon sx={{color: running && !paused ? '#0000cc' : undefined}} />
         </IconButton>
       </MyTooltip>
       <MyTooltip title="stop">
-        <IconButton sx={{padding: 0.5}} disabled={!running}>
-          <StopIcon />
+        <IconButton
+          sx={{padding: 0.5}}
+          disabled={!running && !paused}
+          onClick={() => {
+            test.stop(updateOnly);
+          }}
+        >
+          <StopIcon sx={{color: running || paused ? '#cc0000' : undefined}} />
         </IconButton>
       </MyTooltip>
     </Toolbar>

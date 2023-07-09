@@ -377,7 +377,7 @@ export class Test implements ITest {
   }
 
   private set running(value: boolean) {
-    this._running = true;
+    this._running = value;
   }
 
   private _paused: boolean = false;
@@ -403,14 +403,16 @@ export class Test implements ITest {
   private onStopped: (() => void) | undefined = () => {};
 
   stop(onStopped: () => void): void {
-    if (this.running) {
+    if (this.running || this.paused) {
       this.onStopped = onStopped;
     }
   }
 
-  async run(): Promise<TestResult> {
+  async run(onRun: () => void): Promise<TestResult> {
     if (this.paused) {
       this.running = true;
+      this.paused = false;
+      onRun();
       return 'Continue';
     }
     try {
@@ -418,12 +420,14 @@ export class Test implements ITest {
       this.paused = false;
       this.onPaused = undefined;
       this.onStopped = undefined;
+      onRun();
 
-      for (let i = 0; i < 30; ++i) {
+      for (let i = 0; i < 10; ++i) {
         // eslint-disable-next-line no-await-in-loop
         const canceled = await this.canceled();
         if (canceled) return 'User Canceled';
-        sleep(1000);
+        // eslint-disable-next-line no-await-in-loop
+        await sleep(1000);
       }
 
       this.running = false;
@@ -444,8 +448,9 @@ export class Test implements ITest {
       this.paused = true;
       this.onPaused();
       this.onPaused = undefined;
-      while (!this.running || !this.onStopped) {
-        sleep(30);
+      while (!this.running && !this.onStopped) {
+        // eslint-disable-next-line no-await-in-loop
+        await sleep(5);
       }
     }
     if (this.onStopped) {
