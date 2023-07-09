@@ -11,6 +11,7 @@ import {getEdge, getFlowNode} from './RestoreData';
 import validateGraph from './ValidateGraph';
 import arrangeNodes from './ArrangeNodes';
 import {IClipboardFlowNodes} from './ClipboardFlowNode';
+import {isActionNode} from './ActionNode';
 
 export class Test implements ITest {
   name: string;
@@ -452,7 +453,10 @@ export class Test implements ITest {
     const canceled = await this.canceled();
     if (canceled) return 'User Canceled';
 
-    await sleep(1000);
+    if (isActionNode(node)) {
+      node.action();
+    }
+
     for (const edge of this.edgesFromSourceNode[node.nodeID]) {
       if (edge.target === this.endNode.nodeID) return 'Completed';
       const child = this.nodes[edge.target];

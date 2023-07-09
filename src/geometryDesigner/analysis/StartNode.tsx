@@ -4,6 +4,7 @@ import store from '@store/store';
 import {Node as IRFNode} from 'reactflow';
 import {v4 as uuidv4} from 'uuid';
 import {OvalNodeProps} from '@gdComponents/side-panel-components/analysis/OvalNode';
+import {sleep} from '@utils/helpers';
 import {IActionNode, IDataActionNode, ActionNode} from './ActionNode';
 import {isDataFlowNode, IFlowNode, IDataFlowNode, IDataEdge} from './FlowNode';
 import {ITest} from './ITest';
@@ -20,9 +21,20 @@ export interface IDataStartNode extends IDataActionNode {
 }
 
 export class StartNode extends ActionNode implements IStartNode {
-  action(): void {
+  async action(): Promise<void> {
     const {dispatch} = store;
     dispatch(setAssembled(true));
+    const state = store.getState().uitgd;
+    while (!state.kinematicSolver && state.gdSceneState.assembled) {
+      // eslint-disable-next-line no-await-in-loop
+      await sleep(10);
+    }
+    const solver = state.kinematicSolver;
+    if (!solver) {
+      throw new Error('solver not found ( or solver not converged).');
+    }
+    await solver.wait();
+    solver.restoreInitialQ();
   }
 
   readonly className = className;

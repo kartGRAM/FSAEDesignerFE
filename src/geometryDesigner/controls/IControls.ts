@@ -76,7 +76,11 @@ export abstract class Control {
     };
   }
 
-  abstract preprocess(dt: number, solver: KinematicSolver): unknown;
+  abstract preprocess(
+    dt: number,
+    solver: KinematicSolver,
+    value?: number
+  ): unknown;
 
   abstract rollback(value: unknown, solver: KinematicSolver): void;
 

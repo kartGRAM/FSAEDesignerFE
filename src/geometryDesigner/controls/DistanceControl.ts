@@ -50,7 +50,11 @@ export class DistanceControl extends Control {
     return `position of ${element.name.value}`;
   }
 
-  preprocess(dt: number, solver: KinematicSolver): number {
+  preprocess(
+    dt: number,
+    solver: KinematicSolver,
+    value?: number
+  ): {type: 'delta' | 'absolute'; value: number[] | number} {
     const deltaDl = dt * this.speed * (this.reverse ? -1 : 1);
     const roots = solver.components.map((c) => c[0]);
     const constraints = roots.reduce((prev, current) => {
@@ -63,13 +67,26 @@ export class DistanceControl extends Control {
       );
       return prev;
     }, [] as BarAndSpheres[]);
-    constraints.forEach((constraint) => {
-      constraint.dl += deltaDl;
-    });
-    return deltaDl;
+    if (!value) {
+      constraints.forEach((constraint) => {
+        constraint.dl += deltaDl;
+      });
+      return {type: 'delta', value: deltaDl};
+    }
+    return {
+      type: 'absolute',
+      value: constraints.map((constraint) => {
+        const tmp = constraint.dl;
+        constraint.dl = value;
+        return tmp;
+      })
+    };
   }
 
-  rollback(value: number, solver: KinematicSolver) {
+  rollback(
+    data: {type: 'delta' | 'absolute'; value: number[] | number},
+    solver: KinematicSolver
+  ) {
     const roots = solver.components.map((c) => c[0]);
     const constraints = roots.reduce((prev, current) => {
       prev.push(
@@ -81,8 +98,12 @@ export class DistanceControl extends Control {
       );
       return prev;
     }, [] as BarAndSpheres[]);
-    constraints.forEach((constraint) => {
-      constraint.dl -= value;
+    constraints.forEach((constraint, i) => {
+      if (data.type === 'delta') {
+        constraint.dl -= data.value as number;
+      } else {
+        constraint.dl = (data.value as number[])[i];
+      }
     });
   }
 

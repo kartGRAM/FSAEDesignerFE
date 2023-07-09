@@ -16,6 +16,7 @@ import {
 import {Vector3, Quaternion} from 'three';
 import {isPointToPlaneControl} from '@gd/controls/PointToPlaneControl';
 import {hasNearestNeighborToPlane} from '@gd/SpecialPoints';
+import {sleep} from '@utils/helpers';
 import {
   getJointDictionary,
   canSimplifyAArm,
@@ -716,6 +717,11 @@ export class KinematicSolver {
       throw e;
     }
     this.running = false;
+  }
+
+  async wait(): Promise<void> {
+    // eslint-disable-next-line no-await-in-loop
+    while (this.running) await sleep(10);
   }
 
   solveObjectiveFunction(

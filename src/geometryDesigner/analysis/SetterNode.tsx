@@ -1,6 +1,7 @@
 import * as React from 'react';
+import store, {RootState} from '@store/store';
 import {useSelector} from 'react-redux';
-import {RootState} from '@store/store';
+
 import {Node as IRFNode, XYPosition} from 'reactflow';
 import Tuning from '@gdComponents/svgs/Tuning';
 import {v4 as uuidv4} from 'uuid';
@@ -72,8 +73,25 @@ export interface IDataSetterNode extends IDataActionNode {
 }
 
 export class SetterNode extends ActionNode implements ISetterNode {
-  // eslint-disable-next-line class-methods-use-this
-  action(): void {}
+  async action(): Promise<void> {
+    const rootState = store.getState();
+    const state = rootState.uitgd;
+
+    const fsddc =
+      rootState.uigd.present.gdSceneState.fixSpringDumperDuaringControl;
+    const solver = state.kinematicSolver;
+    if (!solver) {
+      throw new Error('solver not found ( or solver not converged).');
+    }
+    await solver.wait();
+    this.listSetters.forEach((setter) => setter.set(solver));
+
+    solver.solve({
+      constraintsOptions: {
+        fixSpringDumpersAtCurrentPositions: fsddc
+      }
+    });
+  }
 
   readonly className = className;
 

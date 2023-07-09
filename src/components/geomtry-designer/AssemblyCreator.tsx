@@ -144,6 +144,8 @@ export default function AssemblyCreactor() {
           console.log(e);
           dispatch(setAssembled(false));
         }
+      } else {
+        dispatch(setAssembled(false));
       }
       return;
     }

@@ -1,6 +1,4 @@
 /* eslint-disable class-methods-use-this */
-import {setAssembled} from '@store/reducers/uiTempGeometryDesigner';
-import store from '@store/store';
 import {Node as IRFNode} from 'reactflow';
 import {v4 as uuidv4} from 'uuid';
 import {OvalNodeProps} from '@gdComponents/side-panel-components/analysis/OvalNode';
@@ -27,10 +25,8 @@ export interface IDataEndNode extends IDataActionNode {
 }
 
 export class EndNode extends ActionNode implements IEndNode {
-  action(): void {
-    const {dispatch} = store;
-    dispatch(setAssembled(true));
-  }
+  // eslint-disable-next-line no-empty-function
+  async action(): Promise<void> {}
 
   readonly className = className;
 
