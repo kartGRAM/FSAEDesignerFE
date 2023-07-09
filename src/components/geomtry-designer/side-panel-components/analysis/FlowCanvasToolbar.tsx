@@ -11,7 +11,7 @@ import StopIcon from '@mui/icons-material/Stop';
 export function FlowCanvasToolbar(props: {test: ITest}) {
   const {test} = props;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const {updateWithSave} = useTestUpdate(test);
+  const {updateOnly} = useTestUpdate(test);
   const isValid = test.validate();
   const {running, paused} = test;
 

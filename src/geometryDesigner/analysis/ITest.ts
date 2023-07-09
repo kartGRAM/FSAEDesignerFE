@@ -5,7 +5,11 @@ import {IStartNode} from './StartNode';
 import {IEndNode} from './EndNode';
 import {IClipboardFlowNodes} from './ClipboardFlowNode';
 
-export type TestResult = 'Completed' | 'Solver Error' | 'User Canceled';
+export type TestResult =
+  | 'Completed'
+  | 'Solver Error'
+  | 'User Canceled'
+  | 'Continue';
 
 export interface ITest {
   name: string;

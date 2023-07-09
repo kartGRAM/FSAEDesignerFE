@@ -2,6 +2,7 @@ import {Node, Edge} from 'reactflow';
 import {v4 as uuidv4} from 'uuid';
 import store from '@store/store';
 import {setTests} from '@store/reducers/dataGeometryDesigner';
+import {sleep} from '@utils/helpers';
 import {IFlowNode, IDataEdge} from './FlowNode';
 import {StartNode, isStartNode, IStartNode} from './StartNode';
 import {EndNode, isEndNode, IEndNode} from './EndNode';
@@ -375,7 +376,7 @@ export class Test implements ITest {
     return this._running;
   }
 
-  private set runing(value: boolean) {
+  private set running(value: boolean) {
     this._running = true;
   }
 
@@ -390,9 +391,70 @@ export class Test implements ITest {
   }
 
   // eslint-disable-next-line class-methods-use-this
+  private onPaused: (() => void) | undefined = () => {};
+
+  pause(onPaused: () => void): void {
+    if (this.running) {
+      this.onPaused = onPaused;
+    }
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  private onStopped: (() => void) | undefined = () => {};
+
+  stop(onStopped: () => void): void {
+    if (this.running) {
+      this.onStopped = onStopped;
+    }
+  }
+
   async run(): Promise<TestResult> {
-    this.runing = true;
-    this.paused = false;
-    throw new Error('Method not implemented.');
+    if (this.paused) {
+      this.running = true;
+      return 'Continue';
+    }
+    try {
+      this.running = true;
+      this.paused = false;
+      this.onPaused = undefined;
+      this.onStopped = undefined;
+
+      for (let i = 0; i < 30; ++i) {
+        // eslint-disable-next-line no-await-in-loop
+        const canceled = await this.canceled();
+        if (canceled) return 'User Canceled';
+        sleep(1000);
+      }
+
+      this.running = false;
+      this.paused = false;
+      this.onPaused = undefined;
+      this.onStopped = undefined;
+      return 'Completed';
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.log(e);
+      return 'Solver Error';
+    }
+  }
+
+  async canceled(): Promise<boolean> {
+    if (this.onPaused) {
+      this.running = false;
+      this.paused = true;
+      this.onPaused();
+      this.onPaused = undefined;
+      while (!this.running || !this.onStopped) {
+        sleep(30);
+      }
+    }
+    if (this.onStopped) {
+      this.running = false;
+      this.paused = false;
+      this.onStopped();
+      this.onStopped = undefined;
+      return true;
+    }
+    return false;
   }
 }

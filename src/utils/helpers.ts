@@ -1,6 +1,6 @@
-export const sleep = (time: number) =>
+export const sleep = (millisec: number) =>
   // eslint-disable-next-line no-promise-executor-return
-  new Promise((res) => setTimeout(res, time));
+  new Promise((res) => setTimeout(res, millisec));
 
 export const calculateWindowSize = (windowWidth: number) => {
   if (windowWidth >= 1200) {
