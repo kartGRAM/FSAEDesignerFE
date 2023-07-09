@@ -429,20 +429,15 @@ export class Test implements ITest {
       this.onStopped = undefined;
       onRun();
 
-      for (let i = 0; i < 10; ++i) {
-        // eslint-disable-next-line no-await-in-loop
-        const canceled = await this.canceled();
-        if (canceled) return 'User Canceled';
-        // eslint-disable-next-line no-await-in-loop
-        await sleep(1000);
-      }
+      const result = await this.DFSNodes(this.startNode);
 
       this.running = false;
       this.paused = false;
       this.done = true;
       this.onPaused = undefined;
       this.onStopped = undefined;
-      return 'Completed';
+
+      return result;
     } catch (e) {
       // eslint-disable-next-line no-console
       console.log(e);
@@ -450,12 +445,40 @@ export class Test implements ITest {
     }
   }
 
+  async DFSNodes(node: IFlowNode): Promise<TestResult> {
+    // eslint-disable-next-line no-console
+    console.log(node.name);
+
+    const canceled = await this.canceled();
+    if (canceled) return 'User Canceled';
+
+    await sleep(1000);
+    for (const edge of this.edgesFromSourceNode[node.nodeID]) {
+      if (edge.target === this.endNode.nodeID) return 'Completed';
+      const child = this.nodes[edge.target];
+      // eslint-disable-next-line no-await-in-loop
+      await this.DFSNodes(child);
+
+      // eslint-disable-next-line no-await-in-loop
+      const canceled = await this.canceled();
+      if (canceled) return 'User Canceled';
+    }
+
+    return 'Completed';
+  }
+
   async canceled(): Promise<boolean> {
-    if (this.onPaused) {
-      this.running = false;
-      this.paused = true;
-      this.onPaused();
-      this.onPaused = undefined;
+    if (!this.running && !this.paused) return true;
+
+    if (this.onPaused || this.paused) {
+      if (!this.paused) {
+        this.running = false;
+        this.paused = true;
+      }
+      if (this.onPaused) {
+        this.onPaused();
+        this.onPaused = undefined;
+      }
       while (!this.running && !this.onStopped) {
         // eslint-disable-next-line no-await-in-loop
         await sleep(5);

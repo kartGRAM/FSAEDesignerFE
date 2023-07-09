@@ -62,6 +62,7 @@ const store = configureStore({
           'uitGeometryDesigner/removeTest',
           'uitGeometryDesigner/setDraggingNewTestFlowNode',
           'uitGeometryDesigner/saveTestLocalState',
+          'uitGeometryDesigner/testUpdateNotify',
           'uitGeometryDesigner/setConfirmDialogProps'
         ],
         ignoredPaths: [
