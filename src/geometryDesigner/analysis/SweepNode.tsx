@@ -75,8 +75,8 @@ export interface IDataSweepNode extends IDataActionNode {
 }
 
 export class SweepNode extends ActionNode implements ISweepNode {
-  // eslint-disable-next-line class-methods-use-this
-  action(): void {}
+  // eslint-disable-next-line class-methods-use-this, no-empty-function
+  async action(): Promise<void> {}
 
   readonly className = className;
 
