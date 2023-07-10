@@ -28,6 +28,9 @@ export class EndNode extends ActionNode implements IEndNode {
   // eslint-disable-next-line no-empty-function
   async action(): Promise<void> {}
 
+  // eslint-disable-next-line no-empty-function
+  async restore(): Promise<void> {}
+
   readonly className = className;
 
   acceptable(

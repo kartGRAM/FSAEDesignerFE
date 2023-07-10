@@ -454,18 +454,24 @@ export class Test implements ITest {
     if (canceled) return 'User Canceled';
 
     if (isActionNode(node)) {
-      node.action();
+      node.action(this.canceled);
     }
 
+    let i = 0;
     for (const edge of this.edgesFromSourceNode[node.nodeID]) {
       if (edge.target === this.endNode.nodeID) return 'Completed';
       const child = this.nodes[edge.target];
+
+      // eslint-disable-next-line no-await-in-loop
+      if (i > 0 && isActionNode(node)) await node.restore(this.canceled);
+
       // eslint-disable-next-line no-await-in-loop
       await this.DFSNodes(child);
 
       // eslint-disable-next-line no-await-in-loop
       const canceled = await this.canceled();
       if (canceled) return 'User Canceled';
+      ++i;
     }
 
     return 'Completed';

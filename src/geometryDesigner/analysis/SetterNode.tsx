@@ -93,6 +93,8 @@ export class SetterNode extends ActionNode implements ISetterNode {
     });
   }
 
+  async restore(): Promise<void> {}
+
   readonly className = className;
 
   listSetters: IParameterSetter[];

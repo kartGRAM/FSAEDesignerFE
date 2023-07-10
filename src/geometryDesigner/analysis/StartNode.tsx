@@ -37,6 +37,16 @@ export class StartNode extends ActionNode implements IStartNode {
     solver.restoreInitialQ();
   }
 
+  async restore(): Promise<void> {
+    const state = store.getState().uitgd;
+    const solver = state.kinematicSolver;
+    if (!solver) {
+      throw new Error('solver not found ( or solver not converged).');
+    }
+    await solver.wait();
+    solver.restoreInitialQ();
+  }
+
   readonly className = className;
 
   acceptable(): boolean {

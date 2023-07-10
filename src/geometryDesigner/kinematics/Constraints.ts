@@ -32,6 +32,9 @@ export interface ConstraintsOptions {
 interface deltaL {
   hasDl: true;
   dl: number;
+  readonly uniqID: string;
+  readonly controledBy: string[];
+  readonly controled: boolean;
 }
 
 export function hasDl(object: any): object is deltaL {
@@ -43,8 +46,16 @@ export function hasDl(object: any): object is deltaL {
   return false;
 }
 
+export function controled(object: any): object is deltaL {
+  try {
+    if (object.hasDl && object.controled) return true;
+  } catch {
+    return false;
+  }
+  return false;
+}
+
 export interface Constraint {
-  readonly controledBy: string[];
   readonly className: string;
   readonly lhs: IComponent;
   readonly rhs: IComponent;
@@ -70,8 +81,6 @@ export interface Constraint {
 
 export class Sphere implements Constraint {
   readonly className = 'Sphere';
-
-  readonly controledBy = [];
 
   // 自由度を3減らす
   constraints() {
@@ -239,8 +248,6 @@ export class Sphere implements Constraint {
 
 export class Hinge implements Constraint {
   readonly className = 'Hinge';
-
-  readonly controledBy = [];
 
   // 自由度を5減らす
   constraints() {
@@ -477,9 +484,11 @@ export class BarAndSpheres implements Constraint, deltaL {
 
   elementID: string;
 
-  controled: boolean;
+  readonly controledBy: string[];
 
-  readonly controledBy;
+  get controled() {
+    return this.controledBy.length > 0;
+  }
 
   target: Vector3 = new Vector3();
 
@@ -505,7 +514,6 @@ export class BarAndSpheres implements Constraint, deltaL {
     elementID?: string
   ) {
     this.name = name;
-    this.controled = controledBy.length > 0;
     this.controledBy = controledBy;
     this.elementID = elementID ?? '';
     this.isSpringDumper = (!this.controled && isSpringDumper) ?? false;
@@ -687,9 +695,11 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
     this.dl = 0;
   }
 
-  controled: boolean;
+  readonly controledBy: string[];
 
-  readonly controledBy;
+  get controled() {
+    return this.controledBy.length > 0;
+  }
 
   row: number = -1;
 
@@ -744,7 +754,6 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
     dlMax?: number,
     elementID?: string
   ) {
-    this.controled = controledBy.length > 0;
     this.controledBy = controledBy;
     this.elementID = elementID ?? '';
     this.initialLength = initialLength;
@@ -912,8 +921,6 @@ export function isLinearBushingSingleEnd(
 export class QuaternionConstraint implements Constraint {
   readonly className = 'QuaternionConstraint';
 
-  readonly controledBy = [];
-
   // 自由度を1減らす
   constraints() {
     return 1;
@@ -1037,6 +1044,10 @@ export class PointToPlane implements Constraint, deltaL {
   elementID: string;
 
   readonly controledBy: string[];
+
+  get controled() {
+    return this.controledBy.length > 0;
+  }
 
   constructor(
     name: string,
