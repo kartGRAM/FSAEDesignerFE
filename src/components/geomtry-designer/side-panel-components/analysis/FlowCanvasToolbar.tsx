@@ -21,9 +21,10 @@ export function FlowCanvasToolbar(props: {test: ITest}) {
         <IconButton
           sx={{padding: 0.5}}
           disabled={!isValid || running}
-          onClick={async () => {
-            await test.run(updateOnly);
-            updateOnly();
+          onClick={() => {
+            test.run();
+            // eslint-disable-next-line no-console
+            console.log('test start');
           }}
         >
           <PlayArrowIcon

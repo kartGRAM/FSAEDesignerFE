@@ -1,5 +1,6 @@
 /* eslint-disable class-methods-use-this */
 import {Node as IRFNode} from 'reactflow';
+import store from '@store/store';
 import {v4 as uuidv4} from 'uuid';
 import {OvalNodeProps} from '@gdComponents/side-panel-components/analysis/OvalNode';
 import {IActionNode, IDataActionNode, ActionNode} from './ActionNode';
@@ -25,8 +26,15 @@ export interface IDataEndNode extends IDataActionNode {
 }
 
 export class EndNode extends ActionNode implements IEndNode {
-  // eslint-disable-next-line no-empty-function
   async action(): Promise<boolean> {
+    const rootState = store.getState();
+    const state = rootState.uitgd;
+    const solver = state.kinematicSolver;
+    if (!solver) {
+      throw new Error('solver not found ( or solver not converged).');
+    }
+    await solver.wait();
+    solver.postProcess();
     return false;
   }
 

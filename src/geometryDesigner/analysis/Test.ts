@@ -416,12 +416,12 @@ export class Test implements ITest {
     }
   }
 
-  async run(onRun: () => void): Promise<TestResult> {
+  async run(): Promise<TestResult> {
     if (this.running) return 'Continue';
     this.running = true;
     if (this.paused) {
       this.paused = false;
-      onRun();
+      store.dispatch(testUpdateNotify(this));
       return 'Continue';
     }
     try {
@@ -429,7 +429,7 @@ export class Test implements ITest {
       this.paused = false;
       this.onPaused = undefined;
       this.onStopped = undefined;
-      onRun();
+      store.dispatch(testUpdateNotify(this));
 
       const result = await this.DFSNodes(this.startNode);
 
@@ -438,6 +438,7 @@ export class Test implements ITest {
       this.done = true;
       this.onPaused = undefined;
       this.onStopped = undefined;
+      store.dispatch(testUpdateNotify(this));
 
       return result;
     } catch (e) {
@@ -468,7 +469,11 @@ export class Test implements ITest {
 
     let i = 0;
     for (const edge of this.edgesFromSourceNode[node.nodeID]) {
-      if (edge.target === this.endNode.nodeID) return 'Completed';
+      if (edge.target === this.endNode.nodeID) {
+        // eslint-disable-next-line no-await-in-loop
+        await this.endNode.action(() => this.canceled());
+        return 'Completed';
+      }
       const child = this.nodes[edge.target];
 
       let canceled = false;

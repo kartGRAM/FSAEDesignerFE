@@ -99,6 +99,7 @@ export class SweepNode extends ActionNode implements ISweepNode {
       c = await cancel();
 
       solver.solve({
+        postProcess: false,
         constraintsOptions: {
           fixSpringDumpersAtCurrentPositions: fsddc
         }
@@ -131,6 +132,7 @@ export class SweepNode extends ActionNode implements ISweepNode {
       rootState.uigd.present.gdSceneState.fixSpringDumperDuaringControl;
 
     solver.solve({
+      postProcess: false,
       constraintsOptions: {
         fixSpringDumpersAtCurrentPositions: fsddc
       }

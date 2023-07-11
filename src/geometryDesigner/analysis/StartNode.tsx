@@ -24,10 +24,11 @@ export class StartNode extends ActionNode implements IStartNode {
   async action(): Promise<boolean> {
     const {dispatch} = store;
     dispatch(setAssembled(true));
-    const state = store.getState().uitgd;
+    let state = store.getState().uitgd;
     while (!state.kinematicSolver && state.gdSceneState.assembled) {
       // eslint-disable-next-line no-await-in-loop
       await sleep(10);
+      state = store.getState().uitgd;
     }
     const solver = state.kinematicSolver;
     if (!solver) {

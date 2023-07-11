@@ -39,7 +39,7 @@ export interface ITest {
   localUndo(): void;
   copySelectedNodes(): IClipboardFlowNodes;
   validate(): boolean;
-  run(onRun: () => void): Promise<TestResult>;
+  run(): Promise<TestResult>;
   pause(onPaused: () => void): void;
   stop(onStopped: () => void): void;
 

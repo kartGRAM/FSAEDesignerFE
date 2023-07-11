@@ -87,6 +87,7 @@ export class SetterNode extends ActionNode implements ISetterNode {
     this.listSetters.forEach((setter) => setter.set(solver));
 
     solver.solve({
+      postProcess: false,
       constraintsOptions: {
         fixSpringDumpersAtCurrentPositions: fsddc
       }
@@ -114,6 +115,7 @@ export class SetterNode extends ActionNode implements ISetterNode {
       rootState.uigd.present.gdSceneState.fixSpringDumperDuaringControl;
 
     solver.solve({
+      postProcess: false,
       constraintsOptions: {
         fixSpringDumpersAtCurrentPositions: fsddc
       }
