@@ -3,6 +3,7 @@ import {v4 as uuidv4} from 'uuid';
 import store from '@store/store';
 import {setTests} from '@store/reducers/dataGeometryDesigner';
 import {sleep} from '@utils/helpers';
+import {testUpdateNotify} from '@store/reducers/uiTempGeometryDesigner';
 import {IFlowNode, IDataEdge} from './FlowNode';
 import {StartNode, isStartNode, IStartNode} from './StartNode';
 import {EndNode, isEndNode, IEndNode} from './EndNode';
@@ -442,6 +443,13 @@ export class Test implements ITest {
     } catch (e) {
       // eslint-disable-next-line no-console
       console.log(e);
+      this.running = false;
+      this.paused = false;
+      this.done = false;
+      this.onPaused = undefined;
+      this.onStopped = undefined;
+
+      store.dispatch(testUpdateNotify(this));
       return 'Solver Error';
     }
   }
@@ -454,7 +462,7 @@ export class Test implements ITest {
     if (canceled) return 'User Canceled';
 
     if (isActionNode(node)) {
-      const canceled = await node.action(this.canceled);
+      const canceled = await node.action(() => this.canceled());
       if (canceled) return 'User Canceled';
     }
 
@@ -466,7 +474,7 @@ export class Test implements ITest {
       let canceled = false;
       if (i > 0 && isActionNode(node))
         // eslint-disable-next-line no-await-in-loop
-        canceled = await node.restore(this.canceled);
+        canceled = await node.restore(() => this.canceled());
       if (canceled) return 'User Canceled';
 
       // eslint-disable-next-line no-await-in-loop

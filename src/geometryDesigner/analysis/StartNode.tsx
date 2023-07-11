@@ -35,6 +35,7 @@ export class StartNode extends ActionNode implements IStartNode {
     }
     await solver.wait();
     solver.restoreInitialQ();
+    await solver.wait();
     return false;
   }
 

@@ -103,6 +103,9 @@ export class SweepNode extends ActionNode implements ISweepNode {
           fixSpringDumpersAtCurrentPositions: fsddc
         }
       });
+
+      // eslint-disable-next-line no-await-in-loop
+      await solver.wait();
       if (done) break;
       if (c) break;
     }
@@ -122,6 +125,7 @@ export class SweepNode extends ActionNode implements ISweepNode {
     }
     await solver.wait();
     solver.restoreState(this.lastState);
+    await solver.wait();
 
     const fsddc =
       rootState.uigd.present.gdSceneState.fixSpringDumperDuaringControl;
@@ -131,6 +135,8 @@ export class SweepNode extends ActionNode implements ISweepNode {
         fixSpringDumpersAtCurrentPositions: fsddc
       }
     });
+
+    await solver.wait();
     return false;
   }
 

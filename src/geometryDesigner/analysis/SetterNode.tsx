@@ -91,6 +91,7 @@ export class SetterNode extends ActionNode implements ISetterNode {
         fixSpringDumpersAtCurrentPositions: fsddc
       }
     });
+    await solver.wait();
 
     this.lastState = solver.getSnapshot();
     return false;
@@ -107,6 +108,7 @@ export class SetterNode extends ActionNode implements ISetterNode {
     }
     await solver.wait();
     solver.restoreState(this.lastState);
+    await solver.wait();
 
     const fsddc =
       rootState.uigd.present.gdSceneState.fixSpringDumperDuaringControl;
@@ -116,6 +118,7 @@ export class SetterNode extends ActionNode implements ISetterNode {
         fixSpringDumpersAtCurrentPositions: fsddc
       }
     });
+    await solver.wait();
     return false;
   }
 
