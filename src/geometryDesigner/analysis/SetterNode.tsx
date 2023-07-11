@@ -73,7 +73,7 @@ export interface IDataSetterNode extends IDataActionNode {
 }
 
 export class SetterNode extends ActionNode implements ISetterNode {
-  async action(): Promise<void> {
+  async action(): Promise<boolean> {
     const rootState = store.getState();
     const state = rootState.uitgd;
 
@@ -93,9 +93,10 @@ export class SetterNode extends ActionNode implements ISetterNode {
     });
 
     this.lastState = solver.getSnapshot();
+    return false;
   }
 
-  async restore(): Promise<void> {
+  async restore(): Promise<boolean> {
     if (!this.lastState) throw new Error('保存されたStateが見つからない');
 
     const rootState = store.getState();
@@ -115,6 +116,7 @@ export class SetterNode extends ActionNode implements ISetterNode {
         fixSpringDumpersAtCurrentPositions: fsddc
       }
     });
+    return false;
   }
 
   readonly className = className;

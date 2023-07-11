@@ -26,10 +26,14 @@ export interface IDataEndNode extends IDataActionNode {
 
 export class EndNode extends ActionNode implements IEndNode {
   // eslint-disable-next-line no-empty-function
-  async action(): Promise<void> {}
+  async action(): Promise<boolean> {
+    return false;
+  }
 
   // eslint-disable-next-line no-empty-function
-  async restore(): Promise<void> {}
+  async restore(): Promise<boolean> {
+    return false;
+  }
 
   readonly className = className;
 

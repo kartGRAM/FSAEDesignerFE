@@ -5,6 +5,7 @@ import {getControl} from '@gd/controls/Controls';
 import {IFormula, IDataFormula} from '@gd/IFormula';
 import {Formula} from '@gd/Formula';
 import store from '@store/store';
+import {KinematicSolver} from '@gd/kinematics/Solver';
 
 export type SweeperType = 'GlobalVariable' | 'Control';
 
@@ -23,6 +24,8 @@ export interface IParameterSweeper {
   readonly stepValue: number;
   mode: Mode;
   getData(): IDataParameterSweeper;
+  // endまで行っていたらtrueを返す
+  set(solver: KinematicSolver, step: number): boolean;
 }
 
 export interface IDataParameterSweeper {
@@ -45,6 +48,22 @@ export class ParameterSweeper implements IParameterSweeper {
   type: SweeperType;
 
   target: string;
+
+  set(solver: KinematicSolver, step: number): boolean {
+    const eps = Number.EPSILON * 2 ** 8;
+    const {startValue, stepValue, endValue} = this;
+    let value = startValue + stepValue * step;
+    if (stepValue >= 0 && value > endValue) value = endValue;
+    if (stepValue < 0 && value < endValue) value = endValue;
+
+    if (this.type === 'Control') {
+      const {control} = this;
+      if (!control) throw new Error('Some Controls are undefinced.');
+      control.preprocess(0, solver, value);
+    }
+
+    return Math.abs(value - endValue) < eps;
+  }
 
   get name(): string {
     if (this.type === 'Control') {

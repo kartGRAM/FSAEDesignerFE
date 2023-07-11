@@ -21,7 +21,7 @@ export interface IDataStartNode extends IDataActionNode {
 }
 
 export class StartNode extends ActionNode implements IStartNode {
-  async action(): Promise<void> {
+  async action(): Promise<boolean> {
     const {dispatch} = store;
     dispatch(setAssembled(true));
     const state = store.getState().uitgd;
@@ -35,9 +35,10 @@ export class StartNode extends ActionNode implements IStartNode {
     }
     await solver.wait();
     solver.restoreInitialQ();
+    return false;
   }
 
-  async restore(): Promise<void> {
+  async restore(): Promise<boolean> {
     const state = store.getState().uitgd;
     const solver = state.kinematicSolver;
     if (!solver) {
@@ -45,6 +46,7 @@ export class StartNode extends ActionNode implements IStartNode {
     }
     await solver.wait();
     solver.restoreInitialQ();
+    return false;
   }
 
   readonly className = className;
