@@ -32,7 +32,6 @@ export interface ConstraintsOptions {
 interface deltaL {
   hasDl: true;
   dl: number;
-  readonly uniqID: string;
   readonly controledBy: string[];
   readonly controled: boolean;
 }

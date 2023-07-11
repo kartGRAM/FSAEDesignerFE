@@ -31,10 +31,6 @@ export interface DataJoint {
   lhs: NodeID;
   rhs: NodeID;
 }
-export interface IDOFState {
-  readonly position: Vector3;
-  readonly rotation: Quaternion;
-}
 
 export type Elements =
   | 'Assembly'
@@ -171,8 +167,6 @@ export interface IAssembly extends IElement {
   flatten(noAssembly: boolean): IElement[];
 
   getDataElement(state: GDState): IDataAssembly | undefined;
-  getCollectedDOFStates(): {[index: string]: IDOFState};
-  setCollectedDOFStates(data: {[index: string]: IDOFState}): void;
 }
 
 export interface IDataAssembly extends IDataElement {

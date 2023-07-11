@@ -1,5 +1,5 @@
 import {IFlowNode, IDataFlowNode, FlowNode} from './FlowNode';
-import {ISnapshot} from './ISnapshot';
+import {ISnapshot} from '../kinematics/ISnapshot';
 
 export interface IActionNode extends IFlowNode {
   action(cancel: () => Promise<boolean>): Promise<void>;
@@ -11,7 +11,7 @@ export interface IDataActionNode extends IDataFlowNode {}
 export abstract class ActionNode extends FlowNode implements IActionNode {
   abstract action(cancel: () => Promise<boolean>): Promise<void>;
 
-  lastState: ISnapshot | undefined;
+  protected lastState: ISnapshot | undefined;
 
   abstract restore(cancel: () => Promise<boolean>): Promise<void>;
 }

@@ -91,9 +91,31 @@ export class SetterNode extends ActionNode implements ISetterNode {
         fixSpringDumpersAtCurrentPositions: fsddc
       }
     });
+
+    this.lastState = solver.getSnapshot();
   }
 
-  async restore(): Promise<void> {}
+  async restore(): Promise<void> {
+    if (!this.lastState) throw new Error('保存されたStateが見つからない');
+
+    const rootState = store.getState();
+    const state = rootState.uitgd;
+    const solver = state.kinematicSolver;
+    if (!solver) {
+      throw new Error('solver not found ( or solver not converged).');
+    }
+    await solver.wait();
+    solver.restoreState(this.lastState);
+
+    const fsddc =
+      rootState.uigd.present.gdSceneState.fixSpringDumperDuaringControl;
+
+    solver.solve({
+      constraintsOptions: {
+        fixSpringDumpersAtCurrentPositions: fsddc
+      }
+    });
+  }
 
   readonly className = className;
 

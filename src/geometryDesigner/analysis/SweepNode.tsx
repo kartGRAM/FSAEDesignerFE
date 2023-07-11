@@ -75,8 +75,49 @@ export interface IDataSweepNode extends IDataActionNode {
 }
 
 export class SweepNode extends ActionNode implements ISweepNode {
-  // eslint-disable-next-line class-methods-use-this, no-empty-function
-  async action(): Promise<void> {}
+  async action(): Promise<void> {
+    const rootState = store.getState();
+    const state = rootState.uitgd;
+
+    const fsddc =
+      rootState.uigd.present.gdSceneState.fixSpringDumperDuaringControl;
+    const solver = state.kinematicSolver;
+    if (!solver) {
+      throw new Error('solver not found ( or solver not converged).');
+    }
+    await solver.wait();
+    this.listSetters.forEach((setter) => setter.set(solver));
+
+    solver.solve({
+      constraintsOptions: {
+        fixSpringDumpersAtCurrentPositions: fsddc
+      }
+    });
+
+    this.lastState = solver.getSnapshot();
+  }
+
+  async restore(): Promise<void> {
+    if (!this.lastState) throw new Error('保存されたStateが見つからない');
+
+    const rootState = store.getState();
+    const state = rootState.uitgd;
+    const solver = state.kinematicSolver;
+    if (!solver) {
+      throw new Error('solver not found ( or solver not converged).');
+    }
+    await solver.wait();
+    solver.restoreState(this.lastState);
+
+    const fsddc =
+      rootState.uigd.present.gdSceneState.fixSpringDumperDuaringControl;
+
+    solver.solve({
+      constraintsOptions: {
+        fixSpringDumpersAtCurrentPositions: fsddc
+      }
+    });
+  }
 
   readonly className = className;
 

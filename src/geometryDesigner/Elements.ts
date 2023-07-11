@@ -75,8 +75,7 @@ import {
   isDataTire,
   Meta,
   assignMeta,
-  isMirror,
-  IDOFState
+  isMirror
 } from './IElements';
 
 export function getAssembly(assembly: IDataAssembly): IAssembly {
@@ -714,26 +713,6 @@ export class Assembly extends Element implements IAssembly {
         this.arrange();
       }
     }
-  }
-
-  getCollectedDOFStates(): {[index: string]: IDOFState} {
-    return this.children.reduce((prev, child) => {
-      prev[child.nodeID] = {
-        position: child.position.value,
-        rotation: child.rotation.value
-      };
-      return prev;
-    }, {} as {[index: string]: IDOFState});
-  }
-
-  setCollectedDOFStates(data: {[index: string]: IDOFState}): void {
-    this.children.forEach((child) => {
-      const state = data[child.nodeID];
-      if (state) {
-        child.position.value = state.position;
-        child.rotation.value = state.rotation;
-      }
-    });
   }
 
   getDataElement(state: GDState): IDataAssembly | undefined {

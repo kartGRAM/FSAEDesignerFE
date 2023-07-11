@@ -44,6 +44,7 @@ import {
   BarAndSpheres,
   LinearBushingSingleEnd,
   PointToPlane,
+  controled,
   hasDl
 } from './Constraints';
 import {
@@ -52,6 +53,7 @@ import {
   isFullDegreesComponent,
   PointComponent
 } from './KinematicComponents';
+import {ISnapshot} from './ISnapshot';
 
 export class KinematicSolver {
   assembly: IAssembly;
@@ -964,6 +966,36 @@ export class KinematicSolver {
       // eslint-disable-next-line no-console
       console.log(e);
     }
+  }
+
+  getSnapshot(): ISnapshot {
+    return {
+      dofState: this.components.reduce((prev, components) => {
+        components.forEach((component) => {
+          prev[component.col] = component.saveState();
+        });
+        return prev;
+      }, {} as {[index: number]: number[]}),
+      controlState: this.components.reduce((prev, components) => {
+        components[0].getGroupedConstraints().forEach((c) => {
+          if (controled(c)) prev[c.row] = c.dl;
+        });
+        return prev;
+      }, {} as {[index: number]: number})
+    };
+  }
+
+  restoreState(snapshot: ISnapshot): void {
+    const {dofState, controlState} = snapshot;
+    this.components.forEach((components) => {
+      components.forEach((component) =>
+        component.restoreState(dofState[component.col])
+      );
+      components[0]
+        .getGroupedConstraints()
+        // eslint-disable-next-line no-return-assign
+        .forEach((c) => controled(c) && (c.dl = controlState[c.row]));
+    });
   }
 
   // ポストプロセス： 要素への位置の反映と、Restorerの適用

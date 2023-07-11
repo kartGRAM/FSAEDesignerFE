@@ -39,6 +39,8 @@ export interface IComponent {
   reset(): void;
   saveInitialQ(): void;
   restoreInitialQ(): void;
+  saveState(): number[];
+  restoreState(state: number[]): void;
 }
 
 // 7自由度のコンポーネント
@@ -247,6 +249,18 @@ export class FullDegreesComponent implements IComponent {
       this.quaternion = this._initialQuaternion.clone();
     }
   }
+
+  saveState(): number[] {
+    const p = this.position;
+    const q = this.quaternion;
+    return [p.x, p.y, p.z, q.w, q.x, q.y, q.z];
+  }
+
+  restoreState(state: number[]): void {
+    const p = this.position;
+    const q = this.quaternion;
+    [p.x, p.y, p.z, q.w, q.x, q.y, q.z] = state;
+  }
 }
 export function isFullDegreesComponent(
   component: IComponent
@@ -418,6 +432,16 @@ export class PointComponent implements IComponent {
       this.position = this._initialPosition.clone();
       this.quaternion = this._initialQuaternion.clone();
     }
+  }
+
+  saveState(): number[] {
+    const p = this.position;
+    return [p.x, p.y, p.z];
+  }
+
+  restoreState(state: number[]): void {
+    const p = this.position;
+    [p.x, p.y, p.z] = state;
   }
 }
 export function isPointComponent(
