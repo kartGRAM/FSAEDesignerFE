@@ -49,6 +49,9 @@ export const dataGeometryDesignerSlice = createSlice({
   name: 'dataGeometryDesigner',
   initialState,
   reducers: {
+    replaceState: (state: GDState, action: PayloadAction<GDState>) => {
+      state = action.payload;
+    },
     setCoordinateMatrix: (
       state: GDState,
       action: PayloadAction<IDataMatrix3>
@@ -179,6 +182,7 @@ export const dataGeometryDesignerSlice = createSlice({
 });
 
 export const {
+  replaceState,
   setCoordinateMatrix,
   newAssembly,
   setTopAssembly,

@@ -1,14 +1,19 @@
 const CracoAlias = require('craco-alias');
-const path = require("path");
-const fs = require("fs");
+const path = require('path');
+const fs = require('fs');
+
 const appDirectory = fs.realpathSync(process.cwd());
-const resolveApp = relativePath => path.resolve(appDirectory, relativePath);
+const resolveApp = (relativePath) => path.resolve(appDirectory, relativePath);
 
 module.exports = {
   webpack: {
-    configure: (webpackConfig, { env, paths }) => {
-      paths.appBuild = webpackConfig.output.path = resolveApp('../FSAEDesigner/static/React/');
-      return webpackConfig;  // Important: return the modified config
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    configure: (webpackConfig, {env, paths}) => {
+      // eslint-disable-next-line no-multi-assign
+      paths.appBuild = webpackConfig.output.path = resolveApp(
+        '../FSAEDesigner/static/React/'
+      );
+      return webpackConfig; // Important: return the modified config
     }
   },
   plugins: [

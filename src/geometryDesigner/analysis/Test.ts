@@ -417,6 +417,30 @@ export class Test implements ITest {
   }
 
   async run(): Promise<TestResult> {
+    const worker = new Worker(
+      new URL('../../worker/solverWorker.ts', import.meta.url)
+    );
+
+    worker.onmessage = (e) => {
+      // eslint-disable-next-line no-console
+      console.log(`onmessage: ${e.data}`);
+      if (e.data === 'WorkerEnd') {
+        console.log('terminate');
+        worker.terminate();
+      }
+    };
+
+    worker.onerror = (e) => {
+      // eslint-disable-next-line no-console
+      console.log(`ERR = ${e}`);
+      worker.terminate();
+    };
+
+    // ワーカー開始
+    const state = store.getState().dgd.present;
+    worker.postMessage(state);
+    return 'Completed';
+    // eslint-disable-next-line no-unreachable
     if (this.running) return 'Continue';
     this.running = true;
     if (this.paused) {

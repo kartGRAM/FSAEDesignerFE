@@ -4,6 +4,7 @@
 
     "paths": {
       "@gdComponents/*": ["src/components/geomtry-designer/*"],
+      "@worker/*": ["src/worker/*"],
       "@gd/*": ["src/geometryDesigner/*"],
       "@app/*": ["src/*"],
       "@utils/*": ["src/utils/*"],

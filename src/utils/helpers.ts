@@ -125,3 +125,12 @@ export function inverseKeyValue(obj: {[index: string]: string}) {
 export function isObject(value: any): boolean {
   return value !== null && typeof value === 'object';
 }
+
+export function inWorker() {
+  try {
+    if (window) return false;
+    return true;
+  } catch {
+    return true;
+  }
+}
