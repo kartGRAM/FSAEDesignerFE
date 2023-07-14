@@ -42,6 +42,9 @@ const initialState: GDState = {
   datumObjects: [],
   measureTools: [],
   analysis: [],
+  options: {
+    assemblyMode: 'FixedFrame'
+  },
   changed: false
 };
 

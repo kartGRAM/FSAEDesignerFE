@@ -42,8 +42,7 @@ const Body = (props: {element: IBody}) => {
 
   const moveThisComponent = useSelector((state: RootState) => {
     return (
-      (!isFrame ||
-        state.uigd.present.gdSceneState.assemblyMode !== 'FixedFrame') &&
+      (!isFrame || state.dgd.present.options.assemblyMode !== 'FixedFrame') &&
       state.uitgd.selectedElementAbsPath === element.absPath &&
       state.uitgd.gdSceneState.assembled &&
       state.uitgd.gdSceneState.movingMode

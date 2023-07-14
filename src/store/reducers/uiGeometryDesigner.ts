@@ -76,7 +76,6 @@ export interface DialogState {
 
 export interface GDSceneState {
   showGroundPlaneGrid: boolean;
-  assemblyMode: 'FixedFrame' | 'FixTiresToBeGrounded';
   projectionMode: 'Perspective' | 'Orthographic';
   componentVisualizationMode: 'ShowAllNodes' | 'WireFrameOnly';
   fixSpringDumperDuaringControl: boolean;
@@ -168,7 +167,6 @@ const initialState: GDState = {
 
   gdSceneState: {
     showGroundPlaneGrid: false,
-    assemblyMode: 'FixedFrame',
     componentVisualizationMode: 'ShowAllNodes',
     projectionMode: 'Perspective',
     fixSpringDumperDuaringControl: true

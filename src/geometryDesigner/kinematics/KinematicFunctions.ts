@@ -16,7 +16,7 @@ import {
 import {INamedVector3} from '@gd/INamedValues';
 import {Matrix} from 'ml-matrix';
 import {Quaternion, Vector3} from 'three';
-import store from '@store/store';
+import {getDgd} from '@store/getDgd';
 
 // サブマトリックスを設定する
 /*
@@ -273,7 +273,7 @@ export function canSimplifyTire(element: ITire, jointDict: JointDict): boolean {
 
 // アセンブリモードを得る
 export function getAssemblyMode() {
-  return store.getState().uigd.present.gdSceneState.assemblyMode;
+  return getDgd().options.assemblyMode;
 }
 
 // 固定コンポーネントかを判定

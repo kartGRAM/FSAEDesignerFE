@@ -7,6 +7,9 @@ import {IDataFormula} from '@gd/IFormula';
 import {getScreenShot} from '@gdComponents/GDScene';
 import {RootState} from '@store/store';
 
+export interface Options {
+  assemblyMode: 'FixedFrame' | 'FixTiresToBeGrounded';
+}
 export interface SavedData {
   id: number;
   filename: string;
@@ -22,6 +25,7 @@ export interface SavedData {
   analysis: IDataTest[];
   // テスト以外に変更がくわえられた場合、このuuidが変わる。
   idWoTest?: string;
+  options: Options;
 }
 
 export function getSetTopAssemblyParams(data: any): SavedData {
@@ -36,7 +40,8 @@ export function getSetTopAssemblyParams(data: any): SavedData {
     controls: convertJsonToControls(data.controls as string),
     datumObjects: convertJsonToDatumObjects(data.datumObjects as string),
     measureTools: convertJsonToMeasureTools(data.measureTools as string),
-    analysis: convertJsonToAnalysis(data.analysis as string)
+    analysis: convertJsonToAnalysis(data.analysis as string),
+    options: convertJsonToOptions(data.options as string)
   };
 }
 
@@ -52,6 +57,7 @@ export interface SaveDataToSend {
   datumObjects: string;
   measureTools: string;
   analysis: string;
+  options: string;
 }
 
 export function getDataToSave(
@@ -78,13 +84,14 @@ export function getDataToSave(
     datumObjects: JSON.stringify(state.datumObjects),
     measureTools: JSON.stringify(state.measureTools),
     analysis: JSON.stringify(state.analysis),
+    options: JSON.stringify(state.options),
     clientLastUpdated: state.lastUpdated,
     overwrite
   };
   Object.keys(values).forEach((key) => {
     data.append(key, (values as any)[key]);
   });
-  data.append('thumbnail', getScreenShot() ?? '', 'image.png');
+  data.append('thumbnail', (getScreenShot() ?? '') as any, 'image.png');
   return data;
 }
 
@@ -107,6 +114,17 @@ function convertJsonToDataAssembly(content: string): IDataAssembly | undefined {
     // eslint-disable-next-line no-console
     console.log(err);
     return undefined;
+  }
+}
+
+function convertJsonToOptions(content: string): Options {
+  try {
+    const data = JSON.parse(content) as Options;
+    return data;
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.log(err);
+    return {assemblyMode: 'FixedFrame'};
   }
 }
 

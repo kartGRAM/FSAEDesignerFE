@@ -407,6 +407,9 @@ export const getSampleData = async (): Promise<SavedData> => {
     datumObjects: [],
     measureTools: [],
     analysis: [],
+    options: {
+      assemblyMode: 'FixedFrame'
+    },
     topAssembly: getKZRR11Assy().getDataElement(getDgd())
   };
 };
