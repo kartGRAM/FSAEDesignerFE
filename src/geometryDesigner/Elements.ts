@@ -146,7 +146,7 @@ export function getNewElement(name: Elements): IElement {
   throw Error('Not Supported Exception');
 }
 
-function getElement(element: IDataElement): IElement {
+export function getElement(element: IDataElement): IElement {
   if (isDataAssembly(element)) {
     if (isDataFrame(element)) {
       return new Frame(element);

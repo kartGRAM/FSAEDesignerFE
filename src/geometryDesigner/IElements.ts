@@ -84,6 +84,17 @@ function getElementByPathCore(
   return element;
 }
 
+export function getDataElementByID(
+  root: IDataElement | undefined | null,
+  id: string
+): IDataElement | undefined {
+  if (!root) return undefined;
+  if (root.nodeID === id) return root;
+  if (isDataAssembly(root))
+    return root.children.find((child) => getDataElementByID(child, id));
+  return undefined;
+}
+
 export const isMirrorElement = (element: IElement): boolean => {
   return !!element.meta?.mirror;
 };

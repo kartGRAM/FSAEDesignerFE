@@ -9,6 +9,8 @@ import {
 import {PointToPlane, isPointToPlane} from '@gd/kinematics/Constraints';
 import {KinematicSolver} from '@gd/kinematics/Solver';
 import {NamedVector3, NamedNumber} from '@gd/NamedValues';
+import {getDataElementByID} from '@gd/IElements';
+import {getElement} from '@gd/Elements';
 import {Control, IDataControl, ControllerTypes} from './IControls';
 
 export const className = 'PointToPlaneControl' as const;
@@ -83,11 +85,10 @@ export class PointToPlaneControl extends Control {
   }
 
   nameDefault(): string {
-    const elements = store.getState().uitgd.collectedAssembly?.children;
-    const element = elements?.find((e) =>
-      this.targetElements.includes(e.nodeID)
-    );
-    if (!element) return 'component not found';
+    const target = this.targetElements[0] ?? 'not found';
+    const dataElement = getDataElementByID(getDgd().topAssembly, target);
+    if (!dataElement) return 'component not found';
+    const element = getElement(dataElement);
     const point = element
       .getMeasurablePoints()
       .find((p) => this.pointIDs[element.nodeID].includes(p.nodeID));
