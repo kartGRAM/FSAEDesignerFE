@@ -4,7 +4,7 @@ import {getControl} from '@gd/controls/Controls';
 
 import {IFormula, IDataFormula} from '@gd/IFormula';
 import {Formula} from '@gd/Formula';
-import store from '@store/store';
+import {getDgd} from '@store/getDgd';
 import {KinematicSolver} from '@gd/kinematics/Solver';
 
 export type SetterType = 'GlobalVariable' | 'Control';
@@ -72,13 +72,13 @@ export class ParameterSetter implements IParameterSetter {
   }
 
   get control(): Control | undefined {
-    const {controls} = store.getState().dgd.present;
+    const {controls} = getDgd();
     const control = controls.find((c) => c.nodeID === this.target);
     return control ? getControl(control) : undefined;
   }
 
   get globalVariable(): IFormula | undefined {
-    const {formulae} = store.getState().dgd.present;
+    const {formulae} = getDgd();
     const dataFormula = formulae.find((f) => f.name === this.target);
     return dataFormula ? new Formula(dataFormula) : undefined;
   }

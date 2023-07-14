@@ -34,7 +34,7 @@ import {DatumObject} from '@gd/measure/DatumObjects';
 import {IAssembly, IElement} from '@gd/IElements';
 import {INamedVector3, INamedNumber} from '@gd/INamedValues';
 import {NamedVector3, NamedNumber} from '@gd/NamedValues';
-import store from '@store/store';
+import {getDgd} from '@store/getDgd';
 import {
   getIntersectionOfPlaneAndLine,
   getClosestPointsOfTwoLines
@@ -76,7 +76,7 @@ export class FixedPoint extends Point implements IFixedPoint {
 
   getData(): IDataFixedPoint {
     const base = super.getDataBase();
-    const state = store.getState().dgd.present;
+    const state = getDgd();
     return {
       ...base,
       className: this.className,
@@ -262,7 +262,7 @@ export class ClosestPointOfTwoLines
 
   getData(): IDataClosestPointOfTwoLines {
     const base = super.getDataBase();
-    const state = store.getState().dgd.present;
+    const state = getDgd();
     return {
       ...base,
       className: this.className,

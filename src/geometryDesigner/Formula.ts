@@ -10,7 +10,7 @@ import {
   topologicalSort
 } from '@gd/IFormula';
 import * as math from 'mathjs';
-import store from '@store/store';
+import {getDgd} from '@store/getDgd';
 import {isNumber} from '@app/utils/helpers';
 
 export function validate(
@@ -19,7 +19,7 @@ export function validate(
 ): FormulaError {
   try {
     if (!formulae) {
-      formulae = store.getState().dgd.present.formulae;
+      formulae = getDgd().formulae;
     }
     const ret1 = getNodesFromFormula(formula, formulae);
     if (isFormulaErrors(ret1)) return ret1;
@@ -48,7 +48,7 @@ export function validate(
 
 export function evaluate(formula: string, formulae?: IDataFormula[]): number {
   if (!formulae) {
-    formulae = store.getState().dgd.present.formulae;
+    formulae = getDgd().formulae;
   }
   const ret1 = getNodesFromFormula(
     {name: '___temp___', formula, absPath: '___temp___'},

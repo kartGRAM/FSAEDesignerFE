@@ -3,7 +3,7 @@ import {setFormulae} from '@store/reducers/dataGeometryDesigner';
 
 import {SavedData} from '@gd/ISaveData';
 import {DateTime} from 'luxon';
-import store from '@store/store';
+import {getDgd, store} from '@store/getDgd';
 
 import {DeltaXYZ} from '@gd/NamedValues';
 import {
@@ -407,7 +407,6 @@ export const getSampleData = async (): Promise<SavedData> => {
     datumObjects: [],
     measureTools: [],
     analysis: [],
-    topAssembly: getKZRR11Assy().getDataElement(store.getState().dgd.present)
-    // topAssembly: getUprightAssy().getDataElement(store.getState().dgd.present)
+    topAssembly: getKZRR11Assy().getDataElement(getDgd())
   };
 };

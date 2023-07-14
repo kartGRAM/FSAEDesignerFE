@@ -127,10 +127,7 @@ export function isObject(value: any): boolean {
 }
 
 export function inWorker() {
-  try {
-    if (window) return false;
-    return true;
-  } catch {
-    return true;
-  }
+  // eslint-disable-next-line no-restricted-globals
+  if (self.document) return false;
+  return true;
 }

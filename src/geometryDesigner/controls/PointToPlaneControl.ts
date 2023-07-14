@@ -1,4 +1,4 @@
-import store from '@store/store';
+import {getDgd} from '@store/getDgd';
 import {
   IDataVector3,
   INamedVector3,
@@ -143,7 +143,7 @@ export class PointToPlaneControl extends Control {
 
   getDataControl(): IDataPointToPlaneControl {
     const data = super.getDataControlBase();
-    const state = store.getState().dgd.present;
+    const state = getDgd();
     return {
       ...data,
       className: this.className,

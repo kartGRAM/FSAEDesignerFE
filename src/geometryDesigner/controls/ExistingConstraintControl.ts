@@ -1,6 +1,6 @@
-import store from '@store/store';
 import {getControl} from '@gd/controls/Controls';
 import {KinematicSolver} from '@gd/kinematics/Solver';
+import {getDgd} from '@store/getDgd';
 import {Control, IDataControl, ControllerTypes} from './IControls';
 
 export const className = 'ExistingConstraintControl' as const;
@@ -42,7 +42,7 @@ export class ExistingConstraintControl extends Control {
   }
 
   nameDefault(): string {
-    const {controls} = store.getState().dgd.present;
+    const {controls} = getDgd();
     const dataControl = controls.find(
       (control) => control.nodeID === this.targetControl
     );
@@ -52,7 +52,7 @@ export class ExistingConstraintControl extends Control {
   }
 
   preprocess(dt: number, solver: KinematicSolver, value?: number): unknown {
-    const {controls} = store.getState().dgd.present;
+    const {controls} = getDgd();
     const dataControl = controls.find(
       (control) => control.nodeID === this.targetControl
     );
@@ -66,7 +66,7 @@ export class ExistingConstraintControl extends Control {
   }
 
   rollback(data: unknown, solver: KinematicSolver): void {
-    const {controls} = store.getState().dgd.present;
+    const {controls} = getDgd();
     const dataControl = controls.find(
       (control) => control.nodeID === this.targetControl
     );

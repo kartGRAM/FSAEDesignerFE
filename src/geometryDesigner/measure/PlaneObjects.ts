@@ -1,7 +1,6 @@
-/* eslint-disable no-nested-ternary */
 /* eslint-disable class-methods-use-this */
+/* eslint-disable no-nested-ternary */
 /* eslint-disable max-classes-per-file */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   isDataDatumObject,
   IPlane,
@@ -19,23 +18,18 @@ import {
   INormalConstantPlane,
   isNormalConstantPlane,
   IDataNormalConstantPlane,
-  isDataNormalConstantPlane,
   IFromBasePlane,
   isFromBasePlane,
   IDataFromBasePlane,
-  isDataFromBasePlane,
   IPointNormalPlane,
   isPointNormalPlane,
   IDataPointNormalPlane,
-  isDataPointNormalPlane,
   IFromElementBasePlane,
   isFromElementBasePlane,
   IDataFromElementBasePlane,
-  isDataFromElementBasePlane,
   IThreePointsPlane,
   isThreePointsPlane,
   IDataThreePointsPlane,
-  isDataThreePointsPlane,
   IAxisPointPlane,
   isAxisPointPlane,
   IDataAxisPointPlane,
@@ -54,7 +48,7 @@ import {
   isFunctionVector3
 } from '@gd/INamedValues';
 import {NamedNumber, NamedVector3} from '@gd/NamedValues';
-import store from '@store/store';
+import {getDgd} from '@store/getDgd';
 
 function getNormalFromBasePlane(direction: BasePlane) {
   if (direction === 'XY') {
@@ -133,7 +127,8 @@ export class NormalConstantPlane extends Plane implements INormalConstantPlane {
 
   getData(): IDataNormalConstantPlane {
     const base = super.getDataBase();
-    const state = store.getState().dgd.present;
+
+    const state = getDgd();
     return {
       ...base,
       className: this.className,
@@ -222,7 +217,7 @@ export class FromBasePlane extends Plane implements IFromBasePlane {
 
   getData(): IDataFromBasePlane {
     const base = super.getDataBase();
-    const state = store.getState().dgd.present;
+    const state = getDgd();
     return {
       ...base,
       className: this.className,
@@ -296,7 +291,7 @@ export class PointNormalPlane extends Plane implements IPointNormalPlane {
 
   getData(): IDataPointNormalPlane {
     const base = super.getDataBase();
-    const state = store.getState().dgd.present;
+    const state = getDgd();
     return {
       ...base,
       className: this.className,
@@ -421,7 +416,7 @@ export class FromElementBasePlane
 
   getData(): IDataFromElementBasePlane {
     const base = super.getDataBase();
-    const state = store.getState().dgd.present;
+    const state = getDgd();
     return {
       ...base,
       className: this.className,

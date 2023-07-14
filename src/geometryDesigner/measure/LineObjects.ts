@@ -40,7 +40,7 @@ import {
   isFunctionVector3
 } from '@gd/INamedValues';
 import {NamedVector3} from '@gd/NamedValues';
-import store from '@store/store';
+import {getDgd} from '@store/getDgd';
 
 export abstract class Line extends DatumObject implements ILine {
   readonly isLine = true as const;
@@ -107,7 +107,7 @@ export class PointDirectionLine extends Line implements IPointDirectionLine {
 
   getData(): IDataPointDirectionLine {
     const base = super.getDataBase();
-    const state = store.getState().dgd.present;
+    const state = getDgd();
     return {
       ...base,
       className: this.className,

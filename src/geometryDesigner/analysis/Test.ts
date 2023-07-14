@@ -1,9 +1,10 @@
 import {Node, Edge} from 'reactflow';
-import {v4 as uuidv4} from 'uuid';
 import store from '@store/store';
+import {v4 as uuidv4} from 'uuid';
 import {setTests} from '@store/reducers/dataGeometryDesigner';
-import {sleep} from '@utils/helpers';
+import {sleep, inWorker} from '@utils/helpers';
 import {testUpdateNotify} from '@store/reducers/uiTempGeometryDesigner';
+import {getDgd} from '@store/getDgd';
 import {IFlowNode, IDataEdge} from './FlowNode';
 import {StartNode, isStartNode, IStartNode} from './StartNode';
 import {EndNode, isEndNode, IEndNode} from './EndNode';
@@ -290,7 +291,7 @@ export class Test implements ITest {
   }
 
   dispatch(): void {
-    const tests = store.getState().dgd.present.analysis;
+    const tests = getDgd().analysis;
     store.dispatch(
       setTests(
         tests.map((test) => {
@@ -417,6 +418,7 @@ export class Test implements ITest {
   }
 
   async run(): Promise<TestResult> {
+    if (inWorker()) throw new Error('Task run is called in worker');
     const worker = new Worker(
       new URL('../../worker/solverWorker.ts', import.meta.url)
     );
@@ -437,7 +439,7 @@ export class Test implements ITest {
     };
 
     // ワーカー開始
-    const state = store.getState().dgd.present;
+    const state = getDgd();
     worker.postMessage(state);
     return 'Completed';
     // eslint-disable-next-line no-unreachable
