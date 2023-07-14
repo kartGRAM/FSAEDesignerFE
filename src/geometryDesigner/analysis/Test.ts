@@ -5,6 +5,7 @@ import {setTests} from '@store/reducers/dataGeometryDesigner';
 import {sleep, inWorker} from '@utils/helpers';
 import {testUpdateNotify} from '@store/reducers/uiTempGeometryDesigner';
 import {getDgd} from '@store/getDgd';
+import {KinematicSolver} from '@gd/kinematics/Solver';
 import {IFlowNode, IDataEdge} from './FlowNode';
 import {StartNode, isStartNode, IStartNode} from './StartNode';
 import {EndNode, isEndNode, IEndNode} from './EndNode';
@@ -457,7 +458,7 @@ export class Test implements ITest {
       this.onStopped = undefined;
       store.dispatch(testUpdateNotify(this));
 
-      const result = await this.DFSNodes(this.startNode);
+      // const result = await this.DFSNodes(this.startNode);
 
       this.running = false;
       this.paused = false;
@@ -466,7 +467,7 @@ export class Test implements ITest {
       this.onStopped = undefined;
       store.dispatch(testUpdateNotify(this));
 
-      return result;
+      return 'Completed';
     } catch (e) {
       // eslint-disable-next-line no-console
       console.log(e);
@@ -481,7 +482,10 @@ export class Test implements ITest {
     }
   }
 
-  async DFSNodes(node: IFlowNode): Promise<TestResult> {
+  async DFSNodes(
+    node: IFlowNode,
+    solver: KinematicSolver
+  ): Promise<TestResult> {
     // eslint-disable-next-line no-console
     console.log(node.name);
 
@@ -489,31 +493,18 @@ export class Test implements ITest {
     if (canceled) return 'User Canceled';
 
     if (isActionNode(node)) {
-      const canceled = await node.action(() => this.canceled());
-      if (canceled) return 'User Canceled';
+      node.action(solver);
     }
 
     let i = 0;
     for (const edge of this.edgesFromSourceNode[node.nodeID]) {
       if (edge.target === this.endNode.nodeID) {
-        // eslint-disable-next-line no-await-in-loop
-        await this.endNode.action(() => this.canceled());
         return 'Completed';
       }
       const child = this.nodes[edge.target];
+      if (i > 0 && isActionNode(node)) node.restore(solver);
 
-      let canceled = false;
-      if (i > 0 && isActionNode(node))
-        // eslint-disable-next-line no-await-in-loop
-        canceled = await node.restore(() => this.canceled());
-      if (canceled) return 'User Canceled';
-
-      // eslint-disable-next-line no-await-in-loop
-      await this.DFSNodes(child);
-
-      // eslint-disable-next-line no-await-in-loop
-      canceled = await this.canceled();
-      if (canceled) return 'User Canceled';
+      this.DFSNodes(child, solver);
       ++i;
     }
 

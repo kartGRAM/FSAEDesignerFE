@@ -126,7 +126,7 @@ function convertJsonToOptions(content: string): Options {
   } catch (err) {
     // eslint-disable-next-line no-console
     console.log(err);
-    return {assemblyMode: 'FixedFrame'};
+    return {assemblyMode: 'FixedFrame', fixSpringDumperDuaringControl: false};
   }
 }
 

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import store, {RootState} from '@store/store';
+import {RootState} from '@store/store';
 import {useSelector} from 'react-redux';
 
 import {Node as IRFNode, XYPosition} from 'reactflow';
@@ -73,7 +73,7 @@ export interface IDataSetterNode extends IDataActionNode {
 }
 
 export class SetterNode extends ActionNode implements ISetterNode {
-  async action(): Promise<boolean> {
+  action(): void {
     const rootState = store.getState();
     const state = rootState.uitgd;
 
@@ -98,7 +98,7 @@ export class SetterNode extends ActionNode implements ISetterNode {
     return false;
   }
 
-  async restore(): Promise<boolean> {
+  restore(): void {
     if (!this.lastState) throw new Error('保存されたStateが見つからない');
 
     const rootState = store.getState();
