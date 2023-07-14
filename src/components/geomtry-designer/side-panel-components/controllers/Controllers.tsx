@@ -11,7 +11,7 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '@store/store';
-import {toggleFixSpringDumperDuaringControl} from '@store/reducers/uiGeometryDesigner';
+import {toggleFixSpringDumperDuaringControl} from '@store/reducers/dataGeometryDesigner';
 import {KeyBindingsDialog} from './KeyBindingsDialog';
 
 export default function Controllers() {
@@ -19,7 +19,7 @@ export default function Controllers() {
   const [kbdOpen, setKbdOpen] = React.useState(false);
   const fixSpringDumperDuaringControl = useSelector(
     (state: RootState) =>
-      state.uigd.present.gdSceneState.fixSpringDumperDuaringControl
+      state.dgd.present.options.fixSpringDumperDuaringControl
   );
   const handleFSDDCChange = () => {
     dispatch(toggleFixSpringDumperDuaringControl());

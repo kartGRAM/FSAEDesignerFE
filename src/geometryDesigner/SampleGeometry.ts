@@ -408,6 +408,7 @@ export const getSampleData = async (): Promise<SavedData> => {
     measureTools: [],
     analysis: [],
     options: {
+      fixSpringDumperDuaringControl: false,
       assemblyMode: 'FixedFrame'
     },
     topAssembly: getKZRR11Assy().getDataElement(getDgd())

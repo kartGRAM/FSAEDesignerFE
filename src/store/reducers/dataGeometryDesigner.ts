@@ -43,6 +43,7 @@ const initialState: GDState = {
   measureTools: [],
   analysis: [],
   options: {
+    fixSpringDumperDuaringControl: false,
     assemblyMode: 'FixedFrame'
   },
   changed: false
@@ -180,6 +181,10 @@ export const dataGeometryDesignerSlice = createSlice({
     },
     setChanged: (state: GDState) => {
       state.changed = true;
+    },
+    toggleFixSpringDumperDuaringControl: (state: GDState) => {
+      state.options.fixSpringDumperDuaringControl =
+        !state.options.fixSpringDumperDuaringControl;
     }
   }
 });
@@ -196,6 +201,7 @@ export const {
   setControl,
   setTests,
   removeControl,
+  toggleFixSpringDumperDuaringControl,
   setChanged
 } = dataGeometryDesignerSlice.actions;
 

@@ -8,8 +8,10 @@ import {getScreenShot} from '@gdComponents/GDScene';
 import {RootState} from '@store/store';
 
 export interface Options {
+  fixSpringDumperDuaringControl: boolean;
   assemblyMode: 'FixedFrame' | 'FixTiresToBeGrounded';
 }
+
 export interface SavedData {
   id: number;
   filename: string;

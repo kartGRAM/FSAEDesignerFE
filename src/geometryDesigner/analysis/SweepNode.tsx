@@ -1,7 +1,7 @@
 // eslint-env es6
 import * as React from 'react';
 import {useSelector} from 'react-redux';
-import store, {RootState} from '@store/store';
+import {RootState} from '@store/store';
 import {
   Typography,
   Tooltip,
@@ -35,6 +35,8 @@ import TextField from '@mui/material/TextField';
 import {toFixedNoZero} from '@utils/helpers';
 import {Formula} from '@gd/Formula';
 import {alpha} from '@mui/material/styles';
+import {KinematicSolver} from '@gd/kinematics/Solver';
+import {getDgd} from '@store/getDgd';
 import {
   IParameterSweeper,
   IDataParameterSweeper,
@@ -76,27 +78,15 @@ export interface IDataSweepNode extends IDataActionNode {
 }
 
 export class SweepNode extends ActionNode implements ISweepNode {
-  async action(cancel: () => Promise<boolean>): Promise<boolean> {
-    const rootState = store.getState();
-    const state = rootState.uitgd;
+  action(solver: KinematicSolver): void {
+    const state = getDgd();
+    const fsddc = state.options.fixSpringDumperDuaringControl;
 
-    const fsddc =
-      rootState.uigd.present.gdSceneState.fixSpringDumperDuaringControl;
-    const solver = state.kinematicSolver;
-    if (!solver) {
-      throw new Error('solver not found ( or solver not converged).');
-    }
-    await solver.wait();
-
-    let c = false;
     for (let step = 0; ; ++step) {
       let done = true;
       this.listSweepers.forEach((s) => {
         done = done && s.set(solver, step);
       });
-
-      // eslint-disable-next-line no-await-in-loop
-      c = await cancel();
 
       solver.solve({
         postProcess: false,
@@ -105,31 +95,19 @@ export class SweepNode extends ActionNode implements ISweepNode {
         }
       });
 
-      // eslint-disable-next-line no-await-in-loop
-      await solver.wait();
       if (done) break;
-      if (c) break;
     }
 
     this.lastState = solver.getSnapshot();
-    return c;
   }
 
-  async restore(): Promise<boolean> {
+  restore(solver: KinematicSolver): void {
     if (!this.lastState) throw new Error('保存されたStateが見つからない');
 
-    const rootState = store.getState();
-    const state = rootState.uitgd;
-    const solver = state.kinematicSolver;
-    if (!solver) {
-      throw new Error('solver not found ( or solver not converged).');
-    }
-    await solver.wait();
+    const state = getDgd();
     solver.restoreState(this.lastState);
-    await solver.wait();
 
-    const fsddc =
-      rootState.uigd.present.gdSceneState.fixSpringDumperDuaringControl;
+    const fsddc = state.options.fixSpringDumperDuaringControl;
 
     solver.solve({
       postProcess: false,
@@ -137,9 +115,6 @@ export class SweepNode extends ActionNode implements ISweepNode {
         fixSpringDumpersAtCurrentPositions: fsddc
       }
     });
-
-    await solver.wait();
-    return false;
   }
 
   readonly className = className;
