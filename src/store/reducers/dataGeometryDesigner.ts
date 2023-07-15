@@ -185,6 +185,7 @@ export const dataGeometryDesignerSlice = createSlice({
     toggleFixSpringDumperDuaringControl: (state: GDState) => {
       state.options.fixSpringDumperDuaringControl =
         !state.options.fixSpringDumperDuaringControl;
+      state.changed = true;
     }
   }
 });

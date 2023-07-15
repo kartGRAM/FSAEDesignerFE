@@ -1,10 +1,8 @@
 /* eslint-disable class-methods-use-this */
-import {setAssembled} from '@store/reducers/uiTempGeometryDesigner';
-import store from '@store/store';
 import {Node as IRFNode} from 'reactflow';
 import {v4 as uuidv4} from 'uuid';
 import {OvalNodeProps} from '@gdComponents/side-panel-components/analysis/OvalNode';
-import {sleep} from '@utils/helpers';
+import {KinematicSolver} from '@gd/kinematics/Solver';
 import {IActionNode, IDataActionNode, ActionNode} from './ActionNode';
 import {isDataFlowNode, IFlowNode, IDataFlowNode, IDataEdge} from './FlowNode';
 import {ITest} from './ITest';
@@ -21,34 +19,12 @@ export interface IDataStartNode extends IDataActionNode {
 }
 
 export class StartNode extends ActionNode implements IStartNode {
-  async action(): Promise<boolean> {
-    const {dispatch} = store;
-    dispatch(setAssembled(true));
-    let state = store.getState().uitgd;
-    while (!state.kinematicSolver && state.gdSceneState.assembled) {
-      // eslint-disable-next-line no-await-in-loop
-      await sleep(10);
-      state = store.getState().uitgd;
-    }
-    const solver = state.kinematicSolver;
-    if (!solver) {
-      throw new Error('solver not found ( or solver not converged).');
-    }
-    await solver.wait();
+  action(solver: KinematicSolver): void {
     solver.restoreInitialQ();
-    await solver.wait();
-    return false;
   }
 
-  async restore(): Promise<boolean> {
-    const state = store.getState().uitgd;
-    const solver = state.kinematicSolver;
-    if (!solver) {
-      throw new Error('solver not found ( or solver not converged).');
-    }
-    await solver.wait();
+  restore(solver: KinematicSolver): void {
     solver.restoreInitialQ();
-    return false;
   }
 
   readonly className = className;

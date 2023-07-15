@@ -33,6 +33,8 @@ import {toFixedNoZero} from '@utils/helpers';
 import {Formula} from '@gd/Formula';
 import useTestUpdate from '@hooks/useTestUpdate';
 import NativeSelect, {SelectChangeEvent} from '@mui/material/Select';
+import {KinematicSolver} from '@gd/kinematics/Solver';
+import {getDgd} from '@store/getDgd';
 import {ITest} from './ITest';
 import {
   isStartNode,
@@ -73,17 +75,9 @@ export interface IDataSetterNode extends IDataActionNode {
 }
 
 export class SetterNode extends ActionNode implements ISetterNode {
-  action(): void {
-    const rootState = store.getState();
-    const state = rootState.uitgd;
-
-    const fsddc =
-      rootState.uigd.present.gdSceneState.fixSpringDumperDuaringControl;
-    const solver = state.kinematicSolver;
-    if (!solver) {
-      throw new Error('solver not found ( or solver not converged).');
-    }
-    await solver.wait();
+  action(solver: KinematicSolver): void {
+    const state = getDgd();
+    const fsddc = state.options.fixSpringDumperDuaringControl;
     this.listSetters.forEach((setter) => setter.set(solver));
 
     solver.solve({
@@ -92,27 +86,17 @@ export class SetterNode extends ActionNode implements ISetterNode {
         fixSpringDumpersAtCurrentPositions: fsddc
       }
     });
-    await solver.wait();
 
     this.lastState = solver.getSnapshot();
-    return false;
   }
 
-  restore(): void {
+  restore(solver: KinematicSolver): void {
     if (!this.lastState) throw new Error('保存されたStateが見つからない');
 
-    const rootState = store.getState();
-    const state = rootState.uitgd;
-    const solver = state.kinematicSolver;
-    if (!solver) {
-      throw new Error('solver not found ( or solver not converged).');
-    }
-    await solver.wait();
+    const state = getDgd();
     solver.restoreState(this.lastState);
-    await solver.wait();
 
-    const fsddc =
-      rootState.uigd.present.gdSceneState.fixSpringDumperDuaringControl;
+    const fsddc = state.options.fixSpringDumperDuaringControl;
 
     solver.solve({
       postProcess: false,
@@ -120,8 +104,6 @@ export class SetterNode extends ActionNode implements ISetterNode {
         fixSpringDumpersAtCurrentPositions: fsddc
       }
     });
-    await solver.wait();
-    return false;
   }
 
   readonly className = className;

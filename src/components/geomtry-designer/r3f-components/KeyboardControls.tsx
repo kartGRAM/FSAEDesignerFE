@@ -22,7 +22,7 @@ export const KeyboardControls = () => {
   const solver = useSelector((state: RootState) => state.uitgd.kinematicSolver);
   const fixSpringDumperDuaringControl = useSelector(
     (state: RootState) =>
-      state.uigd.present.gdSceneState.fixSpringDumperDuaringControl
+      state.dgd.present.options.fixSpringDumperDuaringControl
   );
 
   const time = {value: 0};
