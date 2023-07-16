@@ -516,6 +516,7 @@ export class Test implements ITest {
       currentCase = undefined;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const state = solver.getSnapshot();
     const edges = [...this.edgesFromSourceNode[node.nodeID]];
     const edge = edges.pop();
@@ -523,7 +524,8 @@ export class Test implements ITest {
       const next = this.nodes[edge.target];
       await this.DFSNodes(next, solver, ret, currentCase);
     }
-    const results = await Promise.all(
+
+    /* const results = await Promise.all(
       edges.map((edge) => {
         const next = this.nodes[edge.target];
         return this.createChildWorker(next, state);
@@ -531,7 +533,7 @@ export class Test implements ITest {
     );
     results.forEach((result) => {
       ret.caseResults = {...ret.caseResults, ...result.caseResults};
-    });
+    }); */
 
     return ret;
   }

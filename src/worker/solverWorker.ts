@@ -49,13 +49,14 @@ ctx.onmessage = async (e: MessageEvent<FromParent>) => {
   if (message.initialSnapshot) {
     solver.restoreState(message.initialSnapshot);
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const test = new Test(dataTest);
 
   log(`worker start...target task is ${message.testID}.`);
   log(`action from ${message.nodeFrom ?? 'start'}.`);
 
-  const results = test.DFSNodes(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const test = new Test(dataTest);
+
+  /* const results = test.DFSNodes(
     test.nodes[message.nodeFrom],
     solver,
     {
@@ -66,5 +67,5 @@ ctx.onmessage = async (e: MessageEvent<FromParent>) => {
     undefined
   );
 
-  ctx.postMessage(results);
+  ctx.postMessage(results); */
 };
