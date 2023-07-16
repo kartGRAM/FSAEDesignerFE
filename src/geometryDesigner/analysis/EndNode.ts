@@ -1,6 +1,4 @@
-import {Node as IRFNode} from 'reactflow';
 import {v4 as uuidv4} from 'uuid';
-import {OvalNodeProps} from '@gdComponents/side-panel-components/analysis/OvalNode';
 import {IActionNode, IDataActionNode, ActionNode} from './ActionNode';
 import {
   isDataFlowNode,
@@ -10,7 +8,6 @@ import {
   endNodeClassName
 } from './FlowNode';
 import {isCaseEndNode} from './TypeGuards';
-import {ITest} from './ITest';
 
 export const className = endNodeClassName;
 type ClassName = typeof className;
@@ -52,15 +49,6 @@ export class EndNode extends ActionNode implements IEndNode {
   getData(nodes: {[index: string]: IFlowNode | undefined}): IDataEndNode {
     const data = super.getData(nodes);
     return {...data, className: this.className};
-  }
-
-  getRFNode(test: ITest): IRFNode & OvalNodeProps {
-    const rfNode = super.getRFNode(test);
-    return {
-      ...rfNode,
-      type: 'oval',
-      data: {...rfNode.data, source: true, target: true}
-    };
   }
 
   constructor(

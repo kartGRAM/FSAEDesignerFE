@@ -1,7 +1,5 @@
-import {Node as IRFNode, XYPosition} from 'reactflow';
 import {v4 as uuidv4} from 'uuid';
 import {isObject} from '@app/utils/helpers';
-import {ITest} from './ITest';
 
 type TargetNodeID = string;
 type SourceNodeID = string;
@@ -22,7 +20,6 @@ export interface IFlowNode {
   position: {x: number; y: number};
   extraFlags: any;
   getData(nodes: {[index: string]: IFlowNode | undefined}): IDataFlowNode;
-  getRFNode(parentTest?: ITest, canvasUpdate?: () => void): IRFNode;
   validate(
     edgesFromTarget: {[index: TargetNodeID]: IDataEdge | undefined},
     edgesFromSource: {[index: SourceNodeID]: IDataEdge[]}
@@ -100,27 +97,6 @@ export abstract class FlowNode implements IFlowNode {
     };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getRFNode(parentTest?: ITest, canvasUpdate?: () => void): IRFNode {
-    const {position, selected} = this;
-    let validated = true;
-    if (parentTest) {
-      validated = this.validate(
-        parentTest.edgesFromTarget,
-        parentTest.edgesFromSourceNode
-      );
-    }
-    return {
-      id: this.nodeID,
-      position,
-      data: {
-        label: this.name,
-        warning: !validated
-      },
-      selected
-    };
-  }
-
   acceptable(
     other: IFlowNode,
     nodes: {[index: string]: IFlowNode | undefined},
@@ -176,6 +152,11 @@ export function isDataFlowNode(node: any): node is IDataFlowNode {
 
 export function isDataEdge(edge: any): edge is IDataEdge {
   return isObject(edge) && edge.isDataEdge;
+}
+
+export interface XYPosition {
+  x: number;
+  y: number;
 }
 
 export type Item = {

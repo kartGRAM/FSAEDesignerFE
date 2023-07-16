@@ -1,20 +1,13 @@
-/* eslint-disable class-methods-use-this */
-import * as React from 'react';
-import {Node as IRFNode, XYPosition} from 'reactflow';
-import CaseEnd from '@gdComponents/svgs/CaseEnd';
 import {v4 as uuidv4} from 'uuid';
-import {CircleNodeProps} from '@gdComponents/side-panel-components/analysis/CircleNode';
 import {
   IFlowNode,
   isDataFlowNode,
   IDataFlowNode,
   FlowNode,
-  Item,
   IDataEdge,
   caseEndNodeClassName
 } from './FlowNode';
 import {isAssemblyControlNode} from './TypeGuards';
-import {ITest} from './ITest';
 
 export const className = caseEndNodeClassName;
 type ClassName = typeof className;
@@ -57,32 +50,6 @@ export class CaseEndNode extends FlowNode implements ICaseEndNode {
   getData(nodes: {[index: string]: IFlowNode | undefined}): IDataCaseEndNode {
     const data = super.getData(nodes);
     return {...data, className: this.className};
-  }
-
-  getRFNode(test?: ITest): IRFNode & CircleNodeProps {
-    const rfNode = super.getRFNode(test);
-    return {
-      ...rfNode,
-      type: 'circle',
-      data: {
-        ...rfNode.data,
-        icon: <CaseEnd title={this.name} />
-      }
-    };
-  }
-
-  static getItem(): Item {
-    return {
-      className,
-      icon: <CaseEnd title="Case End" />,
-      text: 'Case end',
-      onDrop: (position: XYPosition, temporary: boolean) =>
-        new CaseEndNode({
-          name: 'Case end',
-          position,
-          nodeID: temporary ? 'temp' : undefined
-        })
-    };
   }
 
   constructor(

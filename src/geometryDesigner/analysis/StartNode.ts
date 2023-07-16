@@ -1,11 +1,7 @@
-/* eslint-disable class-methods-use-this */
-import {Node as IRFNode} from 'reactflow';
 import {v4 as uuidv4} from 'uuid';
-import {OvalNodeProps} from '@gdComponents/side-panel-components/analysis/OvalNode';
 import {KinematicSolver} from '@gd/kinematics/Solver';
 import {IActionNode, IDataActionNode, ActionNode} from './ActionNode';
 import {isDataFlowNode, IFlowNode, IDataFlowNode, IDataEdge} from './FlowNode';
-import {ITest} from './ITest';
 
 export const className = 'Start' as const;
 type ClassName = typeof className;
@@ -19,16 +15,14 @@ export interface IDataStartNode extends IDataActionNode {
 }
 
 export class StartNode extends ActionNode implements IStartNode {
+  // eslint-disable-next-line class-methods-use-this
   action(solver: KinematicSolver): void {
-    solver.restoreInitialQ();
-  }
-
-  restore(solver: KinematicSolver): void {
     solver.restoreInitialQ();
   }
 
   readonly className = className;
 
+  // eslint-disable-next-line class-methods-use-this
   acceptable(): boolean {
     return false;
   }
@@ -44,19 +38,6 @@ export class StartNode extends ActionNode implements IStartNode {
   getData(nodes: {[index: string]: IFlowNode | undefined}): IDataStartNode {
     const data = super.getData(nodes);
     return {...data, className: this.className};
-  }
-
-  getRFNode(test: ITest): IRFNode & OvalNodeProps {
-    const rfNode = super.getRFNode(test);
-    return {
-      ...rfNode,
-      type: 'oval',
-      data: {
-        ...rfNode.data,
-        label: this.name,
-        source: true
-      }
-    };
   }
 
   constructor(
