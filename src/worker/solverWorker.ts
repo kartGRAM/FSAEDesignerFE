@@ -56,7 +56,7 @@ ctx.onmessage = async (e: MessageEvent<FromParent>) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const test = new Test(dataTest);
 
-  /* const results = test.DFSNodes(
+  const results = await test.DFSNodes(
     test.nodes[message.nodeFrom],
     solver,
     {
@@ -67,5 +67,5 @@ ctx.onmessage = async (e: MessageEvent<FromParent>) => {
     undefined
   );
 
-  ctx.postMessage(results); */
+  ctx.postMessage(results);
 };

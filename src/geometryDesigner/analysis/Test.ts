@@ -460,6 +460,7 @@ export class Test implements ITest {
         }
         if (isCaseResults(data)) {
           const r = data;
+          worker.terminate();
           resolve(r);
         }
       };
@@ -486,7 +487,7 @@ export class Test implements ITest {
     ret: CaseResults,
     currentCase: string | undefined
   ): Promise<CaseResults> {
-    log(`${node.name} start`);
+    log(`${node.name}`);
     if (isEndNode(node)) {
       return ret;
     }
@@ -510,18 +511,27 @@ export class Test implements ITest {
     const edge = edges.pop();
     if (edge) {
       const next = this.nodes[edge.target];
-      await this.DFSNodes(next, solver, ret, currentCase);
+      const results = await Promise.all([
+        ...edges.map((edge) => {
+          const next = this.nodes[edge.target];
+          return this.createChildWorker(next, state);
+        }),
+        this.DFSNodes(
+          next,
+          solver,
+          {
+            isCaseResults: true,
+            caseResults: {}
+          },
+          currentCase
+        )
+      ]);
+      results.forEach((result) => {
+        ret.caseResults = {...ret.caseResults, ...result.caseResults};
+      });
+      /* solver.restoreState(state);
+      this.DFSNodes(next, solver, ret, currentCase); */
     }
-
-    /* const results = await Promise.all(
-      edges.map((edge) => {
-        const next = this.nodes[edge.target];
-        return this.createChildWorker(next, state);
-      })
-    );
-    results.forEach((result) => {
-      ret.caseResults = {...ret.caseResults, ...result.caseResults};
-    }); */
 
     return ret;
   }

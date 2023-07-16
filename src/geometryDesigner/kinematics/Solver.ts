@@ -970,12 +970,12 @@ export class KinematicSolver {
 
   getSnapshot(): ISnapshot {
     return {
-      dofState: this.components.reduce((prev, components) => {
+      dofState: this.components.reduce((prev, components, i) => {
         components.forEach((component) => {
-          prev[component.col] = component.saveState();
+          prev[`${component.col}@${i}`] = component.saveState();
         });
         return prev;
-      }, {} as {[index: number]: number[]}),
+      }, {} as {[index: string]: number[]}),
       controlState: this.components.reduce((prev, components) => {
         components[0].getGroupedConstraints().forEach((c) => {
           if (controled(c)) prev[c.row] = c.dl;
@@ -987,9 +987,9 @@ export class KinematicSolver {
 
   restoreState(snapshot: ISnapshot): void {
     const {dofState, controlState} = snapshot;
-    this.components.forEach((components) => {
+    this.components.forEach((components, i) => {
       components.forEach((component) =>
-        component.restoreState(dofState[component.col])
+        component.restoreState(dofState[`${component.col}@${i}`])
       );
       components[0]
         .getGroupedConstraints()

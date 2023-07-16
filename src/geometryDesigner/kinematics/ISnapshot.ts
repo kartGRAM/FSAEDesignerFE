@@ -1,6 +1,6 @@
 type IDOFState = number[];
 
 export interface ISnapshot {
-  dofState: {[index: number]: IDOFState};
+  dofState: {[index: string]: IDOFState};
   controlState: {[index: number]: number};
 }
