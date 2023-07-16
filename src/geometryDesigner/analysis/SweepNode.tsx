@@ -37,6 +37,7 @@ import {Formula} from '@gd/Formula';
 import {alpha} from '@mui/material/styles';
 import {KinematicSolver} from '@gd/kinematics/Solver';
 import {getDgd} from '@store/getDgd';
+import {ISnapshot} from '@gd/kinematics/ISnapshot';
 import {
   IParameterSweeper,
   IDataParameterSweeper,
@@ -78,7 +79,7 @@ export interface IDataSweepNode extends IDataActionNode {
 }
 
 export class SweepNode extends ActionNode implements ISweepNode {
-  action(solver: KinematicSolver): void {
+  action(solver: KinematicSolver, ss?: ISnapshot[]): void {
     const state = getDgd();
     const fsddc = state.options.fixSpringDumperDuaringControl;
 
@@ -94,27 +95,9 @@ export class SweepNode extends ActionNode implements ISweepNode {
           fixSpringDumpersAtCurrentPositions: fsddc
         }
       });
-
+      if (ss) ss.push(solver.getSnapshot());
       if (done) break;
     }
-
-    this.lastState = solver.getSnapshot();
-  }
-
-  restore(solver: KinematicSolver): void {
-    if (!this.lastState) throw new Error('保存されたStateが見つからない');
-
-    const state = getDgd();
-    solver.restoreState(this.lastState);
-
-    const fsddc = state.options.fixSpringDumperDuaringControl;
-
-    solver.solve({
-      postProcess: false,
-      constraintsOptions: {
-        fixSpringDumpersAtCurrentPositions: fsddc
-      }
-    });
   }
 
   readonly className = className;

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {RootState} from '@store/store';
 import {useSelector} from 'react-redux';
+import {ISnapshot} from '@gd/kinematics/ISnapshot';
 
 import {Node as IRFNode, XYPosition} from 'reactflow';
 import Tuning from '@gdComponents/svgs/Tuning';
@@ -75,7 +76,7 @@ export interface IDataSetterNode extends IDataActionNode {
 }
 
 export class SetterNode extends ActionNode implements ISetterNode {
-  action(solver: KinematicSolver): void {
+  action(solver: KinematicSolver, ss?: ISnapshot[]): void {
     const state = getDgd();
     const fsddc = state.options.fixSpringDumperDuaringControl;
     this.listSetters.forEach((setter) => setter.set(solver));
@@ -86,24 +87,7 @@ export class SetterNode extends ActionNode implements ISetterNode {
         fixSpringDumpersAtCurrentPositions: fsddc
       }
     });
-
-    this.lastState = solver.getSnapshot();
-  }
-
-  restore(solver: KinematicSolver): void {
-    if (!this.lastState) throw new Error('保存されたStateが見つからない');
-
-    const state = getDgd();
-    solver.restoreState(this.lastState);
-
-    const fsddc = state.options.fixSpringDumperDuaringControl;
-
-    solver.solve({
-      postProcess: false,
-      constraintsOptions: {
-        fixSpringDumpersAtCurrentPositions: fsddc
-      }
-    });
+    if (ss) ss.push(solver.getSnapshot());
   }
 
   readonly className = className;

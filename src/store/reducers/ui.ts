@@ -10,6 +10,7 @@ import {
   SIDEBAR_DARK_SKINS,
   SIDEBAR_LIGHT_SKINS
 } from '@app/utils/themes';
+import {inWorker} from '@utils/helpers';
 
 export interface UiState {
   screenSize: string;
@@ -28,7 +29,7 @@ export interface UiState {
 }
 
 const initialState: UiState = {
-  screenSize: calculateWindowSize(window.innerWidth),
+  screenSize: inWorker() ? '' : calculateWindowSize(window.innerWidth),
   darkMode: false,
   navbarVariant: 'navbar-light',
   sidebarSkin: 'sidebar-dark-primary',
@@ -43,7 +44,7 @@ const initialState: UiState = {
   layoutFixed: false
 };
 
-addWindowClass('layout-footer-fixed');
+if (!inWorker()) addWindowClass('layout-footer-fixed');
 
 export const uiSlice = createSlice({
   name: 'ui',

@@ -1,15 +1,13 @@
 import {configureStore} from '@reduxjs/toolkit';
-
 import {authSlice} from '@app/store/reducers/auth';
 import {uiSlice} from '@app/store/reducers/ui';
 import {uiGeometryDesignerSlice} from '@app/store/reducers/uiGeometryDesigner';
 import {uitGeometryDesignerSlice} from '@app/store/reducers/uiTempGeometryDesigner';
 import {dataGeometryDesignerSlice} from '@app/store/reducers/dataGeometryDesigner';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import {createLogger} from 'redux-logger';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// import {createLogger} from 'redux-logger';
 import {save, load} from 'redux-localstorage-simple';
 import undoable from 'redux-undo';
+import {inWorker} from '@utils/helpers';
 
 const uigd = undoable(uiGeometryDesignerSlice.reducer, {
   undoType: 'GD_UNDO',
@@ -32,11 +30,12 @@ const store = configureStore({
     uigd,
     dgd
   },
-
-  preloadedState: load({
-    states: ['uigd'],
-    namespace: 'FSAEDesigner'
-  }),
+  preloadedState: !inWorker()
+    ? load({
+        states: ['uigd'],
+        namespace: 'FSAEDesigner'
+      })
+    : undefined,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   middleware: (getDefaultMiddleware) => [
     // ...getDefaultMiddleware().concat(createLogger()),

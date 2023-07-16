@@ -25,6 +25,7 @@ export const setWindowClass = (classList: string) => {
     window.classList = classList;
   }
 };
+
 export const addWindowClass = (classList: string) => {
   const window: HTMLElement | null =
     document && document.getElementById('root');

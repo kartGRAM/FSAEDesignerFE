@@ -3,7 +3,7 @@ import {ISnapshot} from '@gd/kinematics/ISnapshot';
 
 export interface FromParent {
   testID: string;
-  nodeFrom?: string;
+  nodeFrom: string;
   initialSnapshot?: ISnapshot;
   state: GDState;
 }
@@ -19,7 +19,7 @@ export function isWorkerMessage(object: any): object is WorkerMessage {
 }
 
 export type CaseResults = {
-  isCaseResluts: true;
+  isCaseResults: true;
   caseResults: {[index: string]: ISnapshot[]};
 };
 

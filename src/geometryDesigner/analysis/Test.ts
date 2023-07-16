@@ -6,16 +6,24 @@ import {inWorker} from '@utils/helpers';
 import {testUpdateNotify} from '@store/reducers/uiTempGeometryDesigner';
 import {getDgd} from '@store/getDgd';
 import {KinematicSolver} from '@gd/kinematics/Solver';
-import {isWorkerMessage} from '@worker/solverWorkerMessage';
+import {
+  isWorkerMessage,
+  FromParent,
+  log,
+  isCaseResults,
+  CaseResults
+} from '@worker/solverWorkerMessage';
+import {ISnapshot} from '@gd/kinematics/ISnapshot';
 import {IFlowNode, IDataEdge} from './FlowNode';
 import {StartNode, isStartNode, IStartNode} from './StartNode';
 import {EndNode, isEndNode, IEndNode} from './EndNode';
-import {ITest, IDataTest, isDataTest, TestResult} from './ITest';
+import {ITest, IDataTest, isDataTest} from './ITest';
 import {getEdge, getFlowNode} from './RestoreData';
 import validateGraph from './ValidateGraph';
 import arrangeNodes from './ArrangeNodes';
 import {IClipboardFlowNodes} from './ClipboardFlowNode';
 import {isActionNode} from './ActionNode';
+import {isCaseStartNode, isCaseEndNode} from './TypeGuards';
 
 export class Test implements ITest {
   name: string;
@@ -412,7 +420,15 @@ export class Test implements ITest {
     worker.onmessage = (e) => {
       const {data} = e;
       if (isWorkerMessage(data)) {
-        console.log(`onmessage: ${e.data}`);
+        // eslint-disable-next-line no-console
+        console.log(`onmessage: ${data.message}`);
+      }
+      if (isCaseResults(data)) {
+        worker.terminate();
+        this.running = false;
+        this.done = true;
+        store.dispatch(testUpdateNotify(this));
+        this.worker = undefined;
       }
     };
 
@@ -426,29 +442,97 @@ export class Test implements ITest {
       this.worker = undefined;
     };
 
+    this.running = true;
+    this.done = false;
+    store.dispatch(testUpdateNotify(this));
     this.worker = worker;
+    const fromParent: FromParent = {
+      nodeFrom: this.startNode.nodeID,
+      testID: this.nodeID,
+      state: getDgd()
+    };
+    worker.postMessage(fromParent);
+  }
+
+  async createChildWorker(
+    nextNode: IFlowNode,
+    state: ISnapshot
+  ): Promise<CaseResults> {
+    if (!inWorker())
+      throw new Error('createChildWorker is called in main thread.');
+    return new Promise<CaseResults>((resolve) => {
+      const worker = new Worker(
+        new URL('../../worker/solverWorker.ts', import.meta.url)
+      );
+
+      worker.onmessage = (e) => {
+        const {data} = e;
+        if (isWorkerMessage(data)) {
+          log(data.message);
+        }
+        if (isCaseResults(data)) {
+          const r = data;
+          resolve(r);
+        }
+      };
+
+      worker.onerror = (e) => {
+        log(`ERR = ${e}`);
+        worker.terminate();
+        throw e;
+      };
+
+      const fromParent: FromParent = {
+        nodeFrom: nextNode.nodeID,
+        initialSnapshot: state,
+        testID: this.nodeID,
+        state: getDgd()
+      };
+      worker.postMessage(fromParent);
+    });
   }
 
   async DFSNodes(
     node: IFlowNode,
-    solver: KinematicSolver
-  ): Promise<TestResult> {
-    // eslint-disable-next-line no-console
-    console.log(node.name);
-
+    solver: KinematicSolver,
+    ret: CaseResults,
+    currentCase: string | undefined
+  ): Promise<CaseResults> {
+    log(`${node.name} start`);
+    if (isEndNode(node)) {
+      return ret;
+    }
     if (isActionNode(node)) {
-      node.action(solver);
+      node.action(
+        solver,
+        currentCase ? ret.caseResults[currentCase] : undefined
+      );
+    }
+    if (isCaseStartNode(node)) {
+      currentCase = node.nodeID;
+      ret.caseResults[node.nodeID] = [];
+    }
+    if (isCaseEndNode(node)) {
+      currentCase = undefined;
     }
 
-    for (const edge of this.edgesFromSourceNode[node.nodeID]) {
-      if (edge.target === this.endNode.nodeID) {
-        return 'Completed';
-      }
-      const child = this.nodes[edge.target];
-
-      this.DFSNodes(child, solver);
+    const state = solver.getSnapshot();
+    const edges = [...this.edgesFromSourceNode[node.nodeID]];
+    const edge = edges.pop();
+    if (edge) {
+      const next = this.nodes[edge.target];
+      await this.DFSNodes(next, solver, ret, currentCase);
     }
+    const results = await Promise.all(
+      edges.map((edge) => {
+        const next = this.nodes[edge.target];
+        return this.createChildWorker(next, state);
+      })
+    );
+    results.forEach((result) => {
+      ret.caseResults = {...ret.caseResults, ...result.caseResults};
+    });
 
-    return 'Completed';
+    return ret;
   }
 }

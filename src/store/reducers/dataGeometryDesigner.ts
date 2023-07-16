@@ -53,9 +53,8 @@ export const dataGeometryDesignerSlice = createSlice({
   name: 'dataGeometryDesigner',
   initialState,
   reducers: {
-    replaceState: (state: GDState, action: PayloadAction<GDState>) => {
-      state = action.payload;
-    },
+    replaceState: (state: GDState, action: PayloadAction<GDState>) =>
+      action.payload,
     setCoordinateMatrix: (
       state: GDState,
       action: PayloadAction<IDataMatrix3>
@@ -79,6 +78,7 @@ export const dataGeometryDesignerSlice = createSlice({
       state.topAssembly = action.payload?.getDataElement(state);
       state.idWoTest = uuidv4();
       state.changed = false;
+      state.options = initialState.options;
     },
     setTopAssembly: (state: GDState, action: PayloadAction<SavedData>) => {
       clearHistory();
