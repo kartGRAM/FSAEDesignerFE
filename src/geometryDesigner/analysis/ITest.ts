@@ -39,6 +39,7 @@ export interface ITest {
   validate(): boolean;
   run(): void;
   stop(): void;
+  dispatch(): void;
 
   arrange(
     widthSpaceAligningNodes: number,

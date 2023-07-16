@@ -52,6 +52,7 @@ import {
 } from '@gdComponents/side-panel-components/analysis/ClipboardFlowNode';
 import {v4 as uuidv4} from 'uuid';
 import useTestUpdate from '@hooks/useTestUpdate';
+import {ITest} from '@gd/analysis/ITest';
 import {ItemBox} from './ItemBox';
 import CircleNode from './CircleNode';
 import CardNode from './CardNode';
@@ -60,8 +61,7 @@ import CustomSmoothStepEdge from './CustomSmoothStepEdge';
 import TestName from './TestName';
 import TestDescription from './TestDescription';
 import {FlowCanvasToolbar} from './FlowCanvasToolbar';
-
-import {getRFNode} from './nodes/getItems';
+import {getRFNode, getEdge} from './nodes/getItems';
 
 const fitViewOptions: FitViewOptions = {
   padding: 0.2
@@ -320,7 +320,7 @@ export function FlowCanvas(props: {
       }));
       return;
     }
-    const tmpNode = item.onDrop({x, y}, true).getRFNode();
+    const tmpNode = getRFNode(item.onDrop({x, y}, true));
     setTempNodes({nodes: [tmpNode], edges: []});
   };
 
@@ -713,18 +713,3 @@ function getRFNodesAndEdges(
     edges: Object.values(test.edges).map((edge) => getEdge(edge))
   };
 }
-
-/*
-function dispatch(): void {
-  const tests = getDgd().analysis;
-  store.dispatch(
-    setTests(
-      tests.map((test) => {
-        if (test.nodeID !== this.nodeID) return test;
-        return this.getData();
-      })
-    )
-  );
-
-  this.changed = false;
-} */

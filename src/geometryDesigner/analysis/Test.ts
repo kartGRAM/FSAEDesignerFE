@@ -12,6 +12,7 @@ import {
   CaseResults
 } from '@worker/solverWorkerMessage';
 import {ISnapshot} from '@gd/kinematics/ISnapshot';
+import {setTests} from '@store/reducers/dataGeometryDesigner';
 import {IFlowNode, IDataEdge} from './FlowNode';
 import {StartNode, isStartNode, IStartNode} from './StartNode';
 import {EndNode, isEndNode, IEndNode} from './EndNode';
@@ -303,6 +304,19 @@ export class Test implements ITest {
         selectedNodeIDs.includes(edge.target)
     );
     return {isClipboardFlowNodes: true, isClipboardItem: true, nodes, edges};
+  }
+
+  dispatch(): void {
+    const tests = getDgd().analysis;
+    store.dispatch(
+      setTests(
+        tests.map((t) => {
+          if (t.nodeID !== this.nodeID) return t;
+          return this.getData();
+        })
+      )
+    );
+    this.changed = false;
   }
 
   nodes: {[index: string]: IFlowNode};
