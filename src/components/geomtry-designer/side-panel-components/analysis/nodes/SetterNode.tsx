@@ -4,7 +4,12 @@ import {useSelector} from 'react-redux';
 import {CardNodeProps} from '@gdComponents/side-panel-components/analysis/CardNode';
 import {Node as IRFNode} from 'reactflow';
 import {ITest} from '@gd/analysis/ITest';
-import {ISetterNode, SetterNode, isSetterNode} from '@gd/analysis/SetterNode';
+import {
+  className,
+  ISetterNode,
+  SetterNode,
+  isSetterNode
+} from '@gd/analysis/SetterNode';
 import {Item, XYPosition} from '@gd/analysis/FlowNode';
 import FlowNodeDialog from '@gdComponents/side-panel-components/analysis/FlowNodeDialog';
 import Typography from '@mui/material/Typography';
@@ -36,9 +41,11 @@ import {SetterType, ParameterSetter} from '@gd/analysis/ParameterSetter';
 import Tuning from '@gdComponents/svgs/Tuning';
 import {getRFNodeBase} from './Base';
 
+export {isSetterNode};
+
 export function getRFNode(
-  node: SetterNode,
-  test: ITest,
+  node: ISetterNode,
+  test?: ITest,
   canvasUpdate?: () => void
 ): IRFNode & CardNodeProps {
   const rfNode = getRFNodeBase(node, test);
@@ -54,9 +61,9 @@ export function getRFNode(
   };
 }
 
-export function getItem(node: ISetterNode): Item {
+export function getItem(): Item {
   return {
-    className: node.className,
+    className,
     icon: <Tuning title="Setter" />,
     text: 'Set parameters',
     onDrop: (position: XYPosition, temporary: boolean) =>
@@ -69,7 +76,7 @@ export function getItem(node: ISetterNode): Item {
 }
 
 function useSetterDialog(props: {
-  node: SetterNode;
+  node: ISetterNode;
   test?: ITest;
   canvasUpdate?: () => void;
 }): [JSX.Element | null, React.Dispatch<React.SetStateAction<boolean>>] {

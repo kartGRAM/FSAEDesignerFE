@@ -2,15 +2,22 @@ import * as React from 'react';
 import {CircleNodeProps} from '@gdComponents/side-panel-components/analysis/CircleNode';
 import {Node as IRFNode} from 'reactflow';
 import {ITest} from '@gd/analysis/ITest';
-import {ICaseStartNode, CaseStartNode} from '@gd/analysis/CaseStartNode';
+import {
+  className,
+  isCaseStartNode,
+  ICaseStartNode,
+  CaseStartNode
+} from '@gd/analysis/CaseStartNode';
 import {Item, XYPosition} from '@gd/analysis/FlowNode';
 import CaseStart from '@gdComponents/svgs/CaseStart';
 import FlowNodeDialog from '@gdComponents/side-panel-components/analysis/FlowNodeDialog';
 import Typography from '@mui/material/Typography';
 import {getRFNodeBase} from './Base';
 
+export {isCaseStartNode};
+
 export function getRFNode(
-  node: CaseStartNode,
+  node: ICaseStartNode,
   parentTest?: ITest,
   canvasUpdate?: () => void
 ): IRFNode & CircleNodeProps {
@@ -31,9 +38,9 @@ export function getRFNode(
   };
 }
 
-export function getItem(node: ICaseStartNode): Item {
+export function getItem(): Item {
   return {
-    className: node.className,
+    className,
     icon: <CaseStart title="Case Start" />,
     text: 'Case start',
     onDrop: (position: XYPosition, temporary: boolean) =>

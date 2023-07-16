@@ -1,7 +1,5 @@
-import {Node, Edge} from 'reactflow';
 import store from '@store/store';
 import {v4 as uuidv4} from 'uuid';
-import {setTests} from '@store/reducers/dataGeometryDesigner';
 import {inWorker} from '@utils/helpers';
 import {testUpdateNotify} from '@store/reducers/uiTempGeometryDesigner';
 import {getDgd} from '@store/getDgd';
@@ -17,11 +15,10 @@ import {ISnapshot} from '@gd/kinematics/ISnapshot';
 import {IFlowNode, IDataEdge} from './FlowNode';
 import {StartNode, isStartNode, IStartNode} from './StartNode';
 import {EndNode, isEndNode, IEndNode} from './EndNode';
-import {ITest, IDataTest, isDataTest} from './ITest';
-import {getEdge, getFlowNode} from './RestoreData';
+import {ITest, IDataTest, isDataTest, IClipboardFlowNodes} from './ITest';
+import {getFlowNode} from './RestoreData';
 import validateGraph from './ValidateGraph';
 import arrangeNodes from './ArrangeNodes';
-import {IClipboardFlowNodes} from './ClipboardFlowNode';
 import {isActionNode} from './ActionNode';
 import {isCaseStartNode, isCaseEndNode} from './TypeGuards';
 
@@ -289,29 +286,6 @@ export class Test implements ITest {
       edges: Object.values(edges),
       localStateID: uuidv4()
     };
-  }
-
-  getRFNodesAndEdges(canvasUpdate: () => void): {nodes: Node[]; edges: Edge[]} {
-    return {
-      nodes: Object.values(this.nodes).map((node) =>
-        node.getRFNode(this, canvasUpdate)
-      ),
-      edges: Object.values(this.edges).map((edge) => getEdge(edge))
-    };
-  }
-
-  dispatch(): void {
-    const tests = getDgd().analysis;
-    store.dispatch(
-      setTests(
-        tests.map((test) => {
-          if (test.nodeID !== this.nodeID) return test;
-          return this.getData();
-        })
-      )
-    );
-
-    this.changed = false;
   }
 
   copySelectedNodes(): IClipboardFlowNodes {

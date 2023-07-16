@@ -9,11 +9,11 @@ import {
   ListItemText,
   Box
 } from '@mui/material';
-import {getItems} from '@gd/analysis/RestoreData';
 import {setDraggingNewTestFlowNode} from '@store/reducers/uiTempGeometryDesigner';
 import {useDispatch} from 'react-redux';
 import {Item} from '@gd/analysis/FlowNode';
 import {v4 as uuidv4} from 'uuid';
+import {getItems} from './nodes/getItems';
 
 export function ItemBox() {
   const dispatch = useDispatch();

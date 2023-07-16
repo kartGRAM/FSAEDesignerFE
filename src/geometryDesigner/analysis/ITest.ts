@@ -1,9 +1,8 @@
-import {Node as IRFNode, Edge as IRFEdge} from 'reactflow';
 import {isObject} from '@app/utils/helpers';
-import {IDataFlowNode, IDataEdge, IFlowNode} from './FlowNode';
+import IClipboardItem from '@gd/ClipboardItem';
+import {IDataFlowNode, IFlowNode, IDataEdge} from './FlowNode';
 import {IStartNode} from './StartNode';
 import {IEndNode} from './EndNode';
-import {IClipboardFlowNodes} from './ClipboardFlowNode';
 
 export type TestResult =
   | 'Completed'
@@ -47,11 +46,6 @@ export interface ITest {
   ): void;
   tryConnect(source: string, target: string): boolean;
   getData(): IDataTest;
-  getRFNodesAndEdges(canvasUpdate: () => void): {
-    nodes: IRFNode[];
-    edges: IRFEdge[];
-  };
-  dispatch(): void;
   readonly nodes: {[index: string]: IFlowNode};
   readonly edges: {[index: string]: IDataEdge};
 
@@ -73,4 +67,16 @@ export interface IDataTest {
 
 export function isDataTest(test: any): test is IDataTest {
   return isObject(test) && test.isDataTest;
+}
+
+export function isClipboardFlowNodes(
+  item: IClipboardItem
+): item is IClipboardFlowNodes {
+  return (item as IClipboardFlowNodes).isClipboardFlowNodes;
+}
+
+export interface IClipboardFlowNodes extends IClipboardItem {
+  isClipboardFlowNodes: true;
+  nodes: IDataFlowNode[];
+  edges: IDataEdge[];
 }

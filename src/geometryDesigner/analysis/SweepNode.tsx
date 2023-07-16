@@ -16,7 +16,7 @@ import {
 import {IActionNode, IDataActionNode, ActionNode} from './ActionNode';
 import {IFlowNode, isDataFlowNode, IDataFlowNode, IDataEdge} from './FlowNode';
 
-const className = 'Sweep' as const;
+export const className = 'Sweep' as const;
 type ClassName = typeof className;
 
 export interface ISweepNode extends IActionNode {

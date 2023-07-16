@@ -1,19 +1,9 @@
 import IClipboardItem, {isClipboardItem} from '@gd/ClipboardItem';
 import {Node, Edge} from 'reactflow';
-import {getEdge, getFlowNode} from '@gd/analysis/RestoreData';
-import {IDataFlowNode, IDataEdge, IFlowNode} from './FlowNode';
-
-export interface IClipboardFlowNodes extends IClipboardItem {
-  isClipboardFlowNodes: true;
-  nodes: IDataFlowNode[];
-  edges: IDataEdge[];
-}
-
-export function isClipboardFlowNodes(
-  item: IClipboardItem
-): item is IClipboardFlowNodes {
-  return (item as IClipboardFlowNodes).isClipboardFlowNodes;
-}
+import {getFlowNode} from '@gd/analysis/RestoreData';
+import {IDataEdge, IFlowNode} from '@gd/analysis/FlowNode';
+import {IClipboardFlowNodes, isClipboardFlowNodes} from '@gd/analysis/ITest';
+import {getEdge, getRFNode} from './nodes/getItems';
 
 export function getFlowNodesFromClipboard(
   item: IClipboardFlowNodes,
@@ -44,7 +34,7 @@ export function getRFFlowNodesFromClipboard(
 } {
   const {nodes, edges} = getFlowNodesFromClipboard(item, testNodes);
   return {
-    nodes: nodes.map((node) => node.getRFNode()),
+    nodes: nodes.map((node) => getRFNode(node)),
     edges: edges.map((edge) => getEdge(edge))
   };
 }

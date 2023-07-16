@@ -49,7 +49,7 @@ import {
   getFlowNodesFromClipboard,
   getJsonFromClipboardFlowNodes,
   getRFFlowNodesFromClipboard
-} from '@gd/analysis/ClipboardFlowNode';
+} from '@gdComponents/side-panel-components/analysis/ClipboardFlowNode';
 import {v4 as uuidv4} from 'uuid';
 import useTestUpdate from '@hooks/useTestUpdate';
 import {ItemBox} from './ItemBox';
@@ -60,6 +60,8 @@ import CustomSmoothStepEdge from './CustomSmoothStepEdge';
 import TestName from './TestName';
 import TestDescription from './TestDescription';
 import {FlowCanvasToolbar} from './FlowCanvasToolbar';
+
+import {getRFNode} from './nodes/getItems';
 
 const fitViewOptions: FitViewOptions = {
   padding: 0.2
@@ -214,7 +216,7 @@ export function FlowCanvas(props: {
     updateWithSave();
   };
 
-  const {nodes, edges} = test.getRFNodesAndEdges(update);
+  const {nodes, edges} = getRFNodesAndEdges(test, update);
 
   const handleCancel = async () => {
     if (test.changed) {
@@ -696,3 +698,33 @@ export function FlowCanvas(props: {
     </Dialog>
   );
 }
+
+function getRFNodesAndEdges(
+  test: ITest,
+  canvasUpdate: () => void
+): {
+  nodes: Node[];
+  edges: Edge[];
+} {
+  return {
+    nodes: Object.values(test.nodes).map((node) =>
+      getRFNode(node, test, canvasUpdate)
+    ),
+    edges: Object.values(test.edges).map((edge) => getEdge(edge))
+  };
+}
+
+/*
+function dispatch(): void {
+  const tests = getDgd().analysis;
+  store.dispatch(
+    setTests(
+      tests.map((test) => {
+        if (test.nodeID !== this.nodeID) return test;
+        return this.getData();
+      })
+    )
+  );
+
+  this.changed = false;
+} */

@@ -33,7 +33,12 @@ import {Node as IRFNode, XYPosition} from 'reactflow';
 import Sweep from '@gdComponents/svgs/Sweep';
 import {CardNodeProps} from '@gdComponents/side-panel-components/analysis/CardNode';
 import {ITest} from '@gd/analysis/ITest';
-import {ISweepNode, SweepNode, isSweepNode} from '@gd/analysis/SweepNode';
+import {
+  className,
+  ISweepNode,
+  SweepNode,
+  isSweepNode
+} from '@gd/analysis/SweepNode';
 import {
   ParameterSweeper,
   SweeperType,
@@ -44,9 +49,11 @@ import {Item} from '@gd/analysis/FlowNode';
 
 import {getRFNodeBase} from './Base';
 
+export {isSweepNode};
+
 export function getRFNode(
-  node: SweepNode,
-  test: ITest,
+  node: ISweepNode,
+  test?: ITest,
   canvasUpdate?: () => void
 ): IRFNode & CardNodeProps {
   const rfNode = getRFNodeBase(node, test);
@@ -63,9 +70,9 @@ export function getRFNode(
   };
 }
 
-export function getItem(node: ISweepNode): Item {
+export function getItem(): Item {
   return {
-    className: node.className,
+    className,
     icon: <Sweep title="Sweeper" />,
     text: 'Sweep parameters',
     onDrop: (position: XYPosition, temporary: boolean) =>
@@ -78,7 +85,7 @@ export function getItem(node: ISweepNode): Item {
 }
 
 function useSweepDialog(props: {
-  node: SweepNode;
+  node: ISweepNode;
   test?: ITest;
   canvasUpdate?: () => void;
 }): [JSX.Element | null, React.Dispatch<React.SetStateAction<boolean>>] {

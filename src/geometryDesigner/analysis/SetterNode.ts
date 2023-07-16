@@ -16,7 +16,7 @@ import {
   ParameterSetter
 } from './ParameterSetter';
 
-const className = 'Setter' as const;
+export const className = 'Setter' as const;
 type ClassName = typeof className;
 
 export interface ISetterNode extends IActionNode {
