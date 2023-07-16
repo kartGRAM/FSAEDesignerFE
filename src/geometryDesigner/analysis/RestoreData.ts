@@ -1,26 +1,10 @@
-import {Edge, MarkerType} from 'reactflow';
-import {IDataEdge, IDataFlowNode, IFlowNode, Item} from './FlowNode';
+import {IDataFlowNode, IFlowNode} from './FlowNode';
 import {StartNode, isDataStartNode} from './StartNode';
 import {EndNode, isDataEndNode} from './EndNode';
 import {CaseStartNode, isDataCaseStartNode} from './CaseStartNode';
 import {CaseEndNode, isDataCaseEndNode} from './CaseEndNode';
 import {SetterNode, isDataSetterNode} from './SetterNode';
 import {SweepNode, isDataSweepNode} from './SweepNode';
-
-export function getEdge(edge: IDataEdge): Edge {
-  if (edge.className === 'default') {
-    return {
-      ...edge,
-      type: 'default',
-      markerEnd: {
-        type: MarkerType.ArrowClosed,
-        color: edge.selected ? '#333' : '#999'
-      },
-      style: {strokeWidth: 4, stroke: edge.selected ? '#333' : '#999'}
-    };
-  }
-  throw new Error('未実装のedge');
-}
 
 export function getFlowNode(node: IDataFlowNode): IFlowNode {
   if (isDataStartNode(node)) return new StartNode(node);
@@ -30,14 +14,4 @@ export function getFlowNode(node: IDataFlowNode): IFlowNode {
   if (isDataSetterNode(node)) return new SetterNode(node);
   if (isDataSweepNode(node)) return new SweepNode(node);
   throw new Error('未実装のnode');
-}
-
-export function getItems(): (Item | 'divider')[] {
-  return [
-    CaseStartNode.getItem(),
-    CaseEndNode.getItem(),
-    'divider',
-    SetterNode.getItem(),
-    SweepNode.getItem()
-  ];
 }
