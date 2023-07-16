@@ -1,7 +1,7 @@
 import {CircleNodeProps} from '@gdComponents/side-panel-components/analysis/CircleNode';
 import {Node as IRFNode} from 'reactflow';
 import {ITest} from '@gd/analysis/ITest';
-import {CaseEndNode} from '@gd/analysis/CaseEndNode';
+import {ICaseEndNode, CaseEndNode} from '@gd/analysis/CaseEndNode';
 import {Item, XYPosition} from '@gd/analysis/FlowNode';
 import CaseEnd from '@gdComponents/svgs/CaseEnd';
 import {getRFNodeBase} from './Base';
@@ -21,7 +21,7 @@ export function getRFNode(
   };
 }
 
-export function getItem(node: CaseEndNode): Item {
+export function getItem(node: ICaseEndNode): Item {
   return {
     className: node.className,
     icon: <CaseEnd title="Case End" />,

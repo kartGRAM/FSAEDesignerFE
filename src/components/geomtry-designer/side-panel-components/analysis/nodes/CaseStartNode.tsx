@@ -2,7 +2,7 @@ import * as React from 'react';
 import {CircleNodeProps} from '@gdComponents/side-panel-components/analysis/CircleNode';
 import {Node as IRFNode} from 'reactflow';
 import {ITest} from '@gd/analysis/ITest';
-import {CaseStartNode} from '@gd/analysis/CaseStartNode';
+import {ICaseStartNode, CaseStartNode} from '@gd/analysis/CaseStartNode';
 import {Item, XYPosition} from '@gd/analysis/FlowNode';
 import CaseStart from '@gdComponents/svgs/CaseStart';
 import FlowNodeDialog from '@gdComponents/side-panel-components/analysis/FlowNodeDialog';
@@ -31,7 +31,7 @@ export function getRFNode(
   };
 }
 
-export function getItem(node: CaseStartNode): Item {
+export function getItem(node: ICaseStartNode): Item {
   return {
     className: node.className,
     icon: <CaseStart title="Case Start" />,
@@ -46,7 +46,7 @@ export function getItem(node: CaseStartNode): Item {
 }
 
 function CaseStartIcon(props: {
-  node: CaseStartNode;
+  node: ICaseStartNode;
   test?: ITest;
   canvasUpdate?: () => void;
 }) {
