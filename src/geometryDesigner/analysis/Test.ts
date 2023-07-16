@@ -444,7 +444,7 @@ export class Test implements ITest {
     worker.postMessage(fromParent);
   }
 
-  async createChildWorker(
+  createChildWorker(
     nextNode: IFlowNode,
     state: ISnapshot
   ): Promise<CaseResults> {
@@ -513,24 +513,19 @@ export class Test implements ITest {
 
     if (edge) {
       const next = this.nodes[edge.target];
-      const results = await Promise.all([
-        ...edges.map((edge) => {
-          const next = this.nodes[edge.target];
-          return this.createChildWorker(next, state);
-        }),
-        this.DFSNodes(
-          next,
-          solver,
-          {
-            isCaseResults: true,
-            caseResults: {}
-          },
-          currentCase
-        )
-      ]);
-      results.forEach((result) => {
-        ret.caseResults = {...ret.caseResults, ...result.caseResults};
+
+      const children = edges.map((edge) => {
+        const next = this.nodes[edge.target];
+        return this.createChildWorker(next, state);
       });
+      const child = this.DFSNodes(next, solver, ret, currentCase);
+
+      const results = await Promise.all([...children, child]);
+
+      ret.caseResults = results.reduce((prev, current) => {
+        prev = {...prev, ...current.caseResults};
+        return prev;
+      }, {} as {[index: string]: ISnapshot[]});
     }
 
     return ret;
