@@ -1,3 +1,4 @@
+/* eslint-disable no-unreachable */
 import store from '@store/store';
 import {v4 as uuidv4} from 'uuid';
 import {inWorker} from '@utils/helpers';
@@ -422,7 +423,7 @@ export class Test implements ITest {
 
     worker.onerror = (e) => {
       // eslint-disable-next-line no-console
-      console.log(`ERR = ${e}`);
+      console.log(`${e.message}`);
       worker.terminate();
       this.running = false;
       this.done = false;
@@ -439,6 +440,7 @@ export class Test implements ITest {
       testID: this.nodeID,
       state: getDgd()
     };
+
     worker.postMessage(fromParent);
   }
 
@@ -505,10 +507,10 @@ export class Test implements ITest {
       currentCase = undefined;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const state = solver.getSnapshot();
     const edges = [...this.edgesFromSourceNode[node.nodeID]];
     const edge = edges.pop();
+
     if (edge) {
       const next = this.nodes[edge.target];
       const results = await Promise.all([
@@ -529,8 +531,6 @@ export class Test implements ITest {
       results.forEach((result) => {
         ret.caseResults = {...ret.caseResults, ...result.caseResults};
       });
-      /* solver.restoreState(state);
-      this.DFSNodes(next, solver, ret, currentCase); */
     }
 
     return ret;
