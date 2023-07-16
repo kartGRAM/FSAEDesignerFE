@@ -2,10 +2,11 @@ import {Node, Edge} from 'reactflow';
 import store from '@store/store';
 import {v4 as uuidv4} from 'uuid';
 import {setTests} from '@store/reducers/dataGeometryDesigner';
-import {sleep, inWorker} from '@utils/helpers';
+import {inWorker} from '@utils/helpers';
 import {testUpdateNotify} from '@store/reducers/uiTempGeometryDesigner';
 import {getDgd} from '@store/getDgd';
 import {KinematicSolver} from '@gd/kinematics/Solver';
+import {isWorkerMessage} from '@worker/solverWorkerMessage';
 import {IFlowNode, IDataEdge} from './FlowNode';
 import {StartNode, isStartNode, IStartNode} from './StartNode';
 import {EndNode, isEndNode, IEndNode} from './EndNode';
@@ -390,46 +391,28 @@ export class Test implements ITest {
     this._running = value;
   }
 
-  private _paused: boolean = false;
+  private worker: Worker | undefined = undefined;
 
-  get paused() {
-    return this._paused;
-  }
-
-  private set paused(value: boolean) {
-    this._paused = value;
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  private onPaused: (() => void) | undefined = () => {};
-
-  pause(onPaused: () => void): void {
-    if (this.running) {
-      this.onPaused = onPaused;
+  stop(): void {
+    if (this.worker) {
+      this.worker.terminate();
+      this.worker = undefined;
+      this.running = false;
+      this.done = false;
+      store.dispatch(testUpdateNotify(this));
     }
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  private onStopped: (() => void) | undefined = () => {};
-
-  stop(onStopped: () => void): void {
-    if (this.running || this.paused) {
-      this.onStopped = onStopped;
-    }
-  }
-
-  async run(): Promise<TestResult> {
+  run(): void {
     if (inWorker()) throw new Error('Task run is called in worker');
     const worker = new Worker(
       new URL('../../worker/solverWorker.ts', import.meta.url)
     );
 
     worker.onmessage = (e) => {
-      // eslint-disable-next-line no-console
-      console.log(`onmessage: ${e.data}`);
-      if (e.data === 'WorkerEnd') {
-        console.log('terminate');
-        worker.terminate();
+      const {data} = e;
+      if (isWorkerMessage(data)) {
+        console.log(`onmessage: ${e.data}`);
       }
     };
 
@@ -437,49 +420,13 @@ export class Test implements ITest {
       // eslint-disable-next-line no-console
       console.log(`ERR = ${e}`);
       worker.terminate();
+      this.running = false;
+      this.done = false;
+      store.dispatch(testUpdateNotify(this));
+      this.worker = undefined;
     };
 
-    // ワーカー開始
-    const state = getDgd();
-    worker.postMessage(state);
-    return 'Completed';
-    // eslint-disable-next-line no-unreachable
-    if (this.running) return 'Continue';
-    this.running = true;
-    if (this.paused) {
-      this.paused = false;
-      store.dispatch(testUpdateNotify(this));
-      return 'Continue';
-    }
-    try {
-      this.done = false;
-      this.paused = false;
-      this.onPaused = undefined;
-      this.onStopped = undefined;
-      store.dispatch(testUpdateNotify(this));
-
-      // const result = await this.DFSNodes(this.startNode);
-
-      this.running = false;
-      this.paused = false;
-      this.done = true;
-      this.onPaused = undefined;
-      this.onStopped = undefined;
-      store.dispatch(testUpdateNotify(this));
-
-      return 'Completed';
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.log(e);
-      this.running = false;
-      this.paused = false;
-      this.done = false;
-      this.onPaused = undefined;
-      this.onStopped = undefined;
-
-      store.dispatch(testUpdateNotify(this));
-      return 'Solver Error';
-    }
+    this.worker = worker;
   }
 
   async DFSNodes(
@@ -489,52 +436,19 @@ export class Test implements ITest {
     // eslint-disable-next-line no-console
     console.log(node.name);
 
-    const canceled = await this.canceled();
-    if (canceled) return 'User Canceled';
-
     if (isActionNode(node)) {
       node.action(solver);
     }
 
-    let i = 0;
     for (const edge of this.edgesFromSourceNode[node.nodeID]) {
       if (edge.target === this.endNode.nodeID) {
         return 'Completed';
       }
       const child = this.nodes[edge.target];
-      if (i > 0 && isActionNode(node)) node.restore(solver);
 
       this.DFSNodes(child, solver);
-      ++i;
     }
 
     return 'Completed';
-  }
-
-  async canceled(): Promise<boolean> {
-    if (!this.running && !this.paused) return true;
-
-    if (this.onPaused || this.paused) {
-      if (!this.paused) {
-        this.running = false;
-        this.paused = true;
-      }
-      if (this.onPaused) {
-        this.onPaused();
-        this.onPaused = undefined;
-      }
-      while (!this.running && !this.onStopped) {
-        // eslint-disable-next-line no-await-in-loop
-        await sleep(5);
-      }
-    }
-    if (this.onStopped) {
-      this.running = false;
-      this.paused = false;
-      this.onStopped();
-      this.onStopped = undefined;
-      return true;
-    }
-    return false;
   }
 }

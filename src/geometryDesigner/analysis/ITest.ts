@@ -23,7 +23,6 @@ export interface ITest {
   readonly redoable: boolean;
   readonly undoable: boolean;
   readonly running: boolean;
-  readonly paused: boolean;
 
   undoBlockPoint: string;
   addNode(node: IFlowNode): void;
@@ -39,9 +38,8 @@ export interface ITest {
   localUndo(): void;
   copySelectedNodes(): IClipboardFlowNodes;
   validate(): boolean;
-  run(): Promise<TestResult>;
-  pause(onPaused: () => void): void;
-  stop(onStopped: () => void): void;
+  run(): void;
+  stop(): void;
 
   arrange(
     widthSpaceAligningNodes: number,

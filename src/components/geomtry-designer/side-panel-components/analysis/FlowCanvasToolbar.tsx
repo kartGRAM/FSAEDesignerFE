@@ -5,7 +5,6 @@ import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
 import {Toolbar, Tooltip, IconButton} from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import PauseIcon from '@mui/icons-material/Pause';
 import StopIcon from '@mui/icons-material/Stop';
 
 export function FlowCanvasToolbar(props: {test: ITest}) {
@@ -13,7 +12,7 @@ export function FlowCanvasToolbar(props: {test: ITest}) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const {updateOnly} = useTestUpdate(test);
   const isValid = test.validate();
-  const {running, paused} = test;
+  const {running} = test;
 
   return (
     <Toolbar sx={{minHeight: 'unset!important', pb: 0}}>
@@ -23,8 +22,6 @@ export function FlowCanvasToolbar(props: {test: ITest}) {
           disabled={!isValid || running}
           onClick={() => {
             test.run();
-            // eslint-disable-next-line no-console
-            console.log('test start');
           }}
         >
           <PlayArrowIcon
@@ -32,26 +29,15 @@ export function FlowCanvasToolbar(props: {test: ITest}) {
           />
         </IconButton>
       </MyTooltip>
-      <MyTooltip title="pause">
-        <IconButton
-          sx={{padding: 0.5}}
-          disabled={!running || paused}
-          onClick={() => {
-            test.pause(updateOnly);
-          }}
-        >
-          <PauseIcon sx={{color: running && !paused ? '#0000cc' : undefined}} />
-        </IconButton>
-      </MyTooltip>
       <MyTooltip title="stop">
         <IconButton
           sx={{padding: 0.5}}
-          disabled={!running && !paused}
+          disabled={!running}
           onClick={() => {
-            test.stop(updateOnly);
+            test.stop();
           }}
         >
-          <StopIcon sx={{color: running || paused ? '#cc0000' : undefined}} />
+          <StopIcon sx={{color: running ? '#cc0000' : undefined}} />
         </IconButton>
       </MyTooltip>
     </Toolbar>

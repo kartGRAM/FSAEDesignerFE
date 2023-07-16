@@ -7,6 +7,7 @@ import {getAssembly} from '@gd/Elements';
 import {getControl} from '@gd/controls/Controls';
 import {Control} from '@gd/controls/IControls';
 import {KinematicSolver} from '@gd/kinematics/Solver';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {Test} from '@gd/analysis/Test';
 import {FromParent, log} from './solverWorkerMessage';
 
@@ -49,7 +50,7 @@ ctx.onmessage = async (e: MessageEvent<FromParent>) => {
     solver.restoreState(message.initialSnapshot);
   }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const test = new Test(dataTest);
+  // const test = new Test(dataTest);
 
   log(`worker start...target task is ${message.testID}.`);
   log(`action from ${message.nodeFrom ?? 'start'}.`);
