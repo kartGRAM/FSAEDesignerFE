@@ -62,7 +62,7 @@ export interface IDataTest {
   readonly description: string;
   readonly nodes: IDataFlowNode[];
   readonly edges: IDataEdge[];
-  readonly localStateID?: string;
+  readonly localStateID: string;
   readonly idWoTest: string;
 }
 

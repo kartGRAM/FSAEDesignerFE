@@ -33,7 +33,13 @@ export class Test implements ITest {
 
   idWoTest: string = '';
 
-  changed = false;
+  private savedStateID: string;
+
+  get changed(): boolean {
+    const state =
+      this.localStates[this.localStates.length + this.indexOfHistory - 1];
+    return this.savedStateID !== state.localStateID;
+  }
 
   localStates: IDataTest[] = [];
 
@@ -41,7 +47,7 @@ export class Test implements ITest {
 
   undoBlockPoint: string = '';
 
-  saveLocalState(changed: boolean = true): void {
+  saveLocalState(): void {
     this.localStates = this.localStates.slice(
       0,
       this.localStates.length + this.indexOfHistory
@@ -52,7 +58,6 @@ export class Test implements ITest {
     // セーブしたものをロードしておくことで、状態を最新とする。
     // これをやっておかないと、CopyFromが更新されなかったりする。
     this.loadLocalState(data);
-    if (changed) this.changed = true;
   }
 
   loadLocalState(dataOrLocalStateID: IDataTest | string) {
@@ -126,7 +131,6 @@ export class Test implements ITest {
     this.loadLocalState(
       this.localStates[this.localStates.length + this.indexOfHistory - 1]
     );
-    this.changed = true;
   }
 
   localUndo(): void {
@@ -137,11 +141,6 @@ export class Test implements ITest {
     this.indexOfHistory--;
     const newIdx = this.localStates.length + this.indexOfHistory - 1;
     this.loadLocalState(this.localStates[newIdx]);
-    this.changed = true;
-
-    if (newIdx === 0) {
-      this.changed = false;
-    }
   }
 
   get redoable(): boolean {
@@ -313,11 +312,13 @@ export class Test implements ITest {
       setTests(
         tests.map((t) => {
           if (t.nodeID !== this.nodeID) return t;
-          return this.getData();
+          const data =
+            this.localStates[this.localStates.length + this.indexOfHistory - 1];
+          this.savedStateID = data.localStateID;
+          return data;
         })
       )
     );
-    this.changed = false;
   }
 
   nodes: {[index: string]: IFlowNode};
@@ -351,7 +352,8 @@ export class Test implements ITest {
     if (isDataTest(params)) {
       this.loadLocalState(params);
     }
-    this.saveLocalState(false);
+    this.saveLocalState();
+    this.savedStateID = this.localStates[0].localStateID;
   }
 
   validate(): boolean {

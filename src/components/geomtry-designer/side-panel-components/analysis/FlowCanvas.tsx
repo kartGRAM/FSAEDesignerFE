@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react';
-import DialogTitle from '@mui/material/DialogTitle';
 import Dialog from '@mui/material/Dialog';
 import {useSelector, useDispatch} from 'react-redux';
 import store, {RootState} from '@store/store';
@@ -30,7 +28,8 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import {
   setConfirmDialogProps,
-  setAllUIDisabled
+  setAllUIDisabled,
+  removeTest
 } from '@store/reducers/uiTempGeometryDesigner';
 import {className as STARTNODE} from '@gd/analysis/StartNode';
 import {className as ENDNODE} from '@gd/analysis/EndNode';
@@ -43,7 +42,6 @@ import RedoIcon from '@mui/icons-material/Redo';
 import UndoIcon from '@mui/icons-material/Undo';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
-import {IFlowNode, IDataEdge} from '@gd/analysis/FlowNode';
 import {
   convertJsonToClipboardFlowNodes,
   getFlowNodesFromClipboard,
@@ -226,16 +224,23 @@ export function FlowCanvas(props: {
             zindex: zIndexConfirm,
             onClose: resolve,
             title: 'Warning',
-            message: `All changes will not be saved. Are you okay?`,
+            message: `All changes will not be saved. Do you save?`,
             buttons: [
-              {text: 'OK', res: 'ok'},
+              {text: 'Dismiss', res: 'ok'},
+              {text: 'Save', res: 'save'},
               {text: 'Cancel', res: 'cancel', autoFocus: true}
             ]
           })
         );
       });
       dispatch(setConfirmDialogProps(undefined));
+      if (ret === 'save') {
+        handleApply();
+        setOpen(false);
+      }
       if (ret === 'ok') {
+        test.stop();
+        dispatch(removeTest(test));
         setOpen(false);
       }
     } else {
@@ -284,7 +289,7 @@ export function FlowCanvas(props: {
     const data = await navigator.clipboard.readText();
     const item = convertJsonToClipboardFlowNodes(data);
     if (item) {
-      const {nodes, edges} = getFlowNodesFromClipboard(item, test.nodes);
+      const {nodes} = getFlowNodesFromClipboard(item, test.nodes);
       const inheritedParams = tempNodes.nodes.reduce((prev, node) => {
         prev[node.data.oldID] = {position: node.position, nodeID: node.id};
         return prev;
@@ -508,6 +513,7 @@ export function FlowCanvas(props: {
 
   if (tempNodes.nodes) nodes.push(...tempNodes.nodes);
   if (tempNodes.edges) edges.push(...tempNodes.edges);
+  const disabled = false;
 
   return (
     <Dialog
@@ -536,7 +542,14 @@ export function FlowCanvas(props: {
         </Box>
         <FlowCanvasToolbar test={test} />
       </Box>
-      <DialogContent sx={{display: 'flex', flexDirection: 'row', pt: 0}}>
+      <DialogContent
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          pt: 0,
+          position: 'relative'
+        }}
+      >
         <ItemBox />
         <Box
           component="div"
@@ -685,6 +698,18 @@ export function FlowCanvas(props: {
             <Controls />
           </ReactFlow>
         </Box>
+        <Box
+          component="div"
+          sx={{
+            backgroundColor: alpha('#000', 0.3),
+            position: 'absolute',
+            right: 0,
+            bottom: 0,
+            top: 0,
+            left: 0,
+            display: disabled ? 'unset' : 'none'
+          }}
+        />
       </DialogContent>
       <DialogActions>
         <Button onClick={handleApply} disabled={!test.changed}>

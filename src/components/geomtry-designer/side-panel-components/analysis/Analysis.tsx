@@ -83,7 +83,11 @@ export default function Analysis() {
 
 const TestRow = (props: {test: IDataTest}) => {
   const {test} = props;
-  const loadedTest = new Test(test);
+
+  const loadedTest: ITest =
+    useSelector((state: RootState) =>
+      state.uitgd.tests.find((t) => t.nodeID === test.nodeID)
+    ) ?? new Test(test);
   const dispatch = useDispatch();
 
   const [open, setOpen] = React.useState(false);
@@ -130,7 +134,7 @@ const TestRow = (props: {test: IDataTest}) => {
 
   React.useEffect(() => {
     dispatch(setTest(loadedTest));
-  });
+  }, [loadedTest]);
 
   return (
     <>
