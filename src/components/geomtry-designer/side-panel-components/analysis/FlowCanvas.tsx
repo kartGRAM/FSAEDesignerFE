@@ -6,7 +6,7 @@ import DialogActions from '@mui/material/DialogActions';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
-import {DialogContent} from '@mui/material';
+import {DialogContent, LinearProgress, Paper} from '@mui/material';
 import {useCallback} from 'react';
 import ReactFlow, {
   XYPosition,
@@ -51,6 +51,7 @@ import {
 import {v4 as uuidv4} from 'uuid';
 import useTestUpdate from '@hooks/useTestUpdate';
 import {ITest} from '@gd/analysis/ITest';
+
 import {ItemBox} from './ItemBox';
 import CircleNode from './CircleNode';
 import CardNode from './CardNode';
@@ -513,7 +514,7 @@ export function FlowCanvas(props: {
 
   if (tempNodes.nodes) nodes.push(...tempNodes.nodes);
   if (tempNodes.edges) edges.push(...tempNodes.edges);
-  const disabled = test.running;
+  const disabled = test.running || true;
 
   return (
     <Dialog
@@ -707,9 +708,20 @@ export function FlowCanvas(props: {
             bottom: 0,
             top: 0,
             left: 0,
-            display: disabled ? 'unset' : 'none'
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center'
           }}
-        />
+        >
+          <Paper sx={{minWidth: '70%', minHeight: '10%'}}>
+            <LinearProgress
+              variant="buffer"
+              value={80}
+              valueBuffer={90}
+              sx={{m: 5}}
+            />
+          </Paper>
+        </Box>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleApply} disabled={!test.changed}>
