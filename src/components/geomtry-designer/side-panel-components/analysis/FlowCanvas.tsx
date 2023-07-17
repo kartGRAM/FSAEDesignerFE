@@ -513,7 +513,7 @@ export function FlowCanvas(props: {
 
   if (tempNodes.nodes) nodes.push(...tempNodes.nodes);
   if (tempNodes.edges) edges.push(...tempNodes.edges);
-  const disabled = false;
+  const disabled = test.running;
 
   return (
     <Dialog
@@ -537,8 +537,8 @@ export function FlowCanvas(props: {
         sx={{display: 'flex', flexDirection: 'row', alignItems: 'end', pb: 0.5}}
       >
         <Box component="div" sx={{display: 'flex', flexDirection: 'column'}}>
-          <TestName test={test} />
-          <TestDescription test={test} />
+          <TestName test={test} disabled={disabled} />
+          <TestDescription test={test} disabled={disabled} />
         </Box>
         <FlowCanvasToolbar test={test} />
       </Box>

@@ -11,9 +11,16 @@ const TestName = React.memo(
     validation: Yup.StringSchema;
     onSubmit: (value: string) => void;
     textFieldProps?: TextFieldProps;
+    disabled?: boolean;
   }) => {
-    const {typography, initialValue, validation, onSubmit, textFieldProps} =
-      props;
+    const {
+      typography,
+      initialValue,
+      validation,
+      onSubmit,
+      textFieldProps,
+      disabled
+    } = props;
     const [rename, setRename] = React.useState<boolean>(false);
 
     const formik = useFormik({
@@ -41,8 +48,10 @@ const TestName = React.memo(
     const handleNameDblClick = React.useCallback(
       (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         e.stopPropagation();
-        formik.resetForm();
-        setRename(true);
+        if (!disabled) {
+          formik.resetForm();
+          setRename(true);
+        }
       },
       [formik]
     );
