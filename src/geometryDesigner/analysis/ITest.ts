@@ -23,6 +23,8 @@ export interface ITest {
   readonly undoable: boolean;
   readonly running: boolean;
 
+  readonly progress: {done: number; wip: number};
+
   undoBlockPoint: string;
   addNode(node: IFlowNode): void;
   removeNode(node: {nodeID: string}): void;

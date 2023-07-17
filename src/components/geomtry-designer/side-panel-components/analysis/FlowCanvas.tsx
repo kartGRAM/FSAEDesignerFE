@@ -514,7 +514,8 @@ export function FlowCanvas(props: {
 
   if (tempNodes.nodes) nodes.push(...tempNodes.nodes);
   if (tempNodes.edges) edges.push(...tempNodes.edges);
-  const disabled = test.running || true;
+  const disabled = test.running;
+  const {wip, done} = test.progress;
 
   return (
     <Dialog
@@ -708,7 +709,7 @@ export function FlowCanvas(props: {
             bottom: 0,
             top: 0,
             left: 0,
-            display: 'flex',
+            display: disabled ? 'flex' : 'none',
             justifyContent: 'center',
             alignItems: 'center'
           }}
@@ -716,8 +717,8 @@ export function FlowCanvas(props: {
           <Paper sx={{minWidth: '70%', minHeight: '10%'}}>
             <LinearProgress
               variant="buffer"
-              value={80}
-              valueBuffer={90}
+              value={done}
+              valueBuffer={wip}
               sx={{m: 5}}
             />
           </Paper>

@@ -28,10 +28,37 @@ export function isCaseResults(object: any): object is CaseResults {
   return false;
 }
 
+export type DoneProgress = {
+  isDone: true;
+};
+export function isDoneProgress(object: any): object is DoneProgress {
+  if (object.isDone) return true;
+  return false;
+}
+
+export type WorkInProgress = {
+  isWIP: true;
+};
+
+export function isWIP(object: any): object is WorkInProgress {
+  if (object.isWIP) return true;
+  return false;
+}
+
 // eslint-disable-next-line no-restricted-globals
 const ctx: Worker = self as any;
 
 export function log(message: string) {
   const m: WorkerMessage = {isMessage: true, message};
   ctx.postMessage(m);
+}
+
+export function done() {
+  const done: DoneProgress = {isDone: true};
+  ctx.postMessage(done);
+}
+
+export function wip() {
+  const wip: WorkInProgress = {isWIP: true};
+  ctx.postMessage(wip);
 }

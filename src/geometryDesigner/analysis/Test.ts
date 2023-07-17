@@ -10,7 +10,11 @@ import {
   FromParent,
   log,
   isCaseResults,
-  CaseResults
+  CaseResults,
+  isDoneProgress,
+  isWIP,
+  wip,
+  done
 } from '@worker/solverWorkerMessage';
 import {ISnapshot} from '@gd/kinematics/ISnapshot';
 import {setTests} from '@store/reducers/dataGeometryDesigner';
@@ -390,6 +394,19 @@ export class Test implements ITest {
     this._running = value;
   }
 
+  private wipNodes: number = 0;
+
+  private doneNodes: number = 0;
+
+  get progress(): {done: number; wip: number} {
+    const {wipNodes, doneNodes} = this;
+    const nodes = Object.values(this.nodes).length;
+    return {
+      done: (doneNodes / nodes) * 100,
+      wip: (wipNodes / nodes) * 100
+    };
+  }
+
   private worker: Worker | undefined = undefined;
 
   stop(): void {
@@ -404,6 +421,9 @@ export class Test implements ITest {
 
   run(): void {
     if (inWorker()) throw new Error('Task run is called in worker');
+    this.wipNodes = 0;
+    this.doneNodes = 0;
+
     const worker = new Worker(
       new URL('../../worker/solverWorker.ts', import.meta.url)
     );
@@ -418,8 +438,18 @@ export class Test implements ITest {
         worker.terminate();
         this.running = false;
         this.done = true;
+        this.wipNodes = 0;
+        this.doneNodes = 0;
         store.dispatch(testUpdateNotify(this));
         this.worker = undefined;
+      }
+      if (isDoneProgress(data)) {
+        ++this.doneNodes;
+        store.dispatch(testUpdateNotify(this));
+      }
+      if (isWIP(data)) {
+        ++this.wipNodes;
+        store.dispatch(testUpdateNotify(this));
       }
     };
 
@@ -430,6 +460,8 @@ export class Test implements ITest {
       this.running = false;
       this.done = false;
       store.dispatch(testUpdateNotify(this));
+      this.wipNodes = 0;
+      this.doneNodes = 0;
       this.worker = undefined;
     };
 
@@ -467,6 +499,12 @@ export class Test implements ITest {
           worker.terminate();
           resolve(r);
         }
+        if (isDoneProgress(data)) {
+          done();
+        }
+        if (isWIP(data)) {
+          wip();
+        }
       };
 
       worker.onerror = (e) => {
@@ -492,6 +530,8 @@ export class Test implements ITest {
     currentCase: string | undefined
   ): Promise<CaseResults> {
     log(`${node.name}`);
+    wip();
+
     if (isEndNode(node)) {
       return ret;
     }
@@ -529,6 +569,7 @@ export class Test implements ITest {
         return prev;
       }, {} as {[index: string]: ISnapshot[]});
     }
+    done();
 
     return ret;
   }
