@@ -183,6 +183,9 @@ export const uitGeometryDesignerSlice = createSlice({
   name: 'uitGeometryDesigner',
   initialState,
   reducers: {
+    clearAll: () => {
+      return initialState;
+    },
     setAssemblyAndCollectedAssembly: (
       state: GDState,
       action: PayloadAction<
@@ -535,6 +538,7 @@ export const uitGeometryDesignerSlice = createSlice({
 });
 
 export const {
+  clearAll,
   setAssemblyAndCollectedAssembly,
   setDatumManager,
   setMeasureToolsManager,

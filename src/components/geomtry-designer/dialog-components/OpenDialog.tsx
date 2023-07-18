@@ -8,7 +8,8 @@ import {useSelector, useDispatch} from 'react-redux';
 import {RootState} from '@store/store';
 import {
   setOpenDialogOpen,
-  setConfirmDialogProps
+  setConfirmDialogProps,
+  clearAll
 } from '@store/reducers/uiTempGeometryDesigner';
 import {setTopAssembly} from '@store/reducers/dataGeometryDesigner';
 import {getListSetTopAssemblyParams, SavedData} from '@gd/ISaveData';
@@ -86,6 +87,7 @@ export function OpenDialog(props: OpenDialogProps) {
   };
   const handleFileClick = async (params: SavedData) => {
     const next = () => {
+      dispatch(clearAll());
       dispatch(setTopAssembly(params));
       dispatch(setOpenDialogOpen({open: false}));
     };

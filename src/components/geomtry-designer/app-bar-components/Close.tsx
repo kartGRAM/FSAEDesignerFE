@@ -1,7 +1,10 @@
 import * as React from 'react';
 import MenuItem from '@mui/material/MenuItem';
 import {useDispatch} from 'react-redux';
-import {selectSidePanelTab} from '@app/store/reducers/uiTempGeometryDesigner';
+import {
+  selectSidePanelTab,
+  clearAll
+} from '@app/store/reducers/uiTempGeometryDesigner';
 import confirmIfChanged from '@app/utils/confirmIfChanged';
 import {Frame} from '@gd/Elements';
 import {newAssembly} from '@store/reducers/dataGeometryDesigner';
@@ -23,6 +26,8 @@ export default function Close(props: Props) {
         }
         await dispatch(newAssembly(undefined));
       };
+
+      dispatch(clearAll());
       reset();
       dispatch(selectSidePanelTab({tab: 'elements'}));
     });
