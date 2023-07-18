@@ -17,11 +17,9 @@ import ReactFlow, {
   EdgeChange,
   Connection,
   Background,
-  BackgroundVariant,
   Panel,
   MiniMap,
   useStore,
-  useReactFlow,
   Controls,
   ConnectionLineType
 } from 'reactflow';
@@ -35,13 +33,8 @@ import {className as STARTNODE} from '@gd/analysis/StartNode';
 import {className as ENDNODE} from '@gd/analysis/EndNode';
 import useUpdate from '@app/hooks/useUpdate';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
-import {setFlowCanvasBackgroundVariant} from '@store/reducers/uiGeometryDesigner';
 import {alpha} from '@mui/material/styles';
 import Fade from '@mui/material/Fade';
-import RedoIcon from '@mui/icons-material/Redo';
-import UndoIcon from '@mui/icons-material/Undo';
-import Tooltip from '@mui/material/Tooltip';
-import IconButton from '@mui/material/IconButton';
 import {
   convertJsonToClipboardFlowNodes,
   getFlowNodesFromClipboard,
@@ -91,9 +84,6 @@ export function FlowCanvas(props: {
     (state: RootState) =>
       state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex * 2
   );
-  const zIndexTooltip = useSelector(
-    (state: RootState) => state.uitgd.tooltipZIndex
-  );
   const test = useSelector((state: RootState) =>
     state.uitgd.tests.find((t) => t.nodeID === nodeID)
   );
@@ -112,7 +102,6 @@ export function FlowCanvas(props: {
   );
   const [viewX, viewY, zoom] = useStore((state) => state.transform);
   const mousePosition = React.useRef({x: 0, y: 0});
-  const {fitView} = useReactFlow();
   const [dragging, setDragging] = React.useState(false);
   const [overDelete, setOverDelete] = React.useState(false);
   const ref = React.useRef<HTMLDivElement>(null);
@@ -144,8 +133,6 @@ export function FlowCanvas(props: {
     edgeUpdateSuccessful.current = true;
   };
 
-  const [onArrange, setOnArrange] = React.useState(false);
-
   React.useEffect(() => {
     if (open) dispatch(setAllUIDisabled(true));
     else dispatch(setAllUIDisabled(false));
@@ -153,10 +140,6 @@ export function FlowCanvas(props: {
       dispatch(setAllUIDisabled(false));
     };
   }, [open]);
-
-  React.useEffect(() => {
-    fitView();
-  }, [onArrange]);
 
   React.useEffect(() => {
     if (dragging === false && overDelete) setOverDelete(false);
@@ -435,14 +418,6 @@ export function FlowCanvas(props: {
     }
   };
 
-  const arrange = () => {
-    const {widthSpaceAligningNodes, heightSpaceAligningNodes} =
-      store.getState().uigd.present.analysisPanelState;
-    test.arrange(widthSpaceAligningNodes, heightSpaceAligningNodes);
-    test.saveLocalState();
-    setOnArrange((prev) => !prev);
-  };
-
   const redo = () => {
     test.localRedo();
     updateOnly();
@@ -593,79 +568,6 @@ export function FlowCanvas(props: {
           >
             <Background color="#99b3ec" variant={variant} />
             <MiniMap nodeStrokeWidth={3} zoomable pannable />
-            <Panel position="top-left">
-              <Box component="div" sx={{backgroundColor: '#FFFFFF'}}>
-                <Typography>Grid:</Typography>
-                <Button
-                  onClick={() =>
-                    dispatch(
-                      setFlowCanvasBackgroundVariant(BackgroundVariant.Dots)
-                    )
-                  }
-                >
-                  dots
-                </Button>
-                <Button
-                  onClick={() =>
-                    dispatch(
-                      setFlowCanvasBackgroundVariant(BackgroundVariant.Lines)
-                    )
-                  }
-                >
-                  lines
-                </Button>
-                <Button
-                  onClick={() =>
-                    dispatch(
-                      setFlowCanvasBackgroundVariant(BackgroundVariant.Cross)
-                    )
-                  }
-                >
-                  cross
-                </Button>
-                <Button onClick={arrange}>arrange</Button>
-                <Tooltip
-                  title="Undo"
-                  componentsProps={{
-                    popper: {
-                      sx: {
-                        zIndex: zIndexFlowCanvas + zIndexTooltip
-                      }
-                    }
-                  }}
-                >
-                  <span>
-                    <IconButton
-                      disabled={!test.undoable}
-                      onClick={undo}
-                      color="primary"
-                    >
-                      <UndoIcon />
-                    </IconButton>
-                  </span>
-                </Tooltip>
-                <Tooltip
-                  title="Redo"
-                  componentsProps={{
-                    popper: {
-                      sx: {
-                        zIndex: zIndexFlowCanvas + zIndexTooltip
-                      }
-                    }
-                  }}
-                >
-                  <span>
-                    <IconButton
-                      disabled={!test.redoable}
-                      onClick={redo}
-                      color="primary"
-                    >
-                      <RedoIcon />
-                    </IconButton>
-                  </span>
-                </Tooltip>
-              </Box>
-            </Panel>
             <Panel position="top-center" style={{width: '50%', margin: '0px'}}>
               <Fade in={dragging} unmountOnExit>
                 <Box
