@@ -18,12 +18,16 @@ import {
   getRFNode as setterRF,
   getItem as setterGI
 } from './SetterNode';
-
 import {
   isSweepNode,
   getRFNode as sweepRF,
   getItem as sweepGI
 } from './SweepNode';
+import {
+  isChartNode,
+  getRFNode as chartRF,
+  getItem as chartGI
+} from './ChartNode';
 
 export function getRFNode(
   node: IFlowNode,
@@ -36,11 +40,20 @@ export function getRFNode(
   if (isCaseEndNode(node)) return caseEndRF(node, test);
   if (isSetterNode(node)) return setterRF(node, test, canvasUpdate);
   if (isSweepNode(node)) return sweepRF(node, test, canvasUpdate);
+  if (isChartNode(node)) return chartRF(node, test, canvasUpdate);
   throw new Error('未実装のnode');
 }
 
 export function getItems(): (Item | 'divider')[] {
-  return [caseStartGI(), caseEndGI(), 'divider', setterGI(), sweepGI()];
+  return [
+    caseStartGI(),
+    caseEndGI(),
+    'divider',
+    setterGI(),
+    sweepGI(),
+    'divider',
+    chartGI()
+  ];
 }
 
 export function getEdge(edge: IDataEdge): Edge {
