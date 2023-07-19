@@ -27,6 +27,12 @@ export interface IMeasureToolsManager {
   children: IMeasureTool[];
   getMeasureTool(nodeID: string): IMeasureTool | undefined;
   update(): void;
+  getValuesAll(): {
+    [index: string]: {
+      readonly name: string;
+      readonly values: {[index: string]: number};
+    };
+  };
 }
 
 export function isDataMeasureTool(data: any): data is IDataMeasureTool {

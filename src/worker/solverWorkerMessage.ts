@@ -1,5 +1,6 @@
 import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {ISnapshot} from '@gd/kinematics/ISnapshot';
+import {isObject} from '@utils/helpers';
 
 export interface FromParent {
   testID: string;
@@ -14,8 +15,7 @@ export type WorkerMessage = {
 };
 
 export function isWorkerMessage(object: any): object is WorkerMessage {
-  if (object.isMessage) return true;
-  return false;
+  return isObject(object) && object.isMessage;
 }
 
 export type CaseResults = {
@@ -24,16 +24,14 @@ export type CaseResults = {
 };
 
 export function isCaseResults(object: any): object is CaseResults {
-  if (object.isCaseResults) return true;
-  return false;
+  return isObject(object) && object.isCaseResults;
 }
 
 export type DoneProgress = {
   isDone: true;
 };
 export function isDoneProgress(object: any): object is DoneProgress {
-  if (object.isDone) return true;
-  return false;
+  return isObject(object) && object.isDone;
 }
 
 export type WorkInProgress = {
@@ -41,8 +39,7 @@ export type WorkInProgress = {
 };
 
 export function isWIP(object: any): object is WorkInProgress {
-  if (object.isWIP) return true;
-  return false;
+  return isObject(object) && object.isWIP;
 }
 
 // eslint-disable-next-line no-restricted-globals

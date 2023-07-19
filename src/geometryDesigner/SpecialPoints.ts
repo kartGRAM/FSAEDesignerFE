@@ -1,4 +1,5 @@
 import {Vector3} from 'three';
+import {isObject} from '@utils/helpers';
 
 export interface INearestNeighborToPlane {
   hasNearestNeighborToPlane: true;
@@ -9,9 +10,5 @@ export interface INearestNeighborToPlane {
 export function hasNearestNeighborToPlane(
   object: any
 ): object is INearestNeighborToPlane {
-  try {
-    return 'hasNearestNeighborToPlane' in object;
-  } catch (e) {
-    return false;
-  }
+  return isObject(object) && 'hasNearestNeighborToPlane' in object;
 }

@@ -30,4 +30,22 @@ export class MeasureToolsManager implements IMeasureToolsManager {
   update(): void {
     this.children.forEach((child) => child.update());
   }
+
+  getValuesAll(): {
+    [index: string]: {
+      readonly name: string;
+      readonly values: {[index: string]: number};
+    };
+  } {
+    const ret: {
+      [index: string]: {
+        readonly name: string;
+        readonly values: {[index: string]: number};
+      };
+    } = {};
+    this.children.forEach((child) => {
+      ret[child.nodeID] = {name: child.name, values: child.value};
+    });
+    return ret;
+  }
 }

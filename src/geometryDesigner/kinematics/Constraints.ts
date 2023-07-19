@@ -3,6 +3,7 @@
 /* eslint-disable max-classes-per-file */
 import {Matrix} from 'ml-matrix';
 import {Vector3} from 'three';
+import {isObject} from '@utils/helpers';
 import {
   getStableOrthogonalVector,
   skew,
@@ -37,21 +38,11 @@ interface deltaL {
 }
 
 export function hasDl(object: any): object is deltaL {
-  try {
-    if (object.hasDl) return true;
-  } catch {
-    return false;
-  }
-  return false;
+  return isObject(object) && object.hasDl;
 }
 
 export function controled(object: any): object is deltaL {
-  try {
-    if (object.hasDl && object.controled) return true;
-  } catch {
-    return false;
-  }
-  return false;
+  return isObject(object) && object.hasDl && object.controled;
 }
 
 export interface Constraint {

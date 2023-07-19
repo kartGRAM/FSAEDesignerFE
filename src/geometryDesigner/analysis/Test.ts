@@ -400,11 +400,12 @@ export class Test implements ITest {
 
   get progress(): {done: number; wip: number} {
     const {wipNodes, doneNodes} = this;
-    const nodes = Object.values(this.nodes).length;
-    return {
+    const nodes = Object.values(this.nodes).length - 1;
+    const progress = {
       done: (doneNodes / nodes) * 100,
       wip: (wipNodes / nodes) * 100
     };
+    return progress;
   }
 
   private worker: Worker | undefined = undefined;
@@ -436,12 +437,16 @@ export class Test implements ITest {
       }
       if (isCaseResults(data)) {
         worker.terminate();
-        this.running = false;
-        this.done = true;
-        this.wipNodes = 0;
-        this.doneNodes = 0;
-        store.dispatch(testUpdateNotify(this));
         this.worker = undefined;
+
+        // プログレスバーが最後まで行くのを見たい"
+        setTimeout(() => {
+          this.running = false;
+          this.done = true;
+          this.wipNodes = 0;
+          this.doneNodes = 0;
+          store.dispatch(testUpdateNotify(this));
+        }, 1000);
       }
       if (isDoneProgress(data)) {
         ++this.doneNodes;
@@ -530,11 +535,12 @@ export class Test implements ITest {
     currentCase: string | undefined
   ): Promise<CaseResults> {
     log(`${node.name}`);
-    wip();
 
     if (isEndNode(node)) {
       return ret;
     }
+
+    wip();
     if (isActionNode(node)) {
       node.action(
         solver,
