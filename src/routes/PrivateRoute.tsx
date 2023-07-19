@@ -2,7 +2,6 @@ import React, {useEffect} from 'react';
 import {Outlet} from 'react-router-dom';
 import {useSelector, useDispatch} from 'react-redux';
 import {loginUser} from '@store/reducers/auth';
-import {toast} from 'react-toastify';
 import {root} from '@app/utils/helpers';
 import {checkLoggedIn} from '../services/auth';
 
@@ -18,7 +17,6 @@ const PrivateRoute = () => {
       const payload = await checkLoggedIn();
       if (payload) {
         dispatch(loginUser());
-        toast.success('Login is succeed!', {autoClose: 700});
       } else {
         window.location.href = `${apiURL}/login/`;
       }
