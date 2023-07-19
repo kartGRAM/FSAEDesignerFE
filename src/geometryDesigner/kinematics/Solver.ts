@@ -44,7 +44,6 @@ import {
   BarAndSpheres,
   LinearBushingSingleEnd,
   PointToPlane,
-  controled,
   hasDl
 } from './Constraints';
 import {
@@ -70,7 +69,11 @@ export class KinematicSolver {
 
   firstSolved = false;
 
-  constructor(assembly: IAssembly, controls: {[index: string]: Control[]}) {
+  constructor(
+    assembly: IAssembly,
+    controls: {[index: string]: Control[]},
+    solve?: boolean
+  ) {
     this.assembly = assembly;
     const {children} = assembly;
     const joints = assembly.getJointsAsVector3();
@@ -148,7 +151,7 @@ export class KinematicSolver {
       });
       return prev;
     }, {} as {[index: string]: Control[]});
-    // ステップ4: コンポーネント化しないElementを帰化拘束へ変換
+    // ステップ4: コンポーネント化しないElementを幾何拘束へ変換
     {
       const {pointComponents} = this;
       children.forEach((element) => {
@@ -603,13 +606,22 @@ export class KinematicSolver {
         });
         return grouped;
       });
+      // コンポーネントの列番号を設定
+      this.components.forEach((components) => {
+        components.reduce((prev, current) => {
+          current.setCol(prev);
+          prev += current.degreeOfFreedom;
+          return prev;
+        }, 0);
+      });
     }
     // 上記4ステップでプリプロセッサ完了
-    this.solve({
-      constraintsOptions: {onAssemble: true},
-      postProcess: true,
-      logOutput: true
-    });
+    if (solve)
+      this.solve({
+        constraintsOptions: {onAssemble: true},
+        postProcess: true,
+        logOutput: true
+      });
   }
 
   getGroupItBelongsTo(component: IComponent): [IComponent, IComponent[]] {
@@ -648,7 +660,6 @@ export class KinematicSolver {
           return prev + current.constraints(constraintsOptions);
         }, 0);
         const degreeOfFreedom = components.reduce((prev, current) => {
-          current.setCol(prev);
           return prev + current.degreeOfFreedom;
         }, 0);
         // いつも同じところが更新されるので、毎回newしなくてもよい
@@ -741,7 +752,6 @@ export class KinematicSolver {
     const constraintsOptions = params?.constraintsOptions ?? {};
     const [root, components] = this.getGroupItBelongsTo(func.component);
     const degreeOfFreedom = components.reduce((prev, current) => {
-      current.setCol(prev);
       return prev + current.degreeOfFreedom;
     }, 0);
     const qCurrent = new Array<number>(degreeOfFreedom);
@@ -976,25 +986,25 @@ export class KinematicSolver {
         });
         return prev;
       }, {} as {[index: string]: number[]}),
-      controlState: this.components.reduce((prev, components) => {
+      controlState: this.components.reduce((prev, components, i) => {
         components[0].getGroupedConstraints().forEach((c) => {
-          if (controled(c)) prev[c.row] = c.dl;
+          if (hasDl(c)) prev[`${c.row}@${i}`] = c.dl;
         });
         return prev;
-      }, {} as {[index: number]: number})
+      }, {} as {[index: string]: number})
     };
   }
 
   restoreState(snapshot: ISnapshot): void {
     const {dofState, controlState} = snapshot;
     this.components.forEach((components, i) => {
-      components.forEach((component) =>
-        component.restoreState(dofState[`${component.col}@${i}`])
-      );
+      components.forEach((component) => {
+        component.restoreState(dofState[`${component.col}@${i}`]);
+      });
       components[0]
         .getGroupedConstraints()
         // eslint-disable-next-line no-return-assign
-        .forEach((c) => controled(c) && (c.dl = controlState[c.row]));
+        .forEach((c) => hasDl(c) && (c.dl = controlState[`${c.row}@${i}`]));
     });
   }
 

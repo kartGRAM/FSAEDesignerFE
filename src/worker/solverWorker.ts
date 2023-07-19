@@ -54,9 +54,15 @@ ctx.onmessage = async (e: MessageEvent<FromParent>) => {
         });
       return prev;
     }, {} as {[index: string]: Control[]});
-    const solver = new KinematicSolver(collectedAssembly, controls);
+    const solver = new KinematicSolver(collectedAssembly, controls, false);
     if (message.initialSnapshot) {
       solver.restoreState(message.initialSnapshot);
+    } else {
+      solver.solve({
+        constraintsOptions: {onAssemble: true},
+        postProcess: true,
+        logOutput: true
+      });
     }
 
     log(`worker start...target task is ${message.testID}.`);

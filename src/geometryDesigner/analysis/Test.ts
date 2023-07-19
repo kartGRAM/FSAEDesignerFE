@@ -580,6 +580,7 @@ export class Test implements ITest {
         const next = this.nodes[edge.target];
         return this.createChildWorker(next, state);
       });
+      // solver.restoreState(state);
       const child = this.DFSNodes(
         next,
         solver,
