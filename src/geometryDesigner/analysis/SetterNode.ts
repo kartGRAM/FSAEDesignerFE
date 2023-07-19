@@ -1,4 +1,4 @@
-import {ISnapshot} from '@gd/kinematics/ISnapshot';
+import {ISnapshot, MeasureSnapshot} from '@gd/kinematics/ISnapshot';
 
 import {v4 as uuidv4} from 'uuid';
 import {KinematicSolver} from '@gd/kinematics/Solver';
@@ -35,7 +35,11 @@ export interface IDataSetterNode extends IDataActionNode {
 }
 
 export class SetterNode extends ActionNode implements ISetterNode {
-  action(solver: KinematicSolver, ss?: ISnapshot[]): void {
+  action(
+    solver: KinematicSolver,
+    getMeasureSnapshot: () => MeasureSnapshot,
+    ss?: Required<ISnapshot>[]
+  ): void {
     const state = getDgd();
     const fsddc = state.options.fixSpringDumperDuaringControl;
     this.listSetters.forEach((setter) => setter.set(solver));
@@ -46,7 +50,13 @@ export class SetterNode extends ActionNode implements ISetterNode {
         fixSpringDumpersAtCurrentPositions: fsddc
       }
     });
-    if (ss) ss.push(solver.getSnapshot());
+
+    if (ss) {
+      ss.push({
+        ...solver.getSnapshot(),
+        measureTools: getMeasureSnapshot()
+      });
+    }
   }
 
   readonly className = className;

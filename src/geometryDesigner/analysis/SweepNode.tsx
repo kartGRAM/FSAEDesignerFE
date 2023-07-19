@@ -2,7 +2,7 @@
 import {v4 as uuidv4} from 'uuid';
 import {KinematicSolver} from '@gd/kinematics/Solver';
 import {getDgd} from '@store/getDgd';
-import {ISnapshot} from '@gd/kinematics/ISnapshot';
+import {ISnapshot, MeasureSnapshot} from '@gd/kinematics/ISnapshot';
 import {
   IParameterSweeper,
   IDataParameterSweeper,
@@ -35,7 +35,11 @@ export interface IDataSweepNode extends IDataActionNode {
 }
 
 export class SweepNode extends ActionNode implements ISweepNode {
-  action(solver: KinematicSolver, ss?: ISnapshot[]): void {
+  action(
+    solver: KinematicSolver,
+    getMeasureSnapshot: () => MeasureSnapshot,
+    ss?: Required<ISnapshot>[]
+  ): void {
     const state = getDgd();
     const fsddc = state.options.fixSpringDumperDuaringControl;
 
@@ -51,7 +55,12 @@ export class SweepNode extends ActionNode implements ISweepNode {
           fixSpringDumpersAtCurrentPositions: fsddc
         }
       });
-      if (ss) ss.push(solver.getSnapshot());
+      if (ss) {
+        ss.push({
+          ...solver.getSnapshot(),
+          measureTools: getMeasureSnapshot()
+        });
+      }
       if (done) break;
     }
   }

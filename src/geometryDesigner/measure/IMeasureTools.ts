@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {Vector3} from 'three';
+import {MeasureSnapshot} from '@gd/kinematics/ISnapshot';
 import {NodeID, IPoint, ILine, IPlane} from './IDatumObjects';
 
 export interface IMeasureTool {
@@ -27,12 +28,7 @@ export interface IMeasureToolsManager {
   children: IMeasureTool[];
   getMeasureTool(nodeID: string): IMeasureTool | undefined;
   update(): void;
-  getValuesAll(): {
-    [index: string]: {
-      readonly name: string;
-      readonly values: {[index: string]: number};
-    };
-  };
+  getValuesAll(): MeasureSnapshot;
 }
 
 export function isDataMeasureTool(data: any): data is IDataMeasureTool {

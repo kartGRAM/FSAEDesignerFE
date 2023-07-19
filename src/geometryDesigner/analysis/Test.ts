@@ -16,7 +16,7 @@ import {
   wip,
   done
 } from '@worker/solverWorkerMessage';
-import {ISnapshot} from '@gd/kinematics/ISnapshot';
+import {ISnapshot, MeasureSnapshot} from '@gd/kinematics/ISnapshot';
 import {setTests} from '@store/reducers/dataGeometryDesigner';
 import {IFlowNode, IDataEdge} from './FlowNode';
 import {StartNode, isStartNode, IStartNode} from './StartNode';
@@ -531,6 +531,7 @@ export class Test implements ITest {
   async DFSNodes(
     node: IFlowNode,
     solver: KinematicSolver,
+    getMeasureSnapshot: () => MeasureSnapshot,
     ret: CaseResults,
     currentCase: string | undefined
   ): Promise<CaseResults> {
@@ -544,6 +545,7 @@ export class Test implements ITest {
     if (isActionNode(node)) {
       node.action(
         solver,
+        getMeasureSnapshot,
         currentCase ? ret.caseResults[currentCase] : undefined
       );
     }
@@ -566,14 +568,20 @@ export class Test implements ITest {
         const next = this.nodes[edge.target];
         return this.createChildWorker(next, state);
       });
-      const child = this.DFSNodes(next, solver, ret, currentCase);
+      const child = this.DFSNodes(
+        next,
+        solver,
+        getMeasureSnapshot,
+        ret,
+        currentCase
+      );
 
       const results = await Promise.all([...children, child]);
 
       ret.caseResults = results.reduce((prev, current) => {
         prev = {...prev, ...current.caseResults};
         return prev;
-      }, {} as {[index: string]: ISnapshot[]});
+      }, {} as {[index: string]: Required<ISnapshot>[]});
     }
     done();
 

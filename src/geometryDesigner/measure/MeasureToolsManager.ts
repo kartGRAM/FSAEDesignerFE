@@ -4,6 +4,7 @@ import {
   IMeasureToolsManager
 } from '@gd/measure/IMeasureTools';
 import {getMeasureTool} from '@gd/measure/MeasureTools';
+import {MeasureSnapshot} from '@gd/kinematics/ISnapshot';
 import {IDatumManager} from './IDatumObjects';
 
 export class MeasureToolsManager implements IMeasureToolsManager {
@@ -31,18 +32,8 @@ export class MeasureToolsManager implements IMeasureToolsManager {
     this.children.forEach((child) => child.update());
   }
 
-  getValuesAll(): {
-    [index: string]: {
-      readonly name: string;
-      readonly values: {[index: string]: number};
-    };
-  } {
-    const ret: {
-      [index: string]: {
-        readonly name: string;
-        readonly values: {[index: string]: number};
-      };
-    } = {};
+  getValuesAll(): MeasureSnapshot {
+    const ret: MeasureSnapshot = {};
     this.children.forEach((child) => {
       ret[child.nodeID] = {name: child.name, values: child.value};
     });
