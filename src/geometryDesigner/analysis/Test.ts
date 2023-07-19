@@ -26,7 +26,7 @@ import {getFlowNode} from './RestoreData';
 import validateGraph from './ValidateGraph';
 import arrangeNodes from './ArrangeNodes';
 import {isActionNode} from './ActionNode';
-import {isCaseStartNode, isCaseEndNode} from './TypeGuards';
+import {isCaseStartNode, isCaseEndNode, isAfterEndNode} from './TypeGuards';
 
 export class Test implements ITest {
   name: string;
@@ -410,7 +410,9 @@ export class Test implements ITest {
 
   get progress(): {done: number; wip: number} {
     const {wipNodes, doneNodes} = this;
-    const nodes = Object.values(this.nodes).length - 1;
+    const nodes =
+      Object.values(this.nodes).filter((node) => !isAfterEndNode(node)).length -
+      1;
     const progress = {
       done: (doneNodes / nodes) * 100,
       wip: (wipNodes / nodes) * 100

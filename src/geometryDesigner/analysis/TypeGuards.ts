@@ -5,6 +5,7 @@ import {isStartNode} from './StartNode';
 import {isEndNode} from './EndNode';
 import {ICaseStartNode, isCaseStartNode} from './CaseStartNode';
 import {ICaseEndNode, isCaseEndNode} from './CaseEndNode';
+import {IChartNode, isChartNode} from './ChartNode';
 
 export function isAssemblyControlNode(
   node: IFlowNode
@@ -18,11 +19,16 @@ export function isCaseControlNode(
   return isCaseStartNode(node) || isCaseEndNode(node);
 }
 
+export function isAfterEndNode(node: IFlowNode): node is IChartNode {
+  return isChartNode(node);
+}
+
 export {
   isStartNode,
   isEndNode,
   isCaseStartNode,
   isCaseEndNode,
   isSetterNode,
-  isSweepNode
+  isSweepNode,
+  isChartNode
 };
