@@ -9,6 +9,10 @@ module.exports = {
   webpack: {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     configure: (webpackConfig, {env, paths}) => {
+      webpackConfig.output = {
+        filename: (pathData) =>
+          `${pathData.chunk.name}.${process.env.npm_package_version}.js`
+      };
       // eslint-disable-next-line no-multi-assign
       paths.appBuild = webpackConfig.output.path = resolveApp(
         '../FSAEDesigner/static/React/'
@@ -25,5 +29,9 @@ module.exports = {
         baseUrl: './'
       }
     }
-  ]
+  ],
+  output: {
+    filename: (pathData) =>
+      `${pathData.chunk.name}.${process.env.npm_package_version}.js`
+  }
 };
