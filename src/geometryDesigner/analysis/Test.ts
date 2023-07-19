@@ -433,6 +433,7 @@ export class Test implements ITest {
   }
 
   run(): void {
+    this.dispatch();
     if (inWorker()) throw new Error('Task run is called in worker');
     this.wipNodes = 0;
     this.doneNodes = 0;

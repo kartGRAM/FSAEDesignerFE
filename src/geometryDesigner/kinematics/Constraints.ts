@@ -433,7 +433,9 @@ export class BarAndSpheres implements Constraint, deltaL {
     return true;
   }
 
-  resetStates(): void {}
+  resetStates(): void {
+    this.dl = 0;
+  }
 
   get isInequalityConstraint() {
     return this.isSpringDumper;
@@ -981,7 +983,9 @@ export class PointToPlane implements Constraint, deltaL {
     return true;
   }
 
-  resetStates(): void {}
+  resetStates(): void {
+    this.dl = 0;
+  }
 
   readonly isInequalityConstraint = false;
 

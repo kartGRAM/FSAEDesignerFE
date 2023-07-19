@@ -987,8 +987,8 @@ export class KinematicSolver {
         return prev;
       }, {} as {[index: string]: number[]}),
       controlState: this.components.reduce((prev, components, i) => {
-        components[0].getGroupedConstraints().forEach((c) => {
-          if (hasDl(c)) prev[`${c.row}@${i}`] = c.dl;
+        components[0].getGroupedConstraints().forEach((c, j) => {
+          if (hasDl(c)) prev[`${j}@${i}`] = c.dl;
         });
         return prev;
       }, {} as {[index: string]: number})
@@ -1004,7 +1004,7 @@ export class KinematicSolver {
       components[0]
         .getGroupedConstraints()
         // eslint-disable-next-line no-return-assign
-        .forEach((c) => hasDl(c) && (c.dl = controlState[`${c.row}@${i}`]));
+        .forEach((c, j) => hasDl(c) && (c.dl = controlState[`${j}@${i}`]));
     });
   }
 

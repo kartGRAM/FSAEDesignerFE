@@ -262,6 +262,7 @@ export class FullDegreesComponent implements IComponent {
     [p.x, p.y, p.z, q.w, q.x, q.y, q.z] = state;
   }
 }
+
 export function isFullDegreesComponent(
   component: IComponent
 ): component is FullDegreesComponent {
