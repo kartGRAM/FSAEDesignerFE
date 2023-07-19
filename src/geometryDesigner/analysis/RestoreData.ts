@@ -5,6 +5,7 @@ import {CaseStartNode, isDataCaseStartNode} from './CaseStartNode';
 import {CaseEndNode, isDataCaseEndNode} from './CaseEndNode';
 import {SetterNode, isDataSetterNode} from './SetterNode';
 import {SweepNode, isDataSweepNode} from './SweepNode';
+import {ChartNode, isDataChartNode} from './ChartNode';
 
 export function getFlowNode(node: IDataFlowNode): IFlowNode {
   if (isDataStartNode(node)) return new StartNode(node);
@@ -13,5 +14,6 @@ export function getFlowNode(node: IDataFlowNode): IFlowNode {
   if (isDataCaseEndNode(node)) return new CaseEndNode(node);
   if (isDataSetterNode(node)) return new SetterNode(node);
   if (isDataSweepNode(node)) return new SweepNode(node);
+  if (isDataChartNode(node)) return new ChartNode(node);
   throw new Error('未実装のnode');
 }

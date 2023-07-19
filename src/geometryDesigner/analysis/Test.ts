@@ -192,7 +192,17 @@ export class Test implements ITest {
       this.nodes,
       Object.values(this.edges),
       widthSpaceAligningNodes,
-      heightSpaceAligningNodes
+      heightSpaceAligningNodes,
+      true,
+      this.endNode
+    );
+    arrangeNodes(
+      this.endNode,
+      this.nodes,
+      Object.values(this.edges),
+      widthSpaceAligningNodes,
+      heightSpaceAligningNodes,
+      false
     );
   }
 

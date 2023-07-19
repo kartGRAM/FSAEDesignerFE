@@ -28,7 +28,7 @@ export function getRFNode(
     type: 'card',
     data: {
       ...rfNode.data,
-      source: true,
+      source: false,
       target: true,
       useDialog: () => useSetterDialog({node, test, canvasUpdate})
     }
@@ -42,7 +42,7 @@ export function getItem(): Item {
     text: 'Chart',
     onDrop: (position: XYPosition, temporary: boolean) =>
       new ChartNode({
-        name: 'Parameter setting',
+        name: 'Chart',
         position,
         nodeID: temporary ? 'temp' : undefined
       })

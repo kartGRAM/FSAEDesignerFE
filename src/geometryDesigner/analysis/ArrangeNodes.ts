@@ -18,7 +18,9 @@ export default function arrangeNodes(
   nodes: {[indes: string]: IFlowNode},
   edges: IDataEdge[],
   hSpace: number,
-  wSpace: number
+  wSpace: number,
+  setStartPosition: boolean,
+  endNode?: IFlowNode
 ): void {
   const nodesWithEdge: {[index: string]: NodeWithEdge} = {};
 
@@ -29,6 +31,7 @@ export default function arrangeNodes(
   cleanedEdges.forEach((edge) => {
     if (!nodesWithEdge[edge.source])
       nodesWithEdge[edge.source] = createNode(nodes[edge.source]);
+    if (edge.source === endNode?.nodeID) return;
     if (!nodesWithEdge[edge.target])
       nodesWithEdge[edge.target] = createNode(nodes[edge.target]);
     nodesWithEdge[edge.source].children.push(nodesWithEdge[edge.target]);
@@ -42,6 +45,7 @@ export default function arrangeNodes(
     cleanedEdges.forEach((edge) => {
       const from = nodesWithEdge[edge.source];
       const to = nodesWithEdge[edge.target];
+      if (!from || !to) return;
       if (from.width === -1) {
         const size = nodes[from.nodeID].getSize();
         from.width = size.width;
@@ -80,9 +84,18 @@ export default function arrangeNodes(
     }
   });
   // 深さ優先探索にてそろえる
+  const offset = setStartPosition
+    ? {x: 0, y: 0}
+    : {...startNodeWithEdge.position};
   startNodeWithEdge.position = {x: 0, y: 0};
   nodes[startNodeWithEdge.nodeID].position = startNodeWithEdge.position;
   arrangeImpl({node: startNodeWithEdge, wSpace, hSpace, original: nodes});
+
+  setPositionRecursive({
+    node: startNodeWithEdge,
+    delta: offset,
+    original: nodes
+  });
 }
 
 function arrangeImpl(params: {
