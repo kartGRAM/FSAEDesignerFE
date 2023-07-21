@@ -1,4 +1,4 @@
-import {ISnapshot, MeasureSnapshot} from '@gd/kinematics/ISnapshot';
+import {ISnapshot} from '@gd/kinematics/ISnapshot';
 
 import {v4 as uuidv4} from 'uuid';
 import {KinematicSolver} from '@gd/kinematics/Solver';
@@ -37,7 +37,7 @@ export interface IDataSetterNode extends IDataActionNode {
 export class SetterNode extends ActionNode implements ISetterNode {
   action(
     solver: KinematicSolver,
-    getMeasureSnapshot: () => MeasureSnapshot,
+    getSnapshot: (solver: KinematicSolver) => Required<ISnapshot>,
     ss?: Required<ISnapshot>[]
   ): void {
     const state = getDgd();
@@ -52,10 +52,7 @@ export class SetterNode extends ActionNode implements ISetterNode {
     });
 
     if (ss) {
-      ss.push({
-        ...solver.getSnapshot(),
-        measureTools: getMeasureSnapshot()
-      });
+      ss.push(getSnapshot(solver));
     }
   }
 

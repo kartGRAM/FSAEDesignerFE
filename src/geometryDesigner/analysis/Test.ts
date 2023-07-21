@@ -16,7 +16,7 @@ import {
   wip,
   done
 } from '@worker/solverWorkerMessage';
-import {ISnapshot, MeasureSnapshot} from '@gd/kinematics/ISnapshot';
+import {ISnapshot} from '@gd/kinematics/ISnapshot';
 import {setTests} from '@store/reducers/dataGeometryDesigner';
 import {IFlowNode, IDataEdge} from './FlowNode';
 import {StartNode, isStartNode, IStartNode} from './StartNode';
@@ -498,7 +498,7 @@ export class Test implements ITest {
 
   createChildWorker(
     nextNode: IFlowNode,
-    state: ISnapshot
+    state: Required<ISnapshot>
   ): Promise<CaseResults> {
     if (!inWorker())
       throw new Error('createChildWorker is called in main thread.');
@@ -544,7 +544,7 @@ export class Test implements ITest {
   async DFSNodes(
     node: IFlowNode,
     solver: KinematicSolver,
-    getMeasureSnapshot: () => MeasureSnapshot,
+    getSnapshot: (solver: KinematicSolver) => Required<ISnapshot>,
     ret: CaseResults,
     currentCase: string | undefined
   ): Promise<CaseResults> {
@@ -558,7 +558,7 @@ export class Test implements ITest {
     if (isActionNode(node)) {
       node.action(
         solver,
-        getMeasureSnapshot,
+        getSnapshot,
         currentCase ? ret.caseResults[currentCase] : undefined
       );
     }
@@ -570,7 +570,7 @@ export class Test implements ITest {
       currentCase = undefined;
     }
 
-    const state = solver.getSnapshot();
+    const state = getSnapshot(solver);
     const edges = [...this.edgesFromSourceNode[node.nodeID]];
     const edge = edges.pop();
 
@@ -582,13 +582,7 @@ export class Test implements ITest {
         return this.createChildWorker(next, state);
       });
       // solver.restoreState(state);
-      const child = this.DFSNodes(
-        next,
-        solver,
-        getMeasureSnapshot,
-        ret,
-        currentCase
-      );
+      const child = this.DFSNodes(next, solver, getSnapshot, ret, currentCase);
 
       const results = await Promise.all([...children, child]);
 

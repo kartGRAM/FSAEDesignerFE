@@ -37,7 +37,7 @@ export interface IDataSweepNode extends IDataActionNode {
 export class SweepNode extends ActionNode implements ISweepNode {
   action(
     solver: KinematicSolver,
-    getMeasureSnapshot: () => MeasureSnapshot,
+    getSnapshot: (solver: KinematicSolver) => Required<ISnapshot>,
     ss?: Required<ISnapshot>[]
   ): void {
     const state = getDgd();
@@ -56,10 +56,7 @@ export class SweepNode extends ActionNode implements ISweepNode {
         }
       });
       if (ss) {
-        ss.push({
-          ...solver.getSnapshot(),
-          measureTools: getMeasureSnapshot()
-        });
+        ss.push(getSnapshot(solver));
       }
       if (done) break;
     }

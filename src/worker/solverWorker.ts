@@ -8,6 +8,7 @@ import {getControl} from '@gd/controls/Controls';
 import {Control} from '@gd/controls/IControls';
 import {KinematicSolver} from '@gd/kinematics/Solver';
 import {Test} from '@gd/analysis/Test';
+import {ISnapshot} from '@gd/kinematics/ISnapshot';
 import {FromParent, log} from './solverWorkerMessage';
 
 // eslint-disable-next-line no-restricted-globals
@@ -70,17 +71,21 @@ ctx.onmessage = async (e: MessageEvent<FromParent>) => {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const test = new Test(dataTest);
-    const getMeasureSnapshot = () => {
+    const getSnapshot = (solver: KinematicSolver): Required<ISnapshot> => {
       solver.postProcess();
       datumManager.update();
       measureToolsManager.update();
-      return measureToolsManager.getValuesAll();
+      return {
+        ...solver.getSnapshot(),
+        measureTools: measureToolsManager.getValuesAll(),
+        globals: {...getDgd().formulae}
+      };
     };
 
     const results = await test.DFSNodes(
       test.nodes[message.nodeFrom],
       solver,
-      getMeasureSnapshot,
+      getSnapshot,
       {
         isCaseResults: true,
         caseResults: {}
