@@ -543,6 +543,13 @@ export class Assembly extends Element implements IAssembly {
     return points;
   }
 
+  getMesurablePoints(): INamedVector3[] {
+    return [
+      this.centerOfGravity,
+      ...this.children.map((child) => child.getMeasurablePoints()).flat()
+    ];
+  }
+
   getPoints(): INamedVector3[] {
     let points: INamedVector3[] = [];
     const jointedNodeIDs = this.getJointedNodeIDs();

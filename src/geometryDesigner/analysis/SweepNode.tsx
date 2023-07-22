@@ -2,7 +2,7 @@
 import {v4 as uuidv4} from 'uuid';
 import {KinematicSolver} from '@gd/kinematics/Solver';
 import {getDgd} from '@store/getDgd';
-import {ISnapshot, MeasureSnapshot} from '@gd/kinematics/ISnapshot';
+import {ISnapshot} from '@gd/kinematics/ISnapshot';
 import {
   IParameterSweeper,
   IDataParameterSweeper,

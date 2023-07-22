@@ -33,7 +33,8 @@ ctx.onmessage = async (e: MessageEvent<FromParent>) => {
     if (!dataTest) throw new Error('test is not found');
 
     if (!state.topAssembly) throw new Error('No topAssembly');
-    const collectedAssembly = getAssembly(state.topAssembly).collectElements();
+    const assembly = getAssembly(state.topAssembly);
+    const collectedAssembly = assembly.collectElements();
     const datumManager = new DatumManager(
       state.datumObjects,
       collectedAssembly
@@ -75,10 +76,14 @@ ctx.onmessage = async (e: MessageEvent<FromParent>) => {
       solver.postProcess();
       datumManager.update();
       measureToolsManager.update();
+      const state = getDgd();
+      const assemblyData = assembly.getDataElement(state);
+      if (!assemblyData) throw new Error('assembly Dataが得られない');
       return {
         ...solver.getSnapshot(),
+        assemblyData,
         measureTools: measureToolsManager.getValuesAll(),
-        globals: {...getDgd().formulae}
+        globals: {...state.formulae}
       };
     };
 
