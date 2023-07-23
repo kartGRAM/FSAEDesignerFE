@@ -221,6 +221,7 @@ export class NamedNumber extends NamedValue implements INamedNumber {
     value: string | number | IDataNumber | INamedNumber;
     update?: (valueOrFormula: string | number | INamedNumber) => void;
     parent?: IBidirectionalNode;
+    nodeID?: string;
   }) {
     const {name: defaultName, value, update} = params;
     super({

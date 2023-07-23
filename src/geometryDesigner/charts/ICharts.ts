@@ -1,4 +1,5 @@
 import {Layout, PlotData, Datum, TypedArray, ErrorBar} from 'plotly.js';
+import math from 'mathjs';
 
 export interface IDataChartArea {
   layouts: IChartLayout;
@@ -24,8 +25,9 @@ export interface IChartData extends WOData {
 
 export type DataRef = {
   case: string | 'All';
-  from: 'element' | 'measureTool' | 'global' | 'special' | 'control';
+  from: 'element' | 'measureTool' | 'global' | 'special';
   nodeID: string;
+  stats?: Stats;
 };
 
 interface IChartLayout extends Partial<Layout> {}
@@ -50,3 +52,20 @@ export interface IPlotData extends WOData {
 }
 
 export type {Datum, TypedArray, ErrorBar};
+
+export type Stats = 'min' | 'max' | 'mean' | 'median';
+
+// eslint-disable-next-line consistent-return
+export function getStats(stats: Stats): (values: number[]) => number {
+  // eslint-disable-next-line default-case
+  switch (stats) {
+    case 'max':
+      return (values: number[]) => Math.max(...values);
+    case 'min':
+      return (values: number[]) => Math.min(...values);
+    case 'mean':
+      return math.mean;
+    case 'median':
+      return math.median;
+  }
+}

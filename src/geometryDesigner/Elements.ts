@@ -262,6 +262,11 @@ export abstract class Element implements IElement {
     return [...points, this.centerOfGravity];
   }
 
+  getVariables(): INamedNumber[] {
+    const points = this.getMeasurablePoints();
+    return points.map((p) => [p.x, p.y, p.z]).flat();
+  }
+
   abstract getMirror(): IElement;
 
   unlinkMirror(): void {
@@ -543,11 +548,22 @@ export class Assembly extends Element implements IAssembly {
     return points;
   }
 
-  getMesurablePoints(): INamedVector3[] {
+  getVariablesAll(): INamedNumber[] {
     return [
-      this.centerOfGravity,
+      ...this.getVariables(),
+      ...this.children.map((child) => child.getVariables()).flat()
+    ];
+  }
+
+  getMeasurablePointsAll(): INamedVector3[] {
+    return [
+      ...this.getMeasurablePoints(),
       ...this.children.map((child) => child.getMeasurablePoints()).flat()
     ];
+  }
+
+  getMeasurablePoints(): INamedVector3[] {
+    return [this.centerOfGravity];
   }
 
   getPoints(): INamedVector3[] {
@@ -1051,6 +1067,8 @@ export class SpringDumper extends Bar implements ISpringDumper {
 
   dlMax: NamedNumber;
 
+  dlCurrentNodeID: string;
+
   dlCurrent: number = 0;
 
   get currentPoint() {
@@ -1075,6 +1093,18 @@ export class SpringDumper extends Bar implements ISpringDumper {
     super.arrange(parentPosition);
   }
 
+  getVariables(): INamedNumber[] {
+    const vars = super.getVariables();
+    const dlCurrent = new NamedNumber({
+      name: 'dlCurrent',
+      parent: this,
+      value: this.dlCurrent,
+      update: () => {},
+      nodeID: this.dlCurrentNodeID
+    });
+    return [...vars, dlCurrent];
+  }
+
   constructor(
     params:
       | {
@@ -1083,6 +1113,7 @@ export class SpringDumper extends Bar implements ISpringDumper {
           point: FunctionVector3 | IDataVector3 | INamedVector3;
           dlMin: number;
           dlMax: number;
+          dlCurrentNodeID?: NodeID;
           initialPosition?: FunctionVector3 | IDataVector3 | INamedVector3;
           mass?: number;
           centerOfGravity?: FunctionVector3 | IDataVector3 | INamedVector3;
@@ -1090,6 +1121,7 @@ export class SpringDumper extends Bar implements ISpringDumper {
       | IDataSpringDumper
   ) {
     super(params);
+    this.dlCurrentNodeID = params.dlCurrentNodeID ?? uuidv4();
     this.dlMin = new NamedNumber({
       name: 'dlMin',
       parent: this,
@@ -1104,10 +1136,12 @@ export class SpringDumper extends Bar implements ISpringDumper {
 
   getDataElement(state: GDState): IDataSpringDumper {
     const baseData = super.getDataElement(state);
+    const {dlCurrentNodeID} = this;
     const data: IDataSpringDumper = {
       ...baseData,
       dlMin: this.dlMin.getData(state),
-      dlMax: this.dlMax.getData(state)
+      dlMax: this.dlMax.getData(state),
+      dlCurrentNodeID
     };
     return data;
   }
@@ -1975,6 +2009,8 @@ export class LinearBushing extends Element implements ILinearBushing {
 
   dlCurrent: number = 0;
 
+  dlCurrentNodeID: NodeID;
+
   get currentPoints() {
     const fp = this.fixedPoints.map((p) => p.value);
     const toP = this.toPoints.map((to) => to.value);
@@ -2016,6 +2052,18 @@ export class LinearBushing extends Element implements ILinearBushing {
 
   getPoints(): INamedVector3[] {
     return [...this.fixedPoints, ...this.points];
+  }
+
+  getVariables(): INamedNumber[] {
+    const vars = super.getVariables();
+    const dlCurrent = new NamedNumber({
+      name: 'dlCurrent',
+      parent: this,
+      value: this.dlCurrent,
+      update: () => {},
+      nodeID: this.dlCurrentNodeID
+    });
+    return [...vars, dlCurrent];
   }
 
   arrange(parentPosition?: Vector3) {
@@ -2075,6 +2123,7 @@ export class LinearBushing extends Element implements ILinearBushing {
           toPoints: AtLeast1<number | string | IDataNumber | INamedNumber>;
           dlMin: number;
           dlMax: number;
+          dlCurrentNodeID?: NodeID;
           initialPosition?: FunctionVector3 | IDataVector3 | INamedVector3;
           mass?: number;
           centerOfGravity?: FunctionVector3 | IDataVector3 | INamedVector3;
@@ -2082,8 +2131,17 @@ export class LinearBushing extends Element implements ILinearBushing {
       | IDataLinearBushing
   ) {
     super(params);
-    const {fixedPoints, toPoints, initialPosition, mass, centerOfGravity} =
-      params;
+
+    const {
+      fixedPoints,
+      toPoints,
+      initialPosition,
+      mass,
+      centerOfGravity,
+      dlCurrentNodeID
+    } = params;
+    this.dlCurrentNodeID = dlCurrentNodeID ?? uuidv4();
+
     this.fixedPoints = [
       new NamedVector3({
         name: this.fixedPointNames[0],
@@ -2164,6 +2222,7 @@ export class LinearBushing extends Element implements ILinearBushing {
     const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
     const mir = this.getAnotherElement(mirror);
     const baseData = super.getDataElementBase(state, mir);
+    const {dlCurrentNodeID} = this;
 
     if (mir && isLinearBushing(mir)) {
       return {
@@ -2177,6 +2236,7 @@ export class LinearBushing extends Element implements ILinearBushing {
             .getData(state)
         ],
         toPoints: this.toPoints.map((to) => to.getData(state)),
+        dlCurrentNodeID,
         dlMin: this.dlMin.getData(state),
         dlMax: this.dlMax.getData(state)
       };
@@ -2185,6 +2245,7 @@ export class LinearBushing extends Element implements ILinearBushing {
       ...baseData,
       fixedPoints: this.fixedPoints.map((point) => point.getData(state)),
       toPoints: this.toPoints.map((to) => to.getData(state)),
+      dlCurrentNodeID,
       dlMin: this.dlMin.getData(state),
       dlMax: this.dlMax.getData(state)
     };

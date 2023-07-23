@@ -132,6 +132,7 @@ export interface IElement extends IBidirectionalNode {
   readonly nodeID: string;
   readonly absPath: string;
   getPoints(): INamedVector3[];
+  getVariables(): INamedNumber[];
   getMeasurablePoints(): INamedVector3[];
   getPointsNodeIDs(): string[];
   getMirror(): IElement;
@@ -171,6 +172,9 @@ export interface IAssembly extends IElement {
   collectElements(): IAssembly;
   appendChild(children: IElement | IElement[]): void;
   getJointsAsVector3(): JointAsVector3[];
+
+  getMeasurablePointsAll(): INamedVector3[];
+  getVariablesAll(): INamedNumber[];
   getJointedPoints(): INamedVector3[];
   getJointsRecursive(): Joint[];
   getAllPointsOfChildren(): INamedVector3[];
@@ -211,6 +215,7 @@ export interface ISpringDumper extends IElement {
 
 export interface IDataSpringDumper extends IDataElement {
   fixedPoint: IDataVector3;
+  dlCurrentNodeID: string;
   point: IDataVector3;
   dlMin: IDataNumber;
   dlMax: IDataNumber;
@@ -288,6 +293,7 @@ export interface ILinearBushing extends IElement {
 export interface IDataLinearBushing extends IDataElement {
   fixedPoints: IDataVector3[];
   toPoints: IDataNumber[];
+  dlCurrentNodeID: string;
   dlMin: IDataNumber;
   dlMax: IDataNumber;
 }

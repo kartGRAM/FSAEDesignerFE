@@ -77,11 +77,11 @@ ctx.onmessage = async (e: MessageEvent<FromParent>) => {
       datumManager.update();
       measureToolsManager.update();
       const state = getDgd();
-      const assemblyData = assembly.getDataElement(state);
-      if (!assemblyData) throw new Error('assembly Dataが得られない');
+      // const assemblyData = assembly.getDataElement(state);
+      // if (!assemblyData) throw new Error('assembly Dataが得られない');
       return {
         ...solver.getSnapshot(),
-        assemblyData,
+        /* assemblyData, */
         measureTools: measureToolsManager.getValuesAll(),
         globals: {...state.formulae}
       };

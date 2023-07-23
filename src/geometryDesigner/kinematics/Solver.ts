@@ -44,7 +44,8 @@ import {
   BarAndSpheres,
   LinearBushingSingleEnd,
   PointToPlane,
-  hasDl
+  hasDl,
+  controled
 } from './Constraints';
 import {
   IComponent,
@@ -981,14 +982,14 @@ export class KinematicSolver {
   getSnapshot(): ISnapshot {
     return {
       dofState: this.components.reduce((prev, components, i) => {
-        components.forEach((component) => {
-          prev[`${component.col}@${i}`] = component.saveState();
+        components.forEach((component, j) => {
+          prev[`${j}@${i}`] = component.saveState();
         });
         return prev;
       }, {} as {[index: string]: number[]}),
-      controlState: this.components.reduce((prev, components, i) => {
+      constrainsState: this.components.reduce((prev, components, i) => {
         components[0].getGroupedConstraints().forEach((c, j) => {
-          if (hasDl(c)) prev[`${j}@${i}`] = c.dl;
+          if (controled(c)) prev[`${j}@${i}`] = c.dl;
         });
         return prev;
       }, {} as {[index: string]: number})
@@ -996,15 +997,15 @@ export class KinematicSolver {
   }
 
   restoreState(snapshot: ISnapshot): void {
-    const {dofState, controlState} = snapshot;
+    const {dofState, constrainsState} = snapshot;
     this.components.forEach((components, i) => {
-      components.forEach((component) => {
-        component.restoreState(dofState[`${component.col}@${i}`]);
+      components.forEach((component, j) => {
+        component.restoreState(dofState[`${j}@${i}`]);
       });
-      components[0]
-        .getGroupedConstraints()
+      components[0].getGroupedConstraints().forEach(
         // eslint-disable-next-line no-return-assign
-        .forEach((c, j) => hasDl(c) && (c.dl = controlState[`${j}@${i}`]));
+        (c, j) => controled(c) && (c.dl = constrainsState[`${j}@${i}`])
+      );
     });
   }
 
