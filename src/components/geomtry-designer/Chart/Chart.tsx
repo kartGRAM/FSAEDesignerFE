@@ -1,5 +1,6 @@
 import * as React from 'react';
-import {PlotData, Layout} from 'plotly.js';
+import {PlotData} from 'plotly.js';
+import {IChartLayout} from '@gd/charts/ICharts';
 import Plot from 'react-plotly.js';
 
 // データの型指定でPartial<PlotData>をつけておくと型サポート使えて便利です
@@ -60,11 +61,11 @@ const lineZ: Partial<PlotData> = {
   name: 'trace1'
 };
 
-const layout: Partial<Layout> = {
-  title: 'test chart',
+const layout: IChartLayout = {
+  title: {text: 'test chart', automargin: true},
   autosize: true,
   // legend: {x: 0.5, y: 0, orientation: 'h'},
-  margin: {t: 50, b: 0, l: 0, r: 0}
+  margin: {t: 24, b: 0, l: 0, r: 0}
 };
 
 // 下にある<Plot data = {}> のdataの型は Partial<PlotData>[]

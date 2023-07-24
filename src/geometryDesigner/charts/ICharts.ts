@@ -1,4 +1,12 @@
-import {Layout, PlotData, Datum, TypedArray, ErrorBar} from 'plotly.js';
+import {
+  Layout,
+  PlotData,
+  Datum,
+  TypedArray,
+  ErrorBar,
+  Font,
+  Padding
+} from 'plotly.js';
 import math from 'mathjs';
 
 export interface IDataChartArea {
@@ -30,7 +38,22 @@ export type DataRef = {
   stats?: Stats;
 };
 
-interface IChartLayout extends Partial<Layout> {}
+export interface IChartLayout extends Partial<Layout> {
+  title?:
+    | string
+    | Partial<{
+        text: string;
+        font: Partial<Font>;
+        xref: 'container' | 'paper';
+        yref: 'container' | 'paper';
+        x: number;
+        y: number;
+        xanchor: 'auto' | 'left' | 'center' | 'right';
+        yanchor: 'auto' | 'top' | 'middle' | 'bottom';
+        pad: Partial<Padding>;
+        automargin: boolean;
+      }>;
+}
 
 type Digit = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
 type xAxis = `x${Digit}` | `x${Digit}${Digit | '0'}`;
