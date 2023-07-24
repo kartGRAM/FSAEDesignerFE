@@ -11,8 +11,8 @@ import {
 import {Item, XYPosition} from '@gd/analysis/FlowNode';
 import FlowNodeDialog from '@gdComponents/side-panel-components/analysis/FlowNodeDialog';
 import Box from '@mui/material/Box';
-
 import TimelineIcon from '@mui/icons-material/Timeline';
+import {Chart} from '@gdComponents/Chart/Chart';
 import {getRFNodeBase} from './Base';
 
 export {isChartNode};
@@ -70,15 +70,22 @@ function useSetterDialog(props: {
         test={test}
         open={open}
         onClose={handleClose}
+        paperProps={{
+          sx: {
+            minWidth: '60%',
+            height: '60%',
+            '.MuiDialogContent-root': {p: '0!important'}
+          }
+        }}
       >
-        <SetterContent node={node} test={test} />
+        <ChartContent node={node} test={test} />
       </FlowNodeDialog>
     ) : null,
     setOpen
   ];
 }
 
-function SetterContent(props: {node: IChartNode; test: ITest}) {
+function ChartContent(props: {node: IChartNode; test: ITest}) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const {node, test} = props;
 
@@ -87,8 +94,15 @@ function SetterContent(props: {node: IChartNode; test: ITest}) {
       component="div"
       sx={{
         width: '100%',
-        height: '100%'
+        height: '100%',
+        p: 0,
+        pl: 1,
+        pr: 1,
+        m: 0
       }}
-    />
+      draggable={false}
+    >
+      <Chart />
+    </Box>
   );
 }
