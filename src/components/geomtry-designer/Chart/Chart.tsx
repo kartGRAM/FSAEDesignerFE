@@ -2,6 +2,7 @@ import * as React from 'react';
 import {PlotData} from 'plotly.js';
 import {IChartLayout} from '@gd/charts/ICharts';
 import Plot from 'react-plotly.js';
+import Box, {BoxProps} from '@mui/material/Box';
 
 // データの型指定でPartial<PlotData>をつけておくと型サポート使えて便利です
 // データ群1
@@ -61,10 +62,9 @@ const lineZ: Partial<PlotData> = {
   name: 'trace1'
 };
 
-const layout: IChartLayout = {
+const testLayout: IChartLayout = {
   title: {text: 'test chart', automargin: true},
   autosize: true,
-  // legend: {x: 0.5, y: 0, orientation: 'h'},
   margin: {t: 24, b: 0, l: 0, r: 0}
 };
 
@@ -72,13 +72,27 @@ const layout: IChartLayout = {
 // サンプルとしてわかりやすいように型を書いています
 const allData: Partial<PlotData>[] = [data1, data2, lineX, lineY, lineZ];
 
-export function Chart(): React.ReactElement {
+export interface ChartProps extends BoxProps {
+  data?: Partial<PlotData>[];
+  layout?: IChartLayout;
+}
+
+export function Chart(props: ChartProps): React.ReactElement {
+  const {layout, data} = props;
+  if (layout) {
+    layout.autosize = true;
+    if (!layout.margin) {
+      layout.margin = {t: 24, b: 0, l: 0, r: 0};
+    }
+  }
   return (
-    <Plot
-      data={allData}
-      layout={layout}
-      useResizeHandler
-      style={{width: '100%', height: '100%'}}
-    />
+    <Box {...props} component="div">
+      <Plot
+        data={data ?? allData}
+        layout={layout ?? testLayout}
+        useResizeHandler
+        style={{width: '100%', height: '100%'}}
+      />
+    </Box>
   );
 }

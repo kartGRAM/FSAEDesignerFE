@@ -1,5 +1,6 @@
 import {isObject} from '@app/utils/helpers';
 import IClipboardItem from '@gd/ClipboardItem';
+import {CaseResults} from '@worker/solverWorkerMessage';
 import {IDataFlowNode, IFlowNode, IDataEdge} from './FlowNode';
 import {IStartNode} from './StartNode';
 import {IEndNode} from './EndNode';
@@ -14,6 +15,8 @@ export interface ITest {
   name: string;
   description: string;
   readonly done: boolean;
+  readonly caseResults: CaseResults | null;
+
   readonly changed: boolean;
   readonly nodeID: string;
   readonly idWoTest: string;

@@ -13,6 +13,7 @@ import FlowNodeDialog from '@gdComponents/side-panel-components/analysis/FlowNod
 import Box from '@mui/material/Box';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import {Chart} from '@gdComponents/Chart/Chart';
+import {grey} from '@mui/material/colors';
 import {getRFNodeBase} from './Base';
 
 export {isChartNode};
@@ -30,7 +31,9 @@ export function getRFNode(
       ...rfNode.data,
       source: false,
       target: true,
-      useDialog: () => useSetterDialog({node, test, canvasUpdate})
+      backgroundColor: test?.done ? undefined : grey[500],
+      dialogDisabled: !test?.done,
+      useDialog: () => useChartDialog({node, test, canvasUpdate})
     }
   };
 }
@@ -49,7 +52,7 @@ export function getItem(): Item {
   };
 }
 
-function useSetterDialog(props: {
+function useChartDialog(props: {
   node: IChartNode;
   test?: ITest;
   canvasUpdate?: () => void;
@@ -72,8 +75,8 @@ function useSetterDialog(props: {
         onClose={handleClose}
         paperProps={{
           sx: {
-            minWidth: '60%',
-            height: '60%',
+            minWidth: '70%',
+            height: '80%',
             '.MuiDialogContent-root': {p: '0!important'}
           }
         }}
@@ -98,11 +101,21 @@ function ChartContent(props: {node: IChartNode; test: ITest}) {
         p: 0,
         pl: 1,
         pr: 1,
-        m: 0
+        m: 0,
+        display: 'flex',
+        flexDirection: 'row'
       }}
       draggable={false}
     >
-      <Chart />
+      <Box
+        component="div"
+        sx={{
+          backgroundColor: '#555',
+          minWidth: '30vh',
+          height: '100%'
+        }}
+      />
+      <Chart sx={{flexGrow: 1}} />
     </Box>
   );
 }

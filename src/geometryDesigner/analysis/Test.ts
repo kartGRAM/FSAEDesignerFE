@@ -394,6 +394,16 @@ export class Test implements ITest {
     this._done = value;
   }
 
+  private _caseResults: CaseResults | null = null;
+
+  get caseResults() {
+    return this._caseResults;
+  }
+
+  private set caseResults(value: CaseResults | null) {
+    this._caseResults = value;
+  }
+
   private _running: boolean = false;
 
   get running() {
@@ -422,21 +432,26 @@ export class Test implements ITest {
 
   private worker: Worker | undefined = undefined;
 
+  private resetTestStatus() {
+    if (this.worker) this.worker.terminate();
+    this.worker = undefined;
+    this.running = false;
+    this.done = false;
+    this.caseResults = null;
+    this.wipNodes = 0;
+    this.doneNodes = 0;
+  }
+
   stop(): void {
-    if (this.worker) {
-      this.worker.terminate();
-      this.worker = undefined;
-      this.running = false;
-      this.done = false;
-      store.dispatch(testUpdateNotify(this));
-    }
+    this.resetTestStatus();
+    store.dispatch(testUpdateNotify(this));
   }
 
   run(): void {
+    if (this.running) throw new Error('Test is already running.');
     this.dispatch();
     if (inWorker()) throw new Error('Task run is called in worker');
-    this.wipNodes = 0;
-    this.doneNodes = 0;
+    this.resetTestStatus();
 
     const worker = new Worker(
       new URL('../../worker/solverWorker.ts', import.meta.url)
@@ -451,13 +466,11 @@ export class Test implements ITest {
       if (isCaseResults(data)) {
         worker.terminate();
         this.worker = undefined;
-
+        this.caseResults = data;
         // プログレスバーが最後まで行くのを見たい"
         setTimeout(() => {
-          this.running = false;
+          this.resetTestStatus();
           this.done = true;
-          this.wipNodes = 0;
-          this.doneNodes = 0;
           store.dispatch(testUpdateNotify(this));
         }, 1000);
       }
@@ -474,13 +487,8 @@ export class Test implements ITest {
     worker.onerror = (e) => {
       // eslint-disable-next-line no-console
       console.log(`${e.message}`);
-      worker.terminate();
-      this.running = false;
-      this.done = false;
+      this.resetTestStatus();
       store.dispatch(testUpdateNotify(this));
-      this.wipNodes = 0;
-      this.doneNodes = 0;
-      this.worker = undefined;
     };
 
     this.running = true;

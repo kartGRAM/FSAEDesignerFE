@@ -16,21 +16,36 @@ export type CardNodeProps = {
     warning: boolean;
     source?: boolean;
     target?: boolean;
+    backgroundColor?: string;
+    dialogDisabled?: boolean;
   };
   selected?: boolean;
 };
 
 export default function CardNode(props: CardNodeProps) {
   const {data, selected} = props;
-  const {label, source, target, content, useDialog, warning} = data;
+  const {
+    label,
+    source,
+    target,
+    content,
+    useDialog,
+    warning,
+    backgroundColor,
+    dialogDisabled
+  } = data;
   const [dialog, setOpen] = useDialog();
   const handleDoubleClick = () => {
-    setOpen(true);
+    if (!dialogDisabled) setOpen(true);
   };
   return (
     <>
       <WarningBadge invisible={!warning}>
-        <Card raised={selected} onDoubleClick={handleDoubleClick}>
+        <Card
+          raised={selected}
+          onDoubleClick={handleDoubleClick}
+          sx={{backgroundColor}}
+        >
           <CardHeader title={label} />
           <CardContent>{content}</CardContent>
         </Card>
