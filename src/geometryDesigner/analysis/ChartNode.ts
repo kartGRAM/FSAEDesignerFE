@@ -1,5 +1,6 @@
 import {v4 as uuidv4} from 'uuid';
-import {IChartData, IChartLayout} from '@gd/charts/ICharts';
+import {IChartData, IChartLayout, IPlotData} from '@gd/charts/ICharts';
+import {getPlotlyData} from '@gd/charts/getPlotlyData';
 import {isEndNode} from './TypeGuards';
 import {
   IFlowNode,
@@ -15,6 +16,7 @@ type ClassName = typeof className;
 export interface IChartNode extends IFlowNode {
   className: ClassName;
   datum: IChartData[];
+  getPlotlyDatum(): IPlotData[];
   layout: IChartLayout;
 }
 
@@ -28,6 +30,12 @@ export class ChartNode extends FlowNode implements IChartNode {
   readonly className = className;
 
   datum: IChartData[] = [];
+
+  plotlyDatum: IPlotData[] | undefined = undefined;
+
+  getPlotlyDatum(): IPlotData[] {
+    if (this.plotlyDatum) return this.plotlyDatum;
+  }
 
   layout: IChartLayout = {};
 
