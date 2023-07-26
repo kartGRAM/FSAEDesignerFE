@@ -1,6 +1,7 @@
 import {isObject} from '@app/utils/helpers';
 import IClipboardItem from '@gd/ClipboardItem';
 import {CaseResults} from '@worker/solverWorkerMessage';
+import {LocalInstances} from '@worker/getLocalInstances';
 import {IDataFlowNode, IFlowNode, IDataEdge} from './FlowNode';
 import {IStartNode} from './StartNode';
 import {IEndNode} from './EndNode';
@@ -16,6 +17,7 @@ export interface ITest {
   description: string;
   readonly done: boolean;
   readonly caseResults: CaseResults | null;
+  readonly localInstances: LocalInstances | null;
 
   readonly changed: boolean;
   readonly nodeID: string;

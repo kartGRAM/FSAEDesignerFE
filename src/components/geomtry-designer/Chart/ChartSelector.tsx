@@ -10,14 +10,14 @@ export type Mode =
   | 'DataVisualization';
 
 export function ChartSelector(props: {
-  datum: IChartData[];
-  setDatum: (datum: IChartData[]) => void;
+  data: IChartData[];
+  setData: (data: IChartData[]) => void;
   layout: IChartLayout;
   setLayout: (layout: IChartLayout) => void;
   mode: Mode;
   dataIndex: number | undefined;
 }): JSX.Element | null {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const {datum, setDatum, layout, setLayout, mode, dataIndex} = props;
+  const {data, setData, layout, setLayout, mode, dataIndex} = props;
   return <Box component="div">aaa</Box>;
 }

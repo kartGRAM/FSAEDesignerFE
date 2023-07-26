@@ -7,7 +7,7 @@ import {
   Font,
   Padding
 } from 'plotly.js';
-import math from 'mathjs';
+import * as math from 'mathjs';
 
 export interface IDataChartArea {
   layouts: IChartLayout;

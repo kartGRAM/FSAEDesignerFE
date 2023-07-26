@@ -9,32 +9,40 @@ import {
   IDataEdge,
   FlowNode
 } from './FlowNode';
+import {ITest} from './ITest';
 
 export const className = 'Chart' as const;
 type ClassName = typeof className;
 
 export interface IChartNode extends IFlowNode {
   className: ClassName;
-  datum: IChartData[];
-  getPlotlyDatum(): IPlotData[];
+  data: IChartData[];
+  getPlotlyData(test: ITest): IPlotData[];
   layout: IChartLayout;
 }
 
 export interface IDataChartNode extends IDataFlowNode {
   className: ClassName;
-  readonly datum: IChartData[];
+  readonly data: IChartData[];
   readonly layout: IChartLayout;
 }
 
 export class ChartNode extends FlowNode implements IChartNode {
   readonly className = className;
 
-  datum: IChartData[] = [];
+  data: IChartData[] = [];
 
-  plotlyDatum: IPlotData[] | undefined = undefined;
+  plotlyData: IPlotData[] | undefined = undefined;
 
-  getPlotlyDatum(): IPlotData[] {
-    if (this.plotlyDatum) return this.plotlyDatum;
+  getPlotlyData(test: ITest): IPlotData[] {
+    if (this.plotlyData) return this.plotlyData;
+    const instances = test.localInstances;
+    const results = test.caseResults;
+    if (!instances || !results) throw new Error('解析が終わっていない');
+    this.plotlyData = this.data.map((data) =>
+      getPlotlyData(data, results, instances)
+    );
+    return this.plotlyData;
   }
 
   layout: IChartLayout = {};
@@ -60,7 +68,7 @@ export class ChartNode extends FlowNode implements IChartNode {
     return {
       ...data,
       className: this.className,
-      datum: [...this.datum],
+      data: [...this.data],
       layout: {...this.layout}
     };
   }
@@ -78,7 +86,7 @@ export class ChartNode extends FlowNode implements IChartNode {
     if (isDataFlowNode(params) && isDataChartNode(params)) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const data = params;
-      this.datum = data.datum;
+      this.data = data.data;
       this.layout = data.layout;
     }
   }

@@ -93,12 +93,12 @@ function useChartDialog(props: {
 
 function ChartContent(props: {node: IChartNode; test: ITest}) {
   const {node, test} = props;
-  const {datum, layout} = node;
+  const {data, layout} = node;
   const {updateWithSave} = useTestUpdate(test);
   const [mode] = React.useState<Mode>('DataSelect');
 
-  const setDatum = (datum: IChartData[]) => {
-    node.datum = {...datum};
+  const setData = (data: IChartData[]) => {
+    node.data = {...data};
     updateWithSave();
   };
   const setLayout = (layout: IChartLayout) => {
@@ -107,6 +107,9 @@ function ChartContent(props: {node: IChartNode; test: ITest}) {
   };
 
   const index = undefined;
+
+  const pData = node.getPlotlyData(test);
+  const pLayout = JSON.parse(JSON.stringify(layout)) as IChartLayout;
 
   return (
     <Box
@@ -133,15 +136,17 @@ function ChartContent(props: {node: IChartNode; test: ITest}) {
         }}
       >
         <ChartSelector
-          datum={datum}
-          setDatum={setDatum}
-          layout={layout}
+          data={data}
+          setData={setData}
+          layout={pLayout}
           setLayout={setLayout}
           mode={mode}
           dataIndex={index}
         />
       </Box>
       <Chart
+        data={pData}
+        layout={layout}
         sx={{
           flexGrow: 1,
           position: 'relative',

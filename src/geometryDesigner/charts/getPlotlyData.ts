@@ -1,48 +1,19 @@
 import {CaseResults} from '@worker/solverWorkerMessage';
-import {KinematicSolver} from '@gd/kinematics/Solver';
-import {IAssembly} from '@gd/IElements';
 import {evaluate} from '@gd/Formula';
-import {DatumManager} from '@gd/measure/DatumManager';
-import {MeasureToolsManager} from '@gd/measure/MeasureToolsManager';
+import {LocalInstances} from '@worker/getLocalInstances';
 import {IChartData, DataRef, IPlotData, Datum, getStats} from './ICharts';
 
 export function getPlotlyData(
   data: IChartData,
   caseResults: CaseResults,
-  solver: KinematicSolver,
-  assembly: IAssembly,
-  datumManager: DatumManager,
-  measureToolsManager: MeasureToolsManager
+  localInstances: LocalInstances
 ): IPlotData {
   const {x, y, z} = data;
   return {
     ...data,
-    x: getDataArray(
-      x,
-      caseResults,
-      solver,
-      assembly,
-      datumManager,
-      measureToolsManager
-    ),
-    y: getDataArray(
-      y,
-      caseResults,
-      solver,
-      assembly,
-      datumManager,
-      measureToolsManager
-    ),
-    z: z
-      ? getDataArray(
-          z,
-          caseResults,
-          solver,
-          assembly,
-          datumManager,
-          measureToolsManager
-        )
-      : z
+    x: getDataArray(x, caseResults, localInstances),
+    y: getDataArray(y, caseResults, localInstances),
+    z: z ? getDataArray(z, caseResults, localInstances) : z
   };
 }
 
@@ -50,11 +21,9 @@ export function getPlotlyData(
 export function getDataArray(
   ref: DataRef,
   caseResults: CaseResults,
-  solver: KinematicSolver,
-  assembly: IAssembly,
-  datumManager: DatumManager,
-  measureToolsManager: MeasureToolsManager
+  localInstances: LocalInstances
 ): Datum[] {
+  const {assembly, datumManager, measureToolsManager, solver} = localInstances;
   if (ref.stats) {
     const stats = getStats(ref.stats);
     const cases = Object.keys(caseResults.caseResults);
@@ -62,10 +31,7 @@ export function getDataArray(
       const datum = getDataArray(
         {...ref, case: c},
         caseResults,
-        solver,
-        assembly,
-        datumManager,
-        measureToolsManager
+        localInstances
       );
       return stats(datum as number[]);
     });

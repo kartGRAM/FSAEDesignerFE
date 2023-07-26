@@ -18,6 +18,7 @@ import {
 } from '@worker/solverWorkerMessage';
 import {ISnapshot} from '@gd/kinematics/ISnapshot';
 import {setTests} from '@store/reducers/dataGeometryDesigner';
+import {LocalInstances, getLocalInstances} from '@worker/getLocalInstances';
 import {IFlowNode, IDataEdge} from './FlowNode';
 import {StartNode, isStartNode, IStartNode} from './StartNode';
 import {EndNode, isEndNode, IEndNode} from './EndNode';
@@ -404,6 +405,16 @@ export class Test implements ITest {
     this._caseResults = value;
   }
 
+  private _localInstances: LocalInstances | null = null;
+
+  get localInstances() {
+    return this._localInstances;
+  }
+
+  private set localInstances(value: LocalInstances | null) {
+    this._localInstances = value;
+  }
+
   private _running: boolean = false;
 
   get running() {
@@ -438,6 +449,7 @@ export class Test implements ITest {
     this.running = false;
     this.done = false;
     this.caseResults = null;
+    this.localInstances = null;
     this.wipNodes = 0;
     this.doneNodes = 0;
   }
@@ -465,11 +477,11 @@ export class Test implements ITest {
       }
       if (isCaseResults(data)) {
         worker.terminate();
-        this.worker = undefined;
-        this.caseResults = data;
         // プログレスバーが最後まで行くのを見たい"
         setTimeout(() => {
           this.resetTestStatus();
+          this.caseResults = data;
+          this.localInstances = getLocalInstances(getDgd());
           this.done = true;
           store.dispatch(testUpdateNotify(this));
         }, 1000);
