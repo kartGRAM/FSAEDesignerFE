@@ -1,4 +1,5 @@
 import {v4 as uuidv4} from 'uuid';
+import {IChartData, IChartLayout} from '@gd/charts/ICharts';
 import {isEndNode} from './TypeGuards';
 import {
   IFlowNode,
@@ -13,14 +14,22 @@ type ClassName = typeof className;
 
 export interface IChartNode extends IFlowNode {
   className: ClassName;
+  datum: IChartData[];
+  layout: IChartLayout;
 }
 
-export interface IDataSetterNode extends IDataFlowNode {
+export interface IDataChartNode extends IDataFlowNode {
   className: ClassName;
+  readonly datum: IChartData[];
+  readonly layout: IChartLayout;
 }
 
 export class ChartNode extends FlowNode implements IChartNode {
   readonly className = className;
+
+  datum: IChartData[] = [];
+
+  layout: IChartLayout = {};
 
   acceptable(
     node: IFlowNode,
@@ -38,11 +47,13 @@ export class ChartNode extends FlowNode implements IChartNode {
     return false;
   }
 
-  getData(nodes: {[index: string]: IFlowNode | undefined}): IDataSetterNode {
+  getData(nodes: {[index: string]: IFlowNode | undefined}): IDataChartNode {
     const data = super.getData(nodes);
     return {
       ...data,
-      className: this.className
+      className: this.className,
+      datum: [...this.datum],
+      layout: {...this.layout}
     };
   }
 
@@ -53,12 +64,14 @@ export class ChartNode extends FlowNode implements IChartNode {
           position: {x: number; y: number};
           nodeID?: string;
         }
-      | IDataSetterNode
+      | IDataChartNode
   ) {
     super(params);
     if (isDataFlowNode(params) && isDataChartNode(params)) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const data = params;
+      this.datum = data.datum;
+      this.layout = data.layout;
     }
   }
 
@@ -72,6 +85,6 @@ export function isChartNode(node: IFlowNode): node is IChartNode {
   return node.className === className;
 }
 
-export function isDataChartNode(node: IDataFlowNode): node is IDataSetterNode {
+export function isDataChartNode(node: IDataFlowNode): node is IDataChartNode {
   return node.className === className;
 }

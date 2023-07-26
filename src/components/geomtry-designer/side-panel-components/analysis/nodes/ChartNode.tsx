@@ -13,7 +13,10 @@ import FlowNodeDialog from '@gdComponents/side-panel-components/analysis/FlowNod
 import Box from '@mui/material/Box';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import {Chart} from '@gdComponents/Chart/Chart';
+import {ChartSelector, Mode} from '@gdComponents/Chart/ChartSelector';
 import {grey} from '@mui/material/colors';
+import useTestUpdate from '@hooks/useTestUpdate';
+import {IChartData, IChartLayout} from '@gd/charts/ICharts';
 import {getRFNodeBase} from './Base';
 
 export {isChartNode};
@@ -89,8 +92,21 @@ function useChartDialog(props: {
 }
 
 function ChartContent(props: {node: IChartNode; test: ITest}) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const {node, test} = props;
+  const {datum, layout} = node;
+  const {updateWithSave} = useTestUpdate(test);
+  const [mode] = React.useState<Mode>('DataSelect');
+
+  const setDatum = (datum: IChartData[]) => {
+    node.datum = {...datum};
+    updateWithSave();
+  };
+  const setLayout = (layout: IChartLayout) => {
+    node.layout = {...layout};
+    updateWithSave();
+  };
+
+  const index = undefined;
 
   return (
     <Box
@@ -98,6 +114,7 @@ function ChartContent(props: {node: IChartNode; test: ITest}) {
       sx={{
         width: '100%',
         height: '100%',
+        position: 'relative',
         p: 0,
         pl: 1,
         pr: 1,
@@ -114,8 +131,23 @@ function ChartContent(props: {node: IChartNode; test: ITest}) {
           minWidth: '30vh',
           height: '100%'
         }}
+      >
+        <ChartSelector
+          datum={datum}
+          setDatum={setDatum}
+          layout={layout}
+          setLayout={setLayout}
+          mode={mode}
+          dataIndex={index}
+        />
+      </Box>
+      <Chart
+        sx={{
+          flexGrow: 1,
+          position: 'relative',
+          minWidth: '0px' // minWidthを指定しないとFlexBoxがうまく動かない
+        }}
       />
-      <Chart sx={{flexGrow: 1}} />
     </Box>
   );
 }
