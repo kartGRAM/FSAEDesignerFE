@@ -67,6 +67,13 @@ export function getDataArray(
       });
     case 'special':
       if (ref.nodeID === 'case') return Object.keys(caseResults.caseResults);
-      return [0];
+      return [];
   }
+}
+
+export function getSelectableData(
+  caseResults: CaseResults,
+  localInstances: LocalInstances
+): {[key in DataRef['from']]: {nodeID: string; name: string}} {
+  return {};
 }

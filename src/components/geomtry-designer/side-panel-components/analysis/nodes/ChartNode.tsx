@@ -109,7 +109,6 @@ function ChartContent(props: {node: IChartNode; test: ITest}) {
   const index = undefined;
 
   const pData = node.getPlotlyData(test);
-  const pLayout = JSON.parse(JSON.stringify(layout)) as IChartLayout;
 
   return (
     <Box
@@ -130,7 +129,6 @@ function ChartContent(props: {node: IChartNode; test: ITest}) {
       <Box
         component="div"
         sx={{
-          backgroundColor: '#555',
           minWidth: '30vh',
           height: '100%'
         }}
@@ -138,7 +136,7 @@ function ChartContent(props: {node: IChartNode; test: ITest}) {
         <ChartSelector
           data={data}
           setData={setData}
-          layout={pLayout}
+          layout={layout}
           setLayout={setLayout}
           mode={mode}
           dataIndex={index}

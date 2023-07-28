@@ -10,6 +10,7 @@ import {
 import * as math from 'mathjs';
 
 export interface IDataChartArea {
+  nodeID: string;
   layouts: IChartLayout;
   data: IChartData[];
 }
@@ -23,6 +24,7 @@ interface WOData
   > {}
 
 export interface IChartData extends WOData {
+  nodeID: string;
   type: Exclude<WOData['type'], undefined>;
   x: DataRef;
   y: DataRef;
