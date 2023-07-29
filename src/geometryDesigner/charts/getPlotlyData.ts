@@ -71,9 +71,54 @@ export function getDataArray(
   }
 }
 
+export type SelectableDataCategory = {
+  [index: string]:
+    | {nodeID: string; name: string; categoryName: string}[]
+    | SelectableDataCategory;
+};
+
+export type SelectableData = {
+  [key in DataRef['from']]:
+    | {nodeID: string; name: string}[]
+    | SelectableDataCategory;
+};
+
+export function getSelectableCase(caseResults: CaseResults) {
+  return ['All', ...Object.keys(caseResults)];
+}
+
 export function getSelectableData(
   caseResults: CaseResults,
   localInstances: LocalInstances
-): {[key in DataRef['from']]: {nodeID: string; name: string}} {
-  return {};
+): SelectableData {
+  const result = Object.values(caseResults.caseResults).pop()?.pop();
+  if (!result)
+    return {
+      element: [],
+      global: [],
+      measureTool: [],
+      special: []
+    };
+
+  return {
+    element: localInstances.assembly
+      .getVariablesAllWithParent()
+      .reduce((prev, current) => {
+        prev[current.parent.nodeID] = current.values.map((v) => ({
+          nodeID: v.nodeID,
+          name: v.name,
+          categoryName: current.parent.name.value
+        }));
+        return prev;
+      }, {} as SelectableDataCategory),
+    global: result.globals.map((global) => ({
+      nodeID: global.name,
+      name: global.name
+    })),
+    measureTool: localInstances.measureToolsManager.children.map((child) => ({
+      nodeID: child.nodeID,
+      name: child.name
+    })),
+    special: []
+  };
 }
