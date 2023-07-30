@@ -28,14 +28,21 @@ export interface IChartData extends WOData {
   type: Exclude<WOData['type'], undefined>;
   x: DataRef;
   y: DataRef;
-  z?: DataRef;
+  z: DataRef;
   xaxis: xAxis;
   yaxis: yAxis;
 }
 
+export const dataFrom = [
+  'element',
+  'measureTool',
+  'global',
+  'special'
+] as const;
+
 export type DataRef = {
   case: string | 'All';
-  from: 'element' | 'measureTool' | 'global' | 'special';
+  from: typeof dataFrom[number];
   nodeID: string;
   stats?: Stats;
 };

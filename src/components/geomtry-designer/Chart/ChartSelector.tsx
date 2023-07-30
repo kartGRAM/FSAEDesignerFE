@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react';
-import {IChartData, IChartLayout} from '@gd/charts/ICharts';
+import {IChartData, IChartLayout, dataFrom} from '@gd/charts/ICharts';
 import {CaseResults} from '@worker/solverWorkerMessage';
 import {LocalInstances} from '@worker/getLocalInstances';
 import {
@@ -23,8 +23,10 @@ import NativeSelect, {SelectChangeEvent} from '@mui/material/Select';
 import {
   getSelectableData,
   SelectableDataCategory,
-  getCases
+  getCases,
+  getDataArray
 } from '@gd/charts/getPlotlyData';
+
 import {isArray} from '@utils/helpers';
 import {v4 as uuidv4} from 'uuid';
 
@@ -77,6 +79,7 @@ export function DataSelector(props: {
     type: 'scatter',
     x: {case: '', from: 'element', nodeID: ''},
     y: {case: '', from: 'element', nodeID: ''},
+    z: {case: '', from: 'element', nodeID: ''},
     xaxis: 'x1',
     yaxis: 'y1'
   };
@@ -126,20 +129,56 @@ function DataRow(props: {
   const {results, localInstances, data, setData, axis} = props;
   const labelId = data.nodeID + axis;
   const dataRef = data[axis];
+  const {from} = dataRef;
 
-  const selectableData = getSelectableData(results, localInstances);
+  const selectableData = getSelectableData(results, localInstances)[from];
+
+  const handleFromChanged = (e: SelectChangeEvent<string>) => {
+    const {value} = e.target;
+    const newRef = {...dataRef};
+    newRef.from = value as any;
+    const newData = {...data};
+    newData[axis] = newRef;
+    setData(newData);
+  };
 
   const handleNodeIDChanged = (e: SelectChangeEvent<string>) => {
     const {value} = e.target;
+    const newRef = {...dataRef};
+    newRef.nodeID = value;
+    const newData = {...data};
+    newData[axis] = newRef;
+    setData(newData);
   };
 
   const handleCaseChanged = (e: SelectChangeEvent<string>) => {
     const {value} = e.target;
+    const newRef = {...dataRef};
+    newRef.case = value;
+    const newData = {...data};
+    newData[axis] = newRef;
+    setData(newData);
   };
 
   const cases = getCases(results);
 
-  const getOptions = (data: SelectableDataCategory): JSX.Element => {
+  const getOptions = (
+    data:
+      | SelectableDataCategory
+      | {nodeID: string; name: string; categoryName: string}[]
+  ): JSX.Element | null => {
+    if (isArray(data)) {
+      if (data.length === 0) return null;
+      return (
+        <>
+          {data.map((value) => (
+            <option value={value.nodeID} key={value.nodeID}>
+              {value.name}
+            </option>
+          ))}
+        </>
+      );
+    }
     const keys = Object.keys(data);
     return (
       <>
@@ -190,22 +229,36 @@ function DataRow(props: {
           }}
         />
       </TableCell>
-      <TableCell id={labelId} scope="row" padding="none" align="left">
+      <TableCell scope="row" padding="none" align="left">
         <NativeSelect
           native
           variant="standard"
-          value={dataRef?.nodeID ?? ''}
+          value={from}
+          onChange={handleFromChanged}
+        >
+          {dataFrom.map((f) => (
+            <option value={f} key={f}>
+              {f}
+            </option>
+          ))}
+        </NativeSelect>
+      </TableCell>
+      <TableCell scope="row" padding="none" align="left">
+        <NativeSelect
+          native
+          variant="standard"
+          value={dataRef.nodeID}
           onChange={handleNodeIDChanged}
         >
           <option aria-label="None" value="" />
           {getOptions(selectableData)}
         </NativeSelect>
       </TableCell>
-      <TableCell id={labelId} scope="row" padding="none" align="left">
+      <TableCell scope="row" padding="none" align="left">
         <NativeSelect
           native
           variant="standard"
-          value={dataRef?.case ?? ''}
+          value={dataRef.case}
           onChange={handleCaseChanged}
         >
           <option aria-label="None" value="" />

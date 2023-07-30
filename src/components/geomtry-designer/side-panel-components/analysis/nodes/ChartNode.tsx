@@ -78,7 +78,7 @@ function useChartDialog(props: {
         onClose={handleClose}
         paperProps={{
           sx: {
-            minWidth: '70%',
+            minWidth: '80%',
             height: '80%',
             '.MuiDialogContent-root': {p: '0!important'}
           }
@@ -131,7 +131,7 @@ function ChartContent(props: {node: IChartNode; test: ITest}) {
       <Box
         component="div"
         sx={{
-          minWidth: '30vh',
+          minWidth: '45vh',
           height: '100%'
         }}
       >
