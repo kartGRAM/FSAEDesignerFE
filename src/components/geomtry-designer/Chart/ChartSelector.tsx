@@ -20,6 +20,12 @@ import {
   Box
 } from '@mui/material';
 import NativeSelect, {SelectChangeEvent} from '@mui/material/Select';
+import {
+  getSelectableData,
+  SelectableDataCategory,
+  getCases
+} from '@gd/charts/getPlotlyData';
+import {isArray} from '@utils/helpers';
 
 export type Mode =
   | 'DataSelect'
@@ -41,8 +47,6 @@ export function ChartSelector(props: {
   return <Box component="div">aaa</Box>;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-/*
 function DataRow(props: {
   results: CaseResults;
   localInstances: LocalInstances;
@@ -52,32 +56,53 @@ function DataRow(props: {
   selected: boolean;
   setSelected: (value: boolean) => void;
 }) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unreachable
   const {results, localInstances, data, setData, selected, setSelected, axis} =
     props;
   const labelId = data.nodeID + axis;
   const dataRef = data[axis];
 
-  const handleTargetChanged = (e: SelectChangeEvent<string>) => {
+  const selectableData = getSelectableData(results, localInstances);
+
+  const handleNodeIDChanged = (e: SelectChangeEvent<string>) => {
     const {value} = e.target;
-    if (value.includes('@Control')) {
-      const nodeID = value.split('@')[0];
-      const control = controls.find((c) => c.nodeID === nodeID);
-      if (!control) return;
-      setSelectedObject({
-        type: 'Control',
-        target: nodeID,
-        valueForSelectTag: value
-      });
-      setCategory('Control');
-    } else {
-      setSelectedObject({
-        type: 'NotSelected',
-        target: '',
-        valueForSelectTag: ''
-      });
-      setCategory('');
-    }
+  };
+
+  const handleCaseChanged = (e: SelectChangeEvent<string>) => {
+    const {value} = e.target;
+  };
+
+  const cases = getCases(results);
+
+  const getOptions = (data: SelectableDataCategory): JSX.Element => {
+    const keys = Object.keys(data);
+    return (
+      <>
+        {keys.map((key) => {
+          const values = data[key];
+          if (
+            isArray<{
+              nodeID: string;
+              name: string;
+              categoryName: string;
+            }>(values)
+          ) {
+            if (values.length === 0) return null;
+            const {categoryName} = values[0];
+            return (
+              <>
+                <optgroup label={categoryName} />
+                {values.map((value) => (
+                  <option value={value.nodeID} key={value.nodeID}>
+                    {value.name}
+                  </option>
+                ))}
+              </>
+            );
+          }
+          return getOptions(values);
+        })}
+      </>
+    );
   };
 
   return (
@@ -91,7 +116,7 @@ function DataRow(props: {
     >
       <TableCell padding="checkbox">
         <Checkbox
-          onChange={(e) => setSelected(e.target.value)}
+          onChange={(e) => setSelected(e.target.checked)}
           color="primary"
           checked={selected}
           inputProps={{
@@ -104,45 +129,30 @@ function DataRow(props: {
           native
           variant="standard"
           value={dataRef?.nodeID ?? ''}
-          onChange={handleTargetChanged}
+          onChange={handleNodeIDChanged}
         >
           <option aria-label="None" value="" />
-          <optgroup label="Controls">
-            {controls
-              .filter((c) => !alreadyExistsInSetterList.includes(c.nodeID))
-              .map((control) => (
-                <option
-                  value={`${control.nodeID}@Control`}
-                  key={control.nodeID}
-                >
-                  {getControl(control).name}
-                </option>
-              ))}
-          </optgroup>
+          {getOptions(selectableData)}
+        </NativeSelect>
+      </TableCell>
+      <TableCell id={labelId} scope="row" padding="none" align="left">
+        <NativeSelect
+          native
+          variant="standard"
+          value={dataRef?.case ?? ''}
+          onChange={handleCaseChanged}
+        >
+          <option aria-label="None" value="" />
+          {cases.map((c) => (
+            <option value={c.nodeID} key={c.nodeID}>
+              {c.name}
+            </option>
+          ))}
         </NativeSelect>
       </TableCell>
 
-      <TableCell align="right">
-        <TextField
-          disabled={!!node.copyFrom && !node.isModRow[row.targetNodeID]}
-          hiddenLabel
-          name="formula"
-          variant="standard"
-          onBlur={(e) => {
-            formik.handleBlur(e);
-            formik.handleSubmit();
-          }}
-          onKeyDown={onEnter}
-          onChange={formik.handleChange}
-          value={formik.values.formula}
-          error={formik.touched.formula && formik.errors.formula !== undefined}
-          helperText={formik.touched.formula && formik.errors.formula}
-        />
-      </TableCell>
-      <TableCell align="right" sx={{color}}>
-        {row.evaluatedValue}
-      </TableCell>
+      <TableCell align="right" />
+      <TableCell align="right" />
     </TableRow>
   );
 }
-*/

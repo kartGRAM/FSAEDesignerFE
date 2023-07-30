@@ -81,12 +81,25 @@ export type SelectableDataCategory = {
 
 export type SelectableData = {
   [key in DataRef['from']]:
-    | {nodeID: string; name: string}[]
+    | {nodeID: string; name: string; categoryName: string}[]
     | SelectableDataCategory;
 };
 
-export function getSelectableCase(caseResults: CaseResults) {
-  return ['All', ...Object.keys(caseResults)];
+export function getCases(
+  caseResults: CaseResults
+): {nodeID: string; name: string; categoryName: string}[] {
+  return [
+    {
+      nodeID: 'All',
+      name: 'All',
+      categoryName: 'cases'
+    },
+    ...Object.keys(caseResults).map((key) => ({
+      nodeID: key,
+      name: caseResults.cases[key].name,
+      categoryName: 'cases'
+    }))
+  ];
 }
 
 export function getSelectableData(
@@ -115,25 +128,16 @@ export function getSelectableData(
       }, {} as SelectableDataCategory),
     global: result.globals.map((global) => ({
       nodeID: global.name,
-      name: global.name
+      name: global.name,
+      categoryName: 'global'
     })),
     measureTool: localInstances.measureToolsManager.children.map((child) => ({
       nodeID: child.nodeID,
-      name: child.name
+      name: child.name,
+      categoryName: 'measureTool'
     })),
     special: {
-      cases: [
-        {
-          nodeID: 'All',
-          name: 'All',
-          categoryName: 'cases'
-        },
-        ...Object.keys(caseResults).map((key) => ({
-          nodeID: key,
-          name: caseResults.cases[key].name,
-          categoryName: 'cases'
-        }))
-      ]
+      cases: getCases(caseResults)
     }
   };
 }
