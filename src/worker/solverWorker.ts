@@ -66,7 +66,7 @@ ctx.onmessage = async (e: MessageEvent<FromParent>) => {
       getSnapshot,
       {
         isCaseResults: true,
-        caseResults: {}
+        cases: {}
       },
 
       undefined

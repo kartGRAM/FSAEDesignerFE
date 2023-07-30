@@ -579,12 +579,12 @@ export class Test implements ITest {
       node.action(
         solver,
         getSnapshot,
-        currentCase ? ret.caseResults[currentCase] : undefined
+        currentCase ? ret.cases[currentCase].results : undefined
       );
     }
     if (isCaseStartNode(node)) {
       currentCase = node.nodeID;
-      ret.caseResults[node.nodeID] = [];
+      ret.cases[node.nodeID] = {name: node.name, results: []};
     }
     if (isCaseEndNode(node)) {
       currentCase = undefined;
@@ -604,12 +604,20 @@ export class Test implements ITest {
       // solver.restoreState(state);
       const child = this.DFSNodes(next, solver, getSnapshot, ret, currentCase);
 
-      const results = await Promise.all([...children, child]);
+      const results: CaseResults[] = await Promise.all([...children, child]);
 
-      ret.caseResults = results.reduce((prev, current) => {
-        prev = {...prev, ...current.caseResults};
-        return prev;
-      }, {} as {[index: string]: Required<ISnapshot>[]});
+      ret.cases = results.reduce(
+        (prev, current) => {
+          prev = {...prev, ...current.cases};
+          return prev;
+        },
+        {} as {
+          [index: string]: {
+            name: string;
+            results: Required<ISnapshot>[];
+          };
+        }
+      );
     }
     done();
 

@@ -26,7 +26,7 @@ export function getDataArray(
   const {assembly, datumManager, measureToolsManager, solver} = localInstances;
   if (ref.stats) {
     const stats = getStats(ref.stats);
-    const cases = Object.keys(caseResults.caseResults);
+    const cases = Object.keys(caseResults.cases);
     return cases.map((c) => {
       const datum = getDataArray(
         {...ref, case: c},
@@ -38,8 +38,10 @@ export function getDataArray(
   }
   const results =
     ref.case !== 'All'
-      ? caseResults.caseResults[ref.case]
-      : Object.values(caseResults.caseResults).flat();
+      ? caseResults.cases[ref.case].results
+      : Object.values(caseResults.cases)
+          .map((c) => c.results)
+          .flat();
   // eslint-disable-next-line default-case
   switch (ref.from) {
     case 'element':
@@ -66,7 +68,7 @@ export function getDataArray(
         return tool?.value[value] ?? Number.NaN;
       });
     case 'special':
-      if (ref.nodeID === 'case') return Object.keys(caseResults.caseResults);
+      if (ref.nodeID === 'cases') return Object.keys(caseResults.cases);
       return [];
   }
 }
@@ -91,7 +93,7 @@ export function getSelectableData(
   caseResults: CaseResults,
   localInstances: LocalInstances
 ): SelectableData {
-  const result = Object.values(caseResults.caseResults).pop()?.pop();
+  const result = Object.values(caseResults.cases).pop()?.results.pop();
   if (!result)
     return {
       element: [],
@@ -119,6 +121,19 @@ export function getSelectableData(
       nodeID: child.nodeID,
       name: child.name
     })),
-    special: []
+    special: {
+      cases: [
+        {
+          nodeID: 'All',
+          name: 'All',
+          categoryName: 'cases'
+        },
+        ...Object.keys(caseResults).map((key) => ({
+          nodeID: key,
+          name: caseResults.cases[key].name,
+          categoryName: 'cases'
+        }))
+      ]
+    }
   };
 }

@@ -20,7 +20,12 @@ export function isWorkerMessage(object: any): object is WorkerMessage {
 
 export type CaseResults = {
   isCaseResults: true;
-  caseResults: {[index: string]: Required<ISnapshot>[]};
+  cases: {
+    [index: string]: {
+      name: string;
+      results: Required<ISnapshot>[];
+    };
+  };
 };
 
 export function isCaseResults(object: any): object is CaseResults {

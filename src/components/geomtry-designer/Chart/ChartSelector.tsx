@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react';
 import {IChartData, IChartLayout} from '@gd/charts/ICharts';
 import {CaseResults} from '@worker/solverWorkerMessage';
@@ -14,7 +15,6 @@ import {
   TableRow,
   TableSortLabel,
   Toolbar,
-  Box,
   Table,
   Paper,
   Box
@@ -42,6 +42,7 @@ export function ChartSelector(props: {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
+/*
 function DataRow(props: {
   results: CaseResults;
   localInstances: LocalInstances;
@@ -51,7 +52,7 @@ function DataRow(props: {
   selected: boolean;
   setSelected: (value: boolean) => void;
 }) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unreachable
   const {results, localInstances, data, setData, selected, setSelected, axis} =
     props;
   const labelId = data.nodeID + axis;
@@ -144,3 +145,4 @@ function DataRow(props: {
     </TableRow>
   );
 }
+*/
