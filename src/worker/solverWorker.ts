@@ -56,7 +56,7 @@ ctx.onmessage = async (e: MessageEvent<FromParent>) => {
         ...solver.getSnapshot(),
         /* assemblyData, */
         measureTools: measureToolsManager.getValuesAll(),
-        globals: {...state.formulae}
+        globals: [...state.formulae]
       };
     };
 

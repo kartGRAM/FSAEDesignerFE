@@ -109,6 +109,8 @@ function ChartContent(props: {node: IChartNode; test: ITest}) {
   const index = undefined;
 
   const pData = node.getPlotlyData(test);
+  const {caseResults, localInstances} = test;
+  if (!caseResults || !localInstances) return null;
 
   return (
     <Box
@@ -134,6 +136,8 @@ function ChartContent(props: {node: IChartNode; test: ITest}) {
         }}
       >
         <ChartSelector
+          results={caseResults}
+          localInstances={localInstances}
           data={data}
           setData={setData}
           layout={layout}

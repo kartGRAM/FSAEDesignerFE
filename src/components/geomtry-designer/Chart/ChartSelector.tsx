@@ -26,6 +26,7 @@ import {
   getCases
 } from '@gd/charts/getPlotlyData';
 import {isArray} from '@utils/helpers';
+import {v4 as uuidv4} from 'uuid';
 
 export type Mode =
   | 'DataSelect'
@@ -41,10 +42,78 @@ export function ChartSelector(props: {
   setLayout: (layout: IChartLayout) => void;
   mode: Mode;
   dataIndex: number | undefined;
+  results: CaseResults;
+  localInstances: LocalInstances;
 }): JSX.Element | null {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const {data, setData, layout, setLayout, mode, dataIndex} = props;
-  return <Box component="div">aaa</Box>;
+  const {mode} = props;
+  if (mode === 'DataSelect') {
+    return <DataSelector {...props} />;
+  }
+  return null;
+}
+
+export function DataSelector(props: {
+  results: CaseResults;
+  localInstances: LocalInstances;
+  data: IChartData[];
+  setData: (data: IChartData[]) => void;
+}) {
+  const {data, setData} = props;
+
+  const setDatum = (datum: IChartData) => {
+    let inData = false;
+    const newData = data.map((d) => {
+      if (d.nodeID === datum.nodeID) {
+        inData = true;
+        return datum;
+      }
+      return d;
+    });
+    if (!inData) newData.push(datum);
+    setData(newData);
+  };
+  const newData: IChartData = {
+    nodeID: uuidv4(),
+    type: 'scatter',
+    x: {case: '', from: 'element', nodeID: ''},
+    y: {case: '', from: 'element', nodeID: ''},
+    xaxis: 'x1',
+    yaxis: 'y1'
+  };
+  return (
+    <>
+      {data.map((datum) => (
+        <DataTable
+          key={datum.nodeID}
+          {...props}
+          data={datum}
+          setData={setDatum}
+        />
+      ))}
+      <DataTable key="new" {...props} data={newData} setData={setDatum} />
+    </>
+  );
+}
+
+export function DataTable(props: {
+  results: CaseResults;
+  localInstances: LocalInstances;
+  data: IChartData;
+  setData: (data: IChartData) => void;
+}) {
+  return (
+    <Box component="div">
+      <TableContainer>
+        <Table size="small">
+          <TableBody>
+            <DataRow {...props} axis="x" />
+            <DataRow {...props} axis="y" />
+            <DataRow {...props} axis="z" />
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Box>
+  );
 }
 
 function DataRow(props: {
@@ -53,11 +122,8 @@ function DataRow(props: {
   axis: 'x' | 'y' | 'z';
   data: IChartData;
   setData: (data: IChartData) => void;
-  selected: boolean;
-  setSelected: (value: boolean) => void;
 }) {
-  const {results, localInstances, data, setData, selected, setSelected, axis} =
-    props;
+  const {results, localInstances, data, setData, axis} = props;
   const labelId = data.nodeID + axis;
   const dataRef = data[axis];
 
@@ -109,16 +175,16 @@ function DataRow(props: {
     <TableRow
       hover
       role="checkbox"
-      aria-checked={selected}
+      // aria-checked={selected}
       tabIndex={-1}
       key={data.nodeID}
-      selected={selected}
+      // selected={selected}
     >
       <TableCell padding="checkbox">
         <Checkbox
-          onChange={(e) => setSelected(e.target.checked)}
+          // onChange={(e) => setSelected(e.target.checked)}
           color="primary"
-          checked={selected}
+          // checked={selected}
           inputProps={{
             'aria-labelledby': labelId
           }}

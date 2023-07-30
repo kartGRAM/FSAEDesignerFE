@@ -94,7 +94,7 @@ export function getCases(
       name: 'All',
       categoryName: 'cases'
     },
-    ...Object.keys(caseResults).map((key) => ({
+    ...Object.keys(caseResults.cases).map((key) => ({
       nodeID: key,
       name: caseResults.cases[key].name,
       categoryName: 'cases'
