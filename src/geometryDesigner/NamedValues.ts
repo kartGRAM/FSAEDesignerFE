@@ -139,12 +139,11 @@ abstract class NamedValue implements INamedValue {
     this.className = className;
     this.parent = parent ?? null;
     this.name = name;
+    this.nodeID = uuidv4();
+    if (nodeID) this.nodeID = nodeID;
     if (value && isNamedData(value)) {
       this.nodeID = value.nodeID;
-    } else {
-      this.nodeID = uuidv4();
     }
-    if (nodeID) this.nodeID = nodeID;
   }
 }
 
@@ -379,7 +378,7 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
     update?: (newValue: FunctionVector3 | INamedVector3) => void;
     nodeID?: string;
   }) {
-    const {name: defaultName, value, update} = params;
+    const {name: defaultName, value, update, nodeID} = params;
     super({
       className: 'NamedVector3',
       ...params,
@@ -403,17 +402,20 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
     this.x = new NamedNumber({
       name: `${this.name}_X`,
       value: value?.x ?? 0,
-      parent: this
+      parent: this,
+      nodeID: nodeID ? `${nodeID}x` : undefined
     });
     this.y = new NamedNumber({
       name: `${this.name}_Y`,
       value: value?.y ?? 0,
-      parent: this
+      parent: this,
+      nodeID: nodeID ? `${nodeID}y` : undefined
     });
     this.z = new NamedNumber({
       name: `${this.name}_Z`,
       value: value?.z ?? 0,
-      parent: this
+      parent: this,
+      nodeID: nodeID ? `${nodeID}z` : undefined
     });
     if (isNamedData(value)) {
       this.meta = {

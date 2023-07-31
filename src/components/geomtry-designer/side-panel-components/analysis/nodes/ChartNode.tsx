@@ -98,7 +98,7 @@ function ChartContent(props: {node: IChartNode; test: ITest}) {
   const [mode] = React.useState<Mode>('DataSelect');
 
   const setData = (data: IChartData[]) => {
-    node.data = {...data};
+    node.data = [...data];
     updateWithSave();
   };
   const setLayout = (layout: IChartLayout) => {

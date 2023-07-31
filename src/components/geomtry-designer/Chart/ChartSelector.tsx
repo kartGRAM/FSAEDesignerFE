@@ -105,13 +105,13 @@ export function DataTable(props: {
   setData: (data: IChartData) => void;
 }) {
   return (
-    <Box component="div">
+    <Box component="div" sx={{mb: 2}}>
       <TableContainer>
         <Table size="small">
           <TableBody>
-            <DataRow {...props} axis="x" />
-            <DataRow {...props} axis="y" />
-            <DataRow {...props} axis="z" />
+            <DataRow {...props} axis="x" key="x" />
+            <DataRow {...props} axis="y" key="y" />
+            <DataRow {...props} axis="z" key="z" />
           </TableBody>
         </Table>
       </TableContainer>
@@ -195,7 +195,10 @@ function DataRow(props: {
             const {categoryName} = values[0];
             return (
               <>
-                <optgroup label={categoryName} />
+                <optgroup
+                  label={categoryName}
+                  key={values[0].nodeID + categoryName}
+                />
                 {values.map((value) => (
                   <option value={value.nodeID} key={value.nodeID}>
                     {value.name}
@@ -216,10 +219,8 @@ function DataRow(props: {
       role="checkbox"
       // aria-checked={selected}
       tabIndex={-1}
-      key={data.nodeID}
-      // selected={selected}
     >
-      <TableCell padding="checkbox">
+      <TableCell padding="checkbox" key="cb">
         <Checkbox
           // onChange={(e) => setSelected(e.target.checked)}
           color="primary"
@@ -229,7 +230,7 @@ function DataRow(props: {
           }}
         />
       </TableCell>
-      <TableCell scope="row" padding="none" align="left">
+      <TableCell scope="row" padding="none" align="left" key="from">
         <NativeSelect
           native
           variant="standard"
@@ -243,14 +244,14 @@ function DataRow(props: {
           ))}
         </NativeSelect>
       </TableCell>
-      <TableCell scope="row" padding="none" align="left">
+      <TableCell scope="row" padding="none" align="left" key="node">
         <NativeSelect
           native
           variant="standard"
           value={dataRef.nodeID}
           onChange={handleNodeIDChanged}
         >
-          <option aria-label="None" value="" />
+          <option aria-label="None" value="" key="none" />
           {getOptions(selectableData)}
         </NativeSelect>
       </TableCell>
@@ -261,7 +262,7 @@ function DataRow(props: {
           value={dataRef.case}
           onChange={handleCaseChanged}
         >
-          <option aria-label="None" value="" />
+          <option aria-label="None" value="" key="none" />
           {cases.map((c) => (
             <option value={c.nodeID} key={c.nodeID}>
               {c.name}
@@ -269,9 +270,6 @@ function DataRow(props: {
           ))}
         </NativeSelect>
       </TableCell>
-
-      <TableCell align="right" />
-      <TableCell align="right" />
     </TableRow>
   );
 }

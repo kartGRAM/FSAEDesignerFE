@@ -13,7 +13,7 @@ export function getPlotlyData(
     ...data,
     x: getDataArray(x, caseResults, localInstances),
     y: getDataArray(y, caseResults, localInstances),
-    z: z ? getDataArray(z, caseResults, localInstances) : z
+    z: getDataArray(z, caseResults, localInstances)
   };
 }
 
@@ -38,10 +38,11 @@ export function getDataArray(
   }
   const results =
     ref.case !== 'All'
-      ? caseResults.cases[ref.case].results
+      ? caseResults.cases[ref.case]?.results
       : Object.values(caseResults.cases)
           .map((c) => c.results)
           .flat();
+  if (!results) return [];
   // eslint-disable-next-line default-case
   switch (ref.from) {
     case 'element':
@@ -106,7 +107,7 @@ export function getSelectableData(
   caseResults: CaseResults,
   localInstances: LocalInstances
 ): SelectableData {
-  const result = Object.values(caseResults.cases).pop()?.results.pop();
+  const result = Object.values(caseResults.cases).pop()?.results[0];
   if (!result)
     return {
       element: [],
