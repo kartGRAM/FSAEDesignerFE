@@ -551,7 +551,12 @@ export class Assembly extends Element implements IAssembly {
   getVariablesAll(): INamedNumber[] {
     return [
       ...this.getVariables(),
-      ...this.children.map((child) => child.getVariables()).flat()
+      ...this.children
+        .map((child) => {
+          if (isAssembly(child)) return child.getVariablesAll();
+          return child.getVariables();
+        })
+        .flat()
     ];
   }
 
@@ -670,7 +675,8 @@ export class Assembly extends Element implements IAssembly {
     return new NamedVector3({
       name: 'centerOfGravity',
       parent: this,
-      value: center
+      value: center,
+      nodeID: `${this.nodeID}cog`
     });
   }
 
@@ -1008,7 +1014,8 @@ export class Bar extends Element implements IBar {
     this.centerOfGravity = new NamedVector3({
       name: 'centerOfGravity',
       parent: this,
-      value: centerOfGravity ?? new Vector3()
+      value: centerOfGravity ?? new Vector3(),
+      nodeID: `${this.nodeID}cog`
     });
     this.position = new NamedVector3({
       name: 'position',
@@ -1304,7 +1311,8 @@ export class AArm extends Element implements IAArm {
     this.centerOfGravity = new NamedVector3({
       name: 'centerOfGravity',
       parent: this,
-      value: centerOfGravity ?? new Vector3()
+      value: centerOfGravity ?? new Vector3(),
+      nodeID: `${this.nodeID}cog`
     });
     this.position = new NamedVector3({
       name: 'position',
@@ -1502,7 +1510,8 @@ export class BellCrank extends Element implements IBellCrank {
     this.centerOfGravity = new NamedVector3({
       name: 'centerOfGravity',
       parent: this,
-      value: centerOfGravity ?? new Vector3()
+      value: centerOfGravity ?? new Vector3(),
+      nodeID: `${this.nodeID}cog`
     });
     this.position = new NamedVector3({
       name: 'position',
@@ -1671,7 +1680,8 @@ export class Body extends Element implements IBody {
     this.centerOfGravity = new NamedVector3({
       name: 'centerOfGravity',
       parent: this,
-      value: centerOfGravity ?? new Vector3()
+      value: centerOfGravity ?? new Vector3(),
+      nodeID: `${this.nodeID}cog`
     });
     this.position = new NamedVector3({
       name: 'position',
@@ -1738,12 +1748,6 @@ export class Tire extends Element implements ITire {
     return p.add(this.tireCenter.value);
   }
 
-  leftBearingNodeID: string;
-
-  rightBearingNodeID: string;
-
-  groundingPointNodeID: string;
-
   visible: NamedBooleanOrUndefined;
 
   mass: NamedNumber;
@@ -1775,7 +1779,7 @@ export class Tire extends Element implements ITire {
         new Vector3(0, this.toLeftBearing.value, 0)
       ),
       update: () => {},
-      nodeID: this.leftBearingNodeID
+      nodeID: `${this.nodeID}leftBRG`
     });
   }
 
@@ -1788,7 +1792,7 @@ export class Tire extends Element implements ITire {
         new Vector3(0, this.toRightBearing.value, 0)
       ),
       update: () => {},
-      nodeID: this.rightBearingNodeID
+      nodeID: `${this.nodeID}rightBRG`
     });
   }
 
@@ -1827,14 +1831,14 @@ export class Tire extends Element implements ITire {
       parent: this,
       value: gPoint,
       update: () => {},
-      nodeID: this.groundingPointNodeID
+      nodeID: `${this.nodeID}groundPoint`
     });
 
     return [...points, gPointNamed, this.tireCenter];
   }
 
   getPointsNodeIDs(): string[] {
-    return [this.leftBearingNodeID, this.rightBearingNodeID];
+    return [`${this.nodeID}leftBRG`, `${this.nodeID}rightBRG`];
   }
 
   arrange(parentPosition?: Vector3) {
@@ -1896,15 +1900,6 @@ export class Tire extends Element implements ITire {
       centerOfGravity
     } = params;
 
-    this.leftBearingNodeID = uuidv4();
-    this.rightBearingNodeID = uuidv4();
-    this.groundingPointNodeID = uuidv4();
-    if (isDataElement(params)) {
-      this.leftBearingNodeID = params.leftBearingNodeID;
-      this.rightBearingNodeID = params.rightBearingNodeID;
-      this.groundingPointNodeID = params.groundingPointNodeID;
-    }
-
     this.tireCenter = new NamedVector3({
       name: 'tireCenter',
       parent: this,
@@ -1940,7 +1935,8 @@ export class Tire extends Element implements ITire {
     this.centerOfGravity = new NamedVector3({
       name: 'centerOfGravity',
       parent: this,
-      value: centerOfGravity ?? new Vector3()
+      value: centerOfGravity ?? new Vector3(),
+      nodeID: `${this.nodeID}cog`
     });
     this.position = new NamedVector3({
       name: 'position',
@@ -1972,20 +1968,14 @@ export class Tire extends Element implements ITire {
           .getData(state),
         toRightBearing: this.toRightBearing
           .setValue(minus(mir.toRightBearing.getStringValue()))
-          .getData(state),
-        leftBearingNodeID: this.leftBearingNodeID,
-        rightBearingNodeID: this.rightBearingNodeID,
-        groundingPointNodeID: this.groundingPointNodeID
+          .getData(state)
       };
     }
     return {
       ...baseData,
       tireCenter: this.tireCenter.getData(state),
       toLeftBearing: this.toLeftBearing.getData(state),
-      toRightBearing: this.toRightBearing.getData(state),
-      leftBearingNodeID: this.leftBearingNodeID,
-      rightBearingNodeID: this.rightBearingNodeID,
-      groundingPointNodeID: this.groundingPointNodeID
+      toRightBearing: this.toRightBearing.getData(state)
     };
   }
 }
@@ -2212,7 +2202,8 @@ export class LinearBushing extends Element implements ILinearBushing {
     this.centerOfGravity = new NamedVector3({
       name: 'centerOfGravity',
       parent: this,
-      value: centerOfGravity ?? new Vector3()
+      value: centerOfGravity ?? new Vector3(),
+      nodeID: `${this.nodeID}cog`
     });
     this.position = new NamedVector3({
       name: 'position',
