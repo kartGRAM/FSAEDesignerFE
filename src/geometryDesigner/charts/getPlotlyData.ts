@@ -50,6 +50,7 @@ export function getDataArray(
         solver.restoreState(result);
         solver.postProcess();
         const vars = assembly.getVariablesAll();
+        // rotationとpositionを反映する
         const v = vars.find((p) => p.nodeID === ref.nodeID);
         return v?.value ?? Number.NaN;
       });
