@@ -13,6 +13,7 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import FolderIcon from '@mui/icons-material/Folder';
 import DeleteIcon from '@mui/icons-material/Delete';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import AvTimer from '@mui/icons-material/AvTimer';
 import TimeLine from '@mui/icons-material/Timeline';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
@@ -29,6 +30,7 @@ import {
   removeTest
 } from '@store/reducers/uiTempGeometryDesigner';
 import {ReactFlowProvider} from 'reactflow';
+import {v4 as uuidv4} from 'uuid';
 
 export default function Analysis() {
   const dispatch = useDispatch();
@@ -88,6 +90,10 @@ const TestRow = (props: {test: IDataTest}) => {
     useSelector((state: RootState) =>
       state.uitgd.tests.find((t) => t.nodeID === test.nodeID)
     ) ?? new Test(test);
+
+  const dataTests = useSelector(
+    (state: RootState) => state.dgd.present.analysis
+  );
   const dispatch = useDispatch();
 
   const [open, setOpen] = React.useState(false);
@@ -124,6 +130,15 @@ const TestRow = (props: {test: IDataTest}) => {
       dispatch(setTests(dataTests.filter((t) => t.nodeID !== test.nodeID)));
       dispatch(removeTest(loadedTest));
     }
+  };
+
+  const handleCopy = () => {
+    dispatch(
+      setTests([
+        ...dataTests,
+        {...test, nodeID: uuidv4(), name: `copy_${test.name}`}
+      ])
+    );
   };
 
   React.useEffect(() => {
@@ -209,6 +224,20 @@ const TestRow = (props: {test: IDataTest}) => {
               disabled={!loadedTest || !loadedTest.done}
             >
               <TimeLine />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Copy this test">
+            <IconButton
+              sx={{ml: 2}}
+              edge="end"
+              aria-label="delete"
+              onClick={async (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                handleCopy();
+              }}
+            >
+              <ContentCopyIcon />
             </IconButton>
           </Tooltip>
           <Tooltip title="Delete this test">
