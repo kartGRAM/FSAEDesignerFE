@@ -88,8 +88,24 @@ export function isNamedNumber(value: any): value is INamedNumber {
   }
   return false;
 }
-
 export interface IDataNumber extends IData<IDataFormula> {}
+
+export const namedNumberLWClassName = 'NamedNumberLW' as const;
+
+export interface INamedNumberLW extends INamedValue {
+  className: typeof namedNumberLWClassName;
+  value: number;
+  getData(state: GDState): IDataNumberLW;
+}
+
+export function isNamedNumberLW(value: any): value is INamedNumberLW {
+  if (isNamedValue(value)) {
+    return value.className === namedNumberLWClassName;
+  }
+  return false;
+}
+
+export interface IDataNumberLW extends IData<number> {}
 
 export interface IMetaNamedVector3 {
   mirrorTo?: string;
@@ -132,6 +148,25 @@ export interface IDataVector3 extends INamedData {
   pointOffsetTools?: IDataPointOffsetTool[];
   mirrorTo?: string;
   isFreeNode?: boolean;
+}
+
+export interface INamedVector3LW extends INamedValue {
+  readonly x: INamedNumberLW;
+  readonly y: INamedNumberLW;
+  readonly z: INamedNumberLW;
+  value: Vector3;
+  getData(state: GDState): IDataVector3LW;
+}
+
+export function isNamedVector3LW(value: any): value is INamedVector3LW {
+  if (isNamedValue(value)) return value.className === 'NamedVector3';
+  return false;
+}
+
+export interface IDataVector3LW extends INamedData {
+  x: IDataNumberLW;
+  y: IDataNumberLW;
+  z: IDataNumberLW;
 }
 
 export interface INamedMatrix3 extends INamedValue {
