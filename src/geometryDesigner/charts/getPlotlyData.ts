@@ -1,6 +1,8 @@
 import {CaseResults} from '@worker/solverWorkerMessage';
 import {evaluate} from '@gd/Formula';
 import {LocalInstances} from '@worker/getLocalInstances';
+import {INamedNumber, isNamedVector3} from '@gd/INamedValues';
+import {isElement} from '@gd/IElements';
 import {IChartData, DataRef, IPlotData, Datum, getStats} from './ICharts';
 
 export function getPlotlyData(
@@ -52,7 +54,7 @@ export function getDataArray(
         const vars = assembly.getVariablesAll();
         // rotationとpositionを反映する
         const v = vars.find((p) => p.nodeID === ref.nodeID);
-        return v?.value ?? Number.NaN;
+        return getMappedNumber(v);
       });
     case 'global':
       return results.map((result) => {
@@ -142,4 +144,26 @@ export function getSelectableData(
       cases: getCases(caseResults)
     }
   };
+}
+
+export function getMappedNumber(value: INamedNumber | undefined): number {
+  if (!value) return Number.NaN;
+  const vector = value.parent;
+  if (isNamedVector3(vector) && isElement(vector.parent)) {
+    const element = vector.parent;
+    const q = element.rotation.value;
+    const p = element.position.value;
+    const xyz = value.nodeID.slice(-1);
+    switch (xyz) {
+      case 'x':
+        return vector.value.applyQuaternion(q).add(p).x;
+      case 'y':
+        return vector.value.applyQuaternion(q).add(p).y;
+      case 'z':
+        return vector.value.applyQuaternion(q).add(p).z;
+      default:
+        throw new Error('末尾がxyzでない');
+    }
+  }
+  return value.value;
 }
