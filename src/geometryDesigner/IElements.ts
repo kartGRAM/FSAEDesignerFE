@@ -176,6 +176,7 @@ export interface IAssembly extends IElement {
   getMeasurablePointsAll(): INamedVector3[];
   getVariablesAll(): INamedNumber[];
   getVariablesAllWithParent(): {parent: IElement; values: INamedNumber[]}[];
+  getVariablesAllWithParentFlat(): {parent: IElement; value: INamedNumber}[];
   getJointedPoints(): INamedVector3[];
   getJointsRecursive(): Joint[];
   getAllPointsOfChildren(): INamedVector3[];

@@ -570,6 +570,20 @@ export class Assembly extends Element implements IAssembly {
     return [{parent: this, values: this.getVariables()}, ...children];
   }
 
+  getVariablesAllWithParentFlat(): {parent: IElement; value: INamedNumber}[] {
+    const children = this.children
+      .map((child) => {
+        if (isAssembly(child)) return child.getVariablesAllWithParentFlat();
+        return child.getVariables().map((v) => ({parent: child, value: v}));
+      })
+      .flat();
+
+    return [
+      ...this.getVariables().map((v) => ({parent: this, value: v})),
+      ...children
+    ];
+  }
+
   getMeasurablePointsAll(): INamedVector3[] {
     return [
       ...this.getMeasurablePoints(),

@@ -2,7 +2,7 @@ import {CaseResults} from '@worker/solverWorkerMessage';
 import {evaluate} from '@gd/Formula';
 import {LocalInstances} from '@worker/getLocalInstances';
 import {INamedNumber, isNamedVector3} from '@gd/INamedValues';
-import {isElement} from '@gd/IElements';
+import {isElement, IElement} from '@gd/IElements';
 import {IChartData, DataRef, IPlotData, Datum, getStats} from './ICharts';
 
 export function getPlotlyData(
@@ -45,14 +45,20 @@ export function getDataArray(
           .map((c) => c.results)
           .flat();
   if (!results) return [];
+  let element: IElement | undefined;
   // eslint-disable-next-line default-case
   switch (ref.from) {
     case 'element':
       return results.map((result) => {
         solver.restoreState(result);
         solver.postProcess();
-        const vars = assembly.getVariablesAll();
-        // rotationとpositionを反映する
+        if (!element) {
+          const vars = assembly.getVariablesAllWithParentFlat();
+          const v = vars.find((p) => p.value.nodeID === ref.nodeID);
+          element = v?.parent;
+          return getMappedNumber(v?.value);
+        }
+        const vars = element.getVariables();
         const v = vars.find((p) => p.nodeID === ref.nodeID);
         return getMappedNumber(v);
       });
