@@ -218,6 +218,7 @@ function DataRow(props: {
       hover
       role="checkbox"
       // aria-checked={selected}
+      key={axis}
       tabIndex={-1}
     >
       <TableCell padding="checkbox" key="cb">

@@ -46,20 +46,25 @@ export function getDataArray(
           .flat();
   if (!results) return [];
   let element: IElement | undefined;
+  let idx = -1;
   // eslint-disable-next-line default-case
   switch (ref.from) {
     case 'element':
       return results.map((result) => {
         solver.restoreState(result);
         solver.postProcess();
-        if (!element) {
+        if (!element || idx === -1) {
           const vars = assembly.getVariablesAllWithParentFlat();
           const v = vars.find((p) => p.value.nodeID === ref.nodeID);
           element = v?.parent;
+          if (element) {
+            idx = element
+              .getVariables()
+              .findIndex((p) => p.nodeID === ref.nodeID);
+          }
           return getMappedNumber(v?.value);
         }
-        const vars = element.getVariables();
-        const v = vars.find((p) => p.nodeID === ref.nodeID);
+        const v = element.getVariables()[idx];
         return getMappedNumber(v);
       });
     case 'global':
