@@ -20,6 +20,7 @@ import {v4 as uuidv4} from 'uuid';
 export interface GDState extends SavedData {
   transCoordinateMatrix: IDataMatrix3;
   changed: boolean;
+  lastGlobalFormulaUpdate: string;
 }
 
 const initialState: GDState = {
@@ -46,7 +47,8 @@ const initialState: GDState = {
     fixSpringDumperDuaringControl: false,
     assemblyMode: 'FixedFrame'
   },
-  changed: false
+  changed: false,
+  lastGlobalFormulaUpdate: uuidv4()
 };
 
 export const dataGeometryDesignerSlice = createSlice({
@@ -79,6 +81,7 @@ export const dataGeometryDesignerSlice = createSlice({
       state.idWoTest = uuidv4();
       state.changed = false;
       state.options = initialState.options;
+      state.lastGlobalFormulaUpdate = uuidv4();
     },
     setTopAssembly: (state: GDState, action: PayloadAction<SavedData>) => {
       clearHistory();
@@ -129,6 +132,7 @@ export const dataGeometryDesignerSlice = createSlice({
         if (state.topAssembly) state.topAssembly = {...state.topAssembly};
       }
       state.idWoTest = uuidv4();
+      state.lastGlobalFormulaUpdate = uuidv4();
       state.changed = true;
     },
     setControl: (state: GDState, action: PayloadAction<IDataControl>) => {

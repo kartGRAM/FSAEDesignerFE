@@ -46,9 +46,20 @@ export function validate(
   // return 'unexpected Error';
 }
 
-export function evaluate(formula: string, formulae?: IDataFormula[]): number {
+export function evaluate(params: {
+  formula: string;
+  formulae?: IDataFormula[];
+  lastValue?: number;
+  lastUpdate?: string;
+}): number {
+  const {formula, lastValue, lastUpdate} = params;
+  let {formulae} = params;
   if (!formulae) {
-    formulae = getDgd().formulae;
+    const state = getDgd();
+    formulae = state.formulae;
+    if (lastValue && lastUpdate) {
+      if (state.lastGlobalFormulaUpdate === lastUpdate) return lastValue;
+    }
   }
   const ret1 = getNodesFromFormula(
     {name: '___temp___', formula, absPath: '___temp___'},
@@ -67,6 +78,10 @@ export class Formula implements IFormula {
   className = 'Formula';
 
   name: string;
+
+  private lastValue: number | undefined;
+
+  private lastUpdate: string | undefined;
 
   private _formula: string;
 
@@ -94,7 +109,18 @@ export class Formula implements IFormula {
     if (isNumber(this._formula)) {
       return Number(this._formula);
     }
-    return evaluate(this._formula, formulae);
+    const {lastValue, lastUpdate} = this;
+    const newValue = evaluate({
+      formula: this._formula,
+      formulae,
+      lastValue,
+      lastUpdate
+    });
+    if (newValue !== lastValue) {
+      this.lastUpdate = getDgd().lastGlobalFormulaUpdate;
+    }
+    this.lastValue = newValue;
+    return newValue;
   }
 
   getData(): IDataFormula {
@@ -131,14 +157,6 @@ export class Formula implements IFormula {
     });
   }
 }
-
-export const isFormula = (params: any): params is Formula => {
-  try {
-    return 'className' in params && params.className === 'Formula';
-  } catch (e: any) {
-    return false;
-  }
-};
 
 export function getAllValiables(formulae: IDataFormula[]): {
   [name: string]: IFormula;

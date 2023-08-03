@@ -111,7 +111,7 @@ yup.addMethod(
   function () {
     return this.test('gdFormulaPositive', '', (value, {createError}) => {
       if (!value) return true;
-      const ret = evaluate(value);
+      const ret = evaluate({formula: value});
       return (
         ret > 0 ||
         createError({
@@ -129,7 +129,7 @@ yup.addMethod(
   function () {
     return this.test('gdFormulaNonZero', '', (value, {createError}) => {
       if (!value) return true;
-      const ret = evaluate(value);
+      const ret = evaluate({formula: value});
       return (
         Math.abs(ret) > Number.EPSILON ||
         createError({
@@ -147,7 +147,7 @@ yup.addMethod(
   function () {
     return this.test('gdFormulaInteger', '', (value, {createError}) => {
       if (!value) return true;
-      const ret = evaluate(value);
+      const ret = evaluate({formula: value});
       return (
         Number.isInteger(ret) ||
         createError({
@@ -169,7 +169,7 @@ yup.addMethod(
         return createError({
           message: 'Start value or End value is invalid.'
         });
-      const ret = evaluate(value);
+      const ret = evaluate({formula: value});
       return (
         (start < end ? ret > 0 : ret < 0) ||
         createError({

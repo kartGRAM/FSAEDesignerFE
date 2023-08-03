@@ -70,7 +70,7 @@ export function getDataArray(
     case 'global':
       return results.map((result) => {
         const v = result.globals.find((g) => g.name === ref.nodeID);
-        return v ? evaluate(v.formula) : Number.NaN;
+        return v ? evaluate({formula: v.formula}) : Number.NaN;
       });
     case 'measureTool':
       return results.map((result) => {

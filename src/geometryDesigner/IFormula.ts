@@ -17,6 +17,14 @@ export interface IFormula {
   getEvaluatedValue(formulae: IDataFormula[] | undefined): number;
 }
 
+export const isFormula = (params: any): params is IFormula => {
+  try {
+    return 'className' in params && params.className === 'Formula';
+  } catch (e: any) {
+    return false;
+  }
+};
+
 export function replaceVariable(
   formula: string,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

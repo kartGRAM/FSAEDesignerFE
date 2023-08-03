@@ -142,7 +142,7 @@ function TableRowExistingFormula(props: TableRowExistingFormulaProps) {
   }, [row.evaluatedValue]);
 
   const onFormulaValidated = (formula: string) => {
-    setEvaluatedValue(evaluate(formula, rows));
+    setEvaluatedValue(evaluate({formula, formulae: rows}));
   };
 
   const schema = yup.lazy((values) =>
@@ -190,7 +190,7 @@ function TableRowExistingFormula(props: TableRowExistingFormulaProps) {
           id: row.id,
           name: values.name,
           formula: values.formula,
-          evaluatedValue: evaluate(values.formula, rows),
+          evaluatedValue: evaluate({formula: values.formula, formulae: rows}),
           absPath: 'global'
         },
         ...effectedRows
@@ -299,7 +299,7 @@ function TableRowNewFormula(props: TableRowNewFormulaProps) {
   );
 
   const onFormulaValidated = (formula: string) => {
-    setEvaluatedValue(evaluate(formula, rows));
+    setEvaluatedValue(evaluate({formula, formulae: rows}));
   };
 
   const schema = yup.lazy((values) =>
@@ -333,7 +333,7 @@ function TableRowNewFormula(props: TableRowNewFormulaProps) {
           id: rows.length + 1,
           name: values.name,
           formula: values.formula,
-          evaluatedValue: evaluate(values.formula, rows),
+          evaluatedValue: evaluate({formula: values.formula, formulae: rows}),
           absPath: 'global'
         }
       ]);
