@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unused-prop-types */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react';
 import {IChartData, IChartLayout, dataFrom} from '@gd/charts/ICharts';
@@ -253,10 +254,10 @@ function DataRow(props: {
           onChange={handleNodeIDChanged}
         >
           <option aria-label="None" value="" key="none" />
-          {getOptions(selectableData)}
+          {/* {getOptions(selectableData)} */}
         </NativeSelect>
       </TableCell>
-      <TableCell scope="row" padding="none" align="left">
+      <TableCell scope="row" padding="none" align="left" key="case">
         <NativeSelect
           native
           variant="standard"

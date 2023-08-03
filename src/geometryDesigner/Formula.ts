@@ -57,7 +57,7 @@ export function evaluate(params: {
   if (!formulae) {
     const state = getDgd();
     formulae = state.formulae;
-    if (lastValue && lastUpdate) {
+    if (lastValue !== undefined && lastUpdate) {
       if (state.lastGlobalFormulaUpdate === lastUpdate) return lastValue;
     }
   }
