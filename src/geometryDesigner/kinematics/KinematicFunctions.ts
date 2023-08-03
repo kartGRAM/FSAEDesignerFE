@@ -13,7 +13,7 @@ import {
   IElement,
   isSimplifiedElement
 } from '@gd/IElements';
-import {INamedVector3} from '@gd/INamedValues';
+import {INamedVector3RO} from '@gd/INamedValues';
 import {Matrix} from 'ml-matrix';
 import {Quaternion, Vector3} from 'three';
 import {getDgd} from '@store/getDgd';
@@ -143,7 +143,7 @@ export function getStableOrthogonalVector(v: Vector3): Vector3 {
 export type JointDict = {[index: string]: JointAsVector3[]};
 
 // 拘束点がgetPointsの何番目か
-export function getIndexOfPoint(element: IElement, v: INamedVector3) {
+export function getIndexOfPoint(element: IElement, v: INamedVector3RO) {
   const i = element
     .getMeasurablePoints()
     .findIndex((p) => p.nodeID === v.nodeID);
@@ -187,7 +187,7 @@ export function getNamedVector3FromJoint(
   joint: JointAsVector3,
   nodeID1: string,
   nodeID2: string
-): [INamedVector3, INamedVector3] {
+): [INamedVector3RO, INamedVector3RO] {
   if (
     joint.lhs.parent?.nodeID === nodeID1 &&
     joint.rhs.parent?.nodeID === nodeID2

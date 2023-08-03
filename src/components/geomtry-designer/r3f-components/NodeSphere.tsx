@@ -7,7 +7,7 @@ import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
 import store, {RootState} from '@store/store';
 import {isElement} from '@gd/IElements';
 import {getMatrix3} from '@gd/NamedValues';
-import {INamedVector3} from '@gd/INamedValues';
+import {INamedVector3RO} from '@gd/INamedValues';
 import {
   setSelectedPoint,
   setOrbitControlsEnabled
@@ -15,7 +15,7 @@ import {
 import {Paper, Typography} from '@mui/material';
 import {PivotControls} from './PivotControls/PivotControls';
 
-const NodeSphere = (props: {node: INamedVector3}) => {
+const NodeSphere = (props: {node: INamedVector3RO}) => {
   const {node} = props;
   const coMatrix = getMatrix3(
     useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)

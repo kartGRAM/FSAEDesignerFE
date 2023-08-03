@@ -1,5 +1,5 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
-import {INamedVector3} from '@gd/INamedValues';
+import {INamedVector3RO} from '@gd/INamedValues';
 import {ConfirmDialogProps} from '@gdComponents/dialog-components/ConfirmDialog';
 import {SaveAsDialogProps} from '@gdComponents/dialog-components/SaveAsDialog';
 import {CopyFromExistingPointsDialogProps} from '@gdComponents/dialog-components/CopyFromExistingPointsDialog';
@@ -73,7 +73,7 @@ export interface GDState {
 }
 
 export interface INamedVector3WithColor {
-  point: INamedVector3;
+  point: INamedVector3RO;
   color?: number;
 }
 

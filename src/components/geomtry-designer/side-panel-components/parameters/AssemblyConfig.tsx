@@ -9,7 +9,7 @@ import {
   IElement,
   isFrame /* isSimplifiedElement */
 } from '@gd/IElements';
-import {INamedVector3} from '@gd/INamedValues';
+import {INamedVector3RO} from '@gd/INamedValues';
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '@store/store';
 import {
@@ -52,7 +52,7 @@ type PointPair = {
 };
 
 interface INamedVector3WithColor {
-  point: INamedVector3;
+  point: INamedVector3RO;
   color: number;
 }
 
@@ -62,7 +62,7 @@ export default function AssemblyConfig(params: Params) {
 
   const {children} = assembly;
   const jointedNodeIDs = assembly.getJointedPoints().map((p) => p.nodeID);
-  const restOfPointsChildren: {[name: string]: INamedVector3[]} =
+  const restOfPointsChildren: {[name: string]: INamedVector3RO[]} =
     assembly.children.reduce(
       (obj, x) =>
         Object.assign(obj, {
@@ -414,7 +414,7 @@ export function JointsList(props: {
 
 export function RestOfPoints(props: {
   element: IElement;
-  points: INamedVector3[];
+  points: INamedVector3RO[];
   selected: PointPair;
   setSelected: (value: PointPair) => void;
 }) {

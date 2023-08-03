@@ -74,7 +74,11 @@ export interface IData<T> extends INamedData {
   value: T;
 }
 
-export interface INamedNumber extends INamedValue {
+export interface INamedNumberRO extends Omit<INamedValue, 'getData'> {
+  value: number;
+}
+
+export interface INamedNumber extends INamedNumberRO {
   value: number;
   formula: IFormula;
   getData(state: GDState): IDataNumber;
@@ -90,17 +94,14 @@ export function isNamedNumber(value: any): value is INamedNumber {
 }
 export interface IDataNumber extends IData<IDataFormula> {}
 
-export const namedNumberLWClassName = 'NamedNumberLW' as const;
-
-export interface INamedNumberLW extends INamedValue {
-  className: typeof namedNumberLWClassName;
+export interface INamedNumberLW extends INamedNumberRO {
   value: number;
   getData(state: GDState): IDataNumberLW;
 }
 
 export function isNamedNumberLW(value: any): value is INamedNumberLW {
   if (isNamedValue(value)) {
-    return value.className === namedNumberLWClassName;
+    return value.className === 'NamedNumberLW';
   }
   return false;
 }
@@ -112,12 +113,44 @@ export interface IMetaNamedVector3 {
   isFreeNode?: boolean;
 }
 
-export interface INamedVector3 extends INamedValue {
+export interface INamedVector3RO extends Omit<INamedValue, 'getData'> {
+  readonly x: INamedNumberRO;
+  readonly y: INamedNumberRO;
+  readonly z: INamedNumberRO;
+  value: Vector3;
+  meta: IMetaNamedVector3;
+}
+
+export function isNamedVector3RO(value: any): value is INamedVector3RO {
+  return isNamedVector3LW(value) || isNamedVector3(value);
+}
+
+export interface INamedVector3LW extends INamedVector3RO {
+  readonly x: INamedNumberLW;
+  readonly y: INamedNumberLW;
+  readonly z: INamedNumberLW;
+  value: Vector3;
+  getData(state: GDState): IDataVector3LW;
+}
+
+export function isNamedVector3LW(value: any): value is INamedVector3LW {
+  if (isNamedValue(value)) return value.className === 'NamedVector3';
+  return false;
+}
+
+export interface IDataVector3LW extends INamedData {
+  x: IDataNumberLW;
+  y: IDataNumberLW;
+  z: IDataNumberLW;
+  mirrorTo?: string;
+  isFreeNode?: boolean;
+}
+
+export interface INamedVector3 extends INamedVector3RO {
   readonly x: INamedNumber;
   readonly y: INamedNumber;
   readonly z: INamedNumber;
   value: Vector3;
-  meta: IMetaNamedVector3;
   getData(state: GDState): IDataVector3;
   setValue(
     newValue:
@@ -148,25 +181,6 @@ export interface IDataVector3 extends INamedData {
   pointOffsetTools?: IDataPointOffsetTool[];
   mirrorTo?: string;
   isFreeNode?: boolean;
-}
-
-export interface INamedVector3LW extends INamedValue {
-  readonly x: INamedNumberLW;
-  readonly y: INamedNumberLW;
-  readonly z: INamedNumberLW;
-  value: Vector3;
-  getData(state: GDState): IDataVector3LW;
-}
-
-export function isNamedVector3LW(value: any): value is INamedVector3LW {
-  if (isNamedValue(value)) return value.className === 'NamedVector3';
-  return false;
-}
-
-export interface IDataVector3LW extends INamedData {
-  x: IDataNumberLW;
-  y: IDataNumberLW;
-  z: IDataNumberLW;
 }
 
 export interface INamedMatrix3 extends INamedValue {

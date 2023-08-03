@@ -3,15 +3,19 @@ import {INearestNeighborToPlane} from '@gd/SpecialPoints';
 import {Vector3, Matrix3, Quaternion} from 'three';
 import {
   IDataVector3,
+  IDataVector3LW,
   IDataMatrix3,
   IDataQuaternion,
   IData,
   IDataNumber,
   INamedVector3,
+  INamedVector3RO,
+  INamedVector3LW,
   INamedMatrix3,
   INamedQuaternion,
   INamedString,
   INamedNumber,
+  INamedNumberRO,
   INamedBooleanOrUndefined
 } from '@gd/INamedValues';
 import {GDState} from '@store/reducers/dataGeometryDesigner';
@@ -24,8 +28,8 @@ export interface Joint {
   rhs: NodeID;
 }
 export interface JointAsVector3 {
-  lhs: INamedVector3;
-  rhs: INamedVector3;
+  lhs: INamedVector3RO;
+  rhs: INamedVector3RO;
 }
 export interface DataJoint {
   lhs: NodeID;
@@ -107,7 +111,7 @@ export const transQuaternion = (
   return new Quaternion(v.x, v.y, v.z, q.w);
 };
 
-export const trans = (p: INamedVector3, coMatrix?: Matrix3): Vector3 => {
+export const trans = (p: INamedVector3RO, coMatrix?: Matrix3): Vector3 => {
   const {parent} = p;
   let v = p.value;
   if (isElement(parent)) {
@@ -131,16 +135,16 @@ export interface IElement extends IBidirectionalNode {
   readonly controllable?: boolean;
   readonly nodeID: string;
   readonly absPath: string;
-  getPoints(): INamedVector3[];
-  getVariables(): INamedNumber[];
-  getMeasurablePoints(): INamedVector3[];
+  getPoints(): INamedVector3RO[];
+  getVariables(): INamedNumberRO[];
+  getMeasurablePoints(): INamedVector3RO[];
   getPointsNodeIDs(): string[];
   getMirror(): IElement;
   unlinkMirror(): void;
   getRoot(): IAssembly | null;
   getDataElement(state: GDState): IDataElement | undefined;
   arrange(parentPosition?: Vector3): void;
-  readonly position: INamedVector3;
+  readonly position: INamedVector3LW;
   readonly rotation: INamedQuaternion;
   readonly initialPosition: INamedVector3;
   meta?: Meta;
@@ -157,7 +161,7 @@ export interface IDataElement extends INode {
   mass: IDataNumber;
   centerOfGravity: IDataVector3;
   inertialTensor: IDataMatrix3;
-  position: IDataVector3;
+  position: IDataVector3LW;
   rotation: IDataQuaternion;
   initialPosition: IDataVector3;
 
@@ -173,13 +177,13 @@ export interface IAssembly extends IElement {
   appendChild(children: IElement | IElement[]): void;
   getJointsAsVector3(): JointAsVector3[];
 
-  getMeasurablePointsAll(): INamedVector3[];
-  getVariablesAll(): INamedNumber[];
-  getVariablesAllWithParent(): {parent: IElement; values: INamedNumber[]}[];
-  getVariablesAllWithParentFlat(): {parent: IElement; value: INamedNumber}[];
-  getJointedPoints(): INamedVector3[];
+  getMeasurablePointsAll(): INamedVector3RO[];
+  getVariablesAll(): INamedNumberRO[];
+  getVariablesAllWithParent(): {parent: IElement; values: INamedNumberRO[]}[];
+  getVariablesAllWithParentFlat(): {parent: IElement; value: INamedNumberRO}[];
+  getJointedPoints(): INamedVector3RO[];
   getJointsRecursive(): Joint[];
-  getAllPointsOfChildren(): INamedVector3[];
+  getAllPointsOfChildren(): INamedVector3RO[];
   getAllPointsNodeIDsOfChildren(): string[];
   flatten(noAssembly: boolean): IElement[];
 
@@ -260,8 +264,8 @@ export interface ITire extends IElement, INearestNeighborToPlane {
   readonly tireCenter: INamedVector3;
   readonly toLeftBearing: INamedNumber;
   readonly toRightBearing: INamedNumber;
-  readonly rightBearing: INamedVector3;
-  readonly leftBearing: INamedVector3;
+  readonly rightBearing: INamedVector3LW;
+  readonly leftBearing: INamedVector3LW;
   readonly diameter: number;
   readonly bearingDistance: number;
 }

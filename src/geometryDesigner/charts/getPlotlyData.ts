@@ -1,7 +1,7 @@
 import {CaseResults} from '@worker/solverWorkerMessage';
 import {evaluate} from '@gd/Formula';
 import {LocalInstances} from '@worker/getLocalInstances';
-import {INamedNumber, isNamedVector3} from '@gd/INamedValues';
+import {INamedNumberRO, isNamedVector3RO} from '@gd/INamedValues';
 import {isElement, IElement} from '@gd/IElements';
 import {IChartData, DataRef, IPlotData, Datum, getStats} from './ICharts';
 
@@ -152,10 +152,10 @@ export function getSelectableData(
   };
 }
 
-export function getMappedNumber(value: INamedNumber | undefined): number {
+export function getMappedNumber(value: INamedNumberRO | undefined): number {
   if (!value) return Number.NaN;
   const vector = value.parent;
-  if (isNamedVector3(vector) && isElement(vector.parent)) {
+  if (isNamedVector3RO(vector) && isElement(vector.parent)) {
     const element = vector.parent;
     const q = element.rotation.value;
     const p = element.position.value;

@@ -22,7 +22,7 @@ import Select from '@mui/material/Select';
 import Vector from '@gdComponents/Vector';
 import Scalar from '@gdComponents/Scalar';
 import {NamedVector3, NamedNumber} from '@gd/NamedValues';
-import {INamedVector3} from '@gd/INamedValues';
+import {INamedVector3RO} from '@gd/INamedValues';
 import {
   IconButton,
   TableBody,
@@ -100,7 +100,7 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
   const points = selectedElements.reduce((prev, current) => {
     prev[current.nodeID] = current.getMeasurablePoints();
     return prev;
-  }, {} as {[index: string]: INamedVector3[]});
+  }, {} as {[index: string]: INamedVector3RO[]});
 
   const handleSliderSpeedChange = (
     event: Event,

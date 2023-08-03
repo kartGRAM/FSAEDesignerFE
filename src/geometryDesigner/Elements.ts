@@ -4,6 +4,7 @@ import {Vector3, Quaternion} from 'three';
 import * as THREE from 'three';
 import {
   NamedVector3,
+  NamedVector3LW,
   NamedMatrix3,
   NamedQuaternion,
   NamedString,
@@ -14,9 +15,11 @@ import {
 } from '@gd/NamedValues';
 import {
   INamedNumber,
+  INamedNumberRO,
   IDataNumber,
   IDataVector3,
   INamedVector3,
+  INamedVector3RO,
   // isNamedVector3,
   INamedMatrix3,
   FunctionVector3,
@@ -255,14 +258,14 @@ export abstract class Element implements IElement {
     return this.getPoints().map((p) => p.nodeID);
   }
 
-  abstract getPoints(): INamedVector3[];
+  abstract getPoints(): INamedVector3RO[];
 
-  getMeasurablePoints(): INamedVector3[] {
+  getMeasurablePoints(): INamedVector3RO[] {
     const points = this.getPoints();
     return [...points, this.centerOfGravity];
   }
 
-  getVariables(): INamedNumber[] {
+  getVariables(): INamedNumberRO[] {
     const points = this.getMeasurablePoints();
     return points.map((p) => [p.x, p.y, p.z]).flat();
   }
@@ -305,9 +308,9 @@ export abstract class Element implements IElement {
 
   abstract set mass(m: NamedNumber);
 
-  abstract get position(): NamedVector3;
+  abstract get position(): NamedVector3LW;
 
-  abstract set position(p: NamedVector3);
+  abstract set position(p: NamedVector3LW);
 
   abstract get initialPosition(): NamedVector3;
 
@@ -454,11 +457,11 @@ export class Assembly extends Element implements IAssembly {
 
   initialPosition: NamedVector3;
 
-  get position(): NamedVector3 {
-    return new NamedVector3({name: 'position', parent: this});
+  get position(): NamedVector3LW {
+    return new NamedVector3LW({name: 'position', parent: this});
   }
 
-  set position(p: NamedVector3) {
+  set position(p: NamedVector3LW) {
     // throw Error('Not Supported Exception');
   }
 
@@ -532,8 +535,8 @@ export class Assembly extends Element implements IAssembly {
     }, [] as NodeID[]);
   }
 
-  getAllPointsOfChildren(): INamedVector3[] {
-    let points: INamedVector3[] = [];
+  getAllPointsOfChildren(): INamedVector3RO[] {
+    let points: INamedVector3RO[] = [];
     this._children.forEach((child) => {
       points = [...points, ...child.getPoints()];
     });
@@ -548,7 +551,7 @@ export class Assembly extends Element implements IAssembly {
     return points;
   }
 
-  getVariablesAll(): INamedNumber[] {
+  getVariablesAll(): INamedNumberRO[] {
     return [
       ...this.getVariables(),
       ...this.children
@@ -560,7 +563,7 @@ export class Assembly extends Element implements IAssembly {
     ];
   }
 
-  getVariablesAllWithParent(): {parent: IElement; values: INamedNumber[]}[] {
+  getVariablesAllWithParent(): {parent: IElement; values: INamedNumberRO[]}[] {
     const children = this.children
       .map((child) => {
         if (isAssembly(child)) return child.getVariablesAllWithParent();
@@ -570,7 +573,7 @@ export class Assembly extends Element implements IAssembly {
     return [{parent: this, values: this.getVariables()}, ...children];
   }
 
-  getVariablesAllWithParentFlat(): {parent: IElement; value: INamedNumber}[] {
+  getVariablesAllWithParentFlat(): {parent: IElement; value: INamedNumberRO}[] {
     const children = this.children
       .map((child) => {
         if (isAssembly(child)) return child.getVariablesAllWithParentFlat();
@@ -584,19 +587,19 @@ export class Assembly extends Element implements IAssembly {
     ];
   }
 
-  getMeasurablePointsAll(): INamedVector3[] {
+  getMeasurablePointsAll(): INamedVector3RO[] {
     return [
       ...this.getMeasurablePoints(),
       ...this.children.map((child) => child.getMeasurablePoints()).flat()
     ];
   }
 
-  getMeasurablePoints(): INamedVector3[] {
+  getMeasurablePoints(): INamedVector3RO[] {
     return [this.centerOfGravity];
   }
 
-  getPoints(): INamedVector3[] {
-    let points: INamedVector3[] = [];
+  getPoints(): INamedVector3RO[] {
+    let points: INamedVector3RO[] = [];
     const jointedNodeIDs = this.getJointedNodeIDs();
     this._children.forEach((child) => {
       const notJointed = child
@@ -619,8 +622,8 @@ export class Assembly extends Element implements IAssembly {
     return points;
   }
 
-  getJointedPoints(): INamedVector3[] {
-    let points: INamedVector3[] = [];
+  getJointedPoints(): INamedVector3RO[] {
+    let points: INamedVector3RO[] = [];
     const jointedNodeIDs = this.getJointedNodeIDs();
     this._children.forEach((child) => {
       const notJointed = child
@@ -850,13 +853,13 @@ export class Frame extends Assembly {
   ) {
     if (!isDataElement(params)) {
       const {name, children, initialPosition, mass, centerOfGravity} = params;
-      const namedPoints = children.reduce((prev: INamedVector3[], child) => {
+      const namedPoints = children.reduce((prev: INamedVector3RO[], child) => {
         prev = [
           ...prev,
           ...child.getPoints().filter((p) => !p.meta.isFreeNode)
         ];
         return prev;
-      }, [] as INamedVector3[]);
+      }, [] as INamedVector3RO[]);
       const points = namedPoints.map((p) => trans(p));
       const body = new Body({
         name: `bodyObject_${name}`,
@@ -882,7 +885,7 @@ export class Frame extends Assembly {
         assignMeta(body, {isBodyOfFrame: true});
         this.frameBody = body;
         const namedPoints = this.children.reduce(
-          (prev: INamedVector3[], child) => {
+          (prev: INamedVector3RO[], child) => {
             if (child === body) return prev;
             prev = [
               ...prev,
@@ -890,7 +893,7 @@ export class Frame extends Assembly {
             ];
             return prev;
           },
-          [] as INamedVector3[]
+          [] as INamedVector3RO[]
         );
         body.fixedPoints.splice(0);
         body.fixedPoints.push(
@@ -937,7 +940,7 @@ export class Bar extends Element implements IBar {
 
   initialPosition: NamedVector3;
 
-  position: NamedVector3;
+  position: NamedVector3LW;
 
   rotation: NamedQuaternion;
 
@@ -945,7 +948,7 @@ export class Bar extends Element implements IBar {
     return this.fixedPoint.value.sub(this.point.value).length();
   }
 
-  getPoints(): INamedVector3[] {
+  getPoints(): INamedVector3RO[] {
     return [this.fixedPoint, this.point];
   }
 
@@ -1031,7 +1034,7 @@ export class Bar extends Element implements IBar {
       value: centerOfGravity ?? new Vector3(),
       nodeID: `${this.nodeID}cog`
     });
-    this.position = new NamedVector3({
+    this.position = new NamedVector3LW({
       name: 'position',
       parent: this,
       value: isDataElement(params)
@@ -1124,7 +1127,7 @@ export class SpringDumper extends Bar implements ISpringDumper {
     super.arrange(parentPosition);
   }
 
-  getVariables(): INamedNumber[] {
+  getVariables(): INamedNumberRO[] {
     const vars = super.getVariables();
     const dlCurrent = new NamedNumber({
       name: 'dlCurrent',
@@ -1191,7 +1194,7 @@ export class AArm extends Element implements IAArm {
 
   initialPosition: NamedVector3;
 
-  position: NamedVector3;
+  position: NamedVector3LW;
 
   rotation: NamedQuaternion;
 
@@ -1328,7 +1331,7 @@ export class AArm extends Element implements IAArm {
       value: centerOfGravity ?? new Vector3(),
       nodeID: `${this.nodeID}cog`
     });
-    this.position = new NamedVector3({
+    this.position = new NamedVector3LW({
       name: 'position',
       parent: this,
       value: isDataElement(params)
@@ -1386,7 +1389,7 @@ export class BellCrank extends Element implements IBellCrank {
 
   initialPosition: NamedVector3;
 
-  position: NamedVector3;
+  position: NamedVector3LW;
 
   rotation: NamedQuaternion;
 
@@ -1527,7 +1530,7 @@ export class BellCrank extends Element implements IBellCrank {
       value: centerOfGravity ?? new Vector3(),
       nodeID: `${this.nodeID}cog`
     });
-    this.position = new NamedVector3({
+    this.position = new NamedVector3LW({
       name: 'position',
       parent: this,
       value: isDataElement(params)
@@ -1585,7 +1588,7 @@ export class Body extends Element implements IBody {
 
   initialPosition: NamedVector3;
 
-  position: NamedVector3;
+  position: NamedVector3LW;
 
   rotation: NamedQuaternion;
 
@@ -1697,7 +1700,7 @@ export class Body extends Element implements IBody {
       value: centerOfGravity ?? new Vector3(),
       nodeID: `${this.nodeID}cog`
     });
-    this.position = new NamedVector3({
+    this.position = new NamedVector3LW({
       name: 'position',
       parent: this,
       value: isDataElement(params)
@@ -1776,7 +1779,7 @@ export class Tire extends Element implements ITire {
 
   initialPosition: NamedVector3;
 
-  position: NamedVector3;
+  position: NamedVector3LW;
 
   get radius(): number {
     return this.tireCenter.value.z;
@@ -1785,27 +1788,25 @@ export class Tire extends Element implements ITire {
   rotation: NamedQuaternion;
 
   /* UpdateMethodが適当。直す必要あり */
-  get leftBearing(): NamedVector3 {
-    return new NamedVector3({
+  get leftBearing(): NamedVector3LW {
+    return new NamedVector3LW({
       name: 'leftBaring',
       parent: this,
       value: this.tireCenter.originalValue.add(
         new Vector3(0, this.toLeftBearing.value, 0)
       ),
-      update: () => {},
       nodeID: `${this.nodeID}leftBRG`
     });
   }
 
   /* 直す必要あり */
-  get rightBearing(): NamedVector3 {
-    return new NamedVector3({
+  get rightBearing(): NamedVector3LW {
+    return new NamedVector3LW({
       name: 'rightBaring',
       parent: this,
       value: this.tireCenter.originalValue.add(
         new Vector3(0, this.toRightBearing.value, 0)
       ),
-      update: () => {},
       nodeID: `${this.nodeID}rightBRG`
     });
   }
@@ -1820,11 +1821,11 @@ export class Tire extends Element implements ITire {
       .add(new Vector3(0, -this.tireCenter.value.y, 0));
   }
 
-  getPoints(): INamedVector3[] {
+  getPoints(): INamedVector3RO[] {
     return [this.leftBearing, this.rightBearing];
   }
 
-  getMeasurablePoints(): INamedVector3[] {
+  getMeasurablePoints(): INamedVector3RO[] {
     const points = super.getMeasurablePoints();
     const normal = new Vector3(0, 1, 0).applyQuaternion(this.rotation.value);
     const center = this.tireCenter.value;
@@ -1952,7 +1953,7 @@ export class Tire extends Element implements ITire {
       value: centerOfGravity ?? new Vector3(),
       nodeID: `${this.nodeID}cog`
     });
-    this.position = new NamedVector3({
+    this.position = new NamedVector3LW({
       name: 'position',
       parent: this,
       value: isDataElement(params)
@@ -2009,7 +2010,7 @@ export class LinearBushing extends Element implements ILinearBushing {
 
   initialPosition: NamedVector3;
 
-  position: NamedVector3;
+  position: NamedVector3LW;
 
   rotation: NamedQuaternion;
 
@@ -2068,7 +2069,7 @@ export class LinearBushing extends Element implements ILinearBushing {
     return [...this.fixedPoints, ...this.points];
   }
 
-  getVariables(): INamedNumber[] {
+  getVariables(): INamedNumberRO[] {
     const vars = super.getVariables();
     const dlCurrent = new NamedNumber({
       name: 'dlCurrent',
@@ -2219,7 +2220,7 @@ export class LinearBushing extends Element implements ILinearBushing {
       value: centerOfGravity ?? new Vector3(),
       nodeID: `${this.nodeID}cog`
     });
-    this.position = new NamedVector3({
+    this.position = new NamedVector3LW({
       name: 'position',
       parent: this,
       value: isDataElement(params)

@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {Matrix} from 'ml-matrix';
 import {IElement, isElement} from '@gd/IElements';
-import {INamedVector3} from '@gd/INamedValues';
+import {INamedVector3RO} from '@gd/INamedValues';
 import {Vector3} from 'three';
 import {IComponent} from '@gd/kinematics/KinematicComponents';
 import {KinematicSolver} from '@gd/kinematics/Solver';
@@ -25,13 +25,17 @@ const Q2 = 5;
 const Q3 = 6;
 
 export class MovePointTo implements IObjectiveFunction {
-  point: INamedVector3;
+  point: INamedVector3RO;
 
   target: Vector3;
 
   component: IComponent;
 
-  constructor(point: INamedVector3, target: Vector3, solver: KinematicSolver) {
+  constructor(
+    point: INamedVector3RO,
+    target: Vector3,
+    solver: KinematicSolver
+  ) {
     this.point = point;
     this.target = target;
     if (!isElement(point.parent)) throw new Error('pointの親がElementじゃない');

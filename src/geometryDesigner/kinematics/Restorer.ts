@@ -9,7 +9,7 @@ import {
   JointAsVector3,
   isSpringDumper
 } from '@gd/IElements';
-import {INamedVector3} from '@gd/INamedValues';
+import {INamedVector3RO} from '@gd/INamedValues';
 import {Vector3, Quaternion} from 'three';
 
 export interface Restorer {
@@ -19,11 +19,15 @@ export interface Restorer {
 export class BarRestorer implements Restorer {
   element: IBar;
 
-  fixedPoint: INamedVector3;
+  fixedPoint: INamedVector3RO;
 
-  point: INamedVector3;
+  point: INamedVector3RO;
 
-  constructor(element: IBar, fixedPoint: INamedVector3, point: INamedVector3) {
+  constructor(
+    element: IBar,
+    fixedPoint: INamedVector3RO,
+    point: INamedVector3RO
+  ) {
     this.element = element;
     this.fixedPoint = fixedPoint;
     this.point = point;
@@ -63,14 +67,14 @@ export class BarRestorer implements Restorer {
 export class AArmRestorer implements Restorer {
   element: IAArm;
 
-  fixedPoints: [INamedVector3, INamedVector3];
+  fixedPoints: [INamedVector3RO, INamedVector3RO];
 
-  point: INamedVector3;
+  point: INamedVector3RO;
 
   constructor(
     element: IAArm,
-    fixedPoints: [INamedVector3, INamedVector3],
-    point: INamedVector3
+    fixedPoints: [INamedVector3RO, INamedVector3RO],
+    point: INamedVector3RO
   ) {
     this.element = element;
     this.fixedPoints = fixedPoints;
@@ -118,14 +122,14 @@ export class AArmRestorer implements Restorer {
 export class TireRestorer implements Restorer {
   element: ITire;
 
-  leftBearing: INamedVector3;
+  leftBearing: INamedVector3RO;
 
-  rightBearing: INamedVector3;
+  rightBearing: INamedVector3RO;
 
   constructor(
     element: ITire,
-    leftBearing: INamedVector3,
-    rightBearing: INamedVector3
+    leftBearing: INamedVector3RO,
+    rightBearing: INamedVector3RO
   ) {
     this.element = element;
     this.leftBearing = leftBearing;
@@ -203,16 +207,16 @@ export class RelativeConstraintRestorer implements Restorer {
 export class LinearBushingRestorer implements Restorer {
   element: ILinearBushing;
 
-  fixedPoints: INamedVector3[];
+  fixedPoints: INamedVector3RO[];
 
-  point: INamedVector3;
+  point: INamedVector3RO;
 
   constructor(
     element: ILinearBushing,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    fixedPoints: [INamedVector3, INamedVector3],
+    fixedPoints: [INamedVector3RO, INamedVector3RO],
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    point: INamedVector3
+    point: INamedVector3RO
   ) {
     this.element = element;
     this.fixedPoints = fixedPoints;

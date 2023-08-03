@@ -2,7 +2,7 @@
 /* eslint-disable max-classes-per-file */
 import {Matrix} from 'ml-matrix';
 import {IElement} from '@gd/IElements';
-import {INamedVector3} from '@gd/INamedValues';
+import {INamedVector3RO} from '@gd/INamedValues';
 import {Vector3, Quaternion} from 'three';
 import {isFixedElement} from './KinematicFunctions';
 import {Constraint, QuaternionConstraint} from './Constraints';
@@ -328,9 +328,9 @@ export class PointComponent implements IComponent {
     q[col + Z] = this.position.z;
   }
 
-  lhs: INamedVector3;
+  lhs: INamedVector3RO;
 
-  rhs: INamedVector3;
+  rhs: INamedVector3RO;
 
   applyResultToElement() {
     [this.lhs, this.rhs].forEach((p) => {
@@ -405,7 +405,7 @@ export class PointComponent implements IComponent {
     otherRoot.unionFindTreeConstraints = [];
   }
 
-  constructor(lhs: INamedVector3, rhs: INamedVector3) {
+  constructor(lhs: INamedVector3RO, rhs: INamedVector3RO) {
     this.name = `${lhs.name}&${rhs.name}`;
     this.lhs = lhs;
     this.rhs = rhs;

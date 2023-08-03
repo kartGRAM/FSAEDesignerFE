@@ -268,8 +268,6 @@ export class NamedNumber extends NamedValue implements INamedNumber {
 }
 
 export class NamedNumberLW extends NamedValue implements INamedNumberLW {
-  className = 'NamedNumberLW' as const;
-
   value: number;
 
   constructor(params: {
@@ -366,6 +364,88 @@ export function isNamedBooleanOrUndefined(
   value: INamedValue
 ): value is NamedBooleanOrUndefined {
   return value.className === 'NamedBooleanOrUndefined';
+}
+
+// Light Weightバージョンは、構文解析機能がない
+export class NamedVector3LW extends NamedValue implements INamedVector3LW {
+  readonly x: NamedNumberLW;
+
+  readonly y: NamedNumberLW;
+
+  readonly z: NamedNumberLW;
+
+  meta: IMetaNamedVector3;
+
+  get value(): Vector3 {
+    return new Vector3(this.x.value, this.y.value, this.z.value);
+  }
+
+  set value(newValue: Vector3) {
+    this.x.value = newValue.x;
+    this.y.value = newValue.y;
+    this.z.value = newValue.z;
+  }
+
+  constructor(params: {
+    name?: string;
+    parent?: IBidirectionalNode;
+    value?:
+      | {x: number; y: number; z: number}
+      | IDataVector3LW
+      | INamedVector3LW;
+    nodeID?: string;
+  }) {
+    const {name: defaultName, value} = params;
+    super({
+      className: 'NamedVector3LW',
+      ...params,
+      name:
+        isNamedData(value) || isNamedValue(value)
+          ? value.name
+          : defaultName ?? 'temporary'
+    });
+    const {nodeID} = this;
+    this.x = new NamedNumberLW({
+      name: `${this.name}_X`,
+      value: value?.x ?? 0,
+      parent: this,
+      nodeID: `${nodeID}x`
+    });
+    this.y = new NamedNumberLW({
+      name: `${this.name}_Y`,
+      value: value?.y ?? 0,
+      parent: this,
+      nodeID: `${nodeID}y`
+    });
+    this.z = new NamedNumberLW({
+      name: `${this.name}_Z`,
+      value: value?.z ?? 0,
+      parent: this,
+      nodeID: `${nodeID}z`
+    });
+
+    if (isNamedData(value)) {
+      this.meta = {
+        mirrorTo: value.mirrorTo,
+        isFreeNode: value.isFreeNode
+      };
+    } else if (isNamedValue(value)) {
+      this.meta = {...value.meta};
+    } else {
+      this.meta = {};
+    }
+  }
+
+  getData(state: GDState): IDataVector3LW {
+    return {
+      ...super.getDataBase(),
+      x: this.x.getData(state),
+      y: this.y.getData(state),
+      z: this.z.getData(state),
+      mirrorTo: this.meta.mirrorTo,
+      isFreeNode: this.meta.isFreeNode
+    };
+  }
 }
 
 export class NamedVector3 extends NamedValue implements INamedVector3 {
@@ -502,70 +582,6 @@ export function getDummyVector3() {
     parent: getDummyElement(),
     value: {x: 0, y: 0, z: 0}
   });
-}
-
-// Light Weightバージョンは、構文解析機能がない
-export class NamedVector3LW extends NamedValue implements INamedVector3LW {
-  readonly x: NamedNumberLW;
-
-  readonly y: NamedNumberLW;
-
-  readonly z: NamedNumberLW;
-
-  get value(): Vector3 {
-    return new Vector3(this.x.value, this.y.value, this.z.value);
-  }
-
-  set value(newValue: Vector3) {
-    this.x.value = newValue.x;
-    this.y.value = newValue.y;
-    this.z.value = newValue.z;
-  }
-
-  constructor(params: {
-    name?: string;
-    parent?: IBidirectionalNode;
-    value: {x: number; y: number; z: number} | IDataVector3LW | INamedVector3LW;
-    nodeID?: string;
-  }) {
-    const {name: defaultName, value} = params;
-    super({
-      className: 'NamedVector3LW',
-      ...params,
-      name:
-        isNamedData(value) || isNamedValue(value)
-          ? value.name
-          : defaultName ?? 'temporary'
-    });
-    const {nodeID} = this;
-    this.x = new NamedNumberLW({
-      name: `${this.name}_X`,
-      value: value?.x ?? 0,
-      parent: this,
-      nodeID: `${nodeID}x`
-    });
-    this.y = new NamedNumberLW({
-      name: `${this.name}_Y`,
-      value: value?.y ?? 0,
-      parent: this,
-      nodeID: `${nodeID}y`
-    });
-    this.z = new NamedNumberLW({
-      name: `${this.name}_Z`,
-      value: value?.z ?? 0,
-      parent: this,
-      nodeID: `${nodeID}z`
-    });
-  }
-
-  getData(state: GDState): IDataVector3LW {
-    return {
-      ...super.getDataBase(),
-      x: this.x.getData(state),
-      y: this.y.getData(state),
-      z: this.z.getData(state)
-    };
-  }
 }
 
 export class NamedMatrix3 extends NamedValue implements INamedMatrix3 {
