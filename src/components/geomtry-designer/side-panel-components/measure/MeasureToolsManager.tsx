@@ -29,6 +29,7 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Toolbar from '@mui/material/Toolbar';
+import {useAnimationFrame} from '@hooks/useAnimationFrame';
 import {MeasureToolDialog} from './MeasureToolDialog';
 
 export default function MeasureToolsManager() {
@@ -306,6 +307,18 @@ function ToolValue(props: {tool: IMeasureTool}) {
 
   const keys = Object.keys(tool.value);
   const refs = React.useRef(keys.map(() => React.createRef<HTMLSpanElement>()));
+  useAnimationFrame(() => {
+    keys.forEach((key, i) => {
+      const span = refs.current[i].current;
+      if (!span) return;
+      if (keys.length === 1) {
+        span.innerText = tool.value[key].toFixed(3);
+      } else {
+        span.innerText = `${key}:  ${tool.value[key].toFixed(3)}`;
+      }
+    });
+  });
+
   if (keys.length === 1) {
     return (
       <Typography ref={refs.current[0]} variant="caption">
@@ -315,9 +328,9 @@ function ToolValue(props: {tool: IMeasureTool}) {
   }
   return (
     <>
-      {keys.map((key) => (
+      {keys.map((key, i) => (
         <Box component="div">
-          <Typography ref={refs.current[0]} variant="caption" key={key}>
+          <Typography ref={refs.current[i]} variant="caption" key={key}>
             {`${key}:  ${tool.value[key].toFixed(3)}`}
           </Typography>
         </Box>
