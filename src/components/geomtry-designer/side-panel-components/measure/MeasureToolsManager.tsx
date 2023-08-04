@@ -307,7 +307,10 @@ function ToolValue(props: {tool: IMeasureTool}) {
 
   const keys = Object.keys(tool.value);
   const refs = React.useRef(keys.map(() => React.createRef<HTMLSpanElement>()));
+  const frameRef = React.useRef<number>(0);
   useAnimationFrame(() => {
+    if (++frameRef.current % 3 !== 0) return;
+    frameRef.current = 0;
     keys.forEach((key, i) => {
       const span = refs.current[i].current;
       if (!span) return;
