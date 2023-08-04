@@ -19,6 +19,7 @@ import {
 } from '@store/reducers/uiTempGeometryDesigner';
 import MenuItem from '@mui/material/MenuItem';
 import Target from '@gdComponents/svgs/Target';
+import useUpdateEffect from '@hooks/useUpdateEffect';
 
 export function AxisPointPlane(props: {
   plane?: IAxisPointPlane;
@@ -125,7 +126,7 @@ export function AxisPointPlane(props: {
     onResetSetterMode();
   }, [selectedLine]);
 
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     if (point !== '' && line !== '') {
       const obj: IAxisPointPlane = new AxisPointPlaneObject({
         name: `datum plane`,

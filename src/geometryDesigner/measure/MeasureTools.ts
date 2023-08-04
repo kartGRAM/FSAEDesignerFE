@@ -270,6 +270,10 @@ export class Angle extends MeasureTool implements IAngle {
 
   private angleBuf: number = 0;
 
+  private lhsBuf: Vector3 = new Vector3();
+
+  private rhsBuf: Vector3 = new Vector3();
+
   readonly className = 'Angle' as const;
 
   get description(): string {

@@ -35,7 +35,8 @@ export function MeasureToolDialog(props: {
   apply: (tool: IMeasureTool) => void;
   tool?: IMeasureTool;
 }) {
-  const {open, close, tool, apply} = props;
+  const {open, close, apply} = props;
+  let {tool} = props;
 
   const dispatch = useDispatch();
 
@@ -53,6 +54,7 @@ export function MeasureToolDialog(props: {
   const [applyReady, setApplyReady] = React.useState<IMeasureTool | undefined>(
     undefined
   );
+  if (applyReady) tool = applyReady;
 
   const [measureToolClass, setMeasureToolClass] = React.useState<
     MeasureToolClasses | ''
