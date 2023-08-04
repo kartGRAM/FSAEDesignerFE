@@ -237,6 +237,7 @@ export default function MeasureToolsManager() {
                     <TableCell>Order</TableCell>
                     <TableCell align="left">Visibility</TableCell>
                     <TableCell>Name</TableCell>
+                    <TableCell>Value</TableCell>
                     <TableCell align="left">description</TableCell>
                   </TableRow>
                 </TableHead>
@@ -273,6 +274,9 @@ export default function MeasureToolsManager() {
                         <TableCell sx={{whiteSpace: 'nowrap'}}>
                           {tool.name}
                         </TableCell>
+                        <TableCell sx={{whiteSpace: 'nowrap'}}>
+                          <ToolValue tool={tool} />
+                        </TableCell>
                         <TableCell align="left">{tool.description}</TableCell>
                       </TableRow>
                     );
@@ -293,6 +297,31 @@ export default function MeasureToolsManager() {
         tool={dialogTargetTool}
         key={dialogTargetTool?.nodeID ?? dialogTarget}
       />
+    </>
+  );
+}
+
+function ToolValue(props: {tool: IMeasureTool}) {
+  const {tool} = props;
+
+  const keys = Object.keys(tool.value);
+  const refs = React.useRef(keys.map(() => React.createRef<HTMLSpanElement>()));
+  if (keys.length === 1) {
+    return (
+      <Typography ref={refs.current[0]} variant="caption">
+        {tool.value[keys[0]].toFixed(3)}
+      </Typography>
+    );
+  }
+  return (
+    <>
+      {keys.map((key) => (
+        <Box component="div">
+          <Typography ref={refs.current[0]} variant="caption" key={key}>
+            {`${key}:  ${tool.value[key].toFixed(3)}`}
+          </Typography>
+        </Box>
+      ))}
     </>
   );
 }
