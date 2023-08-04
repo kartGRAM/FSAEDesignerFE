@@ -372,5 +372,6 @@ export function getMeasureTool(
 ) {
   if (isDataPosition(tool)) return new Position(tool, datumManager);
   if (isDataDistance(tool)) return new Distance(tool, datumManager);
+  if (isDataAngle(tool)) return new Angle(tool, datumManager);
   throw new Error('未実装のツール');
 }

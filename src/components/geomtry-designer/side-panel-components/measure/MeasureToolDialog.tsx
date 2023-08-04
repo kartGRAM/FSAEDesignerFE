@@ -25,6 +25,7 @@ import Divider from '@mui/material/Divider';
 import {setMeasureToolDialogPosition} from '@store/reducers/uiGeometryDesigner';
 import {Position} from './MeasureTools/Position';
 import {Distance} from './MeasureTools/Distance';
+import {Angle} from './MeasureTools/Angle';
 
 const measureToolClasses = ['Distance', 'Angle', 'Position'] as const;
 type MeasureToolClasses = typeof measureToolClasses[number];
@@ -102,6 +103,13 @@ export function MeasureToolDialog(props: {
     content = (
       <Distance
         distance={isDistance(tool) ? tool : undefined}
+        setApplyReady={setApplyReady}
+      />
+    );
+  } else if (measureToolClass === 'Angle') {
+    content = (
+      <Angle
+        angle={isAngle(tool) ? tool : undefined}
         setApplyReady={setApplyReady}
       />
     );
