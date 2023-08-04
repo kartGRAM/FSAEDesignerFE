@@ -19,6 +19,7 @@ import {
 } from '@store/reducers/uiTempGeometryDesigner';
 import MenuItem from '@mui/material/MenuItem';
 import Target from '@gdComponents/svgs/Target';
+import useUpdateEffect from '@hooks/useUpdateEffect';
 
 export function Position(props: {
   position?: IPosition;
@@ -88,7 +89,7 @@ export function Position(props: {
     onResetSetterMode();
   }, [selectedPointInstance]);
 
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     if (point && datumManager) {
       const obj: IPosition = new Tool(
         {

@@ -11,6 +11,7 @@ import Scalar from '@gdComponents/Scalar';
 import {NamedNumber} from '@gd/NamedValues';
 import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
+import useUpdateEffect from '@hooks/useUpdateEffect';
 
 const directions: BasePlane[] = ['XY', 'YZ', 'ZX'];
 
@@ -29,7 +30,7 @@ export function FromBasePlane(props: {
     plane?.direction ?? ''
   );
 
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     if (direction !== '') {
       const obj: IFromBasePlane = new FromBasePlaneObject({
         name: `datum plane`,

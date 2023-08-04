@@ -17,6 +17,7 @@ import {
 } from '@store/reducers/uiTempGeometryDesigner';
 import MenuItem from '@mui/material/MenuItem';
 import Target from '@gdComponents/svgs/Target';
+import useUpdateEffect from '@hooks/useUpdateEffect';
 
 export function ThreePointsPlane(props: {
   threePointsPlane?: IThreePointsPlane;
@@ -116,7 +117,7 @@ export function ThreePointsPlane(props: {
     onResetSetterMode();
   }, [selectedPoint]);
 
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     if (points[0] !== '' && points[1] !== '' && points[2] !== '') {
       const obj: IThreePointsPlane = new ThreePointsPlaneObject({
         name: `datum plane`,

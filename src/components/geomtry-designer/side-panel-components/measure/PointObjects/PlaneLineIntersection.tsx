@@ -19,6 +19,7 @@ import {
 } from '@store/reducers/uiTempGeometryDesigner';
 import MenuItem from '@mui/material/MenuItem';
 import Target from '@gdComponents/svgs/Target';
+import useUpdateEffect from '@hooks/useUpdateEffect';
 
 export function PlaneLineIntersection(props: {
   point?: IPlaneLineIntersection;
@@ -125,7 +126,7 @@ export function PlaneLineIntersection(props: {
     onResetSetterMode();
   }, [selectedLine]);
 
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     if (plane !== '' && line !== '') {
       const obj: IPlaneLineIntersection = new PlaneLineIntersectionObject({
         name: `datum point`,

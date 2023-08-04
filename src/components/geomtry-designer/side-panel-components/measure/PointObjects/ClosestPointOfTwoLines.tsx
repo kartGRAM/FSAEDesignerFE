@@ -18,6 +18,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Target from '@gdComponents/svgs/Target';
 import Scalar from '@gdComponents/Scalar';
 import {NamedNumber} from '@gd/NamedValues';
+import useUpdateEffect from '@hooks/useUpdateEffect';
 
 export function ClosestPointOfTwoLines(props: {
   point?: IClosestPointOfTwoLines;
@@ -110,7 +111,7 @@ export function ClosestPointOfTwoLines(props: {
     onResetSetterMode();
   }, [selectedLine]);
 
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     if (lines[0] !== '' && lines[1] !== '') {
       const obj: IClosestPointOfTwoLines = new PointObject({
         name: `datum point`,

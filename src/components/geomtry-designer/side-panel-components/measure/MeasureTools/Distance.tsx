@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
-import store, {RootState} from '@store/store';
+import {RootState} from '@store/store';
 import {useSelector, useDispatch} from 'react-redux';
 import {IDistance, IMeasureTool} from '@gd/measure/IMeasureTools';
 import {Distance as Tool} from '@gd/measure/MeasureTools';
@@ -16,7 +15,6 @@ import Box from '@mui/material/Box';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import InputLabel from '@mui/material/InputLabel';
-import {setComponentVisualizationMode} from '@store/reducers/uiGeometryDesigner';
 import {
   setDatumPointSelectMode,
   setDatumPointSelected,
@@ -29,6 +27,7 @@ import {
 import MenuItem from '@mui/material/MenuItem';
 import Target from '@gdComponents/svgs/Target';
 import ListSubheader from '@mui/material/ListSubheader';
+import useUpdateEffect from '@hooks/useUpdateEffect';
 
 export function Distance(props: {
   distance?: IDistance;
@@ -145,7 +144,7 @@ export function Distance(props: {
     onResetSetterMode();
   }, [selectedPointInstance, selectedLineInstance, selectedPlaneInstance]);
 
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     if (lhs && rhs && datumManager) {
       const obj: IDistance = new Tool(
         {

@@ -16,6 +16,7 @@ import {
 } from '@store/reducers/uiTempGeometryDesigner';
 import MenuItem from '@mui/material/MenuItem';
 import Target from '@gdComponents/svgs/Target';
+import useUpdateEffect from '@hooks/useUpdateEffect';
 
 export function TwoPlaneIntersectionLine(props: {
   line?: ITwoPlaneIntersectionLine;
@@ -100,7 +101,7 @@ export function TwoPlaneIntersectionLine(props: {
     onResetSetterMode();
   }, [selectedPlane]);
 
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     if (planes[0] !== '' && planes[1] !== '') {
       const obj: ITwoPlaneIntersectionLine = new TPILObject({
         name: `datum line`,

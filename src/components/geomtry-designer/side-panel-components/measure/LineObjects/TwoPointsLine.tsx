@@ -1,13 +1,12 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
-import store, {RootState} from '@store/store';
+import {RootState} from '@store/store';
 import {useSelector, useDispatch} from 'react-redux';
 import {ITwoPointsLine} from '@gd/measure/ILineObjects';
 import {TwoPointsLine as LineObject} from '@gd/measure/LineObjects';
 import {IDatumObject, isPoint} from '@gd/measure/IDatumObjects';
 import Box from '@mui/material/Box';
 import FormControl from '@mui/material/FormControl';
-import Select, {SelectChangeEvent} from '@mui/material/Select';
+import Select from '@mui/material/Select';
 import InputLabel from '@mui/material/InputLabel';
 import {
   setDatumPointSelectMode,
@@ -16,6 +15,7 @@ import {
 } from '@store/reducers/uiTempGeometryDesigner';
 import MenuItem from '@mui/material/MenuItem';
 import Target from '@gdComponents/svgs/Target';
+import useUpdateEffect from '@hooks/useUpdateEffect';
 
 export function TwoPointsLine(props: {
   line?: ITwoPointsLine;
@@ -101,7 +101,7 @@ export function TwoPointsLine(props: {
     onResetSetterMode();
   }, [selectedPoint]);
 
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     if (points[0] !== '' && points[1] !== '') {
       const obj: ITwoPointsLine = new LineObject({
         name: `datum line`,

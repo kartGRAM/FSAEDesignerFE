@@ -17,6 +17,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Target from '@gdComponents/svgs/Target';
 import Scalar from '@gdComponents/Scalar';
 import {NamedNumber} from '@gd/NamedValues';
+import useUpdateEffect from '@hooks/useUpdateEffect';
 
 const directions: BasePlane[] = ['XY', 'YZ', 'ZX'];
 
@@ -87,7 +88,7 @@ export function FromElementBasePlane(props: {
     onResetSetterMode();
   }, [selectedElement]);
 
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     if (element !== '' && direction !== '') {
       const obj: IFromElementBasePlane = new FromElementBasePlaneObject({
         name: `datum plane`,
