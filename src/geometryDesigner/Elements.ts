@@ -1,7 +1,7 @@
 /* eslint-disable max-classes-per-file */
 /* eslint-disable class-methods-use-this */
 import {Vector3, Quaternion} from 'three';
-import * as THREE from 'three';
+// import * as THREE from 'three';
 import {
   NamedVector3,
   NamedVector3LW,
@@ -30,7 +30,7 @@ import {AtLeast1, AtLeast2} from '@app/utils/atLeast';
 import {v4 as uuidv4} from 'uuid';
 import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {minus} from '@app/utils/helpers';
-import {getIntersectionLineFromTwoPlanes} from '@utils/threeUtils';
+// import {getIntersectionLineFromTwoPlanes} from '@utils/threeUtils';
 import {getRootNode} from './INode';
 import {
   trans,
@@ -1827,20 +1827,9 @@ export class Tire extends Element implements ITire {
 
   getMeasurablePoints(): INamedVector3RO[] {
     const points = super.getMeasurablePoints();
-    const normal = new Vector3(0, 1, 0).applyQuaternion(this.rotation.value);
-    const center = this.tireCenter.value;
-    const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(
-      normal,
-      center
-    );
-    const ground = new THREE.Plane(new Vector3(0, 0, 1), 0);
-    const line = getIntersectionLineFromTwoPlanes(plane, ground);
-    const gPoint = line
-      .closestPointToPoint(center, false, new Vector3())
-      .sub(center)
-      .normalize()
-      .multiplyScalar(this.diameter / 2)
-      .add(center);
+    // タイヤの軸線
+    const normal = new Vector3(0, 0, 1).applyQuaternion(this.rotation.value);
+    const gPoint = this.getNearestNeighborToPlane(normal);
     const gPointNamed = new NamedVector3({
       name: 'groundingPoint',
       parent: this,

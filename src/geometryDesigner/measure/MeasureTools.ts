@@ -24,7 +24,10 @@ import {
   isDataPosition,
   IDistance,
   IDataDistance,
-  isDataDistance
+  isDataDistance,
+  IAngle,
+  IDataAngle,
+  isDataAngle
 } from './IMeasureTools';
 
 export abstract class MeasureTool implements IMeasureTool {
@@ -253,6 +256,107 @@ export class Distance extends MeasureTool implements IDistance {
   }
 
   copy(other: Distance): void {
+    this.lhs = other.lhs;
+    this.rhs = other.rhs;
+  }
+}
+
+export class Angle extends MeasureTool implements IAngle {
+  readonly isAngle = true as const;
+
+  lhs: ILine | IPlane;
+
+  rhs: ILine | IPlane;
+
+  private angleBuf: number = 0;
+
+  readonly className = 'Angle' as const;
+
+  get description(): string {
+    return `angle between "${this.lhs.name} & ${this.rhs.name}`;
+  }
+
+  constructor(
+    params:
+      | {
+          name: string;
+          lhs: ILine | IPlane;
+          rhs: ILine | IPlane;
+        }
+      | IDataAngle,
+    datumManager: IDatumManager
+  ) {
+    super(params);
+    if (isDataMeasureTool(params) && isDataAngle(params)) {
+      const iLhs = datumManager.getDatumObject(params.lhs);
+      const iRhs = datumManager.getDatumObject(params.rhs);
+      if (!iLhs || !iRhs) throw new Error('datumが見つからない');
+      if (!isLine(iLhs) && !isPlane(iLhs))
+        throw new Error('未対応のデータムを検出');
+      if (!isLine(iRhs) && !isPlane(iRhs))
+        throw new Error('未対応のデータムを検出');
+      this.lhs = iLhs;
+      this.rhs = iRhs;
+    } else {
+      this.lhs = params.lhs;
+      this.rhs = params.rhs;
+    }
+  }
+
+  getData(): IDataAngle {
+    return {
+      ...super.getDataBase(),
+      className: 'DataAngle',
+      isDataAngle: true,
+      lhs: this.lhs.nodeID,
+      rhs: this.rhs.nodeID
+    };
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  update(): void {
+    const {lhs, rhs} = this;
+    if (isPlane(lhs)) {
+      if (isPlane(rhs)) {
+        const planes = [lhs.getThreePlane(), rhs.getThreePlane()];
+        const normals = planes.map((p) => p.normal);
+        const parallel =
+          normals[0].clone().cross(normals[1]).lengthSq() <=
+          Number.EPSILON * 2 ** 8;
+        if (parallel) {
+          this.angleBuf = 0;
+        } else {
+          // 法線同士の角度
+          const nlhs = lhs.getThreePlane().normal;
+          const nrhs = rhs.getThreePlane().normal;
+          const angle = Math.acos(nlhs.dot(nrhs));
+          this.angleBuf = (angle * 180) / Math.PI;
+        }
+      } else if (isLine(rhs)) {
+        const line = rhs.getThreeLine().delta(new Vector3()).normalize();
+        const {normal} = lhs.getThreePlane();
+        const dot = line.dot(normal);
+        this.angleBuf = 90 - (Math.acos(Math.abs(dot)) * 180) / Math.PI;
+      }
+    } else if (isLine(lhs)) {
+      if (isPlane(rhs)) {
+        const line = lhs.getThreeLine().delta(new Vector3()).normalize();
+        const {normal} = rhs.getThreePlane();
+        const dot = line.dot(normal);
+        this.angleBuf = 90 - (Math.acos(Math.abs(dot)) * 180) / Math.PI;
+      } else if (isLine(rhs)) {
+        const nlhs = lhs.getThreeLine().delta(new Vector3());
+        const nrhs = rhs.getThreeLine().delta(new Vector3());
+        this.angleBuf = (nlhs.angleTo(nrhs) * 180) / Math.PI;
+      }
+    }
+  }
+
+  get value(): {[index: string]: number} {
+    return {_: this.angleBuf};
+  }
+
+  copy(other: Angle): void {
     this.lhs = other.lhs;
     this.rhs = other.rhs;
   }

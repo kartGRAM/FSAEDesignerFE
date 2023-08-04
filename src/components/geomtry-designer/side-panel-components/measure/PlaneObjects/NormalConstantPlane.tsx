@@ -18,6 +18,7 @@ import {
 } from '@store/reducers/uiTempGeometryDesigner';
 import Target from '@gdComponents/svgs/Target';
 import Vector from '@gdComponents/Vector';
+import useUpdateEffect from '@hooks/useUpdateEffect';
 
 export const normalTypes = ['datum line', 'constant vector'] as const;
 export type NormalType = typeof normalTypes[number];
@@ -80,7 +81,7 @@ export function NormalConstantPlane(props: {
     dispatch(setDatumLineSelectMode(false));
   };
 
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     if (
       lineObjects.find((datum) => datum.nodeID === selectedLine) &&
       selectedLine !== line
@@ -90,7 +91,7 @@ export function NormalConstantPlane(props: {
     onResetSetterMode();
   }, [selectedLine]);
 
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     if (normalType === 'constant vector') {
       const obj: INormalConstantPlane = new NormalConstantPlaneObject({
         name: `datum plane`,
