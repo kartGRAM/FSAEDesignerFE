@@ -132,7 +132,7 @@ function Dolly() {
   const dispatch = useDispatch();
   React.useEffect(() => {
     dispatch(setGDSceneGetThree(get));
-  }, [get]);
+  });
   React.useEffect(() => {
     const [camera, anotherCamera] =
       projectionMode === 'Perspective'

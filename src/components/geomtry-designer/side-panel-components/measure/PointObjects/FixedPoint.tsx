@@ -7,6 +7,7 @@ import Box from '@mui/material/Box';
 import Vector from '@gdComponents/Vector';
 import {NamedVector3} from '@gd/NamedValues';
 import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
+import useUpdateEffect from '@hooks/useUpdateEffect';
 
 export function FixedPoint(props: {
   point?: IFixedPoint;
@@ -20,7 +21,7 @@ export function FixedPoint(props: {
     new NamedVector3({value: point?.position.getStringValue()})
   );
 
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     const obj: IFixedPoint = new FixedPointObject({
       name: `datum point`,
       position: position.getStringValue()

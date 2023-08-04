@@ -53,7 +53,8 @@ export function DatumDialog(props: {
   apply: (datum: IDatumObject) => void;
   datum?: IDatumObject;
 }) {
-  const {open, close, datum, apply} = props;
+  const {open, close, apply} = props;
+  let {datum} = props;
 
   const dispatch = useDispatch();
 
@@ -74,6 +75,7 @@ export function DatumDialog(props: {
   const [applyReady, setApplyReady] = React.useState<IDatumObject | undefined>(
     undefined
   );
+  if (applyReady) datum = applyReady;
 
   let datumTypesSelectable = [getDatumType(datum)];
   if (datumTypesSelectable[0] === '') datumTypesSelectable = [...datumTypes];
