@@ -132,7 +132,10 @@ function DataRow(props: {
   const dataRef = data[axis];
   const {from} = dataRef;
 
-  const selectableData = getSelectableData(results, localInstances)[from];
+  const selectableData = getSelectableData(
+    results,
+    localInstances
+  ).children?.find((v) => v.name === dataRef.from)!;
 
   const handleFromChanged = (e: SelectChangeEvent<string>) => {
     const {value} = e.target;
@@ -162,57 +165,6 @@ function DataRow(props: {
   };
 
   const cases = getCases(results);
-
-  const getOptions = (
-    data:
-      | SelectableDataCategory
-      | {nodeID: string; name: string; categoryName: string}[]
-  ): JSX.Element | null => {
-    if (isArray(data)) {
-      if (data.length === 0) return null;
-      return (
-        <>
-          {data.map((value) => (
-            <option value={value.nodeID} key={value.nodeID}>
-              {value.name}
-            </option>
-          ))}
-        </>
-      );
-    }
-    const keys = Object.keys(data);
-    return (
-      <>
-        {keys.map((key) => {
-          const values = data[key];
-          if (
-            isArray<{
-              nodeID: string;
-              name: string;
-              categoryName: string;
-            }>(values)
-          ) {
-            if (values.length === 0) return null;
-            const {categoryName} = values[0];
-            return (
-              <>
-                <optgroup
-                  label={categoryName}
-                  key={values[0].nodeID + categoryName}
-                />
-                {values.map((value) => (
-                  <option value={value.nodeID} key={value.nodeID}>
-                    {value.name}
-                  </option>
-                ))}
-              </>
-            );
-          }
-          return getOptions(values);
-        })}
-      </>
-    );
-  };
 
   return (
     <TableRow
@@ -254,7 +206,7 @@ function DataRow(props: {
           onChange={handleNodeIDChanged}
         >
           <option aria-label="None" value="" key="none" />
-          {/* {getOptions(selectableData)} */}
+          <GetOptions data={selectableData} key={dataRef.from} />
         </NativeSelect>
       </TableCell>
       <TableCell scope="row" padding="none" align="left" key="case">
@@ -275,3 +227,20 @@ function DataRow(props: {
     </TableRow>
   );
 }
+
+const GetOptions = (props: {
+  data: SelectableDataCategory;
+}): JSX.Element | null => {
+  const {data} = props;
+  if (!data.children) {
+    return <option value={data.nodeID}>{data.name}</option>;
+  }
+  return (
+    <>
+      <optgroup label={data.name} key={data.nodeID} />
+      {data.children.map((child) => (
+        <GetOptions data={child} key={child.nodeID} />
+      ))}
+    </>
+  );
+};

@@ -11,12 +11,13 @@ export function getPlotlyData(
   localInstances: LocalInstances
 ): IPlotData {
   const {x, y, z} = data;
-  return {
+  const ret = {
     ...data,
     x: getDataArray(x, caseResults, localInstances),
     y: getDataArray(y, caseResults, localInstances),
     z: getDataArray(z, caseResults, localInstances)
   };
+  return ret;
 }
 
 // eslint-disable-next-line consistent-return
@@ -88,72 +89,90 @@ export function getDataArray(
   }
 }
 
-export type SelectableDataCategory = {
-  [index: string]:
-    | {nodeID: string; name: string; categoryName: string}[]
-    | SelectableDataCategory;
-};
-
-export type SelectableData = {
-  [key in DataRef['from']]:
-    | {nodeID: string; name: string; categoryName: string}[]
-    | SelectableDataCategory;
-};
-
 export function getCases(
   caseResults: CaseResults
-): {nodeID: string; name: string; categoryName: string}[] {
+): {nodeID: string; name: string}[] {
   return [
     {
       nodeID: 'All',
-      name: 'All',
-      categoryName: 'cases'
+      name: 'All'
     },
     ...Object.keys(caseResults.cases).map((key) => ({
       nodeID: key,
-      name: caseResults.cases[key].name,
-      categoryName: 'cases'
+      name: caseResults.cases[key].name
     }))
   ];
+}
+
+export interface SelectableDataCategory {
+  name: string;
+  nodeID: string;
+  children?: SelectableDataCategory[];
 }
 
 export function getSelectableData(
   caseResults: CaseResults,
   localInstances: LocalInstances
-): SelectableData {
+): SelectableDataCategory {
   const result = Object.values(caseResults.cases).pop()?.results[0];
   if (!result)
     return {
-      element: [],
-      global: [],
-      measureTool: [],
-      special: []
+      name: 'root',
+      nodeID: 'root',
+      children: [
+        {name: 'element', nodeID: 'element', children: []},
+        {name: 'global', nodeID: 'global', children: []},
+        {name: 'measureTool', nodeID: 'measureTool', children: []},
+        {name: 'special', nodeID: 'special', children: []}
+      ]
     };
 
   return {
-    element: localInstances.assembly
-      .getVariablesAllWithParent()
-      .reduce((prev, current) => {
-        prev[current.parent.nodeID] = current.values.map((v) => ({
-          nodeID: v.nodeID,
-          name: v.name,
-          categoryName: current.parent.name.value
-        }));
-        return prev;
-      }, {} as SelectableDataCategory),
-    global: result.globals.map((global) => ({
-      nodeID: global.name,
-      name: global.name,
-      categoryName: 'global'
-    })),
-    measureTool: localInstances.measureToolsManager.children.map((child) => ({
-      nodeID: child.nodeID,
-      name: child.name,
-      categoryName: 'measureTool'
-    })),
-    special: {
-      cases: getCases(caseResults)
-    }
+    name: 'root',
+    nodeID: 'root',
+    children: [
+      {
+        name: 'element',
+        nodeID: 'element',
+        children: localInstances.assembly
+          .getVariablesAllWithParent()
+          .map((v) => ({
+            name: v.parent.name.value,
+            nodeID: v.parent.nodeID,
+            children: v.values.map((value) => ({
+              name: value.name,
+              nodeID: value.nodeID
+            }))
+          }))
+      },
+      {
+        name: 'global',
+        nodeID: 'global',
+        children: result.globals.map((global) => ({
+          nodeID: global.name,
+          name: global.name
+        }))
+      },
+      {
+        name: 'measureTool',
+        nodeID: 'measureTool',
+        children: localInstances.measureToolsManager.children.map((child) => ({
+          nodeID: child.nodeID,
+          name: child.name
+        }))
+      },
+      {
+        name: 'special',
+        nodeID: 'special',
+        children: [
+          {
+            name: 'cases',
+            nodeID: 'cases',
+            children: getCases(caseResults)
+          }
+        ]
+      }
+    ]
   };
 }
 
