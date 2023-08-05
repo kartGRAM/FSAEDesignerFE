@@ -12,7 +12,7 @@ import {
   IDataPlane,
   IDatumObject,
   DatumDict
-} from '@gd/measure/IDatumObjects';
+} from '@gd/measure/datum/IDatumObjects';
 import {
   BasePlane,
   INormalConstantPlane,
@@ -34,9 +34,9 @@ import {
   isAxisPointPlane,
   IDataAxisPointPlane,
   isDataAxisPointPlane
-} from '@gd/measure/IPlaneObjects';
+} from '@gd/measure/datum/IPlaneObjects';
 import {Vector3, Plane as ThreePlane} from 'three';
-import {DatumObject} from '@gd/measure/DatumObjects';
+import {DatumObject} from '@gd/measure/datum/DatumObjects';
 import {IAssembly, IElement} from '@gd/IElements';
 import {getPlaneFromAxisAndPoint} from '@utils/threeUtils';
 import {

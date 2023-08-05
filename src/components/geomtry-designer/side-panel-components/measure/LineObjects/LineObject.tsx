@@ -1,12 +1,12 @@
 /* eslint-disable no-undef */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
-import {ILine, IDatumObject} from '@gd/measure/IDatumObjects';
+import {ILine, IDatumObject} from '@gd/measure/datum/IDatumObjects';
 import {
   isPointDirectionLine,
   isTwoPointsLine,
   isTwoPlaneIntersectionLine
-} from '@gd/measure/ILineObjects';
+} from '@gd/measure/datum/ILineObjects';
 import {TwoPlaneIntersectionLine} from './TwoPlaneIntersectionLine';
 import {TwoPointsLine} from './TwoPointsLine';
 import {PointDirectionLine} from './PointDirectionLine';

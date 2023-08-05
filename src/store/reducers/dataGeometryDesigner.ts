@@ -8,8 +8,8 @@ import {
 } from '@app/geometryDesigner/IElements';
 import {IBidirectionalNode, getRootNode} from '@gd/INode';
 import {IDataControl} from '@gd/controls/IControls';
-import {IDataDatumGroup} from '@gd/measure/IDatumObjects';
-import {IDataMeasureTool} from '@gd/measure/IMeasureTools';
+import {IDataDatumGroup} from '@gd/measure/datum/IDatumObjects';
+import {IDataMeasureTool} from '@gd/measure/measureTools/IMeasureTools';
 import {IDataTest} from '@gd/analysis/ITest';
 import {IDataMatrix3} from '@gd/INamedValues';
 import {validateAll /* , replaceVariable */} from '@gd/IFormula';

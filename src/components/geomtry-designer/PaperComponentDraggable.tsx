@@ -30,7 +30,7 @@ export default function PaperComponentDraggable(props: Props) {
       }}
     >
       <Paper
-        {...props}
+        {...{...props, position: undefined, setPosition: undefined}}
         sx={{
           pointerEvents: 'auto'
         }}

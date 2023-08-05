@@ -2,9 +2,9 @@
 import React from 'react';
 import store, {RootState} from '@store/store';
 import {useSelector, useDispatch} from 'react-redux';
-import {IAxisPointPlane} from '@gd/measure/IPlaneObjects';
-import {AxisPointPlane as AxisPointPlaneObject} from '@gd/measure/PlaneObjects';
-import {IDatumObject, isPoint, isLine} from '@gd/measure/IDatumObjects';
+import {IAxisPointPlane} from '@gd/measure/datum/IPlaneObjects';
+import {AxisPointPlane as AxisPointPlaneObject} from '@gd/measure/datum/PlaneObjects';
+import {IDatumObject, isPoint, isLine} from '@gd/measure/datum/IDatumObjects';
 import Box from '@mui/material/Box';
 import FormControl from '@mui/material/FormControl';
 import Select, {SelectChangeEvent} from '@mui/material/Select';

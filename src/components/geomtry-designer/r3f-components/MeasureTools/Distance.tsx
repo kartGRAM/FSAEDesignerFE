@@ -8,7 +8,7 @@ import {setSelectedMeasureTool} from '@app/store/reducers/uiTempGeometryDesigner
 import {RootState} from '@store/store';
 import {getMatrix3} from '@gd/NamedValues';
 import {Paper, Typography} from '@mui/material';
-import {IDistance} from '@gd/measure/IMeasureTools';
+import {IDistance} from '@gd/measure/measureTools/IMeasureTools';
 import {Line2} from 'three-stdlib';
 
 export const Distance = (props: {tool: IDistance}) => {

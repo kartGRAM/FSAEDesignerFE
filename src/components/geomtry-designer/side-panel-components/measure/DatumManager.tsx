@@ -16,7 +16,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import {datumObjectAccordionDefaultExpandedChange} from '@store/reducers/uiGeometryDesigner';
-import {DatumGroup} from '@gd/measure/DatumManager';
+import {DatumGroup} from '@gd/measure/datum/DatumManager';
 import {setConfirmDialogProps} from '@store/reducers/uiTempGeometryDesigner';
 import {setDatumObjects} from '@store/reducers/dataGeometryDesigner';
 import {setSelectedDatumObject} from '@app/store/reducers/uiTempGeometryDesigner';

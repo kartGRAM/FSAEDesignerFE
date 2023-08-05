@@ -14,7 +14,7 @@ import {
   IPlane,
   isPlane,
   IDatumManager
-} from './IDatumObjects';
+} from '../datum/IDatumObjects';
 import {
   IDataMeasureTool,
   IMeasureTool,

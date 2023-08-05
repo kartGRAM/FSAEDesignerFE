@@ -2,9 +2,9 @@
 import React from 'react';
 import store, {RootState} from '@store/store';
 import {useSelector, useDispatch} from 'react-redux';
-import {IPlaneLineIntersection} from '@gd/measure/IPointObjects';
-import {PlaneLineIntersection as PlaneLineIntersectionObject} from '@gd/measure/PointObjects';
-import {IDatumObject, isPlane, isLine} from '@gd/measure/IDatumObjects';
+import {IPlaneLineIntersection} from '@gd/measure/datum/IPointObjects';
+import {PlaneLineIntersection as PlaneLineIntersectionObject} from '@gd/measure/datum/PointObjects';
+import {IDatumObject, isPlane, isLine} from '@gd/measure/datum/IDatumObjects';
 import Box from '@mui/material/Box';
 import FormControl from '@mui/material/FormControl';
 import Select, {SelectChangeEvent} from '@mui/material/Select';

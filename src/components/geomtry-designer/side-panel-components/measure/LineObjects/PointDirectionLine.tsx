@@ -1,8 +1,8 @@
 import React from 'react';
 import {useSelector, useDispatch} from 'react-redux';
-import {IPointDirectionLine} from '@gd/measure/ILineObjects';
-import {PointDirectionLine as PointDirectionLineObject} from '@gd/measure/LineObjects';
-import {IDatumObject, isLine, isPoint} from '@gd/measure/IDatumObjects';
+import {IPointDirectionLine} from '@gd/measure/datum/ILineObjects';
+import {PointDirectionLine as PointDirectionLineObject} from '@gd/measure/datum/LineObjects';
+import {IDatumObject, isLine, isPoint} from '@gd/measure/datum/IDatumObjects';
 import Box from '@mui/material/Box';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';

@@ -8,7 +8,7 @@ import {setSelectedMeasureTool} from '@app/store/reducers/uiTempGeometryDesigner
 import {RootState} from '@store/store';
 import {getMatrix3} from '@gd/NamedValues';
 import {Paper, Typography} from '@mui/material';
-import {IPosition} from '@gd/measure/IMeasureTools';
+import {IPosition} from '@gd/measure/measureTools/IMeasureTools';
 
 export const Position = (props: {tool: IPosition}) => {
   const {tool} = props;

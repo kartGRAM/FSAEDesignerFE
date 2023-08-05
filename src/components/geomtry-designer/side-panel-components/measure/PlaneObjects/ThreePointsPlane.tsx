@@ -2,9 +2,9 @@
 import React from 'react';
 import store, {RootState} from '@store/store';
 import {useSelector, useDispatch} from 'react-redux';
-import {IThreePointsPlane} from '@gd/measure/IPlaneObjects';
-import {ThreePointsPlane as ThreePointsPlaneObject} from '@gd/measure/PlaneObjects';
-import {IDatumObject, isPoint} from '@gd/measure/IDatumObjects';
+import {IThreePointsPlane} from '@gd/measure/datum/IPlaneObjects';
+import {ThreePointsPlane as ThreePointsPlaneObject} from '@gd/measure/datum/PlaneObjects';
+import {IDatumObject, isPoint} from '@gd/measure/datum/IDatumObjects';
 import Box from '@mui/material/Box';
 import FormControl from '@mui/material/FormControl';
 import Select, {SelectChangeEvent} from '@mui/material/Select';

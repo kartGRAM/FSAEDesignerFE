@@ -1,9 +1,9 @@
 import React from 'react';
 import {RootState} from '@store/store';
 import {useSelector, useDispatch} from 'react-redux';
-import {ITwoPointsLine} from '@gd/measure/ILineObjects';
-import {TwoPointsLine as LineObject} from '@gd/measure/LineObjects';
-import {IDatumObject, isPoint} from '@gd/measure/IDatumObjects';
+import {ITwoPointsLine} from '@gd/measure/datum/ILineObjects';
+import {TwoPointsLine as LineObject} from '@gd/measure/datum/LineObjects';
+import {IDatumObject, isPoint} from '@gd/measure/datum/IDatumObjects';
 import Box from '@mui/material/Box';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';

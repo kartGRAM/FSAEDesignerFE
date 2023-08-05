@@ -12,8 +12,8 @@ import {
 import {KinematicSolver} from '@gd/kinematics/Solver';
 import {getControl} from '@gd/controls/Controls';
 import {Control} from '@gd/controls/IControls';
-import {DatumManager} from '@gd/measure/DatumManager';
-import {MeasureToolsManager} from '@gd/measure/MeasureToolsManager';
+import {DatumManager} from '@gd/measure/datum/DatumManager';
+import {MeasureToolsManager} from '@gd/measure/measureTools/MeasureToolsManager';
 
 import {getAssembly} from '@gd/Elements';
 

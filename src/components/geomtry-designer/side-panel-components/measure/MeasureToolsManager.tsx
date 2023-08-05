@@ -14,7 +14,7 @@ import {measureToolsAccordionDefaultExpandedChange} from '@store/reducers/uiGeom
 import {setMeasureTools} from '@store/reducers/dataGeometryDesigner';
 import {RootState} from '@store/store';
 import {alpha} from '@mui/material/styles';
-import {IMeasureTool} from '@gd/measure/IMeasureTools';
+import {IMeasureTool} from '@gd/measure/measureTools/IMeasureTools';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';

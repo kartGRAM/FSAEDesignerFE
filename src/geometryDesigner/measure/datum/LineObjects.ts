@@ -12,7 +12,7 @@ import {
   IDataLine,
   IDatumObject,
   DatumDict
-} from '@gd/measure/IDatumObjects';
+} from '@gd/measure/datum/IDatumObjects';
 import {
   IPointDirectionLine,
   isPointDirectionLine,
@@ -26,9 +26,9 @@ import {
   isTwoPlaneIntersectionLine,
   IDataTwoPlaneIntersectionLine,
   isDataTwoPlaneIntersectionLine
-} from '@gd/measure/ILineObjects';
+} from '@gd/measure/datum/ILineObjects';
 import {BufferGeometry, Line3, Material, Vector3} from 'three';
-import {DatumObject} from '@gd/measure/DatumObjects';
+import {DatumObject} from '@gd/measure/datum/DatumObjects';
 import {IAssembly, IElement} from '@gd/IElements';
 import {getIntersectionLineFromTwoPlanes} from '@utils/threeUtils';
 import {

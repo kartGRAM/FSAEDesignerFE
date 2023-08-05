@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 import React from 'react';
-import {IPlane, IDatumObject} from '@gd/measure/IDatumObjects';
+import {IPlane, IDatumObject} from '@gd/measure/datum/IDatumObjects';
 import {
   isNormalConstantPlane,
   isPointNormalPlane,
@@ -8,7 +8,7 @@ import {
   isAxisPointPlane,
   isFromBasePlane,
   isFromElementBasePlane
-} from '@gd/measure/IPlaneObjects';
+} from '@gd/measure/datum/IPlaneObjects';
 import {ThreePointsPlane} from './ThreePointsPlane';
 import {PointNormalPlane} from './PointNormalPlane';
 import {AxisPointPlane} from './AxisPointPlane';

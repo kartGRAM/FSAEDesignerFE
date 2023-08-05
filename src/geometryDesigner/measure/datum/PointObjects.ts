@@ -11,7 +11,7 @@ import {
   IDataPoint,
   IDatumObject,
   DatumDict
-} from '@gd/measure/IDatumObjects';
+} from '@gd/measure/datum/IDatumObjects';
 import {
   IFixedPoint,
   IDataFixedPoint,
@@ -28,9 +28,9 @@ import {
   isElementPoint,
   IDataElementPoint,
   isDataElementPoint
-} from '@gd/measure/IPointObjects';
+} from '@gd/measure/datum/IPointObjects';
 import {Vector3} from 'three';
-import {DatumObject} from '@gd/measure/DatumObjects';
+import {DatumObject} from '@gd/measure/datum/DatumObjects';
 import {IAssembly, IElement} from '@gd/IElements';
 import {INamedVector3, INamedNumber} from '@gd/INamedValues';
 import {NamedVector3, NamedNumber} from '@gd/NamedValues';

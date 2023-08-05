@@ -2,9 +2,12 @@
 import React from 'react';
 import store, {RootState} from '@store/store';
 import {useSelector, useDispatch} from 'react-redux';
-import {BasePlane, IFromElementBasePlane} from '@gd/measure/IPlaneObjects';
-import {FromElementBasePlane as FromElementBasePlaneObject} from '@gd/measure/PlaneObjects';
-import {IDatumObject, isPoint, isLine} from '@gd/measure/IDatumObjects';
+import {
+  BasePlane,
+  IFromElementBasePlane
+} from '@gd/measure/datum/IPlaneObjects';
+import {FromElementBasePlane as FromElementBasePlaneObject} from '@gd/measure/datum/PlaneObjects';
+import {IDatumObject, isPoint, isLine} from '@gd/measure/datum/IDatumObjects';
 import Box from '@mui/material/Box';
 import FormControl from '@mui/material/FormControl';
 import Select, {SelectChangeEvent} from '@mui/material/Select';

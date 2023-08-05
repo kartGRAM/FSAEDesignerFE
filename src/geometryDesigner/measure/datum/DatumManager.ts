@@ -7,23 +7,23 @@ import {
   isDataElementPoint,
   isDataPlaneLineIntersection,
   isDataClosestPointOfTwoLines
-} from '@gd/measure/IPointObjects';
+} from '@gd/measure/datum/IPointObjects';
 import {
   ElementPoint,
   FixedPoint,
   PlaneLineIntersection,
   ClosestPointOfTwoLines
-} from '@gd/measure/PointObjects';
+} from '@gd/measure/datum/PointObjects';
 import {
   isDataPointDirectionLine,
   isDataTwoPointsLine,
   isDataTwoPlaneIntersectionLine
-} from '@gd/measure/ILineObjects';
+} from '@gd/measure/datum/ILineObjects';
 import {
   PointDirectionLine,
   TwoPointsLine,
   TwoPlaneIntersectionLine
-} from '@gd/measure/LineObjects';
+} from '@gd/measure/datum/LineObjects';
 import {
   isDataThreePointsPlane,
   isDataFromElementBasePlane,
@@ -31,7 +31,7 @@ import {
   isDataNormalConstantPlane,
   isDataAxisPointPlane,
   isDataPointNormalPlane
-} from '@gd/measure/IPlaneObjects';
+} from '@gd/measure/datum/IPlaneObjects';
 import {
   ThreePointsPlane,
   PointNormalPlane,
@@ -39,7 +39,7 @@ import {
   FromBasePlane,
   AxisPointPlane,
   NormalConstantPlane
-} from '@gd/measure/PlaneObjects';
+} from '@gd/measure/datum/PlaneObjects';
 import store from '@store/store';
 import {setDatumObjects} from '@store/reducers/dataGeometryDesigner';
 import {

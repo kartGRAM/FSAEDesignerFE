@@ -3,7 +3,7 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import {useSelector} from 'react-redux';
 import {useFormik} from 'formik';
-import {IDatumGroup} from '@gd/measure/IDatumObjects';
+import {IDatumGroup} from '@gd/measure/datum/IDatumObjects';
 import {RootState} from '@store/store';
 import * as Yup from 'yup';
 

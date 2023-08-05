@@ -1,9 +1,9 @@
 import React from 'react';
 import {RootState} from '@store/store';
 import {useSelector, useDispatch} from 'react-redux';
-import {IAngle, IMeasureTool} from '@gd/measure/IMeasureTools';
-import {Angle as Tool} from '@gd/measure/MeasureTools';
-import {isLine, ILine, isPlane, IPlane} from '@gd/measure/IDatumObjects';
+import {IAngle, IMeasureTool} from '@gd/measure/measureTools/IMeasureTools';
+import {Angle as Tool} from '@gd/measure/measureTools/MeasureTools';
+import {isLine, ILine, isPlane, IPlane} from '@gd/measure/datum/IDatumObjects';
 import Box from '@mui/material/Box';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';

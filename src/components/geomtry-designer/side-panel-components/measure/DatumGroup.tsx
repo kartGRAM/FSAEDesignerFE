@@ -13,7 +13,7 @@ import {setSelectedDatumObject} from '@store/reducers/uiTempGeometryDesigner';
 import {setChanged} from '@store/reducers/dataGeometryDesigner';
 import {RootState} from '@store/store';
 import {alpha} from '@mui/material/styles';
-import {IDatumGroup, IDatumObject} from '@gd/measure/IDatumObjects';
+import {IDatumGroup, IDatumObject} from '@gd/measure/datum/IDatumObjects';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';

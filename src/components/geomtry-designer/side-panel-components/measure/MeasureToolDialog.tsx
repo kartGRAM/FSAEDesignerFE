@@ -14,7 +14,7 @@ import {
   isPosition,
   isAngle,
   isDistance
-} from '@gd/measure/IMeasureTools';
+} from '@gd/measure/measureTools/IMeasureTools';
 import FormControl from '@mui/material/FormControl';
 import Select, {SelectChangeEvent} from '@mui/material/Select';
 import OutlinedInput from '@mui/material/OutlinedInput';

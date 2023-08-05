@@ -14,7 +14,7 @@ import {
   isPlane,
   isPoint,
   isLine
-} from '@gd/measure/IDatumObjects';
+} from '@gd/measure/datum/IDatumObjects';
 import FormControl from '@mui/material/FormControl';
 import Select, {SelectChangeEvent} from '@mui/material/Select';
 import OutlinedInput from '@mui/material/OutlinedInput';

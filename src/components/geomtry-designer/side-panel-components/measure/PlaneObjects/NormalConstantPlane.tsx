@@ -1,8 +1,8 @@
 import React from 'react';
 import {useSelector, useDispatch} from 'react-redux';
-import {INormalConstantPlane} from '@gd/measure/IPlaneObjects';
-import {NormalConstantPlane as NormalConstantPlaneObject} from '@gd/measure/PlaneObjects';
-import {IDatumObject, isLine} from '@gd/measure/IDatumObjects';
+import {INormalConstantPlane} from '@gd/measure/datum/IPlaneObjects';
+import {NormalConstantPlane as NormalConstantPlaneObject} from '@gd/measure/datum/PlaneObjects';
+import {IDatumObject, isLine} from '@gd/measure/datum/IDatumObjects';
 import Box from '@mui/material/Box';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';

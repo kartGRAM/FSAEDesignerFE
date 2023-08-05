@@ -9,7 +9,7 @@ import {
   IDatumObject,
   isPlane,
   isLine
-} from '@gd/measure/IDatumObjects';
+} from '@gd/measure/datum/IDatumObjects';
 import Point from './Point';
 import Line from './Line';
 import Plane from './Plane';

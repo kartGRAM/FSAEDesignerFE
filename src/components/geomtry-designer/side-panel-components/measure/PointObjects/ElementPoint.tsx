@@ -1,9 +1,9 @@
 import React from 'react';
 import store, {RootState} from '@store/store';
 import {useSelector, useDispatch} from 'react-redux';
-import {IElementPoint} from '@gd/measure/IPointObjects';
-import {ElementPoint as ElementPointObject} from '@gd/measure/PointObjects';
-import {IDatumObject} from '@gd/measure/IDatumObjects';
+import {IElementPoint} from '@gd/measure/datum/IPointObjects';
+import {ElementPoint as ElementPointObject} from '@gd/measure/datum/PointObjects';
+import {IDatumObject} from '@gd/measure/datum/IDatumObjects';
 import Box from '@mui/material/Box';
 import {setComponentVisualizationMode} from '@store/reducers/uiGeometryDesigner';
 import {

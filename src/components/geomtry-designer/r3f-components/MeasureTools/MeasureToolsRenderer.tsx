@@ -9,7 +9,7 @@ import {
   isPosition,
   isDistance,
   isAngle
-} from '@gd/measure/IMeasureTools';
+} from '@gd/measure/measureTools/IMeasureTools';
 import {Position} from './Position';
 import {Distance} from './Distance';
 

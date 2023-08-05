@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
-import {IPoint} from '@gd/measure/IDatumObjects';
+import {IPoint} from '@gd/measure/datum/IDatumObjects';
 import * as THREE from 'three';
 import {ThreeEvent, useFrame} from '@react-three/fiber';
 import {Sphere, Html} from '@react-three/drei';

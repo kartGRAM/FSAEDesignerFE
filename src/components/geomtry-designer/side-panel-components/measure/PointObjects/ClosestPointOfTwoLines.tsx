@@ -2,9 +2,9 @@
 import React from 'react';
 import store, {RootState} from '@store/store';
 import {useSelector, useDispatch} from 'react-redux';
-import {IClosestPointOfTwoLines} from '@gd/measure/IPointObjects';
-import {ClosestPointOfTwoLines as PointObject} from '@gd/measure/PointObjects';
-import {IDatumObject, isLine} from '@gd/measure/IDatumObjects';
+import {IClosestPointOfTwoLines} from '@gd/measure/datum/IPointObjects';
+import {ClosestPointOfTwoLines as PointObject} from '@gd/measure/datum/PointObjects';
+import {IDatumObject, isLine} from '@gd/measure/datum/IDatumObjects';
 import Box from '@mui/material/Box';
 import FormControl from '@mui/material/FormControl';
 import Select, {SelectChangeEvent} from '@mui/material/Select';

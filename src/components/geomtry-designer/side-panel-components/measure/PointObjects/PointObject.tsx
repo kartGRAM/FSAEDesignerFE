@@ -1,13 +1,13 @@
 /* eslint-disable no-undef */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
-import {IPoint, IDatumObject} from '@gd/measure/IDatumObjects';
+import {IPoint, IDatumObject} from '@gd/measure/datum/IDatumObjects';
 import {
   isFixedPoint,
   isElementPoint,
   isClosestPointOfTwoLines,
   isPlaneLineIntersection
-} from '@gd/measure/IPointObjects';
+} from '@gd/measure/datum/IPointObjects';
 import {FixedPoint} from './FixedPoint';
 import {ElementPoint} from './ElementPoint';
 import {PlaneLineIntersection} from './PlaneLineIntersection';

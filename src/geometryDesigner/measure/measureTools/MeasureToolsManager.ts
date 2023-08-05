@@ -2,10 +2,10 @@ import {
   IMeasureTool,
   IDataMeasureTool,
   IMeasureToolsManager
-} from '@gd/measure/IMeasureTools';
-import {getMeasureTool} from '@gd/measure/MeasureTools';
+} from '@gd/measure/measureTools/IMeasureTools';
+import {getMeasureTool} from '@gd/measure/measureTools/MeasureTools';
 import {MeasureSnapshot} from '@gd/analysis/ISnapshot';
-import {IDatumManager} from './IDatumObjects';
+import {IDatumManager} from '../datum/IDatumObjects';
 
 export class MeasureToolsManager implements IMeasureToolsManager {
   children: IMeasureTool[];

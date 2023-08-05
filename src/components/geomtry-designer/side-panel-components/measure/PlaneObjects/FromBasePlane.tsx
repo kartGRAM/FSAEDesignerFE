@@ -1,7 +1,7 @@
 import React from 'react';
-import {BasePlane, IFromBasePlane} from '@gd/measure/IPlaneObjects';
-import {FromBasePlane as FromBasePlaneObject} from '@gd/measure/PlaneObjects';
-import {IDatumObject} from '@gd/measure/IDatumObjects';
+import {BasePlane, IFromBasePlane} from '@gd/measure/datum/IPlaneObjects';
+import {FromBasePlane as FromBasePlaneObject} from '@gd/measure/datum/PlaneObjects';
+import {IDatumObject} from '@gd/measure/datum/IDatumObjects';
 import Box from '@mui/material/Box';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';

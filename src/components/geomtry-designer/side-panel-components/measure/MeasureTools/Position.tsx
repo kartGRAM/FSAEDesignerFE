@@ -2,9 +2,9 @@
 import React from 'react';
 import store, {RootState} from '@store/store';
 import {useSelector, useDispatch} from 'react-redux';
-import {IPosition, IMeasureTool} from '@gd/measure/IMeasureTools';
-import {Position as Tool} from '@gd/measure/MeasureTools';
-import {isPoint, IPoint} from '@gd/measure/IDatumObjects';
+import {IPosition, IMeasureTool} from '@gd/measure/measureTools/IMeasureTools';
+import {Position as Tool} from '@gd/measure/measureTools/MeasureTools';
+import {isPoint, IPoint} from '@gd/measure/datum/IDatumObjects';
 import Box from '@mui/material/Box';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
