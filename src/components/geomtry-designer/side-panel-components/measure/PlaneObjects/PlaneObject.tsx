@@ -1,15 +1,16 @@
 /* eslint-disable no-undef */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import {IPlane, IDatumObject} from '@gd/measure/IDatumObjects';
 import {
   isNormalConstantPlane,
+  isPointNormalPlane,
   isThreePointsPlane,
   isAxisPointPlane,
   isFromBasePlane,
   isFromElementBasePlane
 } from '@gd/measure/IPlaneObjects';
 import {ThreePointsPlane} from './ThreePointsPlane';
+import {PointNormalPlane} from './PointNormalPlane';
 import {AxisPointPlane} from './AxisPointPlane';
 import {FromElementBasePlane} from './FromElementBasePlane';
 import {FromBasePlane} from './FromBasePlane';
@@ -17,6 +18,7 @@ import {NormalConstantPlane} from './NormalConstantPlane';
 
 export const planeClasses = [
   'NormalConstantPlane',
+  'PointNormalPlane',
   'ThreePointsPlane',
   'AxisPointPlane',
   'FromBasePlane',
@@ -26,6 +28,7 @@ export type PlaneClasses = typeof planeClasses[number];
 
 export function getPlaneObjectClass(plane: IPlane): PlaneClasses | '' {
   if (isNormalConstantPlane(plane)) return 'NormalConstantPlane';
+  if (isPointNormalPlane(plane)) return 'PointNormalPlane';
   if (isThreePointsPlane(plane)) return 'ThreePointsPlane';
   if (isAxisPointPlane(plane)) return 'AxisPointPlane';
   if (isFromBasePlane(plane)) return 'FromBasePlane';
@@ -51,6 +54,13 @@ export function PlaneObject(params: {
     content = (
       <NormalConstantPlane
         plane={isNormalConstantPlane(plane) ? plane : undefined}
+        setApplyReady={setApplyReady}
+      />
+    );
+  else if (type === 'PointNormalPlane')
+    content = (
+      <PointNormalPlane
+        plane={isPointNormalPlane(plane) ? plane : undefined}
         setApplyReady={setApplyReady}
       />
     );

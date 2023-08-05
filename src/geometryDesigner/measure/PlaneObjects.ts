@@ -265,21 +265,20 @@ export class PointNormalPlane extends Plane implements IPointNormalPlane {
   readonly className = 'PointNormalPlane' as const;
 
   get planeCenter(): Vector3 {
-    if (isNamedVector3(this.point)) {
-      return this.point.value;
-    }
-    return this.pointBuf?.getThreePoint() ?? new Vector3();
+    return this.pointBuf ?? new Vector3();
   }
 
   get planeSize(): {width: number; height: number} {
     return {width: 300, height: 300};
   }
 
-  point: string | INamedVector3;
+  point: string;
 
-  pointBuf: IPoint | undefined = undefined;
+  pointBuf: Vector3 | undefined = undefined;
 
   normal: string | INamedVector3;
+
+  normalBuf: Vector3 | undefined = undefined;
 
   get description() {
     return `plane from normal and point`;
@@ -295,9 +294,7 @@ export class PointNormalPlane extends Plane implements IPointNormalPlane {
     return {
       ...base,
       className: this.className,
-      point: isNamedVector3(this.point)
-        ? this.point.getData(state)
-        : (this.point as string),
+      point: this.point,
       normal: isNamedVector3(this.normal)
         ? this.normal.getData(state)
         : (this.normal as string)
@@ -305,45 +302,39 @@ export class PointNormalPlane extends Plane implements IPointNormalPlane {
   }
 
   update(ref: DatumDict): void {
-    let point: Vector3 | undefined;
     this.pointBuf = undefined;
-    if (isNamedVector3(this.point)) {
-      point = this.point.value;
-    } else {
-      const tmp = ref[this.point];
-      if (isPoint(tmp)) {
-        this.pointBuf = tmp;
-        point = this.pointBuf.getThreePoint();
-      }
+    const tmp = ref[this.point];
+    if (isPoint(tmp)) {
+      this.pointBuf = tmp.getThreePoint();
     }
-    if (!point) throw new Error('計測点が見つからない');
-    let normal: Vector3 | undefined;
+    if (!this.pointBuf) throw new Error('計測点が見つからない');
+    this.normalBuf = undefined;
     if (isNamedVector3(this.normal)) {
-      normal = this.normal.value;
+      this.normalBuf = this.normal.value.normalize();
     } else {
       const tmp = ref[this.normal];
-      if (isPoint(tmp)) normal = tmp.getThreePoint();
+      if (isLine(tmp))
+        this.normalBuf = tmp.getThreeLine().delta(new Vector3()).normalize();
     }
-    if (!normal) throw new Error('データム軸が見つからない');
-    normal.normalize();
-    // plane.normal.normalize();
+    if (!this.normalBuf) throw new Error('データム軸が見つからない');
+    this.storedValue = new ThreePlane().setFromNormalAndCoplanarPoint(
+      this.normalBuf,
+      this.pointBuf
+    );
   }
 
   constructor(
     params:
       | {
           name: string;
-          point: string | INamedVector3 | FunctionVector3;
+          point: string;
           normal: string | INamedVector3 | FunctionVector3;
         }
       | IDataPointNormalPlane
   ) {
     super(params);
     const {point, normal} = params;
-    this.point =
-      isNamedVector3(point) || isNamedData(point) || isFunctionVector3(point)
-        ? new NamedVector3({value: point})
-        : point;
+    this.point = point;
     this.normal =
       isNamedVector3(normal) || isNamedData(normal) || isFunctionVector3(normal)
         ? new NamedVector3({value: normal})
@@ -361,11 +352,7 @@ export class PointNormalPlane extends Plane implements IPointNormalPlane {
 
   copy(other: IDatumObject): void {
     if (isPlane(other) && isPointNormalPlane(other)) {
-      if (isNamedVector3(other.point)) {
-        this.point = new NamedVector3({value: other.point.getStringValue()});
-      } else {
-        this.point = other.point;
-      }
+      this.point = other.point;
       if (isNamedVector3(other.normal)) {
         this.normal = new NamedVector3({value: other.normal.getStringValue()});
       } else {
@@ -598,6 +585,10 @@ export class AxisPointPlane extends Plane implements IAxisPointPlane {
       point.getThreePoint(),
       line.getThreeLine()
     );
+  }
+
+  getThreePlane(): ThreePlane {
+    return this.storedValue.clone();
   }
 
   constructor(

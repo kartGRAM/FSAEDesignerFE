@@ -64,7 +64,7 @@ export function isDataFromBasePlane(
 
 export interface IPointNormalPlane extends IPlane {
   className: 'PointNormalPlane';
-  point: NodeID | INamedVector3;
+  point: NodeID;
   normal: NodeID | INamedVector3;
   getData(): IDataPointNormalPlane;
 }
@@ -78,7 +78,7 @@ export function isPointNormalPlane(
 
 export interface IDataPointNormalPlane extends IDataPlane {
   className: 'PointNormalPlane';
-  point: NodeID | IDataVector3;
+  point: NodeID;
   normal: NodeID | IDataVector3;
 }
 

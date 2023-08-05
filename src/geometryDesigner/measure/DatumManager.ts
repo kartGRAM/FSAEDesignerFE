@@ -29,10 +29,12 @@ import {
   isDataFromElementBasePlane,
   isDataFromBasePlane,
   isDataNormalConstantPlane,
-  isDataAxisPointPlane
+  isDataAxisPointPlane,
+  isDataPointNormalPlane
 } from '@gd/measure/IPlaneObjects';
 import {
   ThreePointsPlane,
+  PointNormalPlane,
   FromElementBasePlane,
   FromBasePlane,
   AxisPointPlane,
@@ -218,6 +220,7 @@ function getDatumObject(data: IDataDatumObject): IDatumObject {
     return new TwoPlaneIntersectionLine(data);
 
   if (isDataNormalConstantPlane(data)) return new NormalConstantPlane(data);
+  if (isDataPointNormalPlane(data)) return new PointNormalPlane(data);
   if (isDataThreePointsPlane(data)) return new ThreePointsPlane(data);
   if (isDataAxisPointPlane(data)) return new AxisPointPlane(data);
   if (isDataFromElementBasePlane(data)) return new FromElementBasePlane(data);
