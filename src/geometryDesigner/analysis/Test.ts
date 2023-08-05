@@ -16,7 +16,7 @@ import {
   wip,
   done
 } from '@worker/solverWorkerMessage';
-import {ISnapshot} from '@gd/kinematics/ISnapshot';
+import {ISnapshot} from '@gd/analysis/ISnapshot';
 import {setTests} from '@store/reducers/dataGeometryDesigner';
 import {LocalInstances, getLocalInstances} from '@worker/getLocalInstances';
 import {IFlowNode, IDataEdge} from './FlowNode';

@@ -1,5 +1,5 @@
 import {GDState} from '@store/reducers/dataGeometryDesigner';
-import {ISnapshot} from '@gd/kinematics/ISnapshot';
+import {ISnapshot} from '@gd/analysis/ISnapshot';
 import {isObject} from '@utils/helpers';
 
 export interface FromParent {

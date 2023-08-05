@@ -3,7 +3,7 @@ import {getDgd} from '@store/getDgd';
 import {replaceState} from '@store/reducers/dataGeometryDesigner';
 import {KinematicSolver} from '@gd/kinematics/Solver';
 import {Test} from '@gd/analysis/Test';
-import {ISnapshot} from '@gd/kinematics/ISnapshot';
+import {ISnapshot} from '@gd/analysis/ISnapshot';
 import {FromParent, log} from './solverWorkerMessage';
 import {getLocalInstances} from './getLocalInstances';
 

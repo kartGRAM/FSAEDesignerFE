@@ -4,7 +4,7 @@ import {
   IMeasureToolsManager
 } from '@gd/measure/IMeasureTools';
 import {getMeasureTool} from '@gd/measure/MeasureTools';
-import {MeasureSnapshot} from '@gd/kinematics/ISnapshot';
+import {MeasureSnapshot} from '@gd/analysis/ISnapshot';
 import {IDatumManager} from './IDatumObjects';
 
 export class MeasureToolsManager implements IMeasureToolsManager {

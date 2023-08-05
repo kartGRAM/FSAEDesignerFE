@@ -1,5 +1,5 @@
 import {KinematicSolver} from '@gd/kinematics/Solver';
-import {ISnapshot} from '@gd/kinematics/ISnapshot';
+import {ISnapshot} from '@gd/analysis/ISnapshot';
 import {IFlowNode, IDataFlowNode, FlowNode} from './FlowNode';
 
 export interface IActionNode extends IFlowNode {

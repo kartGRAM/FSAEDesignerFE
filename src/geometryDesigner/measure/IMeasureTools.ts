@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {Vector3} from 'three';
-import {MeasureSnapshot} from '@gd/kinematics/ISnapshot';
+import {MeasureSnapshot} from '@gd/analysis/ISnapshot';
 import {NodeID, IPoint, ILine, IPlane} from './IDatumObjects';
 
 export interface IMeasureTool {

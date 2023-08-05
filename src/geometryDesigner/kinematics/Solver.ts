@@ -53,7 +53,7 @@ import {
   isFullDegreesComponent,
   PointComponent
 } from './KinematicComponents';
-import {ISnapshot} from './ISnapshot';
+import {ISnapshot} from '../analysis/ISnapshot';
 
 export class KinematicSolver {
   assembly: IAssembly;

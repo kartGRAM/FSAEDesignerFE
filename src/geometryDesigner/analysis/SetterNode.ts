@@ -1,4 +1,4 @@
-import {ISnapshot} from '@gd/kinematics/ISnapshot';
+import {ISnapshot} from '@gd/analysis/ISnapshot';
 
 import {v4 as uuidv4} from 'uuid';
 import {KinematicSolver} from '@gd/kinematics/Solver';
