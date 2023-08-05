@@ -332,7 +332,7 @@ function ToolValue(props: {tool: IMeasureTool}) {
   return (
     <>
       {keys.map((key, i) => (
-        <Box component="div">
+        <Box component="div" key={key}>
           <Typography ref={refs.current[i]} variant="caption" key={key}>
             {`${key}:  ${tool.value[key].toFixed(3)}`}
           </Typography>
