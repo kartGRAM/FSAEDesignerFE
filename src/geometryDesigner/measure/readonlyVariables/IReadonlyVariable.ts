@@ -13,8 +13,7 @@ export interface IVariableSource {
 }
 
 export interface IDataVariableSource {
-  nodeID: string;
-  sourceFrom: 'element' | 'measureTool' | 'global' | 'readonlyVariables';
+  sourceFrom: 'element' | 'measureTool' | 'global' | 'readonlyVariable';
   sourceNodeID: string;
   target: string;
   name: string;

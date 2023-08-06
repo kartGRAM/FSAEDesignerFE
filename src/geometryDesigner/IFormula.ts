@@ -1,4 +1,5 @@
 import * as math from 'mathjs';
+import {isObject} from '@utils/helpers';
 
 export interface IDataFormula {
   name: string;
@@ -7,6 +8,7 @@ export interface IDataFormula {
 }
 
 export interface IFormula {
+  className: 'Formula';
   name: string;
   formula: string;
   get evaluatedValue(): number;
@@ -17,12 +19,8 @@ export interface IFormula {
   getEvaluatedValue(formulae: IDataFormula[] | undefined): number;
 }
 
-export const isFormula = (params: any): params is IFormula => {
-  try {
-    return 'className' in params && params.className === 'Formula';
-  } catch (e: any) {
-    return false;
-  }
+export const isFormula = (formula: any): formula is IFormula => {
+  return isObject(formula) && formula.className === 'Formula';
 };
 
 export function replaceVariable(

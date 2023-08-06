@@ -75,7 +75,7 @@ export function evaluate(params: {
 }
 
 export class Formula implements IFormula {
-  className = 'Formula';
+  className = 'Formula' as const;
 
   name: string;
 
