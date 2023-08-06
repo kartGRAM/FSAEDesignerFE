@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {Vector3} from 'three';
 import {MeasureSnapshot} from '@gd/analysis/ISnapshot';
+import {isObject} from '@utils/helpers';
 import {NodeID, IPoint, ILine, IPlane} from '../datum/IDatumObjects';
 
 export interface IMeasureTool {
@@ -24,6 +25,10 @@ export interface IDataMeasureTool {
   visibility: boolean;
 }
 
+export function isMeasureTool(value: any): value is IMeasureTool {
+  return isObject(value) && value.isMeasureTool;
+}
+
 export interface IMeasureToolsManager {
   children: IMeasureTool[];
   getMeasureTool(nodeID: string): IMeasureTool | undefined;
@@ -32,12 +37,7 @@ export interface IMeasureToolsManager {
 }
 
 export function isDataMeasureTool(data: any): data is IDataMeasureTool {
-  try {
-    if (data.isDataMeasureTool) return true;
-    return false;
-  } catch {
-    return false;
-  }
+  return isObject(data) && data.isDataMeasureTool;
 }
 
 export interface IDistance extends IMeasureTool {

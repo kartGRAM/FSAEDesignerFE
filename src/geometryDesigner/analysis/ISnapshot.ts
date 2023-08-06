@@ -15,3 +15,10 @@ export type MeasureSnapshot = {
     readonly values: {[index: string]: number};
   };
 };
+
+export type ROVariablesSnapshot = {
+  [index: string]: {
+    readonly name: string;
+    readonly values: {[index: string]: number};
+  };
+};

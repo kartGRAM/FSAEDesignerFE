@@ -156,10 +156,22 @@ export function getSelectableData(
       {
         name: 'measureTool',
         nodeID: 'measureTool',
-        children: localInstances.measureToolsManager.children.map((child) => ({
-          nodeID: child.nodeID,
-          name: child.name
-        }))
+        children: localInstances.measureToolsManager.children.map((child) => {
+          if (Object.keys(child.value).length === 1) {
+            return {
+              nodeID: `${child.nodeID}._`,
+              name: child.name
+            };
+          }
+          return {
+            nodeID: child.nodeID,
+            name: child.name,
+            children: Object.keys(child).map((key) => ({
+              nodeID: `${child.nodeID}.${key}`,
+              name: key
+            }))
+          };
+        })
       },
       {
         name: 'special',
