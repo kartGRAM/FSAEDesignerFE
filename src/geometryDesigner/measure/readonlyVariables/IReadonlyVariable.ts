@@ -26,6 +26,7 @@ export interface IReadonlyVariable {
   name: string;
   formula: string;
   readonly value: number;
+  update(): void;
   getData(): IDataReadonlyVariable;
 }
 

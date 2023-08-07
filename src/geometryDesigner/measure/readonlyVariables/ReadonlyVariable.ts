@@ -73,7 +73,7 @@ export class VariableSource implements IVariableSource {
   }
 }
 
-export class ReadonlyVariables implements IReadonlyVariable {
+export class ReadonlyVariable implements IReadonlyVariable {
   isReadonlyVariable = true as const;
 
   nodeID: string;
@@ -84,17 +84,23 @@ export class ReadonlyVariables implements IReadonlyVariable {
 
   formula: string;
 
-  get value(): number {
+  private tempValue: number = Number.NaN;
+
+  update() {
     const scope: {[key: string]: number} = {};
     this.sources.forEach((source) => {
       math.evaluate(`${source.name}=${source.value}`, scope);
     });
     math.evaluate(`___temp___=${this.formula}`, scope);
     // eslint-disable-next-line no-underscore-dangle
-    return scope.___temp___;
+    this.tempValue = scope.___temp___;
   }
 
-  constructor(params: {name: string; formula: string}) {
+  get value(): number {
+    return this.tempValue;
+  }
+
+  constructor(params: {name: string; formula: string} | IDataReadonlyVariable) {
     const {name, formula} = params;
     this.nodeID = uuidv4();
     this.name = name;

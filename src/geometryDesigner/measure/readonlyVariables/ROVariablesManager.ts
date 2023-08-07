@@ -1,10 +1,12 @@
 import {IMeasureToolsManager} from '@gd/measure/measureTools/IMeasureTools';
 import {IAssembly} from '@gd/IElements';
+import {ROVariablesSnapshot} from '@gd/analysis/ISnapshot';
 import {
   IReadonlyVariable,
   IROVariablesManager,
   IDataReadonlyVariable
 } from './IReadonlyVariable';
+import {ReadonlyVariable} from './ReadonlyVariable';
 
 export class ROVariablesManager implements IROVariablesManager {
   children: IReadonlyVariable[];
@@ -20,15 +22,8 @@ export class ROVariablesManager implements IROVariablesManager {
   }) {
     const {assembyl, measureToolsManager, data} = params;
     this.children = [];
-    const dataFilled = data ?? [];
-    for (const row of dataFilled) {
-      try {
-        const child = getMeasureTool(row, datumManager);
-        this.children.push(child);
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.log(e);
-      }
+    if (data) {
+      this.children = data.map((v) => new ReadonlyVariable(v));
     }
   }
 
@@ -36,10 +31,10 @@ export class ROVariablesManager implements IROVariablesManager {
     this.children.forEach((child) => child.update());
   }
 
-  getValuesAll(): MeasureSnapshot {
-    const ret: MeasureSnapshot = {};
+  getValuesAll(): ROVariablesSnapshot {
+    const ret: ROVariablesSnapshot = {};
     this.children.forEach((child) => {
-      ret[child.nodeID] = {name: child.name, values: child.value};
+      ret[child.nodeID] = {name: child.name, value: child.value};
     });
     return ret;
   }
