@@ -16,6 +16,7 @@ import {setGDSceneGetThree} from '@store/reducers/uiTempGeometryDesigner';
 
 import DatumObjectsRenderer from '@gdComponents/r3f-components/DatumObjects/DatumObjectsRenderer';
 import MeasureToolsRenderer from '@gdComponents/r3f-components/MeasureTools/MeasureToolsRenderer';
+import ROVariablesUpdate from '@gdComponents/r3f-components/ReadonlyVariables/ReadonlyVariablesUpdate';
 import {OrbitControls} from './r3f-components/OrbitControls';
 import SelectedPoints from './r3f-components/SelectedPoints';
 import GroundPlane from './r3f-components/GroundPlane';
@@ -109,6 +110,7 @@ export default function GDScene() {
           <Provider store={store}>
             <DatumObjectsRenderer />
             <MeasureToolsRenderer />
+            <ROVariablesUpdate />
             <CollectedAssembly />
             <OrbitControls />
             <MyKeyboardControls />

@@ -407,6 +407,7 @@ export const getSampleData = async (): Promise<SavedData> => {
     datumObjects: [],
     measureTools: [],
     analysis: [],
+    readonlyVariables: [],
     options: {
       fixSpringDumperDuaringControl: false,
       assemblyMode: 'FixedFrame'

@@ -7,6 +7,7 @@ import {MovePointDialogProps} from '@gdComponents/dialog-components/MovePointDia
 import {IAssembly, Elements} from '@gd/IElements';
 import {IDatumManager} from '@gd/measure/datum/IDatumObjects';
 import {IMeasureToolsManager} from '@gd/measure/measureTools/IMeasureTools';
+import {IROVariablesManager} from '@gd/measure/readonlyVariables/IReadonlyVariable';
 import {Quaternion, Vector3} from 'three';
 import {RootState} from '@react-three/fiber';
 import {GetState} from 'zustand';
@@ -60,6 +61,7 @@ export interface GDState {
   kinematicSolver: KinematicSolver | undefined;
   datumManager: IDatumManager | undefined;
   measureToolsManager: IMeasureToolsManager | undefined;
+  roVariablesManager: IROVariablesManager | undefined;
   tests: ITest[];
   treeViewDragExpanded: string[];
   draggingNewElement: Elements | null;
@@ -163,6 +165,7 @@ const initialState: GDState = {
   },
   datumManager: undefined,
   measureToolsManager: undefined,
+  roVariablesManager: undefined,
   tests: [],
   assembly: undefined,
   collectedAssembly: undefined,
@@ -194,6 +197,7 @@ export const uitGeometryDesignerSlice = createSlice({
             collectedAssembly: IAssembly;
             datumManager: IDatumManager;
             measureToolsManager: IMeasureToolsManager;
+            roVariablesManager: IROVariablesManager;
           }
         | undefined
       >
@@ -204,6 +208,7 @@ export const uitGeometryDesignerSlice = createSlice({
         state.collectedAssembly = undefined;
         state.datumManager = undefined;
         state.measureToolsManager = undefined;
+        state.roVariablesManager = undefined;
         state.kinematicSolver = undefined;
         state.gdSceneState.movingMode = false;
         state.selectedElementAbsPath = '';
@@ -213,24 +218,37 @@ export const uitGeometryDesignerSlice = createSlice({
       state.collectedAssembly = action.payload.collectedAssembly;
       state.datumManager = action.payload.datumManager;
       state.measureToolsManager = action.payload.measureToolsManager;
+      state.roVariablesManager = action.payload.roVariablesManager;
     },
     setDatumManager: (
       state: GDState,
       action: PayloadAction<{
         datumManager: IDatumManager;
         measureToolsManager: IMeasureToolsManager;
+        roVariablesManager: IROVariablesManager;
       }>
     ) => {
       state.datumManager = action.payload.datumManager;
       state.measureToolsManager = action.payload.measureToolsManager;
+      state.roVariablesManager = action.payload.roVariablesManager;
     },
     setMeasureToolsManager: (
       state: GDState,
       action: PayloadAction<{
         measureToolsManager: IMeasureToolsManager;
+        roVariablesManager: IROVariablesManager;
       }>
     ) => {
       state.measureToolsManager = action.payload.measureToolsManager;
+      state.roVariablesManager = action.payload.roVariablesManager;
+    },
+    setROVariablesManager: (
+      state: GDState,
+      action: PayloadAction<{
+        roVariablesManager: IROVariablesManager;
+      }>
+    ) => {
+      state.roVariablesManager = action.payload.roVariablesManager;
     },
     setTest: (state: GDState, action: PayloadAction<ITest>) => {
       const test = action.payload;
@@ -542,6 +560,7 @@ export const {
   setAssemblyAndCollectedAssembly,
   setDatumManager,
   setMeasureToolsManager,
+  setROVariablesManager,
   setTest,
   removeTest,
   setKinematicSolver,

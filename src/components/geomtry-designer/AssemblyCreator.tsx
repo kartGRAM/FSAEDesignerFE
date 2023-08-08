@@ -6,7 +6,8 @@ import {
   setKinematicSolver,
   setAssembled,
   setDatumManager,
-  setMeasureToolsManager
+  setMeasureToolsManager,
+  setROVariablesManager
 } from '@store/reducers/uiTempGeometryDesigner';
 // import {getKinematicConstrainedElements} from '@gd/KinematicFunctions';
 import {KinematicSolver} from '@gd/kinematics/Solver';
@@ -14,8 +15,9 @@ import {getControl} from '@gd/controls/Controls';
 import {Control} from '@gd/controls/IControls';
 import {DatumManager} from '@gd/measure/datum/DatumManager';
 import {MeasureToolsManager} from '@gd/measure/measureTools/MeasureToolsManager';
-
+import {ROVariablesManager} from '@gd/measure/readonlyVariables/ROVariablesManager';
 import {getAssembly} from '@gd/Elements';
+import useUpdateEffect from '@hooks/useUpdateEffect';
 
 export default function AssemblyCreactor() {
   const dispatch = useDispatch();
@@ -29,6 +31,10 @@ export default function AssemblyCreactor() {
 
   const measureTools = useSelector(
     (state: RootState) => state.dgd.present.measureTools
+  );
+
+  const readonlyVariables = useSelector(
+    (state: RootState) => state.dgd.present.readonlyVariables
   );
 
   const assembled = useSelector(
@@ -52,12 +58,19 @@ export default function AssemblyCreactor() {
         datumManager,
         state.measureTools
       );
+      const roVariablesManager = new ROVariablesManager({
+        assembly: iAssembly,
+        measureToolsManager,
+        data: state.readonlyVariables
+      });
+      roVariablesManager.update();
       dispatch(
         setAssemblyAndCollectedAssembly({
           assembly: iAssembly,
           collectedAssembly,
           datumManager,
-          measureToolsManager
+          measureToolsManager,
+          roVariablesManager
         })
       );
     } else {
@@ -69,7 +82,7 @@ export default function AssemblyCreactor() {
     console.log((end - start).toFixed(1));
   }, [assembly]);
 
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     if (datumObjects) {
       const start = performance.now();
       // 依存変数入れていないので、現在の値を取得
@@ -84,10 +97,17 @@ export default function AssemblyCreactor() {
         datumManager,
         state.dgd.present.measureTools
       );
+      const roVariablesManager = new ROVariablesManager({
+        assembly: state.uitgd.assembly!,
+        measureToolsManager,
+        data: state.dgd.present.readonlyVariables
+      });
+      roVariablesManager.update();
       dispatch(
         setDatumManager({
           datumManager,
-          measureToolsManager
+          measureToolsManager,
+          roVariablesManager
         })
       );
       // 実行時間を計測した処理
@@ -97,18 +117,25 @@ export default function AssemblyCreactor() {
     }
   }, [datumObjects]);
 
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     if (measureTools) {
       const start = performance.now();
       // 依存変数入れていないので、現在の値を取得
-      const state = store.getState().uitgd;
+      const state = store.getState();
       const measureToolsManager = new MeasureToolsManager(
-        state.datumManager!,
+        state.uitgd.datumManager!,
         measureTools
       );
+      const roVariablesManager = new ROVariablesManager({
+        assembly: state.uitgd.assembly!,
+        measureToolsManager,
+        data: state.dgd.present.readonlyVariables
+      });
+      roVariablesManager.update();
       dispatch(
         setMeasureToolsManager({
-          measureToolsManager
+          measureToolsManager,
+          roVariablesManager
         })
       );
       // 実行時間を計測した処理
@@ -118,8 +145,31 @@ export default function AssemblyCreactor() {
     }
   }, [measureTools]);
 
+  useUpdateEffect(() => {
+    if (readonlyVariables) {
+      const start = performance.now();
+      // 依存変数入れていないので、現在の値を取得
+      const state = store.getState();
+      const roVariablesManager = new ROVariablesManager({
+        assembly: state.uitgd.assembly!,
+        measureToolsManager: state.uitgd.measureToolsManager!,
+        data: state.dgd.present.readonlyVariables
+      });
+      roVariablesManager.update();
+      dispatch(
+        setROVariablesManager({
+          roVariablesManager
+        })
+      );
+      // 実行時間を計測した処理
+      const end = performance.now();
+      // eslint-disable-next-line no-console
+      console.log((end - start).toFixed(1));
+    }
+  }, [readonlyVariables]);
+
   // assembledに変化があった場合に実行
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     if (assembled) {
       const state = store.getState();
 

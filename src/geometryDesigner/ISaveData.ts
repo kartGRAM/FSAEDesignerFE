@@ -2,6 +2,7 @@ import {IDataAssembly} from '@app/geometryDesigner/IElements';
 import {IDataControl} from '@gd/controls/IControls';
 import {IDataDatumGroup} from '@gd/measure/datum/IDatumObjects';
 import {IDataMeasureTool} from '@gd/measure/measureTools/IMeasureTools';
+import {IDataReadonlyVariable} from '@gd/measure/readonlyVariables/IReadonlyVariable';
 import {IDataTest} from '@gd/analysis/ITest';
 import {IDataFormula} from '@gd/IFormula';
 import {getScreenShot} from '@gdComponents/GDScene';
@@ -24,6 +25,7 @@ export interface SavedData {
   controls: IDataControl[];
   datumObjects: IDataDatumGroup[];
   measureTools: IDataMeasureTool[];
+  readonlyVariables: IDataReadonlyVariable[];
   analysis: IDataTest[];
   // テスト以外に変更がくわえられた場合、このuuidが変わる。
   idWoTest?: string;
@@ -42,6 +44,9 @@ export function getSetTopAssemblyParams(data: any): SavedData {
     controls: convertJsonToControls(data.controls as string),
     datumObjects: convertJsonToDatumObjects(data.datumObjects as string),
     measureTools: convertJsonToMeasureTools(data.measureTools as string),
+    readonlyVariables: convertJsonToReadonlyVariables(
+      data.readonlyVariables as string
+    ),
     analysis: convertJsonToAnalysis(data.analysis as string),
     options: convertJsonToOptions(data.options as string)
   };
@@ -58,6 +63,7 @@ export interface SaveDataToSend {
   controls: string;
   datumObjects: string;
   measureTools: string;
+  readonlyVariables: string;
   analysis: string;
   options: string;
 }
@@ -85,6 +91,7 @@ export function getDataToSave(
     controls: JSON.stringify(state.controls),
     datumObjects: JSON.stringify(state.datumObjects),
     measureTools: JSON.stringify(state.measureTools),
+    readonlyVariables: JSON.stringify(state.readonlyVariables),
     analysis: JSON.stringify(state.analysis),
     options: JSON.stringify(state.options),
     clientLastUpdated: state.lastUpdated,
@@ -166,6 +173,19 @@ function convertJsonToDatumObjects(content: string): IDataDatumGroup[] {
 function convertJsonToMeasureTools(content: string): IDataMeasureTool[] {
   try {
     const data = JSON.parse(content) as IDataMeasureTool[];
+    return data;
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    // console.log(err);
+    return [];
+  }
+}
+
+function convertJsonToReadonlyVariables(
+  content: string
+): IDataReadonlyVariable[] {
+  try {
+    const data = JSON.parse(content) as IDataReadonlyVariable[];
     return data;
   } catch (err) {
     // eslint-disable-next-line no-console

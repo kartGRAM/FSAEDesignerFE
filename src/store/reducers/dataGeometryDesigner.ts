@@ -16,6 +16,7 @@ import {validateAll /* , replaceVariable */} from '@gd/IFormula';
 import {DateTime} from 'luxon';
 import {SavedData} from '@gd/ISaveData';
 import {v4 as uuidv4} from 'uuid';
+import {IDataReadonlyVariable} from '@gd/measure/readonlyVariables/IReadonlyVariable';
 
 export interface GDState extends SavedData {
   transCoordinateMatrix: IDataMatrix3;
@@ -42,6 +43,7 @@ const initialState: GDState = {
   controls: [],
   datumObjects: [],
   measureTools: [],
+  readonlyVariables: [],
   analysis: [],
   options: {
     fixSpringDumperDuaringControl: false,
@@ -76,6 +78,7 @@ export const dataGeometryDesignerSlice = createSlice({
       state.controls = initialState.controls;
       state.datumObjects = initialState.datumObjects;
       state.measureTools = initialState.measureTools;
+      state.readonlyVariables = initialState.readonlyVariables;
       state.analysis = initialState.analysis;
       state.topAssembly = action.payload?.getDataElement(state);
       state.idWoTest = uuidv4();
@@ -94,6 +97,7 @@ export const dataGeometryDesignerSlice = createSlice({
       state.controls = action.payload.controls;
       state.datumObjects = action.payload.datumObjects;
       state.measureTools = action.payload.measureTools;
+      state.readonlyVariables = action.payload.readonlyVariables;
       state.analysis = action.payload.analysis;
       state.idWoTest = uuidv4();
       state.changed = false;
@@ -176,6 +180,14 @@ export const dataGeometryDesignerSlice = createSlice({
       action: PayloadAction<IDataMeasureTool[]>
     ) => {
       state.measureTools = action.payload;
+      state.idWoTest = uuidv4();
+      state.changed = true;
+    },
+    setReadonlyVariables: (
+      state: GDState,
+      action: PayloadAction<IDataReadonlyVariable[]>
+    ) => {
+      state.readonlyVariables = action.payload;
       state.idWoTest = uuidv4();
       state.changed = true;
     },
