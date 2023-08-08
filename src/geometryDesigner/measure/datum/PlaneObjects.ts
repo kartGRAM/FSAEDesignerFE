@@ -374,8 +374,9 @@ export class FromElementBasePlane
     const element = this.elementBuf;
     if (!element) return new Vector3();
     const position = element.position.value;
+    const distance = this.distance.value;
     return position.add(
-      this.storedValue.normal.clone().multiplyScalar(this.distance.value)
+      this.storedValue.normal.clone().multiplyScalar(distance)
     );
   }
 

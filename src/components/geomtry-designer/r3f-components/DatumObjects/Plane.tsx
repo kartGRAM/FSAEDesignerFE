@@ -46,35 +46,38 @@ export default function Plane(params: {plane: IPlane}) {
 
   useFrame(() => {
     if (!meshRef.current) return;
-    const state = store.getState().uitgd.gdSceneState;
-    let isSelected = false;
-    if (state.datumPointSelectMode) {
-      isSelected = state.datumPointSelected === plane.nodeID;
-    } else {
-      isSelected = state.selectedDatumObject === plane.nodeID;
-    }
-    let color = 0x00ff00;
-    if (isSelected) {
-      color = 0xff0000;
-    }
-    if (materialRef.current) {
-      materialRef.current.color.set(color);
-    }
+    try {
+      const state = store.getState().uitgd.gdSceneState;
+      let isSelected = false;
+      if (state.datumPointSelectMode) {
+        isSelected = state.datumPointSelected === plane.nodeID;
+      } else {
+        isSelected = state.selectedDatumObject === plane.nodeID;
+      }
+      let color = 0x00ff00;
+      if (isSelected) {
+        color = 0xff0000;
+      }
+      if (materialRef.current) {
+        materialRef.current.color.set(color);
+      }
 
-    const plane3 = plane.getThreePlane();
-    plane3.normal.applyMatrix3(coMatrix);
-    const rot = new Quaternion().setFromUnitVectors(
-      new Vector3(0, 0, 1),
-      plane3.normal
-    );
+      const plane3 = plane.getThreePlane();
+      plane3.normal.applyMatrix3(coMatrix);
+      const rot = new Quaternion().setFromUnitVectors(
+        new Vector3(0, 0, 1),
+        plane3.normal
+      );
 
-    groupRef.current.position.copy(plane.planeCenter.applyMatrix3(coMatrix));
-    groupRef.current.quaternion.copy(rot);
+      groupRef.current.position.copy(plane.planeCenter.applyMatrix3(coMatrix));
+      groupRef.current.quaternion.copy(rot);
 
-    meshRef.current.visible =
-      state.forceVisibledDatums.includes(plane.nodeID) ||
-      state.datumPlaneSelectMode ||
-      plane.visibility;
+      meshRef.current.visible =
+        state.forceVisibledDatums.includes(plane.nodeID) ||
+        state.datumPlaneSelectMode ||
+        plane.visibility;
+      // eslint-disable-next-line no-empty
+    } catch {}
   });
 
   return (

@@ -5,11 +5,15 @@ type Destructor = () => void;
 type EffectCallback = () => void | Destructor;
 export default function useDidUpdateEffect(
   effect: EffectCallback,
-  deps?: DependencyList
+  deps?: DependencyList,
+  ignoreFlag?: boolean
 ) {
   const didMountRef = useRef(false);
 
   useEffect(() => {
+    if (ignoreFlag) {
+      return undefined;
+    }
     if (didMountRef.current) {
       return effect();
     }
