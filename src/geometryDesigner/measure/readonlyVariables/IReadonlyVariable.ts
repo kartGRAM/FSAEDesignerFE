@@ -1,11 +1,26 @@
 import {IElement} from '@gd/IElements';
 import {IMeasureTool} from '@gd/measure/measureTools/IMeasureTools';
-import {IDataFormula} from '@gd/IFormula';
 import {ROVariablesSnapshot} from '@gd/analysis/ISnapshot';
 import {isObject} from '@utils/helpers';
 
+export type GlobalVariableName = {
+  isGlobalVariableName: true;
+  name: string;
+};
+
+export function isGlobalVariableName(
+  object: any
+): object is GlobalVariableName {
+  return isObject(object) && object.isGlobalVariableName;
+}
+
 export interface IVariableSource {
-  source: IElement | IMeasureTool | IDataFormula | IReadonlyVariable | null;
+  source:
+    | IElement
+    | IMeasureTool
+    | GlobalVariableName
+    | IReadonlyVariable
+    | null;
   target: string;
   name: string;
   readonly value: number;

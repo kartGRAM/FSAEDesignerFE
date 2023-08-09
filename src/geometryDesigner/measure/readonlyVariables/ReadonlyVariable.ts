@@ -4,19 +4,27 @@ import {
   isMeasureTool
 } from '@gd/measure/measureTools/IMeasureTools';
 import {IElement, isElement} from '@gd/IElements';
-import {IFormula, isFormula} from '@gd/IFormula';
 import * as math from 'mathjs';
 import {v4 as uuidv4} from 'uuid';
+import {getDgd} from '@store/getDgd';
+import {evaluate} from '@gd/Formula';
 import {
   IReadonlyVariable,
   IDataReadonlyVariable,
   IVariableSource,
   IDataVariableSource,
-  isReadonlyVariable
+  isReadonlyVariable,
+  isGlobalVariableName,
+  GlobalVariableName
 } from './IReadonlyVariable';
 
 export class VariableSource implements IVariableSource {
-  source: IReadonlyVariable | IElement | IMeasureTool | IFormula | null;
+  source:
+    | IReadonlyVariable
+    | IElement
+    | IMeasureTool
+    | GlobalVariableName
+    | null;
 
   target: string;
 
@@ -27,8 +35,11 @@ export class VariableSource implements IVariableSource {
     if (isReadonlyVariable(source)) {
       return source.value;
     }
-    if (isFormula(source)) {
-      return source.evaluatedValue;
+    if (isGlobalVariableName(source)) {
+      const {formulae} = getDgd();
+      const formula = formulae.find((f) => f.name === source.name)?.formula;
+      if (!formula) return Number.NaN;
+      return evaluate({formula, formulae});
     }
     if (isElement(source)) {
       const vars = source.getVariables();
@@ -42,7 +53,12 @@ export class VariableSource implements IVariableSource {
   }
 
   constructor(params: {
-    source: IReadonlyVariable | IElement | IMeasureTool | IFormula | null;
+    source:
+      | IReadonlyVariable
+      | IElement
+      | IMeasureTool
+      | GlobalVariableName
+      | null;
     target: string;
     name: string;
   }) {
@@ -57,7 +73,7 @@ export class VariableSource implements IVariableSource {
     let sourceFrom: IDataVariableSource['sourceFrom'] = 'readonlyVariable';
     if (isElement(source)) {
       sourceFrom = 'element';
-    } else if (isFormula(source)) {
+    } else if (isGlobalVariableName(source)) {
       sourceFrom = 'global';
     } else if (isMeasureTool(source)) {
       sourceFrom = 'measureTool';
@@ -66,8 +82,9 @@ export class VariableSource implements IVariableSource {
       name: this.name,
       sourceFrom,
       sourceNodeID:
-        (isFormula(this.source) ? this.source?.name : this.source?.nodeID) ??
-        '',
+        (isGlobalVariableName(this.source)
+          ? this.source?.name
+          : this.source?.nodeID) ?? '',
       target: this.target
     };
   }
