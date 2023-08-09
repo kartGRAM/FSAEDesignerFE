@@ -24,7 +24,11 @@ export class ROVariablesManager implements IROVariablesManager {
     const {assembly, measureToolsManager, data} = params;
     this.children = [];
     if (data) {
-      this.children = data.map((v) => new ReadonlyVariable(v));
+      data.forEach((v) => {
+        this.children.push(
+          new ReadonlyVariable(v, assembly, measureToolsManager, this.children)
+        );
+      });
     }
   }
 

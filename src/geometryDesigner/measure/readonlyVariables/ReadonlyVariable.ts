@@ -1,9 +1,10 @@
 // eslint-disable-next-line max-classes-per-file
 import {
+  IMeasureToolsManager,
   IMeasureTool,
   isMeasureTool
 } from '@gd/measure/measureTools/IMeasureTools';
-import {IElement, isElement} from '@gd/IElements';
+import {IElement, isElement, IAssembly} from '@gd/IElements';
 import * as math from 'mathjs';
 import {v4 as uuidv4} from 'uuid';
 import {getDgd} from '@store/getDgd';
@@ -13,6 +14,7 @@ import {
   IDataReadonlyVariable,
   IVariableSource,
   IDataVariableSource,
+  isDataReadonlyVariable,
   isReadonlyVariable,
   isGlobalVariableName,
   GlobalVariableName
@@ -104,25 +106,84 @@ export class ReadonlyVariable implements IReadonlyVariable {
   private tempValue: number = Number.NaN;
 
   update() {
-    const scope: {[key: string]: number} = {};
-    this.sources.forEach((source) => {
-      math.evaluate(`${source.name}=${source.value}`, scope);
-    });
-    math.evaluate(`___temp___=${this.formula}`, scope);
-    // eslint-disable-next-line no-underscore-dangle
-    this.tempValue = scope.___temp___;
+    this.tempValue = Number.NaN;
+    try {
+      const scope: {[key: string]: number} = {};
+      this.sources.forEach((source) => {
+        math.evaluate(`${source.name}=${source.value}`, scope);
+      });
+      math.evaluate(`___temp___=${this.formula}`, scope);
+      // eslint-disable-next-line no-underscore-dangle
+      this.tempValue = scope.___temp___;
+      // eslint-disable-next-line no-empty
+    } catch {}
   }
 
   get value(): number {
     return this.tempValue;
   }
 
-  constructor(params: {name: string; formula: string} | IDataReadonlyVariable) {
-    const {name, formula} = params;
+  constructor(
+    params: {name: string} | IDataReadonlyVariable,
+    assembly?: IAssembly,
+    measureToolsManager?: IMeasureToolsManager,
+    ROVariables?: IReadonlyVariable[]
+  ) {
+    const {name} = params;
     this.nodeID = uuidv4();
     this.name = name;
-    this.formula = formula;
+    this.formula = '0';
     this.sources = [];
+    if (
+      isDataReadonlyVariable(params) &&
+      assembly &&
+      measureToolsManager &&
+      ROVariables
+    ) {
+      const {nodeID, sources, formula} = params;
+      this.nodeID = nodeID;
+      this.formula = formula;
+      // eslint-disable-next-line array-callback-return, consistent-return
+      this.sources = sources.map((s) => {
+        const {target, name} = s;
+        // eslint-disable-next-line default-case
+        switch (s.sourceFrom) {
+          case 'element': {
+            const element = assembly.findElement(s.sourceNodeID);
+            return new VariableSource({
+              source: element ?? null,
+              target,
+              name
+            });
+          }
+          case 'global': {
+            return new VariableSource({
+              source: {isGlobalVariableName: true, name: s.sourceNodeID},
+              target,
+              name
+            });
+          }
+          case 'measureTool': {
+            const tool = measureToolsManager.getMeasureTool(s.sourceNodeID);
+            return new VariableSource({
+              source: tool ?? null,
+              target,
+              name
+            });
+          }
+          case 'readonlyVariable': {
+            const variable = ROVariables.find(
+              (v) => v.nodeID === s.sourceNodeID
+            );
+            return new VariableSource({
+              source: variable ?? null,
+              target,
+              name
+            });
+          }
+        }
+      });
+    }
   }
 
   // eslint-disable-next-line class-methods-use-this

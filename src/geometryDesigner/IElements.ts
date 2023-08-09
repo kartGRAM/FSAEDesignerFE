@@ -186,6 +186,7 @@ export interface IAssembly extends IElement {
   getAllPointsOfChildren(): INamedVector3RO[];
   getAllPointsNodeIDsOfChildren(): string[];
   flatten(noAssembly: boolean): IElement[];
+  findElement(nodeID: string): IElement | undefined;
 
   getDataElement(state: GDState): IDataAssembly | undefined;
 }

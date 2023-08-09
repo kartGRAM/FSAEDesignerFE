@@ -46,6 +46,7 @@ export interface IReadonlyVariable {
 }
 
 export interface IDataReadonlyVariable {
+  isDataReadonlyVariable: true;
   nodeID: string;
   sources: IDataVariableSource[];
   name: string;
@@ -54,6 +55,11 @@ export interface IDataReadonlyVariable {
 
 export function isReadonlyVariable(object: any): object is IReadonlyVariable {
   return isObject(object) && object.isReadonlyVariable;
+}
+export function isDataReadonlyVariable(
+  object: any
+): object is IDataReadonlyVariable {
+  return isObject(object) && object.isDataReadonlyVariable;
 }
 
 export interface IROVariablesManager {

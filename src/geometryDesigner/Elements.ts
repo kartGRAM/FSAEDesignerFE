@@ -523,6 +523,17 @@ export class Assembly extends Element implements IAssembly {
     return ret;
   }
 
+  findElement(nodeID: string): IElement | undefined {
+    if (nodeID === this.nodeID) return this;
+    for (const child of this.children) {
+      if (isAssembly(child)) {
+        const element = child.findElement(nodeID);
+        if (element) return element;
+      } else if (child.nodeID === nodeID) return child;
+    }
+    return undefined;
+  }
+
   getElementByName(name: string): IElement | undefined {
     const elements = this.flatten();
     return elements.find((element) => element.name.value === name);
