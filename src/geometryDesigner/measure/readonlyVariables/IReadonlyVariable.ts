@@ -65,7 +65,7 @@ export function isDataReadonlyVariable(
 export interface IROVariablesManager {
   children: IReadonlyVariable[];
 
-  getMeasureTool(nodeID: string): IReadonlyVariable | undefined;
+  getVariable(nodeID: string): IReadonlyVariable | undefined;
 
   update(): void;
 

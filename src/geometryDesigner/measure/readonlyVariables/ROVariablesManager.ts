@@ -11,7 +11,7 @@ import {ReadonlyVariable} from './ReadonlyVariable';
 export class ROVariablesManager implements IROVariablesManager {
   children: IReadonlyVariable[];
 
-  getMeasureTool(nodeID: string): IReadonlyVariable | undefined {
+  getVariable(nodeID: string): IReadonlyVariable | undefined {
     return this.children.find((child) => child.nodeID === nodeID);
   }
 
