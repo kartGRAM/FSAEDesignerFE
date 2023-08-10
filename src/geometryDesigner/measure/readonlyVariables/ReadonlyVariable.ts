@@ -119,6 +119,13 @@ export class ReadonlyVariable implements IReadonlyVariable {
     } catch {}
   }
 
+  copy(other: IReadonlyVariable) {
+    this.sources = [...other.sources];
+    this.formula = other.formula;
+    this.name = other.name;
+    this.update();
+  }
+
   get value(): number {
     return this.tempValue;
   }

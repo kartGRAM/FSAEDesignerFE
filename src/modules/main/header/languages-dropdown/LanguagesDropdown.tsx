@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {useTranslation} from 'react-i18next';
-import {Dropdown} from '@components';
+import {Dropdown} from '@app/components/AdminLTE';
 
 export interface Language {
   key: string;

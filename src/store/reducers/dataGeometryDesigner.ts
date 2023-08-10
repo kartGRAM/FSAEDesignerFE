@@ -213,6 +213,7 @@ export const {
   setTopAssembly,
   setDatumObjects,
   setMeasureTools,
+  setReadonlyVariables,
   updateAssembly,
   setFormulae,
   setControl,

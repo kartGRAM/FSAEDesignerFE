@@ -35,6 +35,7 @@ export interface GDParameterConfigState {
 export interface MeasurePanelState {
   DatumObjectsExpanded: boolean;
   MeasureToolsExpanded: boolean;
+  ROVariablesExpanded: boolean;
 }
 
 export interface AnalysisPanelState {
@@ -126,7 +127,8 @@ const initialState: GDState = {
   },
   measurePanelState: {
     DatumObjectsExpanded: true,
-    MeasureToolsExpanded: true
+    MeasureToolsExpanded: true,
+    ROVariablesExpanded: true
   },
   analysisPanelState: {
     flowCanvasBackgroundVariant: BackgroundVariant.Dots,

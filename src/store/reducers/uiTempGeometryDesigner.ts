@@ -84,6 +84,7 @@ export interface GDSceneState {
   selectedPoint: INamedVector3WithColor[] | null;
   selectedDatumObject: string;
   selectedMeasureTool: string;
+  selectedROVariable: string;
   viewDirection: Quaternion | undefined;
   orbitControlsEnabled: boolean;
   orbitControlsEnabledManual: boolean;
@@ -136,6 +137,7 @@ const initialState: GDState = {
     selectedPoint: null,
     selectedDatumObject: '',
     selectedMeasureTool: '',
+    selectedROVariable: '',
     viewDirection: undefined,
     resetPositions: false,
     toggle: true, // その打ち消す
@@ -352,6 +354,9 @@ export const uitGeometryDesignerSlice = createSlice({
     },
     setSelectedMeasureTool: (state: GDState, action: PayloadAction<string>) => {
       state.gdSceneState.selectedMeasureTool = action.payload;
+    },
+    setSelectedROVariable: (state: GDState, action: PayloadAction<string>) => {
+      state.gdSceneState.selectedROVariable = action.payload;
     },
     setFormulaDialogOpen: (
       state: GDState,
@@ -572,6 +577,7 @@ export const {
   setSelectedPoint,
   setSelectedDatumObject,
   setSelectedMeasureTool,
+  setSelectedROVariable,
   setFormulaDialogOpen,
   setRecordingDialogOpen,
   setOpenDialogOpen,

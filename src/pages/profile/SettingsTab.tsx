@@ -1,7 +1,7 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
 
-import {Button} from '@components';
+import {Button} from '@app/components/AdminLTE';
 
 const SettingsTab = ({isActive}: {isActive: boolean}) => {
   return (

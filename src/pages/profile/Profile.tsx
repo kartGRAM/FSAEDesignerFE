@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {useTranslation} from 'react-i18next';
-import {ContentHeader, Button} from '@components';
+import {ContentHeader, Button} from '@app/components/AdminLTE';
 import {root} from '@app/utils/helpers';
 import ActivityTab from './ActivityTab';
 import TimelineTab from './TimelineTab';

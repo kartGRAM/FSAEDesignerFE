@@ -1,7 +1,7 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
 import {useTranslation} from 'react-i18next';
-import {Dropdown} from '@components';
+import {Dropdown} from '@app/components/AdminLTE';
 import {root} from '@app/utils/helpers';
 
 const MessagesDropdown = () => {

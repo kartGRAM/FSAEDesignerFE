@@ -1,7 +1,7 @@
 import React from 'react';
 import {useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
-import {MenuItem} from '@components';
+import {MenuItem} from '@app/components/AdminLTE';
 import {root} from '@app/utils/helpers';
 
 export interface IMenuItem {

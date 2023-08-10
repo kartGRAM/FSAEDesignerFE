@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
-import {Checkbox, Select} from '@app/components';
+import {Checkbox, Select} from '@app/components/AdminLTE';
 import {
   setNavbarVariant,
   setSidebarSkin,

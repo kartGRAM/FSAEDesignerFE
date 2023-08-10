@@ -1,7 +1,8 @@
 import React from 'react';
 import Typography from '@mui/material/Typography';
-import DatumManager from './DatumManager';
-import MeasureToolsManager from './MeasureToolsManager';
+import DatumManager from './datum/DatumManager';
+import MeasureToolsManager from './measureTools/MeasureToolsManager';
+import ROVariablesManager from './readonlyVariables/ROVariablesManager';
 
 export default function MeasureRoot() {
   return (
@@ -9,6 +10,7 @@ export default function MeasureRoot() {
       <Typography variant="h6">Measure</Typography>
       <DatumManager />
       <MeasureToolsManager />
+      <ROVariablesManager />
     </>
   );
 }

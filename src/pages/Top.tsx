@@ -1,4 +1,4 @@
-import {BannerBox} from '@app/components';
+import {BannerBox} from '@app/components/AdminLTE';
 import React from 'react';
 
 const Top = () => {

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -9,9 +8,9 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import {numberToRgb} from '@app/utils/helpers';
 import {useSelector, useDispatch} from 'react-redux';
-import {setSelectedMeasureTool} from '@store/reducers/uiTempGeometryDesigner';
+import {setSelectedROVariable} from '@store/reducers/uiTempGeometryDesigner';
 import {measureToolsAccordionDefaultExpandedChange} from '@store/reducers/uiGeometryDesigner';
-import {setMeasureTools} from '@store/reducers/dataGeometryDesigner';
+import {setReadonlyVariables} from '@store/reducers/dataGeometryDesigner';
 import {RootState} from '@store/store';
 import {alpha} from '@mui/material/styles';
 import {IReadonlyVariable} from '@gd/measure/readonlyVariables/IReadonlyVariable';
@@ -23,32 +22,31 @@ import AddBoxIcon from '@mui/icons-material/AddBox';
 import DeleteIcon from '@mui/icons-material/Delete';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
-import Visibility from '@gdComponents/svgs/Visibility';
 import {v4 as uuidv4} from 'uuid';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Toolbar from '@mui/material/Toolbar';
 import {useAnimationFrame} from '@hooks/useAnimationFrame';
-import {MeasureToolDialog} from './MeasureToolDialog';
+import {ROVariableDialog} from './ROVariableDialog';
 
 export default function MeasureToolsManager() {
   const dispatch = useDispatch();
 
-  const measureToolsAccExpanded = useSelector(
+  const roVariablesAccExpanded = useSelector(
     (state: RootState) =>
-      state.uigd.present.measurePanelState.MeasureToolsExpanded
+      state.uigd.present.measurePanelState.ROVariablesExpanded
   );
 
-  const measureToolsManager = useSelector(
-    (state: RootState) => state.uitgd.measureToolsManager
+  const roVariablesManager = useSelector(
+    (state: RootState) => state.uitgd.roVariablesManager
   );
 
-  const tools = measureToolsManager?.children ?? [];
+  const variables = roVariablesManager?.children ?? [];
 
-  const update = (tools: IMeasureTool[]) => {
-    const dataTools = tools.map((tool) => tool.getData());
-    dispatch(setMeasureTools(dataTools));
+  const update = (variables: IReadonlyVariable[]) => {
+    const dataVars = variables.map((v) => v.getData());
+    dispatch(setReadonlyVariables(dataVars));
   };
 
   const enabledColorLight: number = useSelector(
@@ -56,38 +54,38 @@ export default function MeasureToolsManager() {
   );
 
   const selected = useSelector(
-    (state: RootState) => state.uitgd.gdSceneState.selectedMeasureTool
+    (state: RootState) => state.uitgd.gdSceneState.selectedROVariable
   );
 
   const [dialogTarget, setDialogTarget] = React.useState<string>('');
 
-  const onToolDblClick = (tool: IMeasureTool | undefined) => {
+  const onVariableDblClick = (variable?: IReadonlyVariable) => {
     let id = 'new';
-    if (tool) id = tool.nodeID;
-    dispatch(setSelectedMeasureTool(''));
+    if (variable) id = variable.nodeID;
+    dispatch(setSelectedROVariable(''));
     setDialogTarget(id);
   };
 
-  const dialogTargetTool = tools.find((tool) => tool.nodeID === dialogTarget);
+  const dialogTargetVariable = variables.find((v) => v.nodeID === dialogTarget);
 
-  const onMeasureToolDialogApply = (tool: IMeasureTool) => {
-    if (!measureToolsManager) return;
-    if (dialogTargetTool) {
-      dialogTargetTool.copy(tool);
+  const onROVariableDialogApply = (variable: IReadonlyVariable) => {
+    if (!roVariablesManager) return;
+    if (dialogTargetVariable) {
+      dialogTargetVariable.copy(variable);
     } else {
-      tools.push(tool);
+      variables.push(variable);
       setDialogTarget(`new${uuidv4()}`);
     }
-    update(tools);
+    update(variables);
   };
 
   const onDelete = () => {
-    update(tools.filter((tool) => selected !== tool.nodeID));
+    update(variables.filter((v) => selected !== v.nodeID));
   };
 
   React.useEffect(() => {
     return () => {
-      dispatch(setSelectedMeasureTool(''));
+      dispatch(setSelectedROVariable(''));
     };
   }, []);
 
@@ -111,9 +109,9 @@ export default function MeasureToolsManager() {
           }
         }}
         TransitionProps={{unmountOnExit: true}}
-        expanded={measureToolsAccExpanded}
+        expanded={roVariablesAccExpanded}
         onChange={(e, expanded) => {
-          if (!expanded) dispatch(setSelectedMeasureTool(''));
+          if (!expanded) dispatch(setSelectedROVariable(''));
           dispatch(measureToolsAccordionDefaultExpandedChange(expanded));
         }}
       >
@@ -143,9 +141,9 @@ export default function MeasureToolsManager() {
             >
               Measure Tools
             </Typography>
-            {measureToolsAccExpanded && tools.length > 0 ? (
+            {roVariablesAccExpanded && variables.length > 0 ? (
               <Tooltip
-                title="Add a new measure tool."
+                title="Add a new readonly variable."
                 sx={{flex: '1'}}
                 componentsProps={{
                   popper: {
@@ -159,7 +157,7 @@ export default function MeasureToolsManager() {
                   <IconButton
                     onClick={(e) => {
                       e.stopPropagation();
-                      onToolDblClick(undefined);
+                      onVariableDblClick(undefined);
                     }}
                   >
                     <AddBoxIcon />
@@ -169,7 +167,7 @@ export default function MeasureToolsManager() {
             ) : null}
             {selected !== '' ? (
               <Tooltip
-                title="Delete a selected tool"
+                title="Delete a selected variable"
                 sx={{flex: '1'}}
                 componentsProps={{
                   popper: {
@@ -194,7 +192,7 @@ export default function MeasureToolsManager() {
           </Toolbar>
         </AccordionSummary>
         <AccordionDetails sx={{pt: 0, pb: 1, pl: 1, pr: 1}}>
-          {tools.length === 0 ? (
+          {variables.length === 0 ? (
             <Box
               component="div"
               display="flex"
@@ -207,7 +205,7 @@ export default function MeasureToolsManager() {
                 size="large"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onToolDblClick(undefined);
+                  onVariableDblClick(undefined);
                 }}
               >
                 Create A New Measure Tool
@@ -232,53 +230,39 @@ export default function MeasureToolsManager() {
                 aria-label="a dense table"
               >
                 <TableHead>
-                  <TableRow
-                    onClick={() => dispatch(setSelectedMeasureTool(''))}
-                  >
+                  <TableRow onClick={() => dispatch(setSelectedROVariable(''))}>
                     <TableCell>Order</TableCell>
-                    <TableCell align="left">Visibility</TableCell>
                     <TableCell>Name</TableCell>
                     <TableCell>Value</TableCell>
-                    <TableCell align="left">description</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {tools?.map((tool, idx) => {
+                  {variables?.map((v, idx) => {
                     return (
                       <TableRow
-                        key={tool.nodeID}
+                        key={v.nodeID}
                         sx={{
                           '&:last-child td, &:last-child th': {border: 0},
                           userSelect: 'none',
                           backgroundColor:
-                            selected === tool.nodeID
+                            selected === v.nodeID
                               ? alpha(numberToRgb(enabledColorLight), 0.5)
                               : 'unset'
                         }}
                         onClick={() => {
-                          if (tool.nodeID !== selected) {
-                            dispatch(setSelectedMeasureTool(tool.nodeID));
+                          if (v.nodeID !== selected) {
+                            dispatch(setSelectedROVariable(v.nodeID));
                           }
                         }}
-                        onDoubleClick={() => onToolDblClick(tool)}
+                        onDoubleClick={() => onVariableDblClick(v)}
                       >
                         <TableCell>{idx + 1}</TableCell>
-                        <TableCell align="left">
-                          <Visibility
-                            visible={tool.visibility}
-                            onClick={() => {
-                              tool.visibility = !tool.visibility;
-                              update(tools);
-                            }}
-                          />
+                        <TableCell sx={{whiteSpace: 'nowrap'}}>
+                          {v.name}
                         </TableCell>
                         <TableCell sx={{whiteSpace: 'nowrap'}}>
-                          {tool.name}
+                          <ToolValue variable={v} />
                         </TableCell>
-                        <TableCell sx={{whiteSpace: 'nowrap'}}>
-                          <ToolValue tool={tool} />
-                        </TableCell>
-                        <TableCell align="left">{tool.description}</TableCell>
                       </TableRow>
                     );
                   })}
@@ -288,56 +272,38 @@ export default function MeasureToolsManager() {
           )}
         </AccordionDetails>
       </Accordion>
-      <MeasureToolDialog
+      <ROVariableDialog
         open={dialogTarget !== ''}
         close={() => {
           setDialogTarget('');
-          update(tools);
+          update(variables);
         }}
-        apply={onMeasureToolDialogApply}
-        tool={dialogTargetTool}
-        key={dialogTargetTool?.nodeID ?? dialogTarget}
+        apply={onROVariableDialogApply}
+        variable={dialogTargetVariable}
+        key={dialogTargetVariable?.nodeID ?? dialogTarget}
       />
     </>
   );
 }
 
-function ToolValue(props: {tool: IMeasureTool}) {
-  const {tool} = props;
+function ToolValue(props: {variable: IReadonlyVariable}) {
+  const {variable} = props;
 
-  const keys = Object.keys(tool.value);
-  const refs = React.useRef(keys.map(() => React.createRef<HTMLSpanElement>()));
+  const ref = React.useRef<HTMLSpanElement>(null);
   const frameRef = React.useRef<number>(0);
   useAnimationFrame(() => {
     if (++frameRef.current % 3 !== 0) return;
     frameRef.current = 0;
-    keys.forEach((key, i) => {
-      const span = refs.current[i].current;
-      if (!span) return;
-      if (keys.length === 1) {
-        span.innerText = tool.value[key].toFixed(3);
-      } else {
-        span.innerText = `${key}:  ${tool.value[key].toFixed(3)}`;
-      }
-    });
+    const span = ref.current;
+    if (!span) return;
+    span.innerText = variable.value.toFixed(3);
   });
 
-  if (keys.length === 1) {
-    return (
-      <Typography ref={refs.current[0]} variant="caption">
-        {tool.value[keys[0]].toFixed(3)}
-      </Typography>
-    );
-  }
   return (
-    <>
-      {keys.map((key, i) => (
-        <Box component="div" key={key}>
-          <Typography ref={refs.current[i]} variant="caption" key={key}>
-            {`${key}:  ${tool.value[key].toFixed(3)}`}
-          </Typography>
-        </Box>
-      ))}
-    </>
+    <Box component="div">
+      <Typography ref={ref} variant="caption">
+        {`${variable.value.toFixed(3)}`}
+      </Typography>
+    </Box>
   );
 }

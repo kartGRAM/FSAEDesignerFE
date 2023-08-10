@@ -28,13 +28,13 @@ import {
   PointObject,
   PointClasses,
   pointClasses
-} from '../PointObjects/PointObject';
+} from './PointObjects/PointObject';
 import {
   getPlaneObjectClass,
   PlaneObject,
   PlaneClasses,
   planeClasses
-} from '../PlaneObjects/PlaneObject';
+} from './PlaneObjects/PlaneObject';
 import {
   getLineObjectClass,
   LineObject,

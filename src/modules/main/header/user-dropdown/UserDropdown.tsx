@@ -4,7 +4,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {DateTime} from 'luxon';
 import {useTranslation} from 'react-i18next';
 import {logoutUser} from '@store/reducers/auth';
-import {Dropdown} from '@components';
+import {Dropdown} from '@app/components/AdminLTE';
 import styled from 'styled-components';
 import {root} from '@app/utils/helpers';
 
