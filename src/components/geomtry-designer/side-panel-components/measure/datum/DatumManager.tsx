@@ -9,7 +9,7 @@ import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {useDispatch, useSelector} from 'react-redux';
-import {RootState} from '@store/store';
+import store, {RootState} from '@store/store';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import Toolbar from '@mui/material/Toolbar';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -29,10 +29,8 @@ export default function DatumManager() {
     (state: RootState) => state.uitgd.datumManager
   );
   const datumGroups = datumManager?.children ?? [];
-  const datumObjectsAccExpanded = useSelector(
-    (state: RootState) =>
-      state.uigd.present.measurePanelState.DatumObjectsExpanded
-  );
+  const datumObjectsAccExpanded =
+    store.getState().uigd.present.measurePanelState.DatumObjectsExpanded;
 
   const dialogZIndex = useSelector(
     (state: RootState) =>

@@ -11,7 +11,7 @@ import {useSelector, useDispatch} from 'react-redux';
 import {setSelectedROVariable} from '@store/reducers/uiTempGeometryDesigner';
 import {roVariablesAccordionDefaultExpandedChange} from '@store/reducers/uiGeometryDesigner';
 import {setReadonlyVariables} from '@store/reducers/dataGeometryDesigner';
-import {RootState} from '@store/store';
+import store, {RootState} from '@store/store';
 import {alpha} from '@mui/material/styles';
 import {IReadonlyVariable} from '@gd/measure/readonlyVariables/IReadonlyVariable';
 import Accordion from '@mui/material/Accordion';
@@ -30,13 +30,11 @@ import Toolbar from '@mui/material/Toolbar';
 import {useAnimationFrame} from '@hooks/useAnimationFrame';
 import {ROVariableDialog} from './ROVariableDialog';
 
-export default function MeasureToolsManager() {
+export default function ROVariablesManager() {
   const dispatch = useDispatch();
 
-  const roVariablesAccExpanded = useSelector(
-    (state: RootState) =>
-      state.uigd.present.measurePanelState.ROVariablesExpanded
-  );
+  const roVariablesAccExpanded =
+    store.getState().uigd.present.measurePanelState.ROVariablesExpanded;
 
   const roVariablesManager = useSelector(
     (state: RootState) => state.uitgd.roVariablesManager

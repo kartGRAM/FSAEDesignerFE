@@ -9,9 +9,13 @@ interface Props extends PaperProps {
   setPosition: (payload: {x: number | null; y: number | null}) => any;
 }
 
-export default function PaperComponentDraggable(props: Props) {
+export default function PaperComponentDraggable({
+  position,
+  setPosition,
+  ...props
+}: Props) {
   const dispatch = useDispatch();
-  const {position, setPosition} = props;
+  // const {position, setPosition} = props;
   const {x, y} = useSelector(position);
 
   return (
@@ -30,7 +34,7 @@ export default function PaperComponentDraggable(props: Props) {
       }}
     >
       <Paper
-        {...{...props, position: undefined, setPosition: undefined}}
+        {...props}
         sx={{
           pointerEvents: 'auto'
         }}

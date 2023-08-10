@@ -12,7 +12,7 @@ import {useSelector, useDispatch} from 'react-redux';
 import {setSelectedMeasureTool} from '@store/reducers/uiTempGeometryDesigner';
 import {measureToolsAccordionDefaultExpandedChange} from '@store/reducers/uiGeometryDesigner';
 import {setMeasureTools} from '@store/reducers/dataGeometryDesigner';
-import {RootState} from '@store/store';
+import store, {RootState} from '@store/store';
 import {alpha} from '@mui/material/styles';
 import {IMeasureTool} from '@gd/measure/measureTools/IMeasureTools';
 import Accordion from '@mui/material/Accordion';
@@ -35,10 +35,8 @@ import {MeasureToolDialog} from './MeasureToolDialog';
 export default function MeasureToolsManager() {
   const dispatch = useDispatch();
 
-  const measureToolsAccExpanded = useSelector(
-    (state: RootState) =>
-      state.uigd.present.measurePanelState.MeasureToolsExpanded
-  );
+  const measureToolsAccExpanded =
+    store.getState().uigd.present.measurePanelState.MeasureToolsExpanded;
 
   const measureToolsManager = useSelector(
     (state: RootState) => state.uitgd.measureToolsManager
