@@ -9,7 +9,7 @@ import Paper from '@mui/material/Paper';
 import {numberToRgb} from '@app/utils/helpers';
 import {useSelector, useDispatch} from 'react-redux';
 import {setSelectedROVariable} from '@store/reducers/uiTempGeometryDesigner';
-import {measureToolsAccordionDefaultExpandedChange} from '@store/reducers/uiGeometryDesigner';
+import {roVariablesAccordionDefaultExpandedChange} from '@store/reducers/uiGeometryDesigner';
 import {setReadonlyVariables} from '@store/reducers/dataGeometryDesigner';
 import {RootState} from '@store/store';
 import {alpha} from '@mui/material/styles';
@@ -109,10 +109,10 @@ export default function MeasureToolsManager() {
           }
         }}
         TransitionProps={{unmountOnExit: true}}
-        expanded={roVariablesAccExpanded}
+        defaultExpanded={roVariablesAccExpanded}
         onChange={(e, expanded) => {
           if (!expanded) dispatch(setSelectedROVariable(''));
-          dispatch(measureToolsAccordionDefaultExpandedChange(expanded));
+          dispatch(roVariablesAccordionDefaultExpandedChange(expanded));
         }}
       >
         <AccordionSummary
@@ -139,7 +139,7 @@ export default function MeasureToolsManager() {
               variant="subtitle1"
               component="div"
             >
-              Measure Tools
+              Readonly Variables
             </Typography>
             {roVariablesAccExpanded && variables.length > 0 ? (
               <Tooltip
@@ -208,7 +208,7 @@ export default function MeasureToolsManager() {
                   onVariableDblClick(undefined);
                 }}
               >
-                Create A New Measure Tool
+                Create A New Readonly Variable
               </Button>
             </Box>
           ) : (

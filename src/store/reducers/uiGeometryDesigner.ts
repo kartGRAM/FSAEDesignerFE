@@ -208,6 +208,12 @@ export const uiGeometryDesignerSlice = createSlice({
     ) => {
       state.measurePanelState.MeasureToolsExpanded = action.payload;
     },
+    roVariablesAccordionDefaultExpandedChange: (
+      state: GDState,
+      action: PayloadAction<boolean>
+    ) => {
+      state.measurePanelState.ROVariablesExpanded = action.payload;
+    },
     setRecordingDialogPosition: (
       state: GDState,
       action: PayloadAction<{x: number | null; y: number | null}>
@@ -291,6 +297,7 @@ export const {
   setComponentVisualizationMode,
   datumObjectAccordionDefaultExpandedChange,
   measureToolsAccordionDefaultExpandedChange,
+  roVariablesAccordionDefaultExpandedChange,
   setFlowCanvasBackgroundVariant
 } = uiGeometryDesignerSlice.actions;
 

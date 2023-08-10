@@ -111,7 +111,7 @@ export default function MeasureToolsManager() {
           }
         }}
         TransitionProps={{unmountOnExit: true}}
-        expanded={measureToolsAccExpanded}
+        defaultExpanded={measureToolsAccExpanded}
         onChange={(e, expanded) => {
           if (!expanded) dispatch(setSelectedMeasureTool(''));
           dispatch(measureToolsAccordionDefaultExpandedChange(expanded));
