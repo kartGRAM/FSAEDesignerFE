@@ -86,11 +86,13 @@ export function ROVariableDialog(props: {
         }
       }}
     >
-      <DialogTitle sx={{marginRight: 10}}>
-        {variable ? variable.name : 'New Readonly Variable'}
-      </DialogTitle>
+      <DialogTitle sx={{marginRight: 10}}>{variable.name}</DialogTitle>
       <DialogContent>
-        <VariableFormula variable={variable} setApplyReady={setApplyReady} />
+        <VariableFormula
+          variable={variable}
+          setApplyReady={setApplyReady}
+          value={variable.value}
+        />
         <Divider sx={{mb: 2}} />
         <VariableSourceSelector
           roVariable={variable}

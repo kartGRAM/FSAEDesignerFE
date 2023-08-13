@@ -5,13 +5,14 @@ import TextField from '@mui/material/TextField';
 import {Typography} from '@mui/material';
 import {getDgd} from '@store/getDgd';
 import {IReadonlyVariable} from '@gd/measure/readonlyVariables/IReadonlyVariable';
-import useUpdate from '@hooks/useUpdate';
+import {ReadonlyVariable} from '@gd/measure/readonlyVariables/ReadonlyVariable';
 
 export function VariableFormula(props: {
   variable: IReadonlyVariable;
   setApplyReady: (variable: IReadonlyVariable) => void;
+  value: number;
 }) {
-  const {variable, setApplyReady} = props;
+  const {variable, setApplyReady, value} = props;
   const formulae = [
     ...getDgd().formulae,
     ...variable.sources.map((source) => ({
@@ -20,8 +21,6 @@ export function VariableFormula(props: {
       absPath: ''
     }))
   ];
-
-  const update = useUpdate();
 
   const formik = useFormik({
     initialValues: {
@@ -36,8 +35,7 @@ export function VariableFormula(props: {
     onSubmit: (values) => {
       variable.formula = values.formula;
       variable.update();
-      update();
-      setApplyReady(variable);
+      setApplyReady(new ReadonlyVariable(variable.getData()));
     }
   });
 
@@ -62,7 +60,7 @@ export function VariableFormula(props: {
         error={formik.touched.formula && formik.errors.formula !== undefined}
         helperText={formik.touched.formula && formik.errors.formula}
       />
-      <Typography>{`${variable.value}`}</Typography>
+      <Typography>{`${value}`}</Typography>
     </Box>
   );
 }

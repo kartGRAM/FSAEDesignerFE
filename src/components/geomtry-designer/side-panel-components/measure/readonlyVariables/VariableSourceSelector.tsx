@@ -26,7 +26,10 @@ import {
   isReadonlyVariable,
   IDataVariableSource
 } from '@gd/measure/readonlyVariables/IReadonlyVariable';
-import {VariableSource} from '@gd/measure/readonlyVariables/ReadonlyVariable';
+import {
+  VariableSource,
+  ReadonlyVariable
+} from '@gd/measure/readonlyVariables/ReadonlyVariable';
 import {isElement} from '@gd/IElements';
 import {isMeasureTool} from '@gd/measure/measureTools/IMeasureTools';
 import useUpdate from '@hooks/useUpdate';
@@ -96,7 +99,9 @@ export function VariableSourceSelector(props: {
                     variableSource={row.source}
                     selected={isSelected(row.orgIndex)}
                     onClick={handleClick}
-                    setApplyReady={() => setApplyReady(roVariable)}
+                    setApplyReady={() =>
+                      setApplyReady(new ReadonlyVariable(roVariable.getData()))
+                    }
                     selectableVariables={selectableVariables}
                     key={row.orgIndex}
                   />
@@ -109,7 +114,7 @@ export function VariableSourceSelector(props: {
                 onClick={() => {}}
                 setApplyReady={() => {
                   roVariable.sources.push(newRow);
-                  setApplyReady(roVariable);
+                  setApplyReady(new ReadonlyVariable(roVariable.getData()));
                 }}
                 selectableVariables={selectableVariables}
                 key={-1}
@@ -189,7 +194,12 @@ function Row(props: {
       alias: variableSource.name
     },
     validationSchema: yup.object({
-      formula: yup.string().required('').gdVariableNameMustBeUnique()
+      alias: yup
+        .string()
+        .required('')
+        .variableName()
+        .noMathFunctionsName()
+        .gdVariableNameMustBeUnique()
     }),
     onSubmit: (values) => {
       variableSource.name = values.alias;
