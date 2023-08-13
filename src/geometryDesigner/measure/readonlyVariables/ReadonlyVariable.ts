@@ -5,7 +5,6 @@ import {
   isMeasureTool
 } from '@gd/measure/measureTools/IMeasureTools';
 import {IElement, isElement, IAssembly} from '@gd/IElements';
-import * as math from 'mathjs';
 import {v4 as uuidv4} from 'uuid';
 import {getDgd} from '@store/getDgd';
 import {evaluate} from '@gd/Formula';
@@ -15,18 +14,11 @@ import {
   IVariableSource,
   IDataVariableSource,
   isDataReadonlyVariable,
-  isReadonlyVariable,
-  isGlobalVariableName,
-  GlobalVariableName
+  isReadonlyVariable
 } from './IReadonlyVariable';
 
 export class VariableSource implements IVariableSource {
-  source:
-    | IReadonlyVariable
-    | IElement
-    | IMeasureTool
-    | GlobalVariableName
-    | null;
+  source: IReadonlyVariable | IElement | IMeasureTool | null;
 
   target: string;
 
@@ -36,12 +28,6 @@ export class VariableSource implements IVariableSource {
     const {source, target} = this;
     if (isReadonlyVariable(source)) {
       return source.value;
-    }
-    if (isGlobalVariableName(source)) {
-      const {formulae} = getDgd();
-      const formula = formulae.find((f) => f.name === source.name)?.formula;
-      if (!formula) return Number.NaN;
-      return evaluate({formula, formulae});
     }
     if (isElement(source)) {
       const vars = source.getVariables();
@@ -55,12 +41,7 @@ export class VariableSource implements IVariableSource {
   }
 
   constructor(params: {
-    source:
-      | IReadonlyVariable
-      | IElement
-      | IMeasureTool
-      | GlobalVariableName
-      | null;
+    source: IReadonlyVariable | IElement | IMeasureTool | null;
     target: string;
     name: string;
   }) {
@@ -75,18 +56,13 @@ export class VariableSource implements IVariableSource {
     let sourceFrom: IDataVariableSource['sourceFrom'] = 'readonlyVariable';
     if (isElement(source)) {
       sourceFrom = 'element';
-    } else if (isGlobalVariableName(source)) {
-      sourceFrom = 'global';
     } else if (isMeasureTool(source)) {
       sourceFrom = 'measureTool';
     }
     return {
       name: this.name,
       sourceFrom,
-      sourceNodeID:
-        (isGlobalVariableName(this.source)
-          ? this.source?.name
-          : this.source?.nodeID) ?? '',
+      sourceNodeID: this.source?.nodeID ?? '',
       target: this.target
     };
   }
@@ -106,17 +82,20 @@ export class ReadonlyVariable implements IReadonlyVariable {
   private tempValue: number = Number.NaN;
 
   update() {
-    this.tempValue = Number.NaN;
     try {
-      const scope: {[key: string]: number} = {};
+      const formulae = {...getDgd().formulae};
       this.sources.forEach((source) => {
-        math.evaluate(`${source.name}=${source.value}`, scope);
+        formulae.push({
+          name: source.name,
+          formula: `${source.value}`,
+          absPath: ''
+        });
       });
-      math.evaluate(`___temp___=${this.formula}`, scope);
-      // eslint-disable-next-line no-underscore-dangle
-      this.tempValue = scope.___temp___;
-      // eslint-disable-next-line no-empty
-    } catch {}
+      const {formula} = this;
+      this.tempValue = evaluate({formula, formulae});
+    } catch {
+      this.tempValue = Number.NaN;
+    }
   }
 
   copy(other: IReadonlyVariable) {
@@ -159,13 +138,6 @@ export class ReadonlyVariable implements IReadonlyVariable {
             const element = assembly.findElement(s.sourceNodeID);
             return new VariableSource({
               source: element ?? null,
-              target,
-              name
-            });
-          }
-          case 'global': {
-            return new VariableSource({
-              source: {isGlobalVariableName: true, name: s.sourceNodeID},
               target,
               name
             });
