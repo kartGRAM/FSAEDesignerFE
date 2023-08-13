@@ -26,8 +26,10 @@ import {
   isReadonlyVariable,
   IDataVariableSource
 } from '@gd/measure/readonlyVariables/IReadonlyVariable';
+import {VariableSource} from '@gd/measure/readonlyVariables/ReadonlyVariable';
 import {isElement} from '@gd/IElements';
 import {isMeasureTool} from '@gd/measure/measureTools/IMeasureTools';
+import useUpdate from '@hooks/useUpdate';
 
 export function VariableSourceSelector(props: {
   roVariable: IReadonlyVariable;
@@ -61,6 +63,8 @@ export function VariableSourceSelector(props: {
   };
 
   const isSelected = (id: number) => selected.includes(id);
+
+  const newRow = new VariableSource({source: null, target: '', name: 'x'});
 
   return (
     <Box
@@ -98,6 +102,18 @@ export function VariableSourceSelector(props: {
                   />
                 );
               })}
+              <Row
+                id={-1}
+                variableSource={newRow}
+                selected={false}
+                onClick={() => {}}
+                setApplyReady={() => {
+                  roVariable.sources.push(newRow);
+                  setApplyReady(roVariable);
+                }}
+                selectableVariables={selectableVariables}
+                key={-1}
+              />
             </TableBody>
           </Table>
         </TableContainer>
@@ -165,6 +181,8 @@ function Row(props: {
     selectableVariables
   } = props;
 
+  const update = useUpdate();
+
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
@@ -175,6 +193,7 @@ function Row(props: {
     }),
     onSubmit: (values) => {
       variableSource.name = values.alias;
+      update();
       setApplyReady();
     }
   });
@@ -236,6 +255,7 @@ function Row(props: {
     const newSource = sourceCandidates.find((s) => s.nodeID === nodeID)?.source;
     if (newSource) {
       variableSource.source = newSource;
+      update();
       setApplyReady();
     }
   };
@@ -261,6 +281,7 @@ function Row(props: {
     const newTarget = targetCandidates.find((t) => t.id === id);
     if (newTarget) {
       variableSource.target = newTarget.id;
+      update();
       setApplyReady();
     }
   };

@@ -83,14 +83,14 @@ export class ReadonlyVariable implements IReadonlyVariable {
 
   update() {
     try {
-      const formulae = {...getDgd().formulae};
-      this.sources.forEach((source) => {
-        formulae.push({
+      const formulae = [
+        ...getDgd().formulae,
+        ...this.sources.map((source) => ({
           name: source.name,
           formula: `${source.value}`,
           absPath: ''
-        });
-      });
+        }))
+      ];
       const {formula} = this;
       this.tempValue = evaluate({formula, formulae});
     } catch {
@@ -172,8 +172,13 @@ export class ReadonlyVariable implements IReadonlyVariable {
     }
   }
 
-  // eslint-disable-next-line class-methods-use-this
   getData(): IDataReadonlyVariable {
-    throw new Error('Method not implemented.');
+    return {
+      isDataReadonlyVariable: true,
+      nodeID: this.nodeID,
+      sources: this.sources.map((s) => s.getData()),
+      name: this.name,
+      formula: this.formula
+    };
   }
 }

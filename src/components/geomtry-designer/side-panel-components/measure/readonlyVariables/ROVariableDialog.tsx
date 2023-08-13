@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -9,11 +10,11 @@ import Button from '@mui/material/Button';
 import PaperComponentDraggable from '@gdComponents/PaperComponentDraggable';
 import {IReadonlyVariable} from '@gd/measure/readonlyVariables/IReadonlyVariable';
 import {setUIDisabled} from '@store/reducers/uiTempGeometryDesigner';
-import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
 import {setMeasureToolDialogPosition} from '@store/reducers/uiGeometryDesigner';
 import {ReadonlyVariable} from '@gd/measure/readonlyVariables/ReadonlyVariable';
 import {VariableSourceSelector} from './VariableSourceSelector';
+import {VariableFormula} from './VariableFormula';
 
 export function ROVariableDialog(props: {
   open: boolean;
@@ -23,6 +24,7 @@ export function ROVariableDialog(props: {
   selectableVariables: IReadonlyVariable[];
 }) {
   const {open, close, apply, selectableVariables} = props;
+  const {variable: propsVariable} = props;
   let variable: IReadonlyVariable = new ReadonlyVariable({
     name: 'Readonly Variable'
   });
@@ -36,9 +38,9 @@ export function ROVariableDialog(props: {
   const [applyReady, setApplyReady] = React.useState<
     IReadonlyVariable | undefined
   >(undefined);
+
   if (applyReady) variable = applyReady;
-  // eslint-disable-next-line react/destructuring-assignment
-  else if (props.variable) variable.copy(props.variable);
+  else if (propsVariable) variable.copy(propsVariable);
 
   const handleOK = () => {
     if (!applyReady) return;
@@ -80,7 +82,7 @@ export function ROVariableDialog(props: {
       }}
       PaperProps={{
         sx: {
-          minWidth: 500
+          minWidth: 900
         }
       }}
     >
@@ -88,10 +90,7 @@ export function ROVariableDialog(props: {
         {variable ? variable.name : 'New Readonly Variable'}
       </DialogTitle>
       <DialogContent>
-        <Box
-          component="div"
-          sx={{m: 1, flexGrow: 1, mt: 1, flexDirection: 'row'}}
-        />
+        <VariableFormula variable={variable} setApplyReady={setApplyReady} />
         <Divider sx={{mb: 2}} />
         <VariableSourceSelector
           roVariable={variable}
