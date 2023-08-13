@@ -110,6 +110,7 @@ export class ReadonlyVariable implements IReadonlyVariable {
     this.formula = other.formula;
     this.name = other.name;
     this.update();
+    return this;
   }
 
   get value(): number {
@@ -117,12 +118,12 @@ export class ReadonlyVariable implements IReadonlyVariable {
   }
 
   constructor(
-    params: {name: string} | IDataReadonlyVariable,
+    params?: {name: string} | IDataReadonlyVariable,
     assembly?: IAssembly,
     measureToolsManager?: IMeasureToolsManager,
     ROVariables?: IReadonlyVariable[]
   ) {
-    const {name} = params;
+    const {name} = params ?? {name: 'temp'};
     this.nodeID = uuidv4();
     this.name = name;
     this.formula = '0';

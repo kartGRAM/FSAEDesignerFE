@@ -88,11 +88,7 @@ export function ROVariableDialog(props: {
     >
       <DialogTitle sx={{marginRight: 10}}>{variable.name}</DialogTitle>
       <DialogContent>
-        <VariableFormula
-          variable={variable}
-          setApplyReady={setApplyReady}
-          value={variable.value}
-        />
+        <VariableFormula variable={variable} setApplyReady={setApplyReady} />
         <Divider sx={{mb: 2}} />
         <VariableSourceSelector
           roVariable={variable}

@@ -100,7 +100,7 @@ export function VariableSourceSelector(props: {
                     selected={isSelected(row.orgIndex)}
                     onClick={handleClick}
                     setApplyReady={() =>
-                      setApplyReady(new ReadonlyVariable(roVariable.getData()))
+                      setApplyReady(new ReadonlyVariable().copy(roVariable))
                     }
                     selectableVariables={selectableVariables}
                     key={row.orgIndex}
@@ -114,7 +114,7 @@ export function VariableSourceSelector(props: {
                 onClick={() => {}}
                 setApplyReady={() => {
                   roVariable.sources.push(newRow);
-                  setApplyReady(new ReadonlyVariable(roVariable.getData()));
+                  setApplyReady(new ReadonlyVariable().copy(roVariable));
                 }}
                 selectableVariables={selectableVariables}
                 key={-1}

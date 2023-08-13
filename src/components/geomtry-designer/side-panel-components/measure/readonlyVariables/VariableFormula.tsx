@@ -10,9 +10,8 @@ import {ReadonlyVariable} from '@gd/measure/readonlyVariables/ReadonlyVariable';
 export function VariableFormula(props: {
   variable: IReadonlyVariable;
   setApplyReady: (variable: IReadonlyVariable) => void;
-  value: number;
 }) {
-  const {variable, setApplyReady, value} = props;
+  const {variable, setApplyReady} = props;
   const formulae = [
     ...getDgd().formulae,
     ...variable.sources.map((source) => ({
@@ -35,7 +34,7 @@ export function VariableFormula(props: {
     onSubmit: (values) => {
       variable.formula = values.formula;
       variable.update();
-      setApplyReady(new ReadonlyVariable(variable.getData()));
+      setApplyReady(new ReadonlyVariable().copy(variable));
     }
   });
 
@@ -60,7 +59,7 @@ export function VariableFormula(props: {
         error={formik.touched.formula && formik.errors.formula !== undefined}
         helperText={formik.touched.formula && formik.errors.formula}
       />
-      <Typography>{`${value}`}</Typography>
+      <Typography>{`${variable.value}`}</Typography>
     </Box>
   );
 }
