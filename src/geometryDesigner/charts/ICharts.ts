@@ -36,6 +36,7 @@ export interface IChartData extends WOData {
 export const dataFrom = [
   'element',
   'measureTool',
+  'readonlyVariable',
   'global',
   'special'
 ] as const;

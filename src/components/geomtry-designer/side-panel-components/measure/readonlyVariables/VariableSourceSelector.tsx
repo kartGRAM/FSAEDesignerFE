@@ -67,7 +67,7 @@ export function VariableSourceSelector(props: {
 
   const isSelected = (id: number) => selected.includes(id);
 
-  const newRow = new VariableSource({source: null, target: '', name: 'x'});
+  const newRow = new VariableSource({source: null, target: '', name: ''});
 
   return (
     <Box
