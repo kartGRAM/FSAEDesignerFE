@@ -26,13 +26,7 @@ export function getDataArray(
   caseResults: CaseResults,
   localInstances: LocalInstances
 ): Datum[] {
-  const {
-    assembly,
-    datumManager,
-    measureToolsManager,
-    roVariablesManager,
-    solver
-  } = localInstances;
+  const {assembly, solver} = localInstances;
   if (ref.stats) {
     const stats = getStats(ref.stats);
     const cases = Object.keys(caseResults.cases);
@@ -80,14 +74,14 @@ export function getDataArray(
         return v ? evaluate({formula: v.formula}) : Number.NaN;
       });
     case 'measureTool':
+      return results.map((result) => {
+        const [nodeID, value] = ref.nodeID.split('.');
+        const tool = result.measureTools[nodeID];
+        return tool?.values[value] ?? Number.NaN;
+      });
     case 'readonlyVariable':
       return results.map((result) => {
-        solver.restoreState(result);
-        solver.postProcess();
-        datumManager.update();
-        measureToolsManager.update();
-        roVariablesManager.update();
-        const variable = roVariablesManager.getVariable(ref.nodeID);
+        const variable = result.readonlyVariables[ref.nodeID];
         return variable?.value ?? Number.NaN;
       });
     case 'special':
@@ -173,7 +167,7 @@ export function getSelectableData(
           return {
             nodeID: child.nodeID,
             name: child.name,
-            children: Object.keys(child).map((key) => ({
+            children: Object.keys(child.value).map((key) => ({
               nodeID: `${child.nodeID}.${key}`,
               name: key
             }))

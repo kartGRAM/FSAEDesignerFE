@@ -6,6 +6,7 @@ export interface ISnapshot {
   dofState: {[index: string]: IDOFState};
   constrainsState: {[index: string]: number};
   measureTools?: MeasureSnapshot;
+  readonlyVariables?: ROVariablesSnapshot;
   globals?: IDataFormula[];
 }
 

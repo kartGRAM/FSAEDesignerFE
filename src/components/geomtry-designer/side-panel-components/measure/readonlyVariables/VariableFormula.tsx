@@ -45,8 +45,12 @@ export function VariableFormula(props: {
   };
 
   return (
-    <Box component="div" sx={{m: 1, flexGrow: 1, mt: 1, flexDirection: 'row'}}>
+    <Box
+      component="div"
+      sx={{display: 'flex', m: 1, flexGrow: 1, mt: 1, flexDirection: 'row'}}
+    >
       <TextField
+        sx={{flex: 2}}
         name="formula"
         variant="standard"
         onBlur={(e) => {
@@ -59,7 +63,9 @@ export function VariableFormula(props: {
         error={formik.touched.formula && formik.errors.formula !== undefined}
         helperText={formik.touched.formula && formik.errors.formula}
       />
-      <Typography>{`${variable.value}`}</Typography>
+      <Typography sx={{flex: 1}} align="right">{`${variable.value.toFixed(
+        3
+      )}`}</Typography>
     </Box>
   );
 }

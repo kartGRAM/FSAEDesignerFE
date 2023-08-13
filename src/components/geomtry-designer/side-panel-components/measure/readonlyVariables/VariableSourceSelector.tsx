@@ -138,26 +138,26 @@ const headCells: readonly HeadCell[] = [
   {
     id: 'name',
     numeric: false,
-    disablePadding: true,
+    disablePadding: false,
     label: 'Alias'
   },
   {
     id: 'sourceCategory',
     numeric: false,
-    disablePadding: true,
+    disablePadding: false,
     label: 'Category'
   },
   {
     id: 'source',
     numeric: false,
-    disablePadding: true,
+    disablePadding: false,
     label: 'Source'
   },
   {
     id: 'targetNodeID',
     numeric: false,
-    disablePadding: true,
-    label: 'Formal name'
+    disablePadding: false,
+    label: 'Variable Name'
   },
   {
     id: 'value',
@@ -283,8 +283,16 @@ function Row(props: {
     }));
   }
 
-  const targetSelected =
+  let targetSelected =
     targetCandidates.find((t) => t.id === variableSource.target)?.id ?? '';
+  if (
+    targetCandidates.length === 1 &&
+    targetSelected !== targetCandidates[0].id
+  ) {
+    targetSelected = targetCandidates[0].id;
+    variableSource.target = targetCandidates[0].id;
+    setTimeout(setApplyReady, 0);
+  }
 
   const handleTargetChanged = (e: SelectChangeEvent<string>) => {
     const id = e.target.value;
@@ -320,6 +328,7 @@ function Row(props: {
       </TableCell>
       <TableCell component="th" id={labelID} scope="row" padding="none">
         <TextField
+          sx={{width: '100%'}}
           hiddenLabel
           name="alias"
           variant="standard"
@@ -336,6 +345,7 @@ function Row(props: {
       </TableCell>
       <TableCell align="right">
         <NativeSelect
+          sx={{width: '100%'}}
           native
           variant="standard"
           value={category}
@@ -349,9 +359,11 @@ function Row(props: {
       </TableCell>
       <TableCell align="right">
         <NativeSelect
+          sx={{width: '100%'}}
           native
           variant="standard"
           value={sourceSelected}
+          disabled={category === ''}
           onChange={handleSourceChanged}
         >
           <option aria-label="None" value="" />
@@ -364,8 +376,11 @@ function Row(props: {
       </TableCell>
       <TableCell align="right">
         <NativeSelect
+          sx={{width: '100%'}}
           native
-          disabled={category === 'readonlyVariable'}
+          disabled={
+            category === 'readonlyVariable' || targetCandidates.length <= 1
+          }
           variant="standard"
           value={targetSelected}
           onChange={handleTargetChanged}
@@ -378,7 +393,9 @@ function Row(props: {
           ))}
         </NativeSelect>
       </TableCell>
-      <TableCell align="right">{toFixedNoZero(variableSource.value)}</TableCell>
+      <TableCell align="right">
+        {toFixedNoZero(variableSource.value, 3)}
+      </TableCell>
     </TableRow>
   );
 }
@@ -427,7 +444,7 @@ const MyTableToolbar = (props: {
   const {variable, selected, setSelected, setApplyReady} = props;
 
   const onDeleteClick = () => {
-    variable.sources = variable.sources.filter((_, i) => selected.includes(i));
+    variable.sources = variable.sources.filter((_, i) => !selected.includes(i));
     setSelected([]);
     setApplyReady(variable);
   };

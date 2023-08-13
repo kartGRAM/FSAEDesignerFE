@@ -27,7 +27,7 @@ ctx.onmessage = async (e: MessageEvent<FromParent>) => {
       (test) => test.nodeID === message.testID
     );
     if (!dataTest) throw new Error('test is not found');
-    const {datumManager, measureToolsManager, solver} =
+    const {datumManager, measureToolsManager, roVariablesManager, solver} =
       getLocalInstances(state);
 
     if (message.initialSnapshot) {
@@ -49,6 +49,7 @@ ctx.onmessage = async (e: MessageEvent<FromParent>) => {
       solver.postProcess();
       datumManager.update();
       measureToolsManager.update();
+      roVariablesManager.update();
       const state = getDgd();
       // const assemblyData = assembly.getDataElement(state);
       // if (!assemblyData) throw new Error('assembly Dataが得られない');
@@ -56,6 +57,7 @@ ctx.onmessage = async (e: MessageEvent<FromParent>) => {
         ...solver.getSnapshot(),
         /* assemblyData, */
         measureTools: measureToolsManager.getValuesAll(),
+        readonlyVariables: roVariablesManager.getValuesAll(),
         globals: [...state.formulae]
       };
     };
