@@ -99,7 +99,14 @@ export class ReadonlyVariable implements IReadonlyVariable {
   }
 
   copy(other: IReadonlyVariable) {
-    this.sources = [...other.sources];
+    this.sources = other.sources.map(
+      (s) =>
+        new VariableSource({
+          source: s.source,
+          target: s.target,
+          name: s.name
+        })
+    );
     this.formula = other.formula;
     this.name = other.name;
     this.update();

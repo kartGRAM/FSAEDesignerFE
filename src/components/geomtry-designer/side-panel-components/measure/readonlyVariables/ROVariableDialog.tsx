@@ -1,5 +1,3 @@
-/* eslint-disable no-nested-ternary */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -10,13 +8,11 @@ import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import PaperComponentDraggable from '@gdComponents/PaperComponentDraggable';
 import {IReadonlyVariable} from '@gd/measure/readonlyVariables/IReadonlyVariable';
-import Select, {SelectChangeEvent} from '@mui/material/Select';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import MenuItem from '@mui/material/MenuItem';
 import {setUIDisabled} from '@store/reducers/uiTempGeometryDesigner';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
 import {setMeasureToolDialogPosition} from '@store/reducers/uiGeometryDesigner';
+import {ReadonlyVariable} from '@gd/measure/readonlyVariables/ReadonlyVariable';
 
 export function ROVariableDialog(props: {
   open: boolean;
@@ -25,7 +21,9 @@ export function ROVariableDialog(props: {
   variable?: IReadonlyVariable;
 }) {
   const {open, close, apply} = props;
-  let {variable} = props;
+  let variable: IReadonlyVariable = new ReadonlyVariable({
+    name: 'Readonly Variable'
+  });
 
   const dispatch = useDispatch();
 
@@ -33,17 +31,12 @@ export function ROVariableDialog(props: {
     (state: RootState) =>
       state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex
   );
-  const menuZIndex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex +
-      state.uitgd.dialogZIndex +
-      state.uitgd.menuZIndex
-  );
-
   const [applyReady, setApplyReady] = React.useState<
     IReadonlyVariable | undefined
   >(undefined);
   if (applyReady) variable = applyReady;
+  // eslint-disable-next-line react/destructuring-assignment
+  else if (props.variable) variable.copy(props.variable);
 
   const handleOK = () => {
     if (!applyReady) return;
