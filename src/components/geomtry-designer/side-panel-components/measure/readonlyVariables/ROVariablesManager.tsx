@@ -64,7 +64,10 @@ export default function ROVariablesManager() {
     setDialogTarget(id);
   };
 
-  const dialogTargetVariable = variables.find((v) => v.nodeID === dialogTarget);
+  const index = variables.findIndex((v) => v.nodeID === dialogTarget);
+  const dialogTargetVariable = index !== -1 ? variables[index] : undefined;
+  const selectableVariables =
+    index !== -1 ? variables.slice(0, index) : variables;
 
   const onROVariableDialogApply = (variable: IReadonlyVariable) => {
     if (!roVariablesManager) return;
@@ -278,6 +281,7 @@ export default function ROVariablesManager() {
         }}
         apply={onROVariableDialogApply}
         variable={dialogTargetVariable}
+        selectableVariables={selectableVariables}
         key={dialogTargetVariable?.nodeID ?? dialogTarget}
       />
     </>

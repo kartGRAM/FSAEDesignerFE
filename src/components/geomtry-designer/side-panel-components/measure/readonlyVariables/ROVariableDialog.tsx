@@ -13,14 +13,16 @@ import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
 import {setMeasureToolDialogPosition} from '@store/reducers/uiGeometryDesigner';
 import {ReadonlyVariable} from '@gd/measure/readonlyVariables/ReadonlyVariable';
+import {VariableSourceSelector} from './VariableSourceSelector';
 
 export function ROVariableDialog(props: {
   open: boolean;
   close: () => void;
   apply: (variable: IReadonlyVariable) => void;
   variable?: IReadonlyVariable;
+  selectableVariables: IReadonlyVariable[];
 }) {
-  const {open, close, apply} = props;
+  const {open, close, apply, selectableVariables} = props;
   let variable: IReadonlyVariable = new ReadonlyVariable({
     name: 'Readonly Variable'
   });
@@ -91,6 +93,11 @@ export function ROVariableDialog(props: {
           sx={{m: 1, flexGrow: 1, mt: 1, flexDirection: 'row'}}
         />
         <Divider sx={{mb: 2}} />
+        <VariableSourceSelector
+          roVariable={variable}
+          selectableVariables={selectableVariables}
+          setApplyReady={setApplyReady}
+        />
       </DialogContent>
       <DialogActions>
         <Button onClick={handleCancel}>Cancel</Button>
