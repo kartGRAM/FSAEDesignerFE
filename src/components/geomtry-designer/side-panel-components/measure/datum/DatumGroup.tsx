@@ -9,7 +9,6 @@ import Paper from '@mui/material/Paper';
 import {numberToRgb} from '@app/utils/helpers';
 import {useSelector, useDispatch} from 'react-redux';
 import {setSelectedDatumObject} from '@store/reducers/uiTempGeometryDesigner';
-import {setChanged} from '@store/reducers/dataGeometryDesigner';
 import {RootState} from '@store/store';
 import {alpha} from '@mui/material/styles';
 import {IDatumGroup, IDatumObject} from '@gd/measure/datum/IDatumObjects';
@@ -91,7 +90,6 @@ export function DatumGroupTable(props: {
   return (
     <>
       <Accordion
-        TransitionProps={{unmountOnExit: true}}
         expanded={datumGroup.nodeID === expanded}
         onChange={(e, expanded) => {
           if (expanded) {
@@ -194,14 +192,13 @@ export function DatumGroupTable(props: {
             >
               <TableHead>
                 <TableRow onClick={() => dispatch(setSelectedDatumObject(''))}>
-                  <TableCell>Order</TableCell>
                   <TableCell align="left">Visibility</TableCell>
                   <TableCell>Name</TableCell>
                   <TableCell align="left">description</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {datumObjects?.map((datum, idx) => {
+                {datumObjects?.map((datum) => {
                   return (
                     <TableRow
                       key={datum.nodeID}
@@ -220,7 +217,6 @@ export function DatumGroupTable(props: {
                       }}
                       onDoubleClick={() => onDatumDblClick(datum)}
                     >
-                      <TableCell>{idx + 1}</TableCell>
                       <TableCell align="left">
                         <Visibility
                           visible={datum.visibility}

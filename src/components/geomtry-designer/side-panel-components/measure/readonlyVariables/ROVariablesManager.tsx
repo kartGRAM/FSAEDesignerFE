@@ -108,7 +108,6 @@ export default function ROVariablesManager() {
             mb: 1
           }
         }}
-        TransitionProps={{unmountOnExit: true}}
         defaultExpanded={roVariablesAccExpanded}
         onChange={(e, expanded) => {
           if (!expanded) dispatch(setSelectedROVariable(''));
@@ -231,13 +230,12 @@ export default function ROVariablesManager() {
               >
                 <TableHead>
                   <TableRow onClick={() => dispatch(setSelectedROVariable(''))}>
-                    <TableCell>Order</TableCell>
                     <TableCell>Name</TableCell>
                     <TableCell>Value</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {variables?.map((v, idx) => {
+                  {variables?.map((v) => {
                     return (
                       <TableRow
                         key={v.nodeID}
@@ -256,7 +254,6 @@ export default function ROVariablesManager() {
                         }}
                         onDoubleClick={() => onVariableDblClick(v)}
                       >
-                        <TableCell>{idx + 1}</TableCell>
                         <TableCell sx={{whiteSpace: 'nowrap'}}>
                           {v.name}
                         </TableCell>

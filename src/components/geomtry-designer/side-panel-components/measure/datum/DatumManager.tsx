@@ -102,7 +102,6 @@ export default function DatumManager() {
           mb: 1
         }
       }}
-      TransitionProps={{unmountOnExit: true}}
       defaultExpanded={datumObjectsAccExpanded}
       onChange={(e, expanded) => {
         dispatch(datumObjectAccordionDefaultExpandedChange(expanded));

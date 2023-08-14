@@ -52,7 +52,6 @@ export default function AArmConfig(params: Params) {
     <>
       <ElementName element={element} />
       <Accordion
-        TransitionProps={{unmountOnExit: true}}
         expanded={kinematicParamsDefaultExpanded}
         onChange={(e, expanded) => {
           dispatch(kinematicParamsDefaultExpandedChange(expanded));
@@ -187,7 +186,6 @@ export default function AArmConfig(params: Params) {
         </AccordionDetails>
       </Accordion>
       <Accordion
-        TransitionProps={{unmountOnExit: true}}
         expanded={dynamicParamsDefaultExpanded}
         onChange={(e, expanded) => {
           dispatch(dynamicParamsDefaultExpandedChange(expanded));
@@ -203,7 +201,7 @@ export default function AArmConfig(params: Params) {
           <Typography>WIP</Typography>
         </AccordionDetails>
       </Accordion>
-      <Accordion TransitionProps={{unmountOnExit: true}}>
+      <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="panel3a-content"
@@ -211,7 +209,7 @@ export default function AArmConfig(params: Params) {
           <Typography>Visualization</Typography>
         </AccordionSummary>
       </Accordion>
-      <Accordion TransitionProps={{unmountOnExit: true}}>
+      <Accordion>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="panel3a-content"

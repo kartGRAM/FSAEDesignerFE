@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
@@ -44,10 +43,7 @@ export default function Controllers() {
         </Button>
       </Box>
 
-      <Accordion
-        TransitionProps={{unmountOnExit: true}}
-        onChange={(e, expanded) => {}}
-      >
+      <Accordion onChange={() => {}}>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="panel1a-content"

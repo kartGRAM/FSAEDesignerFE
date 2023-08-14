@@ -390,7 +390,6 @@ const Vector = React.memo((props: Props) => {
       </form>
       {!disablePointOffsetTool ? (
         <Accordion
-          TransitionProps={{unmountOnExit: true}}
           expanded={expanded}
           onChange={handleAccordionOpen}
           sx={{

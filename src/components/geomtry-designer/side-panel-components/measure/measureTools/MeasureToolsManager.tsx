@@ -107,7 +107,6 @@ export default function MeasureToolsManager() {
             mb: 1
           }
         }}
-        TransitionProps={{unmountOnExit: true}}
         defaultExpanded={measureToolsAccExpanded}
         onChange={(e, expanded) => {
           if (!expanded) dispatch(setSelectedMeasureTool(''));
@@ -232,7 +231,6 @@ export default function MeasureToolsManager() {
                   <TableRow
                     onClick={() => dispatch(setSelectedMeasureTool(''))}
                   >
-                    <TableCell>Order</TableCell>
                     <TableCell align="left">Visibility</TableCell>
                     <TableCell>Name</TableCell>
                     <TableCell>Value</TableCell>
@@ -240,7 +238,7 @@ export default function MeasureToolsManager() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {tools?.map((tool, idx) => {
+                  {tools?.map((tool) => {
                     return (
                       <TableRow
                         key={tool.nodeID}
@@ -259,7 +257,6 @@ export default function MeasureToolsManager() {
                         }}
                         onDoubleClick={() => onToolDblClick(tool)}
                       >
-                        <TableCell>{idx + 1}</TableCell>
                         <TableCell align="left">
                           <Visibility
                             visible={tool.visibility}
