@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {IAssembly} from '@gd/IElements';
+import {isObject} from '@utils/helpers';
 
 export type NodeID = string;
 
@@ -18,12 +19,7 @@ export interface IDatumObject {
 }
 
 export function isDatumObject(data: any): data is IDatumObject {
-  try {
-    if (data.isDatumObject) return true;
-    return false;
-  } catch {
-    return false;
-  }
+  return isObject(data) && data.isDatumObject;
 }
 
 export interface IDataDatumObject {
@@ -35,12 +31,7 @@ export interface IDataDatumObject {
 }
 
 export function isDataDatumObject(data: any): data is IDataDatumObject {
-  try {
-    if (data.isDataDatumObject) return true;
-    return false;
-  } catch {
-    return false;
-  }
+  return isObject(data) && data.isDataDatumObject;
 }
 
 export interface IPlane extends IDatumObject {
@@ -51,12 +42,7 @@ export interface IPlane extends IDatumObject {
 }
 
 export function isPlane(datum: any): datum is IPlane {
-  try {
-    if (datum.isPlane) return true;
-    return false;
-  } catch {
-    return false;
-  }
+  return isObject(datum) && datum.isPlane;
 }
 
 export interface IDataPlane extends IDataDatumObject {
@@ -68,12 +54,7 @@ export interface IDataPlane extends IDataDatumObject {
 }
 
 export function isDataPlane(datum: any): datum is IDataPlane {
-  try {
-    if (datum.isDataPlane) return true;
-    return false;
-  } catch {
-    return false;
-  }
+  return isObject(datum) && datum.isDataPlane;
 }
 
 export interface ILine extends IDatumObject {
@@ -84,12 +65,7 @@ export interface ILine extends IDatumObject {
 }
 
 export function isLine(datum: any): datum is ILine {
-  try {
-    if (datum.isLine) return true;
-    return false;
-  } catch {
-    return false;
-  }
+  return isObject(datum) && datum.isLine;
 }
 
 export interface IDataLine extends IDataDatumObject {
@@ -101,12 +77,7 @@ export interface IDataLine extends IDataDatumObject {
 }
 
 export function isDataLine(datum: any): datum is IDataLine {
-  try {
-    if (datum.isDataLine) return true;
-    return false;
-  } catch {
-    return false;
-  }
+  return isObject(datum) && datum.isDataLine;
 }
 
 export interface IPoint extends IDatumObject {
@@ -116,12 +87,7 @@ export interface IPoint extends IDatumObject {
 }
 
 export function isPoint(datum: any): datum is IPoint {
-  try {
-    if (datum.isPoint) return true;
-    return false;
-  } catch {
-    return false;
-  }
+  return isObject(datum) && datum.isPoint;
 }
 
 export interface IDataPoint extends IDataDatumObject {
@@ -130,12 +96,7 @@ export interface IDataPoint extends IDataDatumObject {
 }
 
 export function isDataPoint(datum: any): datum is IDataPoint {
-  try {
-    if (datum.isDataPoint) return true;
-    return false;
-  } catch {
-    return false;
-  }
+  return isObject(datum) && datum.isDataPoint;
 }
 
 export interface IDatumGroup {
@@ -155,12 +116,7 @@ export interface IDataDatumGroup {
 }
 
 export function isDataDatumGroup(data: any): data is IDataDatumGroup {
-  try {
-    if (data.isDataDatumGroup) return true;
-    return false;
-  } catch {
-    return false;
-  }
+  return isObject(data) && data.isDataDatumGroup;
 }
 
 export interface IDatumManager {
