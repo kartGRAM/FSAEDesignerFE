@@ -33,7 +33,9 @@ export function Distance(props: {
   distance?: IDistance;
   setApplyReady: React.Dispatch<React.SetStateAction<IMeasureTool | undefined>>;
 }) {
-  const {distance, setApplyReady} = props;
+  const {setApplyReady} = props;
+  // eslint-disable-next-line react/destructuring-assignment
+  const distance = props.distance?.clone();
 
   const dispatch = useDispatch();
   const ids = [React.useId(), React.useId()];

@@ -286,7 +286,6 @@ export default function MeasureToolsManager() {
         open={dialogTarget !== ''}
         close={() => {
           setDialogTarget('');
-          update(tools);
         }}
         apply={onMeasureToolDialogApply}
         tool={dialogTargetTool}

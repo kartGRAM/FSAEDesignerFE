@@ -22,6 +22,8 @@ import {setUIDisabled} from '@store/reducers/uiTempGeometryDesigner';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
 import {setDatumDialogPosition} from '@store/reducers/uiGeometryDesigner';
+import EditableTypography from '@gdComponents/EditableTypography';
+import * as Yup from 'yup';
 import {
   getPointObjectClass,
   PointObject,
@@ -76,6 +78,11 @@ export function DatumDialog(props: {
   );
   if (applyReady) datum = applyReady;
 
+  const nameDefault = 'New Datum Object';
+  const [nameBuffer, setNameBuffer] = React.useState(
+    datum ? datum.name : nameDefault
+  );
+
   let datumTypesSelectable = [getDatumType(datum)];
   if (datumTypesSelectable[0] === '') datumTypesSelectable = [...datumTypes];
 
@@ -127,7 +134,7 @@ export function DatumDialog(props: {
 
   const handleOK = () => {
     if (!applyReady) return;
-    apply(applyReady);
+    handleApply();
     close();
   };
   const handleCancel = () => {
@@ -135,6 +142,7 @@ export function DatumDialog(props: {
   };
   const handleApply = () => {
     if (!applyReady) return;
+    if (nameBuffer !== nameDefault) applyReady.name = nameBuffer;
     apply(applyReady);
   };
 
@@ -170,9 +178,19 @@ export function DatumDialog(props: {
         }
       }}
     >
-      <DialogTitle sx={{marginRight: 10}}>
-        {datum ? datum.name : 'New Datum'}
-      </DialogTitle>
+      <EditableTypography
+        typography={
+          <DialogTitle sx={{marginRight: 10}}>{nameBuffer}</DialogTitle>
+        }
+        initialValue={nameBuffer}
+        validation={Yup.string().required('required')}
+        onSubmit={(value) => {
+          setNameBuffer(value);
+          if (datum && datum.name !== value) {
+            setApplyReady(datum);
+          }
+        }}
+      />
       <DialogContent>
         <Box
           component="div"

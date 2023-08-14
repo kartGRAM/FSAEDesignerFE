@@ -21,7 +21,9 @@ export function Position(props: {
   position?: IPosition;
   setApplyReady: React.Dispatch<React.SetStateAction<IMeasureTool | undefined>>;
 }) {
-  const {position, setApplyReady} = props;
+  const {setApplyReady} = props;
+  // eslint-disable-next-line react/destructuring-assignment
+  const position = props.position?.clone();
 
   const dispatch = useDispatch();
   const ids = [React.useId()];

@@ -13,6 +13,7 @@ export interface IMeasureTool {
   update(): void;
   readonly value: {[index: string]: number};
   copy(other: IMeasureTool): void;
+  clone(): IMeasureTool;
   readonly description: string;
 }
 
@@ -44,6 +45,7 @@ export interface IDistance extends IMeasureTool {
   lhs: IPoint | ILine | IPlane;
   rhs: IPoint | ILine | IPlane;
   getClosestPoints(): [Vector3, Vector3];
+  clone(): IDistance;
 }
 
 export function isDistance(tool: IMeasureTool | undefined): tool is IDistance {
@@ -66,6 +68,7 @@ export interface IAngle extends IMeasureTool {
   isAngle: true;
   lhs: ILine | IPlane;
   rhs: ILine | IPlane;
+  clone(): IAngle;
 }
 
 export function isAngle(tool: IMeasureTool | undefined): tool is IAngle {
@@ -87,6 +90,7 @@ export function isDataAngle(data: IDataMeasureTool): data is IDataAngle {
 export interface IPosition extends IMeasureTool {
   isPosition: true;
   point: IPoint;
+  clone(): IPosition;
 }
 
 export function isPosition(tool: IMeasureTool | undefined): tool is IPosition {

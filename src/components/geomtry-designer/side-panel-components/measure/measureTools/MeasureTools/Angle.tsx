@@ -24,7 +24,9 @@ export function Angle(props: {
   angle?: IAngle;
   setApplyReady: React.Dispatch<React.SetStateAction<IMeasureTool | undefined>>;
 }) {
-  const {angle, setApplyReady} = props;
+  const {setApplyReady} = props;
+  // eslint-disable-next-line react/destructuring-assignment
+  const angle = props.angle?.clone();
 
   const dispatch = useDispatch();
   const ids = [React.useId(), React.useId()];

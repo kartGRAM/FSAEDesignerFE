@@ -155,7 +155,6 @@ export function MeasureToolDialog(props: {
         onSubmit={(value) => {
           setNameBuffer(value);
           if (tool && tool.name !== value) {
-            tool.name = value;
             setApplyReady(tool);
           }
         }}

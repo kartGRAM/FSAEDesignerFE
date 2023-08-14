@@ -58,6 +58,8 @@ export abstract class MeasureTool implements IMeasureTool {
 
   abstract copy(other: IMeasureTool): void;
 
+  abstract clone(): IMeasureTool;
+
   abstract get value(): {[index: string]: number};
 
   getDataBase(): IDataMeasureTool {
@@ -84,14 +86,18 @@ export class Position extends MeasureTool implements IPosition {
 
   constructor(
     params: {name: string; point: IPoint} | IDataPosition,
-    datumManager: IDatumManager
+    datumManager?: IDatumManager
   ) {
     super(params);
     if (isDataMeasureTool(params) && isDataPosition(params)) {
-      const point = datumManager.getDatumObject(params.point);
-      if (!point) throw new Error('pointが見つからない');
-      if (!isPoint(point)) throw new Error('datumがIPointでない');
-      this.point = point;
+      if (datumManager) {
+        const point = datumManager.getDatumObject(params.point);
+        if (!point) throw new Error('pointが見つからない');
+        if (!isPoint(point)) throw new Error('datumがIPointでない');
+        this.point = point;
+      } else {
+        throw new Error('dataPosition使用時はdatumManagerが必要');
+      }
     } else {
       this.point = params.point;
     }
@@ -112,6 +118,10 @@ export class Position extends MeasureTool implements IPosition {
   get value(): {[index: string]: number} {
     const {x, y, z} = this.point.getThreePoint();
     return {x, y, z};
+  }
+
+  clone(): IPosition {
+    return new Position(this);
   }
 
   copy(other: Position): void {
@@ -148,19 +158,23 @@ export class Distance extends MeasureTool implements IDistance {
           rhs: IPoint | ILine | IPlane;
         }
       | IDataDistance,
-    datumManager: IDatumManager
+    datumManager?: IDatumManager
   ) {
     super(params);
     if (isDataMeasureTool(params) && isDataDistance(params)) {
-      const iLhs = datumManager.getDatumObject(params.lhs);
-      const iRhs = datumManager.getDatumObject(params.rhs);
-      if (!iLhs || !iRhs) throw new Error('datumが見つからない');
-      if (!isPoint(iLhs) && !isLine(iLhs) && !isPlane(iLhs))
-        throw new Error('未対応のデータムを検出');
-      if (!isPoint(iRhs) && !isLine(iRhs) && !isPlane(iRhs))
-        throw new Error('未対応のデータムを検出');
-      this.lhs = iLhs;
-      this.rhs = iRhs;
+      if (datumManager) {
+        const iLhs = datumManager.getDatumObject(params.lhs);
+        const iRhs = datumManager.getDatumObject(params.rhs);
+        if (!iLhs || !iRhs) throw new Error('datumが見つからない');
+        if (!isPoint(iLhs) && !isLine(iLhs) && !isPlane(iLhs))
+          throw new Error('未対応のデータムを検出');
+        if (!isPoint(iRhs) && !isLine(iRhs) && !isPlane(iRhs))
+          throw new Error('未対応のデータムを検出');
+        this.lhs = iLhs;
+        this.rhs = iRhs;
+      } else {
+        throw new Error('data使用時はdatumManagerが必要');
+      }
     } else {
       this.lhs = params.lhs;
       this.rhs = params.rhs;
@@ -255,6 +269,10 @@ export class Distance extends MeasureTool implements IDistance {
     return {_: distance};
   }
 
+  clone(): IDistance {
+    return new Distance(this);
+  }
+
   copy(other: Distance): void {
     this.lhs = other.lhs;
     this.rhs = other.rhs;
@@ -270,10 +288,6 @@ export class Angle extends MeasureTool implements IAngle {
 
   private angleBuf: number = 0;
 
-  private lhsBuf: Vector3 = new Vector3();
-
-  private rhsBuf: Vector3 = new Vector3();
-
   readonly className = 'Angle' as const;
 
   get description(): string {
@@ -288,19 +302,23 @@ export class Angle extends MeasureTool implements IAngle {
           rhs: ILine | IPlane;
         }
       | IDataAngle,
-    datumManager: IDatumManager
+    datumManager?: IDatumManager
   ) {
     super(params);
     if (isDataMeasureTool(params) && isDataAngle(params)) {
-      const iLhs = datumManager.getDatumObject(params.lhs);
-      const iRhs = datumManager.getDatumObject(params.rhs);
-      if (!iLhs || !iRhs) throw new Error('datumが見つからない');
-      if (!isLine(iLhs) && !isPlane(iLhs))
-        throw new Error('未対応のデータムを検出');
-      if (!isLine(iRhs) && !isPlane(iRhs))
-        throw new Error('未対応のデータムを検出');
-      this.lhs = iLhs;
-      this.rhs = iRhs;
+      if (datumManager) {
+        const iLhs = datumManager.getDatumObject(params.lhs);
+        const iRhs = datumManager.getDatumObject(params.rhs);
+        if (!iLhs || !iRhs) throw new Error('datumが見つからない');
+        if (!isLine(iLhs) && !isPlane(iLhs))
+          throw new Error('未対応のデータムを検出');
+        if (!isLine(iRhs) && !isPlane(iRhs))
+          throw new Error('未対応のデータムを検出');
+        this.lhs = iLhs;
+        this.rhs = iRhs;
+      } else {
+        throw new Error('data使用時はdatumManagerが必要');
+      }
     } else {
       this.lhs = params.lhs;
       this.rhs = params.rhs;
@@ -358,6 +376,10 @@ export class Angle extends MeasureTool implements IAngle {
 
   get value(): {[index: string]: number} {
     return {_: this.angleBuf};
+  }
+
+  clone(): IAngle {
+    return new Angle(this);
   }
 
   copy(other: Angle): void {
