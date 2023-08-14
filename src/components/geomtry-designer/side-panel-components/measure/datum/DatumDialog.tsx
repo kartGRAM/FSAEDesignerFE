@@ -1,5 +1,4 @@
 /* eslint-disable no-nested-ternary */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -166,7 +165,8 @@ export function DatumDialog(props: {
       }}
       PaperProps={{
         sx: {
-          minWidth: 500
+          minWidth: 500,
+          maxHeight: '70vh'
         }
       }}
     >

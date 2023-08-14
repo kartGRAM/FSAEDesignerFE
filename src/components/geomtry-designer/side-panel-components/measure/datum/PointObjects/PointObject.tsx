@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import React from 'react';
 import {IPoint, IDatumObject} from '@gd/measure/datum/IDatumObjects';
 import {

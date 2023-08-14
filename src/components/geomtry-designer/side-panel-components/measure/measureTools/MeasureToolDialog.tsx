@@ -1,5 +1,4 @@
 /* eslint-disable no-nested-ternary */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -23,6 +22,8 @@ import {setUIDisabled} from '@store/reducers/uiTempGeometryDesigner';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
 import {setMeasureToolDialogPosition} from '@store/reducers/uiGeometryDesigner';
+import EditableTypography from '@gdComponents/EditableTypography';
+import * as Yup from 'yup';
 import {Position} from './MeasureTools/Position';
 import {Distance} from './MeasureTools/Distance';
 import {Angle} from './MeasureTools/Angle';
@@ -57,6 +58,11 @@ export function MeasureToolDialog(props: {
   );
   if (applyReady) tool = applyReady;
 
+  const nameDefault = 'New Measure Tool';
+  const [nameBuffer, setNameBuffer] = React.useState(
+    tool ? tool.name : nameDefault
+  );
+
   const [measureToolClass, setMeasureToolClass] = React.useState<
     MeasureToolClasses | ''
   >(getMeasureToolClass(tool));
@@ -72,7 +78,7 @@ export function MeasureToolDialog(props: {
 
   const handleOK = () => {
     if (!applyReady) return;
-    apply(applyReady);
+    handleApply();
     close();
   };
   const handleCancel = () => {
@@ -80,6 +86,7 @@ export function MeasureToolDialog(props: {
   };
   const handleApply = () => {
     if (!applyReady) return;
+    if (nameBuffer !== nameDefault) applyReady.name = nameBuffer;
     apply(applyReady);
   };
 
@@ -134,13 +141,25 @@ export function MeasureToolDialog(props: {
       }}
       PaperProps={{
         sx: {
-          minWidth: 500
+          minWidth: 500,
+          maxHeight: '70vh'
         }
       }}
     >
-      <DialogTitle sx={{marginRight: 10}}>
-        {tool ? tool.name : 'New Measure Tool'}
-      </DialogTitle>
+      <EditableTypography
+        typography={
+          <DialogTitle sx={{marginRight: 10}}>{nameBuffer}</DialogTitle>
+        }
+        initialValue={nameBuffer}
+        validation={Yup.string().required('required')}
+        onSubmit={(value) => {
+          setNameBuffer(value);
+          if (tool && tool.name !== value) {
+            tool.name = value;
+            setApplyReady(tool);
+          }
+        }}
+      />
       <DialogContent>
         <Box
           component="div"

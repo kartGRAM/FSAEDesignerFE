@@ -1,26 +1,31 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import TextField, {TextFieldProps} from '@mui/material/TextField';
 import {useFormik} from 'formik';
 import * as Yup from 'yup';
 
-const TestName = React.memo(
+const EditableTypography = React.memo(
   (props: {
-    typography: JSX.Element;
+    typography: JSX.Element | string;
     initialValue: string;
     validation: Yup.StringSchema;
     onSubmit: (value: string) => void;
     textFieldProps?: TextFieldProps;
     disabled?: boolean;
   }) => {
-    const {
-      typography,
-      initialValue,
-      validation,
-      onSubmit,
-      textFieldProps,
-      disabled
-    } = props;
+    const {typography, initialValue, validation, onSubmit, disabled} = props;
+
+    const textFieldProps = props.textFieldProps ?? {
+      sx: {
+        pt: 1,
+        pl: 1,
+        pr: 1,
+        '& legend': {display: 'none'},
+        '& fieldset': {top: 0}
+      },
+      InputProps: {
+        sx: {color: '#000'}
+      }
+    };
     const [rename, setRename] = React.useState<boolean>(false);
 
     const formik = useFormik({
@@ -117,4 +122,4 @@ const TestName = React.memo(
     );
   }
 );
-export default TestName;
+export default EditableTypography;

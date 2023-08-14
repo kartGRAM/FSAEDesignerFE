@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {Vector3} from 'three';
 import {MeasureSnapshot} from '@gd/analysis/ISnapshot';
 import {isObject} from '@utils/helpers';

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import {IPlane} from '@gd/measure/datum/IDatumObjects';
 import * as THREE from 'three';

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import THREE from 'three';
 import {useFrame} from '@react-three/fiber';

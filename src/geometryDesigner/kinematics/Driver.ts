@@ -1,6 +1,6 @@
 /* eslint-disable no-useless-constructor */
 /* eslint-disable class-methods-use-this */
-/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import {Matrix} from 'ml-matrix';
 import {IElement, isElement} from '@gd/IElements';
 import {INamedVector3RO} from '@gd/INamedValues';

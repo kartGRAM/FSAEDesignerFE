@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -13,6 +12,8 @@ import {setUIDisabled} from '@store/reducers/uiTempGeometryDesigner';
 import Divider from '@mui/material/Divider';
 import {setMeasureToolDialogPosition} from '@store/reducers/uiGeometryDesigner';
 import {ReadonlyVariable} from '@gd/measure/readonlyVariables/ReadonlyVariable';
+import EditableTypography from '@gdComponents/EditableTypography';
+import * as Yup from 'yup';
 import {VariableSourceSelector} from './VariableSourceSelector';
 import {VariableFormula} from './VariableFormula';
 
@@ -26,7 +27,7 @@ export function ROVariableDialog(props: {
   const {open, close, apply, selectableVariables} = props;
   const {variable: propsVariable} = props;
   let variable: IReadonlyVariable = new ReadonlyVariable({
-    name: 'Readonly Variable'
+    name: 'New Variable'
   });
 
   const dispatch = useDispatch();
@@ -83,11 +84,24 @@ export function ROVariableDialog(props: {
       }}
       PaperProps={{
         sx: {
-          minWidth: 900
+          minWidth: 900,
+          maxHeight: '70vh'
         }
       }}
     >
-      <DialogTitle sx={{marginRight: 10}}>{variable.name}</DialogTitle>
+      <EditableTypography
+        typography={
+          <DialogTitle sx={{marginRight: 10}}>{variable.name}</DialogTitle>
+        }
+        initialValue={variable.name}
+        validation={Yup.string().required('required')}
+        onSubmit={(value) => {
+          if (variable.name !== value) {
+            variable.name = value;
+            setApplyReady(variable);
+          }
+        }}
+      />
       <DialogContent>
         <VariableFormula variable={variable} setApplyReady={setApplyReady} />
         <Divider sx={{mb: 2}} />

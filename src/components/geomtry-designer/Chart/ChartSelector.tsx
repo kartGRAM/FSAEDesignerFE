@@ -1,5 +1,5 @@
 /* eslint-disable react/no-unused-prop-types */
-/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import * as React from 'react';
 import {IChartData, IChartLayout, dataFrom} from '@gd/charts/ICharts';
 import {CaseResults} from '@worker/solverWorkerMessage';

@@ -1,6 +1,5 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable max-classes-per-file */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   isDataDatumObject,
   IPoint,
@@ -27,13 +26,11 @@ import {
   IDataTwoPlaneIntersectionLine,
   isDataTwoPlaneIntersectionLine
 } from '@gd/measure/datum/ILineObjects';
-import {BufferGeometry, Line3, Material, Vector3} from 'three';
+import {Line3, Vector3} from 'three';
 import {DatumObject} from '@gd/measure/datum/DatumObjects';
-import {IAssembly, IElement} from '@gd/IElements';
 import {getIntersectionLineFromTwoPlanes} from '@utils/threeUtils';
 import {
   FunctionVector3,
-  INamedNumber,
   INamedVector3,
   isNamedVector3,
   isNamedData,
