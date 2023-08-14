@@ -66,6 +66,7 @@ export function ROVariableDialog(props: {
   return (
     <Dialog
       open={open}
+      // TransitionProps={{unmountOnExit: true}}
       components={{Backdrop: undefined}}
       PaperComponent={(props) =>
         PaperComponentDraggable({

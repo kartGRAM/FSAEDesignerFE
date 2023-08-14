@@ -47,9 +47,17 @@ export function VariableFormula(props: {
   return (
     <Box
       component="div"
-      sx={{display: 'flex', m: 1, flexGrow: 1, mt: 1, flexDirection: 'row'}}
+      sx={{
+        display: 'flex',
+        m: 1,
+        flexGrow: 1,
+        mt: 1,
+        flexDirection: 'row',
+        alignItems: 'baseline'
+      }}
     >
       <TextField
+        label="user defined formula"
         sx={{flex: 2}}
         name="formula"
         variant="standard"

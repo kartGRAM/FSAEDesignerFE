@@ -117,6 +117,7 @@ export function VariableSourceSelector(props: {
                   setApplyReady(new ReadonlyVariable().copy(roVariable));
                 }}
                 selectableVariables={selectableVariables}
+                newRow
                 key={-1}
               />
             </TableBody>
@@ -176,6 +177,7 @@ function Row(props: {
   onClick: (id: number) => void;
   setApplyReady: () => void;
   selectableVariables: IReadonlyVariable[];
+  newRow?: boolean;
 }) {
   const {
     id,
@@ -183,7 +185,8 @@ function Row(props: {
     selected,
     onClick,
     setApplyReady,
-    selectableVariables
+    selectableVariables,
+    newRow
   } = props;
 
   const update = useUpdate();
@@ -316,6 +319,7 @@ function Row(props: {
     >
       <TableCell padding="checkbox">
         <Checkbox
+          disabled={newRow}
           onClick={() => {
             onClick(id);
           }}

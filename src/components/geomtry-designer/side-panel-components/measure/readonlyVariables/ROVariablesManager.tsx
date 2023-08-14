@@ -58,7 +58,7 @@ export default function ROVariablesManager() {
   const [dialogTarget, setDialogTarget] = React.useState<string>('');
 
   const onVariableDblClick = (variable?: IReadonlyVariable) => {
-    let id = 'new';
+    let id = uuidv4();
     if (variable) id = variable.nodeID;
     dispatch(setSelectedROVariable(''));
     setDialogTarget(id);
@@ -75,7 +75,6 @@ export default function ROVariablesManager() {
       dialogTargetVariable.copy(variable);
     } else {
       variables.push(variable);
-      setDialogTarget(`new${uuidv4()}`);
     }
     update(variables);
   };
@@ -277,12 +276,11 @@ export default function ROVariablesManager() {
         open={dialogTarget !== ''}
         close={() => {
           setDialogTarget('');
-          update(variables);
         }}
         apply={onROVariableDialogApply}
         variable={dialogTargetVariable}
         selectableVariables={selectableVariables}
-        key={dialogTargetVariable?.nodeID ?? dialogTarget}
+        key={dialogTarget}
       />
     </>
   );
