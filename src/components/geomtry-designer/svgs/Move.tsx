@@ -11,7 +11,9 @@ export default function Move(props: {
 }) {
   const {onClick, title, disabled} = props;
   const {uitgd} = store.getState();
-  const tooltipZIndex = uitgd.fullScreenZIndex + uitgd.tooltipZIndex;
+
+  const tooltipZIndex =
+    uitgd.fullScreenZIndex + uitgd.dialogZIndex + uitgd.tooltipZIndex;
   return (
     <Tooltip
       title={title}

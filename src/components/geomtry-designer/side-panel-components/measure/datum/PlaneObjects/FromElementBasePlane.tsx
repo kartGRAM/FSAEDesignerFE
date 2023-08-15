@@ -48,7 +48,10 @@ export function FromElementBasePlane(props: {
   );
   const [element, setElement] = React.useState(defaultElement?.nodeID ?? '');
   const [distance, setDistance] = React.useState(
-    new NamedNumber({value: plane?.distance.getStringValue() ?? 0})
+    new NamedNumber({
+      name: 'distance',
+      value: plane?.distance.getStringValue() ?? 0
+    })
   );
   const [direction, setDirection] = React.useState<BasePlane | ''>(
     plane?.direction ?? ''

@@ -231,6 +231,7 @@ export function PointNormalPlane(props: {
         </FormControl>
       ) : (
         <Vector
+          directionMode
           vector={normal}
           unit="mm"
           onUpdate={() => {

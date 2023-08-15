@@ -382,13 +382,13 @@ const Vector = React.memo((props: Props) => {
                   />
                 </>
               ) : (
-                <Direction title="Copy from existing normal vector." />
+                <Direction title="Copy from existing normal vector." disabled />
               )
             ) : null}
           </Box>
         </Box>
       </form>
-      {!disablePointOffsetTool ? (
+      {!disablePointOffsetTool && !directionMode ? (
         <Accordion
           expanded={expanded}
           onChange={handleAccordionOpen}

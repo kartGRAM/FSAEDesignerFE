@@ -23,7 +23,10 @@ export function FromBasePlane(props: {
   const ids = [React.useId()];
 
   const [distance, setDistance] = React.useState(
-    new NamedNumber({value: plane?.distance.getStringValue() ?? 0})
+    new NamedNumber({
+      name: 'distance',
+      value: plane?.distance.getStringValue() ?? 0
+    })
   );
   const [direction, setDirection] = React.useState<BasePlane | ''>(
     plane?.direction ?? ''

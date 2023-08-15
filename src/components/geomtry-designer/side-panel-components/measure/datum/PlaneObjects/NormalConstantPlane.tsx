@@ -203,6 +203,7 @@ export function NormalConstantPlane(props: {
         </FormControl>
       ) : (
         <Vector
+          directionMode
           vector={normal}
           unit="mm"
           onUpdate={() => {

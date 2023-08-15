@@ -7,11 +7,14 @@ import store from '@store/store';
 export default function Direction(props: {
   onClick?: () => void;
   title: string;
+  disabled?: boolean;
 }) {
-  const {onClick, title} = props;
+  const {onClick, title, disabled} = props;
 
   const {uitgd} = store.getState();
-  const tooltipZIndex = uitgd.fullScreenZIndex + uitgd.tooltipZIndex;
+
+  const tooltipZIndex =
+    uitgd.fullScreenZIndex + uitgd.dialogZIndex + uitgd.tooltipZIndex;
   return (
     <Tooltip
       title={title}
@@ -28,6 +31,7 @@ export default function Direction(props: {
     >
       <span>
         <IconButton
+          disabled={disabled}
           onClick={() => {
             if (onClick) onClick();
           }}

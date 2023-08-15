@@ -267,6 +267,7 @@ export function PointDirectionLine(props: {
             </FormControl>
           ) : (
             <Vector
+              directionMode
               vector={[vPoint, vDirection][i]}
               unit="mm"
               onUpdate={() => {
