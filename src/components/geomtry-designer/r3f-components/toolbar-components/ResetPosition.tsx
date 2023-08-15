@@ -21,10 +21,8 @@ export default function CResetPositions() {
     }
   };
 
-  const zIndex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex + state.uitgd.tooltipZIndex
-  );
+  const {uitgd} = store.getState();
+  const zIndex = uitgd.fullScreenZIndex + uitgd.tooltipZIndex;
 
   return (
     <Tooltip

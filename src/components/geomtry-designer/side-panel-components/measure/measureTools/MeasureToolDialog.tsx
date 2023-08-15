@@ -3,8 +3,8 @@ import * as React from 'react';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import Dialog from '@mui/material/Dialog';
-import {useSelector, useDispatch} from 'react-redux';
-import {RootState} from '@store/store';
+import {useDispatch} from 'react-redux';
+import store, {RootState} from '@store/store';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import PaperComponentDraggable from '@gdComponents/PaperComponentDraggable';
@@ -42,16 +42,10 @@ export function MeasureToolDialog(props: {
 
   const dispatch = useDispatch();
 
-  const dialogZIndex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex
-  );
-  const menuZIndex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex +
-      state.uitgd.dialogZIndex +
-      state.uitgd.menuZIndex
-  );
+  const {uitgd} = store.getState();
+  const dialogZIndex = uitgd.fullScreenZIndex + uitgd.dialogZIndex;
+  const menuZIndex =
+    uitgd.fullScreenZIndex + uitgd.dialogZIndex + uitgd.menuZIndex;
 
   const [applyReady, setApplyReady] = React.useState<IMeasureTool | undefined>(
     undefined

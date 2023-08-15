@@ -4,7 +4,7 @@ import IconButton from '@mui/material/IconButton';
 import SvgIcon from '@mui/material/SvgIcon';
 import {useSelector, useDispatch} from 'react-redux';
 import {setGroundPlaneShow} from '@store/reducers/uiGeometryDesigner';
-import {RootState} from '@store/store';
+import store, {RootState} from '@store/store';
 
 export default function GroundPlaneMode() {
   const showGrid = useSelector(
@@ -16,10 +16,8 @@ export default function GroundPlaneMode() {
     dispatch(setGroundPlaneShow(!showGrid));
   };
 
-  const zIndex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex + state.uitgd.tooltipZIndex
-  );
+  const {uitgd} = store.getState();
+  const zIndex = uitgd.fullScreenZIndex + uitgd.tooltipZIndex;
 
   return (
     <Tooltip

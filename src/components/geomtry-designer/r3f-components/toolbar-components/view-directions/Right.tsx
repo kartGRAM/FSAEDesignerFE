@@ -4,17 +4,15 @@ import IconButton from '@mui/material/IconButton';
 import SvgIcon from '@mui/material/SvgIcon';
 import {setViewDirection} from '@store/reducers/uiTempGeometryDesigner';
 import {Quaternion} from 'three';
-import {useSelector, useDispatch} from 'react-redux';
-import {RootState} from '@store/store';
+import {useDispatch} from 'react-redux';
+import store from '@store/store';
 
 export default function Right(props: {onClick?: () => void}) {
   const {onClick} = props;
   const dispatch = useDispatch();
 
-  const zIndex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex + state.uitgd.tooltipZIndex
-  );
+  const {uitgd} = store.getState();
+  const zIndex = uitgd.fullScreenZIndex + uitgd.tooltipZIndex;
   return (
     <Tooltip
       title="Right View"

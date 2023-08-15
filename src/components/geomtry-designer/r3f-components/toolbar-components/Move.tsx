@@ -5,7 +5,7 @@ import SvgIcon from '@mui/material/SvgIcon';
 import {useSelector, useDispatch} from 'react-redux';
 import {setMovingMode} from '@store/reducers/uiTempGeometryDesigner';
 
-import {RootState} from '@store/store';
+import store, {RootState} from '@store/store';
 import {isAArm, isBar, isTire, isSpringDumper} from '@gd/IElements';
 import {
   canSimplifyAArm,
@@ -46,10 +46,8 @@ export default function Move() {
     dispatch(setMovingMode(!moving));
   };
 
-  const zIndex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex + state.uitgd.tooltipZIndex
-  );
+  const {uitgd} = store.getState();
+  const zIndex = uitgd.fullScreenZIndex + uitgd.tooltipZIndex;
 
   return (
     <Tooltip

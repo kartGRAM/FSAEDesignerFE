@@ -4,18 +4,16 @@ import IconButton from '@mui/material/IconButton';
 import SvgIcon from '@mui/material/SvgIcon';
 import {setViewDirection} from '@store/reducers/uiTempGeometryDesigner';
 import {Spherical} from 'three';
-import {useSelector, useDispatch} from 'react-redux';
-import {RootState} from '@store/store';
+import {useDispatch} from 'react-redux';
+import store from '@store/store';
 import {getCameraQuaternion} from '@utils/three';
 
 export default function Bottom(props: {onClick?: () => void}) {
   const {onClick} = props;
   const dispatch = useDispatch();
 
-  const zIndex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex + state.uitgd.tooltipZIndex
-  );
+  const {uitgd} = store.getState();
+  const zIndex = uitgd.fullScreenZIndex + uitgd.tooltipZIndex;
   return (
     <Tooltip
       title="Bottom View"

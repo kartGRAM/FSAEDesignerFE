@@ -2,7 +2,7 @@ import * as React from 'react';
 import DialogTitle from '@mui/material/DialogTitle';
 import Dialog from '@mui/material/Dialog';
 import {useSelector, useDispatch} from 'react-redux';
-import {RootState} from '@store/store';
+import store, {RootState} from '@store/store';
 import {setSaveAsDialogProps} from '@store/reducers/uiTempGeometryDesigner';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -31,10 +31,8 @@ export function SaveAsDialog(props: SaveAsDialogProps) {
     }
   );
 
-  const zindex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex
-  );
+  const {uitgd} = store.getState();
+  const zindex = uitgd.fullScreenZIndex + uitgd.dialogZIndex;
   const filename = useSelector(
     (state: RootState) => state.dgd.present.filename
   );

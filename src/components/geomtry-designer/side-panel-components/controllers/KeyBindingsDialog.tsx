@@ -3,7 +3,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import Dialog from '@mui/material/Dialog';
 import {useSelector, useDispatch} from 'react-redux';
-import {RootState} from '@store/store';
+import store, {RootState} from '@store/store';
 import {
   setUIDisabled,
   setConfirmDialogProps
@@ -34,13 +34,9 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
   );
   const [prefix, resetNewDefinition] = React.useState<Boolean>(false);
 
-  const zindex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex
-  );
-  const dialogZIndex = useSelector(
-    (state: RootState) => state.uitgd.dialogZIndex
-  );
+  const {uitgd} = store.getState();
+  const zindex = uitgd.fullScreenZIndex + uitgd.dialogZIndex;
+  const {dialogZIndex} = uitgd;
   const dispatch = useDispatch();
 
   const controls = useSelector(

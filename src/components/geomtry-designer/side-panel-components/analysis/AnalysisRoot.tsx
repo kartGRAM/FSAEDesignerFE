@@ -21,7 +21,6 @@ import {alpha} from '@mui/material/styles';
 import {FlowCanvas} from '@gdComponents/side-panel-components/analysis/FlowCanvas';
 import {ITest, IDataTest} from '@gd/analysis/ITest';
 import {Test} from '@gd/analysis/Test';
-import MuiTooltip from '@mui/material/Tooltip';
 import {setTests} from '@store/reducers/dataGeometryDesigner';
 import {
   setConfirmDialogProps,
@@ -30,6 +29,7 @@ import {
 } from '@store/reducers/uiTempGeometryDesigner';
 import {ReactFlowProvider} from 'reactflow';
 import {v4 as uuidv4} from 'uuid';
+import Tooltip from '@gdComponents/Tooltip';
 
 export default function AnalysisRoot() {
   const dispatch = useDispatch();
@@ -115,10 +115,8 @@ const TestRow = (props: {test: IDataTest}) => {
     setOpen(true);
   };
 
-  const zindex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex
-  );
+  const {uitgd} = store.getState();
+  const zindex = uitgd.fullScreenZIndex + uitgd.dialogZIndex;
 
   const handleDelete = async () => {
     const ret = await new Promise<string>((resolve) => {
@@ -277,31 +275,5 @@ const TestRow = (props: {test: IDataTest}) => {
         />
       </ReactFlowProvider>
     </>
-  );
-};
-
-const Tooltip = (props: {children: JSX.Element; title: string}) => {
-  const {children, title} = props;
-
-  const zIndex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex + state.uitgd.tooltipZIndex
-  );
-  return (
-    <MuiTooltip
-      title={title}
-      componentsProps={{
-        popper: {
-          sx: {
-            zIndex,
-            '&:hover': {
-              display: 'none'
-            }
-          }
-        }
-      }}
-    >
-      <span>{children}</span>
-    </MuiTooltip>
   );
 };

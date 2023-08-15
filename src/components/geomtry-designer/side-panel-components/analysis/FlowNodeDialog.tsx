@@ -8,8 +8,8 @@ import {
 } from '@mui/material';
 import {setConfirmDialogProps} from '@store/reducers/uiTempGeometryDesigner';
 import {PaperProps} from '@mui/material/Paper';
-import {useSelector, useDispatch} from 'react-redux';
-import {RootState} from '@store/store';
+import {useDispatch} from 'react-redux';
+import store from '@store/store';
 import {IFlowNode} from '@gd/analysis/FlowNode';
 import {ITest} from '@gd/analysis/ITest';
 import EditableTypography from '@gdComponents/EditableTypography';
@@ -41,10 +41,8 @@ export default function FlowNodeDialog(props: {
     }
   }, [open]);
 
-  const zindex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex * 2
-  );
+  const {uitgd} = store.getState();
+  const zindex = uitgd.fullScreenZIndex + uitgd.dialogZIndex * 2;
 
   const changed = stateAtOpen !== test.getLocalStateID();
   const update = useUpdate();

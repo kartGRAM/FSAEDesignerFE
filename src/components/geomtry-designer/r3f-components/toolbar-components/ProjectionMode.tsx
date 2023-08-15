@@ -4,8 +4,7 @@ import IconButton from '@mui/material/IconButton';
 import SvgIcon from '@mui/material/SvgIcon';
 import {useSelector, useDispatch} from 'react-redux';
 import {setProjectionMode} from '@store/reducers/uiGeometryDesigner';
-
-import {RootState} from '@store/store';
+import store, {RootState} from '@store/store';
 
 export default function ProjectionMode() {
   const projectionMode = useSelector(
@@ -21,10 +20,8 @@ export default function ProjectionMode() {
     );
   };
 
-  const zIndex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex + state.uitgd.tooltipZIndex
-  );
+  const {uitgd} = store.getState();
+  const zIndex = uitgd.fullScreenZIndex + uitgd.tooltipZIndex;
 
   return (
     <Tooltip

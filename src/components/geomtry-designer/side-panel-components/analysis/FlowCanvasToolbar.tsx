@@ -1,8 +1,8 @@
 import * as React from 'react';
 import {ITest} from '@gd/analysis/ITest';
 import useTestUpdate from '@hooks/useTestUpdate';
-import {useSelector, useDispatch} from 'react-redux';
-import store, {RootState} from '@store/store';
+import {useDispatch} from 'react-redux';
+import store from '@store/store';
 import {Toolbar, Tooltip, IconButton} from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
@@ -121,10 +121,8 @@ export function FlowCanvasToolbar(props: {test: ITest}) {
 
 function MyTooltip(props: {title: string; children: React.ReactNode}) {
   const {children, title} = props;
-  const zIndex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex + state.uitgd.tooltipZIndex
-  );
+  const {uitgd} = store.getState();
+  const zIndex = uitgd.fullScreenZIndex + uitgd.tooltipZIndex;
   return (
     <Tooltip
       title={title}
