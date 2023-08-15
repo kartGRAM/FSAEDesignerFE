@@ -195,3 +195,32 @@ export function isDataThreePointsPlane(
   if (data.className === 'ThreePointsPlane') return true;
   return false;
 }
+
+export interface IAxisPlaneAnglePlane extends IPlane {
+  className: 'AxisPlaneAnglePlane';
+  plane: NodeID;
+  line: NodeID;
+  angle: number;
+  getData(): IDataAxisPlaneAnglePlane;
+}
+
+export function isAxisPlaneAnglePlane(
+  plane: IPlane | undefined
+): plane is IAxisPlaneAnglePlane {
+  if (!plane) return false;
+  return plane.className === 'AxisPlaneAnglePlane';
+}
+
+export interface IDataAxisPlaneAnglePlane extends IDataPlane {
+  className: 'AxisPlaneAnglePlane';
+  plane: NodeID;
+  line: NodeID;
+  angle: number;
+}
+
+export function isDataAxisPlaneAnglePlane(
+  data: IDataDatumObject
+): data is IDataAxisPlaneAnglePlane {
+  if (data.className === 'AxisPlaneAnglePlane') return true;
+  return false;
+}

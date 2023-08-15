@@ -33,7 +33,11 @@ import {
   IAxisPointPlane,
   isAxisPointPlane,
   IDataAxisPointPlane,
-  isDataAxisPointPlane
+  isDataAxisPointPlane,
+  IAxisPlaneAnglePlane,
+  isAxisPlaneAnglePlane,
+  IDataAxisPlaneAnglePlane,
+  isDataAxisPlaneAnglePlane
 } from '@gd/measure/datum/IPlaneObjects';
 import {Vector3, Plane as ThreePlane} from 'three';
 import {DatumObject} from '@gd/measure/datum/DatumObjects';
@@ -607,6 +611,92 @@ export class AxisPointPlane extends Plane implements IAxisPointPlane {
     if (isPlane(other) && isAxisPointPlane(other)) {
       this.point = other.point;
       this.line = other.line;
+    } else {
+      throw new Error('型不一致');
+    }
+  }
+}
+
+export class AxisPlaneAnglePlane extends Plane implements IAxisPlaneAnglePlane {
+  readonly className = 'AxisPlaneAnglePlane' as const;
+
+  get planeCenter(): Vector3 {
+    const point = this.pointBuf?.getThreePoint();
+    const line = this.lineBuf?.getThreeLine();
+    if (!point || !line) return new Vector3();
+    const points = [point, line.start, line.end];
+    const v = new Vector3();
+    points.forEach((p) => v.add(p));
+    v.multiplyScalar(1 / 3);
+    return v;
+  }
+
+  get planeSize(): {width: number; height: number} {
+    return {width: 300, height: 300};
+  }
+
+  line: string;
+
+  lineBuf: ILine | undefined;
+
+  plane: string;
+
+  planeBuf: IPlane | undefined;
+
+  angle: number;
+
+  get description() {
+    return `plane from axis plane angle`;
+  }
+
+  getData(): IDataAxisPlaneAnglePlane {
+    const base = super.getDataBase();
+    return {
+      ...base,
+      className: this.className,
+      line: this.line,
+      plane: this.plane,
+      angle: this.angle
+    };
+  }
+
+  update(ref: DatumDict): void {
+    const line = ref[this.line];
+    if (!line || !isLine(line)) throw new Error('データム軸が見つからない');
+    const plane = ref[this.plane];
+    if (!plane || !isPlane(plane)) throw new Error('データム面が見つからない');
+    this.planeBuf = plane;
+    this.lineBuf = line;
+    // plane.normal.normalize();
+    this.storedValue = getPlaneFromAxisAndPoint(
+      point.getThreePoint(),
+      line.getThreeLine()
+    );
+  }
+
+  getThreePlane(): ThreePlane {
+    return this.storedValue.clone();
+  }
+
+  constructor(
+    params:
+      | {name: string; plane: string; line: string; angle: number}
+      | IDataAxisPlaneAnglePlane
+  ) {
+    super(params);
+    this.plane = params.plane;
+    this.line = params.line;
+    this.angle = params.angle;
+    if (isDataDatumObject(params) && isDataAxisPointPlane(params)) {
+      this.setLastPosition(params);
+    }
+  }
+
+  copy(other: IDatumObject): void {
+    if (isPlane(other) && isAxisPlaneAnglePlane(other)) {
+      this.plane = other.plane;
+      this.line = other.line;
+      this.angle = other.angle;
     } else {
       throw new Error('型不一致');
     }
