@@ -2,8 +2,8 @@ import * as React from 'react';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import Dialog from '@mui/material/Dialog';
-import {useSelector, useDispatch} from 'react-redux';
-import {RootState} from '@store/store';
+import {useDispatch} from 'react-redux';
+import store, {RootState} from '@store/store';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import PaperComponentDraggable from '@gdComponents/PaperComponentDraggable';
@@ -32,10 +32,8 @@ export function ROVariableDialog(props: {
 
   const dispatch = useDispatch();
 
-  const dialogZIndex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex
-  );
+  const {uitgd} = store.getState();
+  const dialogZIndex = uitgd.fullScreenZIndex + uitgd.dialogZIndex;
   const [applyReady, setApplyReady] = React.useState<
     IReadonlyVariable | undefined
   >(undefined);

@@ -9,7 +9,7 @@ import Select from '@mui/material/Select';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Scalar from '@gdComponents/Scalar';
-import {RootState} from '@store/store';
+import store, {RootState} from '@store/store';
 import {NamedNumber, NamedVector3} from '@gd/NamedValues';
 import {isNamedVector3} from '@gd/INamedValues';
 import {
@@ -126,12 +126,9 @@ export function NormalConstantPlane(props: {
     };
   }, []);
 
-  const menuZIndex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex +
-      state.uitgd.menuZIndex +
-      state.uitgd.dialogZIndex
-  );
+  const {uitgd} = store.getState();
+  const menuZIndex =
+    uitgd.fullScreenZIndex + uitgd.menuZIndex + uitgd.dialogZIndex;
 
   return (
     <Box component="div">

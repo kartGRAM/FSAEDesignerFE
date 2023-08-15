@@ -4,7 +4,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
 import {getElementByPath, isMirror} from '@gd/IElements';
 
-import {RootState} from '@app/store/store';
+import store, {RootState} from '@app/store/store';
 
 import {setConfirmDialogProps} from '@store/reducers/uiTempGeometryDesigner';
 
@@ -21,9 +21,8 @@ export default function UnlinkMirror(props: Props) {
   );
   const element = getElementByPath(assembly, selectedElement);
 
-  const zindex = useSelector((state: RootState) => {
-    return state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex;
-  });
+  const {uitgd} = store.getState();
+  const zindex = uitgd.fullScreenZIndex + uitgd.dialogZIndex;
 
   const handleOnClick = React.useCallback(async () => {
     if (!element) return;

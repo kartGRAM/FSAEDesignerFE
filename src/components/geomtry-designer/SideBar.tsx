@@ -15,7 +15,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import ComputerIcon from '@mui/icons-material/Computer';
 import {useSelector, useDispatch} from 'react-redux';
 import {numberToRgb} from '@app/utils/helpers';
-import {RootState} from '@store/store';
+import store, {RootState} from '@store/store';
 import {
   SidePanelTab,
   selectSidePanelTab
@@ -122,9 +122,8 @@ export default function MiniDrawer() {
     (state: RootState) => state.uitgd.selectedElementAbsPath
   );
 
-  const zIndex = useSelector((state: RootState) => {
-    return state.uitgd.fullScreenZIndex + state.uitgd.tooltipZIndex;
-  });
+  const {uitgd} = store.getState();
+  const zIndex = uitgd.fullScreenZIndex + uitgd.tooltipZIndex;
 
   return (
     <Drawer variant="permanent" open={false} bgColor={bgColor} id="gdSideBar">

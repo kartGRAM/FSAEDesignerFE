@@ -8,13 +8,11 @@ import {MovePointDialog} from '@gdComponents/dialog-components/MovePointDialog';
 import {MoveComponentDialog} from '@gdComponents/dialog-components/MoveComponentDialog';
 import {RecordingDialog} from '@gdComponents/dialog-components/RecordingDialog';
 import {useSelector} from 'react-redux';
-import {RootState} from '@store/store';
+import store, {RootState} from '@store/store';
 
 export default function DialogRoot() {
-  const zIndex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex
-  );
+  const {uitgd} = store.getState();
+  const zIndex = uitgd.fullScreenZIndex + uitgd.dialogZIndex;
 
   const saveAsDialogProps = useSelector(
     (state: RootState) => state.uitgd.gdDialogState.saveAsDialogProps

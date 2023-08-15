@@ -90,10 +90,8 @@ export default function MeasureToolsManager() {
     };
   }, []);
 
-  const tooltipZIndex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex + state.uitgd.tooltipZIndex
-  );
+  const {uitgd} = store.getState();
+const tooltipZIndex = uitgd.fullScreenZIndex + uitgd.tooltipZIndex;
 
   return (
     <>

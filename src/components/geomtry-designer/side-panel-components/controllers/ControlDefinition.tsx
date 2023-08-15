@@ -20,8 +20,7 @@ import {
   className as existingConstraint
 } from '@gd/controls/ExistingConstraintControl';
 
-import {useSelector} from 'react-redux';
-import store, {RootState} from '@store/store';
+import store from '@store/store';
 import {IElement, isLinearBushing, isSpringDumper} from '@gd/IElements';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
@@ -51,12 +50,8 @@ export function ControlDefinition(props: ControlDefinitionProps) {
   const controlInstance = control ? getControl(control) : undefined;
   const [name, setName] = React.useState<string>(controlInstance?.name ?? '');
 
-  const zindex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex +
-      state.uitgd.dialogZIndex +
-      state.uitgd.menuZIndex
-  );
+  const {uitgd} = store.getState();
+  const zindex = uitgd.fullScreenZIndex + uitgd.dialogZIndex + uitgd.menuZIndex;
 
   const [selectedID, setSelectedID] = React.useState<string>(
     // eslint-disable-next-line no-nested-ternary

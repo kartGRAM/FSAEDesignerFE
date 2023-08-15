@@ -2,8 +2,8 @@ import * as React from 'react';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import Dialog from '@mui/material/Dialog';
-import {useSelector, useDispatch} from 'react-redux';
-import {RootState} from '@store/store';
+import {useDispatch} from 'react-redux';
+import store, {RootState} from '@store/store';
 import {setUIDisabled} from '@store/reducers/uiTempGeometryDesigner';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
@@ -40,12 +40,10 @@ export function PointOffsetToolDialog(props: PointOffsetToolDialogProps) {
     callback: () => {}
   };
 
-  const zindex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex
-  );
+  const {uitgd} = store.getState();
+  const zindex = uitgd.fullScreenZIndex + uitgd.dialogZIndex;
 
-  const menuZIndex = useSelector((state: RootState) => state.uitgd.menuZIndex);
+  const {menuZIndex} = uitgd;
   const dispatch = useDispatch();
   React.useEffect(() => {
     if (open) {

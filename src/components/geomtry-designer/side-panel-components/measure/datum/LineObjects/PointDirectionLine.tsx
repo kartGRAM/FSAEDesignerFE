@@ -177,12 +177,9 @@ export function PointDirectionLine(props: {
     };
   }, []);
 
-  const menuZIndex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex +
-      state.uitgd.menuZIndex +
-      state.uitgd.dialogZIndex
-  );
+  const {uitgd} = store.getState();
+  const menuZIndex =
+    uitgd.fullScreenZIndex + uitgd.menuZIndex + uitgd.dialogZIndex;
 
   return (
     <Box component="div">

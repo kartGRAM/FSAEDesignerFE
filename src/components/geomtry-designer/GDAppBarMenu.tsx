@@ -8,7 +8,7 @@ import MenuList from '@mui/material/MenuList';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import {useSelector} from 'react-redux';
-import {RootState} from '@store/store';
+import store, {RootState} from '@store/store';
 import {numberToRgb} from '@app/utils/helpers';
 
 interface Props {
@@ -63,9 +63,9 @@ export const GDAppBarMenu = (props: Props) => {
 
     prevOpen.current = open;
   }, [open]);
-  const zIndex = useSelector((state: RootState) => {
-    return state.uitgd.fullScreenZIndex + state.uitgd.menuZIndex;
-  });
+
+  const {uitgd} = store.getState();
+  const zIndex = uitgd.fullScreenZIndex + uitgd.menuZIndex;
 
   return (
     <>

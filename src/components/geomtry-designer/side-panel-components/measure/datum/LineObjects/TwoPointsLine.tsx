@@ -1,5 +1,5 @@
 import React from 'react';
-import {RootState} from '@store/store';
+import store, {RootState} from '@store/store';
 import {useSelector, useDispatch} from 'react-redux';
 import {ITwoPointsLine} from '@gd/measure/datum/ILineObjects';
 import {TwoPointsLine as LineObject} from '@gd/measure/datum/LineObjects';
@@ -117,12 +117,9 @@ export function TwoPointsLine(props: {
     };
   }, [...points]);
 
-  const menuZIndex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex +
-      state.uitgd.menuZIndex +
-      state.uitgd.dialogZIndex
-  );
+  const {uitgd} = store.getState();
+  const menuZIndex =
+    uitgd.fullScreenZIndex + uitgd.menuZIndex + uitgd.dialogZIndex;
 
   return (
     <Box component="div">

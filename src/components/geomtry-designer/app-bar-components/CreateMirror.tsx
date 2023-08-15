@@ -1,9 +1,9 @@
 import * as React from 'react';
 import MenuItem from '@mui/material/MenuItem';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch} from 'react-redux';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
 import {getElementByPath, MirrorError, isBodyOfFrame} from '@gd/IElements';
-import store, {RootState} from '@app/store/store';
+import store from '@app/store/store';
 
 import {setConfirmDialogProps} from '@store/reducers/uiTempGeometryDesigner';
 
@@ -15,9 +15,8 @@ export default function CreateMirror(props: Props) {
   const {text, disabled} = props;
   const dispatch = useDispatch();
 
-  const zindex = useSelector((state: RootState) => {
-    return state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex;
-  });
+  const {uitgd} = store.getState();
+  const zindex = uitgd.fullScreenZIndex + uitgd.dialogZIndex;
 
   const handleOnClick = React.useCallback(async () => {
     const {assembly} = store.getState().uitgd;

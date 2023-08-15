@@ -2,7 +2,7 @@ import * as React from 'react';
 import DialogTitle from '@mui/material/DialogTitle';
 import Dialog from '@mui/material/Dialog';
 import {useSelector, useDispatch} from 'react-redux';
-import {RootState} from '@store/store';
+import store, {RootState} from '@store/store';
 import {
   setUIDisabled,
   setMovePointDialogProps,
@@ -26,10 +26,8 @@ export function MovePointDialog() {
     (state: RootState) => state.uitgd.gdDialogState.movePointDialogProps
   );
 
-  const zindex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex
-  );
+  const {uitgd} = store.getState();
+  const zindex = uitgd.fullScreenZIndex + uitgd.dialogZIndex;
   const dispatch = useDispatch();
 
   const deltaRef = React.useRef(new Vector3());

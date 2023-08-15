@@ -74,12 +74,8 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
 
   const [max, setMax] = React.useState(new NamedNumber({value: control.max}));
 
-  const zindex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex +
-      state.uitgd.dialogZIndex +
-      state.uitgd.menuZIndex
-  );
+  const {uitgd} = store.getState();
+  const zindex = uitgd.fullScreenZIndex + uitgd.dialogZIndex + uitgd.menuZIndex;
 
   const enabledColorLight: number = useSelector(
     (state: RootState) => state.uigd.present.enabledColorLight

@@ -6,7 +6,7 @@ import {AxisPointPlane as AxisPointPlaneObject} from '@gd/measure/datum/PlaneObj
 import {IDatumObject, isPoint, isLine} from '@gd/measure/datum/IDatumObjects';
 import Box from '@mui/material/Box';
 import FormControl from '@mui/material/FormControl';
-import Select, {SelectChangeEvent} from '@mui/material/Select';
+import Select from '@mui/material/Select';
 import InputLabel from '@mui/material/InputLabel';
 import {setComponentVisualizationMode} from '@store/reducers/uiGeometryDesigner';
 import {
@@ -150,12 +150,9 @@ export function AxisPointPlane(props: {
     }
   };
 
-  const menuZIndex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex +
-      state.uitgd.menuZIndex +
-      state.uitgd.dialogZIndex
-  );
+  const {uitgd} = store.getState();
+  const menuZIndex =
+    uitgd.fullScreenZIndex + uitgd.menuZIndex + uitgd.dialogZIndex;
 
   return (
     <Box component="div">

@@ -32,14 +32,9 @@ export default function DatumManager() {
   const datumObjectsAccExpanded =
     store.getState().uigd.present.measurePanelState.DatumObjectsExpanded;
 
-  const dialogZIndex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex
-  );
-  const tooltipZIndex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex + state.uitgd.tooltipZIndex
-  );
+  const {uitgd} = store.getState();
+  const dialogZIndex = uitgd.fullScreenZIndex + uitgd.dialogZIndex;
+  const tooltipZIndex = uitgd.fullScreenZIndex + uitgd.tooltipZIndex;
 
   const addNewDatumGroup = (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>
@@ -54,10 +49,10 @@ export default function DatumManager() {
     }
   };
 
-  const update = () => {
+  const update = React.useCallback(() => {
     if (!datumManager) return;
     dispatch(setDatumObjects(datumManager.getData()));
-  };
+  }, [datumManager]);
 
   const removeDatumGroup = async (nodeID: string) => {
     if (datumManager) {
@@ -187,7 +182,7 @@ export default function DatumManager() {
             <DatumGroupTable
               datumGroup={group}
               key={group.nodeID}
-              expanded={expanded}
+              expanded={expanded === group.nodeID}
               setExpanded={setExpanded}
               update={update}
             />

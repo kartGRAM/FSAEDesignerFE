@@ -6,15 +6,12 @@ import {
   IFromElementBasePlane
 } from '@gd/measure/datum/IPlaneObjects';
 import {FromElementBasePlane as FromElementBasePlaneObject} from '@gd/measure/datum/PlaneObjects';
-import {IDatumObject, isPoint, isLine} from '@gd/measure/datum/IDatumObjects';
+import {IDatumObject} from '@gd/measure/datum/IDatumObjects';
 import Box from '@mui/material/Box';
 import FormControl from '@mui/material/FormControl';
-import Select, {SelectChangeEvent} from '@mui/material/Select';
+import Select from '@mui/material/Select';
 import InputLabel from '@mui/material/InputLabel';
-import {
-  setDatumElementSelectMode,
-  setForceVisibledDatums
-} from '@store/reducers/uiTempGeometryDesigner';
+import {setDatumElementSelectMode} from '@store/reducers/uiTempGeometryDesigner';
 import MenuItem from '@mui/material/MenuItem';
 import Target from '@gdComponents/svgs/Target';
 import Scalar from '@gdComponents/Scalar';
@@ -104,12 +101,9 @@ export function FromElementBasePlane(props: {
     }
   }, [element, distance, direction]);
 
-  const menuZIndex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex +
-      state.uitgd.menuZIndex +
-      state.uitgd.dialogZIndex
-  );
+  const {uitgd} = store.getState();
+  const menuZIndex =
+    uitgd.fullScreenZIndex + uitgd.menuZIndex + uitgd.dialogZIndex;
 
   return (
     <Box component="div">

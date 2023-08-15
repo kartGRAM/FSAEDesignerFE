@@ -9,8 +9,7 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Scalar from '@gdComponents/Scalar';
 import {NamedNumber} from '@gd/NamedValues';
-import {useSelector} from 'react-redux';
-import {RootState} from '@store/store';
+import store from '@store/store';
 import useUpdateEffect from '@hooks/useUpdateEffect';
 
 const directions: BasePlane[] = ['XY', 'YZ', 'ZX'];
@@ -43,12 +42,9 @@ export function FromBasePlane(props: {
     }
   }, [distance, direction]);
 
-  const menuZIndex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex +
-      state.uitgd.menuZIndex +
-      state.uitgd.dialogZIndex
-  );
+  const {uitgd} = store.getState();
+  const menuZIndex =
+    uitgd.fullScreenZIndex + uitgd.menuZIndex + uitgd.dialogZIndex;
 
   return (
     <Box component="div">

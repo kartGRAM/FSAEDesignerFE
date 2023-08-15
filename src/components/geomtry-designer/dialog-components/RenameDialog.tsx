@@ -2,7 +2,7 @@ import * as React from 'react';
 import DialogTitle from '@mui/material/DialogTitle';
 import Dialog from '@mui/material/Dialog';
 import {useSelector, useDispatch} from 'react-redux';
-import {RootState} from '@store/store';
+import store, {RootState} from '@store/store';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
 import {getElementByPath, isBodyOfFrame, isMirror} from '@gd/IElements';
 
@@ -20,10 +20,9 @@ export interface RenameDialogProps {
 
 export function RenameDialog(props: RenameDialogProps) {
   const {absPath, onClose} = props;
-  const zindex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex
-  );
+
+  const {uitgd} = store.getState();
+  const zindex = uitgd.fullScreenZIndex + uitgd.dialogZIndex;
   const assembly = useSelector((state: RootState) => state.uitgd.assembly);
   const element = getElementByPath(assembly, absPath);
   const dispatch = useDispatch();

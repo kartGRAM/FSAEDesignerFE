@@ -2,8 +2,7 @@ import React from 'react';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import SvgIcon from '@mui/material/SvgIcon';
-import {useSelector} from 'react-redux';
-import {RootState} from '@store/store';
+import store from '@store/store';
 
 export default function Visibility(props: {
   onClick?: () => void;
@@ -12,12 +11,9 @@ export default function Visibility(props: {
   disabled?: boolean;
 }) {
   const {onClick, title, visible, disabled} = props;
-  const tooltipZIndex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex +
-      state.uitgd.dialogZIndex +
-      state.uitgd.tooltipZIndex
-  );
+  const {uitgd} = store.getState();
+  const tooltipZIndex =
+    uitgd.fullScreenZIndex + uitgd.dialogZIndex + uitgd.tooltipZIndex;
   return (
     <Tooltip
       title={title ?? visible ? 'hide' : 'show'}

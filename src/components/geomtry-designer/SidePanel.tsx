@@ -2,7 +2,7 @@ import React from 'react';
 import Box from '@mui/material/Box';
 import {useSelector, useDispatch} from 'react-redux';
 import {numberToRgb} from '@app/utils/helpers';
-import {RootState} from '@store/store';
+import store, {RootState} from '@store/store';
 import Divider from '@mui/material/Divider';
 import {alpha} from '@mui/material/styles';
 import {resizePanel} from '@store/reducers/uiGeometryDesigner';
@@ -41,9 +41,8 @@ export default function SidePanel() {
 
   const dispatch = useDispatch();
 
-  const zIndex = useSelector((state: RootState) => {
-    return state.uitgd.fullScreenZIndex + state.uitgd.menuZIndex;
-  });
+  const {uitgd} = store.getState();
+  const zIndex = uitgd.fullScreenZIndex + uitgd.menuZIndex;
 
   // ドラッグ中にカーソルがdisabledになるのを防止するため(だけに)、jQueryUIを使用する。
   React.useEffect(() => {

@@ -5,8 +5,7 @@ import SvgIcon from '@mui/material/SvgIcon';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import {SxProps} from '@mui/system';
 import {Theme} from '@mui/material/styles';
-import {useSelector} from 'react-redux';
-import {RootState} from '@store/store';
+import store from '@store/store';
 
 export default function CaseStart(props: {
   onClick?: () => void;
@@ -17,12 +16,9 @@ export default function CaseStart(props: {
 }) {
   const {onClick, onDoubleClick, title, disabled, sx} = props;
 
-  const tooltipZIndex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex +
-      state.uitgd.dialogZIndex +
-      state.uitgd.tooltipZIndex
-  );
+  const {uitgd} = store.getState();
+  const tooltipZIndex =
+    uitgd.fullScreenZIndex + uitgd.dialogZIndex + uitgd.tooltipZIndex;
   return (
     <Tooltip
       title={title}

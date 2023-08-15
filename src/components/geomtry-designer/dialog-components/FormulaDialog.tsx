@@ -5,7 +5,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import {useSelector, useDispatch} from 'react-redux';
-import {RootState} from '@store/store';
+import store, {RootState} from '@store/store';
 import {setFormulaDialogOpen} from '@store/reducers/uiTempGeometryDesigner';
 import {setFormulae} from '@store/reducers/dataGeometryDesigner';
 import Table from '@mui/material/Table';
@@ -608,10 +608,8 @@ export function FormulaDialog() {
   );
   const dispatch = useDispatch();
 
-  const zIndex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex
-  );
+  const {uitgd} = store.getState();
+  const zIndex = uitgd.fullScreenZIndex + uitgd.dialogZIndex;
 
   const formulae = useSelector(
     (state: RootState) => state.dgd.present.formulae

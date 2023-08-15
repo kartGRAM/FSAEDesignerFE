@@ -9,7 +9,7 @@ import Paper from '@mui/material/Paper';
 import {numberToRgb} from '@app/utils/helpers';
 import {useSelector, useDispatch} from 'react-redux';
 import {setSelectedDatumObject} from '@store/reducers/uiTempGeometryDesigner';
-import {RootState} from '@store/store';
+import store, {RootState} from '@store/store';
 import {alpha} from '@mui/material/styles';
 import {IDatumGroup, IDatumObject} from '@gd/measure/datum/IDatumObjects';
 import Accordion from '@mui/material/Accordion';
@@ -26,132 +26,105 @@ import useUpdate from '@hooks/useUpdate';
 import {DatumGroupName} from './DatumGroupName';
 import {DatumDialog} from './DatumDialog';
 
-export function DatumGroupTable(props: {
-  datumGroup: IDatumGroup;
-  expanded: string;
-  setExpanded: React.Dispatch<React.SetStateAction<string>>;
-  update: () => void;
-}) {
-  const {datumGroup, setExpanded, update} = props;
-  let {expanded} = props;
-  const dispatch = useDispatch();
-  const updateState = useUpdate();
+export const DatumGroupTable = React.memo(
+  (props: {
+    datumGroup: IDatumGroup;
+    expanded: boolean;
+    setExpanded: React.Dispatch<React.SetStateAction<string>>;
+    update: () => void;
+  }) => {
+    const {datumGroup, setExpanded, update} = props;
+    const {expanded} = props;
+    const dispatch = useDispatch();
+    const updateState = useUpdate();
 
-  const enabledColorLight: number = useSelector(
-    (state: RootState) => state.uigd.present.enabledColorLight
-  );
-
-  const selected = useSelector(
-    (state: RootState) => state.uitgd.gdSceneState.selectedDatumObject
-  );
-
-  const [dialogTarget, setDialogTarget] = React.useState<string>('');
-  const datumObjects = datumGroup.children;
-
-  const tooltipZIndex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex + state.uitgd.tooltipZIndex
-  );
-
-  const onDatumDblClick = (datum: IDatumObject | undefined) => {
-    let id = 'new';
-    if (datum) id = datum.nodeID;
-    dispatch(setSelectedDatumObject(''));
-    setDialogTarget(id);
-  };
-
-  const dialogTargetObject = datumObjects.find(
-    (datum) => datum.nodeID === dialogTarget
-  );
-
-  const onDatumDialogApply = (datum: IDatumObject) => {
-    if (dialogTargetObject) {
-      dialogTargetObject.copy(datum);
-    } else {
-      datumGroup.children.push(datum);
-      setDialogTarget(`new${uuidv4()}`);
-    }
-    update();
-  };
-
-  const onDelete = () => {
-    datumGroup.children = datumObjects.filter(
-      (datum) => selected !== datum.nodeID
+    const enabledColorLight: number = useSelector(
+      (state: RootState) => state.uigd.present.enabledColorLight
     );
-    update();
-  };
 
-  let selectedInGroup = false;
-  if (datumObjects.find((child) => child.nodeID === selected)) {
-    if (datumGroup.nodeID !== expanded) {
-      setExpanded(datumGroup.nodeID);
-      expanded = datumGroup.nodeID;
+    const selected = useSelector(
+      (state: RootState) => state.uitgd.gdSceneState.selectedDatumObject
+    );
+
+    const [dialogTarget, setDialogTarget] = React.useState<string>('');
+    const datumObjects = datumGroup.children;
+
+    const {uitgd} = store.getState();
+    const tooltipZIndex = uitgd.fullScreenZIndex + uitgd.tooltipZIndex;
+
+    const onDatumDblClick = (datum: IDatumObject | undefined) => {
+      let id = 'new';
+      if (datum) id = datum.nodeID;
+      dispatch(setSelectedDatumObject(''));
+      setDialogTarget(id);
+    };
+
+    const dialogTargetObject = datumObjects.find(
+      (datum) => datum.nodeID === dialogTarget
+    );
+
+    const onDatumDialogApply = (datum: IDatumObject) => {
+      if (dialogTargetObject) {
+        dialogTargetObject.copy(datum);
+      } else {
+        datumGroup.children.push(datum);
+        setDialogTarget(`new${uuidv4()}`);
+      }
+      update();
+    };
+
+    const onDelete = () => {
+      datumGroup.children = datumObjects.filter(
+        (datum) => selected !== datum.nodeID
+      );
+      update();
+    };
+
+    let selectedInGroup = false;
+    if (datumObjects.find((child) => child.nodeID === selected)) {
+      if (!expanded) {
+        setExpanded(datumGroup.nodeID);
+      }
+      selectedInGroup = true;
     }
-    selectedInGroup = true;
-  }
 
-  return (
-    <>
-      <Accordion
-        expanded={datumGroup.nodeID === expanded}
-        onChange={(e, expanded) => {
-          if (expanded) {
+    return (
+      <>
+        <Accordion
+          expanded={expanded}
+          onChange={(e, expanded) => {
+            if (expanded) {
+              setExpanded(datumGroup.nodeID);
+            } else {
+              setExpanded('');
+            }
             dispatch(setSelectedDatumObject(''));
-            setExpanded(datumGroup.nodeID);
-          } else {
-            dispatch(setSelectedDatumObject(''));
-            setExpanded('');
-          }
-        }}
-        sx={{
-          backgroundColor: datumGroup.nodeID === expanded ? '#d5ffd5' : '#ddd',
-          ml: 1,
-          mr: 1,
-          '&.Mui-expanded': {
+          }}
+          sx={{
+            backgroundColor: expanded ? '#d5ffd5' : '#ddd',
             ml: 1,
             mr: 1,
-            mt: 0,
-            mb: 0
-          }
-        }}
-      >
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="panel1a-content"
-          sx={{
-            userSelect: 'none',
-            '&.Mui-focusVisible': {
-              backgroundColor: 'unset'
+            '&.Mui-expanded': {
+              ml: 1,
+              mr: 1,
+              mt: 0,
+              mb: 0
             }
           }}
         >
-          <DatumGroupName group={datumGroup} />
-          <Tooltip
-            title="Add a new datum object"
-            sx={{flex: '1'}}
-            componentsProps={{
-              popper: {
-                sx: {
-                  zIndex: tooltipZIndex
-                }
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            aria-controls="panel1a-content"
+            sx={{
+              userSelect: 'none',
+              '&.Mui-focusVisible': {
+                backgroundColor: 'unset'
               }
             }}
           >
-            <span>
-              <IconButton
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDatumDblClick(undefined);
-                }}
-                disabled={datumGroup.nodeID !== expanded}
-              >
-                <AddBoxIcon />
-              </IconButton>
-            </span>
-          </Tooltip>
-          {selectedInGroup ? (
+            <DatumGroupName group={datumGroup} />
             <Tooltip
-              title="Delete a selected object"
+              title="Add a new datum object"
               sx={{flex: '1'}}
               componentsProps={{
                 popper: {
@@ -165,92 +138,119 @@ export function DatumGroupTable(props: {
                 <IconButton
                   onClick={(e) => {
                     e.stopPropagation();
-                    onDelete();
+                    onDatumDblClick(undefined);
                   }}
-                  disabled={datumGroup.nodeID !== expanded}
+                  disabled={!expanded}
                 >
-                  <DeleteIcon />
+                  <AddBoxIcon />
                 </IconButton>
               </span>
             </Tooltip>
-          ) : null}
-        </AccordionSummary>
-        <AccordionDetails sx={{pt: 0, pb: 1, pl: 1, pr: 1}}>
-          <TableContainer
-            component={Paper}
-            sx={{
-              '&::-webkit-scrollbar': {
-                height: '10px'
-              },
-              '&::-webkit-scrollbar-thumb': {
-                backgroundColor: numberToRgb(enabledColorLight),
-                borderRadius: '5px'
-              }
-            }}
-          >
-            <Table
-              sx={{backgroundColor: alpha('#FFF', 0.0)}}
-              size="small"
-              aria-label="a dense table"
+            {selectedInGroup ? (
+              <Tooltip
+                title="Delete a selected object"
+                sx={{flex: '1'}}
+                componentsProps={{
+                  popper: {
+                    sx: {
+                      zIndex: tooltipZIndex
+                    }
+                  }
+                }}
+              >
+                <span>
+                  <IconButton
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete();
+                    }}
+                    disabled={!expanded}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            ) : null}
+          </AccordionSummary>
+          <AccordionDetails sx={{pt: 0, pb: 1, pl: 1, pr: 1}}>
+            <TableContainer
+              component={Paper}
+              sx={{
+                '&::-webkit-scrollbar': {
+                  height: '10px'
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  backgroundColor: numberToRgb(enabledColorLight),
+                  borderRadius: '5px'
+                }
+              }}
             >
-              <TableHead>
-                <TableRow onClick={() => dispatch(setSelectedDatumObject(''))}>
-                  <TableCell align="left">Visibility</TableCell>
-                  <TableCell>Name</TableCell>
-                  <TableCell align="left">description</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {datumObjects?.map((datum) => {
-                  return (
-                    <TableRow
-                      key={datum.nodeID}
-                      sx={{
-                        '&:last-child td, &:last-child th': {border: 0},
-                        userSelect: 'none',
-                        backgroundColor:
-                          selected === datum.nodeID
-                            ? alpha(numberToRgb(enabledColorLight), 0.5)
-                            : 'unset'
-                      }}
-                      onClick={() => {
-                        if (datum.nodeID !== selected) {
-                          dispatch(setSelectedDatumObject(datum.nodeID));
-                        }
-                      }}
-                      onDoubleClick={() => onDatumDblClick(datum)}
-                    >
-                      <TableCell align="left">
-                        <Visibility
-                          visible={datum.visibility}
-                          onClick={() => {
-                            datum.visibility = !datum.visibility;
-                            update();
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell sx={{whiteSpace: 'nowrap'}}>
-                        {datum.name}
-                      </TableCell>
-                      <TableCell align="left">{datum.description}</TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </AccordionDetails>
-      </Accordion>
-      <DatumDialog
-        open={dialogTarget !== ''}
-        close={() => {
-          setDialogTarget('');
-          updateState();
-        }}
-        apply={onDatumDialogApply}
-        datum={dialogTargetObject}
-        key={dialogTargetObject?.nodeID ?? dialogTarget}
-      />
-    </>
-  );
-}
+              <Table
+                sx={{backgroundColor: alpha('#FFF', 0.0)}}
+                size="small"
+                aria-label="a dense table"
+              >
+                <TableHead>
+                  <TableRow
+                    onClick={() => dispatch(setSelectedDatumObject(''))}
+                  >
+                    <TableCell align="left">Visibility</TableCell>
+                    <TableCell>Name</TableCell>
+                    <TableCell align="left">description</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {datumObjects?.map((datum) => {
+                    return (
+                      <TableRow
+                        key={datum.nodeID}
+                        sx={{
+                          '&:last-child td, &:last-child th': {border: 0},
+                          userSelect: 'none',
+                          backgroundColor:
+                            selected === datum.nodeID
+                              ? alpha(numberToRgb(enabledColorLight), 0.5)
+                              : 'unset'
+                        }}
+                        onClick={() => {
+                          if (datum.nodeID !== selected) {
+                            dispatch(setSelectedDatumObject(datum.nodeID));
+                          }
+                        }}
+                        onDoubleClick={() => onDatumDblClick(datum)}
+                      >
+                        <TableCell align="left">
+                          <Visibility
+                            visible={datum.visibility}
+                            onClick={() => {
+                              datum.visibility = !datum.visibility;
+                              update();
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell sx={{whiteSpace: 'nowrap'}}>
+                          {datum.name}
+                        </TableCell>
+                        <TableCell align="left">{datum.description}</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </AccordionDetails>
+        </Accordion>
+        <DatumDialog
+          open={dialogTarget !== ''}
+          close={() => {
+            setDialogTarget('');
+            updateState();
+          }}
+          apply={onDatumDialogApply}
+          datum={dialogTargetObject}
+          key={dialogTargetObject?.nodeID ?? dialogTarget}
+        />
+      </>
+    );
+  }
+);

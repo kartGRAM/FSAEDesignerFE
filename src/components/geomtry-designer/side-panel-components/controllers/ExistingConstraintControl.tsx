@@ -16,7 +16,7 @@ import FormControl from '@mui/material/FormControl';
 import MenuItem from '@mui/material/MenuItem';
 // import ListSubheader from '@mui/material/ListSubheader';
 import Select from '@mui/material/Select';
-import {RootState} from '@store/store';
+import store, {RootState} from '@store/store';
 import {useSelector} from 'react-redux';
 
 export interface ExistingConstraintControlProps {
@@ -40,12 +40,8 @@ export function ExistingConstraintControlSettings(
     (state: RootState) => state.dgd.present.controls
   ).filter((control) => isDataPointToPlaneControl(control));
 
-  const zindex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex +
-      state.uitgd.dialogZIndex +
-      state.uitgd.menuZIndex
-  );
+  const {uitgd} = store.getState();
+  const zindex = uitgd.fullScreenZIndex + uitgd.dialogZIndex + uitgd.menuZIndex;
 
   const handleSliderSpeedChange = (
     event: Event,

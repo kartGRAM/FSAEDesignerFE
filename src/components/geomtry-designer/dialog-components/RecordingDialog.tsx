@@ -5,7 +5,7 @@ import Dialog from '@mui/material/Dialog';
 import {useSelector, useDispatch} from 'react-redux';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
-import {RootState} from '@store/store';
+import store, {RootState} from '@store/store';
 import PaperComponentDraggable from '@gdComponents/PaperComponentDraggable';
 import {setRecordingDialogOpen} from '@store/reducers/uiTempGeometryDesigner';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
@@ -31,10 +31,8 @@ export function RecordingDialog() {
   const [rec, setRec] = React.useState(false);
   const [fileURL, setFileURL] = React.useState('#');
 
-  const zindex = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex
-  );
+  const {uitgd} = store.getState();
+  const zindex = uitgd.fullScreenZIndex + uitgd.dialogZIndex;
 
   useUpdateEffect(() => {
     if (!rec) return () => {};
