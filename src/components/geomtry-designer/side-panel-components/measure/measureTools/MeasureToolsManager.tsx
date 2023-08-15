@@ -30,6 +30,8 @@ import Button from '@mui/material/Button';
 import Toolbar from '@mui/material/Toolbar';
 import {useAnimationFrame} from '@hooks/useAnimationFrame';
 import useUpdate from '@hooks/useUpdate';
+import EditableTypography from '@gdComponents/EditableTypography';
+import * as Yup from 'yup';
 import {MeasureToolDialog} from './MeasureToolDialog';
 
 export default function MeasureToolsManager() {
@@ -45,10 +47,13 @@ export default function MeasureToolsManager() {
 
   const tools = measureToolsManager?.children ?? [];
 
-  const update = (tools: IMeasureTool[]) => {
-    const dataTools = tools.map((tool) => tool.getData());
+  const update = React.useCallback(() => {
+    if (!measureToolsManager) return;
+    const dataTools = measureToolsManager.children.map((tool) =>
+      tool.getData()
+    );
     dispatch(setMeasureTools(dataTools));
-  };
+  }, [measureToolsManager]);
 
   const enabledColorLight: number = useSelector(
     (state: RootState) => state.uigd.present.enabledColorLight
@@ -60,12 +65,12 @@ export default function MeasureToolsManager() {
 
   const [dialogTarget, setDialogTarget] = React.useState<string>('');
 
-  const onToolDblClick = (tool: IMeasureTool | undefined) => {
+  const onToolDblClick = React.useCallback((tool: IMeasureTool | undefined) => {
     let id = 'new';
     if (tool) id = tool.nodeID;
     dispatch(setSelectedMeasureTool(''));
     setDialogTarget(id);
-  };
+  }, []);
 
   const dialogTargetTool = tools.find((tool) => tool.nodeID === dialogTarget);
 
@@ -77,11 +82,15 @@ export default function MeasureToolsManager() {
       tools.push(tool);
       setDialogTarget(`new${uuidv4()}`);
     }
-    update(tools);
+    update();
   };
 
   const onDelete = () => {
-    update(tools.filter((tool) => selected !== tool.nodeID));
+    if (!measureToolsManager) return;
+    measureToolsManager.children = tools.filter(
+      (tool) => selected !== tool.nodeID
+    );
+    update();
   };
 
   React.useEffect(() => {
@@ -91,7 +100,7 @@ export default function MeasureToolsManager() {
   }, []);
 
   const {uitgd} = store.getState();
-const tooltipZIndex = uitgd.fullScreenZIndex + uitgd.tooltipZIndex;
+  const tooltipZIndex = uitgd.fullScreenZIndex + uitgd.tooltipZIndex;
 
   return (
     <>
@@ -238,44 +247,14 @@ const tooltipZIndex = uitgd.fullScreenZIndex + uitgd.tooltipZIndex;
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {tools?.map((tool) => {
-                    return (
-                      <TableRow
-                        key={tool.nodeID}
-                        sx={{
-                          '&:last-child td, &:last-child th': {border: 0},
-                          userSelect: 'none',
-                          backgroundColor:
-                            selected === tool.nodeID
-                              ? alpha(numberToRgb(enabledColorLight), 0.5)
-                              : 'unset'
-                        }}
-                        onClick={() => {
-                          if (tool.nodeID !== selected) {
-                            dispatch(setSelectedMeasureTool(tool.nodeID));
-                          }
-                        }}
-                        onDoubleClick={() => onToolDblClick(tool)}
-                      >
-                        <TableCell align="left">
-                          <Visibility
-                            visible={tool.visibility}
-                            onClick={() => {
-                              tool.visibility = !tool.visibility;
-                              update(tools);
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell sx={{whiteSpace: 'nowrap'}}>
-                          {tool.name}
-                        </TableCell>
-                        <TableCell sx={{whiteSpace: 'nowrap'}}>
-                          <ToolValue tool={tool} />
-                        </TableCell>
-                        <TableCell align="left">{tool.description}</TableCell>
-                      </TableRow>
-                    );
-                  })}
+                  {tools?.map((tool) => (
+                    <Row
+                      tool={tool}
+                      key={tool.nodeID}
+                      onToolDblClick={onToolDblClick}
+                      update={update}
+                    />
+                  ))}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -296,7 +275,82 @@ const tooltipZIndex = uitgd.fullScreenZIndex + uitgd.tooltipZIndex;
   );
 }
 
-function ToolValue(props: {tool: IMeasureTool}) {
+const Row = React.memo(
+  (props: {
+    tool: IMeasureTool;
+    onToolDblClick: (tool: IMeasureTool | undefined) => void;
+    update: () => void;
+  }) => {
+    const {tool, onToolDblClick, update} = props;
+
+    const dispatch = useDispatch();
+    const selected = useSelector(
+      (state: RootState) => state.uitgd.gdSceneState.selectedMeasureTool
+    );
+
+    const handleClick = React.useCallback(() => {
+      if (tool.nodeID !== selected) {
+        dispatch(setSelectedMeasureTool(tool.nodeID));
+      }
+    }, [tool, selected]);
+
+    const enabledColorLight: number = useSelector(
+      (state: RootState) => state.uigd.present.enabledColorLight
+    );
+    return (
+      <TableRow
+        sx={{
+          '&:last-child td, &:last-child th': {border: 0},
+          userSelect: 'none',
+          backgroundColor:
+            selected === tool.nodeID
+              ? alpha(numberToRgb(enabledColorLight), 0.5)
+              : 'unset'
+        }}
+        onClick={handleClick}
+        onFocus={handleClick}
+        onDoubleClick={() => onToolDblClick(tool)}
+      >
+        <TableCell align="left">
+          <Visibility
+            visible={tool.visibility}
+            onClick={() => {
+              tool.visibility = !tool.visibility;
+              update();
+            }}
+          />
+        </TableCell>
+        <TableCell sx={{whiteSpace: 'nowrap'}}>
+          <EditableTypography
+            typography={tool.name}
+            initialValue={tool.name}
+            validation={Yup.string().required('required')}
+            onSubmit={(value) => {
+              if (tool.name !== value) {
+                tool.name = value;
+                update();
+              }
+            }}
+            disableDblClickToEditMode
+            textFieldProps={{
+              sx: {
+                '& legend': {display: 'none'},
+                '& fieldset': {top: 0},
+                width: '100%'
+              }
+            }}
+          />
+        </TableCell>
+        <TableCell sx={{whiteSpace: 'nowrap'}}>
+          <ToolValue tool={tool} />
+        </TableCell>
+        <TableCell align="left">{tool.description}</TableCell>
+      </TableRow>
+    );
+  }
+);
+
+const ToolValue = React.memo((props: {tool: IMeasureTool}) => {
   const {tool} = props;
 
   const keys = Object.keys(tool.value);
@@ -334,4 +388,4 @@ function ToolValue(props: {tool: IMeasureTool}) {
       ))}
     </>
   );
-}
+});

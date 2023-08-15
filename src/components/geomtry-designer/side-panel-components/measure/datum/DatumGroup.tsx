@@ -23,6 +23,8 @@ import Tooltip from '@mui/material/Tooltip';
 import Visibility from '@gdComponents/svgs/Visibility';
 import {v4 as uuidv4} from 'uuid';
 import useUpdate from '@hooks/useUpdate';
+import EditableTypography from '@gdComponents/EditableTypography';
+import * as Yup from 'yup';
 import {DatumGroupName} from './DatumGroupName';
 import {DatumDialog} from './DatumDialog';
 
@@ -52,12 +54,15 @@ export const DatumGroupTable = React.memo(
     const {uitgd} = store.getState();
     const tooltipZIndex = uitgd.fullScreenZIndex + uitgd.tooltipZIndex;
 
-    const onDatumDblClick = (datum: IDatumObject | undefined) => {
-      let id = 'new';
-      if (datum) id = datum.nodeID;
-      dispatch(setSelectedDatumObject(''));
-      setDialogTarget(id);
-    };
+    const onDatumDblClick = React.useCallback(
+      (datum: IDatumObject | undefined) => {
+        let id = 'new';
+        if (datum) id = datum.nodeID;
+        dispatch(setSelectedDatumObject(''));
+        setDialogTarget(id);
+      },
+      []
+    );
 
     const dialogTargetObject = datumObjects.find(
       (datum) => datum.nodeID === dialogTarget
@@ -200,41 +205,15 @@ export const DatumGroupTable = React.memo(
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {datumObjects?.map((datum) => {
-                    return (
-                      <TableRow
-                        key={datum.nodeID}
-                        sx={{
-                          '&:last-child td, &:last-child th': {border: 0},
-                          userSelect: 'none',
-                          backgroundColor:
-                            selected === datum.nodeID
-                              ? alpha(numberToRgb(enabledColorLight), 0.5)
-                              : 'unset'
-                        }}
-                        onClick={() => {
-                          if (datum.nodeID !== selected) {
-                            dispatch(setSelectedDatumObject(datum.nodeID));
-                          }
-                        }}
-                        onDoubleClick={() => onDatumDblClick(datum)}
-                      >
-                        <TableCell align="left">
-                          <Visibility
-                            visible={datum.visibility}
-                            onClick={() => {
-                              datum.visibility = !datum.visibility;
-                              update();
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell sx={{whiteSpace: 'nowrap'}}>
-                          {datum.name}
-                        </TableCell>
-                        <TableCell align="left">{datum.description}</TableCell>
-                      </TableRow>
-                    );
-                  })}
+                  {datumObjects?.map((datum) => (
+                    <DatumRow
+                      key={datum.nodeID}
+                      datum={datum}
+                      visibility={datum.visibility}
+                      onDatumDblClick={onDatumDblClick}
+                      update={update}
+                    />
+                  ))}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -251,6 +230,79 @@ export const DatumGroupTable = React.memo(
           key={dialogTargetObject?.nodeID ?? dialogTarget}
         />
       </>
+    );
+  }
+);
+
+const DatumRow = React.memo(
+  (props: {
+    datum: IDatumObject;
+    visibility: boolean;
+    onDatumDblClick: (datum: IDatumObject) => void;
+    update: () => void;
+  }) => {
+    const {datum, visibility, onDatumDblClick, update} = props;
+    const dispatch = useDispatch();
+    const enabledColorLight: number = useSelector(
+      (state: RootState) => state.uigd.present.enabledColorLight
+    );
+
+    const selected = useSelector(
+      (state: RootState) => state.uitgd.gdSceneState.selectedDatumObject
+    );
+
+    const handleClick = React.useCallback(() => {
+      if (datum.nodeID !== selected) {
+        dispatch(setSelectedDatumObject(datum.nodeID));
+      }
+    }, [datum, selected]);
+
+    return (
+      <TableRow
+        sx={{
+          '&:last-child td, &:last-child th': {border: 0},
+          userSelect: 'none',
+          backgroundColor:
+            selected === datum.nodeID
+              ? alpha(numberToRgb(enabledColorLight), 0.5)
+              : 'unset'
+        }}
+        onClick={handleClick}
+        onFocus={handleClick}
+        onDoubleClick={() => onDatumDblClick(datum)}
+      >
+        <TableCell align="left">
+          <Visibility
+            visible={visibility}
+            onClick={() => {
+              datum.visibility = !datum.visibility;
+              update();
+            }}
+          />
+        </TableCell>
+        <TableCell sx={{whiteSpace: 'wrap', minWidth: '15vh'}}>
+          <EditableTypography
+            typography={datum.name}
+            initialValue={datum.name}
+            validation={Yup.string().required('required')}
+            onSubmit={(value) => {
+              if (datum.name !== value) {
+                datum.name = value;
+                update();
+              }
+            }}
+            disableDblClickToEditMode
+            textFieldProps={{
+              sx: {
+                '& legend': {display: 'none'},
+                '& fieldset': {top: 0},
+                width: '100%'
+              }
+            }}
+          />
+        </TableCell>
+        <TableCell align="left">{datum.description}</TableCell>
+      </TableRow>
     );
   }
 );

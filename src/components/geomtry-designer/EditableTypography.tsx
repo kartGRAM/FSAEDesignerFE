@@ -11,8 +11,16 @@ const EditableTypography = React.memo(
     onSubmit: (value: string) => void;
     textFieldProps?: TextFieldProps;
     disabled?: boolean;
+    disableDblClickToEditMode?: boolean;
   }) => {
-    const {typography, initialValue, validation, onSubmit, disabled} = props;
+    const {
+      typography,
+      initialValue,
+      validation,
+      onSubmit,
+      disabled,
+      disableDblClickToEditMode
+    } = props;
 
     const textFieldProps = props.textFieldProps ?? {
       sx: {
@@ -52,6 +60,7 @@ const EditableTypography = React.memo(
 
     const handleNameDblClick = React.useCallback(
       (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+        if (disableDblClickToEditMode) return;
         e.stopPropagation();
         if (!disabled) {
           formik.resetForm();
@@ -76,6 +85,17 @@ const EditableTypography = React.memo(
       [formik]
     );
 
+    const handleNameKeyDown = React.useCallback(
+      (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.key === 'Enter' || e.key === 'F2') {
+          e.stopPropagation();
+          formik.resetForm();
+          setRename(true);
+        }
+      },
+      [formik]
+    );
+
     const onNameBlur = React.useCallback(
       (
         e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement, Element>
@@ -91,13 +111,7 @@ const EditableTypography = React.memo(
       <span
         role="button"
         tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            e.stopPropagation();
-            formik.resetForm();
-            setRename(true);
-          }
-        }}
+        onKeyDown={handleNameKeyDown}
         onClick={(e) => e.stopPropagation()}
         onDoubleClick={handleNameDblClick}
       >
