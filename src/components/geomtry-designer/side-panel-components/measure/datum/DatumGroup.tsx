@@ -25,7 +25,7 @@ import {v4 as uuidv4} from 'uuid';
 import useUpdate from '@hooks/useUpdate';
 import EditableTypography from '@gdComponents/EditableTypography';
 import * as Yup from 'yup';
-import {DatumGroupName} from './DatumGroupName';
+import Typography from '@mui/material/Typography';
 import {DatumDialog} from './DatumDialog';
 
 export const DatumGroupTable = React.memo(
@@ -124,10 +124,36 @@ export const DatumGroupTable = React.memo(
               userSelect: 'none',
               '&.Mui-focusVisible': {
                 backgroundColor: 'unset'
+              },
+              '.MuiAccordionSummary-content': {
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'baseline'
               }
             }}
           >
-            <DatumGroupName group={datumGroup} />
+            <EditableTypography
+              typography={<Typography>{datumGroup.name}</Typography>}
+              initialValue={datumGroup.name}
+              validation={Yup.string().required('required')}
+              onSubmit={(value) => {
+                if (datumGroup.name !== value) {
+                  datumGroup.name = value;
+                  update();
+                }
+              }}
+              textFieldProps={{
+                sx: {
+                  flex: '1 1 100%',
+                  '& legend': {display: 'none'},
+                  '& fieldset': {top: 0}
+                },
+                InputProps: {
+                  sx: {color: '#000'}
+                }
+              }}
+            />
+
             <Tooltip
               title="Add a new datum object"
               sx={{flex: '1'}}

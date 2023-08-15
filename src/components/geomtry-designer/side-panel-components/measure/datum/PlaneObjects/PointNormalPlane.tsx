@@ -101,7 +101,7 @@ export function PointNormalPlane(props: {
     onResetSetterMode();
   }, [selectedLine]);
 
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     if (
       pointObjects.find((datum) => datum.nodeID === selectedPoint) &&
       selectedPoint !== point
@@ -253,13 +253,13 @@ export function PointNormalPlane(props: {
           flexDirection: 'row'
         }}
       >
-        <InputLabel htmlFor={ids[2]}>Select line</InputLabel>
+        <InputLabel htmlFor={ids[2]}>Select Point</InputLabel>
         <Select
           disabled={selectMode}
           value={point}
           id={ids[2]}
           label="Select a point"
-          onChange={(e) => setLine(e.target.value)}
+          onChange={(e) => setPoint(e.target.value)}
           sx={{flexGrow: '1'}}
           MenuProps={{
             sx: {zIndex: menuZIndex}

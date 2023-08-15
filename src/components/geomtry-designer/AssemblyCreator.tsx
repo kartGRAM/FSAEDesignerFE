@@ -206,7 +206,7 @@ export default function AssemblyCreactor() {
       }, {} as {[index: string]: Control[]});
       if (assembly) {
         try {
-          const solver = new KinematicSolver(assembly, controls);
+          const solver = new KinematicSolver(assembly, controls, true);
           dispatch(setKinematicSolver(solver));
         } catch (e) {
           // eslint-disable-next-line no-console

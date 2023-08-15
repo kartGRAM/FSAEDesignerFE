@@ -28,6 +28,8 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Toolbar from '@mui/material/Toolbar';
 import {useAnimationFrame} from '@hooks/useAnimationFrame';
+import EditableTypography from '@gdComponents/EditableTypography';
+import * as Yup from 'yup';
 import {ROVariableDialog} from './ROVariableDialog';
 
 export default function ROVariablesManager() {
@@ -42,10 +44,14 @@ export default function ROVariablesManager() {
 
   const variables = roVariablesManager?.children ?? [];
 
-  const update = (variables: IReadonlyVariable[]) => {
-    const dataVars = variables.map((v) => v.getData());
-    dispatch(setReadonlyVariables(dataVars));
-  };
+  const update = React.useCallback(
+    (newVariables?: IReadonlyVariable[]) => {
+      if (!newVariables) newVariables = variables;
+      const dataVars = newVariables.map((v) => v.getData());
+      dispatch(setReadonlyVariables(dataVars));
+    },
+    [variables]
+  );
 
   const enabledColorLight: number = useSelector(
     (state: RootState) => state.uigd.present.enabledColorLight
@@ -90,7 +96,7 @@ export default function ROVariablesManager() {
   }, []);
 
   const {uitgd} = store.getState();
-const tooltipZIndex = uitgd.fullScreenZIndex + uitgd.tooltipZIndex;
+  const tooltipZIndex = uitgd.fullScreenZIndex + uitgd.tooltipZIndex;
 
   return (
     <>
@@ -233,34 +239,14 @@ const tooltipZIndex = uitgd.fullScreenZIndex + uitgd.tooltipZIndex;
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {variables?.map((v) => {
-                    return (
-                      <TableRow
-                        key={v.nodeID}
-                        sx={{
-                          '&:last-child td, &:last-child th': {border: 0},
-                          userSelect: 'none',
-                          backgroundColor:
-                            selected === v.nodeID
-                              ? alpha(numberToRgb(enabledColorLight), 0.5)
-                              : 'unset'
-                        }}
-                        onClick={() => {
-                          if (v.nodeID !== selected) {
-                            dispatch(setSelectedROVariable(v.nodeID));
-                          }
-                        }}
-                        onDoubleClick={() => onVariableDblClick(v)}
-                      >
-                        <TableCell sx={{whiteSpace: 'nowrap'}}>
-                          {v.name}
-                        </TableCell>
-                        <TableCell sx={{whiteSpace: 'nowrap'}}>
-                          <ToolValue variable={v} />
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
+                  {variables?.map((v) => (
+                    <Row
+                      v={v}
+                      onVariableDblClick={onVariableDblClick}
+                      update={update}
+                      key={v.nodeID}
+                    />
+                  ))}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -280,6 +266,75 @@ const tooltipZIndex = uitgd.fullScreenZIndex + uitgd.tooltipZIndex;
     </>
   );
 }
+
+const Row = React.memo(
+  (props: {
+    v: IReadonlyVariable;
+    onVariableDblClick: (v: IReadonlyVariable | undefined) => void;
+    update: () => void;
+  }) => {
+    const {v, onVariableDblClick, update} = props;
+    const dispatch = useDispatch();
+
+    const enabledColorLight: number = useSelector(
+      (state: RootState) => state.uigd.present.enabledColorLight
+    );
+
+    const selected = useSelector(
+      (state: RootState) => state.uitgd.gdSceneState.selectedROVariable
+    );
+
+    const handleClick = React.useCallback(() => {
+      if (v.nodeID !== selected) {
+        dispatch(setSelectedROVariable(v.nodeID));
+      }
+    }, [v, selected]);
+
+    return (
+      <TableRow
+        sx={{
+          '&:last-child td, &:last-child th': {border: 0},
+
+          userSelect: 'none',
+
+          backgroundColor:
+            selected === v.nodeID
+              ? alpha(numberToRgb(enabledColorLight), 0.5)
+              : 'unset'
+        }}
+        onClick={handleClick}
+        onFocus={handleClick}
+        onDoubleClick={() => onVariableDblClick(v)}
+      >
+        <TableCell sx={{whiteSpace: 'nowrap'}}>
+          <EditableTypography
+            typography={v.name}
+            initialValue={v.name}
+            validation={Yup.string().required('required')}
+            onSubmit={(value) => {
+              if (v.name !== value) {
+                v.name = value;
+                update();
+              }
+            }}
+            disableDblClickToEditMode
+            textFieldProps={{
+              sx: {
+                '& legend': {display: 'none'},
+                '& fieldset': {top: 0},
+                width: '100%'
+              }
+            }}
+          />
+        </TableCell>
+
+        <TableCell sx={{whiteSpace: 'nowrap'}}>
+          <ToolValue variable={v} />
+        </TableCell>
+      </TableRow>
+    );
+  }
+);
 
 function ToolValue(props: {variable: IReadonlyVariable}) {
   const {variable} = props;

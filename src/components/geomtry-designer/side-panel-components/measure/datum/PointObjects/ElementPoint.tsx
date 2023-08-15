@@ -23,7 +23,7 @@ export function ElementPoint(props: {
   const collectedAssembly = useSelector(
     (state: RootState) => state.uitgd.collectedAssembly
   );
-  const avoidFirstRerender = React.useRef<boolean>(true);
+  const avoidFirstRerender = React.useRef<boolean>(!!elementPoint);
 
   const dispatch = useDispatch();
   const [visModeRestored, setVisModeRestored] = React.useState(

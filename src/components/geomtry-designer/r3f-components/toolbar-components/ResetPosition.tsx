@@ -14,7 +14,6 @@ export default function CResetPositions() {
 
   const handleOnClick = () => {
     const solver = store.getState().uitgd.kinematicSolver;
-    // eslint-disable-next-line no-empty
     if (solver && !solver.running) {
       solver.restoreInitialQ();
       dispatch(resetPositions());
