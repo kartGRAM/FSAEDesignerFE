@@ -5,13 +5,12 @@ import {numberToRgb} from '@app/utils/helpers';
 import {RootState} from '@store/store';
 import Divider from '@mui/material/Divider';
 import {alpha} from '@mui/material/styles';
-// eslint-disable-next-line no-unused-vars
 import {resizePanel} from '@store/reducers/uiGeometryDesigner';
 import ParametersRoot from '@gdComponents/side-panel-components/parameters/ParametersRoot';
 import ElementsRoot from '@gdComponents/side-panel-components/elements/ElementsRoot';
 import MeasureRoot from '@gdComponents/side-panel-components/measure/MeasureRoot';
-import Controllers from '@gdComponents/side-panel-components/controllers/Controllers';
-import Analysis from '@gdComponents/side-panel-components/analysis/Analysis';
+import Controllers from '@gdComponents/side-panel-components/controllers/ControllersRoot';
+import Analysis from '@gdComponents/side-panel-components/analysis/AnalysisRoot';
 import $ from 'jquery';
 import 'jqueryui';
 
@@ -40,7 +39,6 @@ export default function SidePanel() {
     (state: RootState) => state.uitgd.sidePanelState.selectedTab
   );
 
-  const disabled = useSelector((state: RootState) => state.uitgd.uiDisabled);
   const dispatch = useDispatch();
 
   const zIndex = useSelector((state: RootState) => {
@@ -128,27 +126,12 @@ export default function SidePanel() {
         id="gdSidePanel"
       >
         {adContent}
-        <Box
-          component="div"
-          sx={{
-            backgroundColor: alpha('#000', 0.3),
-            position: 'absolute',
-            right: 0,
-            bottom: 0,
-            top: 0,
-            left: 0,
-            display: disabled ? 'unset' : 'none'
-          }}
-        />
       </Box>
 
       <Divider
         orientation="vertical"
         flexItem
         draggable="true"
-        // onDragStart={initial}
-        // onDrag={resize}
-        // onDragEnd={resizeEnd}
         ref={dividerRef}
         sx={{
           position: 'absolute',

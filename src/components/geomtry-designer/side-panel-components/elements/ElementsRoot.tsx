@@ -1,15 +1,16 @@
 import * as React from 'react';
 import Typography from '@mui/material/Typography';
-import {styled} from '@mui/material/styles';
+import {styled, alpha} from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {
   setDraggingNewElement,
   resetDragState
 } from '@store/reducers/uiTempGeometryDesigner';
 import {Elements} from '@gd/IElements';
+import {RootState} from '@store/store';
 
 const createElement = (name: Elements) => {
   return {
@@ -32,6 +33,8 @@ const elements = [
 export default function ElementsRoot() {
   const dispatch = useDispatch();
 
+  const disabled = useSelector((state: RootState) => state.uitgd.uiDisabled);
+
   const handleDragStart = React.useCallback(
     (name: Elements, e: React.DragEvent<HTMLDivElement>) => {
       e.dataTransfer.effectAllowed = 'move';
@@ -45,7 +48,7 @@ export default function ElementsRoot() {
   }, []);
 
   return (
-    <>
+    <Box component="div" sx={{position: 'relative'}}>
       <Typography variant="h6">Components</Typography>
       <Grid
         container
@@ -79,7 +82,20 @@ export default function ElementsRoot() {
           </Grid>
         ))}
       </Grid>
-    </>
+
+      <Box
+        component="div"
+        sx={{
+          backgroundColor: alpha('#000', 0.3),
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          display: disabled ? 'unset' : 'none'
+        }}
+      />
+    </Box>
   );
 }
 

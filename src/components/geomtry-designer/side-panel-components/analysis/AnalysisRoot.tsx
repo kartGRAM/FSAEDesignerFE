@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
@@ -32,8 +31,9 @@ import {
 import {ReactFlowProvider} from 'reactflow';
 import {v4 as uuidv4} from 'uuid';
 
-export default function Analysis() {
+export default function AnalysisRoot() {
   const dispatch = useDispatch();
+  const disabled = useSelector((state: RootState) => state.uitgd.uiDisabled);
   const dataTests = useSelector(
     (state: RootState) => state.dgd.present.analysis
   );
@@ -44,7 +44,7 @@ export default function Analysis() {
   };
 
   return (
-    <>
+    <Box component="div" sx={{position: 'relative'}}>
       <Typography variant="h6">Analysis</Typography>
       <Box
         component="div"
@@ -79,7 +79,19 @@ export default function Analysis() {
           </Box>
         ) : null}
       </Box>
-    </>
+      <Box
+        component="div"
+        sx={{
+          backgroundColor: alpha('#000', 0.3),
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          display: disabled ? 'unset' : 'none'
+        }}
+      />
+    </Box>
   );
 }
 

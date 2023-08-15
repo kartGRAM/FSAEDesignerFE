@@ -36,6 +36,7 @@ import {
 } from '@gd/INamedValues';
 import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {capitalize} from '@app/utils/helpers';
+import {isObject} from '@utils/helpers';
 
 export const getMatrix3 = (data: IDataMatrix3): Matrix3 => {
   const tmp = new Matrix3();
@@ -740,11 +741,11 @@ export interface IDataDeltaXYZ extends IDataPointOffsetTool {
 }
 
 export function isDataDeltaXYZ(data: any): data is IDataDeltaXYZ {
-  try {
-    return data.isDataPointOffsetTool && data.className === 'DeltaXYZ';
-  } catch (e: any) {
-    return false;
-  }
+  return (
+    isObject(data) &&
+    data.isDataPointOffsetTool &&
+    data.className === 'DeltaXYZ'
+  );
 }
 
 export function isDeltaXYZ(tool: IPointOffsetTool): tool is DeltaXYZ {

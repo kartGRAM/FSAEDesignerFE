@@ -34,6 +34,7 @@ import {minus} from '@app/utils/helpers';
 import {getRootNode} from './INode';
 import {
   trans,
+  isDataElement,
   isBodyOfFrame,
   MirrorError,
   Elements,
@@ -2275,14 +2276,6 @@ export function getDummyElement(): IAssembly {
     joints: []
   });
 }
-
-const isDataElement = (params: any): params is IDataElement => {
-  try {
-    return 'isDataElement' in params;
-  } catch {
-    return false;
-  }
-};
 
 const mirrorVec = (
   vec: INamedVector3,

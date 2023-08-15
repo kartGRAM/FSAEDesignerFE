@@ -22,6 +22,7 @@ import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import Visibility from '@gdComponents/svgs/Visibility';
 import {v4 as uuidv4} from 'uuid';
+import useUpdate from '@hooks/useUpdate';
 import {DatumGroupName} from './DatumGroupName';
 import {DatumDialog} from './DatumDialog';
 
@@ -34,6 +35,8 @@ export function DatumGroupTable(props: {
   const {datumGroup, setExpanded, update} = props;
   let {expanded} = props;
   const dispatch = useDispatch();
+  const updateState = useUpdate();
+
   const enabledColorLight: number = useSelector(
     (state: RootState) => state.uigd.present.enabledColorLight
   );
@@ -242,7 +245,7 @@ export function DatumGroupTable(props: {
         open={dialogTarget !== ''}
         close={() => {
           setDialogTarget('');
-          update();
+          updateState();
         }}
         apply={onDatumDialogApply}
         datum={dialogTargetObject}

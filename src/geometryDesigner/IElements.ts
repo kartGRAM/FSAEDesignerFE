@@ -19,6 +19,7 @@ import {
   INamedBooleanOrUndefined
 } from '@gd/INamedValues';
 import {GDState} from '@store/reducers/dataGeometryDesigner';
+import {isObject} from '@utils/helpers';
 import {INode, IBidirectionalNode} from './INode';
 
 export type Radian = number;
@@ -339,19 +340,16 @@ export const isMirror = (element: IElement | null | undefined): boolean => {
 };
 
 export const isElement = (element: any): element is IElement => {
-  try {
-    return 'isElement' in element;
-  } catch (e) {
-    return false;
-  }
+  return isObject(element) && element.isElement;
 };
 export class MirrorError extends Error {}
 
 export const isAssembly = (element: IElement): element is IAssembly =>
   'isAssembly' in element;
 
-export const isDataElement = (element: INode): element is IDataElement =>
-  'isDataElement' in element;
+export const isDataElement = (params: any): params is IDataElement => {
+  return isObject(params) && params.isDataElement;
+};
 
 export const isDataAssembly = (
   element: IDataElement

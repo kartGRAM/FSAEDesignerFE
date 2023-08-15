@@ -1,6 +1,7 @@
 import {IDataFormula, IFormula} from '@gd/IFormula';
 import {Vector3, Matrix3, Quaternion} from 'three';
 import {GDState} from '@store/reducers/dataGeometryDesigner';
+import {isObject} from '@utils/helpers';
 import {INode, IBidirectionalNode} from './INode';
 
 export type FunctionVector3 = {
@@ -10,15 +11,14 @@ export type FunctionVector3 = {
 };
 
 export function isFunctionVector3(vec: any): vec is FunctionVector3 {
-  try {
+  if (isObject(vec)) {
     const {x, y, z} = vec;
     const xt = typeof x === 'number' || typeof x === 'string';
     const yt = typeof y === 'number' || typeof y === 'string';
     const zt = typeof z === 'number' || typeof z === 'string';
     return xt && yt && zt;
-  } catch {
-    return false;
   }
+  return false;
 }
 
 export interface INamedValue extends IBidirectionalNode {
@@ -35,11 +35,7 @@ export interface INamedValue extends IBidirectionalNode {
 }
 
 export const isNamedValue = (params: any): params is INamedValue => {
-  try {
-    return 'isNamedValue' in params;
-  } catch (e) {
-    return false;
-  }
+  return isObject(params) && params.isNamedValue;
 };
 
 export interface INamedData extends INode {
@@ -48,11 +44,7 @@ export interface INamedData extends INode {
 }
 
 export const isNamedData = (params: any): params is INamedData => {
-  try {
-    return 'isNamedData' in params;
-  } catch (e) {
-    return false;
-  }
+  return isObject(params) && params.isNamedData;
 };
 
 export interface INamedString extends INamedValue {
@@ -233,11 +225,7 @@ export interface IDataPointOffsetTool extends INode {
 }
 
 export function isDataPointOffsetTool(tool: any): tool is IDataPointOffsetTool {
-  try {
-    return 'isDataPointOffsetTool' in tool;
-  } catch (e) {
-    return false;
-  }
+  return isObject(tool) && tool.isDataPointOffsetTool;
 }
 
 export interface IPointOffsetTool extends IBidirectionalNode {

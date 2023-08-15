@@ -23,6 +23,7 @@ export function ElementPoint(props: {
   const collectedAssembly = useSelector(
     (state: RootState) => state.uitgd.collectedAssembly
   );
+  const avoidFirstRerender = React.useRef<boolean>(true);
 
   const dispatch = useDispatch();
   const [visModeRestored, setVisModeRestored] = React.useState(
@@ -63,6 +64,10 @@ export function ElementPoint(props: {
   };
 
   useUpdateEffect(() => {
+    if (avoidFirstRerender.current) {
+      avoidFirstRerender.current = false;
+      return;
+    }
     if (selectedPoint !== '') {
       for (const child of collectedAssembly?.children ?? []) {
         for (const p of child.getMeasurablePoints()) {

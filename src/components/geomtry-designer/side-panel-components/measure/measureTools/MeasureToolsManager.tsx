@@ -29,10 +29,12 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Toolbar from '@mui/material/Toolbar';
 import {useAnimationFrame} from '@hooks/useAnimationFrame';
+import useUpdate from '@hooks/useUpdate';
 import {MeasureToolDialog} from './MeasureToolDialog';
 
 export default function MeasureToolsManager() {
   const dispatch = useDispatch();
+  const updateState = useUpdate();
 
   const measureToolsAccExpanded =
     store.getState().uigd.present.measurePanelState.MeasureToolsExpanded;
@@ -286,6 +288,7 @@ export default function MeasureToolsManager() {
         open={dialogTarget !== ''}
         close={() => {
           setDialogTarget('');
+          updateState();
         }}
         apply={onMeasureToolDialogApply}
         tool={dialogTargetTool}
