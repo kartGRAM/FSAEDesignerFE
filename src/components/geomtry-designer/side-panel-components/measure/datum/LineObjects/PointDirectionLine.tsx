@@ -16,7 +16,8 @@ import {
   setDatumPointSelected,
   setDatumLineSelectMode,
   setDatumLineSelected,
-  setSelectedPoint
+  setSelectedPoint,
+  setForceVisibledDatums
 } from '@store/reducers/uiTempGeometryDesigner';
 import {setComponentVisualizationMode} from '@store/reducers/uiGeometryDesigner';
 import Target from '@gdComponents/svgs/Target';
@@ -121,12 +122,14 @@ export function PointDirectionLine(props: {
     dispatch(setDatumLineSelectMode(false));
     dispatch(setDatumPointSelectMode(false));
     dispatch(setComponentVisualizationMode('WireFrameOnly'));
+    dispatch(setForceVisibledDatums([nPoint, nDirection]));
     window.addEventListener('keydown', shortCutKeys, true);
     return () => {
       dispatch(setSelectedPoint(null));
       dispatch(setComponentVisualizationMode(visModeRestored));
       dispatch(setDatumLineSelectMode(false));
       dispatch(setDatumPointSelectMode(false));
+      dispatch(setForceVisibledDatums([]));
       window.removeEventListener('keydown', shortCutKeys, true);
     };
   }, []);
@@ -170,7 +173,8 @@ export function PointDirectionLine(props: {
     } else {
       setApplyReady(undefined);
     }
-  }, [vDirection, nDirection, directionType, vPoint, nPoint, pointType, line]);
+    dispatch(setForceVisibledDatums([nPoint, nDirection]));
+  }, [vDirection, nDirection, directionType, vPoint, nPoint, pointType]);
 
   const shortCutKeys = (e: KeyboardEvent) => {
     if (e.key === 'Escape') {

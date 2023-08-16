@@ -17,7 +17,8 @@ import {
   setDatumPointSelectMode,
   setDatumPointSelected,
   setDatumLineSelectMode,
-  setDatumLineSelected
+  setDatumLineSelected,
+  setForceVisibledDatums
 } from '@store/reducers/uiTempGeometryDesigner';
 import Target from '@gdComponents/svgs/Target';
 import Vector from '@gdComponents/Vector';
@@ -91,6 +92,24 @@ export function PointNormalPlane(props: {
     dispatch(setDatumLineSelectMode(false));
   };
 
+  React.useEffect(() => {
+    setVisModeRestored(
+      store.getState().uigd.present.gdSceneState.componentVisualizationMode
+    );
+    dispatch(setDatumPointSelectMode(false));
+    dispatch(setDatumLineSelectMode(false));
+    dispatch(setComponentVisualizationMode('WireFrameOnly'));
+    dispatch(setForceVisibledDatums([point, line]));
+    window.addEventListener('keydown', shortCutKeys, true);
+    return () => {
+      dispatch(setComponentVisualizationMode(visModeRestored));
+      dispatch(setDatumPointSelectMode(false));
+      dispatch(setDatumLineSelectMode(false));
+      dispatch(setForceVisibledDatums([]));
+      window.removeEventListener('keydown', shortCutKeys, true);
+    };
+  }, []);
+
   useUpdateEffect(() => {
     if (
       lineObjects.find((datum) => datum.nodeID === selectedLine) &&
@@ -129,6 +148,7 @@ export function PointNormalPlane(props: {
     } else {
       setApplyReady(undefined);
     }
+    dispatch(setForceVisibledDatums([point, line]));
   }, [normal, point, normalType, line]);
 
   const shortCutKeys = (e: KeyboardEvent) => {
@@ -136,23 +156,6 @@ export function PointNormalPlane(props: {
       onResetSetterMode();
     }
   };
-
-  React.useEffect(() => {
-    setVisModeRestored(
-      store.getState().uigd.present.gdSceneState.componentVisualizationMode
-    );
-    dispatch(setDatumPointSelectMode(false));
-    dispatch(setDatumLineSelectMode(false));
-    dispatch(setComponentVisualizationMode('WireFrameOnly'));
-
-    window.addEventListener('keydown', shortCutKeys, true);
-    return () => {
-      dispatch(setComponentVisualizationMode(visModeRestored));
-      dispatch(setDatumPointSelectMode(false));
-      dispatch(setDatumLineSelectMode(false));
-      window.removeEventListener('keydown', shortCutKeys, true);
-    };
-  }, []);
 
   const {uitgd} = store.getState();
   const menuZIndex =

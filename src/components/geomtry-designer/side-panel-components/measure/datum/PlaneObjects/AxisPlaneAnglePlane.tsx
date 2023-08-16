@@ -103,7 +103,6 @@ export function AxisPlaneAnglePlane(props: {
     dispatch(setDatumPlaneSelectMode(false));
     dispatch(setDatumLineSelectMode(false));
     dispatch(setComponentVisualizationMode('WireFrameOnly'));
-
     dispatch(setForceVisibledDatums([otherPlane, line]));
     window.addEventListener('keydown', shortCutKeys, true);
     return () => {

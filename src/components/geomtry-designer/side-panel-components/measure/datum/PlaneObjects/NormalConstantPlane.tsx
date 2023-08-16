@@ -14,6 +14,7 @@ import {NamedNumber, NamedVector3} from '@gd/NamedValues';
 import {isNamedVector3} from '@gd/INamedValues';
 import {
   setDatumLineSelectMode,
+  setForceVisibledDatums,
   setDatumLineSelected
 } from '@store/reducers/uiTempGeometryDesigner';
 import Target from '@gdComponents/svgs/Target';
@@ -81,6 +82,17 @@ export function NormalConstantPlane(props: {
     dispatch(setDatumLineSelectMode(false));
   };
 
+  React.useEffect(() => {
+    dispatch(setDatumLineSelectMode(false));
+    dispatch(setForceVisibledDatums([line]));
+    window.addEventListener('keydown', shortCutKeys, true);
+    return () => {
+      dispatch(setDatumLineSelectMode(false));
+      dispatch(setForceVisibledDatums([]));
+      window.removeEventListener('keydown', shortCutKeys, true);
+    };
+  }, []);
+
   useUpdateEffect(() => {
     if (
       lineObjects.find((datum) => datum.nodeID === selectedLine) &&
@@ -108,6 +120,7 @@ export function NormalConstantPlane(props: {
       setApplyReady(obj);
     } else {
       setApplyReady(undefined);
+      dispatch(setForceVisibledDatums([line]));
     }
   }, [normal, distance, normalType, line]);
 
@@ -116,15 +129,6 @@ export function NormalConstantPlane(props: {
       onResetSetterMode();
     }
   };
-
-  React.useEffect(() => {
-    dispatch(setDatumLineSelectMode(false));
-    window.addEventListener('keydown', shortCutKeys, true);
-    return () => {
-      dispatch(setDatumLineSelectMode(false));
-      window.removeEventListener('keydown', shortCutKeys, true);
-    };
-  }, []);
 
   const {uitgd} = store.getState();
   const menuZIndex =
