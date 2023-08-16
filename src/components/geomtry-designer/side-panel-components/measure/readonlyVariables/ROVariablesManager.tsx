@@ -62,12 +62,17 @@ export default function ROVariablesManager() {
   );
 
   const [dialogTarget, setDialogTarget] = React.useState<string>('');
+  const [newMode, setNewMode] = React.useState<string>('');
 
   const onVariableDblClick = (variable?: IReadonlyVariable) => {
-    let id = uuidv4();
-    if (variable) id = variable.nodeID;
+    if (variable) {
+      setDialogTarget(variable.nodeID);
+      setNewMode('');
+    } else {
+      setNewMode(uuidv4());
+      setDialogTarget('');
+    }
     dispatch(setSelectedROVariable(''));
-    setDialogTarget(id);
   };
 
   const index = variables.findIndex((v) => v.nodeID === dialogTarget);
@@ -81,6 +86,7 @@ export default function ROVariablesManager() {
       dialogTargetVariable.copy(variable);
     } else {
       variables.push(variable);
+      setDialogTarget(variable.nodeID);
     }
     update(variables);
   };
@@ -254,14 +260,15 @@ export default function ROVariablesManager() {
         </AccordionDetails>
       </Accordion>
       <ROVariableDialog
-        open={dialogTarget !== ''}
+        open={dialogTarget !== '' || newMode !== ''}
         close={() => {
           setDialogTarget('');
+          setNewMode('');
         }}
         apply={onROVariableDialogApply}
         variable={dialogTargetVariable}
         selectableVariables={selectableVariables}
-        key={dialogTarget}
+        key={newMode !== '' ? newMode : dialogTarget}
       />
     </>
   );
