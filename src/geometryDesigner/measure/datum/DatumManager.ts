@@ -30,7 +30,8 @@ import {
   isDataFromBasePlane,
   isDataNormalConstantPlane,
   isDataAxisPointPlane,
-  isDataPointNormalPlane
+  isDataPointNormalPlane,
+  isDataAxisPlaneAnglePlane
 } from '@gd/measure/datum/IPlaneObjects';
 import {
   ThreePointsPlane,
@@ -38,7 +39,8 @@ import {
   FromElementBasePlane,
   FromBasePlane,
   AxisPointPlane,
-  NormalConstantPlane
+  NormalConstantPlane,
+  AxisPlaneAnglePlane
 } from '@gd/measure/datum/PlaneObjects';
 import store from '@store/store';
 import {setDatumObjects} from '@store/reducers/dataGeometryDesigner';
@@ -225,5 +227,6 @@ function getDatumObject(data: IDataDatumObject): IDatumObject {
   if (isDataAxisPointPlane(data)) return new AxisPointPlane(data);
   if (isDataFromElementBasePlane(data)) return new FromElementBasePlane(data);
   if (isDataFromBasePlane(data)) return new FromBasePlane(data);
+  if (isDataAxisPlaneAnglePlane(data)) return new AxisPlaneAnglePlane(data);
   throw new Error('未実装のデータムを検出');
 }

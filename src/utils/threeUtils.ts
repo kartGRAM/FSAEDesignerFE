@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {Vector3} from 'three';
+import {Matrix, solve} from 'ml-matrix';
 
 export function getIntersectionLineFromTwoPlanes(
   lhs: THREE.Plane,
@@ -30,6 +31,35 @@ export function getPlaneFromAxisAndPoint(
     .normalize();
   const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(normal, point);
   return plane;
+}
+
+export function getPlaneFromAxisPlaneAngle(
+  line: THREE.Line3,
+  normal: THREE.Vector3,
+  angle: number
+): THREE.Plane {
+  const point = line.start;
+  const n = normal.normalize();
+  angle %= 360;
+  if (angle === 0)
+    return new THREE.Plane().setFromNormalAndCoplanarPoint(n, point);
+  if (angle === 180)
+    return new THREE.Plane().setFromNormalAndCoplanarPoint(
+      new Vector3(-n.x, -n.y, -n.z),
+      point
+    );
+  const d = line.delta(new Vector3()).normalize();
+  const cos = Math.cos((angle * Math.PI) / 180);
+
+  const A = new Matrix([
+    [d.x, d.y, d.z],
+    [n.x, n.y, n.z],
+    [1, 1, 1]
+  ]);
+  const y = Matrix.columnVector([0, cos, 1]);
+  const x = solve(A, y).to1DArray();
+  const solvedNormal = new THREE.Vector3(x[0], x[1], x[2]).normalize();
+  return new THREE.Plane().setFromNormalAndCoplanarPoint(solvedNormal, point);
 }
 
 export function getIntersectionOfPlaneAndLine(

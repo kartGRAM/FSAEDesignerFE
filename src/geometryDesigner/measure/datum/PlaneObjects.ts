@@ -42,7 +42,10 @@ import {
 import {Vector3, Plane as ThreePlane} from 'three';
 import {DatumObject} from '@gd/measure/datum/DatumObjects';
 import {IAssembly, IElement} from '@gd/IElements';
-import {getPlaneFromAxisAndPoint} from '@utils/threeUtils';
+import {
+  getPlaneFromAxisAndPoint,
+  getPlaneFromAxisPlaneAngle
+} from '@utils/threeUtils';
 import {
   FunctionVector3,
   INamedNumber,
@@ -621,14 +624,9 @@ export class AxisPlaneAnglePlane extends Plane implements IAxisPlaneAnglePlane {
   readonly className = 'AxisPlaneAnglePlane' as const;
 
   get planeCenter(): Vector3 {
-    const point = this.pointBuf?.getThreePoint();
-    const line = this.lineBuf?.getThreeLine();
-    if (!point || !line) return new Vector3();
-    const points = [point, line.start, line.end];
-    const v = new Vector3();
-    points.forEach((p) => v.add(p));
-    v.multiplyScalar(1 / 3);
-    return v;
+    const point = this.lineBuf?.getThreeLine().start;
+    if (!point) return new Vector3();
+    return point;
   }
 
   get planeSize(): {width: number; height: number} {
@@ -668,9 +666,10 @@ export class AxisPlaneAnglePlane extends Plane implements IAxisPlaneAnglePlane {
     this.planeBuf = plane;
     this.lineBuf = line;
     // plane.normal.normalize();
-    this.storedValue = getPlaneFromAxisAndPoint(
-      point.getThreePoint(),
-      line.getThreeLine()
+    this.storedValue = getPlaneFromAxisPlaneAngle(
+      line.getThreeLine(),
+      plane.getThreePlane().normal,
+      this.angle
     );
   }
 
@@ -687,7 +686,7 @@ export class AxisPlaneAnglePlane extends Plane implements IAxisPlaneAnglePlane {
     this.plane = params.plane;
     this.line = params.line;
     this.angle = params.angle;
-    if (isDataDatumObject(params) && isDataAxisPointPlane(params)) {
+    if (isDataDatumObject(params) && isDataAxisPlaneAnglePlane(params)) {
       this.setLastPosition(params);
     }
   }
