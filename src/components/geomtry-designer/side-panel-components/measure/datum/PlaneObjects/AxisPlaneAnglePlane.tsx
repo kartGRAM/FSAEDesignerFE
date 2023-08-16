@@ -153,9 +153,9 @@ export function AxisPlaneAnglePlane(props: {
 
   const handleChanged = (nodeID: string, i: number) => {
     if (i === 0) {
-      setPlane(nodeID);
-    } else {
       setLine(nodeID);
+    } else {
+      setPlane(nodeID);
     }
   };
 
@@ -165,7 +165,7 @@ export function AxisPlaneAnglePlane(props: {
 
   return (
     <Box component="div">
-      {['Select otherPlane', 'Select line'].map((str, i) => (
+      {['Select a line', 'Select a plane'].map((str, i) => (
         <FormControl
           key={str}
           sx={{
@@ -179,7 +179,7 @@ export function AxisPlaneAnglePlane(props: {
           <InputLabel htmlFor={ids[i]}>{str}</InputLabel>
           <Select
             disabled={selectMode}
-            value={[otherPlane, line][i]}
+            value={[line, otherPlane][i]}
             id={ids[i]}
             label={str}
             onChange={(e) => handleChanged(e.target.value, i)}
@@ -191,7 +191,7 @@ export function AxisPlaneAnglePlane(props: {
             <MenuItem aria-label="None" value="">
               <em>None</em>
             </MenuItem>
-            {[otherPlaneObjects, lineObjects][i].map((datum) => (
+            {[lineObjects, otherPlaneObjects][i].map((datum) => (
               <MenuItem value={datum.nodeID} key={datum.nodeID}>
                 {datum.name}
               </MenuItem>
@@ -206,8 +206,9 @@ export function AxisPlaneAnglePlane(props: {
         </FormControl>
       ))}
       <Scalar
+        key="scaler"
         value={angle}
-        unit="mm"
+        unit="deg"
         onUpdate={() => {
           setAngle(
             new NamedNumber({

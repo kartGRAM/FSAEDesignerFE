@@ -92,6 +92,7 @@ export function PlaneObject(params: {
   else if (type === 'AxisPlaneAngle')
     content = (
       <AxisPlaneAnglePlane
+        key={type}
         plane={isAxisPlaneAnglePlane(plane) ? plane : undefined}
         setApplyReady={setApplyReady}
       />

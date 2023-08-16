@@ -1,4 +1,5 @@
 import React from 'react';
+import Box from '@mui/material/Box';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -153,33 +154,9 @@ export const DatumGroupTable = React.memo(
                 }
               }}
             />
-
-            <Tooltip
-              title="Add a new datum object"
-              sx={{flex: '1'}}
-              componentsProps={{
-                popper: {
-                  sx: {
-                    zIndex: tooltipZIndex
-                  }
-                }
-              }}
-            >
-              <span>
-                <IconButton
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDatumDblClick(undefined);
-                  }}
-                  disabled={!expanded}
-                >
-                  <AddBoxIcon />
-                </IconButton>
-              </span>
-            </Tooltip>
-            {selectedInGroup ? (
+            <Box component="div">
               <Tooltip
-                title="Delete a selected object"
+                title="Add a new datum object"
                 sx={{flex: '1'}}
                 componentsProps={{
                   popper: {
@@ -193,15 +170,40 @@ export const DatumGroupTable = React.memo(
                   <IconButton
                     onClick={(e) => {
                       e.stopPropagation();
-                      onDelete();
+                      onDatumDblClick(undefined);
                     }}
                     disabled={!expanded}
                   >
-                    <DeleteIcon />
+                    <AddBoxIcon />
                   </IconButton>
                 </span>
               </Tooltip>
-            ) : null}
+              {selectedInGroup ? (
+                <Tooltip
+                  title="Delete a selected object"
+                  sx={{flex: '1'}}
+                  componentsProps={{
+                    popper: {
+                      sx: {
+                        zIndex: tooltipZIndex
+                      }
+                    }
+                  }}
+                >
+                  <span>
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete();
+                      }}
+                      disabled={!expanded}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              ) : null}
+            </Box>
           </AccordionSummary>
           <AccordionDetails sx={{pt: 0, pb: 1, pl: 1, pr: 1}}>
             <TableContainer

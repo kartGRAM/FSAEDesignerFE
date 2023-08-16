@@ -92,6 +92,7 @@ export function DatumDialog(props: {
             point={isPoint(datum) ? datum : undefined}
             type={datumClass as PointClasses | ''}
             setApplyReady={setApplyReady}
+            key="point"
           />
         ]
       : datumType === 'Line'
@@ -101,6 +102,7 @@ export function DatumDialog(props: {
             line={isLine(datum) ? datum : undefined}
             type={datumClass as LineClasses | ''}
             setApplyReady={setApplyReady}
+            key="line"
           />
         ]
       : datumType === 'Plane'
@@ -110,6 +112,7 @@ export function DatumDialog(props: {
             plane={isPlane(datum) ? datum : undefined}
             type={datumClass as PlaneClasses | ''}
             setApplyReady={setApplyReady}
+            key="plane"
           />
         ]
       : [[], null];
