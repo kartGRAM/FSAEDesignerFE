@@ -50,6 +50,7 @@ export function PlaneObject(params: {
   if (type === 'ThreePointsPlane')
     content = (
       <ThreePointsPlane
+        key={type}
         threePointsPlane={isThreePointsPlane(plane) ? plane : undefined}
         setApplyReady={setApplyReady}
       />
@@ -57,6 +58,7 @@ export function PlaneObject(params: {
   else if (type === 'NormalConstantPlane')
     content = (
       <NormalConstantPlane
+        key={type}
         plane={isNormalConstantPlane(plane) ? plane : undefined}
         setApplyReady={setApplyReady}
       />
@@ -64,6 +66,7 @@ export function PlaneObject(params: {
   else if (type === 'PointNormalPlane')
     content = (
       <PointNormalPlane
+        key={type}
         plane={isPointNormalPlane(plane) ? plane : undefined}
         setApplyReady={setApplyReady}
       />
@@ -71,6 +74,7 @@ export function PlaneObject(params: {
   else if (type === 'AxisPointPlane')
     content = (
       <AxisPointPlane
+        key={type}
         plane={isAxisPointPlane(plane) ? plane : undefined}
         setApplyReady={setApplyReady}
       />
@@ -78,6 +82,7 @@ export function PlaneObject(params: {
   else if (type === 'FromElementBasePlane')
     content = (
       <FromElementBasePlane
+        key={type}
         plane={isFromElementBasePlane(plane) ? plane : undefined}
         setApplyReady={setApplyReady}
       />
@@ -85,6 +90,7 @@ export function PlaneObject(params: {
   else if (type === 'FromBasePlane')
     content = (
       <FromBasePlane
+        key={type}
         plane={isFromBasePlane(plane) ? plane : undefined}
         setApplyReady={setApplyReady}
       />

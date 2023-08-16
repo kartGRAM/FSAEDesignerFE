@@ -1,4 +1,3 @@
-/* eslint-disable no-nested-ternary */
 import * as React from 'react';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -67,6 +66,7 @@ export function DatumDialog(props: {
   const [datumType, setDatumType] = React.useState<DatumTypes | ''>(
     getDatumType(datum)
   );
+
   const [datumClass, setDatumClass] = React.useState<DatumClasses | ''>(
     getDatumClass(datum)
   );
@@ -81,41 +81,50 @@ export function DatumDialog(props: {
     datum ? datum.name : nameDefault
   );
 
+  React.useEffect(() => {
+    if (open) {
+      dispatch(setUIDisabled(true));
+    } else {
+      dispatch(setUIDisabled(false));
+    }
+  }, [open]);
+
   let datumTypesSelectable = [getDatumType(datum)];
   if (datumTypesSelectable[0] === '') datumTypesSelectable = [...datumTypes];
 
-  const [selectedClasses, content] =
-    datumType === 'Point'
-      ? [
-          pointClasses,
-          <PointObject
-            point={isPoint(datum) ? datum : undefined}
-            type={datumClass as PointClasses | ''}
-            setApplyReady={setApplyReady}
-            key="point"
-          />
-        ]
-      : datumType === 'Line'
-      ? [
-          lineClasses,
-          <LineObject
-            line={isLine(datum) ? datum : undefined}
-            type={datumClass as LineClasses | ''}
-            setApplyReady={setApplyReady}
-            key="line"
-          />
-        ]
-      : datumType === 'Plane'
-      ? [
-          planeClasses,
-          <PlaneObject
-            plane={isPlane(datum) ? datum : undefined}
-            type={datumClass as PlaneClasses | ''}
-            setApplyReady={setApplyReady}
-            key="plane"
-          />
-        ]
-      : [[], null];
+  let selectedClasses: readonly DatumClasses[] | [] = [];
+  let content = null;
+  if (datumType === 'Point') {
+    selectedClasses = pointClasses;
+    content = (
+      <PointObject
+        point={isPoint(datum) ? datum : undefined}
+        type={datumClass as PointClasses | ''}
+        setApplyReady={setApplyReady}
+        key={datumClass}
+      />
+    );
+  } else if (datumType === 'Line') {
+    selectedClasses = lineClasses;
+    content = (
+      <LineObject
+        line={isLine(datum) ? datum : undefined}
+        type={datumClass as LineClasses | ''}
+        setApplyReady={setApplyReady}
+        key={datumClass}
+      />
+    );
+  } else if (datumType === 'Plane') {
+    selectedClasses = planeClasses;
+    content = (
+      <PlaneObject
+        plane={isPlane(datum) ? datum : undefined}
+        type={datumClass as PlaneClasses | ''}
+        setApplyReady={setApplyReady}
+        key={datumClass}
+      />
+    );
+  }
 
   const handleDatumTypeChange = (event: SelectChangeEvent<DatumTypes | ''>) => {
     const {
@@ -124,6 +133,7 @@ export function DatumDialog(props: {
     setDatumType(value as DatumTypes | '');
     setDatumClass('');
   };
+
   const handleDatumClassChange = (
     event: SelectChangeEvent<DatumClasses | ''>
   ) => {
@@ -146,14 +156,6 @@ export function DatumDialog(props: {
     if (nameBuffer !== nameDefault) applyReady.name = nameBuffer;
     apply(applyReady);
   };
-
-  React.useEffect(() => {
-    if (open) {
-      dispatch(setUIDisabled(true));
-    } else {
-      dispatch(setUIDisabled(false));
-    }
-  }, [open]);
 
   return (
     <Dialog

@@ -140,7 +140,6 @@ export default function Scalar(props: Props) {
           <TextField
             inputRef={ref}
             onChange={nameFormik.handleChange}
-            // label="name"
             name="name"
             variant="outlined"
             size="small"

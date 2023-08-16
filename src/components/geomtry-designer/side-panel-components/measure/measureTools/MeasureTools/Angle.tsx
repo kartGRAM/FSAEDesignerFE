@@ -99,15 +99,17 @@ export function Angle(props: {
   React.useEffect(() => {
     dispatch(setDatumLineSelectMode(false));
     dispatch(setDatumPlaneSelectMode(false));
+    dispatch(setForceVisibledDatums([lhs?.nodeID ?? '', rhs?.nodeID ?? '']));
     window.addEventListener('keydown', shortCutKeys, true);
     return () => {
       dispatch(setDatumLineSelectMode(false));
       dispatch(setDatumPlaneSelectMode(false));
+      dispatch(setForceVisibledDatums([]));
       window.removeEventListener('keydown', shortCutKeys, true);
     };
   }, []);
 
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     if (setterMode === '') return;
     const setValue = setterMode === 'Lhs' ? setLhs : setRhs;
     if (selectedLineInstance) {
@@ -133,9 +135,6 @@ export function Angle(props: {
       setApplyReady(undefined);
     }
     dispatch(setForceVisibledDatums([lhs?.nodeID ?? '', rhs?.nodeID ?? '']));
-    return () => {
-      dispatch(setForceVisibledDatums([]));
-    };
   }, [lhs, rhs]);
 
   const handleChanged = (nodeID: string, i: number) => {

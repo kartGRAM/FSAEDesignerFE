@@ -92,11 +92,12 @@ export function ThreePointsPlane(props: {
     );
     dispatch(setDatumPointSelectMode(false));
     dispatch(setComponentVisualizationMode('WireFrameOnly'));
-
+    dispatch(setForceVisibledDatums(points));
     window.addEventListener('keydown', shortCutKeys, true);
     return () => {
       dispatch(setComponentVisualizationMode(visModeRestored));
       dispatch(setDatumPointSelectMode(false));
+      dispatch(setForceVisibledDatums([]));
       window.removeEventListener('keydown', shortCutKeys, true);
     };
   }, []);
@@ -127,9 +128,6 @@ export function ThreePointsPlane(props: {
       setApplyReady(undefined);
     }
     dispatch(setForceVisibledDatums(points));
-    return () => {
-      dispatch(setForceVisibledDatums([]));
-    };
   }, [...points]);
 
   const {uitgd} = store.getState();

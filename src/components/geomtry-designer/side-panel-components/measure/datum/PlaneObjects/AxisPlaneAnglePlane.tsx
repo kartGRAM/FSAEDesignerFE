@@ -104,11 +104,13 @@ export function AxisPlaneAnglePlane(props: {
     dispatch(setDatumLineSelectMode(false));
     dispatch(setComponentVisualizationMode('WireFrameOnly'));
 
+    dispatch(setForceVisibledDatums([otherPlane, line]));
     window.addEventListener('keydown', shortCutKeys, true);
     return () => {
       dispatch(setComponentVisualizationMode(visModeRestored));
       dispatch(setDatumPlaneSelectMode(false));
       dispatch(setDatumLineSelectMode(false));
+      dispatch(setForceVisibledDatums([]));
       window.removeEventListener('keydown', shortCutKeys, true);
     };
   }, []);
@@ -135,20 +137,18 @@ export function AxisPlaneAnglePlane(props: {
 
   useUpdateEffect(() => {
     if (otherPlane !== '' && line !== '') {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const obj: IAxisPlaneAnglePlane = new AxisPlaneAnglePlaneObject({
         name: `datum plane`,
         line,
         plane: otherPlane,
         angle
       });
-      setApplyReady(obj);
+      // setApplyReady(obj);
     } else {
       setApplyReady(undefined);
     }
     dispatch(setForceVisibledDatums([otherPlane, line]));
-    return () => {
-      dispatch(setForceVisibledDatums([]));
-    };
   }, [otherPlane, line, angle]);
 
   const handleChanged = (nodeID: string, i: number) => {

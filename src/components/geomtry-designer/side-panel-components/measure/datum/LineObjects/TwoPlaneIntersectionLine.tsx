@@ -78,9 +78,11 @@ export function TwoPlaneIntersectionLine(props: {
 
   React.useEffect(() => {
     dispatch(setDatumPlaneSelectMode(false));
+    dispatch(setForceVisibledDatums(planes));
     window.addEventListener('keydown', shortCutKeys, true);
     return () => {
       dispatch(setDatumPlaneSelectMode(false));
+      dispatch(setForceVisibledDatums([]));
       window.removeEventListener('keydown', shortCutKeys, true);
     };
   }, []);
@@ -111,9 +113,6 @@ export function TwoPlaneIntersectionLine(props: {
       setApplyReady(undefined);
     }
     dispatch(setForceVisibledDatums(planes));
-    return () => {
-      dispatch(setForceVisibledDatums([]));
-    };
   }, [...planes]);
 
   const {uitgd} = store.getState();

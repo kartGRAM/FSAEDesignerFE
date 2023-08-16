@@ -95,12 +95,13 @@ export function AxisPointPlane(props: {
     dispatch(setDatumPointSelectMode(false));
     dispatch(setDatumLineSelectMode(false));
     dispatch(setComponentVisualizationMode('WireFrameOnly'));
-
+    dispatch(setForceVisibledDatums([point, line]));
     window.addEventListener('keydown', shortCutKeys, true);
     return () => {
       dispatch(setComponentVisualizationMode(visModeRestored));
       dispatch(setDatumPointSelectMode(false));
       dispatch(setDatumLineSelectMode(false));
+      dispatch(setForceVisibledDatums([]));
       window.removeEventListener('keydown', shortCutKeys, true);
     };
   }, []);
@@ -137,9 +138,6 @@ export function AxisPointPlane(props: {
       setApplyReady(undefined);
     }
     dispatch(setForceVisibledDatums([point, line]));
-    return () => {
-      dispatch(setForceVisibledDatums([]));
-    };
   }, [point, line]);
 
   const handleChanged = (nodeID: string, i: number) => {

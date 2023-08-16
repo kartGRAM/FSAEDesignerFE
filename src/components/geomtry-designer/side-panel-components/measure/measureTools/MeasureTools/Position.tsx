@@ -73,14 +73,16 @@ export function Position(props: {
 
   React.useEffect(() => {
     dispatch(setDatumPointSelectMode(false));
+    dispatch(setForceVisibledDatums([point?.nodeID ?? '']));
     window.addEventListener('keydown', shortCutKeys, true);
     return () => {
       dispatch(setDatumPointSelectMode(false));
+      dispatch(setForceVisibledDatums([]));
       window.removeEventListener('keydown', shortCutKeys, true);
     };
   }, []);
 
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     if (selectedPointInstance) {
       setPoint(selectedPointInstance);
     }
@@ -101,9 +103,6 @@ export function Position(props: {
       setApplyReady(undefined);
     }
     dispatch(setForceVisibledDatums([point?.nodeID ?? '']));
-    return () => {
-      dispatch(setForceVisibledDatums([]));
-    };
   }, [point]);
 
   const handleChanged = (nodeID: string, i: number) => {

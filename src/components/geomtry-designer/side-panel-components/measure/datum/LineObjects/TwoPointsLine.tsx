@@ -80,8 +80,10 @@ export function TwoPointsLine(props: {
   React.useEffect(() => {
     dispatch(setDatumPointSelectMode(false));
     window.addEventListener('keydown', shortCutKeys, true);
+    dispatch(setForceVisibledDatums(points));
     return () => {
       dispatch(setDatumPointSelectMode(false));
+      dispatch(setForceVisibledDatums([]));
       window.removeEventListener('keydown', shortCutKeys, true);
     };
   }, []);
@@ -112,9 +114,6 @@ export function TwoPointsLine(props: {
       setApplyReady(undefined);
     }
     dispatch(setForceVisibledDatums(points));
-    return () => {
-      dispatch(setForceVisibledDatums([]));
-    };
   }, [...points]);
 
   const {uitgd} = store.getState();

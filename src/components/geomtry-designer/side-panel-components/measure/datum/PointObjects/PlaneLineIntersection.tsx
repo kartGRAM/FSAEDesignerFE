@@ -95,12 +95,13 @@ export function PlaneLineIntersection(props: {
     dispatch(setDatumPlaneSelectMode(false));
     dispatch(setDatumLineSelectMode(false));
     dispatch(setComponentVisualizationMode('WireFrameOnly'));
-
+    dispatch(setForceVisibledDatums([plane, line]));
     window.addEventListener('keydown', shortCutKeys, true);
     return () => {
       dispatch(setComponentVisualizationMode(visModeRestored));
       dispatch(setDatumPlaneSelectMode(false));
       dispatch(setDatumLineSelectMode(false));
+      dispatch(setForceVisibledDatums([]));
       window.removeEventListener('keydown', shortCutKeys, true);
     };
   }, []);
@@ -137,9 +138,6 @@ export function PlaneLineIntersection(props: {
       setApplyReady(undefined);
     }
     dispatch(setForceVisibledDatums([plane, line]));
-    return () => {
-      dispatch(setForceVisibledDatums([]));
-    };
   }, [point, line]);
 
   const handleChanged = (nodeID: string, i: number) => {

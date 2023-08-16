@@ -88,9 +88,11 @@ export function ClosestPointOfTwoLines(props: {
 
   React.useEffect(() => {
     dispatch(setDatumLineSelectMode(false));
+    dispatch(setForceVisibledDatums(lines));
     window.addEventListener('keydown', shortCutKeys, true);
     return () => {
       dispatch(setDatumLineSelectMode(false));
+      dispatch(setForceVisibledDatums([]));
       window.removeEventListener('keydown', shortCutKeys, true);
     };
   }, []);
@@ -122,9 +124,6 @@ export function ClosestPointOfTwoLines(props: {
       setApplyReady(undefined);
     }
     dispatch(setForceVisibledDatums(lines));
-    return () => {
-      dispatch(setForceVisibledDatums([]));
-    };
   }, [...lines, weight]);
 
   const {uitgd} = store.getState();

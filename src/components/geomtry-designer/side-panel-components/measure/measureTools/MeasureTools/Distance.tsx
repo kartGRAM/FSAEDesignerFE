@@ -124,16 +124,18 @@ export function Distance(props: {
     dispatch(setDatumPointSelectMode(false));
     dispatch(setDatumLineSelectMode(false));
     dispatch(setDatumPlaneSelectMode(false));
+    dispatch(setForceVisibledDatums([lhs?.nodeID ?? '', rhs?.nodeID ?? '']));
     window.addEventListener('keydown', shortCutKeys, true);
     return () => {
       dispatch(setDatumPointSelectMode(false));
       dispatch(setDatumLineSelectMode(false));
       dispatch(setDatumPlaneSelectMode(false));
+      dispatch(setForceVisibledDatums([]));
       window.removeEventListener('keydown', shortCutKeys, true);
     };
   }, []);
 
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     if (setterMode === '') return;
     const setValue = setterMode === 'Lhs' ? setLhs : setRhs;
     if (selectedPointInstance) {
@@ -161,9 +163,6 @@ export function Distance(props: {
       setApplyReady(undefined);
     }
     dispatch(setForceVisibledDatums([lhs?.nodeID ?? '', rhs?.nodeID ?? '']));
-    return () => {
-      dispatch(setForceVisibledDatums([]));
-    };
   }, [lhs, rhs]);
 
   const handleChanged = (nodeID: string, i: number) => {
