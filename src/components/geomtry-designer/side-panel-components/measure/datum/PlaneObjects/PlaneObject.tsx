@@ -46,62 +46,61 @@ export function PlaneObject(params: {
   setApplyReady: React.Dispatch<React.SetStateAction<IDatumObject | undefined>>;
 }) {
   const {plane, type, setApplyReady} = params;
-  let content: JSX.Element | null = null;
   if (type === 'ThreePointsPlane')
-    content = (
+    return (
       <ThreePointsPlane
         key={type}
         threePointsPlane={isThreePointsPlane(plane) ? plane : undefined}
         setApplyReady={setApplyReady}
       />
     );
-  else if (type === 'NormalConstantPlane')
-    content = (
+  if (type === 'NormalConstantPlane')
+    return (
       <NormalConstantPlane
         key={type}
         plane={isNormalConstantPlane(plane) ? plane : undefined}
         setApplyReady={setApplyReady}
       />
     );
-  else if (type === 'PointNormalPlane')
-    content = (
+  if (type === 'PointNormalPlane')
+    return (
       <PointNormalPlane
         key={type}
         plane={isPointNormalPlane(plane) ? plane : undefined}
         setApplyReady={setApplyReady}
       />
     );
-  else if (type === 'AxisPointPlane')
-    content = (
+  if (type === 'AxisPointPlane')
+    return (
       <AxisPointPlane
         key={type}
         plane={isAxisPointPlane(plane) ? plane : undefined}
         setApplyReady={setApplyReady}
       />
     );
-  else if (type === 'FromElementBasePlane')
-    content = (
+  if (type === 'FromElementBasePlane')
+    return (
       <FromElementBasePlane
         key={type}
         plane={isFromElementBasePlane(plane) ? plane : undefined}
         setApplyReady={setApplyReady}
       />
     );
-  else if (type === 'FromBasePlane')
-    content = (
+  if (type === 'FromBasePlane')
+    return (
       <FromBasePlane
         key={type}
         plane={isFromBasePlane(plane) ? plane : undefined}
         setApplyReady={setApplyReady}
       />
     );
-  else if (type === 'AxisPlaneAngle')
-    content = (
+  if (type === 'AxisPlaneAngle')
+    return (
       <AxisPlaneAnglePlane
         key={type}
         plane={isAxisPlaneAnglePlane(plane) ? plane : undefined}
         setApplyReady={setApplyReady}
       />
     );
-  return content;
+  return null;
 }

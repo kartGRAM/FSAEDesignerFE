@@ -297,7 +297,8 @@ export class TwoPlaneIntersectionLine
     const threePlanes = this.planeBuf.map((p) => p.getThreePlane());
     this.storedValue = getIntersectionLineFromTwoPlanes(
       threePlanes[0],
-      threePlanes[1]
+      threePlanes[1],
+      planes[0].planeCenter
     );
   }
 

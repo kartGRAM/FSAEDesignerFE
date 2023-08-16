@@ -53,15 +53,61 @@ export function DatumDialog(props: {
   apply: (datum: IDatumObject) => void;
   datum?: IDatumObject;
 }) {
-  const {open, close, apply} = props;
-  let {datum} = props;
+  const {open} = props;
+  const {close, apply, datum} = props;
 
   const dispatch = useDispatch();
 
   const {uitgd} = store.getState();
   const zindex = uitgd.fullScreenZIndex + uitgd.dialogZIndex;
 
+  React.useEffect(() => {
+    if (open) {
+      dispatch(setUIDisabled(true));
+    } else {
+      dispatch(setUIDisabled(false));
+    }
+  }, [open]);
+
+  return (
+    <Dialog
+      open={open}
+      components={{Backdrop: undefined}}
+      PaperComponent={(props) =>
+        PaperComponentDraggable({
+          ...props,
+          position: (state: RootState) =>
+            state.uigd.present.dialogState.datumDialogInitialPosition,
+          setPosition: setDatumDialogPosition
+        })
+      }
+      aria-labelledby="draggable-dialog-title"
+      sx={{
+        zIndex: `${zindex}!important`,
+        pointerEvents: 'none'
+      }}
+      PaperProps={{
+        sx: {
+          minWidth: 500,
+          maxHeight: '70vh'
+        }
+      }}
+    >
+      <DatumDialogContent close={close} apply={apply} datum={datum} />
+    </Dialog>
+  );
+}
+
+export function DatumDialogContent(props: {
+  close: () => void;
+  apply: (datum: IDatumObject) => void;
+  datum?: IDatumObject;
+}) {
+  const {close, apply} = props;
+  let {datum} = props;
+  const {uitgd} = store.getState();
   const {menuZIndex} = uitgd;
+  const zindex = uitgd.fullScreenZIndex + uitgd.dialogZIndex;
 
   const [datumType, setDatumType] = React.useState<DatumTypes | ''>(
     getDatumType(datum)
@@ -80,14 +126,6 @@ export function DatumDialog(props: {
   const [nameBuffer, setNameBuffer] = React.useState(
     datum ? datum.name : nameDefault
   );
-
-  React.useEffect(() => {
-    if (open) {
-      dispatch(setUIDisabled(true));
-    } else {
-      dispatch(setUIDisabled(false));
-    }
-  }, [open]);
 
   let datumTypesSelectable = [getDatumType(datum)];
   if (datumTypesSelectable[0] === '') datumTypesSelectable = [...datumTypes];
@@ -156,31 +194,8 @@ export function DatumDialog(props: {
     if (nameBuffer !== nameDefault) applyReady.name = nameBuffer;
     apply(applyReady);
   };
-
   return (
-    <Dialog
-      open={open}
-      components={{Backdrop: undefined}}
-      PaperComponent={(props) =>
-        PaperComponentDraggable({
-          ...props,
-          position: (state: RootState) =>
-            state.uigd.present.dialogState.datumDialogInitialPosition,
-          setPosition: setDatumDialogPosition
-        })
-      }
-      aria-labelledby="draggable-dialog-title"
-      sx={{
-        zIndex: `${zindex}!important`,
-        pointerEvents: 'none'
-      }}
-      PaperProps={{
-        sx: {
-          minWidth: 500,
-          maxHeight: '70vh'
-        }
-      }}
-    >
+    <>
       <EditableTypography
         typography={
           <DialogTitle sx={{marginRight: 10}}>{nameBuffer}</DialogTitle>
@@ -275,7 +290,7 @@ export function DatumDialog(props: {
           OK
         </Button>
       </DialogActions>
-    </Dialog>
+    </>
   );
 }
 

@@ -143,7 +143,7 @@ export function AxisPlaneAnglePlane(props: {
         plane: otherPlane,
         angle
       });
-      // setApplyReady(obj);
+      setApplyReady(obj);
     } else {
       setApplyReady(undefined);
     }

@@ -4,7 +4,8 @@ import {Matrix, solve} from 'ml-matrix';
 
 export function getIntersectionLineFromTwoPlanes(
   lhs: THREE.Plane,
-  rhs: THREE.Plane
+  rhs: THREE.Plane,
+  startPoint?: Vector3
 ) {
   const threePlanes = [lhs, rhs];
   const h = threePlanes.map((p) => p.constant);
@@ -17,7 +18,10 @@ export function getIntersectionLineFromTwoPlanes(
     .clone()
     .multiplyScalar(coef1)
     .add(n[1].clone().multiplyScalar(coef2));
-  return new THREE.Line3(start, start.clone().add(cross));
+  const line = new THREE.Line3(start, start.clone().add(cross));
+  if (!startPoint) return line;
+  const point = line.closestPointToPoint(startPoint, false, new Vector3());
+  return new THREE.Line3(point, point.clone().add(cross));
 }
 
 export function getPlaneFromAxisAndPoint(
