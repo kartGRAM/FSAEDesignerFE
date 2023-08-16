@@ -6,7 +6,7 @@ import {TwoPlaneIntersectionLine as TPILObject} from '@gd/measure/datum/LineObje
 import {IDatumObject, isPlane} from '@gd/measure/datum/IDatumObjects';
 import Box from '@mui/material/Box';
 import FormControl from '@mui/material/FormControl';
-import Select, {SelectChangeEvent} from '@mui/material/Select';
+import Select from '@mui/material/Select';
 import InputLabel from '@mui/material/InputLabel';
 import {
   setDatumPlaneSelectMode,
@@ -85,7 +85,7 @@ export function TwoPlaneIntersectionLine(props: {
     };
   }, []);
 
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     if (
       setterMode !== -1 &&
       datumObjectsFiltered[setterMode].find(

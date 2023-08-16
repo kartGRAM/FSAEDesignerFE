@@ -21,6 +21,7 @@ import {
 import {setComponentVisualizationMode} from '@store/reducers/uiGeometryDesigner';
 import Target from '@gdComponents/svgs/Target';
 import Vector from '@gdComponents/Vector';
+import useUpdateEffect from '@hooks/useUpdateEffect';
 
 export const directionTypes = ['datum line', 'constant vector'] as const;
 export type DirectionType = typeof directionTypes[number];
@@ -113,6 +114,24 @@ export function PointDirectionLine(props: {
   };
 
   React.useEffect(() => {
+    setVisModeRestored(
+      store.getState().uigd.present.gdSceneState.componentVisualizationMode
+    );
+    dispatch(setSelectedPoint(null));
+    dispatch(setDatumLineSelectMode(false));
+    dispatch(setDatumPointSelectMode(false));
+    dispatch(setComponentVisualizationMode('WireFrameOnly'));
+    window.addEventListener('keydown', shortCutKeys, true);
+    return () => {
+      dispatch(setSelectedPoint(null));
+      dispatch(setComponentVisualizationMode(visModeRestored));
+      dispatch(setDatumLineSelectMode(false));
+      dispatch(setDatumPointSelectMode(false));
+      window.removeEventListener('keydown', shortCutKeys, true);
+    };
+  }, []);
+
+  useUpdateEffect(() => {
     if (
       pointObjects.find((datum) => datum.nodeID === selectedPoint) &&
       selectedLine !== nDirection
@@ -122,7 +141,7 @@ export function PointDirectionLine(props: {
     onResetSetterMode();
   }, [selectedPoint]);
 
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     if (
       lineObjects.find((datum) => datum.nodeID === selectedLine) &&
       selectedLine !== nDirection
@@ -132,7 +151,7 @@ export function PointDirectionLine(props: {
     onResetSetterMode();
   }, [selectedLine]);
 
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     if (
       ((directionType === 'datum line' && nDirection !== '') ||
         directionType === 'constant vector') &&
@@ -158,24 +177,6 @@ export function PointDirectionLine(props: {
       onResetSetterMode();
     }
   };
-
-  React.useEffect(() => {
-    setVisModeRestored(
-      store.getState().uigd.present.gdSceneState.componentVisualizationMode
-    );
-    dispatch(setSelectedPoint(null));
-    dispatch(setDatumLineSelectMode(false));
-    dispatch(setDatumPointSelectMode(false));
-    dispatch(setComponentVisualizationMode('WireFrameOnly'));
-    window.addEventListener('keydown', shortCutKeys, true);
-    return () => {
-      dispatch(setSelectedPoint(null));
-      dispatch(setComponentVisualizationMode(visModeRestored));
-      dispatch(setDatumLineSelectMode(false));
-      dispatch(setDatumPointSelectMode(false));
-      window.removeEventListener('keydown', shortCutKeys, true);
-    };
-  }, []);
 
   const {uitgd} = store.getState();
   const menuZIndex =

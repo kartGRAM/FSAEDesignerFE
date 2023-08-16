@@ -34,7 +34,7 @@ export function NormalConstantPlane(props: {
 
   const [distance, setDistance] = React.useState(
     new NamedNumber({
-      name: 'normal',
+      name: 'distance',
       value: plane?.distance.getStringValue() ?? 0
     })
   );

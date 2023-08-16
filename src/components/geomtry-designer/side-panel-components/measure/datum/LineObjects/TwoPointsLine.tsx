@@ -86,7 +86,7 @@ export function TwoPointsLine(props: {
     };
   }, []);
 
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     if (
       setterMode !== -1 &&
       datumObjectsFiltered[setterMode].find(

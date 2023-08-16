@@ -641,7 +641,7 @@ export class AxisPlaneAnglePlane extends Plane implements IAxisPlaneAnglePlane {
 
   planeBuf: IPlane | undefined;
 
-  angle: number;
+  angle: INamedNumber;
 
   get description() {
     return `plane from axis plane angle`;
@@ -649,12 +649,13 @@ export class AxisPlaneAnglePlane extends Plane implements IAxisPlaneAnglePlane {
 
   getData(): IDataAxisPlaneAnglePlane {
     const base = super.getDataBase();
+    const state = getDgd();
     return {
       ...base,
       className: this.className,
       line: this.line,
       plane: this.plane,
-      angle: this.angle
+      angle: this.angle.getData(state)
     };
   }
 
@@ -669,7 +670,7 @@ export class AxisPlaneAnglePlane extends Plane implements IAxisPlaneAnglePlane {
     this.storedValue = getPlaneFromAxisPlaneAngle(
       line.getThreeLine(),
       plane.getThreePlane().normal,
-      this.angle
+      this.angle.value
     );
   }
 
@@ -679,13 +680,18 @@ export class AxisPlaneAnglePlane extends Plane implements IAxisPlaneAnglePlane {
 
   constructor(
     params:
-      | {name: string; plane: string; line: string; angle: number}
+      | {
+          name: string;
+          line: string;
+          plane: string;
+          angle: string | number | INamedNumber;
+        }
       | IDataAxisPlaneAnglePlane
   ) {
     super(params);
     this.plane = params.plane;
     this.line = params.line;
-    this.angle = params.angle;
+    this.angle = new NamedNumber({value: params.angle});
     if (isDataDatumObject(params) && isDataAxisPlaneAnglePlane(params)) {
       this.setLastPosition(params);
     }

@@ -7,7 +7,8 @@ import {
   isThreePointsPlane,
   isAxisPointPlane,
   isFromBasePlane,
-  isFromElementBasePlane
+  isFromElementBasePlane,
+  isAxisPlaneAnglePlane
 } from '@gd/measure/datum/IPlaneObjects';
 import {ThreePointsPlane} from './ThreePointsPlane';
 import {PointNormalPlane} from './PointNormalPlane';
@@ -15,6 +16,7 @@ import {AxisPointPlane} from './AxisPointPlane';
 import {FromElementBasePlane} from './FromElementBasePlane';
 import {FromBasePlane} from './FromBasePlane';
 import {NormalConstantPlane} from './NormalConstantPlane';
+import {AxisPlaneAnglePlane} from './AxisPlaneAnglePlane';
 
 export const planeClasses = [
   'NormalConstantPlane',
@@ -22,7 +24,8 @@ export const planeClasses = [
   'ThreePointsPlane',
   'AxisPointPlane',
   'FromBasePlane',
-  'FromElementBasePlane'
+  'FromElementBasePlane',
+  'AxisPlaneAngle'
 ] as const;
 export type PlaneClasses = typeof planeClasses[number];
 
@@ -33,6 +36,7 @@ export function getPlaneObjectClass(plane: IPlane): PlaneClasses | '' {
   if (isAxisPointPlane(plane)) return 'AxisPointPlane';
   if (isFromBasePlane(plane)) return 'FromBasePlane';
   if (isFromElementBasePlane(plane)) return 'FromElementBasePlane';
+  if (isAxisPlaneAnglePlane(plane)) return 'AxisPlaneAngle';
   return '';
 }
 
@@ -82,6 +86,13 @@ export function PlaneObject(params: {
     content = (
       <FromBasePlane
         plane={isFromBasePlane(plane) ? plane : undefined}
+        setApplyReady={setApplyReady}
+      />
+    );
+  else if (type === 'AxisPlaneAngle')
+    content = (
+      <AxisPlaneAnglePlane
+        plane={isAxisPlaneAnglePlane(plane) ? plane : undefined}
         setApplyReady={setApplyReady}
       />
     );

@@ -80,7 +80,7 @@ export function FromElementBasePlane(props: {
     };
   }, []);
 
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     if (
       children.find((child) => child.nodeID === selectedElement) &&
       selectedElement !== element

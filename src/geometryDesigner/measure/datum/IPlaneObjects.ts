@@ -200,7 +200,7 @@ export interface IAxisPlaneAnglePlane extends IPlane {
   className: 'AxisPlaneAnglePlane';
   plane: NodeID;
   line: NodeID;
-  angle: number;
+  angle: INamedNumber;
   getData(): IDataAxisPlaneAnglePlane;
 }
 
@@ -215,7 +215,7 @@ export interface IDataAxisPlaneAnglePlane extends IDataPlane {
   className: 'AxisPlaneAnglePlane';
   plane: NodeID;
   line: NodeID;
-  angle: number;
+  angle: IDataNumber;
 }
 
 export function isDataAxisPlaneAnglePlane(

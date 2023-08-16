@@ -1,8 +1,8 @@
 import React from 'react';
 import store, {RootState} from '@store/store';
 import {useSelector, useDispatch} from 'react-redux';
-import {IPlaneLineIntersection} from '@gd/measure/datum/IPointObjects';
-import {PlaneLineIntersection as PlaneLineIntersectionObject} from '@gd/measure/datum/PointObjects';
+import {IAxisPlaneAnglePlane} from '@gd/measure/datum/IPlaneObjects';
+import {AxisPlaneAnglePlane as AxisPlaneAnglePlaneObject} from '@gd/measure/datum/PlaneObjects';
 import {IDatumObject, isPlane, isLine} from '@gd/measure/datum/IDatumObjects';
 import Box from '@mui/material/Box';
 import FormControl from '@mui/material/FormControl';
@@ -19,12 +19,14 @@ import {
 import MenuItem from '@mui/material/MenuItem';
 import Target from '@gdComponents/svgs/Target';
 import useUpdateEffect from '@hooks/useUpdateEffect';
+import Scalar from '@gdComponents/Scalar';
+import {NamedNumber} from '@gd/NamedValues';
 
-export function PlaneLineIntersection(props: {
-  point?: IPlaneLineIntersection;
+export function AxisPlaneAnglePlane(props: {
+  plane?: IAxisPlaneAnglePlane;
   setApplyReady: React.Dispatch<React.SetStateAction<IDatumObject | undefined>>;
 }) {
-  const {point, setApplyReady} = props;
+  const {plane, setApplyReady} = props;
 
   const dispatch = useDispatch();
   const ids = [React.useId(), React.useId(), React.useId()];
@@ -52,20 +54,26 @@ export function PlaneLineIntersection(props: {
 
   const datumObjectsAll = datumManager?.getObjectsAll() ?? [];
 
-  const idx = datumObjectsAll.findIndex((d) => d.nodeID === point?.nodeID);
+  const idx = datumObjectsAll.findIndex((d) => d.nodeID === plane?.nodeID);
 
-  const planeObjects = datumObjectsAll
+  const otherPlaneObjects = datumObjectsAll
     .slice(0, idx === -1 ? undefined : idx)
     .filter((datum) => isPlane(datum));
   const lineObjects = datumObjectsAll
     .slice(0, idx === -1 ? undefined : idx)
     .filter((datum) => isLine(datum));
 
-  const defaultPlane = point?.plane ?? '';
-  const defaultLine = point?.line ?? '';
+  const defaultPlane = plane?.plane ?? '';
+  const defaultLine = plane?.line ?? '';
 
-  const [plane, setPlane] = React.useState(defaultPlane);
+  const [otherPlane, setPlane] = React.useState(defaultPlane);
   const [line, setLine] = React.useState(defaultLine);
+  const [angle, setAngle] = React.useState(
+    new NamedNumber({
+      name: 'angle',
+      value: plane?.angle.getStringValue() ?? 0
+    })
+  );
 
   const handleGetDatum = (i: number) => {
     if (i === 0) {
@@ -107,8 +115,8 @@ export function PlaneLineIntersection(props: {
 
   useUpdateEffect(() => {
     if (
-      planeObjects.find((datum) => datum.nodeID === selectedPlane) &&
-      selectedPlane !== plane
+      otherPlaneObjects.find((datum) => datum.nodeID === selectedPlane) &&
+      selectedPlane !== otherPlane
     ) {
       setPlane(selectedPlane);
     }
@@ -126,21 +134,22 @@ export function PlaneLineIntersection(props: {
   }, [selectedLine]);
 
   useUpdateEffect(() => {
-    if (plane !== '' && line !== '') {
-      const obj: IPlaneLineIntersection = new PlaneLineIntersectionObject({
-        name: `datum point`,
-        plane,
-        line
+    if (otherPlane !== '' && line !== '') {
+      const obj: IAxisPlaneAnglePlane = new AxisPlaneAnglePlaneObject({
+        name: `datum plane`,
+        line,
+        plane: otherPlane,
+        angle
       });
       setApplyReady(obj);
     } else {
       setApplyReady(undefined);
     }
-    dispatch(setForceVisibledDatums([plane, line]));
+    dispatch(setForceVisibledDatums([otherPlane, line]));
     return () => {
       dispatch(setForceVisibledDatums([]));
     };
-  }, [point, line]);
+  }, [otherPlane, line, angle]);
 
   const handleChanged = (nodeID: string, i: number) => {
     if (i === 0) {
@@ -156,7 +165,7 @@ export function PlaneLineIntersection(props: {
 
   return (
     <Box component="div">
-      {['Select plnae', 'Select line'].map((str, i) => (
+      {['Select otherPlane', 'Select line'].map((str, i) => (
         <FormControl
           key={str}
           sx={{
@@ -170,7 +179,7 @@ export function PlaneLineIntersection(props: {
           <InputLabel htmlFor={ids[i]}>{str}</InputLabel>
           <Select
             disabled={selectMode}
-            value={[plane, line][i]}
+            value={[otherPlane, line][i]}
             id={ids[i]}
             label={str}
             onChange={(e) => handleChanged(e.target.value, i)}
@@ -182,7 +191,7 @@ export function PlaneLineIntersection(props: {
             <MenuItem aria-label="None" value="">
               <em>None</em>
             </MenuItem>
-            {[planeObjects, lineObjects][i].map((datum) => (
+            {[otherPlaneObjects, lineObjects][i].map((datum) => (
               <MenuItem value={datum.nodeID} key={datum.nodeID}>
                 {datum.name}
               </MenuItem>
@@ -196,6 +205,18 @@ export function PlaneLineIntersection(props: {
           />
         </FormControl>
       ))}
+      <Scalar
+        value={angle}
+        unit="mm"
+        onUpdate={() => {
+          setAngle(
+            new NamedNumber({
+              name: 'angle',
+              value: angle.getStringValue()
+            })
+          );
+        }}
+      />
     </Box>
   );
 }

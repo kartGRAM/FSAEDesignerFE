@@ -105,7 +105,7 @@ export function AxisPointPlane(props: {
     };
   }, []);
 
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     if (
       pointObjects.find((datum) => datum.nodeID === selectedPoint) &&
       selectedPoint !== point
@@ -115,7 +115,7 @@ export function AxisPointPlane(props: {
     onResetSetterMode();
   }, [selectedPoint]);
 
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     if (
       lineObjects.find((datum) => datum.nodeID === selectedLine) &&
       selectedLine !== line

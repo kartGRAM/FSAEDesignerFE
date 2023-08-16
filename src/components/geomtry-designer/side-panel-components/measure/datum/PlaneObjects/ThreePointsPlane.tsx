@@ -6,7 +6,7 @@ import {ThreePointsPlane as ThreePointsPlaneObject} from '@gd/measure/datum/Plan
 import {IDatumObject, isPoint} from '@gd/measure/datum/IDatumObjects';
 import Box from '@mui/material/Box';
 import FormControl from '@mui/material/FormControl';
-import Select, {SelectChangeEvent} from '@mui/material/Select';
+import Select from '@mui/material/Select';
 import InputLabel from '@mui/material/InputLabel';
 import {setComponentVisualizationMode} from '@store/reducers/uiGeometryDesigner';
 import {
@@ -101,7 +101,7 @@ export function ThreePointsPlane(props: {
     };
   }, []);
 
-  React.useEffect(() => {
+  useUpdateEffect(() => {
     if (
       setterMode !== -1 &&
       datumObjectsFiltered[setterMode].find(
