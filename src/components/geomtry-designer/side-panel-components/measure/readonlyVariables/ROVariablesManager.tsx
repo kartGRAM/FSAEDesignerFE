@@ -150,7 +150,7 @@ export default function ROVariablesManager() {
             >
               Readonly Variables
             </Typography>
-            {roVariablesAccExpanded && variables.length > 0 ? (
+            {variables.length > 0 ? (
               <Tooltip
                 title="Add a new readonly variable."
                 sx={{flex: '1'}}

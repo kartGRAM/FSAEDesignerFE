@@ -148,7 +148,7 @@ export default function MeasureToolsManager() {
             >
               Measure Tools
             </Typography>
-            {measureToolsAccExpanded && tools.length > 0 ? (
+            {tools.length > 0 ? (
               <Tooltip
                 title="Add a new measure tool."
                 sx={{flex: '1'}}

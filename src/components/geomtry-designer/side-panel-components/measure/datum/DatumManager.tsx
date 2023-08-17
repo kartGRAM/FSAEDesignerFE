@@ -122,45 +122,43 @@ export default function DatumManager() {
           >
             Datum Groups & Datum Objects
           </Typography>
-          {datumObjectsAccExpanded ? (
-            expanded !== '' ? (
-              <Tooltip
-                title="Delete"
-                sx={{flex: '1'}}
-                componentsProps={{
-                  popper: {
-                    sx: {
-                      zIndex: tooltipZIndex
-                    }
+          {expanded !== '' ? (
+            <Tooltip
+              title="Delete"
+              sx={{flex: '1'}}
+              componentsProps={{
+                popper: {
+                  sx: {
+                    zIndex: tooltipZIndex
                   }
+                }
+              }}
+            >
+              <IconButton
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeDatumGroup(expanded);
                 }}
               >
-                <IconButton
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeDatumGroup(expanded);
-                  }}
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </Tooltip>
-            ) : datumGroups.length !== 0 ? (
-              <Tooltip
-                title="Add a new group"
-                sx={{flex: '1'}}
-                componentsProps={{
-                  popper: {
-                    sx: {
-                      zIndex: tooltipZIndex
-                    }
+                <DeleteIcon />
+              </IconButton>
+            </Tooltip>
+          ) : datumGroups.length !== 0 ? (
+            <Tooltip
+              title="Add a new group"
+              sx={{flex: '1'}}
+              componentsProps={{
+                popper: {
+                  sx: {
+                    zIndex: tooltipZIndex
                   }
-                }}
-              >
-                <IconButton onClick={addNewDatumGroup}>
-                  <AddBoxIcon />
-                </IconButton>
-              </Tooltip>
-            ) : null
+                }
+              }}
+            >
+              <IconButton onClick={addNewDatumGroup}>
+                <AddBoxIcon />
+              </IconButton>
+            </Tooltip>
           ) : null}
         </Toolbar>
       </AccordionSummary>
