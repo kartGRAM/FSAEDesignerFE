@@ -12,7 +12,8 @@ import {
   IMeasureTool,
   isPosition,
   isAngle,
-  isDistance
+  isDistance,
+  isMovingElementCurrentPosition
 } from '@gd/measure/measureTools/IMeasureTools';
 import FormControl from '@mui/material/FormControl';
 import Select, {SelectChangeEvent} from '@mui/material/Select';
@@ -28,8 +29,14 @@ import useUpdate from '@hooks/useUpdate';
 import {Position} from './MeasureTools/Position';
 import {Distance} from './MeasureTools/Distance';
 import {Angle} from './MeasureTools/Angle';
+import {MovingElementCurrentPosition} from './MeasureTools/MovingElementCurrentPosition';
 
-const measureToolClasses = ['Distance', 'Angle', 'Position'] as const;
+const measureToolClasses = [
+  'Distance',
+  'Angle',
+  'Position',
+  'Moving Component Current Position'
+] as const;
 type MeasureToolClasses = typeof measureToolClasses[number];
 
 export function MeasureToolDialog(props: {
@@ -113,6 +120,13 @@ export function MeasureToolDialog(props: {
     content = (
       <Angle
         angle={isAngle(tool) ? tool : undefined}
+        setApplyReady={setApplyReady}
+      />
+    );
+  } else if (measureToolClass === 'Moving Component Current Position') {
+    content = (
+      <MovingElementCurrentPosition
+        tool={isMovingElementCurrentPosition(tool) ? tool : undefined}
         setApplyReady={setApplyReady}
       />
     );
@@ -219,6 +233,9 @@ function getMeasureToolClass(tool?: IMeasureTool): MeasureToolClasses | '' {
   }
   if (isDistance(tool)) {
     return 'Distance';
+  }
+  if (isMovingElementCurrentPosition(tool)) {
+    return 'Moving Component Current Position';
   }
   return '';
 }

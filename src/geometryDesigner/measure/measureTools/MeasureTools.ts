@@ -426,7 +426,7 @@ export class MovingElementCurrentPosition
       isDataMovingElementCurrentPosition(params)
     ) {
       if (elements) {
-        this.element = elements.find((e) => e.nodeID === params.nodeID);
+        this.element = elements.find((e) => e.nodeID === params.element);
       } else {
         throw new Error('data使用時はelementsが必要');
       }

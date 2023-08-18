@@ -157,7 +157,7 @@ export function MovingElementCurrentPosition(props: {
             sx={{mt: 1}}
             title={str}
             onClick={() => handleGetElement(i)}
-            disabled={selectMode}
+            disabled={true && selectMode}
           />
         </FormControl>
       ))}
