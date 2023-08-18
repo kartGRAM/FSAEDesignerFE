@@ -95,6 +95,7 @@ export interface GDSceneState {
   measureElementPointsMode: boolean;
   measureElementPointSelected?: string;
   forceVisibledDatums: string[];
+  forceHighlightElements: string[];
   datumElementSelectMode: boolean;
   datumPointSelectMode: boolean;
   datumPointSelected: string;
@@ -102,6 +103,8 @@ export interface GDSceneState {
   datumLineSelected: string;
   datumPlaneSelectMode: boolean;
   datumPlaneSelected: string;
+  movingElementSelectMode: boolean;
+  movingElementSelected: string;
 }
 
 export interface GDDialogState {
@@ -146,13 +149,16 @@ const initialState: GDState = {
     measureElementPointsMode: false,
     measureElementPointSelected: undefined,
     forceVisibledDatums: [],
+    forceHighlightElements: [],
     datumElementSelectMode: false,
     datumPointSelectMode: false,
     datumPointSelected: '',
     datumLineSelectMode: false,
     datumLineSelected: '',
     datumPlaneSelectMode: false,
-    datumPlaneSelected: ''
+    datumPlaneSelected: '',
+    movingElementSelectMode: false,
+    movingElementSelected: ''
   },
   gdDialogState: {
     copyFromExistingPointsDialogProps: {open: false, onSelected: null},
@@ -510,11 +516,29 @@ export const uitGeometryDesignerSlice = createSlice({
       }
       state.gdSceneState.datumPlaneSelectMode = action.payload;
     },
+    setMovingElementSelectMode: (
+      state: GDState,
+      action: PayloadAction<boolean>
+    ) => {
+      if (
+        action.payload === false ||
+        action.payload !== state.gdSceneState.movingElementSelectMode
+      ) {
+        state.gdSceneState.movingElementSelected = '';
+      }
+      state.gdSceneState.movingElementSelectMode = action.payload;
+    },
     setForceVisibledDatums: (
       state: GDState,
       action: PayloadAction<string[]>
     ) => {
       state.gdSceneState.forceVisibledDatums = [...action.payload];
+    },
+    setForceHighlightElements: (
+      state: GDState,
+      action: PayloadAction<string[]>
+    ) => {
+      state.gdSceneState.forceHighlightElements = [...action.payload];
     },
     setDatumPointSelected: (state: GDState, action: PayloadAction<string>) => {
       state.gdSceneState.datumPointSelected = action.payload;
@@ -525,11 +549,16 @@ export const uitGeometryDesignerSlice = createSlice({
     setDatumPlaneSelected: (state: GDState, action: PayloadAction<string>) => {
       state.gdSceneState.datumPlaneSelected = action.payload;
     },
+    setMovingElementSelected: (
+      state: GDState,
+      action: PayloadAction<string>
+    ) => {
+      state.gdSceneState.movingElementSelected = action.payload;
+    },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setVisibility: (state: GDState) => {
       state.forceCallSelector = !state.forceCallSelector;
     },
-
     saveTestLocalState: (state: GDState, action: PayloadAction<ITest>) => {
       const test = action.payload;
       test.saveLocalState();
@@ -610,6 +639,9 @@ export const {
   setDatumLineSelected,
   setDatumPlaneSelectMode,
   setDatumPlaneSelected,
+  setMovingElementSelectMode,
+  setMovingElementSelected,
+  setForceHighlightElements,
   setMovingMode,
 
   saveTestLocalState,
