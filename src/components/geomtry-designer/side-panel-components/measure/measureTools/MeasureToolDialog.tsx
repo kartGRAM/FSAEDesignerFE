@@ -24,6 +24,7 @@ import Divider from '@mui/material/Divider';
 import {setMeasureToolDialogPosition} from '@store/reducers/uiGeometryDesigner';
 import EditableTypography from '@gdComponents/EditableTypography';
 import * as Yup from 'yup';
+import useUpdate from '@hooks/useUpdate';
 import {Position} from './MeasureTools/Position';
 import {Distance} from './MeasureTools/Distance';
 import {Angle} from './MeasureTools/Angle';
@@ -41,6 +42,7 @@ export function MeasureToolDialog(props: {
   let {tool} = props;
 
   const dispatch = useDispatch();
+  const update = useUpdate();
 
   const {uitgd} = store.getState();
   const dialogZIndex = uitgd.fullScreenZIndex + uitgd.dialogZIndex;
@@ -149,6 +151,7 @@ export function MeasureToolDialog(props: {
         onSubmit={(value) => {
           setNameBuffer(value);
           if (tool && tool.name !== value) {
+            update();
             setApplyReady(tool);
           }
         }}

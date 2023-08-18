@@ -23,6 +23,7 @@ import Divider from '@mui/material/Divider';
 import {setDatumDialogPosition} from '@store/reducers/uiGeometryDesigner';
 import EditableTypography from '@gdComponents/EditableTypography';
 import * as Yup from 'yup';
+import useUpdate from '@hooks/useUpdate';
 import {
   getPointObjectClass,
   PointObject,
@@ -103,6 +104,7 @@ export function DatumDialogContent(props: {
   apply: (datum: IDatumObject) => void;
   datum?: IDatumObject;
 }) {
+  const update = useUpdate();
   const {close, apply} = props;
   let {datum} = props;
   const {uitgd} = store.getState();
@@ -205,6 +207,7 @@ export function DatumDialogContent(props: {
         onSubmit={(value) => {
           setNameBuffer(value);
           if (datum && datum.name !== value) {
+            update();
             setApplyReady(datum);
           }
         }}

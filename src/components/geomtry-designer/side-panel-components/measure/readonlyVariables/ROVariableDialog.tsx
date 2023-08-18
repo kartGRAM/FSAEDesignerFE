@@ -14,6 +14,7 @@ import {setMeasureToolDialogPosition} from '@store/reducers/uiGeometryDesigner';
 import {ReadonlyVariable} from '@gd/measure/readonlyVariables/ReadonlyVariable';
 import EditableTypography from '@gdComponents/EditableTypography';
 import * as Yup from 'yup';
+import useUpdate from '@hooks/useUpdate';
 import {VariableSourceSelector} from './VariableSourceSelector';
 import {VariableFormula} from './VariableFormula';
 
@@ -31,6 +32,7 @@ export function ROVariableDialog(props: {
   });
 
   const dispatch = useDispatch();
+  const update = useUpdate();
 
   const {uitgd} = store.getState();
   const dialogZIndex = uitgd.fullScreenZIndex + uitgd.dialogZIndex;
@@ -97,6 +99,7 @@ export function ROVariableDialog(props: {
           if (variable.name !== value) {
             variable.name = value;
             setApplyReady(variable);
+            update();
           }
         }}
       />

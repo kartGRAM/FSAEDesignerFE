@@ -358,7 +358,7 @@ function Row(props: {
           <option aria-label="None" value="" />
           <option value="element">Elements</option>
           <option value="measureTool">Measure Tools</option>
-          <option value="roVariable">Readonly Variables</option>
+          <option value="readonlyVariable">Readonly Variables</option>
         </NativeSelect>
       </TableCell>
       <TableCell align="right">
