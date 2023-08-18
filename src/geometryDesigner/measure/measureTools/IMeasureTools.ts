@@ -1,6 +1,7 @@
 import {Vector3} from 'three';
 import {MeasureSnapshot} from '@gd/analysis/ISnapshot';
 import {isObject} from '@utils/helpers';
+import {IMovingElement} from '@gd/IElements';
 import {NodeID, IPoint, ILine, IPlane} from '../datum/IDatumObjects';
 
 export interface IMeasureTool {
@@ -105,5 +106,38 @@ export interface IDataPosition extends IDataMeasureTool {
 
 export function isDataPosition(data: IDataMeasureTool): data is IDataPosition {
   if ((data as IDataPosition).isDataPosition) return true;
+  return false;
+}
+
+export interface IMovingElementCurrentPosition extends IMeasureTool {
+  isMovingElementCurrentPosition: true;
+  element: IMovingElement | undefined;
+  clone(): IMovingElementCurrentPosition;
+}
+
+export function isMovingElementCurrentPosition(
+  tool: IMeasureTool | undefined
+): tool is IMovingElementCurrentPosition {
+  if (
+    tool &&
+    (tool as IMovingElementCurrentPosition).isMovingElementCurrentPosition
+  )
+    return true;
+  return false;
+}
+
+export interface IDataMovingElementCurrentPosition extends IDataMeasureTool {
+  isDataMovingElementCurrentPosition: true;
+  element: NodeID;
+}
+
+export function isDataMovingElementCurrentPosition(
+  data: IDataMeasureTool
+): data is IDataMovingElementCurrentPosition {
+  if (
+    (data as IDataMovingElementCurrentPosition)
+      .isDataMovingElementCurrentPosition
+  )
+    return true;
   return false;
 }

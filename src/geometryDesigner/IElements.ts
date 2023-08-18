@@ -48,6 +48,17 @@ export type Elements =
   | 'Tire'
   | 'LinearBushing';
 
+export interface IMovingElement {
+  readonly nodeID: string;
+  dlCurrent: number;
+  readonly unit: string;
+  readonly name: INamedString;
+}
+
+export function isMovingElement(element: any): element is IMovingElement {
+  return isObject(element) && 'dlCurrent' in element;
+}
+
 export function getElementByPath(
   root: IAssembly | undefined | null,
   path: string
@@ -209,14 +220,13 @@ export interface IDataBar extends IDataElement {
   point: IDataVector3;
 }
 
-export interface ISpringDumper extends IElement {
+export interface ISpringDumper extends IElement, IMovingElement {
   readonly controllable: true;
   readonly fixedPoint: INamedVector3;
   readonly point: INamedVector3;
   readonly dlMin: INamedNumber;
   readonly dlMax: INamedNumber;
   readonly length: number;
-  dlCurrent: number;
   readonly currentPoint: Vector3;
   readonly isLimited: boolean;
 }
@@ -278,7 +288,7 @@ export interface IDataTire extends IDataElement {
   toRightBearing: IDataNumber;
 }
 
-export interface ILinearBushing extends IElement {
+export interface ILinearBushing extends IElement, IMovingElement {
   readonly controllable: true;
   // 固定点(フレーム側)
   readonly fixedPoints: [INamedVector3, INamedVector3];
@@ -290,7 +300,6 @@ export interface ILinearBushing extends IElement {
 
   readonly points: INamedVector3[];
   readonly supportDistance: number;
-  dlCurrent: number;
   readonly currentPoints: Vector3[];
   readonly isLimited: boolean;
 }

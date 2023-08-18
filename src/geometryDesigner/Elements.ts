@@ -1087,6 +1087,8 @@ export class SpringDumper extends Bar implements ISpringDumper {
     return 'SpringDumper';
   }
 
+  unit = 'mm' as const;
+
   controllable = true as const;
 
   getMirror(): SpringDumper {
@@ -2000,6 +2002,8 @@ export class LinearBushing extends Element implements ILinearBushing {
   get className(): Elements {
     return 'LinearBushing';
   }
+
+  unit = 'mm' as const;
 
   controllable = true as const;
 

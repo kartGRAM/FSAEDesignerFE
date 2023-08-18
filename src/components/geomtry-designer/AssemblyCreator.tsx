@@ -17,6 +17,7 @@ import {DatumManager} from '@gd/measure/datum/DatumManager';
 import {MeasureToolsManager} from '@gd/measure/measureTools/MeasureToolsManager';
 import {ROVariablesManager} from '@gd/measure/readonlyVariables/ROVariablesManager';
 import {getAssembly} from '@gd/Elements';
+import {isMovingElement} from '@gd/IElements';
 import useUpdateEffect from '@hooks/useUpdateEffect';
 import usePrevious from '@hooks/usePrevious';
 
@@ -63,6 +64,7 @@ export default function AssemblyCreactor() {
       datumManager.update();
       const measureToolsManager = new MeasureToolsManager(
         datumManager,
+        collectedAssembly.children.filter((e) => isMovingElement(e)) as any[],
         state.measureTools
       );
       const roVariablesManager = new ROVariablesManager({
@@ -103,6 +105,9 @@ export default function AssemblyCreactor() {
         datumManager.update();
         const measureToolsManager = new MeasureToolsManager(
           datumManager,
+          state.uitgd.collectedAssembly!.children.filter((e) =>
+            isMovingElement(e)
+          ) as any[],
           state.dgd.present.measureTools
         );
         const roVariablesManager = new ROVariablesManager({
@@ -136,6 +141,9 @@ export default function AssemblyCreactor() {
         const state = store.getState();
         const measureToolsManager = new MeasureToolsManager(
           state.uitgd.datumManager!,
+          state.uitgd.collectedAssembly!.children.filter((e) =>
+            isMovingElement(e)
+          ) as any[],
           measureTools
         );
         const roVariablesManager = new ROVariablesManager({

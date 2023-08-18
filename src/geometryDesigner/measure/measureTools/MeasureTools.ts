@@ -6,6 +6,7 @@ import {
   getClosestPointsOfTwoLines,
   getClosestPointsOfPlaneAndLine
 } from '@utils/threeUtils';
+import {IMovingElement} from '@gd/IElements';
 import {
   IPoint,
   isPoint,
@@ -27,7 +28,10 @@ import {
   isDataDistance,
   IAngle,
   IDataAngle,
-  isDataAngle
+  isDataAngle,
+  IMovingElementCurrentPosition,
+  IDataMovingElementCurrentPosition,
+  isDataMovingElementCurrentPosition
 } from './IMeasureTools';
 
 export abstract class MeasureTool implements IMeasureTool {
@@ -125,6 +129,7 @@ export class Position extends MeasureTool implements IPosition {
   }
 
   copy(other: Position): void {
+    this.name = other.name;
     this.point = other.point;
   }
 }
@@ -274,6 +279,7 @@ export class Distance extends MeasureTool implements IDistance {
   }
 
   copy(other: Distance): void {
+    this.name = other.name;
     this.lhs = other.lhs;
     this.rhs = other.rhs;
   }
@@ -383,17 +389,89 @@ export class Angle extends MeasureTool implements IAngle {
   }
 
   copy(other: Angle): void {
+    this.name = other.name;
     this.lhs = other.lhs;
     this.rhs = other.rhs;
   }
 }
 
+export class MovingElementCurrentPosition
+  extends MeasureTool
+  implements IMovingElementCurrentPosition
+{
+  readonly isMovingElementCurrentPosition = true as const;
+
+  element: IMovingElement | undefined;
+
+  private currentBuf: number = 0;
+
+  readonly className = 'MovingElementCurrentPosition' as const;
+
+  get description(): string {
+    return `current value of "${this.element?.name.value ?? 'unknown'}"`;
+  }
+
+  constructor(
+    params:
+      | {
+          name: string;
+          element: IMovingElement | undefined;
+        }
+      | IDataMovingElementCurrentPosition,
+    elements?: IMovingElement[]
+  ) {
+    super(params);
+    if (
+      isDataMeasureTool(params) &&
+      isDataMovingElementCurrentPosition(params)
+    ) {
+      if (elements) {
+        this.element = elements.find((e) => e.nodeID === params.nodeID);
+      } else {
+        throw new Error('data使用時はelementsが必要');
+      }
+    } else {
+      this.element = params.element;
+    }
+  }
+
+  getData(): IDataMovingElementCurrentPosition {
+    return {
+      ...super.getDataBase(),
+      className: 'DataMovingElementCurrentPosition',
+      isDataMovingElementCurrentPosition: true,
+      element: this.element?.nodeID ?? ''
+    };
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  update(): void {
+    this.currentBuf = this.element?.dlCurrent ?? Number.NaN;
+  }
+
+  get value(): {[index: string]: number} {
+    return {_: this.currentBuf};
+  }
+
+  clone(): IMovingElementCurrentPosition {
+    return new MovingElementCurrentPosition(this);
+  }
+
+  copy(other: IMovingElementCurrentPosition): void {
+    this.element = other.element;
+    this.name = other.name;
+  }
+}
+
 export function getMeasureTool(
   tool: IDataMeasureTool,
-  datumManager: IDatumManager
+  datumManager: IDatumManager,
+  elements: IMovingElement[]
 ) {
   if (isDataPosition(tool)) return new Position(tool, datumManager);
   if (isDataDistance(tool)) return new Distance(tool, datumManager);
   if (isDataAngle(tool)) return new Angle(tool, datumManager);
+  if (isDataMovingElementCurrentPosition(tool))
+    return new MovingElementCurrentPosition(tool, elements);
   throw new Error('未実装のツール');
 }

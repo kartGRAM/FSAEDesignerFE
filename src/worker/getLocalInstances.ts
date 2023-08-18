@@ -6,7 +6,7 @@ import {getAssembly} from '@gd/Elements';
 import {getControl} from '@gd/controls/Controls';
 import {Control} from '@gd/controls/IControls';
 import {KinematicSolver} from '@gd/kinematics/Solver';
-import {IAssembly} from '@gd/IElements';
+import {IAssembly, isMovingElement} from '@gd/IElements';
 
 export type LocalInstances = {
   assembly: IAssembly;
@@ -24,6 +24,7 @@ export function getLocalInstances(state: GDState): LocalInstances {
   datumManager.update();
   const measureToolsManager = new MeasureToolsManager(
     datumManager,
+    collectedAssembly.children.filter((e) => isMovingElement(e)) as any[],
     state.measureTools
   );
   measureToolsManager.update();
