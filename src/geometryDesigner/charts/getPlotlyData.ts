@@ -3,6 +3,7 @@ import {evaluate} from '@gd/Formula';
 import {LocalInstances} from '@worker/getLocalInstances';
 import {INamedNumberRO, isNamedVector3RO} from '@gd/INamedValues';
 import {isElement, IElement} from '@gd/IElements';
+import natsort from 'natsort';
 import {IChartData, DataRef, IPlotData, Datum, getStats} from './ICharts';
 
 export function getPlotlyData(
@@ -98,10 +99,12 @@ export function getCases(
       nodeID: 'All',
       name: 'All'
     },
-    ...Object.keys(caseResults.cases).map((key) => ({
-      nodeID: key,
-      name: caseResults.cases[key].name
-    }))
+    ...Object.keys(caseResults.cases)
+      .sort(natsort())
+      .map((key) => ({
+        nodeID: key,
+        name: caseResults.cases[key].name
+      }))
   ];
 }
 

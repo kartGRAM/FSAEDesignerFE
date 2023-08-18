@@ -2061,6 +2061,33 @@ export class LinearBushing extends Element implements ILinearBushing {
     return points;
   }
 
+  getMeasurablePoints(): INamedVector3RO[] {
+    const fp = this.fixedPoints.map((p) => p.value);
+    const center = fp[0].clone().add(fp[1]).multiplyScalar(0.5);
+    const dir = fp[1].clone().sub(fp[0]).normalize();
+    const points = this.toPoints
+      .map((to, i) => [
+        new NamedVector3({
+          name: `rodEnd${i}`,
+          parent: this,
+          value: center
+            .clone()
+            .add(dir.clone().multiplyScalar(to.value + this.dlCurrent)),
+          update: () => {},
+          nodeID: `${to.nodeID}_points`
+        }),
+        new NamedVector3({
+          name: `rodEnd${i}_initialPosition`,
+          parent: this,
+          value: center.clone().add(dir.clone().multiplyScalar(to.value)),
+          update: () => {},
+          nodeID: `${to.nodeID}_points_initial`
+        })
+      ])
+      .flat();
+    return [...this.fixedPoints, ...points, this.centerOfGravity];
+  }
+
   get supportDistance(): number {
     const fp = this.fixedPoints.map((p) => p.value);
     return fp[1].clone().sub(fp[0]).length();

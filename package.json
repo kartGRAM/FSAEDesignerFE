@@ -60,6 +60,7 @@
     "luxon": "^2.5.2",
     "mathjs": "~11",
     "ml-matrix": "^6.10.2",
+    "natsort": "^2.0.3",
     "plotly.js": "^2.24.3",
     "react": "18.2.0",
     "react-bootstrap": "^2.5.0",

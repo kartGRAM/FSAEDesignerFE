@@ -13,6 +13,7 @@ import {
   setCopyFromExistingPointsDialogProps,
   setSelectedMeasureTool,
   setSelectedDatumObject,
+  setSelectedROVariable,
   setMovingMode
 } from '@store/reducers/uiTempGeometryDesigner';
 import {getCameraQuaternion} from '@utils/three';
@@ -106,6 +107,10 @@ export default function shortCutKeys(e: KeyboardEvent) {
     }
     if (state.uitgd.gdSceneState.selectedMeasureTool) {
       store.dispatch(setSelectedMeasureTool(''));
+      return;
+    }
+    if (state.uitgd.gdSceneState.selectedROVariable) {
+      store.dispatch(setSelectedROVariable(''));
       return;
     }
     store.dispatch(selectElement({absPath: '', cancelTabChange: true}));
