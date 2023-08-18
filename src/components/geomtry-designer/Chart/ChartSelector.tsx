@@ -27,6 +27,7 @@ import {
   getCases,
   getDataArray
 } from '@gd/charts/getPlotlyData';
+import natsort from 'natsort';
 
 import {isArray} from '@utils/helpers';
 import {v4 as uuidv4} from 'uuid';
@@ -78,9 +79,9 @@ export function DataSelector(props: {
   const newData: IChartData = {
     nodeID: uuidv4(),
     type: 'scatter',
-    x: {case: '', from: 'element', nodeID: ''},
-    y: {case: '', from: 'element', nodeID: ''},
-    z: {case: '', from: 'element', nodeID: ''},
+    x: {case: '', from: 'measureTool', nodeID: ''},
+    y: {case: '', from: 'measureTool', nodeID: ''},
+    z: {case: '', from: 'measureTool', nodeID: ''},
     xaxis: 'x1',
     yaxis: 'y1'
   };

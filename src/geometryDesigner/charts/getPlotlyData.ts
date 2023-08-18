@@ -94,17 +94,18 @@ export function getDataArray(
 export function getCases(
   caseResults: CaseResults
 ): {nodeID: string; name: string}[] {
+  const cases = Object.keys(caseResults.cases).sort((a, b) =>
+    natsort()(caseResults.cases[a].name, caseResults.cases[b].name)
+  );
   return [
     {
       nodeID: 'All',
       name: 'All'
     },
-    ...Object.keys(caseResults.cases)
-      .sort(natsort())
-      .map((key) => ({
-        nodeID: key,
-        name: caseResults.cases[key].name
-      }))
+    ...cases.map((key) => ({
+      nodeID: key,
+      name: caseResults.cases[key].name
+    }))
   ];
 }
 

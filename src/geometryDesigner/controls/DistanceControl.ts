@@ -68,7 +68,7 @@ export class DistanceControl extends Control {
       );
       return prev;
     }, [] as BarAndSpheres[]);
-    if (!value) {
+    if (!value && value !== 0) {
       constraints.forEach((constraint) => {
         constraint.dl += deltaDl;
       });

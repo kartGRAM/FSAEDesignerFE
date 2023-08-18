@@ -64,7 +64,7 @@ export class LinearBushingControl extends Control {
     const reserved: number[] = [];
     constraints.forEach((constraint) => {
       reserved.push(constraint.dl);
-      if (value) {
+      if (value || value === 0) {
         constraint.dl = value;
       } else {
         constraint.dl += deltaDl;
