@@ -303,6 +303,20 @@ export class Test implements ITest {
     return {isClipboardFlowNodes: true, isClipboardItem: true, nodes, edges};
   }
 
+  validate(): boolean {
+    const nodes = Object.values(this.nodes);
+    for (const node of nodes) {
+      if (!node.validate(this.edgesFromTarget, this.edgesFromSourceNode))
+        return false;
+    }
+
+    if (
+      !validateGraph(this.nodes, this.edgesFromTarget, this.edgesFromSourceNode)
+    )
+      return false;
+    return true;
+  }
+
   dispatch(): void {
     const tests = getDgd().analysis;
     store.dispatch(
@@ -376,19 +390,5 @@ export class Test implements ITest {
       return this.completedSolver;
     }
     return this.notCompletedSolver;
-  }
-
-  validate(): boolean {
-    const nodes = Object.values(this.nodes);
-    for (const node of nodes) {
-      if (!node.validate(this.edgesFromTarget, this.edgesFromSourceNode))
-        return false;
-    }
-
-    if (
-      !validateGraph(this.nodes, this.edgesFromTarget, this.edgesFromSourceNode)
-    )
-      return false;
-    return true;
   }
 }

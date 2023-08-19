@@ -30,6 +30,7 @@ import {
 import {ReactFlowProvider} from 'reactflow';
 import {v4 as uuidv4} from 'uuid';
 import Tooltip from '@gdComponents/Tooltip';
+import {getDgd} from '@store/getDgd';
 
 export default function AnalysisRoot() {
   const dispatch = useDispatch();
@@ -95,7 +96,7 @@ export default function AnalysisRoot() {
   );
 }
 
-const TestRow = (props: {test: IDataTest}) => {
+const TestRow = React.memo((props: {test: IDataTest}) => {
   const {test} = props;
 
   const loadedTest: ITest =
@@ -103,22 +104,19 @@ const TestRow = (props: {test: IDataTest}) => {
       state.uitgd.tests.find((t) => t.nodeID === test.nodeID)
     ) ?? new Test(test);
 
-  const dataTests = useSelector(
-    (state: RootState) => state.dgd.present.analysis
-  );
   const dispatch = useDispatch();
 
   const [open, setOpen] = React.useState(false);
   const openId = React.useRef<number>(1);
 
-  const handleOpen = () => {
+  const handleOpen = React.useCallback(() => {
     setOpen(true);
-  };
+  }, []);
 
   const {uitgd} = store.getState();
   const zindex = uitgd.fullScreenZIndex + uitgd.dialogZIndex;
 
-  const handleDelete = async () => {
+  const handleDelete = React.useCallback(async () => {
     const ret = await new Promise<string>((resolve) => {
       dispatch(
         setConfirmDialogProps({
@@ -136,20 +134,21 @@ const TestRow = (props: {test: IDataTest}) => {
     });
     dispatch(setConfirmDialogProps(undefined));
     if (ret === 'ok') {
-      const dataTests = store.getState().dgd.present.analysis;
+      const dataTests = getDgd().analysis;
       dispatch(setTests(dataTests.filter((t) => t.nodeID !== test.nodeID)));
       dispatch(removeTest(loadedTest));
     }
-  };
+  }, [loadedTest]);
 
-  const handleCopy = () => {
+  const handleCopy = React.useCallback(() => {
+    const dataTests = getDgd().analysis;
     dispatch(
       setTests([
         ...dataTests,
         {...test, nodeID: uuidv4(), name: `copy_${test.name}`}
       ])
     );
-  };
+  }, [test]);
 
   React.useEffect(() => {
     if (!open) {
@@ -276,4 +275,4 @@ const TestRow = (props: {test: IDataTest}) => {
       </ReactFlowProvider>
     </>
   );
-};
+});

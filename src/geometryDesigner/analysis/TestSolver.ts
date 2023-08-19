@@ -108,7 +108,6 @@ export class TestSolver implements ITestSolver {
 
   run(): void {
     if (this.running) throw new Error('Test is already running.');
-    this.test.dispatch();
     if (inWorker()) throw new Error('Task run is called in worker');
     this.resetTestStatus();
 
