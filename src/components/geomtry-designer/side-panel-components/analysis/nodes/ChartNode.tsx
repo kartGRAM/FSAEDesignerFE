@@ -34,8 +34,8 @@ export function getRFNode(
       ...rfNode.data,
       source: false,
       target: true,
-      backgroundColor: test?.done ? undefined : grey[500],
-      dialogDisabled: !test?.done,
+      backgroundColor: test?.solver.done ? undefined : grey[500],
+      dialogDisabled: !test?.solver.done,
       useDialog: () => useChartDialog({node, test, canvasUpdate})
     }
   };
@@ -109,7 +109,7 @@ function ChartContent(props: {node: IChartNode; test: ITest}) {
   const index = undefined;
 
   const pData = node.getPlotlyData(test);
-  const {caseResults, localInstances} = test;
+  const {caseResults, localInstances} = test.solver;
   if (!caseResults || !localInstances) return null;
 
   return (

@@ -15,9 +15,6 @@ export type TestResult =
 export interface ITest {
   name: string;
   description: string;
-  readonly done: boolean;
-  readonly caseResults: CaseResults | null;
-  readonly localInstances: LocalInstances | null;
 
   readonly changed: boolean;
   readonly nodeID: string;
@@ -26,9 +23,6 @@ export interface ITest {
   readonly endNode: IEndNode;
   readonly redoable: boolean;
   readonly undoable: boolean;
-  readonly running: boolean;
-
-  readonly progress: {done: number; wip: number};
 
   undoBlockPoint: string;
   addNode(node: IFlowNode): void;
@@ -44,8 +38,6 @@ export interface ITest {
   localUndo(): void;
   copySelectedNodes(): IClipboardFlowNodes;
   validate(): boolean;
-  run(): void;
-  stop(): void;
   dispatch(): void;
 
   arrange(
@@ -60,6 +52,8 @@ export interface ITest {
   readonly edgesFromTarget: {[index: string]: IDataEdge};
 
   readonly edgesFromSourceNode: {[index: string]: IDataEdge[]};
+
+  solver: ITestSolver;
 }
 
 export interface IDataTest {
@@ -75,6 +69,17 @@ export interface IDataTest {
 
 export function isDataTest(test: any): test is IDataTest {
   return isObject(test) && test.isDataTest;
+}
+
+export interface ITestSolver {
+  readonly caseResults: CaseResults | null;
+  readonly localInstances: LocalInstances | null;
+  readonly done: boolean;
+  readonly running: boolean;
+  readonly progress: {done: number; wip: number};
+
+  run(): void;
+  stop(): void;
 }
 
 export function isClipboardFlowNodes(

@@ -231,7 +231,7 @@ const TestRow = (props: {test: IDataTest}) => {
                 e.stopPropagation();
                 e.preventDefault();
               }}
-              disabled={!loadedTest || !loadedTest.done}
+              disabled={!loadedTest || !loadedTest.solver.done}
             >
               <TimeLine />
             </IconButton>

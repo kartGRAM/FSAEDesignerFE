@@ -62,7 +62,7 @@ ctx.onmessage = async (e: MessageEvent<FromParent>) => {
       };
     };
 
-    const results = await test.DFSNodes(
+    const results = await test.solver.DFSNodes(
       test.nodes[message.nodeFrom],
       solver,
       getSnapshot,
@@ -70,7 +70,6 @@ ctx.onmessage = async (e: MessageEvent<FromParent>) => {
         isCaseResults: true,
         cases: {}
       },
-
       undefined
     );
 

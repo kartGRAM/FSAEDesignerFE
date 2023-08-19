@@ -36,8 +36,8 @@ export class ChartNode extends FlowNode implements IChartNode {
 
   getPlotlyData(test: ITest): IPlotData[] {
     if (this.plotlyData) return this.plotlyData;
-    const instances = test.localInstances;
-    const results = test.caseResults;
+    const instances = test.solver.localInstances;
+    const results = test.solver.caseResults;
     if (!instances || !results) throw new Error('解析が終わっていない');
     this.plotlyData = this.data.map((data) =>
       getPlotlyData(data, results, instances)

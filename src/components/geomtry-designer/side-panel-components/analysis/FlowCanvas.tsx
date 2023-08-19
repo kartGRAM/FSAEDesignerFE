@@ -223,7 +223,7 @@ export function FlowCanvas(props: {
         setOpen(false);
       }
       if (ret === 'ok') {
-        test.stop();
+        test.solver.stop();
         dispatch(removeTest(test));
         setOpen(false);
       }
@@ -489,8 +489,8 @@ export function FlowCanvas(props: {
 
   if (tempNodes.nodes) nodes.push(...tempNodes.nodes);
   if (tempNodes.edges) edges.push(...tempNodes.edges);
-  const disabled = test.running;
-  const {wip, done} = test.progress;
+  const disabled = test.solver.running;
+  const {wip, done} = test.solver.progress;
 
   return (
     <Dialog

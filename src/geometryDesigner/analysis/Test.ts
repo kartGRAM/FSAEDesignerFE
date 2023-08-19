@@ -1,24 +1,7 @@
-/* eslint-disable no-unreachable */
 import store from '@store/store';
 import {v4 as uuidv4} from 'uuid';
-import {inWorker} from '@utils/helpers';
-import {testUpdateNotify} from '@store/reducers/uiTempGeometryDesigner';
 import {getDgd} from '@store/getDgd';
-import {KinematicSolver} from '@gd/kinematics/Solver';
-import {
-  isWorkerMessage,
-  FromParent,
-  log,
-  isCaseResults,
-  CaseResults,
-  isDoneProgress,
-  isWIP,
-  wip,
-  done
-} from '@worker/solverWorkerMessage';
-import {ISnapshot} from '@gd/analysis/ISnapshot';
 import {setTests} from '@store/reducers/dataGeometryDesigner';
-import {LocalInstances, getLocalInstances} from '@worker/getLocalInstances';
 import {IFlowNode, IDataEdge} from './FlowNode';
 import {StartNode, isStartNode, IStartNode} from './StartNode';
 import {EndNode, isEndNode, IEndNode} from './EndNode';
@@ -26,8 +9,7 @@ import {ITest, IDataTest, isDataTest, IClipboardFlowNodes} from './ITest';
 import {getFlowNode} from './RestoreData';
 import validateGraph from './ValidateGraph';
 import arrangeNodes from './ArrangeNodes';
-import {isActionNode} from './ActionNode';
-import {isCaseStartNode, isCaseEndNode, isAfterEndNode} from './TypeGuards';
+import {TestSolver} from './TestSolver';
 
 export class Test implements ITest {
   name: string;
@@ -104,7 +86,7 @@ export class Test implements ITest {
 
   getLocalStateID(): string {
     return this.localStates[this.localStates.length + this.indexOfHistory - 1]
-      .localStateID!;
+      .localStateID;
   }
 
   squashLocalStates(from: string, to: string) {
@@ -369,6 +351,31 @@ export class Test implements ITest {
     }
     this.saveLocalState();
     this.savedStateID = this.localStates[0].localStateID;
+    this.notCompletedSolver = this.createSolver();
+  }
+
+  private createSolver(): TestSolver {
+    return new TestSolver(this, (solver: TestSolver) => {
+      this.completedSolver = solver;
+      this.notCompletedSolver = this.createSolver();
+      this.completedStateID = this.getLocalStateID();
+    });
+  }
+
+  private completedSolver: TestSolver | undefined;
+
+  private notCompletedSolver: TestSolver;
+
+  private completedStateID: string | undefined;
+
+  get solver(): TestSolver {
+    if (
+      this.completedStateID === this.getLocalStateID() &&
+      this.completedSolver
+    ) {
+      return this.completedSolver;
+    }
+    return this.notCompletedSolver;
   }
 
   validate(): boolean {
@@ -383,244 +390,5 @@ export class Test implements ITest {
     )
       return false;
     return true;
-  }
-
-  private _done: boolean = false;
-
-  get done() {
-    return this._done;
-  }
-
-  private set done(value: boolean) {
-    this._done = value;
-  }
-
-  private _caseResults: CaseResults | null = null;
-
-  get caseResults() {
-    return this._caseResults;
-  }
-
-  private set caseResults(value: CaseResults | null) {
-    this._caseResults = value;
-  }
-
-  private _localInstances: LocalInstances | null = null;
-
-  get localInstances() {
-    return this._localInstances;
-  }
-
-  private set localInstances(value: LocalInstances | null) {
-    this._localInstances = value;
-  }
-
-  private _running: boolean = false;
-
-  get running() {
-    return this._running;
-  }
-
-  private set running(value: boolean) {
-    this._running = value;
-  }
-
-  private wipNodes: number = 0;
-
-  private doneNodes: number = 0;
-
-  get progress(): {done: number; wip: number} {
-    const {wipNodes, doneNodes} = this;
-    const nodes =
-      Object.values(this.nodes).filter((node) => !isAfterEndNode(node)).length -
-      1;
-    const progress = {
-      done: (doneNodes / nodes) * 100,
-      wip: (wipNodes / nodes) * 100
-    };
-    return progress;
-  }
-
-  private worker: Worker | undefined = undefined;
-
-  private resetTestStatus() {
-    if (this.worker) this.worker.terminate();
-    this.worker = undefined;
-    this.running = false;
-    this.done = false;
-    this.caseResults = null;
-    this.localInstances = null;
-    this.wipNodes = 0;
-    this.doneNodes = 0;
-  }
-
-  stop(): void {
-    this.resetTestStatus();
-    store.dispatch(testUpdateNotify(this));
-  }
-
-  run(): void {
-    if (this.running) throw new Error('Test is already running.');
-    this.dispatch();
-    if (inWorker()) throw new Error('Task run is called in worker');
-    this.resetTestStatus();
-
-    const worker = new Worker(
-      new URL('../../worker/solverWorker.ts', import.meta.url)
-    );
-
-    worker.onmessage = (e) => {
-      const {data} = e;
-      if (isWorkerMessage(data)) {
-        // eslint-disable-next-line no-console
-        console.log(`onmessage: ${data.message}`);
-      }
-      if (isCaseResults(data)) {
-        worker.terminate();
-        // プログレスバーが最後まで行くのを見たい"
-        setTimeout(() => {
-          this.resetTestStatus();
-          this.caseResults = data;
-          this.localInstances = getLocalInstances(getDgd());
-          this.done = true;
-          store.dispatch(testUpdateNotify(this));
-        }, 1000);
-      }
-      if (isDoneProgress(data)) {
-        ++this.doneNodes;
-        store.dispatch(testUpdateNotify(this));
-      }
-      if (isWIP(data)) {
-        ++this.wipNodes;
-        store.dispatch(testUpdateNotify(this));
-      }
-    };
-
-    worker.onerror = (e) => {
-      // eslint-disable-next-line no-console
-      console.log(`${e.message}`);
-      this.resetTestStatus();
-      store.dispatch(testUpdateNotify(this));
-    };
-
-    this.running = true;
-    this.done = false;
-    store.dispatch(testUpdateNotify(this));
-    this.worker = worker;
-    const fromParent: FromParent = {
-      nodeFrom: this.startNode.nodeID,
-      testID: this.nodeID,
-      state: getDgd()
-    };
-
-    worker.postMessage(fromParent);
-  }
-
-  createChildWorker(
-    nextNode: IFlowNode,
-    state: Required<ISnapshot>
-  ): Promise<CaseResults> {
-    if (!inWorker())
-      throw new Error('createChildWorker is called in main thread.');
-    return new Promise<CaseResults>((resolve) => {
-      const worker = new Worker(
-        new URL('../../worker/solverWorker.ts', import.meta.url)
-      );
-
-      worker.onmessage = (e) => {
-        const {data} = e;
-        if (isWorkerMessage(data)) {
-          log(data.message);
-        }
-        if (isCaseResults(data)) {
-          const r = data;
-          worker.terminate();
-          resolve(r);
-        }
-        if (isDoneProgress(data)) {
-          done();
-        }
-        if (isWIP(data)) {
-          wip();
-        }
-      };
-
-      worker.onerror = (e) => {
-        log(`ERR = ${e}`);
-        worker.terminate();
-        throw e;
-      };
-
-      const fromParent: FromParent = {
-        nodeFrom: nextNode.nodeID,
-        initialSnapshot: state,
-        testID: this.nodeID,
-        state: getDgd()
-      };
-      worker.postMessage(fromParent);
-    });
-  }
-
-  async DFSNodes(
-    node: IFlowNode,
-    solver: KinematicSolver,
-    getSnapshot: (solver: KinematicSolver) => Required<ISnapshot>,
-    ret: CaseResults,
-    currentCase: string | undefined
-  ): Promise<CaseResults> {
-    log(`${node.name}`);
-
-    if (isEndNode(node)) {
-      return ret;
-    }
-
-    wip();
-    if (isActionNode(node)) {
-      node.action(
-        solver,
-        getSnapshot,
-        currentCase ? ret.cases[currentCase].results : undefined
-      );
-    }
-    if (isCaseStartNode(node)) {
-      currentCase = node.nodeID;
-      ret.cases[node.nodeID] = {name: node.name, results: []};
-    }
-    if (isCaseEndNode(node)) {
-      currentCase = undefined;
-    }
-
-    const state = getSnapshot(solver);
-    const edges = [...this.edgesFromSourceNode[node.nodeID]];
-    const edge = edges.pop();
-
-    if (edge) {
-      const next = this.nodes[edge.target];
-
-      const children = edges.map((edge) => {
-        const next = this.nodes[edge.target];
-        return this.createChildWorker(next, state);
-      });
-      // solver.restoreState(state);
-      const child = this.DFSNodes(next, solver, getSnapshot, ret, currentCase);
-
-      const results: CaseResults[] = await Promise.all([...children, child]);
-
-      ret.cases = results.reduce(
-        (prev, current) => {
-          prev = {...prev, ...current.cases};
-          return prev;
-        },
-        {} as {
-          [index: string]: {
-            name: string;
-            results: Required<ISnapshot>[];
-          };
-        }
-      );
-    }
-    done();
-
-    return ret;
   }
 }

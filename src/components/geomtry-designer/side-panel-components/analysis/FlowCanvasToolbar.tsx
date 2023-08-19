@@ -19,7 +19,7 @@ export function FlowCanvasToolbar(props: {test: ITest}) {
 
   const {updateOnly} = useTestUpdate(test);
   const isValid = test.validate();
-  const {running} = test;
+  const {running} = test.solver;
 
   const [onArrange, setOnArrange] = React.useState(false);
 
@@ -54,7 +54,7 @@ export function FlowCanvasToolbar(props: {test: ITest}) {
           sx={{padding: 0.5}}
           disabled={!isValid || running}
           onClick={() => {
-            test.run();
+            test.solver.run();
           }}
         >
           <PlayArrowIcon
@@ -67,7 +67,7 @@ export function FlowCanvasToolbar(props: {test: ITest}) {
           sx={{padding: 0.5}}
           disabled={!running}
           onClick={() => {
-            test.stop();
+            test.solver.stop();
           }}
         >
           <StopIcon sx={{color: running ? '#cc0000' : undefined}} />

@@ -1,0 +1,274 @@
+import {inWorker} from '@utils/helpers';
+import {getDgd} from '@store/getDgd';
+import {testUpdateNotify} from '@store/reducers/uiTempGeometryDesigner';
+import {KinematicSolver} from '@gd/kinematics/Solver';
+import {
+  isWorkerMessage,
+  FromParent,
+  log,
+  isCaseResults,
+  CaseResults,
+  isDoneProgress,
+  isWIP,
+  wip,
+  done
+} from '@worker/solverWorkerMessage';
+import store from '@store/store';
+import {ISnapshot} from '@gd/analysis/ISnapshot';
+import {LocalInstances, getLocalInstances} from '@worker/getLocalInstances';
+import {ITest, ITestSolver} from './ITest';
+import {isActionNode} from './ActionNode';
+import {isCaseStartNode, isCaseEndNode, isAfterEndNode} from './TypeGuards';
+import {IFlowNode} from './FlowNode';
+import {isEndNode} from './EndNode';
+
+export class TestSolver implements ITestSolver {
+  constructor(test: ITest, onTestDone: (solver: TestSolver) => void) {
+    this.test = test;
+    this.onTestDone = onTestDone;
+  }
+
+  private test: ITest;
+
+  private onTestDone: (solver: TestSolver) => void;
+
+  private _done: boolean = false;
+
+  get done() {
+    return this._done;
+  }
+
+  private set done(value: boolean) {
+    this._done = value;
+  }
+
+  private _caseResults: CaseResults | null = null;
+
+  get caseResults() {
+    return this._caseResults;
+  }
+
+  private set caseResults(value: CaseResults | null) {
+    this._caseResults = value;
+  }
+
+  private _localInstances: LocalInstances | null = null;
+
+  get localInstances() {
+    return this._localInstances;
+  }
+
+  private set localInstances(value: LocalInstances | null) {
+    this._localInstances = value;
+  }
+
+  private _running: boolean = false;
+
+  get running() {
+    return this._running;
+  }
+
+  private set running(value: boolean) {
+    this._running = value;
+  }
+
+  private wipNodes: number = 0;
+
+  private doneNodes: number = 0;
+
+  get progress(): {done: number; wip: number} {
+    const {wipNodes, doneNodes} = this;
+    const nodes =
+      Object.values(this.test.nodes).filter((node) => !isAfterEndNode(node))
+        .length - 1;
+    const progress = {
+      done: (doneNodes / nodes) * 100,
+      wip: (wipNodes / nodes) * 100
+    };
+    return progress;
+  }
+
+  private worker: Worker | undefined = undefined;
+
+  private resetTestStatus() {
+    if (this.worker) this.worker.terminate();
+    this.worker = undefined;
+    this.running = false;
+    this.done = false;
+    this.caseResults = null;
+    this.localInstances = null;
+    this.wipNodes = 0;
+    this.doneNodes = 0;
+  }
+
+  stop(): void {
+    this.resetTestStatus();
+    store.dispatch(testUpdateNotify(this.test));
+  }
+
+  run(): void {
+    if (this.running) throw new Error('Test is already running.');
+    this.test.dispatch();
+    if (inWorker()) throw new Error('Task run is called in worker');
+    this.resetTestStatus();
+
+    const worker = new Worker(
+      new URL('../../worker/solverWorker.ts', import.meta.url)
+    );
+
+    worker.onmessage = (e) => {
+      const {data} = e;
+      if (isWorkerMessage(data)) {
+        // eslint-disable-next-line no-console
+        console.log(`onmessage: ${data.message}`);
+      }
+      if (isCaseResults(data)) {
+        worker.terminate();
+        // プログレスバーが最後まで行くのを見たい"
+        setTimeout(() => {
+          this.resetTestStatus();
+          this.caseResults = data;
+          this.localInstances = getLocalInstances(getDgd());
+          this.done = true;
+          this.onTestDone(this);
+          store.dispatch(testUpdateNotify(this.test));
+        }, 1000);
+      }
+      if (isDoneProgress(data)) {
+        ++this.doneNodes;
+        store.dispatch(testUpdateNotify(this.test));
+      }
+      if (isWIP(data)) {
+        ++this.wipNodes;
+        store.dispatch(testUpdateNotify(this.test));
+      }
+    };
+
+    worker.onerror = (e) => {
+      // eslint-disable-next-line no-console
+      console.log(`${e.message}`);
+      this.resetTestStatus();
+      store.dispatch(testUpdateNotify(this.test));
+    };
+
+    this.running = true;
+    this.done = false;
+    store.dispatch(testUpdateNotify(this.test));
+    this.worker = worker;
+    const fromParent: FromParent = {
+      nodeFrom: this.test.startNode.nodeID,
+      testID: this.test.nodeID,
+      state: getDgd()
+    };
+
+    worker.postMessage(fromParent);
+  }
+
+  createChildWorker(
+    nextNode: IFlowNode,
+    state: Required<ISnapshot>
+  ): Promise<CaseResults> {
+    if (!inWorker())
+      throw new Error('createChildWorker is called in main thread.');
+    return new Promise<CaseResults>((resolve) => {
+      const worker = new Worker(
+        new URL('../../worker/solverWorker.ts', import.meta.url)
+      );
+
+      worker.onmessage = (e) => {
+        const {data} = e;
+        if (isWorkerMessage(data)) {
+          log(data.message);
+        }
+        if (isCaseResults(data)) {
+          const r = data;
+          worker.terminate();
+          resolve(r);
+        }
+        if (isDoneProgress(data)) {
+          done();
+        }
+        if (isWIP(data)) {
+          wip();
+        }
+      };
+
+      worker.onerror = (e) => {
+        log(`ERR = ${e}`);
+        worker.terminate();
+        throw e;
+      };
+
+      const fromParent: FromParent = {
+        nodeFrom: nextNode.nodeID,
+        initialSnapshot: state,
+        testID: this.test.nodeID,
+        state: getDgd()
+      };
+      worker.postMessage(fromParent);
+    });
+  }
+
+  async DFSNodes(
+    node: IFlowNode,
+    solver: KinematicSolver,
+    getSnapshot: (solver: KinematicSolver) => Required<ISnapshot>,
+    ret: CaseResults,
+    currentCase: string | undefined
+  ): Promise<CaseResults> {
+    log(`${node.name}`);
+
+    if (isEndNode(node)) {
+      return ret;
+    }
+
+    wip();
+    if (isActionNode(node)) {
+      node.action(
+        solver,
+        getSnapshot,
+        currentCase ? ret.cases[currentCase].results : undefined
+      );
+    }
+    if (isCaseStartNode(node)) {
+      currentCase = node.nodeID;
+      ret.cases[node.nodeID] = {name: node.name, results: []};
+    }
+    if (isCaseEndNode(node)) {
+      currentCase = undefined;
+    }
+
+    const state = getSnapshot(solver);
+    const edges = [...this.test.edgesFromSourceNode[node.nodeID]];
+    const edge = edges.pop();
+
+    if (edge) {
+      const next = this.test.nodes[edge.target];
+
+      const children = edges.map((edge) => {
+        const next = this.test.nodes[edge.target];
+        return this.createChildWorker(next, state);
+      });
+      // solver.restoreState(state);
+      const child = this.DFSNodes(next, solver, getSnapshot, ret, currentCase);
+
+      const results: CaseResults[] = await Promise.all([...children, child]);
+
+      ret.cases = results.reduce(
+        (prev, current) => {
+          prev = {...prev, ...current.cases};
+          return prev;
+        },
+        {} as {
+          [index: string]: {
+            name: string;
+            results: Required<ISnapshot>[];
+          };
+        }
+      );
+    }
+    done();
+
+    return ret;
+  }
+}
