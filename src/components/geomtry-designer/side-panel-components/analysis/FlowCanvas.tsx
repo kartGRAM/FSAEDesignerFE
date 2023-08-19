@@ -69,24 +69,167 @@ const edgeTypes = {
   default: CustomSmoothStepEdge
 } as const;
 
-export function FlowCanvas(props: {
-  nodeID: string;
-  open: boolean;
-  setOpen: (open: boolean) => void;
-}) {
-  const {nodeID, open, setOpen} = props;
+export const FlowCanvas = React.memo(
+  (props: {
+    nodeID: string;
+    open: boolean;
+    setOpen: (open: boolean) => void;
+  }) => {
+    const {nodeID, open, setOpen} = props;
+    const {uitgd} = store.getState();
+    const zIndexFlowCanvas = uitgd.fullScreenZIndex + uitgd.dialogZIndex;
 
-  const zIndexFlowCanvas = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex
-  );
-  const zIndexConfirm = useSelector(
-    (state: RootState) =>
-      state.uitgd.fullScreenZIndex + state.uitgd.dialogZIndex * 2
-  );
-  const test = useSelector((state: RootState) =>
-    state.uitgd.tests.find((t) => t.nodeID === nodeID)
-  );
+    const dispatch = useDispatch();
+
+    React.useEffect(() => {
+      if (open) dispatch(setAllUIDisabled(true));
+      else dispatch(setAllUIDisabled(false));
+      return () => {
+        dispatch(setAllUIDisabled(false));
+      };
+    }, [open]);
+
+    const test = uitgd.tests.find((t) => t.nodeID === nodeID);
+    const {updateOnly} = useTestUpdate(test);
+
+    const handleCancel = React.useCallback(async () => {
+      if (test?.changed) {
+        const ret = await new Promise<string>((resolve) => {
+          const {uitgd} = store.getState();
+          const zIndexConfirm = uitgd.fullScreenZIndex + uitgd.dialogZIndex * 2;
+          dispatch(
+            setConfirmDialogProps({
+              zindex: zIndexConfirm,
+              onClose: resolve,
+              title: 'Warning',
+              message: `All changes will not be saved. Do you save?`,
+              buttons: [
+                {text: 'Dismiss', res: 'ok'},
+                {text: 'Save', res: 'save'},
+                {text: 'Cancel', res: 'cancel', autoFocus: true}
+              ]
+            })
+          );
+        });
+        dispatch(setConfirmDialogProps(undefined));
+        if (ret === 'save') {
+          handleApply();
+          setOpen(false);
+        }
+        if (ret === 'ok') {
+          test.solver.stop();
+          dispatch(removeTest(test));
+          setOpen(false);
+        }
+      } else {
+        setOpen(false);
+      }
+    }, [test]);
+
+    const handleClose = React.useCallback(
+      async (_: any, reason: string) => {
+        if (reason === 'escapeKeyDown') return;
+        await handleCancel();
+      },
+      [handleCancel]
+    );
+
+    const handleApply = React.useCallback(() => {
+      test?.dispatch();
+    }, [test]);
+
+    const handleOK = React.useCallback(() => {
+      handleApply();
+      handleCancel();
+    }, [handleApply, handleCancel]);
+
+    const handleKeyDown = async (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.ctrlKey) {
+        if (e.key === 'z') undo();
+        else if (e.key === 'y') redo();
+      }
+    };
+
+    const redo = React.useCallback(() => {
+      if (!test) return;
+      test.localRedo();
+      updateOnly();
+    }, [test, updateOnly]);
+
+    const undo = React.useCallback(() => {
+      if (!test) return;
+      test.localUndo();
+      updateOnly();
+    }, [test, updateOnly]);
+
+    if (!test) return null;
+
+    const disabled = test.solver.running;
+    const window = document.getElementById('gdAppArea');
+
+    return (
+      <Dialog
+        TransitionProps={{unmountOnExit: true}}
+        container={window}
+        onClose={handleClose}
+        open={open}
+        maxWidth={false}
+        sx={{
+          position: 'absolute',
+          zIndex: `${zIndexFlowCanvas}!important`,
+          overflow: 'hidden'
+        }}
+        PaperProps={{
+          sx: {width: 'calc(100% - 10rem)', height: 'calc(100% - 10rem)'}
+        }}
+        onKeyDown={handleKeyDown}
+      >
+        <Box
+          component="div"
+          sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'end',
+            pb: 0.5
+          }}
+        >
+          <Box component="div" sx={{display: 'flex', flexDirection: 'column'}}>
+            <TestName test={test} disabled={disabled} />
+            <TestDescription test={test} disabled={disabled} />
+          </Box>
+          <FlowCanvasToolbar test={test} />
+        </Box>
+        <DialogContent
+          sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            pt: 0,
+            position: 'relative'
+          }}
+        >
+          <Content test={test} />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleApply} disabled={!test.changed}>
+            Apply
+          </Button>
+          <Button onClick={handleOK} disabled={!test.changed}>
+            OK
+          </Button>
+          <Button onClick={handleCancel}>Cancel</Button>
+        </DialogActions>
+      </Dialog>
+    );
+  }
+);
+
+const Content = React.memo((props: {test: ITest}) => {
+  const {test} = props;
+
+  const dispatch = useDispatch();
+  const {updateWithSave} = useTestUpdate(test);
+  const update = useUpdate();
+
   const variant = useSelector(
     (state: RootState) =>
       state.uigd.present.analysisPanelState.flowCanvasBackgroundVariant
@@ -106,10 +249,6 @@ export function FlowCanvas(props: {
   const [overDelete, setOverDelete] = React.useState(false);
   const ref = React.useRef<HTMLDivElement>(null);
   const edgeUpdateSuccessful = React.useRef(true);
-
-  const dispatch = useDispatch();
-  const {updateWithSave, updateOnly} = useTestUpdate(test);
-  const update = useUpdate();
 
   const onEdgeUpdateStart = useCallback(() => {
     edgeUpdateSuccessful.current = false;
@@ -134,24 +273,11 @@ export function FlowCanvas(props: {
   };
 
   React.useEffect(() => {
-    if (open) dispatch(setAllUIDisabled(true));
-    else dispatch(setAllUIDisabled(false));
-    return () => {
-      dispatch(setAllUIDisabled(false));
-    };
-  }, [open]);
-
-  React.useEffect(() => {
     if (dragging === false && overDelete) setOverDelete(false);
   }, [dragging, overDelete]);
 
   if (tempNodes.nodes.length && !pasting && !draggingNewNode)
     setTempNodes({nodes: [], edges: []});
-  if (!test) return null;
-
-  // ******************************************************************
-  // これより下にhookはNG
-  // ******************************************************************
 
   const onNodesChange = (changes: NodeChange[]) => {
     const needToUpdate = {_: false};
@@ -199,52 +325,6 @@ export function FlowCanvas(props: {
   };
 
   const {nodes, edges} = getRFNodesAndEdges(test, update);
-
-  const handleCancel = async () => {
-    if (test.changed) {
-      const ret = await new Promise<string>((resolve) => {
-        dispatch(
-          setConfirmDialogProps({
-            zindex: zIndexConfirm,
-            onClose: resolve,
-            title: 'Warning',
-            message: `All changes will not be saved. Do you save?`,
-            buttons: [
-              {text: 'Dismiss', res: 'ok'},
-              {text: 'Save', res: 'save'},
-              {text: 'Cancel', res: 'cancel', autoFocus: true}
-            ]
-          })
-        );
-      });
-      dispatch(setConfirmDialogProps(undefined));
-      if (ret === 'save') {
-        handleApply();
-        setOpen(false);
-      }
-      if (ret === 'ok') {
-        test.solver.stop();
-        dispatch(removeTest(test));
-        setOpen(false);
-      }
-    } else {
-      setOpen(false);
-    }
-  };
-
-  const handleApply = () => {
-    test.dispatch();
-  };
-
-  const handleOK = () => {
-    handleApply();
-    handleCancel();
-  };
-
-  const handleClose = async (_: any, reason: string) => {
-    if (reason === 'escapeKeyDown') return;
-    await handleCancel();
-  };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (ref.current) {
@@ -328,40 +408,6 @@ export function FlowCanvas(props: {
     if (!dragging) setDragging(true);
   };
 
-  const deleteNode = async (nodeID: string): Promise<boolean> => {
-    const item = test.nodes[nodeID];
-    if (item) {
-      if (item.className === STARTNODE || item.className === ENDNODE)
-        return false;
-      if (!item.isInitialState) {
-        const ret = await new Promise<string>((resolve) => {
-          dispatch(
-            setConfirmDialogProps({
-              zindex: zIndexConfirm,
-              onClose: resolve,
-              title: 'Warning',
-              message: `Once you delete a node, it cannot be restored.`,
-              buttons: [
-                {text: 'OK', res: 'ok'},
-                {text: 'Cancel', res: 'cancel', autoFocus: true}
-              ]
-            })
-          );
-        });
-        dispatch(setConfirmDialogProps(undefined));
-        if (ret === 'ok') {
-          test.removeNode(item);
-          return true;
-        }
-        return false;
-      }
-      test.removeNode(item);
-
-      return true;
-    }
-    return false;
-  };
-
   const handleDragEnd = async (_: any, __: any, nodes: Node[]) => {
     if (overDelete) {
       let needToSave = false;
@@ -381,65 +427,58 @@ export function FlowCanvas(props: {
     setDragging(false);
   };
 
-  const handleKeyDown = async (e: React.KeyboardEvent<HTMLDivElement>) => {
-    // e.preventDefault();
-    if (e.ctrlKey) {
-      if (e.key === 'z') undo();
-      else if (e.key === 'y') redo();
-      else if (e.key === 'c') copy();
-      else if (e.key === 'v') paste();
-    } else if (e.key === 'Escape') {
-      const needToUpdate = {_: false};
-      Object.values(test.nodes).forEach((node) => {
-        if (node.selected) {
-          node.selected = false;
-          needToUpdate._ = true;
+  const deleteNode = React.useCallback(
+    async (nodeID: string): Promise<boolean> => {
+      const item = test.nodes[nodeID];
+      if (item) {
+        if (item.className === STARTNODE || item.className === ENDNODE)
+          return false;
+        if (!item.isInitialState) {
+          const ret = await new Promise<string>((resolve) => {
+            const {uitgd} = store.getState();
+            const zIndexConfirm =
+              uitgd.fullScreenZIndex + uitgd.dialogZIndex * 2;
+            dispatch(
+              setConfirmDialogProps({
+                zindex: zIndexConfirm,
+                onClose: resolve,
+                title: 'Warning',
+                message: `Once you delete a node, it cannot be restored.`,
+                buttons: [
+                  {text: 'OK', res: 'ok'},
+                  {text: 'Cancel', res: 'cancel', autoFocus: true}
+                ]
+              })
+            );
+          });
+          dispatch(setConfirmDialogProps(undefined));
+          if (ret === 'ok') {
+            test.removeNode(item);
+            return true;
+          }
+          return false;
         }
-      });
-      if (pasting) setPasting(false);
-      else if (needToUpdate._) update();
-    } else if (e.key === 'Delete') {
-      const changed = {_: false};
-      await Object.values(test.nodes).forEach(async (node) => {
-        if (node.selected) {
-          const result = await deleteNode(node.nodeID);
-          if (result) changed._ = true;
-        }
-      });
-      await Object.values(test.edges).forEach(async (edge) => {
-        if (edge.selected) {
-          test.removeEdge(edge);
-          changed._ = true;
-        }
-      });
-      if (changed._) {
-        updateWithSave();
+        test.removeNode(item);
+
+        return true;
       }
-    }
-  };
+      return false;
+    },
+    [test]
+  );
 
-  const redo = () => {
-    test.localRedo();
-    updateOnly();
-  };
-
-  const undo = () => {
-    test.localUndo();
-    updateOnly();
-  };
-
-  const copy = async () => {
-    const item = test.copySelectedNodes();
-    if (item.nodes.length) {
+  const copy = React.useCallback(async () => {
+    const item = test?.copySelectedNodes();
+    if (item?.nodes.length) {
       const data = getJsonFromClipboardFlowNodes(item);
       await navigator.clipboard.writeText(data);
     }
-  };
+  }, [test]);
 
   const paste = async () => {
     const data = await navigator.clipboard.readText();
     const item = convertJsonToClipboardFlowNodes(data);
-    if (item) {
+    if (item && test) {
       const nodesAndEdges = getRFFlowNodesFromClipboard(item, test.nodes);
       const minX = nodesAndEdges.nodes.reduce(
         (prev, node) => Math.min(prev, node.position.x),
@@ -484,8 +523,42 @@ export function FlowCanvas(props: {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const window = document.getElementById('gdAppArea');
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLDivElement>) => {
+    // e.preventDefault();
+    if (e.ctrlKey) {
+      if (e.key === 'c') copy();
+      else if (e.key === 'v') paste();
+    } else if (e.key === 'Escape') {
+      const needToUpdate = {_: false};
+      if (test) {
+        Object.values(test.nodes).forEach((node) => {
+          if (node.selected) {
+            node.selected = false;
+            needToUpdate._ = true;
+          }
+        });
+      }
+      if (pasting) setPasting(false);
+      else if (needToUpdate._) update();
+    } else if (e.key === 'Delete') {
+      const changed = {_: false};
+      await Object.values(test.nodes).forEach(async (node) => {
+        if (node.selected) {
+          const result = await deleteNode(node.nodeID);
+          if (result) changed._ = true;
+        }
+      });
+      await Object.values(test.edges).forEach(async (edge) => {
+        if (edge.selected) {
+          test.removeEdge(edge);
+          changed._ = true;
+        }
+      });
+      if (changed._) {
+        updateWithSave();
+      }
+    }
+  };
 
   if (tempNodes.nodes) nodes.push(...tempNodes.nodes);
   if (tempNodes.edges) edges.push(...tempNodes.edges);
@@ -493,151 +566,109 @@ export function FlowCanvas(props: {
   const {wip, done} = test.solver.progress;
 
   return (
-    <Dialog
-      TransitionProps={{unmountOnExit: true}}
-      container={window}
-      onClose={handleClose}
-      open={open}
-      maxWidth={false}
-      sx={{
-        position: 'absolute',
-        zIndex: `${zIndexFlowCanvas}!important`,
-        overflow: 'hidden'
-      }}
-      PaperProps={{
-        sx: {width: 'calc(100% - 10rem)', height: 'calc(100% - 10rem)'}
-      }}
-      onKeyDown={handleKeyDown}
-    >
+    <>
+      <ItemBox />
       <Box
+        onKeyDown={handleKeyDown}
         component="div"
-        sx={{display: 'flex', flexDirection: 'row', alignItems: 'end', pb: 0.5}}
-      >
-        <Box component="div" sx={{display: 'flex', flexDirection: 'column'}}>
-          <TestName test={test} disabled={disabled} />
-          <TestDescription test={test} disabled={disabled} />
-        </Box>
-        <FlowCanvasToolbar test={test} />
-      </Box>
-      <DialogContent
         sx={{
-          display: 'flex',
-          flexDirection: 'row',
-          pt: 0,
-          position: 'relative'
+          flexGrow: 1,
+          border: '2px solid #aaa',
+          '& .react-flow *': draggingNewNode
+            ? {pointerEvents: 'none!important'}
+            : undefined
         }}
       >
-        <ItemBox />
-        <Box
-          component="div"
-          sx={{
-            flexGrow: 1,
-            border: '2px solid #aaa',
-            '& .react-flow *': draggingNewNode
-              ? {pointerEvents: 'none!important'}
-              : undefined
-          }}
+        <ReactFlow
+          ref={ref}
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          fitView
+          fitViewOptions={fitViewOptions}
+          onNodeDrag={handleDrag}
+          onSelectionDrag={handleDrag}
+          onNodeDragStop={handleDragEnd}
+          onSelectionDragStop={async (e, nodes) =>
+            handleDragEnd(e, undefined, nodes)
+          }
+          onMouseMove={handleMouseMove}
+          onClick={handleClick}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+          onEdgeUpdate={onEdgeUpdate}
+          onEdgeUpdateStart={onEdgeUpdateStart}
+          onEdgeUpdateEnd={onEdgeUpdateEnd}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          connectionLineType={ConnectionLineType.SmoothStep}
+          connectionLineStyle={{strokeWidth: 5}}
+          multiSelectionKeyCode="Control"
         >
-          <ReactFlow
-            ref={ref}
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            fitView
-            fitViewOptions={fitViewOptions}
-            onNodeDrag={handleDrag}
-            onSelectionDrag={handleDrag}
-            onNodeDragStop={handleDragEnd}
-            onSelectionDragStop={async (e, nodes) =>
-              handleDragEnd(e, undefined, nodes)
-            }
-            onMouseMove={handleMouseMove}
-            onClick={handleClick}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            onEdgeUpdate={onEdgeUpdate}
-            onEdgeUpdateStart={onEdgeUpdateStart}
-            onEdgeUpdateEnd={onEdgeUpdateEnd}
-            nodeTypes={nodeTypes}
-            edgeTypes={edgeTypes}
-            connectionLineType={ConnectionLineType.SmoothStep}
-            connectionLineStyle={{strokeWidth: 5}}
-            multiSelectionKeyCode="Control"
-          >
-            <Background color="#99b3ec" variant={variant} />
-            <MiniMap nodeStrokeWidth={3} zoomable pannable />
-            <Panel position="top-center" style={{width: '50%', margin: '0px'}}>
-              <Fade in={dragging} unmountOnExit>
-                <Box
-                  component="div"
-                  onMouseOver={() => {
-                    setOverDelete(true);
-                  }}
-                  onMouseLeave={() => {
-                    setOverDelete(false);
-                  }}
-                  sx={{
-                    height: '20%',
-                    p: 3,
-                    borderRadius: '0% 0% 30px 30px',
-                    bgcolor: alpha('#000', 0.7),
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    color: 'white',
-                    '&:hover': {
-                      bgcolor: alpha('#A00', 0.9),
-                      color: 'white'
-                    }
-                  }}
-                >
-                  <DeleteForeverIcon fontSize="large" />
-                  <Typography>Remove</Typography>
-                </Box>
-              </Fade>
-            </Panel>
-            <Controls />
-          </ReactFlow>
-        </Box>
-        <Box
-          component="div"
-          sx={{
-            backgroundColor: alpha('#000', 0.3),
-            position: 'absolute',
-            right: 0,
-            bottom: 0,
-            top: 0,
-            left: 0,
-            display: disabled ? 'flex' : 'none',
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}
-        >
-          <Paper sx={{minWidth: '70%', minHeight: '10%'}}>
-            <LinearProgress
-              variant="buffer"
-              value={done}
-              valueBuffer={wip}
-              sx={{m: 5}}
-            />
-          </Paper>
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleApply} disabled={!test.changed}>
-          Apply
-        </Button>
-        <Button onClick={handleOK} disabled={!test.changed}>
-          OK
-        </Button>
-        <Button onClick={handleCancel}>Cancel</Button>
-      </DialogActions>
-    </Dialog>
+          <Background color="#99b3ec" variant={variant} />
+          <MiniMap nodeStrokeWidth={3} zoomable pannable />
+          <Panel position="top-center" style={{width: '50%', margin: '0px'}}>
+            <Fade in={dragging} unmountOnExit>
+              <Box
+                component="div"
+                onMouseOver={() => {
+                  setOverDelete(true);
+                }}
+                onMouseLeave={() => {
+                  setOverDelete(false);
+                }}
+                sx={{
+                  height: '20%',
+                  p: 3,
+                  borderRadius: '0% 0% 30px 30px',
+                  bgcolor: alpha('#000', 0.7),
+                  display: 'flex',
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  color: 'white',
+                  '&:hover': {
+                    bgcolor: alpha('#A00', 0.9),
+                    color: 'white'
+                  }
+                }}
+              >
+                <DeleteForeverIcon fontSize="large" />
+                <Typography>Remove</Typography>
+              </Box>
+            </Fade>
+          </Panel>
+          <Controls />
+        </ReactFlow>
+      </Box>
+      <Box
+        component="div"
+        sx={{
+          backgroundColor: alpha('#000', 0.3),
+          position: 'absolute',
+          right: 0,
+          bottom: 0,
+          top: 0,
+          left: 0,
+          display: disabled ? 'flex' : 'none',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}
+      >
+        <Paper sx={{minWidth: '70%', minHeight: '10%'}}>
+          <LinearProgress
+            variant="buffer"
+            value={done}
+            valueBuffer={wip}
+            sx={{m: 5}}
+          />
+        </Paper>
+      </Box>
+    </>
   );
-}
+});
 
 function getRFNodesAndEdges(
   test: ITest,

@@ -1,3 +1,4 @@
+import * as React from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 import {
   saveTestLocalState,
@@ -13,11 +14,11 @@ export default function useTestUpdate(test: ITest | undefined) {
   );
   const dispatch = useDispatch();
   return {
-    updateWithSave: () => {
+    updateWithSave: React.useCallback(() => {
       if (test) dispatch(saveTestLocalState(test));
-    },
-    updateOnly: () => {
+    }, [test]),
+    updateOnly: React.useCallback(() => {
       if (test) dispatch(testUpdateNotify(test));
-    }
+    }, [test])
   };
 }
