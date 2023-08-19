@@ -45,6 +45,7 @@ import {v4 as uuidv4} from 'uuid';
 import useTestUpdate from '@hooks/useTestUpdate';
 import {ITest} from '@gd/analysis/ITest';
 
+import useUpdateEffect from '@hooks/useUpdateEffect';
 import {ItemBox} from './ItemBox';
 import CircleNode from './CircleNode';
 import CardNode from './CardNode';
@@ -92,7 +93,7 @@ export const FlowCanvas = React.memo(
     const test = uitgd.tests.find((t) => t.nodeID === nodeID);
     const {updateOnly} = useTestUpdate(test);
 
-    const handleCancel = React.useCallback(async () => {
+    const handleCancel = useCallback(async () => {
       if (test?.changed) {
         const ret = await new Promise<string>((resolve) => {
           const {uitgd} = store.getState();
@@ -126,7 +127,7 @@ export const FlowCanvas = React.memo(
       }
     }, [test]);
 
-    const handleClose = React.useCallback(
+    const handleClose = useCallback(
       async (_: any, reason: string) => {
         if (reason === 'escapeKeyDown') return;
         await handleCancel();
@@ -134,28 +135,28 @@ export const FlowCanvas = React.memo(
       [handleCancel]
     );
 
-    const handleApply = React.useCallback(() => {
+    const handleApply = useCallback(() => {
       test?.dispatch();
     }, [test]);
 
-    const handleOK = React.useCallback(() => {
+    const handleOK = useCallback(() => {
       handleApply();
       handleCancel();
     }, [handleApply, handleCancel]);
 
-    const redo = React.useCallback(() => {
+    const redo = useCallback(() => {
       if (!test) return;
       test.localRedo();
       updateOnly();
     }, [test, updateOnly]);
 
-    const undo = React.useCallback(() => {
+    const undo = useCallback(() => {
       if (!test) return;
       test.localUndo();
       updateOnly();
     }, [test, updateOnly]);
 
-    const handleKeyDown = React.useCallback(
+    const handleKeyDown = useCallback(
       async (e: React.KeyboardEvent<HTMLDivElement>) => {
         if (e.ctrlKey) {
           if (e.key === 'z') undo();
@@ -257,102 +258,124 @@ const Content = React.memo((props: {test: ITest}) => {
     edgeUpdateSuccessful.current = false;
   }, []);
 
-  const onEdgeUpdate = (oldEdge: Edge, connection: Connection) => {
-    const edge = test?.edges[oldEdge.id];
-    if (!test || !edge) return;
-    if (!connection.source || !connection.target) return;
-    edgeUpdateSuccessful.current = true;
-    if (!test.tryConnect(connection.source, connection.target)) return;
-    test.removeEdge(edge);
-    updateWithSave();
-  };
-
-  const onEdgeUpdateEnd = (_: MouseEvent | TouchEvent, edge: Edge) => {
-    if (!edgeUpdateSuccessful.current && test) {
+  const onEdgeUpdate = useCallback(
+    (oldEdge: Edge, connection: Connection) => {
+      const edge = test.edges[oldEdge.id];
+      if (!edge) return;
+      if (!connection.source || !connection.target) return;
+      edgeUpdateSuccessful.current = true;
+      if (!test.tryConnect(connection.source, connection.target)) return;
       test.removeEdge(edge);
       updateWithSave();
-    }
-    edgeUpdateSuccessful.current = true;
-  };
+    },
+    [test, updateWithSave]
+  );
 
-  React.useEffect(() => {
+  const onEdgeUpdateEnd = useCallback(
+    (_: MouseEvent | TouchEvent, edge: Edge) => {
+      if (!edgeUpdateSuccessful.current) {
+        test.removeEdge(edge);
+        updateWithSave();
+      }
+      edgeUpdateSuccessful.current = true;
+    },
+    [test, updateWithSave]
+  );
+
+  useUpdateEffect(() => {
     if (dragging === false && overDelete) setOverDelete(false);
   }, [dragging, overDelete]);
 
   if (tempNodes.nodes.length && !pasting && !draggingNewNode)
     setTempNodes({nodes: [], edges: []});
 
-  const onNodesChange = (changes: NodeChange[]) => {
-    const needToUpdate = {_: false};
-    changes.forEach((change) => {
-      if (change.type === 'add' || change.type === 'reset') return;
-      const item = test.nodes[change.id];
-      if (!item) return;
-      if (change.type === 'select') {
-        item.selected = change.selected;
-        test.addNode(item);
-        needToUpdate._ = true;
-      } else if (change.type === 'position' && change.position) {
-        item.position = {...change.position};
-        item.extraFlags = {...item.extraFlags, moved: true};
-        test.addNode(item);
-        needToUpdate._ = true;
-      } else {
-        // console.log(change.type);
-      }
-    });
-
-    if (needToUpdate._) update();
-  };
-
-  const onEdgesChange = (changes: EdgeChange[]) => {
-    const needToUpdate = {_: false};
-    changes.forEach((change) => {
-      if (change.type === 'select') {
-        const item = test?.edges[change.id];
+  const onNodesChange = React.useCallback(
+    (changes: NodeChange[]) => {
+      const needToUpdate = {_: false};
+      changes.forEach((change) => {
+        if (change.type === 'add' || change.type === 'reset') return;
+        const item = test.nodes[change.id];
         if (!item) return;
-        item.selected = change.selected;
-        needToUpdate._ = true;
-      } else {
-        // console.log(change.type);
-      }
-    });
+        if (change.type === 'select') {
+          item.selected = change.selected;
+          test.addNode(item);
+          needToUpdate._ = true;
+        } else if (change.type === 'position' && change.position) {
+          item.position = {...change.position};
+          item.extraFlags = {...item.extraFlags, moved: true};
+          test.addNode(item);
+          needToUpdate._ = true;
+        } else {
+          // console.log(change.type);
+        }
+      });
 
-    if (needToUpdate._) update();
-  };
+      if (needToUpdate._) update();
+    },
+    [test]
+  );
 
-  const onConnect = (connection: Connection) => {
-    if (!connection.source || !connection.target) return;
-    test.tryConnect(connection.source, connection.target);
-    updateWithSave();
-  };
+  const onEdgesChange = useCallback(
+    (changes: EdgeChange[]) => {
+      const needToUpdate = {_: false};
+      changes.forEach((change) => {
+        if (change.type === 'select') {
+          const item = test.edges[change.id];
+          if (!item) return;
+          item.selected = change.selected;
+          needToUpdate._ = true;
+        } else {
+          // console.log(change.type);
+        }
+      });
+
+      if (needToUpdate._) update();
+    },
+    [test]
+  );
+
+  const onConnect = useCallback(
+    (connection: Connection) => {
+      if (!connection.source || !connection.target) return;
+      test.tryConnect(connection.source, connection.target);
+      updateWithSave();
+    },
+    [test, updateWithSave]
+  );
 
   const {nodes, edges} = getRFNodesAndEdges(test, update);
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (ref.current) {
-      const {top, left} = ref.current.getBoundingClientRect();
-      const x = (e.clientX - left - viewX) / zoom;
-      const y = (e.clientY - top - viewY) / zoom;
-      mousePosition.current = {x, y};
-    }
-    if (tempNodes.nodes.length) {
-      const {x, y} = mousePosition.current;
-      setTempNodes((prev) => ({
-        nodes: prev.nodes.map((node) => ({
-          ...node,
-          position: {x: x + node.data.offset.x, y: y + node.data.offset.y}
-        })),
-        edges: prev.edges
-      }));
-    }
-  };
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (ref.current) {
+        const {top, left} = ref.current.getBoundingClientRect();
+        const x = (e.clientX - left - viewX) / zoom;
+        const y = (e.clientY - top - viewY) / zoom;
+        mousePosition.current = {x, y};
+      }
+      if (
+        tempNodes.nodes.length &&
+        !store.getState().uitgd.draggingNewTestFlowNode
+      ) {
+        const {x, y} = mousePosition.current;
+        setTempNodes((prev) => ({
+          nodes: prev.nodes.map((node) => ({
+            ...node,
+            position: {x: x + node.data.offset.x, y: y + node.data.offset.y}
+          })),
+          edges: prev.edges
+        }));
+      }
+    },
+    [ref, mousePosition, viewX, viewY, zoom, tempNodes]
+  );
 
-  const handleClick = async () => {
+  const handleClick = useCallback(async () => {
     // Dialog以下のテキストフィールドのフォーカスが得られなくなるので、
     // Dialog以下のStopPropergationが必須になる
     document.getSelection()?.removeAllRanges();
     if (!pasting) return;
+    // コピー&ペーストのペースト時に実行
     const data = await navigator.clipboard.readText();
     const item = convertJsonToClipboardFlowNodes(data);
     if (item) {
@@ -373,7 +396,8 @@ const Content = React.memo((props: {test: ITest}) => {
     }
     setTempNodes({nodes: [], edges: []});
     setPasting(false);
-  };
+    updateWithSave();
+  }, [test, tempNodes, pasting, updateWithSave]);
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -404,12 +428,12 @@ const Content = React.memo((props: {test: ITest}) => {
     const x = (e.clientX - left - viewX) / zoom;
     const y = (e.clientY - top - viewY) / zoom;
     test.addNode(item.onDrop({x, y}, false));
-    test.saveLocalState();
+    updateWithSave();
   };
 
-  const handleDrag = () => {
+  const handleDrag = useCallback(() => {
     if (!dragging) setDragging(true);
-  };
+  }, [dragging]);
 
   const handleDragEnd = async (_: any, __: any, nodes: Node[]) => {
     if (overDelete) {
@@ -430,7 +454,7 @@ const Content = React.memo((props: {test: ITest}) => {
     setDragging(false);
   };
 
-  const deleteNode = React.useCallback(
+  const deleteNode = useCallback(
     async (nodeID: string): Promise<boolean> => {
       const item = test.nodes[nodeID];
       if (item) {
@@ -470,9 +494,9 @@ const Content = React.memo((props: {test: ITest}) => {
     [test]
   );
 
-  const copy = React.useCallback(async () => {
-    const item = test?.copySelectedNodes();
-    if (item?.nodes.length) {
+  const copy = useCallback(async () => {
+    const item = test.copySelectedNodes();
+    if (item.nodes.length) {
       const data = getJsonFromClipboardFlowNodes(item);
       await navigator.clipboard.writeText(data);
     }
@@ -481,7 +505,7 @@ const Content = React.memo((props: {test: ITest}) => {
   const paste = async () => {
     const data = await navigator.clipboard.readText();
     const item = convertJsonToClipboardFlowNodes(data);
-    if (item && test) {
+    if (item) {
       const nodesAndEdges = getRFFlowNodesFromClipboard(item, test.nodes);
       const minX = nodesAndEdges.nodes.reduce(
         (prev, node) => Math.min(prev, node.position.x),
@@ -545,18 +569,20 @@ const Content = React.memo((props: {test: ITest}) => {
       else if (needToUpdate._) update();
     } else if (e.key === 'Delete') {
       const changed = {_: false};
-      await Object.values(test.nodes).forEach(async (node) => {
-        if (node.selected) {
-          const result = await deleteNode(node.nodeID);
-          if (result) changed._ = true;
-        }
-      });
-      await Object.values(test.edges).forEach(async (edge) => {
-        if (edge.selected) {
-          test.removeEdge(edge);
-          changed._ = true;
-        }
-      });
+      await Promise.all([
+        ...Object.values(test.nodes).map(async (node) => {
+          if (node.selected) {
+            const result = await deleteNode(node.nodeID);
+            if (result) changed._ = true;
+          }
+        }),
+        ...Object.values(test.edges).map(async (edge) => {
+          if (edge.selected) {
+            test.removeEdge(edge);
+            changed._ = true;
+          }
+        })
+      ]);
       if (changed._) {
         updateWithSave();
       }

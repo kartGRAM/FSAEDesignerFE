@@ -12,7 +12,7 @@ import UndoIcon from '@mui/icons-material/Undo';
 import {setFlowCanvasBackgroundVariant} from '@store/reducers/uiGeometryDesigner';
 import Button from '@mui/material/Button';
 
-export function FlowCanvasToolbar(props: {test: ITest}) {
+export const FlowCanvasToolbar = React.memo((props: {test: ITest}) => {
   const {test} = props;
 
   const dispatch = useDispatch();
@@ -117,24 +117,26 @@ export function FlowCanvasToolbar(props: {test: ITest}) {
       </MyTooltip>
     </Toolbar>
   );
-}
+});
 
-function MyTooltip(props: {title: string; children: React.ReactNode}) {
-  const {children, title} = props;
-  const {uitgd} = store.getState();
-  const zIndex = uitgd.fullScreenZIndex + uitgd.tooltipZIndex;
-  return (
-    <Tooltip
-      title={title}
-      componentsProps={{
-        popper: {
-          sx: {
-            zIndex
+const MyTooltip = React.memo(
+  (props: {title: string; children: React.ReactNode}) => {
+    const {children, title} = props;
+    const {uitgd} = store.getState();
+    const zIndex = uitgd.fullScreenZIndex + uitgd.tooltipZIndex;
+    return (
+      <Tooltip
+        title={title}
+        componentsProps={{
+          popper: {
+            sx: {
+              zIndex
+            }
           }
-        }
-      }}
-    >
-      <span>{children}</span>
-    </Tooltip>
-  );
-}
+        }}
+      >
+        <span>{children}</span>
+      </Tooltip>
+    );
+  }
+);
