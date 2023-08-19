@@ -143,13 +143,6 @@ export const FlowCanvas = React.memo(
       handleCancel();
     }, [handleApply, handleCancel]);
 
-    const handleKeyDown = async (e: React.KeyboardEvent<HTMLDivElement>) => {
-      if (e.ctrlKey) {
-        if (e.key === 'z') undo();
-        else if (e.key === 'y') redo();
-      }
-    };
-
     const redo = React.useCallback(() => {
       if (!test) return;
       test.localRedo();
@@ -161,6 +154,16 @@ export const FlowCanvas = React.memo(
       test.localUndo();
       updateOnly();
     }, [test, updateOnly]);
+
+    const handleKeyDown = React.useCallback(
+      async (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.ctrlKey) {
+          if (e.key === 'z') undo();
+          else if (e.key === 'y') redo();
+        }
+      },
+      [undo, redo]
+    );
 
     if (!test) return null;
 
