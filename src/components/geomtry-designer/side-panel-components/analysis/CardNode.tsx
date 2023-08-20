@@ -3,7 +3,7 @@ import {Handle, Position} from 'reactflow';
 import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
 import CardContent from '@mui/material/CardContent';
-import {WarningBadge} from './WarningBadge';
+import {WarningBadge, ErrorBadge, CompletedBadge} from './Badge';
 
 export type CardNodeProps = {
   data: {
@@ -14,6 +14,8 @@ export type CardNodeProps = {
       React.Dispatch<React.SetStateAction<boolean>>
     ];
     warning: boolean;
+    completed: boolean;
+    error: boolean;
     source?: boolean;
     target?: boolean;
     backgroundColor?: string;
@@ -30,6 +32,8 @@ export const CardNode = React.memo((props: CardNodeProps) => {
     target,
     content,
     useDialog,
+    error,
+    completed,
     warning,
     backgroundColor,
     dialogDisabled
@@ -40,16 +44,20 @@ export const CardNode = React.memo((props: CardNodeProps) => {
   };
   return (
     <>
-      <WarningBadge invisible={!warning}>
-        <Card
-          raised={selected}
-          onDoubleClick={handleDoubleClick}
-          sx={{backgroundColor}}
-        >
-          <CardHeader title={label} />
-          <CardContent>{content}</CardContent>
-        </Card>
-      </WarningBadge>
+      <CompletedBadge invisible={!completed}>
+        <WarningBadge invisible={!warning}>
+          <ErrorBadge invisible={!error}>
+            <Card
+              raised={selected}
+              onDoubleClick={handleDoubleClick}
+              sx={{backgroundColor}}
+            >
+              <CardHeader title={label} />
+              <CardContent>{content}</CardContent>
+            </Card>
+          </ErrorBadge>
+        </WarningBadge>
+      </CompletedBadge>
       {target ? (
         <Handle
           position={Position.Left}

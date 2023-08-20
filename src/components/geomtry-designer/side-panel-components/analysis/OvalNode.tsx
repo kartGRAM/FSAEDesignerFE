@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {Box, Typography} from '@mui/material';
 import {Handle, Position} from 'reactflow';
-import {WarningBadge} from './WarningBadge';
+import {WarningBadge, ErrorBadge, CompletedBadge} from './Badge';
 
 export type OvalNodeProps = {
   data: {
@@ -10,36 +10,42 @@ export type OvalNodeProps = {
     source?: boolean;
     target?: boolean;
     warning: boolean;
+    error: boolean;
+    completed: boolean;
   };
   selected?: boolean;
 };
 
 export const OvalNode = React.memo((props: OvalNodeProps) => {
   const {data, selected} = props;
-  const {icon, label, source, target, warning} = data;
+  const {icon, label, source, target, warning, completed, error} = data;
   return (
     <>
-      <WarningBadge invisible={!warning}>
-        <Box
-          component="div"
-          sx={{
-            p: 1,
-            pl: 2,
-            pr: 2,
-            border: `solid ${selected ? '1.4px #000' : ' 0.7px #888'}`,
-            borderRadius: '1000000px',
-            bgcolor: '#FFF',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}
-          onDragOver={(e) => e.preventDefault()}
-        >
-          {icon}
-          <Typography variant="h5">{label}</Typography>
-        </Box>
-      </WarningBadge>
+      <CompletedBadge invisible={!completed}>
+        <WarningBadge invisible={!warning}>
+          <ErrorBadge invisible={!error}>
+            <Box
+              component="div"
+              sx={{
+                p: 1,
+                pl: 2,
+                pr: 2,
+                border: `solid ${selected ? '1.4px #000' : ' 0.7px #888'}`,
+                borderRadius: '1000000px',
+                bgcolor: '#FFF',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+              onDragOver={(e) => e.preventDefault()}
+            >
+              {icon}
+              <Typography variant="h5">{label}</Typography>
+            </Box>
+          </ErrorBadge>
+        </WarningBadge>
+      </CompletedBadge>
       {target ? (
         <Handle
           position={Position.Left}
