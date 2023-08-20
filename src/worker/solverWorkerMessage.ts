@@ -34,6 +34,7 @@ export function isCaseResults(object: any): object is CaseResults {
 
 export type DoneProgress = {
   isDone: true;
+  nodeID: string;
 };
 export function isDoneProgress(object: any): object is DoneProgress {
   return isObject(object) && object.isDone;
@@ -55,8 +56,8 @@ export function log(message: string) {
   ctx.postMessage(m);
 }
 
-export function done() {
-  const done: DoneProgress = {isDone: true};
+export function done(nodeID: string) {
+  const done: DoneProgress = {isDone: true, nodeID};
   ctx.postMessage(done);
 }
 

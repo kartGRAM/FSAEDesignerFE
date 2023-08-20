@@ -74,15 +74,13 @@ export class TestSolver implements ITestSolver {
 
   private wipNodes: number = 0;
 
-  private doneNodes: number = 0;
-
   get progress(): {done: number; wip: number} {
     const {wipNodes, doneNodes} = this;
     const nodes =
       Object.values(this.test.nodes).filter((node) => !isAfterEndNode(node))
         .length - 1;
     const progress = {
-      done: (doneNodes / nodes) * 100,
+      done: (doneNodes.length / nodes) * 100,
       wip: (wipNodes / nodes) * 100
     };
     return progress;
@@ -90,7 +88,13 @@ export class TestSolver implements ITestSolver {
 
   private worker: Worker | undefined = undefined;
 
-  private resetTestStatus() {
+  private doneNodes: string[] = [];
+
+  isNodeDone(node: string) {
+    return this.doneNodes.includes(node);
+  }
+
+  private resetTestStatus(onTestEnd = false) {
     if (this.worker) this.worker.terminate();
     this.worker = undefined;
     this.running = false;
@@ -98,7 +102,7 @@ export class TestSolver implements ITestSolver {
     this.caseResults = null;
     this.localInstances = null;
     this.wipNodes = 0;
-    this.doneNodes = 0;
+    if (!onTestEnd) this.doneNodes = [];
   }
 
   stop(): void {
@@ -125,7 +129,7 @@ export class TestSolver implements ITestSolver {
         worker.terminate();
         // プログレスバーが最後まで行くのを見たい"
         setTimeout(() => {
-          this.resetTestStatus();
+          this.resetTestStatus(true);
           this.caseResults = data;
           this.localInstances = getLocalInstances(getDgd());
           this.done = true;
@@ -134,7 +138,7 @@ export class TestSolver implements ITestSolver {
         }, 1000);
       }
       if (isDoneProgress(data)) {
-        ++this.doneNodes;
+        this.doneNodes = [...this.doneNodes, data.nodeID];
         store.dispatch(testUpdateNotify(this.test));
       }
       if (isWIP(data)) {
@@ -185,7 +189,7 @@ export class TestSolver implements ITestSolver {
           resolve(r);
         }
         if (isDoneProgress(data)) {
-          done();
+          done(data.nodeID);
         }
         if (isWIP(data)) {
           wip();
@@ -266,7 +270,7 @@ export class TestSolver implements ITestSolver {
         }
       );
     }
-    done();
+    done(node.nodeID);
 
     return ret;
   }
