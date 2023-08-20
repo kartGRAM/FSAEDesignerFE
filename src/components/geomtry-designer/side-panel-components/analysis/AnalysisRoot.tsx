@@ -216,7 +216,7 @@ const TestRow = React.memo((props: {test: IDataTest}) => {
                 e.stopPropagation();
                 e.preventDefault();
               }}
-              disabled={!loadedTest || !loadedTest.validate()}
+              disabled={!loadedTest || !loadedTest.isValid}
             >
               <AvTimer />
             </IconButton>

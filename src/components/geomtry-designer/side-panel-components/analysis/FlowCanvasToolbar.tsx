@@ -17,8 +17,7 @@ export const FlowCanvasToolbar = React.memo((props: {test: ITest}) => {
 
   const dispatch = useDispatch();
 
-  const {updateOnly} = useTestUpdate(test);
-  const isValid = test.validate();
+  useTestUpdate(test, true, undefined, ['running']);
   const {running} = test.solver;
 
   const [onArrange, setOnArrange] = React.useState(false);
@@ -28,16 +27,6 @@ export const FlowCanvasToolbar = React.memo((props: {test: ITest}) => {
   React.useEffect(() => {
     fitView();
   }, [onArrange]);
-
-  const redo = () => {
-    test.localRedo();
-    updateOnly();
-  };
-
-  const undo = () => {
-    test.localUndo();
-    updateOnly();
-  };
 
   const arrange = () => {
     const {widthSpaceAligningNodes, heightSpaceAligningNodes} =
@@ -49,30 +38,7 @@ export const FlowCanvasToolbar = React.memo((props: {test: ITest}) => {
 
   return (
     <Toolbar sx={{minHeight: 'unset!important', pb: 0}}>
-      <MyTooltip title="run">
-        <IconButton
-          sx={{padding: 0.5}}
-          disabled={!isValid || running}
-          onClick={() => {
-            test.solver.run();
-          }}
-        >
-          <PlayArrowIcon
-            sx={{color: isValid && !running ? '#00aa00' : undefined}}
-          />
-        </IconButton>
-      </MyTooltip>
-      <MyTooltip title="stop">
-        <IconButton
-          sx={{padding: 0.5}}
-          disabled={!running}
-          onClick={() => {
-            test.solver.stop();
-          }}
-        >
-          <StopIcon sx={{color: running ? '#cc0000' : undefined}} />
-        </IconButton>
-      </MyTooltip>
+      <Solver test={test} />
       <Button
         onClick={() =>
           dispatch(setFlowCanvasBackgroundVariant(BackgroundVariant.Dots))
@@ -97,6 +63,68 @@ export const FlowCanvasToolbar = React.memo((props: {test: ITest}) => {
       <Button onClick={arrange} disabled={running}>
         arrange
       </Button>
+      <DoRedo test={test} />
+    </Toolbar>
+  );
+});
+
+const Solver = React.memo((props: {test: ITest}) => {
+  const {test} = props;
+
+  useTestUpdate(test, true, ['isValid'], ['running']);
+  const {isValid} = test;
+  const {running} = test.solver;
+  return (
+    <>
+      <MyTooltip title="run">
+        <IconButton
+          sx={{padding: 0.5}}
+          disabled={!isValid || running}
+          onClick={() => {
+            test.solver.run();
+          }}
+        >
+          <PlayArrowIcon
+            sx={{color: isValid && !running ? '#00aa00' : undefined}}
+          />
+        </IconButton>
+      </MyTooltip>
+      <MyTooltip title="stop">
+        <IconButton
+          sx={{padding: 0.5}}
+          disabled={!running}
+          onClick={() => {
+            test.solver.stop();
+          }}
+        >
+          <StopIcon sx={{color: running ? '#cc0000' : undefined}} />
+        </IconButton>
+      </MyTooltip>
+    </>
+  );
+});
+
+const DoRedo = React.memo((props: {test: ITest}) => {
+  const {test} = props;
+  const {updateOnly} = useTestUpdate(
+    test,
+    true,
+    ['undoable', 'redoable'],
+    ['running']
+  );
+  const redo = () => {
+    test.localRedo();
+    updateOnly();
+  };
+
+  const undo = () => {
+    test.localUndo();
+    updateOnly();
+  };
+
+  const {running} = test.solver;
+  return (
+    <>
       <MyTooltip title="undo">
         <IconButton
           disabled={!test.undoable || running}
@@ -115,7 +143,7 @@ export const FlowCanvasToolbar = React.memo((props: {test: ITest}) => {
           <RedoIcon />
         </IconButton>
       </MyTooltip>
-    </Toolbar>
+    </>
   );
 });
 

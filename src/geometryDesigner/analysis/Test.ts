@@ -303,7 +303,7 @@ export class Test implements ITest {
     return {isClipboardFlowNodes: true, isClipboardItem: true, nodes, edges};
   }
 
-  validate(): boolean {
+  get isValid(): boolean {
     const nodes = Object.values(this.nodes);
     for (const node of nodes) {
       if (!node.validate(this.edgesFromTarget, this.edgesFromSourceNode))

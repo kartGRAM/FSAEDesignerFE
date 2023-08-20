@@ -22,7 +22,7 @@ export type CardNodeProps = {
   selected?: boolean;
 };
 
-export default function CardNode(props: CardNodeProps) {
+export const CardNode = React.memo((props: CardNodeProps) => {
   const {data, selected} = props;
   const {
     label,
@@ -67,4 +67,5 @@ export default function CardNode(props: CardNodeProps) {
       {dialog}
     </>
   );
-}
+});
+export default CardNode;

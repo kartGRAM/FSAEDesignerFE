@@ -14,7 +14,7 @@ export type OvalNodeProps = {
   selected?: boolean;
 };
 
-export default function OvalNode(props: OvalNodeProps) {
+export const OvalNode = React.memo((props: OvalNodeProps) => {
   const {data, selected} = props;
   const {icon, label, source, target, warning} = data;
   return (
@@ -56,4 +56,5 @@ export default function OvalNode(props: OvalNodeProps) {
       ) : null}
     </>
   );
-}
+});
+export default OvalNode;

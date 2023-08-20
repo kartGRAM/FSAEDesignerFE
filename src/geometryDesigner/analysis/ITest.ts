@@ -37,7 +37,7 @@ export interface ITest {
   localRedo(): void;
   localUndo(): void;
   copySelectedNodes(): IClipboardFlowNodes;
-  validate(): boolean;
+  isValid: boolean;
   dispatch(): void;
 
   arrange(

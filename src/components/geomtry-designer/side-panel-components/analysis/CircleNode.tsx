@@ -11,7 +11,7 @@ export type CircleNodeProps = {
   selected?: boolean;
 };
 
-export default function CircleNode(props: CircleNodeProps) {
+export const CircleNode = React.memo((props: CircleNodeProps) => {
   const {data, selected} = props;
   const {icon, warning} = data;
 
@@ -45,4 +45,5 @@ export default function CircleNode(props: CircleNodeProps) {
       />
     </>
   );
-}
+});
+export default CircleNode;
