@@ -8,7 +8,7 @@ import useTestUpdate from '@hooks/useTestUpdate';
 const TestDescription = React.memo(
   (props: {test: ITest; disabled?: boolean}) => {
     const {test, disabled} = props;
-    const {updateWithSave} = useTestUpdate(test);
+    const {updateWithSave} = useTestUpdate(test, true, ['name']);
 
     return (
       <EditableTypography

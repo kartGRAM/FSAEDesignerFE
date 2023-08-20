@@ -15,7 +15,7 @@ import {Item} from '@gd/analysis/FlowNode';
 import {v4 as uuidv4} from 'uuid';
 import {getItems} from './nodes/getItems';
 
-export function ItemBox() {
+export const ItemBox = React.memo(() => {
   const dispatch = useDispatch();
   const ref = React.useRef<HTMLSpanElement>(null);
 
@@ -60,4 +60,4 @@ export function ItemBox() {
       <span ref={ref} />
     </Box>
   );
-}
+});
