@@ -91,7 +91,7 @@ export const FlowCanvas = React.memo(
     }, [open]);
 
     const test = uitgd.tests.find((t) => t.nodeID === nodeID);
-    const {updateOnly} = useTestUpdate(test);
+    const {updateOnly} = useTestUpdate(test, false);
 
     const handleCancel = useCallback(async () => {
       if (test?.changed) {
@@ -289,7 +289,7 @@ const Content = React.memo((props: {test: ITest}) => {
   if (tempNodes.nodes.length && !pasting && !draggingNewNode)
     setTempNodes({nodes: [], edges: []});
 
-  const onNodesChange = React.useCallback(
+  const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
       const needToUpdate = {_: false};
       changes.forEach((change) => {
@@ -399,60 +399,47 @@ const Content = React.memo((props: {test: ITest}) => {
     updateWithSave();
   }, [test, tempNodes, pasting, updateWithSave]);
 
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    const item = store.getState().uitgd.draggingNewTestFlowNode;
-    if (!item || !ref.current) {
-      return;
-    }
-    const {top, left} = ref.current.getBoundingClientRect();
-    const x = (e.clientX - left - viewX) / zoom;
-    const y = (e.clientY - top - viewY) / zoom;
-    if (tempNodes.nodes.length) {
-      setTempNodes((prev) => ({
-        nodes: prev.nodes.map((node) => ({...node, position: {x, y}})),
-        edges: prev.edges
-      }));
-      return;
-    }
-    const tmpNode = getRFNode(item.onDrop({x, y}, true));
-    setTempNodes({nodes: [tmpNode], edges: []});
-  };
+  const handleDragOver = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      const item = store.getState().uitgd.draggingNewTestFlowNode;
+      if (!item || !ref.current) {
+        return;
+      }
+      const {top, left} = ref.current.getBoundingClientRect();
+      const x = (e.clientX - left - viewX) / zoom;
+      const y = (e.clientY - top - viewY) / zoom;
+      if (tempNodes.nodes.length) {
+        setTempNodes((prev) => ({
+          nodes: prev.nodes.map((node) => ({...node, position: {x, y}})),
+          edges: prev.edges
+        }));
+        return;
+      }
+      const tmpNode = getRFNode(item.onDrop({x, y}, true));
+      setTempNodes({nodes: [tmpNode], edges: []});
+    },
+    [viewX, viewY, zoom, tempNodes]
+  );
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const item = store.getState().uitgd.draggingNewTestFlowNode;
-    if (!item || !ref.current) return;
-    const {top, left} = ref.current.getBoundingClientRect();
-    const x = (e.clientX - left - viewX) / zoom;
-    const y = (e.clientY - top - viewY) / zoom;
-    test.addNode(item.onDrop({x, y}, false));
-    updateWithSave();
-  };
+  const handleDrop = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      const item = store.getState().uitgd.draggingNewTestFlowNode;
+      if (!item || !ref.current) return;
+      const {top, left} = ref.current.getBoundingClientRect();
+      const x = (e.clientX - left - viewX) / zoom;
+      const y = (e.clientY - top - viewY) / zoom;
+      test.addNode(item.onDrop({x, y}, false));
+      updateWithSave();
+    },
+    [test, viewX, viewY, zoom, updateWithSave]
+  );
 
   const handleDrag = useCallback(() => {
     if (!dragging) setDragging(true);
   }, [dragging]);
-
-  const handleDragEnd = async (_: any, __: any, nodes: Node[]) => {
-    if (overDelete) {
-      let needToSave = false;
-      for (const node of nodes) {
-        // eslint-disable-next-line no-await-in-loop
-        needToSave = (await deleteNode(node.id)) || needToSave;
-      }
-      if (needToSave) updateWithSave();
-    } else {
-      for (const node of nodes) {
-        if (test.nodes[node.id]?.extraFlags.moved) {
-          updateWithSave();
-          break;
-        }
-      }
-    }
-    setDragging(false);
-  };
 
   const deleteNode = useCallback(
     async (nodeID: string): Promise<boolean> => {
@@ -494,6 +481,28 @@ const Content = React.memo((props: {test: ITest}) => {
     [test]
   );
 
+  const handleDragEnd = useCallback(
+    async (_: any, __: any, nodes: Node[]) => {
+      if (overDelete) {
+        let needToSave = false;
+        for (const node of nodes) {
+          // eslint-disable-next-line no-await-in-loop
+          needToSave = (await deleteNode(node.id)) || needToSave;
+        }
+        if (needToSave) updateWithSave();
+      } else {
+        for (const node of nodes) {
+          if (test.nodes[node.id]?.extraFlags.moved) {
+            updateWithSave();
+            break;
+          }
+        }
+      }
+      setDragging(false);
+    },
+    [test, overDelete, deleteNode, updateWithSave]
+  );
+
   const copy = useCallback(async () => {
     const item = test.copySelectedNodes();
     if (item.nodes.length) {
@@ -502,7 +511,7 @@ const Content = React.memo((props: {test: ITest}) => {
     }
   }, [test]);
 
-  const paste = async () => {
+  const paste = useCallback(async () => {
     const data = await navigator.clipboard.readText();
     const item = convertJsonToClipboardFlowNodes(data);
     if (item) {
@@ -548,46 +557,49 @@ const Content = React.memo((props: {test: ITest}) => {
     } else {
       setTempNodes({nodes: [], edges: []});
     }
-  };
+  }, [test, mousePosition]);
 
-  const handleKeyDown = async (e: React.KeyboardEvent<HTMLDivElement>) => {
-    // e.preventDefault();
-    if (e.ctrlKey) {
-      if (e.key === 'c') copy();
-      else if (e.key === 'v') paste();
-    } else if (e.key === 'Escape') {
-      const needToUpdate = {_: false};
-      if (test) {
-        Object.values(test.nodes).forEach((node) => {
-          if (node.selected) {
-            node.selected = false;
-            needToUpdate._ = true;
-          }
-        });
+  const handleKeyDown = useCallback(
+    async (e: React.KeyboardEvent<HTMLDivElement>) => {
+      // e.preventDefault();
+      if (e.ctrlKey) {
+        if (e.key === 'c') copy();
+        else if (e.key === 'v') paste();
+      } else if (e.key === 'Escape') {
+        const needToUpdate = {_: false};
+        if (test) {
+          Object.values(test.nodes).forEach((node) => {
+            if (node.selected) {
+              node.selected = false;
+              needToUpdate._ = true;
+            }
+          });
+        }
+        if (pasting) setPasting(false);
+        else if (needToUpdate._) update();
+      } else if (e.key === 'Delete') {
+        const changed = {_: false};
+        await Promise.all([
+          ...Object.values(test.nodes).map(async (node) => {
+            if (node.selected) {
+              const result = await deleteNode(node.nodeID);
+              if (result) changed._ = true;
+            }
+          }),
+          ...Object.values(test.edges).map(async (edge) => {
+            if (edge.selected) {
+              test.removeEdge(edge);
+              changed._ = true;
+            }
+          })
+        ]);
+        if (changed._) {
+          updateWithSave();
+        }
       }
-      if (pasting) setPasting(false);
-      else if (needToUpdate._) update();
-    } else if (e.key === 'Delete') {
-      const changed = {_: false};
-      await Promise.all([
-        ...Object.values(test.nodes).map(async (node) => {
-          if (node.selected) {
-            const result = await deleteNode(node.nodeID);
-            if (result) changed._ = true;
-          }
-        }),
-        ...Object.values(test.edges).map(async (edge) => {
-          if (edge.selected) {
-            test.removeEdge(edge);
-            changed._ = true;
-          }
-        })
-      ]);
-      if (changed._) {
-        updateWithSave();
-      }
-    }
-  };
+    },
+    [copy, paste, test, pasting, deleteNode, updateWithSave]
+  );
 
   if (tempNodes.nodes) nodes.push(...tempNodes.nodes);
   if (tempNodes.edges) edges.push(...tempNodes.edges);

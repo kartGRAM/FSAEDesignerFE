@@ -7,10 +7,14 @@ import {
 import {ITest} from '@gd/analysis/ITest';
 import {RootState} from '@store/store';
 
-export default function useTestUpdate(test: ITest | undefined) {
-  useSelector(
-    (state: RootState) =>
-      state.uitgd.testState.notifyChanged[test?.nodeID ?? '']
+export default function useTestUpdate(
+  test: ITest | undefined,
+  updateNotify = true
+) {
+  useSelector((state: RootState) =>
+    updateNotify
+      ? state.uitgd.testState.notifyChanged[test?.nodeID ?? '']
+      : null
   );
   const dispatch = useDispatch();
   return {
