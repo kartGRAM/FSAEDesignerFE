@@ -104,7 +104,7 @@ export function Distance(props: {
     if (i === 1) setSetterMode('Rhs');
   };
 
-  const onResetSetterMode = () => {
+  const onResetSetterMode = React.useCallback(() => {
     setSetterMode('');
     dispatch(setDatumPointSelected(''));
     dispatch(setDatumPointSelectMode(false));
@@ -112,13 +112,16 @@ export function Distance(props: {
     dispatch(setDatumLineSelectMode(false));
     dispatch(setDatumPlaneSelected(''));
     dispatch(setDatumPlaneSelectMode(false));
-  };
+  }, [dispatch]);
 
-  const shortCutKeys = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      onResetSetterMode();
-    }
-  };
+  const shortCutKeys = React.useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onResetSetterMode();
+      }
+    },
+    [onResetSetterMode]
+  );
 
   React.useEffect(() => {
     dispatch(setDatumPointSelectMode(false));
@@ -133,7 +136,7 @@ export function Distance(props: {
       dispatch(setForceVisibledDatums([]));
       window.removeEventListener('keydown', shortCutKeys, true);
     };
-  }, []);
+  }, [dispatch, lhs?.nodeID, rhs?.nodeID, shortCutKeys]);
 
   useUpdateEffect(() => {
     if (setterMode === '') return;

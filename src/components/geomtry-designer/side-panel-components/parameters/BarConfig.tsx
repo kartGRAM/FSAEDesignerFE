@@ -36,7 +36,7 @@ export default function BarConfig(params: Params) {
 
   React.useEffect(() => {
     dispatch(setSelectedPoint(null));
-  }, []);
+  }, [dispatch]);
 
   return (
     <>

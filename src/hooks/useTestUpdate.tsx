@@ -55,9 +55,9 @@ export default function useTestUpdate(
   return {
     updateWithSave: React.useCallback(() => {
       if (test) dispatch(saveTestLocalState(test));
-    }, [test]),
+    }, [dispatch, test]),
     updateOnly: React.useCallback(() => {
       if (test) dispatch(testUpdateNotify(test));
-    }, [test])
+    }, [dispatch, test])
   };
 }

@@ -62,16 +62,19 @@ export function MovingElementCurrentPosition(props: {
     }
   };
 
-  const onResetSetterMode = () => {
+  const onResetSetterMode = React.useCallback(() => {
     dispatch(setMovingElementSelected(''));
     dispatch(setMovingElementSelectMode(false));
-  };
+  }, [dispatch]);
 
-  const shortCutKeys = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      onResetSetterMode();
-    }
-  };
+  const shortCutKeys = React.useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onResetSetterMode();
+      }
+    },
+    [onResetSetterMode]
+  );
 
   React.useEffect(() => {
     dispatch(setMovingElementSelectMode(false));
@@ -82,7 +85,7 @@ export function MovingElementCurrentPosition(props: {
       dispatch(setForceHighlightElements([]));
       window.removeEventListener('keydown', shortCutKeys, true);
     };
-  }, []);
+  }, [dispatch, element?.nodeID, shortCutKeys]);
 
   useUpdateEffect(() => {
     if (selectedMovingElement) {

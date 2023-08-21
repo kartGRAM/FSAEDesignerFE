@@ -43,7 +43,7 @@ export default function LinearBushingConfig(params: Params) {
 
   React.useEffect(() => {
     dispatch(setSelectedPoint(null));
-  }, []);
+  }, [dispatch]);
 
   return (
     <>

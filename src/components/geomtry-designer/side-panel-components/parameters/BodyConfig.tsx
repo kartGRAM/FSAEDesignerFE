@@ -46,7 +46,7 @@ export default function AArmConfig(params: Params) {
     if (point && point.point.parent?.nodeID !== element.nodeID) {
       dispatch(setSelectedPoint(null));
     }
-  }, []);
+  }, [dispatch, element.nodeID]);
 
   return (
     <>

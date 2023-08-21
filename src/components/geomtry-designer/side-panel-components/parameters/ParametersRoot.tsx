@@ -35,7 +35,7 @@ export default function ParametersRoot() {
     return () => {
       dispatch(setSelectedPoint(null));
     };
-  }, []);
+  }, [dispatch]);
 
   const element = getElementByPath(topAssy, path);
 

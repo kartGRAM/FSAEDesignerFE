@@ -53,7 +53,7 @@ export default function MeasureToolsManager() {
       tool.getData()
     );
     dispatch(setMeasureTools(dataTools));
-  }, [measureToolsManager]);
+  }, [dispatch, measureToolsManager]);
 
   const enabledColorLight: number = useSelector(
     (state: RootState) => state.uigd.present.enabledColorLight
@@ -65,12 +65,15 @@ export default function MeasureToolsManager() {
 
   const [dialogTarget, setDialogTarget] = React.useState<string>('');
 
-  const onToolDblClick = React.useCallback((tool: IMeasureTool | undefined) => {
-    let id = 'new';
-    if (tool) id = tool.nodeID;
-    dispatch(setSelectedMeasureTool(''));
-    setDialogTarget(id);
-  }, []);
+  const onToolDblClick = React.useCallback(
+    (tool: IMeasureTool | undefined) => {
+      let id = 'new';
+      if (tool) id = tool.nodeID;
+      dispatch(setSelectedMeasureTool(''));
+      setDialogTarget(id);
+    },
+    [dispatch]
+  );
 
   const dialogTargetTool = tools.find((tool) => tool.nodeID === dialogTarget);
 
@@ -97,7 +100,7 @@ export default function MeasureToolsManager() {
     return () => {
       dispatch(setSelectedMeasureTool(''));
     };
-  }, []);
+  }, [dispatch]);
 
   const {uitgd} = store.getState();
   const tooltipZIndex = uitgd.fullScreenZIndex + uitgd.tooltipZIndex;
@@ -292,7 +295,7 @@ const Row = React.memo(
       if (tool.nodeID !== selected) {
         dispatch(setSelectedMeasureTool(tool.nodeID));
       }
-    }, [tool, selected]);
+    }, [tool.nodeID, selected, dispatch]);
 
     const enabledColorLight: number = useSelector(
       (state: RootState) => state.uigd.present.enabledColorLight

@@ -60,16 +60,19 @@ export function Position(props: {
     }
   };
 
-  const onResetSetterMode = () => {
+  const onResetSetterMode = React.useCallback(() => {
     dispatch(setDatumPointSelected(''));
     dispatch(setDatumPointSelectMode(false));
-  };
+  }, [dispatch]);
 
-  const shortCutKeys = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      onResetSetterMode();
-    }
-  };
+  const shortCutKeys = React.useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onResetSetterMode();
+      }
+    },
+    [onResetSetterMode]
+  );
 
   React.useEffect(() => {
     dispatch(setDatumPointSelectMode(false));
@@ -80,7 +83,7 @@ export function Position(props: {
       dispatch(setForceVisibledDatums([]));
       window.removeEventListener('keydown', shortCutKeys, true);
     };
-  }, []);
+  }, [dispatch, point?.nodeID, shortCutKeys]);
 
   useUpdateEffect(() => {
     if (selectedPointInstance) {

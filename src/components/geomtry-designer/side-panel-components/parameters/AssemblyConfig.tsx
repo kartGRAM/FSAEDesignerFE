@@ -120,6 +120,7 @@ export default function AssemblyConfig(params: Params) {
   React.useEffect(() => {
     setJointsListSelected(null);
     setPointSelected({lhs: null, rhs: null});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jointLength !== assembly.joints.length]);
 
   if (jointsListSelected !== null) {
@@ -163,6 +164,7 @@ export default function AssemblyConfig(params: Params) {
   // 選択状態が変化したらポイントを再描写ただし初回も実施
   React.useEffect(() => {
     dispatch(setSelectedPoint(points));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     jointsListSelected,
     pointSelected.lhs?.nodeID,
@@ -272,7 +274,10 @@ export function JointsList(props: {
     if (pairSelected) buttonRef.current?.focus();
   }, [pairSelected]);
 
-  const resetSelected = React.useCallback(() => setSelected(null), []);
+  const resetSelected = React.useCallback(
+    () => setSelected(null),
+    [setSelected]
+  );
 
   if (!!assembly.meta?.mirror || isFrame(assembly)) {
     pairSelected = false;

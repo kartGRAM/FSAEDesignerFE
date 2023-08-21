@@ -47,7 +47,7 @@ export default function TireConfig(params: Params) {
         // if (!focus) dispatch(setSelectedPoint(null));
       };
     },
-    [element]
+    [dispatch, element.leftBearing]
   );
   const onRightBearingFocusChanged = React.useCallback(
     (focus: boolean) => {
@@ -61,12 +61,12 @@ export default function TireConfig(params: Params) {
         // if (!focus) dispatch(setSelectedPoint(null));
       };
     },
-    [element]
+    [dispatch, element.rightBearing]
   );
 
   React.useEffect(() => {
     dispatch(setSelectedPoint(null));
-  }, []);
+  }, [dispatch]);
 
   return (
     <>

@@ -94,7 +94,7 @@ export const AxisArrow: React.FC<{
       // @ts-ignore - setPointerCapture is not in the type definition
       e.target.setPointerCapture(e.pointerId);
     },
-    [direction, camControls, onDragStart, translation, axis]
+    [displayValues, direction, translation, axis, onDragStart, camControls]
   );
 
   const onPointerMove = React.useCallback(
@@ -133,7 +133,7 @@ export const AxisArrow: React.FC<{
         onDrag(offsetMatrix);
       }
     },
-    [onDrag, isHovered, translation, translationLimits, axis]
+    [isHovered, translationLimits, axis, translation, displayValues, onDrag]
   );
 
   const onPointerUp = React.useCallback(
@@ -148,7 +148,7 @@ export const AxisArrow: React.FC<{
       // @ts-ignore - releasePointerCapture & PointerEvent#pointerId is not in the type definition
       e.target.releasePointerCapture(e.pointerId);
     },
-    [camControls, onDragEnd]
+    [camControls, displayValues, onDragEnd]
   );
 
   const onPointerOut = React.useCallback((e: ThreeEvent<PointerEvent>) => {

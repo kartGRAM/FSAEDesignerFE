@@ -25,9 +25,9 @@ const Main = () => {
   const screenSize = useSelector((state: any) => state.ui.screenSize);
   const [isAppLoaded, setIsAppLoaded] = useState(false);
 
-  const handleToggleMenuSidebar = () => {
+  const handleToggleMenuSidebar = useCallback(() => {
     dispatch(toggleSidebarMenu());
-  };
+  }, [dispatch]);
 
   const fetchProfile = useCallback(async () => {
     try {

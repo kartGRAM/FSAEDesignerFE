@@ -37,7 +37,7 @@ export default function SpringDumperConfig(params: Params) {
 
   React.useEffect(() => {
     dispatch(setSelectedPoint(null));
-  }, []);
+  }, [dispatch]);
 
   return (
     <>

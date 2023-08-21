@@ -82,19 +82,22 @@ export function Angle(props: {
     if (i === 1) setSetterMode('Rhs');
   };
 
-  const onResetSetterMode = () => {
+  const onResetSetterMode = React.useCallback(() => {
     setSetterMode('');
     dispatch(setDatumLineSelected(''));
     dispatch(setDatumLineSelectMode(false));
     dispatch(setDatumPlaneSelected(''));
     dispatch(setDatumPlaneSelectMode(false));
-  };
+  }, [dispatch]);
 
-  const shortCutKeys = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      onResetSetterMode();
-    }
-  };
+  const shortCutKeys = React.useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onResetSetterMode();
+      }
+    },
+    [onResetSetterMode]
+  );
 
   React.useEffect(() => {
     dispatch(setDatumLineSelectMode(false));
@@ -107,7 +110,7 @@ export function Angle(props: {
       dispatch(setForceVisibledDatums([]));
       window.removeEventListener('keydown', shortCutKeys, true);
     };
-  }, []);
+  }, [dispatch, lhs?.nodeID, rhs?.nodeID, shortCutKeys]);
 
   useUpdateEffect(() => {
     if (setterMode === '') return;

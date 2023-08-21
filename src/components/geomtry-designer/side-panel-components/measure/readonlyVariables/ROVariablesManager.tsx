@@ -42,6 +42,7 @@ export default function ROVariablesManager() {
     (state: RootState) => state.uitgd.roVariablesManager
   );
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const variables = roVariablesManager?.children ?? [];
 
   const update = React.useCallback(
@@ -50,7 +51,7 @@ export default function ROVariablesManager() {
       const dataVars = newVariables.map((v) => v.getData());
       dispatch(setReadonlyVariables(dataVars));
     },
-    [variables]
+    [dispatch, variables]
   );
 
   const enabledColorLight: number = useSelector(
@@ -99,7 +100,7 @@ export default function ROVariablesManager() {
     return () => {
       dispatch(setSelectedROVariable(''));
     };
-  }, []);
+  }, [dispatch]);
 
   const {uitgd} = store.getState();
   const tooltipZIndex = uitgd.fullScreenZIndex + uitgd.tooltipZIndex;
@@ -295,7 +296,7 @@ const Row = React.memo(
       if (v.nodeID !== selected) {
         dispatch(setSelectedROVariable(v.nodeID));
       }
-    }, [v, selected]);
+    }, [v.nodeID, selected, dispatch]);
 
     return (
       <TableRow
