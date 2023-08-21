@@ -22,7 +22,7 @@ const PrivateRoute = () => {
       }
     };
     if (!isLoggedIn && !loggingOut) func();
-  }, [isLoggedIn]);
+  }, [apiURL, dispatch, isLoggedIn, loggingOut]);
   return isLoggedIn ? (
     <Outlet />
   ) : (

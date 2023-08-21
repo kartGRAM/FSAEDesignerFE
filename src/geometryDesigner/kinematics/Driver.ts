@@ -2,15 +2,12 @@
 /* eslint-disable class-methods-use-this */
 
 import {Matrix} from 'ml-matrix';
-import {IElement, isElement} from '@gd/IElements';
+import {isElement} from '@gd/IElements';
 import {INamedVector3RO} from '@gd/INamedValues';
 import {Vector3} from 'three';
 import {IComponent} from '@gd/kinematics/KinematicComponents';
 import {KinematicSolver} from '@gd/kinematics/Solver';
-import {
-  getIndexOfPoint,
-  getPartialDiffOfRotationMatrix
-} from '@gd/kinematics/KinematicFunctions';
+import {getPartialDiffOfRotationMatrix} from '@gd/kinematics/KinematicFunctions';
 
 export interface IObjectiveFunction {
   component: IComponent;

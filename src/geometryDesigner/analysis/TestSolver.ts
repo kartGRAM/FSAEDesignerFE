@@ -122,6 +122,8 @@ export class TestSolver implements ITestSolver {
   run(): void {
     if (this.running) throw new Error('Test is already running.');
     if (inWorker()) throw new Error('Task run is called in worker');
+    if (this.test.changed) this.test.dispatch();
+
     this.resetTestStatus();
 
     const worker = new Worker(
@@ -204,6 +206,9 @@ export class TestSolver implements ITestSolver {
         }
         if (isDoneProgress(data)) {
           done(data.nodeID);
+        }
+        if (isErrorOccurred(data)) {
+          informError(data.nodeID);
         }
         if (isWIP(data)) {
           wip();

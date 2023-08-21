@@ -3,15 +3,11 @@ import * as THREE from 'three';
 import {ThreeEvent, useFrame} from '@react-three/fiber';
 import {Sphere, Html} from '@react-three/drei';
 import {useSelector, useDispatch} from 'react-redux';
-import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
 import store, {RootState} from '@store/store';
 import {isElement} from '@gd/IElements';
 import {getMatrix3} from '@gd/NamedValues';
 import {INamedVector3RO} from '@gd/INamedValues';
-import {
-  setSelectedPoint,
-  setMeasureElementPointSelected
-} from '@store/reducers/uiTempGeometryDesigner';
+import {setMeasureElementPointSelected} from '@store/reducers/uiTempGeometryDesigner';
 import {Paper, Typography} from '@mui/material';
 
 const MeasurablePointSphere = (props: {node: INamedVector3RO}) => {

@@ -29,7 +29,7 @@ const Main = () => {
     dispatch(toggleSidebarMenu());
   };
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       const response = {};
       dispatch(loadUser(response));
@@ -40,7 +40,7 @@ const Main = () => {
       await sleep(1000);
       setIsAppLoaded(true);
     }
-  };
+  }, [dispatch]);
 
   useEffect(() => {
     removeWindowClass('register-page');
@@ -53,7 +53,7 @@ const Main = () => {
     return () => {
       removeWindowClass('sidebar-mini');
     };
-  }, []);
+  }, [fetchProfile]);
 
   useEffect(() => {
     // いずれ直さないといけない
@@ -128,7 +128,7 @@ const Main = () => {
         />
       </>
     );
-  }, [isAppLoaded]);
+  }, [handleToggleMenuSidebar, isAppLoaded]);
 
   return <div className="wrapper">{getAppTemplate()}</div>;
 };
