@@ -89,7 +89,7 @@ export default function AssemblyCreactor() {
     const end = performance.now();
     // eslint-disable-next-line no-console
     console.log((end - start).toFixed(1));
-  }, [assembly]);
+  }, [assembly, dispatch]);
 
   useUpdateEffect(
     () => {

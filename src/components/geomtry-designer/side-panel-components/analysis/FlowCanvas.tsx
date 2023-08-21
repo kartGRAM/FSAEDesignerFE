@@ -88,7 +88,7 @@ export const FlowCanvas = React.memo(
       return () => {
         dispatch(setAllUIDisabled(false));
       };
-    }, [open]);
+    }, [dispatch, open]);
 
     const test = uitgd.tests.find((t) => t.nodeID === nodeID);
     const {updateOnly} = useTestUpdate(test, false);
@@ -129,7 +129,7 @@ export const FlowCanvas = React.memo(
       } else {
         setOpen(false);
       }
-    }, [test]);
+    }, [dispatch, handleApply, setOpen, test]);
 
     const handleClose = useCallback(
       async (_: any, reason: string) => {
@@ -303,7 +303,7 @@ const Content = React.memo((props: {test: ITest}) => {
 
       if (needToUpdate._) update();
     },
-    [test]
+    [test, update]
   );
 
   const onEdgesChange = useCallback(
@@ -322,7 +322,7 @@ const Content = React.memo((props: {test: ITest}) => {
 
       if (needToUpdate._) update();
     },
-    [test]
+    [test.edges, update]
   );
 
   const onConnect = useCallback(
@@ -469,7 +469,7 @@ const Content = React.memo((props: {test: ITest}) => {
       }
       return false;
     },
-    [test]
+    [dispatch, test]
   );
 
   const handleDragEnd = useCallback(
@@ -589,7 +589,7 @@ const Content = React.memo((props: {test: ITest}) => {
         }
       }
     },
-    [copy, paste, test, pasting, deleteNode, updateWithSave]
+    [copy, paste, test, pasting, update, deleteNode, updateWithSave]
   );
 
   if (tempNodes.nodes) nodes.push(...tempNodes.nodes);

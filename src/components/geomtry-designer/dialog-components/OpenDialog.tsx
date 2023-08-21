@@ -77,7 +77,7 @@ export function OpenDialog(props: OpenDialogProps) {
   );
   React.useEffect(() => {
     if (open) updateData();
-  }, [open]);
+  }, [open, updateData]);
 
   const listFiles = data ? getListSetTopAssemblyParams(data) : null;
 

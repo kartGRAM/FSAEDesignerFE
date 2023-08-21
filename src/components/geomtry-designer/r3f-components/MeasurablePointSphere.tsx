@@ -29,7 +29,7 @@ const MeasurablePointSphere = (props: {node: INamedVector3RO}) => {
       e.stopPropagation();
       dispatch(setMeasureElementPointSelected(node.nodeID));
     },
-    [node.nodeID]
+    [dispatch, node.nodeID]
   );
 
   const [show, setShow] = React.useState(false);

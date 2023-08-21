@@ -122,7 +122,7 @@ export const DirectionLength = (props: Props) => {
 
   React.useEffect(() => {
     formik.handleSubmit();
-  }, []);
+  }, [formik]);
 
   React.useEffect(() => {
     setIsValid(formik.isValid);
@@ -131,7 +131,7 @@ export const DirectionLength = (props: Props) => {
     if (!formik.isValid) {
       setEvaluatedValue({x: '', y: '', z: ''});
     }
-  }, [formik.isValid]);
+  }, [formik.isValid, setIsValid]);
 
   const onEnter = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter') {

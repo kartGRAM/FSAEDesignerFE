@@ -144,7 +144,7 @@ function Dolly() {
     camera.zoom = 1.0;
     camera.quaternion.copy(anotherCamera.quaternion);
     set({camera});
-  }, [projectionMode]);
+  }, [projectionMode, set]);
   const perspectiveCam = useRef<THREE.PerspectiveCamera>(null!);
   const orthoCam = useRef<THREE.OrthographicCamera>(null!);
 

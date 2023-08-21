@@ -91,7 +91,7 @@ const ElementsTreeView = () => {
     async (e: React.SyntheticEvent, path: string) => {
       await dispatch(selectElement({absPath: path}));
     },
-    []
+    [dispatch]
   );
 
   const handleToggle = React.useCallback(
@@ -397,7 +397,7 @@ const TrashNode = React.memo(() => {
         dispatch(updateAssembly(element.parent));
       }
     },
-    []
+    [dispatch]
   );
 
   return (
@@ -444,12 +444,12 @@ const MyLabel = React.memo(
         e.dataTransfer.effectAllowed = 'move';
         dispatch(setDraggingElementAbsPath(absPath));
       },
-      [absPath]
+      [absPath, dispatch]
     );
 
     const handleDragEnd = React.useCallback(() => {
       dispatch(setDraggingElementAbsPath(''));
-    }, []);
+    }, [dispatch]);
 
     const paths = React.useMemo(() => {
       return absPath
@@ -492,7 +492,7 @@ const MyLabel = React.memo(
 
         dispatch(treeViewDragExpanded(paths));
       }
-    }, [absPath, paths]);
+    }, [absPath, dispatch, paths]);
 
     const handleDrop = React.useCallback(
       (e: React.DragEvent<HTMLDivElement>) => {
@@ -542,7 +542,7 @@ const MyLabel = React.memo(
         }
         dispatch(selectElement({absPath}));
       },
-      [absPath]
+      [absPath, dispatch]
     );
 
     const isRoot = absPath.indexOf('@') === -1;

@@ -99,7 +99,7 @@ export const DeltaXYZ = (props: Props) => {
     if (!formik.isValid) {
       setEvaluatedValue({x: '', y: '', z: ''});
     }
-  }, [formik.isValid]);
+  }, [formik, formik.isValid, setIsValid]);
 
   const onEnter = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter') {

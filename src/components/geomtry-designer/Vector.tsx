@@ -121,7 +121,7 @@ const Vector = React.memo((props: Props) => {
 
   React.useEffect(() => {
     if (focused && !directionMode) dispatch(setSelectedPoint({point: vector}));
-  }, [focused, vector]);
+  }, [directionMode, dispatch, focused, vector]);
 
   const ref = React.useRef<HTMLInputElement>(null);
   const refOfVectorField = React.useRef<HTMLInputElement>(null);
@@ -136,7 +136,7 @@ const Vector = React.memo((props: Props) => {
     if (point && point.point.nodeID === vector.nodeID && !focused) {
       refOfVectorField.current?.focus();
     }
-  }, [point]);
+  }, [focused, point, vector.nodeID]);
 
   const handleFocus = React.useCallback(() => {
     setFocused(true);
@@ -172,7 +172,7 @@ const Vector = React.memo((props: Props) => {
       vector.pointOffsetTools = tools;
       dispatch(updateAssembly(vector));
     },
-    [vector]
+    [dispatch, vector]
   );
 
   const handlePointOffsetToolDelete = React.useCallback(
@@ -183,7 +183,7 @@ const Vector = React.memo((props: Props) => {
       dispatch(updateAssembly(vector));
       setSelected('');
     },
-    [vector, selected]
+    [vector, dispatch, selected]
   );
 
   const handleNameDblClick = React.useCallback(() => {

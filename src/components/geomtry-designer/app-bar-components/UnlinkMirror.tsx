@@ -45,7 +45,7 @@ export default function UnlinkMirror(props: Props) {
       element.unlinkMirror();
       dispatch(updateAssembly(element));
     }
-  }, [element]);
+  }, [dispatch, element, zindex]);
 
   return (
     <MenuItem disabled={!isMirror(element)} onClick={handleOnClick}>

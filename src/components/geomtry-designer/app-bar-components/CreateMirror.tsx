@@ -80,7 +80,7 @@ export default function CreateMirror(props: Props) {
         console.log('未知のエラー');
       }
     }
-  }, []);
+  }, [dispatch, zindex]);
 
   return (
     <MenuItem disabled={disabled} onClick={handleOnClick}>

@@ -31,7 +31,7 @@ const BellCrank = (props: {element: IBellCrank}) => {
       e.stopPropagation();
       dispatch(selectElement({absPath: element.absPath}));
     },
-    [element.absPath, store]
+    [dispatch, element.absPath]
   );
 
   const moveThisComponent = useSelector((state: RootState) => {

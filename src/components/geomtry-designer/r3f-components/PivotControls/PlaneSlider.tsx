@@ -116,7 +116,7 @@ export const PlaneSlider: React.FC<{
       // @ts-ignore
       e.target.setPointerCapture(e.pointerId);
     },
-    [camControls, onDragStart, axis]
+    [displayValues, translation, axis, onDragStart, camControls]
   );
 
   const onPointerMove = React.useCallback(
@@ -173,7 +173,7 @@ export const PlaneSlider: React.FC<{
         onDrag(offsetMatrix);
       }
     },
-    [onDrag, isHovered, translation, translationLimits, axis]
+    [isHovered, translationLimits, axis, translation, displayValues, onDrag]
   );
 
   const onPointerUp = React.useCallback(
@@ -188,7 +188,7 @@ export const PlaneSlider: React.FC<{
       // @ts-ignore
       e.target.releasePointerCapture(e.pointerId);
     },
-    [camControls, onDragEnd]
+    [camControls, displayValues, onDragEnd]
   );
 
   const onPointerOut = React.useCallback((e: ThreeEvent<PointerEvent>) => {

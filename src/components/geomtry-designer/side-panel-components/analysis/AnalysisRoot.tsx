@@ -99,6 +99,7 @@ export default function AnalysisRoot() {
 const TestRow = React.memo((props: {test: IDataTest}) => {
   const {test} = props;
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const loadedTest: ITest =
     useSelector((state: RootState) =>
       state.uitgd.tests.find((t) => t.nodeID === test.nodeID)
@@ -138,7 +139,7 @@ const TestRow = React.memo((props: {test: IDataTest}) => {
       dispatch(setTests(dataTests.filter((t) => t.nodeID !== test.nodeID)));
       dispatch(removeTest(loadedTest));
     }
-  }, [loadedTest]);
+  }, [dispatch, loadedTest, test.nodeID, zindex]);
 
   const handleCopy = React.useCallback(() => {
     const dataTests = getDgd().analysis;
@@ -148,7 +149,7 @@ const TestRow = React.memo((props: {test: IDataTest}) => {
         {...test, nodeID: uuidv4(), name: `copy_${test.name}`}
       ])
     );
-  }, [test]);
+  }, [dispatch, test]);
 
   React.useEffect(() => {
     if (!open) {
@@ -158,7 +159,7 @@ const TestRow = React.memo((props: {test: IDataTest}) => {
 
   React.useEffect(() => {
     dispatch(setTest(loadedTest));
-  }, [loadedTest]);
+  }, [dispatch, loadedTest]);
 
   return (
     <>

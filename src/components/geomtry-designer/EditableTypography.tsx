@@ -67,7 +67,7 @@ const EditableTypography = React.memo(
           setRename(true);
         }
       },
-      [formik]
+      [disableDblClickToEditMode, disabled, formik]
     );
 
     const onNameEnter = React.useCallback(

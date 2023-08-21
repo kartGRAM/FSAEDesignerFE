@@ -36,7 +36,7 @@ const Body = (props: {element: IBody}) => {
         })
       );
     },
-    [element.absPath, store]
+    [dispatch, element.absPath]
   );
   const isFrame = isBodyOfFrame(element);
 
@@ -60,7 +60,7 @@ const Body = (props: {element: IBody}) => {
           state.uitgd.gdSceneState.selectedPoint?.at(0)?.point.nodeID
       ) ?? element.centerOfPoints;
     return point;
-  }, [nodes]);
+  }, [element.centerOfPoints, nodes]);
   const pts = nodes.map((p) => p.value.applyMatrix3(coMatrix));
 
   useFrame(() => {

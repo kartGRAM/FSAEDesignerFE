@@ -69,7 +69,7 @@ export default function Scalar(props: Props) {
   // eslint-disable-next-line consistent-return
   React.useEffect(() => {
     if (onFocusChanged) return onFocusChanged(focused);
-  }, [focused, value]);
+  }, [focused, onFocusChanged, value]);
 
   const ref = React.useRef<HTMLInputElement>(null);
 

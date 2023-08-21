@@ -41,7 +41,7 @@ const Dropdown = ({
     if (onChange) {
       onChange(dropdownOpen);
     }
-  }, [dropdownOpen]);
+  }, [dropdownOpen, onChange]);
 
   useEffect(() => {
     setDropdownOpen(isOpen);

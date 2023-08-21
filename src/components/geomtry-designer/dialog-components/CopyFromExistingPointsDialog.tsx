@@ -30,11 +30,11 @@ export function CopyFromExistingPointsDialog() {
   const zindex = uitgd.fullScreenZIndex + uitgd.dialogZIndex;
   const dispatch = useDispatch();
 
-  const handleClose = () => {
+  const handleClose = React.useCallback(() => {
     dispatch(
       setCopyFromExistingPointsDialogProps({open: false, onSelected: null})
     );
-  };
+  }, [dispatch]);
 
   React.useEffect(() => {
     if (open) {
@@ -49,7 +49,7 @@ export function CopyFromExistingPointsDialog() {
       dispatch(setCfepOnSelected(null));
       dispatch(setUIDisabled(false));
     }
-  }, [open, onSelected]);
+  }, [open, onSelected, dispatch, handleClose]);
 
   return (
     <Dialog

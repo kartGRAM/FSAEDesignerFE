@@ -26,7 +26,7 @@ export const FlowCanvasToolbar = React.memo((props: {test: ITest}) => {
 
   React.useEffect(() => {
     fitView();
-  }, [onArrange]);
+  }, [fitView, onArrange]);
 
   const arrange = () => {
     const {widthSpaceAligningNodes, heightSpaceAligningNodes} =

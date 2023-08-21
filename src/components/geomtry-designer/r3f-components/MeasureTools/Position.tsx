@@ -22,7 +22,7 @@ export const Position = (props: {tool: IPosition}) => {
       e.stopPropagation();
       dispatch(setSelectedMeasureTool(tool.nodeID));
     },
-    [tool.nodeID]
+    [dispatch, tool.nodeID]
   );
 
   const selected =

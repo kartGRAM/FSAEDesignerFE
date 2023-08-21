@@ -25,13 +25,13 @@ const Checkbox = ({
     if (value !== checked) {
       setValue(checked);
     }
-  }, [checked]);
+  }, [checked, value]);
 
   useEffect(() => {
     if (onChange && value !== checked) {
       onChange(value);
     }
-  }, [value]);
+  }, [checked, onChange, value]);
 
   const getDivClassName = useCallback(() => {
     if (type === 'icheck') {

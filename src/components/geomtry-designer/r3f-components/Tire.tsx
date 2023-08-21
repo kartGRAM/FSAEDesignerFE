@@ -25,7 +25,7 @@ const Tire = (props: {element: ITire}) => {
       e.stopPropagation();
       dispatch(selectElement({absPath: element.absPath}));
     },
-    [element.absPath, store]
+    [dispatch, element.absPath]
   );
 
   const isSelected = useSelector((state: RootState) => {

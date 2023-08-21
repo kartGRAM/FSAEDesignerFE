@@ -52,7 +52,7 @@ export function PointOffsetToolDialog(props: PointOffsetToolDialogProps) {
     } else {
       dispatch(setUIDisabled(false));
     }
-  }, [open]);
+  }, [dispatch, open, tool.className]);
 
   const handleClose = () => {
     setOpen(false);

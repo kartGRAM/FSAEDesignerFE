@@ -248,22 +248,22 @@ export const PivotControls = React.forwardRef<THREE.Group, PivotControlsProps>(
         userData
       }),
       [
-        onDragStart,
-        onDrag,
-        onDragEnd,
-        translation,
         translationLimits,
         rotationLimits,
-        depthTest,
+        axisColors,
+        hoveredColor,
+        opacity,
         scale,
         lineWidth,
         fixed,
-        ...axisColors,
-        hoveredColor,
-        opacity,
         displayValues,
+        depthTest,
         userData,
-        autoTransform
+        onDragStart,
+        invalidate,
+        autoTransform,
+        onDrag,
+        onDragEnd
       ]
     );
 

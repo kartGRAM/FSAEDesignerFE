@@ -55,7 +55,7 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
     } else {
       dispatch(setUIDisabled(false));
     }
-  }, [open]);
+  }, [dispatch, open]);
 
   const handleApply = () => {
     if (!staged) return;

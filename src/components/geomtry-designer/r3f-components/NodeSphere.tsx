@@ -35,7 +35,7 @@ const NodeSphere = (props: {node: INamedVector3RO}) => {
       dispatch(setSelectedPoint({point: node}));
       dispatch(selectElement({absPath: node.parent?.absPath ?? ''}));
     },
-    [node.absPath]
+    [dispatch, node]
   );
 
   const [show, setShow] = React.useState(false);

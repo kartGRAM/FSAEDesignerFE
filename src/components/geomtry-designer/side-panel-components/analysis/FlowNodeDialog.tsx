@@ -40,7 +40,7 @@ export const FlowNodeDialog = React.memo(
       } else {
         test.undoBlockPoint = '';
       }
-    }, [open]);
+    }, [open, test]);
 
     const {uitgd} = store.getState();
     const zindex = uitgd.fullScreenZIndex + uitgd.dialogZIndex * 2;
@@ -56,7 +56,7 @@ export const FlowNodeDialog = React.memo(
       const lastestID = test.getLocalStateID();
       test.squashLocalStates(stateAtOpen, lastestID);
       setStateAtOpen(lastestID);
-    }, [test, stateAtOpen, onApply]);
+    }, [onApply, node, test, stateAtOpen]);
 
     const handleOK = React.useCallback(() => {
       handleApply();
@@ -90,7 +90,7 @@ export const FlowNodeDialog = React.memo(
       test.loadLocalState(stateAtOpen);
       test.asLastestState();
       onClose();
-    }, [test, onCancel, onClose, changed]);
+    }, [changed, onCancel, test, stateAtOpen, onClose, dispatch, zindex]);
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const window = document.getElementById('gdAppArea');

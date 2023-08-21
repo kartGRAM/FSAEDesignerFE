@@ -26,7 +26,7 @@ const LinearBushing = (props: {element: ILinearBushing}) => {
       e.stopPropagation();
       dispatch(selectElement({absPath: element.absPath}));
     },
-    [element.absPath, store]
+    [dispatch, element.absPath]
   );
 
   useFrame(() => {

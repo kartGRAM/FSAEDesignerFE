@@ -54,7 +54,7 @@ export function MovePointDialog() {
     } else {
       dispatch(setUIDisabled(false));
     }
-  }, [open, onMoved]);
+  }, [open, onMoved, dispatch]);
 
   return (
     <Dialog

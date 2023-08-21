@@ -26,12 +26,12 @@ export const ItemBox = React.memo(() => {
       if (ref.current) e.dataTransfer.setDragImage(ref.current, 0, 0);
       dispatch(setDraggingNewTestFlowNode(item));
     },
-    []
+    [dispatch]
   );
 
   const handleDragEnd = React.useCallback(
     () => dispatch(setDraggingNewTestFlowNode(null)),
-    []
+    [dispatch]
   );
 
   return (

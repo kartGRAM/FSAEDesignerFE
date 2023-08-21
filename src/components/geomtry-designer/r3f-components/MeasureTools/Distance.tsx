@@ -23,7 +23,7 @@ export const Distance = (props: {tool: IDistance}) => {
       e.stopPropagation();
       dispatch(setSelectedMeasureTool(tool.nodeID));
     },
-    [tool.nodeID]
+    [dispatch, tool.nodeID]
   );
 
   const selected =

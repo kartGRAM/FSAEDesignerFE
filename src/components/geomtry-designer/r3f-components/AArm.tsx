@@ -31,7 +31,7 @@ const AArm = (props: {element: IAArm}) => {
       e.stopPropagation();
       dispatch(selectElement({absPath: element.absPath}));
     },
-    [element.absPath, store]
+    [dispatch, element.absPath]
   );
 
   useSelector((state: RootState) => state.uitgd.gdSceneState.resetPositions);

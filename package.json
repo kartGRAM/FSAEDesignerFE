@@ -9,7 +9,7 @@
     "dev": "craco test",
     "eject": "react-scripts eject",
     "format": "prettier-eslint $PWD/'src/**/*.{js,json}' --write",
-    "lint": "eslint src/**/*.js"
+    "lint": "eslint src/**/*.js *.ts *.tsx"
   },
   "eslintConfig": {
     "extends": [

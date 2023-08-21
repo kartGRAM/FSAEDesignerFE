@@ -78,7 +78,7 @@ export default function SidePanel() {
         stop: resizeEnd
       });
     }
-  }, [dispatch]);
+  }, [dispatch, minWidth]);
 
   let adContent: JSX.Element | null = null;
 

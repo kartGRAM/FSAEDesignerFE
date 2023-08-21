@@ -40,7 +40,7 @@ const DropdownMenu = ({size, children, containerTag}: DropdownMenuProps) => {
         setStyles({left: 'inherit', right: `0px`});
       }
     }
-  }, [dropdownMenuRef.current, size]);
+  }, [size]);
 
   if (containerTag === 'ul') {
     return (

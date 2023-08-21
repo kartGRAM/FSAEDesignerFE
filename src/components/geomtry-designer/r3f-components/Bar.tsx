@@ -26,7 +26,7 @@ const Bar = (props: {element: IBar}) => {
       e.stopPropagation();
       dispatch(selectElement({absPath: element.absPath}));
     },
-    [element.absPath, store]
+    [dispatch, element.absPath]
   );
 
   useFrame(() => {

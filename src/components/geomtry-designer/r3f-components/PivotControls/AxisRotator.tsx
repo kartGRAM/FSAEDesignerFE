@@ -137,7 +137,7 @@ export const AxisRotator: React.FC<{
       // @ts-ignore
       e.target.setPointerCapture(e.pointerId);
     },
-    [camControls, onDragStart, axis]
+    [displayValues, onDragStart, camControls]
   );
 
   const onPointerMove = React.useCallback(
@@ -198,7 +198,7 @@ export const AxisRotator: React.FC<{
         onDrag(rotMatrix);
       }
     },
-    [onDrag, isHovered, rotationLimits, axis]
+    [isHovered, rotationLimits, axis, displayValues, onDrag]
   );
 
   const onPointerUp = React.useCallback(
@@ -214,7 +214,7 @@ export const AxisRotator: React.FC<{
       // @ts-ignore
       e.target.releasePointerCapture(e.pointerId);
     },
-    [camControls, onDragEnd]
+    [camControls, displayValues, onDragEnd]
   );
 
   const onPointerOut = React.useCallback((e: any) => {
