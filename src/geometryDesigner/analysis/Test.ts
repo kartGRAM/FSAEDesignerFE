@@ -2,6 +2,7 @@ import store from '@store/store';
 import {v4 as uuidv4} from 'uuid';
 import {getDgd} from '@store/getDgd';
 import {setTests} from '@store/reducers/dataGeometryDesigner';
+import {testUpdateNotify} from '@store/reducers/uiTempGeometryDesigner';
 import {IFlowNode, IDataEdge} from './FlowNode';
 import {StartNode, isStartNode, IStartNode} from './StartNode';
 import {EndNode, isEndNode, IEndNode} from './EndNode';
@@ -330,6 +331,8 @@ export class Test implements ITest {
         })
       )
     );
+    // Applyボタンを更新
+    store.dispatch(testUpdateNotify(this));
   }
 
   nodes: {[index: string]: IFlowNode};

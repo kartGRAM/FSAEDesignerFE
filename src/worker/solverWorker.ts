@@ -4,17 +4,11 @@ import {replaceState} from '@store/reducers/dataGeometryDesigner';
 import {KinematicSolver} from '@gd/kinematics/Solver';
 import {Test} from '@gd/analysis/Test';
 import {ISnapshot} from '@gd/analysis/ISnapshot';
-import {FromParent, log} from './solverWorkerMessage';
+import {FromParent, log, throwError} from './solverWorkerMessage';
 import {getLocalInstances} from './getLocalInstances';
 
 // eslint-disable-next-line no-restricted-globals
 const ctx: Worker = self as any;
-
-const throwError = (e: any) => {
-  setTimeout(() => {
-    throw e.stack;
-  });
-};
 
 ctx.onmessage = async (e: MessageEvent<FromParent>) => {
   try {

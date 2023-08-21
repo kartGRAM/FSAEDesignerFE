@@ -56,7 +56,7 @@ export const FlowNodeDialog = React.memo(
       const lastestID = test.getLocalStateID();
       test.squashLocalStates(stateAtOpen, lastestID);
       setStateAtOpen(lastestID);
-    }, [test]);
+    }, [test, stateAtOpen, onApply]);
 
     const handleOK = React.useCallback(() => {
       handleApply();

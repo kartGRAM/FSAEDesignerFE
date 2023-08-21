@@ -93,6 +93,10 @@ export const FlowCanvas = React.memo(
     const test = uitgd.tests.find((t) => t.nodeID === nodeID);
     const {updateOnly} = useTestUpdate(test, false);
 
+    const handleApply = useCallback(() => {
+      test?.dispatch();
+    }, [test]);
+
     const handleCancel = useCallback(async () => {
       if (test?.changed) {
         const ret = await new Promise<string>((resolve) => {
@@ -134,15 +138,6 @@ export const FlowCanvas = React.memo(
       },
       [handleCancel]
     );
-
-    const handleApply = useCallback(() => {
-      test?.dispatch();
-    }, [test]);
-
-    const handleOK = useCallback(() => {
-      handleApply();
-      handleCancel();
-    }, [handleApply, handleCancel]);
 
     const redo = useCallback(() => {
       if (!test) return;
@@ -213,15 +208,11 @@ export const FlowCanvas = React.memo(
         >
           <Content test={test} />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleApply} disabled={!test.changed}>
-            Apply
-          </Button>
-          <Button onClick={handleOK} disabled={!test.changed}>
-            OK
-          </Button>
-          <Button onClick={handleCancel}>Cancel</Button>
-        </DialogActions>
+        <Actions
+          test={test}
+          handleCancel={handleCancel}
+          handleApply={handleApply}
+        />
       </Dialog>
     );
   }
@@ -710,6 +701,30 @@ const Content = React.memo((props: {test: ITest}) => {
     </>
   );
 });
+
+const Actions = React.memo(
+  (props: {test: ITest; handleCancel: () => void; handleApply: () => void}) => {
+    const {test, handleCancel, handleApply} = props;
+
+    useTestUpdate(test, true, ['changed']);
+    const handleOK = useCallback(() => {
+      handleApply();
+      handleCancel();
+    }, [handleApply, handleCancel]);
+
+    return (
+      <DialogActions>
+        <Button onClick={handleApply} disabled={!test.changed}>
+          Apply
+        </Button>
+        <Button onClick={handleOK} disabled={!test.changed}>
+          OK
+        </Button>
+        <Button onClick={handleCancel}>Cancel</Button>
+      </DialogActions>
+    );
+  }
+);
 
 function getRFNodesAndEdges(
   test: ITest,

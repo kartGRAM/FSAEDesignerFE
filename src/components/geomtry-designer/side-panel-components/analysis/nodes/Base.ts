@@ -6,12 +6,14 @@ export function getRFNodeBase(node: IFlowNode, parentTest?: ITest): IRFNode {
   const {position, selected} = node;
   let validated = true;
   let completed = false;
+  let error = false;
   if (parentTest) {
     validated = node.validate(
       parentTest.edgesFromTarget,
       parentTest.edgesFromSourceNode
     );
     completed = parentTest.solver.isNodeDone(node.nodeID);
+    error = parentTest.solver.isNodeError(node.nodeID);
   }
   return {
     id: node.nodeID,
@@ -19,7 +21,8 @@ export function getRFNodeBase(node: IFlowNode, parentTest?: ITest): IRFNode {
     data: {
       label: node.name,
       warning: !validated,
-      completed
+      completed,
+      error
     },
     selected
   };

@@ -81,6 +81,7 @@ export interface ITestSolver {
   run(): void;
   stop(): void;
   isNodeDone(nodeID: string): boolean;
+  isNodeError(nodeID: string): boolean;
 }
 
 export function isClipboardFlowNodes(

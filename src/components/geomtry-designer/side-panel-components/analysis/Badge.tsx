@@ -13,6 +13,15 @@ const StyledBadge = styled(MUIBadge)<BadgeProps>(() => ({
   }
 }));
 
+const StyledBadge2 = styled(MUIBadge)<BadgeProps>(() => ({
+  '& .MuiBadge-badge': {
+    aspectRatio: '1',
+    paddingTop: '0.12rem',
+    // padding: '11.5px',
+    borderRadius: '1000000px'
+  }
+}));
+
 export function WarningBadge(props: {
   invisible?: boolean;
   children?: React.ReactNode;
@@ -35,13 +44,13 @@ export function ErrorBadge(props: {
 }) {
   const {invisible, children} = props;
   return (
-    <StyledBadge
+    <StyledBadge2
       badgeContent={<ErrorIcon fontSize="small" sx={{pb: '2px'}} />}
       color="error"
       invisible={invisible}
     >
       {children}
-    </StyledBadge>
+    </StyledBadge2>
   );
 }
 
@@ -51,12 +60,12 @@ export function CompletedBadge(props: {
 }) {
   const {invisible, children} = props;
   return (
-    <StyledBadge
+    <StyledBadge2
       badgeContent={<CheckCircleIcon fontSize="small" sx={{pb: '2px'}} />}
       color="success"
       invisible={invisible}
     >
       {children}
-    </StyledBadge>
+    </StyledBadge2>
   );
 }

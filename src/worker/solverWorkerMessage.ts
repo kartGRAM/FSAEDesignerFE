@@ -40,6 +40,14 @@ export function isDoneProgress(object: any): object is DoneProgress {
   return isObject(object) && object.isDone;
 }
 
+export type ErrorOccurred = {
+  isError: true;
+  nodeID: string;
+};
+export function isErrorOccurred(object: any): object is ErrorOccurred {
+  return isObject(object) && object.isError;
+}
+
 export type WorkInProgress = {
   isWIP: true;
 };
@@ -65,3 +73,14 @@ export function wip() {
   const wip: WorkInProgress = {isWIP: true};
   ctx.postMessage(wip);
 }
+
+export function informError(nodeID: string) {
+  const error: ErrorOccurred = {isError: true, nodeID};
+  ctx.postMessage(error);
+}
+
+export const throwError = (e: any) => {
+  setTimeout(() => {
+    throw e.stack;
+  });
+};

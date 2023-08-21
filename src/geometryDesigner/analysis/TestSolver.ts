@@ -11,7 +11,9 @@ import {
   isDoneProgress,
   isWIP,
   wip,
-  done
+  done,
+  isErrorOccurred,
+  informError
 } from '@worker/solverWorkerMessage';
 import store from '@store/store';
 import {ISnapshot} from '@gd/analysis/ISnapshot';
@@ -90,11 +92,17 @@ export class TestSolver implements ITestSolver {
 
   private doneNodes: string[] = [];
 
+  private errorNodes: string[] = [];
+
   isNodeDone(node: string) {
     return this.doneNodes.includes(node);
   }
 
-  private resetTestStatus(onTestEnd = false) {
+  isNodeError(node: string) {
+    return this.errorNodes.includes(node);
+  }
+
+  private resetTestStatus(onTestEnd = false, onError = false) {
     if (this.worker) this.worker.terminate();
     this.worker = undefined;
     this.running = false;
@@ -102,6 +110,7 @@ export class TestSolver implements ITestSolver {
     this.caseResults = null;
     this.localInstances = null;
     this.wipNodes = 0;
+    if (!onError) this.errorNodes = [];
     if (!onTestEnd) this.doneNodes = [];
   }
 
@@ -141,6 +150,10 @@ export class TestSolver implements ITestSolver {
         this.doneNodes = [...this.doneNodes, data.nodeID];
         store.dispatch(testUpdateNotify(this.test));
       }
+      if (isErrorOccurred(data)) {
+        this.errorNodes = [...this.errorNodes, data.nodeID];
+        store.dispatch(testUpdateNotify(this.test));
+      }
       if (isWIP(data)) {
         ++this.wipNodes;
         store.dispatch(testUpdateNotify(this.test));
@@ -150,7 +163,8 @@ export class TestSolver implements ITestSolver {
     worker.onerror = (e) => {
       // eslint-disable-next-line no-console
       console.log(`${e.message}`);
-      this.resetTestStatus();
+
+      this.resetTestStatus(true, true);
       store.dispatch(testUpdateNotify(this.test));
     };
 
@@ -226,19 +240,24 @@ export class TestSolver implements ITestSolver {
     }
 
     wip();
-    if (isActionNode(node)) {
-      node.action(
-        solver,
-        getSnapshot,
-        currentCase ? ret.cases[currentCase].results : undefined
-      );
-    }
-    if (isCaseStartNode(node)) {
-      currentCase = node.nodeID;
-      ret.cases[node.nodeID] = {name: node.name, results: []};
-    }
-    if (isCaseEndNode(node)) {
-      currentCase = undefined;
+    try {
+      if (isActionNode(node)) {
+        node.action(
+          solver,
+          getSnapshot,
+          currentCase ? ret.cases[currentCase].results : undefined
+        );
+      }
+      if (isCaseStartNode(node)) {
+        currentCase = node.nodeID;
+        ret.cases[node.nodeID] = {name: node.name, results: []};
+      }
+      if (isCaseEndNode(node)) {
+        currentCase = undefined;
+      }
+    } catch (e) {
+      informError(node.nodeID);
+      throw e;
     }
 
     const state = getSnapshot(solver);
