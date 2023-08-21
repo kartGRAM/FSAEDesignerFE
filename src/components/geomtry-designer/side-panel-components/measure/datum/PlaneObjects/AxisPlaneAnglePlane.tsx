@@ -83,18 +83,21 @@ export function AxisPlaneAnglePlane(props: {
     }
   };
 
-  const onResetSetterMode = () => {
+  const onResetSetterMode = React.useCallback(() => {
     dispatch(setDatumPlaneSelected(''));
     dispatch(setDatumLineSelected(''));
     dispatch(setDatumPlaneSelectMode(false));
     dispatch(setDatumLineSelectMode(false));
-  };
+  }, [dispatch]);
 
-  const shortCutKeys = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      onResetSetterMode();
-    }
-  };
+  const shortCutKeys = React.useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onResetSetterMode();
+      }
+    },
+    [onResetSetterMode]
+  );
 
   React.useEffect(() => {
     setVisModeRestored(
@@ -112,7 +115,7 @@ export function AxisPlaneAnglePlane(props: {
       dispatch(setForceVisibledDatums([]));
       window.removeEventListener('keydown', shortCutKeys, true);
     };
-  }, []);
+  }, [dispatch, line, otherPlane, shortCutKeys, visModeRestored]);
 
   useUpdateEffect(() => {
     if (

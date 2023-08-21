@@ -74,17 +74,20 @@ export function ThreePointsPlane(props: {
     setSetterMode(mode);
   };
 
-  const onResetSetterMode = () => {
+  const onResetSetterMode = React.useCallback(() => {
     dispatch(setDatumPointSelected(''));
     setSetterMode(-1);
     dispatch(setDatumPointSelectMode(false));
-  };
+  }, [dispatch]);
 
-  const shortCutKeys = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      onResetSetterMode();
-    }
-  };
+  const shortCutKeys = React.useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onResetSetterMode();
+      }
+    },
+    [onResetSetterMode]
+  );
 
   React.useEffect(() => {
     setVisModeRestored(
@@ -100,7 +103,7 @@ export function ThreePointsPlane(props: {
       dispatch(setForceVisibledDatums([]));
       window.removeEventListener('keydown', shortCutKeys, true);
     };
-  }, []);
+  }, [dispatch, points, shortCutKeys, visModeRestored]);
 
   useUpdateEffect(() => {
     if (

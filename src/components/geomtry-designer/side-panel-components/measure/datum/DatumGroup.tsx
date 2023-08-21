@@ -62,7 +62,7 @@ export const DatumGroupTable = React.memo(
         dispatch(setSelectedDatumObject(''));
         setDialogTarget(id);
       },
-      []
+      [dispatch]
     );
 
     const dialogTargetObject = datumObjects.find(
@@ -283,7 +283,7 @@ const DatumRow = React.memo(
       if (datum.nodeID !== selected) {
         dispatch(setSelectedDatumObject(datum.nodeID));
       }
-    }, [datum, selected]);
+    }, [datum.nodeID, dispatch, selected]);
 
     return (
       <TableRow

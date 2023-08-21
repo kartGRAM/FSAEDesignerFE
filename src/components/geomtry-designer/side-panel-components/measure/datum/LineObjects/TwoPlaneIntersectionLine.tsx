@@ -64,17 +64,20 @@ export function TwoPlaneIntersectionLine(props: {
     setSetterMode(mode);
   };
 
-  const onResetSetterMode = () => {
+  const onResetSetterMode = React.useCallback(() => {
     dispatch(setDatumPlaneSelected(''));
     setSetterMode(-1);
     dispatch(setDatumPlaneSelectMode(false));
-  };
+  }, [dispatch]);
 
-  const shortCutKeys = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      onResetSetterMode();
-    }
-  };
+  const shortCutKeys = React.useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onResetSetterMode();
+      }
+    },
+    [onResetSetterMode]
+  );
 
   React.useEffect(() => {
     dispatch(setDatumPlaneSelectMode(false));
@@ -85,7 +88,7 @@ export function TwoPlaneIntersectionLine(props: {
       dispatch(setForceVisibledDatums([]));
       window.removeEventListener('keydown', shortCutKeys, true);
     };
-  }, []);
+  }, [dispatch, planes, shortCutKeys]);
 
   useUpdateEffect(() => {
     if (

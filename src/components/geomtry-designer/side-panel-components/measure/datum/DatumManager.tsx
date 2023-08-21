@@ -52,7 +52,7 @@ export default function DatumManager() {
   const update = React.useCallback(() => {
     if (!datumManager) return;
     dispatch(setDatumObjects(datumManager.getData()));
-  }, [datumManager]);
+  }, [datumManager, dispatch]);
 
   const removeDatumGroup = async (nodeID: string) => {
     if (datumManager) {
@@ -82,7 +82,7 @@ export default function DatumManager() {
     return () => {
       dispatch(setSelectedDatumObject(''));
     };
-  }, []);
+  }, [dispatch]);
 
   return (
     <Accordion

@@ -61,15 +61,18 @@ export function FromElementBasePlane(props: {
     dispatch(setDatumElementSelectMode(true));
   };
 
-  const onResetSetterMode = () => {
+  const onResetSetterMode = React.useCallback(() => {
     dispatch(setDatumElementSelectMode(false));
-  };
+  }, [dispatch]);
 
-  const shortCutKeys = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      onResetSetterMode();
-    }
-  };
+  const shortCutKeys = React.useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onResetSetterMode();
+      }
+    },
+    [onResetSetterMode]
+  );
 
   React.useEffect(() => {
     dispatch(setDatumElementSelectMode(false));
@@ -78,7 +81,7 @@ export function FromElementBasePlane(props: {
       dispatch(setDatumElementSelectMode(false));
       window.removeEventListener('keydown', shortCutKeys, true);
     };
-  }, []);
+  }, [dispatch, shortCutKeys]);
 
   useUpdateEffect(() => {
     if (

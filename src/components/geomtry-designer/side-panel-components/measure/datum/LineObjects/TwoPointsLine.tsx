@@ -65,17 +65,20 @@ export function TwoPointsLine(props: {
     setSetterMode(mode);
   };
 
-  const onResetSetterMode = () => {
+  const onResetSetterMode = React.useCallback(() => {
     dispatch(setDatumPointSelected(''));
     setSetterMode(-1);
     dispatch(setDatumPointSelectMode(false));
-  };
+  }, [dispatch]);
 
-  const shortCutKeys = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      onResetSetterMode();
-    }
-  };
+  const shortCutKeys = React.useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onResetSetterMode();
+      }
+    },
+    [onResetSetterMode]
+  );
 
   React.useEffect(() => {
     dispatch(setDatumPointSelectMode(false));
@@ -86,7 +89,7 @@ export function TwoPointsLine(props: {
       dispatch(setForceVisibledDatums([]));
       window.removeEventListener('keydown', shortCutKeys, true);
     };
-  }, []);
+  }, [dispatch, points, shortCutKeys]);
 
   useUpdateEffect(() => {
     if (

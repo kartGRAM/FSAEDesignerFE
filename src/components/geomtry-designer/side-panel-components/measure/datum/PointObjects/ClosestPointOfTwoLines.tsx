@@ -74,17 +74,20 @@ export function ClosestPointOfTwoLines(props: {
     setSetterMode(mode);
   };
 
-  const onResetSetterMode = () => {
+  const onResetSetterMode = React.useCallback(() => {
     dispatch(setDatumLineSelected(''));
     setSetterMode(-1);
     dispatch(setDatumLineSelectMode(false));
-  };
+  }, [dispatch]);
 
-  const shortCutKeys = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      onResetSetterMode();
-    }
-  };
+  const shortCutKeys = React.useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onResetSetterMode();
+      }
+    },
+    [onResetSetterMode]
+  );
 
   React.useEffect(() => {
     dispatch(setDatumLineSelectMode(false));
@@ -95,7 +98,7 @@ export function ClosestPointOfTwoLines(props: {
       dispatch(setForceVisibledDatums([]));
       window.removeEventListener('keydown', shortCutKeys, true);
     };
-  }, []);
+  }, [dispatch, lines, shortCutKeys]);
 
   useUpdateEffect(() => {
     if (

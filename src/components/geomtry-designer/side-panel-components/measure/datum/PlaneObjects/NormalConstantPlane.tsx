@@ -77,10 +77,19 @@ export function NormalConstantPlane(props: {
     })
   );
 
-  const onResetSetterMode = () => {
+  const onResetSetterMode = React.useCallback(() => {
     dispatch(setDatumLineSelected(''));
     dispatch(setDatumLineSelectMode(false));
-  };
+  }, [dispatch]);
+
+  const shortCutKeys = React.useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onResetSetterMode();
+      }
+    },
+    [onResetSetterMode]
+  );
 
   React.useEffect(() => {
     dispatch(setDatumLineSelectMode(false));
@@ -91,7 +100,7 @@ export function NormalConstantPlane(props: {
       dispatch(setForceVisibledDatums([]));
       window.removeEventListener('keydown', shortCutKeys, true);
     };
-  }, []);
+  }, [dispatch, line, shortCutKeys]);
 
   useUpdateEffect(() => {
     if (
@@ -123,12 +132,6 @@ export function NormalConstantPlane(props: {
       dispatch(setForceVisibledDatums([line]));
     }
   }, [normal, distance, normalType, line]);
-
-  const shortCutKeys = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      onResetSetterMode();
-    }
-  };
 
   const {uitgd} = store.getState();
   const menuZIndex =

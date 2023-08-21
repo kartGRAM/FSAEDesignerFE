@@ -107,12 +107,21 @@ export function PointDirectionLine(props: {
     })
   );
 
-  const onResetSetterMode = () => {
+  const onResetSetterMode = React.useCallback(() => {
     dispatch(setDatumPointSelected(''));
     dispatch(setDatumPointSelectMode(false));
     dispatch(setDatumLineSelected(''));
     dispatch(setDatumLineSelectMode(false));
-  };
+  }, [dispatch]);
+
+  const shortCutKeys = React.useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onResetSetterMode();
+      }
+    },
+    [onResetSetterMode]
+  );
 
   React.useEffect(() => {
     setVisModeRestored(
@@ -132,7 +141,7 @@ export function PointDirectionLine(props: {
       dispatch(setForceVisibledDatums([]));
       window.removeEventListener('keydown', shortCutKeys, true);
     };
-  }, []);
+  }, [dispatch, nDirection, nPoint, shortCutKeys, visModeRestored]);
 
   useUpdateEffect(() => {
     if (
@@ -175,12 +184,6 @@ export function PointDirectionLine(props: {
     }
     dispatch(setForceVisibledDatums([nPoint, nDirection]));
   }, [vDirection, nDirection, directionType, vPoint, nPoint, pointType]);
-
-  const shortCutKeys = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      onResetSetterMode();
-    }
-  };
 
   const {uitgd} = store.getState();
   const menuZIndex =

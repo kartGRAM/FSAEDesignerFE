@@ -99,7 +99,7 @@ export function MeasureToolDialog(props: {
     } else {
       dispatch(setUIDisabled(false));
     }
-  }, [open]);
+  }, [dispatch, open]);
 
   let content = null;
   if (measureToolClass === 'Position') {

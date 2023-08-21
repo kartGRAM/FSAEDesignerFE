@@ -75,18 +75,21 @@ export function AxisPointPlane(props: {
     }
   };
 
-  const onResetSetterMode = () => {
+  const onResetSetterMode = React.useCallback(() => {
     dispatch(setDatumPointSelected(''));
     dispatch(setDatumLineSelected(''));
     dispatch(setDatumPointSelectMode(false));
     dispatch(setDatumLineSelectMode(false));
-  };
+  }, [dispatch]);
 
-  const shortCutKeys = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      onResetSetterMode();
-    }
-  };
+  const shortCutKeys = React.useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onResetSetterMode();
+      }
+    },
+    [onResetSetterMode]
+  );
 
   React.useEffect(() => {
     setVisModeRestored(
@@ -104,7 +107,7 @@ export function AxisPointPlane(props: {
       dispatch(setForceVisibledDatums([]));
       window.removeEventListener('keydown', shortCutKeys, true);
     };
-  }, []);
+  }, [dispatch, line, point, shortCutKeys, visModeRestored]);
 
   useUpdateEffect(() => {
     if (

@@ -68,7 +68,7 @@ export function DatumDialog(props: {
     } else {
       dispatch(setUIDisabled(false));
     }
-  }, [open]);
+  }, [dispatch, open]);
 
   return (
     <Dialog

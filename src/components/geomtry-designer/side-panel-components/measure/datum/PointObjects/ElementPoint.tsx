@@ -53,7 +53,7 @@ export function ElementPoint(props: {
       dispatch(setMeasureElementPointMode(false));
       dispatch(setMeasureElementPointSelected(undefined));
     };
-  }, []);
+  }, [dispatch, selectedPointDefault?.nodeID, visModeRestored]);
 
   const elements = collectedAssembly?.children ?? [];
 

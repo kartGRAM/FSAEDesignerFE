@@ -34,7 +34,7 @@ export function FixedPoint(props: {
     return () => {
       dispatch(setSelectedPoint(null));
     };
-  }, []);
+  }, [dispatch]);
 
   return (
     <Box component="div">

@@ -25,7 +25,7 @@ const App = () => {
     if (screenSize !== size) {
       dispatch(setWindowSize(size));
     }
-  }, [windowSize]);
+  }, [dispatch, screenSize, windowSize]);
 
   return (
     <BrowserRouter>

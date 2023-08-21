@@ -40,12 +40,12 @@ export default function ElementsRoot() {
       e.dataTransfer.effectAllowed = 'move';
       dispatch(setDraggingNewElement(name));
     },
-    []
+    [dispatch]
   );
 
   const handleDragEnd = React.useCallback(() => {
     dispatch(resetDragState());
-  }, []);
+  }, [dispatch]);
 
   return (
     <Box component="div" sx={{position: 'relative'}}>

@@ -85,12 +85,21 @@ export function PointNormalPlane(props: {
     })
   );
 
-  const onResetSetterMode = () => {
+  const onResetSetterMode = React.useCallback(() => {
     dispatch(setDatumPointSelected(''));
     dispatch(setDatumLineSelected(''));
     dispatch(setDatumPointSelectMode(false));
     dispatch(setDatumLineSelectMode(false));
-  };
+  }, [dispatch]);
+
+  const shortCutKeys = React.useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onResetSetterMode();
+      }
+    },
+    [onResetSetterMode]
+  );
 
   React.useEffect(() => {
     setVisModeRestored(
@@ -108,7 +117,7 @@ export function PointNormalPlane(props: {
       dispatch(setForceVisibledDatums([]));
       window.removeEventListener('keydown', shortCutKeys, true);
     };
-  }, []);
+  }, [dispatch, line, point, shortCutKeys, visModeRestored]);
 
   useUpdateEffect(() => {
     if (
@@ -150,12 +159,6 @@ export function PointNormalPlane(props: {
     }
     dispatch(setForceVisibledDatums([point, line]));
   }, [normal, point, normalType, line]);
-
-  const shortCutKeys = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      onResetSetterMode();
-    }
-  };
 
   const {uitgd} = store.getState();
   const menuZIndex =
