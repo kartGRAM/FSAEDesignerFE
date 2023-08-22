@@ -92,8 +92,9 @@ export function getDataArray(
 }
 
 export function getCases(
-  caseResults: CaseResults
+  caseResults: CaseResults | undefined | null
 ): {nodeID: string; name: string}[] {
+  if (!caseResults) return [];
   const cases = Object.keys(caseResults.cases).sort((a, b) =>
     natsort()(caseResults.cases[a].name, caseResults.cases[b].name)
   );
