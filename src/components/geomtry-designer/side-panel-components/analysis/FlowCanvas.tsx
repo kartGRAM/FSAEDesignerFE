@@ -231,7 +231,11 @@ export const FlowCanvas = React.memo(
             handleApply={handleApply}
           />
         </Dialog>
-        <CaseResultDialog open={replayMode} exitReplayMode={exitReplayMode} />
+        <CaseResultDialog
+          open={replayMode}
+          exitReplayMode={exitReplayMode}
+          test={test}
+        />
       </>
     );
   }

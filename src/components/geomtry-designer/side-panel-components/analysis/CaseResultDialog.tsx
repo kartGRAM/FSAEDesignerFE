@@ -7,10 +7,11 @@ import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import PaperComponentDraggable from '@gdComponents/PaperComponentDraggable';
 import {setCaseResultDialogPosition} from '@store/reducers/uiGeometryDesigner';
+import {ITest} from '@gd/analysis/ITest';
 
 export const CaseResultDialog = React.memo(
-  (props: {open: boolean; exitReplayMode: () => void}) => {
-    const {open, exitReplayMode} = props;
+  (props: {open: boolean; exitReplayMode: () => void; test: ITest}) => {
+    const {open, exitReplayMode, test} = props;
     const {uitgd} = store.getState();
     const zindex = uitgd.fullScreenZIndex + uitgd.dialogZIndex + 1;
     const dispatch = useDispatch();
@@ -47,7 +48,7 @@ export const CaseResultDialog = React.memo(
         }}
       >
         <DialogTitle>Replay Mode</DialogTitle>
-        <DialogContent>aaaaaaaa</DialogContent>
+        <CaseResultContent test={test} />
         <DialogActions>
           <Button onClick={handleOK}>Back</Button>
         </DialogActions>
@@ -55,3 +56,11 @@ export const CaseResultDialog = React.memo(
     );
   }
 );
+
+const CaseResultContent = React.memo((props: {test: ITest}) => {
+  const {test} = props;
+  const {solver} = test;
+  const cases = solver.caseResults?.cases ?? {};
+  const caseIDs = Object.keys(cases);
+  return <DialogContent>aaaaa</DialogContent>;
+});
