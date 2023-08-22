@@ -69,6 +69,10 @@ export interface DialogState {
     x: number | null;
     y: number | null;
   };
+  caseResultDialogInitialPosition: {
+    x: number | null;
+    y: number | null;
+  };
   moveDialogInitialPosition: {
     x: number | null;
     y: number | null;
@@ -160,6 +164,10 @@ const initialState: GDState = {
       x: null,
       y: null
     },
+    caseResultDialogInitialPosition: {
+      x: null,
+      y: null
+    },
     moveDialogInitialPosition: {
       x: null,
       y: null
@@ -245,6 +253,12 @@ export const uiGeometryDesignerSlice = createSlice({
     ) => {
       state.dialogState.moveDialogInitialPosition = action.payload;
     },
+    setCaseResultDialogPosition: (
+      state: GDState,
+      action: PayloadAction<{x: number | null; y: number | null}>
+    ) => {
+      state.dialogState.caseResultDialogInitialPosition = action.payload;
+    },
     setDatumDialogPosition: (
       state: GDState,
       action: PayloadAction<{x: number | null; y: number | null}>
@@ -292,6 +306,7 @@ export const {
   setDatumDialogPosition,
   setMeasureToolDialogPosition,
   setMoveDialogPosition,
+  setCaseResultDialogPosition,
   setProjectionMode,
   setGroundPlaneShow,
   setComponentVisualizationMode,

@@ -55,6 +55,7 @@ import TestName from './TestName';
 import TestDescription from './TestDescription';
 import {FlowCanvasToolbar} from './FlowCanvasToolbar';
 import {getRFNode, getEdge} from './nodes/getItems';
+import {CaseResultDialog} from './CaseResultDialog';
 
 const fitViewOptions: FitViewOptions = {
   padding: 0.2
@@ -81,6 +82,7 @@ export const FlowCanvas = React.memo(
     const zIndexFlowCanvas = uitgd.fullScreenZIndex + uitgd.dialogZIndex;
 
     const dispatch = useDispatch();
+    const [replayMode, setReplayMode] = React.useState(false);
 
     React.useEffect(() => {
       if (open) dispatch(setAllUIDisabled(true));
@@ -92,6 +94,14 @@ export const FlowCanvas = React.memo(
 
     const test = uitgd.tests.find((t) => t.nodeID === nodeID);
     const {updateOnly} = useTestUpdate(test, false);
+
+    const handleReplayClick = useCallback(() => {
+      setReplayMode(true);
+    }, []);
+
+    const exitReplayMode = useCallback(() => {
+      setReplayMode(false);
+    }, []);
 
     const handleApply = useCallback(() => {
       test?.dispatch();
@@ -167,53 +177,62 @@ export const FlowCanvas = React.memo(
     const window = document.getElementById('gdAppArea');
 
     return (
-      <Dialog
-        TransitionProps={{unmountOnExit: true}}
-        container={window}
-        onClose={handleClose}
-        open={open}
-        maxWidth={false}
-        sx={{
-          position: 'absolute',
-          zIndex: `${zIndexFlowCanvas}!important`,
-          overflow: 'hidden'
-        }}
-        PaperProps={{
-          sx: {width: 'calc(100% - 10rem)', height: 'calc(100% - 10rem)'}
-        }}
-        onKeyDown={handleKeyDown}
-      >
-        <Box
-          component="div"
+      <>
+        <Dialog
+          TransitionProps={{unmountOnExit: true}}
+          container={window}
+          onClose={handleClose}
+          open={open && !replayMode}
+          maxWidth={false}
           sx={{
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'end',
-            pb: 0.5
+            position: 'absolute',
+            zIndex: `${zIndexFlowCanvas}!important`,
+            overflow: 'hidden'
           }}
+          PaperProps={{
+            sx: {width: 'calc(100% - 10rem)', height: 'calc(100% - 10rem)'}
+          }}
+          onKeyDown={handleKeyDown}
         >
-          <Box component="div" sx={{display: 'flex', flexDirection: 'column'}}>
-            <TestName test={test} disabled={disabled} />
-            <TestDescription test={test} disabled={disabled} />
+          <Box
+            component="div"
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'end',
+              pb: 0.5
+            }}
+          >
+            <Box
+              component="div"
+              sx={{display: 'flex', flexDirection: 'column'}}
+            >
+              <TestName test={test} disabled={disabled} />
+              <TestDescription test={test} disabled={disabled} />
+            </Box>
+            <FlowCanvasToolbar
+              test={test}
+              handleReplayClick={handleReplayClick}
+            />
           </Box>
-          <FlowCanvasToolbar test={test} />
-        </Box>
-        <DialogContent
-          sx={{
-            display: 'flex',
-            flexDirection: 'row',
-            pt: 0,
-            position: 'relative'
-          }}
-        >
-          <Content test={test} />
-        </DialogContent>
-        <Actions
-          test={test}
-          handleCancel={handleCancel}
-          handleApply={handleApply}
-        />
-      </Dialog>
+          <DialogContent
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              pt: 0,
+              position: 'relative'
+            }}
+          >
+            <Content test={test} />
+          </DialogContent>
+          <Actions
+            test={test}
+            handleCancel={handleCancel}
+            handleApply={handleApply}
+          />
+        </Dialog>
+        <CaseResultDialog open={replayMode} exitReplayMode={exitReplayMode} />
+      </>
     );
   }
 );

@@ -11,62 +11,73 @@ import RedoIcon from '@mui/icons-material/Redo';
 import UndoIcon from '@mui/icons-material/Undo';
 import {setFlowCanvasBackgroundVariant} from '@store/reducers/uiGeometryDesigner';
 import Button from '@mui/material/Button';
+import VideoLibraryIcon from '@mui/icons-material/VideoLibrary';
 
-export const FlowCanvasToolbar = React.memo((props: {test: ITest}) => {
-  const {test} = props;
+export const FlowCanvasToolbar = React.memo(
+  (props: {test: ITest; handleReplayClick: () => void}) => {
+    const {test, handleReplayClick} = props;
 
-  const dispatch = useDispatch();
+    const dispatch = useDispatch();
+    useTestUpdate(test, true, undefined, ['running', 'done']);
+    const {running} = test.solver;
 
-  useTestUpdate(test, true, undefined, ['running']);
-  const {running} = test.solver;
+    const [onArrange, setOnArrange] = React.useState(false);
 
-  const [onArrange, setOnArrange] = React.useState(false);
+    const {fitView} = useReactFlow();
 
-  const {fitView} = useReactFlow();
+    React.useEffect(() => {
+      fitView();
+    }, [fitView, onArrange]);
 
-  React.useEffect(() => {
-    fitView();
-  }, [fitView, onArrange]);
+    const arrange = () => {
+      const {widthSpaceAligningNodes, heightSpaceAligningNodes} =
+        store.getState().uigd.present.analysisPanelState;
+      test.arrange(widthSpaceAligningNodes, heightSpaceAligningNodes);
+      test.saveLocalState();
+      setOnArrange((prev) => !prev);
+    };
 
-  const arrange = () => {
-    const {widthSpaceAligningNodes, heightSpaceAligningNodes} =
-      store.getState().uigd.present.analysisPanelState;
-    test.arrange(widthSpaceAligningNodes, heightSpaceAligningNodes);
-    test.saveLocalState();
-    setOnArrange((prev) => !prev);
-  };
-
-  return (
-    <Toolbar sx={{minHeight: 'unset!important', pb: 0}}>
-      <Solver test={test} />
-      <Button
-        onClick={() =>
-          dispatch(setFlowCanvasBackgroundVariant(BackgroundVariant.Dots))
-        }
-      >
-        dots
-      </Button>
-      <Button
-        onClick={() =>
-          dispatch(setFlowCanvasBackgroundVariant(BackgroundVariant.Lines))
-        }
-      >
-        lines
-      </Button>
-      <Button
-        onClick={() =>
-          dispatch(setFlowCanvasBackgroundVariant(BackgroundVariant.Cross))
-        }
-      >
-        cross
-      </Button>
-      <Button onClick={arrange} disabled={running}>
-        arrange
-      </Button>
-      <DoRedo test={test} />
-    </Toolbar>
-  );
-});
+    return (
+      <Toolbar sx={{minHeight: 'unset!important', pb: 0}}>
+        <Solver test={test} />
+        <Button
+          onClick={() =>
+            dispatch(setFlowCanvasBackgroundVariant(BackgroundVariant.Dots))
+          }
+        >
+          dots
+        </Button>
+        <Button
+          onClick={() =>
+            dispatch(setFlowCanvasBackgroundVariant(BackgroundVariant.Lines))
+          }
+        >
+          lines
+        </Button>
+        <Button
+          onClick={() =>
+            dispatch(setFlowCanvasBackgroundVariant(BackgroundVariant.Cross))
+          }
+        >
+          cross
+        </Button>
+        <Button onClick={arrange} disabled={running}>
+          arrange
+        </Button>
+        <DoRedo test={test} />
+        <MyTooltip title="Replay results">
+          <IconButton
+            disabled={!test.solver.done}
+            onClick={handleReplayClick}
+            color="warning"
+          >
+            <VideoLibraryIcon />
+          </IconButton>
+        </MyTooltip>
+      </Toolbar>
+    );
+  }
+);
 
 const Solver = React.memo((props: {test: ITest}) => {
   const {test} = props;
