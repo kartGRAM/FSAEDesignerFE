@@ -4,7 +4,8 @@ import {
   DialogContent,
   DialogTitle,
   InputLabel,
-  FormControl
+  FormControl,
+  Box
 } from '@mui/material';
 import {useDispatch} from 'react-redux';
 import store, {RootState} from '@store/store';
@@ -17,6 +18,11 @@ import {ITest} from '@gd/analysis/ITest';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import {getCases} from '@gd/charts/getPlotlyData';
+import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
+import InputAdornment from '@mui/material/InputAdornment';
+import Slider from '@mui/material/Slider';
+import {isNumber} from '@app/utils/helpers';
+import {InputBaseComponentProps} from '@mui/material/InputBase';
 
 export const CaseResultDialog = React.memo(
   (props: {open: boolean; exitReplayMode: () => void; test: ITest}) => {
@@ -72,6 +78,31 @@ const CaseResultContent = React.memo((props: {test: ITest}) => {
 
   const cases = getCases(solver.caseResults).slice(1);
   const [caseID, setCaseID] = React.useState<string>(cases[0]?.nodeID ?? '');
+  const [frame, setFrame] = React.useState<number>(1);
+
+  const results = solver.caseResults?.cases[caseID].results;
+  const max = results?.length ?? 1;
+  const min = 1;
+
+  const handleSliderFrameChange = (
+    event: Event,
+    newValue: number | number[]
+  ) => {
+    if (!isNumber(newValue)) newValue = newValue.shift() ?? 0;
+    setFrame(newValue);
+  };
+
+  const handleInputFrameChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setFrame(event.target.value === '' ? 1 : Number(event.target.value));
+  };
+
+  const handleBlur = () => {
+    if (isNumber(frame) && frame < min) setFrame(min);
+    if (isNumber(frame) && frame > max) setFrame(max);
+  };
+
   const id = React.useId();
 
   const {uitgd} = store.getState();
@@ -99,6 +130,63 @@ const CaseResultContent = React.memo((props: {test: ITest}) => {
           ))}
         </Select>
       </FormControl>
+
+      <Box
+        component="div"
+        sx={{display: 'flex', flexDirection: 'row', width: '100%', pt: 2}}
+      >
+        <Box component="div" sx={{flexGrow: 1, mt: 0.7}}>
+          <Slider
+            disabled={!results || results.length === 0}
+            size="small"
+            aria-label="Small"
+            valueLabelDisplay="auto"
+            value={isNumber(frame) ? frame : 1}
+            min={min}
+            max={max}
+            onChange={handleSliderFrameChange}
+          />
+        </Box>
+        <ValueField
+          disabled={!results || results.length === 0}
+          value={frame}
+          onChange={handleInputFrameChange}
+          onBlur={handleBlur}
+          label="frame number"
+          name="frame number"
+          variant="outlined"
+          // eslint-disable-next-line no-nested-ternary
+          unit={`${frame === 1 ? 'st' : frame === 2 ? 'nd' : 'th'}`}
+          inputProps={{min, max, step: 1}}
+        />
+      </Box>
     </DialogContent>
+  );
+});
+
+// eslint-disable-next-line no-redeclare
+interface MyOutlinedTextFieldProps extends OutlinedTextFieldProps {
+  unit: string;
+  inputProps?: InputBaseComponentProps;
+}
+
+const ValueField = React.memo((props: MyOutlinedTextFieldProps) => {
+  const {unit, inputProps} = props;
+  return (
+    <TextField
+      size="small"
+      // margin="none"
+      {...props}
+      InputProps={{
+        endAdornment: <InputAdornment position="end">{unit}</InputAdornment>,
+        type: 'number',
+        'aria-labelledby': 'input-slider',
+        inputProps
+      }}
+      sx={{
+        marginLeft: 3
+        // width: '15ch'
+      }}
+    />
   );
 });
