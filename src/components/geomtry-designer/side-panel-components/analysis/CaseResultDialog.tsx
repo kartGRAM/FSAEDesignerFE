@@ -9,13 +9,16 @@ import {
 } from '@mui/material';
 import {useDispatch} from 'react-redux';
 import store, {RootState} from '@store/store';
-import {setUIDisabled} from '@store/reducers/uiTempGeometryDesigner';
+import {
+  setUIDisabled,
+  setAssembled
+} from '@store/reducers/uiTempGeometryDesigner';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import PaperComponentDraggable from '@gdComponents/PaperComponentDraggable';
 import {setCaseResultDialogPosition} from '@store/reducers/uiGeometryDesigner';
 import {ITest} from '@gd/analysis/ITest';
-import Select from '@mui/material/Select';
+import Select, {SelectChangeEvent} from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import {getCases} from '@gd/charts/getPlotlyData';
 import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
@@ -23,6 +26,8 @@ import InputAdornment from '@mui/material/InputAdornment';
 import Slider from '@mui/material/Slider';
 import {isNumber} from '@app/utils/helpers';
 import {InputBaseComponentProps} from '@mui/material/InputBase';
+import {ISnapshot} from '@gd/analysis/ISnapshot';
+import useUpdateEffect from '@hooks/useUpdateEffect';
 
 export const CaseResultDialog = React.memo(
   (props: {open: boolean; exitReplayMode: () => void; test: ITest}) => {
@@ -84,26 +89,61 @@ const CaseResultContent = React.memo((props: {test: ITest}) => {
   const max = results?.length ?? 1;
   const min = 1;
 
-  const handleSliderFrameChange = (
-    event: Event,
-    newValue: number | number[]
-  ) => {
-    if (!isNumber(newValue)) newValue = newValue.shift() ?? 0;
-    setFrame(newValue);
-  };
+  const handleSliderFrameChange = React.useCallback(
+    (event: Event, newValue: number | number[]) => {
+      if (!isNumber(newValue)) newValue = newValue.shift() ?? 0;
+      setFrame(newValue);
+    },
+    []
+  );
 
-  const handleInputFrameChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setFrame(event.target.value === '' ? 1 : Number(event.target.value));
-  };
+  const handleInputFrameChange = React.useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setFrame(event.target.value === '' ? 1 : Number(event.target.value));
+    },
+    []
+  );
 
-  const handleBlur = () => {
+  const handleBlur = React.useCallback(() => {
     if (isNumber(frame) && frame < min) setFrame(min);
     if (isNumber(frame) && frame > max) setFrame(max);
-  };
+  }, [frame, max]);
 
+  const handleCaseChanged = React.useCallback(
+    (e: SelectChangeEvent<string>) => {
+      setFrame(1);
+      setCaseID(e.target.value);
+    },
+    []
+  );
+
+  const dispatch = useDispatch();
   const id = React.useId();
+
+  const setComponentsState = React.useCallback((ss?: ISnapshot) => {
+    const {uitgd} = store.getState();
+    const solver = uitgd.kinematicSolver;
+    if (solver && ss) {
+      solver.restoreState(ss);
+      solver.postProcess();
+    }
+  }, []);
+
+  React.useEffect(() => {
+    const {uitgd} = store.getState();
+    if (!uitgd.gdSceneState.assembled) {
+      dispatch(setAssembled(true));
+    }
+    if (caseID !== '' && results) {
+      setComponentsState(results[0]);
+    }
+  }, [caseID, dispatch, results, setComponentsState]);
+
+  useUpdateEffect(() => {
+    if (caseID !== '' && results) {
+      setComponentsState(results[frame]);
+    }
+  }, [caseID, results, frame, setComponentsState]);
 
   const {uitgd} = store.getState();
   const menuZIndex =
@@ -117,7 +157,7 @@ const CaseResultContent = React.memo((props: {test: ITest}) => {
           value={caseID}
           labelId={id}
           label="Case"
-          onChange={(e) => setCaseID(e.target.value)}
+          onChange={handleCaseChanged}
           sx={{flexGrow: '1'}}
           MenuProps={{
             sx: {zIndex: menuZIndex}
@@ -130,7 +170,6 @@ const CaseResultContent = React.memo((props: {test: ITest}) => {
           ))}
         </Select>
       </FormControl>
-
       <Box
         component="div"
         sx={{display: 'flex', flexDirection: 'row', width: '100%', pt: 2}}
@@ -155,8 +194,10 @@ const CaseResultContent = React.memo((props: {test: ITest}) => {
           label="frame number"
           name="frame number"
           variant="outlined"
-          // eslint-disable-next-line no-nested-ternary
-          unit={`${frame === 1 ? 'st' : frame === 2 ? 'nd' : 'th'}`}
+          unit={`${
+            // eslint-disable-next-line no-nested-ternary
+            frame === 1 ? 'st' : frame === 2 ? 'nd' : frame === 3 ? 'rd' : 'th'
+          }`}
           inputProps={{min, max, step: 1}}
         />
       </Box>
