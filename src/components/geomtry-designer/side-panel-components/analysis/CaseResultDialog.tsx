@@ -130,13 +130,16 @@ const CaseResultContent = React.memo((props: {test: ITest}) => {
   }, []);
 
   React.useEffect(() => {
-    const {uitgd} = store.getState();
-    if (!uitgd.gdSceneState.assembled) {
-      dispatch(setAssembled(true));
-    }
-    if (caseID !== '' && results) {
-      setComponentsState(results[0]);
-    }
+    const fn = async () => {
+      const {uitgd} = store.getState();
+      if (!uitgd.gdSceneState.assembled) {
+        await dispatch(setAssembled(true));
+      }
+      if (caseID !== '' && results) {
+        setComponentsState(results[0]);
+      }
+    };
+    fn();
   }, [caseID, dispatch, results, setComponentsState]);
 
   useUpdateEffect(() => {

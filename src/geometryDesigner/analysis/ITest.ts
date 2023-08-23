@@ -77,6 +77,7 @@ export interface ITestSolver {
   readonly done: boolean;
   readonly running: boolean;
   readonly progress: {done: number; wip: number};
+  readonly dgdID: string | undefined;
 
   run(): void;
   stop(): void;

@@ -386,9 +386,11 @@ export class Test implements ITest {
   private completedStateID: string | undefined;
 
   get solver(): TestSolver {
+    const id = getDgd().idWoTest;
     if (
       this.completedStateID === this.getLocalStateID() &&
-      this.completedSolver
+      this.completedSolver &&
+      this.completedSolver.dgdID === id
     ) {
       return this.completedSolver;
     }

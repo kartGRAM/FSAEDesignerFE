@@ -44,6 +44,16 @@ export class TestSolver implements ITestSolver {
     this._done = value;
   }
 
+  private _dgdID: string | undefined;
+
+  get dgdID() {
+    return this._dgdID;
+  }
+
+  private set dgdID(value: string | undefined) {
+    this._dgdID = value;
+  }
+
   private _caseResults: CaseResults | null = null;
 
   get caseResults() {
@@ -144,6 +154,7 @@ export class TestSolver implements ITestSolver {
           this.caseResults = data;
           this.localInstances = getLocalInstances(getDgd());
           this.done = true;
+          this.dgdID = getDgd().idWoTest;
           this.onTestDone(this);
           store.dispatch(testUpdateNotify(this.test));
         }, 1000);

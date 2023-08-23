@@ -1829,12 +1829,6 @@ export class Tire extends Element implements ITire {
     return Math.abs(this.toLeftBearing.value - this.toRightBearing.value);
   }
 
-  get ground(): Vector3 {
-    return this.tireCenter.value
-      .clone()
-      .add(new Vector3(0, -this.tireCenter.value.y, 0));
-  }
-
   getPoints(): INamedVector3RO[] {
     return [this.leftBearing, this.rightBearing];
   }
