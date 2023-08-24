@@ -1,7 +1,5 @@
 /* eslint-disable no-unused-vars */
 import * as React from 'react';
-import {styled, Theme, CSSObject} from '@mui/material/styles';
-import MuiDrawer, {DrawerProps} from '@mui/material/Drawer';
 import List from '@mui/material/List';
 import Divider from '@mui/material/Divider';
 import ListItem from '@mui/material/ListItem';
@@ -25,33 +23,7 @@ import Typography from '@mui/material/Typography';
 import SteeringWheel from './svgs/SteeringWheel';
 import SquareMeasure from './svgs/SquareMeasure';
 import Graph from './svgs/GraphOfTwoData';
-
-const drawerWidth = 240;
-
-const openedMixin = (theme: Theme): CSSObject => ({
-  width: drawerWidth,
-  transition: theme.transitions.create('width', {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.enteringScreen
-  }),
-  overflowX: 'hidden'
-});
-
-const closedMixin = (theme: Theme): CSSObject => ({
-  transition: theme.transitions.create('width', {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen
-  }),
-  overflowX: 'hidden',
-  width: `calc(${theme.spacing(7)} + 1px)`,
-  [theme.breakpoints.up('sm')]: {
-    width: `calc(${theme.spacing(8)} + 1px)`
-  }
-});
-
-interface MyDrawerProps extends DrawerProps {
-  bgColor: number;
-}
+import Drawer from './Drawer';
 
 type Item = {
   text: SidePanelTab;
@@ -69,33 +41,6 @@ const items: Item[] = [
   {text: 'visualization', icon: <ComputerIcon />}
 ];
 const items2: Item[] = [{text: 'settings', icon: <SettingsIcon />}];
-
-const Drawer = styled<(props: MyDrawerProps) => JSX.Element>(MuiDrawer, {
-  shouldForwardProp: (prop) => prop !== 'open' && prop !== 'bgColor'
-})(({theme, open, bgColor}) => ({
-  width: drawerWidth,
-  flexShrink: 0,
-  whiteSpace: 'nowrap',
-  boxSizing: 'border-box',
-  '& .MuiDrawer-root': {
-    backgroundColor: numberToRgb(bgColor),
-    position: 'static',
-    height: '100%'
-  },
-  '& .MuiPaper-root': {
-    backgroundColor: numberToRgb(bgColor),
-    position: 'static',
-    height: '100%'
-  },
-  ...(open && {
-    ...openedMixin(theme),
-    '& .MuiDrawer-paper': openedMixin(theme)
-  }),
-  ...(!open && {
-    ...closedMixin(theme),
-    '& .MuiDrawer-paper': closedMixin(theme)
-  })
-}));
 
 export default function MiniDrawer() {
   const bgColor: number = useSelector(

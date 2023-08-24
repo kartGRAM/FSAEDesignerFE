@@ -112,49 +112,36 @@ function ChartContent(props: {node: IChartNode; test: ITest}) {
   const {caseResults, localInstances} = test.solver;
   if (!caseResults || !localInstances) return null;
 
-  return (
+  const dataSelector = (
     <Box
       component="div"
       sx={{
-        width: '100%',
-        height: '100%',
-        position: 'relative',
-        p: 0,
-        pl: 1,
-        pr: 1,
-        m: 0,
-        display: 'flex',
-        flexDirection: 'row'
+        height: '100%'
       }}
-      draggable={false}
     >
-      <Box
-        component="div"
-        sx={{
-          minWidth: '45vh',
-          height: '100%'
-        }}
-      >
-        <ChartSelector
-          results={caseResults}
-          localInstances={localInstances}
-          data={data}
-          setData={setData}
-          layout={layout}
-          setLayout={setLayout}
-          mode={mode}
-          dataIndex={index}
-        />
-      </Box>
-      <Chart
-        data={pData}
+      <ChartSelector
+        results={caseResults}
+        localInstances={localInstances}
+        data={data}
+        setData={setData}
         layout={layout}
-        sx={{
-          flexGrow: 1,
-          position: 'relative',
-          minWidth: '0px' // minWidthを指定しないとFlexBoxがうまく動かない
-        }}
+        setLayout={setLayout}
+        mode={mode}
+        dataIndex={index}
       />
     </Box>
+  );
+
+  return (
+    <Chart
+      data={pData}
+      layout={layout}
+      sx={{
+        flexGrow: 1,
+        position: 'relative',
+        minWidth: '0px' // minWidthを指定しないとFlexBoxがうまく動かない
+      }}
+      dataSelector={dataSelector}
+    />
   );
 }

@@ -3,74 +3,10 @@ import {PlotData} from 'plotly.js';
 import {IChartLayout} from '@gd/charts/ICharts';
 import Plot, {PlotParams} from 'react-plotly.js';
 import Box, {BoxProps} from '@mui/material/Box';
-
-// データの型指定でPartial<PlotData>をつけておくと型サポート使えて便利です
-// データ群1
-const data1: Partial<PlotData> = {
-  type: 'scatter3d',
-  x: [1, 5, 9, 7],
-  y: [-9, 4, 3, 0],
-  z: [2, 2, 2, 2],
-  marker: {symbol: 'circle', opacity: 1, size: 3},
-  mode: 'markers',
-  text: ['A', 'B', 'C', 'D'],
-  name: 'Group_1'
-};
-
-// データ群2 ちなみに群1と群2は自動で色分けしてくれる。便利！
-// 手動で設定したいなら marker:{color:***}
-const data2: Partial<PlotData> = {
-  type: 'scatter3d',
-  x: [-6, 5, 3, -2],
-  y: [-4, 9, 4, 6],
-  z: [-2, -2, -2, -2],
-  marker: {symbol: 'circle', opacity: 1, size: 3},
-  mode: 'markers',
-  text: ['E', 'F', 'G', 'H'],
-  name: 'Group_2'
-};
-
-// 以下はXYZの軸が欲しかったので無理矢理作った
-const lineX: Partial<PlotData> = {
-  type: 'scatter3d',
-  x: [-10, 10],
-  y: [0, 0],
-  z: [0, 0],
-  showlegend: false,
-  mode: 'lines',
-  line: {color: 'black'}
-};
-
-const lineY: Partial<PlotData> = {
-  type: 'scatter3d',
-  x: [0, 0],
-  y: [-10, 10],
-  z: [0, 0],
-  showlegend: false,
-  mode: 'lines',
-  line: {color: 'black'}
-};
-
-const lineZ: Partial<PlotData> = {
-  type: 'scatter3d',
-  x: [0, 0],
-  y: [0, 0],
-  z: [-10, 10],
-  mode: 'lines',
-  showlegend: false,
-  line: {color: 'black'},
-  name: 'trace1'
-};
-
-const testLayout: IChartLayout = {
-  title: {text: 'test chart', automargin: true},
-  autosize: true,
-  margin: {t: 24, b: 0, l: 0, r: 0}
-};
-
-// 下にある<Plot data = {}> のdataの型は Partial<PlotData>[]
-// サンプルとしてわかりやすいように型を書いています
-const allData: Partial<PlotData>[] = [data1, data2, lineX, lineY, lineZ];
+import {IconButton, Divider, Toolbar} from '@mui/material';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import MenuIcon from '@mui/icons-material/Menu';
+import Drawer from '@gdComponents/Drawer';
 
 type PlotParamsOmit = Omit<PlotParams, 'data' | 'layout'>;
 type BoxPropsOmit = Omit<
@@ -81,10 +17,11 @@ type BoxPropsOmit = Omit<
 export interface ChartProps extends BoxPropsOmit, PlotParamsOmit {
   data?: Partial<PlotData>[];
   layout?: IChartLayout;
+  dataSelector?: React.ReactNode;
 }
 
 export function Chart(props: ChartProps): React.ReactElement {
-  const {layout, data} = props;
+  const {layout, data, dataSelector} = props;
   const pLayout = JSON.parse(JSON.stringify(layout)) as IChartLayout;
   if (pLayout) {
     pLayout.autosize = true;
@@ -93,21 +30,80 @@ export function Chart(props: ChartProps): React.ReactElement {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [open, setOpen] = React.useState<boolean>(true);
+  const handleDrawerClose = React.useCallback(() => setOpen(false), []);
+  const handleDrawerOpen = React.useCallback(() => setOpen(true), []);
+
   return (
     <Box
-      {...props}
-      onClick={undefined}
-      onDoubleClick={undefined}
-      onError={undefined}
       component="div"
+      sx={{
+        width: '100%',
+        height: '100%',
+        position: 'relative',
+        p: 0,
+        pl: 1,
+        pr: 1,
+        m: 0,
+        display: 'flex',
+        flexDirection: 'row'
+      }}
+      draggable={false}
     >
-      <Plot
-        {...props}
-        data={data ?? allData}
-        layout={pLayout ?? testLayout}
-        useResizeHandler
-        style={{width: '100%', height: '100%'}}
-      />
+      <Drawer open>
+        <Box
+          component="div"
+          sx={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            alignItems: 'center'
+          }}
+        >
+          <IconButton onClick={handleDrawerClose}>
+            <ChevronRightIcon />
+          </IconButton>
+        </Box>
+        <Divider />
+        {dataSelector}
+      </Drawer>
+      <Box
+        component="div"
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          width: '100%',
+          height: '100%',
+          position: 'relative'
+        }}
+      >
+        <Toolbar
+          sx={{
+            minHeight: '36px!important',
+            justifyContent: 'flex-start',
+            p: '0px!important'
+          }}
+        >
+          <IconButton onClick={handleDrawerOpen}>
+            <MenuIcon fontSize="small" />
+          </IconButton>
+        </Toolbar>
+        <Box
+          {...props}
+          onClick={undefined}
+          onDoubleClick={undefined}
+          onError={undefined}
+          component="div"
+        >
+          <Plot
+            {...props}
+            data={data ?? []}
+            layout={pLayout}
+            useResizeHandler
+            style={{width: '100%', height: '100%'}}
+          />
+        </Box>
+      </Box>
     </Box>
   );
 }
