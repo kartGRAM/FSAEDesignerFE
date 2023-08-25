@@ -3,10 +3,11 @@ import {PlotData} from 'plotly.js';
 import {IChartLayout} from '@gd/charts/ICharts';
 import Plot, {PlotParams} from 'react-plotly.js';
 import Box, {BoxProps} from '@mui/material/Box';
-import {IconButton, Divider, Toolbar} from '@mui/material';
+import {IconButton, Divider} from '@mui/material';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import MenuIcon from '@mui/icons-material/Menu';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import Drawer from '@gdComponents/Drawer';
+import useUpdate from '@hooks/useUpdate';
 
 type PlotParamsOmit = Omit<PlotParams, 'data' | 'layout'>;
 type BoxPropsOmit = Omit<
@@ -23,17 +24,21 @@ export interface ChartProps extends BoxPropsOmit, PlotParamsOmit {
 export function Chart(props: ChartProps): React.ReactElement {
   const {layout, data, dataSelector} = props;
   const pLayout = JSON.parse(JSON.stringify(layout)) as IChartLayout;
+  const update = useUpdate();
+  const revision = React.useRef(0);
   if (pLayout) {
     pLayout.autosize = true;
+    pLayout.datarevision = revision.current++;
     if (!pLayout.margin) {
       pLayout.margin = {t: 24, b: 0, l: 0, r: 0};
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [open, setOpen] = React.useState<boolean>(true);
-  const handleDrawerClose = React.useCallback(() => setOpen(false), []);
-  const handleDrawerOpen = React.useCallback(() => setOpen(true), []);
+  const handleDrawerToggle = React.useCallback(
+    () => setOpen((prev) => !prev),
+    []
+  );
 
   return (
     <Box
@@ -49,9 +54,14 @@ export function Chart(props: ChartProps): React.ReactElement {
         display: 'flex',
         flexDirection: 'row'
       }}
-      draggable={false}
     >
-      <Drawer open>
+      <Drawer
+        open={open}
+        variant="permanent"
+        widthOnOpen={400}
+        widthOnClose={40}
+        onAnimationEnd={update}
+      >
         <Box
           component="div"
           sx={{
@@ -60,49 +70,30 @@ export function Chart(props: ChartProps): React.ReactElement {
             alignItems: 'center'
           }}
         >
-          <IconButton onClick={handleDrawerClose}>
-            <ChevronRightIcon />
+          <IconButton onClick={handleDrawerToggle}>
+            {open ? <ChevronLeftIcon /> : <ChevronRightIcon />}
           </IconButton>
         </Box>
         <Divider />
-        {dataSelector}
+        <Box component="div" sx={{display: open ? undefined : 'none'}}>
+          {dataSelector}
+        </Box>
       </Drawer>
       <Box
+        {...{data: {}, ...props}}
+        onClick={undefined}
+        onDoubleClick={undefined}
+        onError={undefined}
         component="div"
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          width: '100%',
-          height: '100%',
-          position: 'relative'
-        }}
+        id="chartContainer"
       >
-        <Toolbar
-          sx={{
-            minHeight: '36px!important',
-            justifyContent: 'flex-start',
-            p: '0px!important'
-          }}
-        >
-          <IconButton onClick={handleDrawerOpen}>
-            <MenuIcon fontSize="small" />
-          </IconButton>
-        </Toolbar>
-        <Box
+        <Plot
           {...props}
-          onClick={undefined}
-          onDoubleClick={undefined}
-          onError={undefined}
-          component="div"
-        >
-          <Plot
-            {...props}
-            data={data ?? []}
-            layout={pLayout}
-            useResizeHandler
-            style={{width: '100%', height: '100%'}}
-          />
-        </Box>
+          data={data ?? []}
+          layout={pLayout}
+          useResizeHandler
+          style={{width: '100%', height: '100%'}}
+        />
       </Box>
     </Box>
   );

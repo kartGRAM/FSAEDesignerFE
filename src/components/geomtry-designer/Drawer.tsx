@@ -2,10 +2,8 @@ import {styled, Theme, CSSObject} from '@mui/material/styles';
 import MuiDrawer, {DrawerProps} from '@mui/material/Drawer';
 import {numberToRgb} from '@app/utils/helpers';
 
-const drawerWidth = 240;
-
-const openedMixin = (theme: Theme): CSSObject => ({
-  width: drawerWidth,
+const openedMixin = (theme: Theme, widthOnOpen?: number): CSSObject => ({
+  width: widthOnOpen,
   transition: theme.transitions.create('width', {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.enteringScreen
@@ -13,26 +11,26 @@ const openedMixin = (theme: Theme): CSSObject => ({
   overflowX: 'hidden'
 });
 
-const closedMixin = (theme: Theme): CSSObject => ({
+const closedMixin = (theme: Theme, widthOnClose?: number): CSSObject => ({
   transition: theme.transitions.create('width', {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.leavingScreen
   }),
   overflowX: 'hidden',
-  width: `calc(${theme.spacing(7)} + 1px)`,
-  [theme.breakpoints.up('sm')]: {
-    width: `calc(${theme.spacing(8)} + 1px)`
-  }
+  width: widthOnClose ?? `calc(${theme.spacing(7)} + 1px)`
 });
 
 interface MyDrawerProps extends DrawerProps {
   bgColor?: number;
+  widthOnOpen?: number;
+  widthOnClose?: number;
 }
 
 export const Drawer = styled<(props: MyDrawerProps) => JSX.Element>(MuiDrawer, {
-  shouldForwardProp: (prop) => prop !== 'open' && prop !== 'bgColor'
-})(({theme, open, bgColor}) => ({
-  width: drawerWidth,
+  shouldForwardProp: (prop) =>
+    prop !== 'bgColor' && prop !== 'widthOnOpen' && prop !== 'widthOnClose'
+})(({theme, open, bgColor, widthOnOpen, widthOnClose}) => ({
+  width: widthOnOpen,
   flexShrink: 0,
   whiteSpace: 'nowrap',
   boxSizing: 'border-box',
@@ -47,12 +45,12 @@ export const Drawer = styled<(props: MyDrawerProps) => JSX.Element>(MuiDrawer, {
     height: '100%'
   },
   ...(open && {
-    ...openedMixin(theme),
-    '& .MuiDrawer-paper': openedMixin(theme)
+    ...openedMixin(theme, widthOnOpen),
+    '& .MuiDrawer-paper': openedMixin(theme, widthOnOpen)
   }),
   ...(!open && {
     ...closedMixin(theme),
-    '& .MuiDrawer-paper': closedMixin(theme)
+    '& .MuiDrawer-paper': closedMixin(theme, widthOnClose)
   })
 }));
 export default Drawer;

@@ -78,7 +78,7 @@ function useChartDialog(props: {
         onClose={handleClose}
         paperProps={{
           sx: {
-            minWidth: '80%',
+            width: '80%',
             height: '80%',
             '.MuiDialogContent-root': {p: '0!important'}
           }
