@@ -2,16 +2,22 @@ import {styled, Theme, CSSObject} from '@mui/material/styles';
 import MuiDrawer, {DrawerProps} from '@mui/material/Drawer';
 import {numberToRgb} from '@app/utils/helpers';
 
-const openedMixin = (theme: Theme, widthOnOpen?: number): CSSObject => ({
-  width: widthOnOpen,
+const openedMixin = (
+  theme: Theme,
+  widthOnOpen?: number | string
+): CSSObject => ({
   transition: theme.transitions.create('width', {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.enteringScreen
   }),
-  overflowX: 'hidden'
+  overflowX: 'hidden',
+  width: widthOnOpen
 });
 
-const closedMixin = (theme: Theme, widthOnClose?: number): CSSObject => ({
+const closedMixin = (
+  theme: Theme,
+  widthOnClose?: number | string
+): CSSObject => ({
   transition: theme.transitions.create('width', {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.leavingScreen
@@ -22,8 +28,8 @@ const closedMixin = (theme: Theme, widthOnClose?: number): CSSObject => ({
 
 interface MyDrawerProps extends DrawerProps {
   bgColor?: number;
-  widthOnOpen?: number;
-  widthOnClose?: number;
+  widthOnOpen?: number | string;
+  widthOnClose?: number | string;
 }
 
 export const Drawer = styled<(props: MyDrawerProps) => JSX.Element>(MuiDrawer, {
@@ -46,11 +52,11 @@ export const Drawer = styled<(props: MyDrawerProps) => JSX.Element>(MuiDrawer, {
   },
   ...(open && {
     ...openedMixin(theme, widthOnOpen),
-    '& .MuiDrawer-paper': openedMixin(theme, widthOnOpen)
+    '& .MuiDrawer-paper': openedMixin(theme)
   }),
   ...(!open && {
-    ...closedMixin(theme),
-    '& .MuiDrawer-paper': closedMixin(theme, widthOnClose)
+    ...closedMixin(theme, widthOnClose),
+    '& .MuiDrawer-paper': closedMixin(theme, '100%')
   })
 }));
 export default Drawer;

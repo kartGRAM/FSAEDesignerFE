@@ -139,6 +139,7 @@ function ChartContent(props: {node: IChartNode; test: ITest}) {
       sx={{
         flexGrow: 1,
         position: 'relative',
+        height: '100%',
         minWidth: '0px' // minWidthを指定しないとFlexBoxがうまく動かない
       }}
       dataSelector={dataSelector}

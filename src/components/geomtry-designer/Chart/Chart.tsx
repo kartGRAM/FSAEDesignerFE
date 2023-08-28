@@ -40,6 +40,8 @@ export function Chart(props: ChartProps): React.ReactElement {
     []
   );
 
+  const widthOnClosed = 40;
+
   return (
     <Box
       component="div"
@@ -58,9 +60,14 @@ export function Chart(props: ChartProps): React.ReactElement {
       <Drawer
         open={open}
         variant="permanent"
-        widthOnOpen={400}
-        widthOnClose={40}
+        widthOnOpen="30%"
+        widthOnClose={widthOnClosed}
         onAnimationEnd={update}
+        sx={{
+          '& .MuiPaper-root': {
+            borderRight: 'unset'
+          }
+        }}
       >
         <Box
           component="div"
