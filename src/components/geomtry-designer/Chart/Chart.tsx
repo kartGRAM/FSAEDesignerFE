@@ -8,6 +8,10 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import Drawer from '@gdComponents/Drawer';
 import useUpdate from '@hooks/useUpdate';
+import {alpha} from '@mui/material/styles';
+import {numberToRgb} from '@app/utils/helpers';
+import {useSelector} from 'react-redux';
+import {RootState} from '@store/store';
 
 type PlotParamsOmit = Omit<PlotParams, 'data' | 'layout'>;
 type BoxPropsOmit = Omit<
@@ -33,6 +37,10 @@ export function Chart(props: ChartProps): React.ReactElement {
       pLayout.margin = {t: 24, b: 0, l: 0, r: 0};
     }
   }
+
+  const enabledColorLight: number = useSelector(
+    (state: RootState) => state.uigd.present.enabledColorLight
+  );
 
   const [open, setOpen] = React.useState<boolean>(true);
   const handleDrawerToggle = React.useCallback(
@@ -66,6 +74,17 @@ export function Chart(props: ChartProps): React.ReactElement {
         sx={{
           '& .MuiPaper-root': {
             borderRight: 'unset'
+          },
+          overflowY: 'scroll',
+          '&::-webkit-scrollbar': {
+            width: '10px'
+          },
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: alpha(numberToRgb(enabledColorLight), 0.3),
+            borderRadius: '5px'
+          },
+          '&::-webkit-scrollbar-track': {
+            backgroundColor: numberToRgb(0xffffff)
           }
         }}
       >

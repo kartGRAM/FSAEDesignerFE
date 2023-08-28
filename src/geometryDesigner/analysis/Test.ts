@@ -375,7 +375,7 @@ export class Test implements ITest {
     return new TestSolver(this, (solver: TestSolver) => {
       this.completedSolver = solver;
       this.notCompletedSolver = this.createSolver();
-      this.completedStateID = this.getLocalStateID();
+      this.completedStateID = [this.getLocalStateID()];
     });
   }
 
@@ -383,12 +383,21 @@ export class Test implements ITest {
 
   private notCompletedSolver: TestSolver;
 
-  private completedStateID: string | undefined;
+  private completedStateID: string[] = [];
+
+  addCompletedState() {
+    if (!this.completedStateID.includes(this.getLocalStateID())) {
+      this.completedStateID = [
+        ...this.completedStateID,
+        this.getLocalStateID()
+      ];
+    }
+  }
 
   get solver(): TestSolver {
     const id = getDgd().idWoTest;
     if (
-      this.completedStateID === this.getLocalStateID() &&
+      this.completedStateID.includes(this.getLocalStateID()) &&
       this.completedSolver &&
       this.completedSolver.dgdID === id
     ) {

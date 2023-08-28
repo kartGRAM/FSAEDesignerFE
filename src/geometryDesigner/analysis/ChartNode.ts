@@ -9,7 +9,7 @@ import {
   IDataEdge,
   FlowNode
 } from './FlowNode';
-import {ITest} from './ITest';
+import {ITestSolver} from './ITest';
 
 export const className = 'Chart' as const;
 type ClassName = typeof className;
@@ -17,7 +17,7 @@ type ClassName = typeof className;
 export interface IChartNode extends IFlowNode {
   className: ClassName;
   data: IChartData[];
-  getPlotlyData(test: ITest): IPlotData[];
+  getPlotlyData(solver: ITestSolver): IPlotData[];
   layout: IChartLayout;
 }
 
@@ -34,10 +34,10 @@ export class ChartNode extends FlowNode implements IChartNode {
 
   plotlyData: IPlotData[] | undefined = undefined;
 
-  getPlotlyData(test: ITest): IPlotData[] {
+  getPlotlyData(solver: ITestSolver): IPlotData[] {
     if (this.plotlyData) return this.plotlyData;
-    const instances = test.solver.localInstances;
-    const results = test.solver.caseResults;
+    const instances = solver.localInstances;
+    const results = solver.caseResults;
     if (!instances || !results) throw new Error('解析が終わっていない');
     this.plotlyData = this.data.map((data) =>
       getPlotlyData(data, results, instances)

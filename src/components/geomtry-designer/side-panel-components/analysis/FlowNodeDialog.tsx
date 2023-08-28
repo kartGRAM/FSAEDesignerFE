@@ -49,13 +49,13 @@ export const FlowNodeDialog = React.memo(
     const update = useUpdate();
 
     const handleApply = React.useCallback(() => {
-      if (onApply) onApply();
       node.isInitialState = false;
       test.saveLocalState();
       // test.asLastestState();
       const lastestID = test.getLocalStateID();
       test.squashLocalStates(stateAtOpen, lastestID);
       setStateAtOpen(lastestID);
+      if (onApply) onApply();
     }, [onApply, node, test, stateAtOpen]);
 
     const handleOK = React.useCallback(() => {

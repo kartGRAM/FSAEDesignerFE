@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {CardNodeProps} from '@gdComponents/side-panel-components/analysis/CardNode';
 import {Node as IRFNode} from 'reactflow';
-import {ITest} from '@gd/analysis/ITest';
+import {ITest, ITestSolver} from '@gd/analysis/ITest';
 import {
   className,
   IChartNode,
@@ -63,9 +63,13 @@ function useChartDialog(props: {
   const {node, test, canvasUpdate} = props;
   const [open, setOpen] = React.useState(false);
 
-  const handleClose = async () => {
+  const handleClose = () => {
     setOpen(false);
     if (canvasUpdate) canvasUpdate();
+  };
+
+  const handleApply = () => {
+    test?.addCompletedState();
   };
 
   return [
@@ -76,6 +80,7 @@ function useChartDialog(props: {
         test={test}
         open={open}
         onClose={handleClose}
+        onApply={handleApply}
         paperProps={{
           sx: {
             width: '80%',
@@ -106,10 +111,12 @@ function ChartContent(props: {node: IChartNode; test: ITest}) {
     updateWithSave();
   };
 
+  const tempSolver = React.useRef<ITestSolver>(test.solver);
+
   const index = undefined;
 
-  const pData = node.getPlotlyData(test);
-  const {caseResults, localInstances} = test.solver;
+  const pData = node.getPlotlyData(tempSolver.current);
+  const {caseResults, localInstances} = tempSolver.current;
   if (!caseResults || !localInstances) return null;
 
   const dataSelector = (
