@@ -11,7 +11,9 @@ import useUpdate from '@hooks/useUpdate';
 import {alpha} from '@mui/material/styles';
 import {numberToRgb} from '@app/utils/helpers';
 import {useSelector} from 'react-redux';
-import {RootState} from '@store/store';
+import store, {RootState} from '@store/store';
+import $ from 'jquery';
+import 'jqueryui';
 
 type PlotParamsOmit = Omit<PlotParams, 'data' | 'layout'>;
 type BoxPropsOmit = Omit<
@@ -30,6 +32,10 @@ export function Chart(props: ChartProps): React.ReactElement {
   const pLayout = JSON.parse(JSON.stringify(layout)) as IChartLayout;
   const update = useUpdate();
   const revision = React.useRef(0);
+  const boxRef = React.useRef<HTMLDivElement>(null);
+  const drawerRef = React.useRef<HTMLDivElement>(null);
+  const dividerRef = React.useRef<HTMLHRElement>(null);
+
   if (pLayout) {
     pLayout.autosize = true;
     pLayout.datarevision = revision.current++;
@@ -48,7 +54,50 @@ export function Chart(props: ChartProps): React.ReactElement {
     []
   );
 
+  const {uitgd} = store.getState();
+  const zIndex = uitgd.fullScreenZIndex + uitgd.menuZIndex;
   const widthOnClosed = 48;
+  const [panelWidth, setPanelWidth] = React.useState<string>('calc(30% - 2px)');
+  const [left, setLeft] = React.useState<string>('calc(30% - 4px)');
+
+  React.useEffect(() => {
+    const resize = (e: any, ui: any) => {
+      const boxWidth = (boxRef.current?.clientWidth ?? 1000) - 16;
+      if (ui.position.left < widthOnClosed) {
+        ui.position.left = widthOnClosed;
+      }
+      if (ui.position.left > boxWidth) {
+        ui.position.left = boxWidth;
+      }
+      if (drawerRef.current) {
+        drawerRef.current.style.width = `calc(${
+          (ui.position.left / boxWidth) * 100
+        }% - 2px)`;
+
+        drawerRef.current.style.transition = 'unset';
+      }
+    };
+    const resizeEnd = (e: any, ui: any) => {
+      if (drawerRef.current) {
+        setPanelWidth(drawerRef.current.style.width);
+        setLeft(ui.position.left);
+        drawerRef.current.removeAttribute('style');
+      }
+      if (dividerRef.current) {
+        dividerRef.current.removeAttribute('style');
+      }
+    };
+
+    if (dividerRef.current) {
+      $(dividerRef.current).draggable({
+        containment: 'parent',
+        scroll: false,
+        axis: 'x',
+        drag: resize,
+        stop: resizeEnd
+      });
+    }
+  }, []);
 
   return (
     <Box
@@ -62,13 +111,15 @@ export function Chart(props: ChartProps): React.ReactElement {
         pr: 1,
         m: 0,
         display: 'flex',
-        flexDirection: 'row'
+        flexDirection: 'row',
+        justifyContent: 'left'
       }}
+      ref={boxRef}
     >
       <Drawer
         open={open}
         variant="permanent"
-        widthOnOpen="30%"
+        widthOnOpen={panelWidth}
         widthOnClose={widthOnClosed}
         onAnimationEnd={update}
         sx={{
@@ -87,6 +138,7 @@ export function Chart(props: ChartProps): React.ReactElement {
             }
           }
         }}
+        ref={drawerRef}
       >
         <Box
           component="div"
@@ -105,6 +157,32 @@ export function Chart(props: ChartProps): React.ReactElement {
           {dataSelector}
         </Box>
       </Drawer>
+
+      <Divider
+        orientation="vertical"
+        flexItem
+        draggable={open}
+        ref={dividerRef}
+        sx={{
+          position: 'absolute',
+          height: '100%',
+          left,
+          width: '4px',
+          zIndex,
+          backgroundColor: 'transparent',
+          borderColor: alpha('#000000', 0),
+          cursor: 'col-resize',
+
+          transition: 'background-color 0.15s ease 0s',
+          '&:hover': {
+            backgroundColor: numberToRgb(enabledColorLight)
+          },
+          '&:active': {
+            cursor: 'col-resize',
+            backgroundColor: numberToRgb(enabledColorLight)
+          }
+        }}
+      />
       <Box
         {...{data: {}, ...props}}
         onClick={undefined}
