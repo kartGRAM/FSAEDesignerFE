@@ -48,7 +48,7 @@ export function Chart(props: ChartProps): React.ReactElement {
     []
   );
 
-  const widthOnClosed = 40;
+  const widthOnClosed = 48;
 
   return (
     <Box
@@ -73,18 +73,18 @@ export function Chart(props: ChartProps): React.ReactElement {
         onAnimationEnd={update}
         sx={{
           '& .MuiPaper-root': {
-            borderRight: 'unset'
-          },
-          overflowY: 'scroll',
-          '&::-webkit-scrollbar': {
-            width: '10px'
-          },
-          '&::-webkit-scrollbar-thumb': {
-            backgroundColor: alpha(numberToRgb(enabledColorLight), 0.3),
-            borderRadius: '5px'
-          },
-          '&::-webkit-scrollbar-track': {
-            backgroundColor: numberToRgb(0xffffff)
+            borderRight: 'unset',
+            overflowY: 'scroll',
+            '&::-webkit-scrollbar': {
+              width: '10px'
+            },
+            '&::-webkit-scrollbar-thumb': {
+              backgroundColor: alpha(numberToRgb(enabledColorLight), 1),
+              borderRadius: '5px'
+            },
+            '&::-webkit-scrollbar-track': {
+              backgroundColor: numberToRgb(0xffffff)
+            }
           }
         }}
       >
