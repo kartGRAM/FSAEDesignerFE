@@ -44,6 +44,11 @@ export interface AnalysisPanelState {
   heightSpaceAligningNodes: number;
 }
 
+export interface ChartState {
+  settingPanelDefaultOpen: boolean;
+  settingPanelWidth: string;
+}
+
 export interface DialogState {
   recordingDialogInitialPosition: {
     x: number | null;
@@ -96,6 +101,7 @@ export interface GDState {
   parameterConfigState: GDParameterConfigState;
   measurePanelState: MeasurePanelState;
   analysisPanelState: AnalysisPanelState;
+  chartState: ChartState;
   dialogState: DialogState;
   gdSceneState: GDSceneState;
 }
@@ -173,11 +179,14 @@ const initialState: GDState = {
       y: null
     }
   },
-
   gdSceneState: {
     showGroundPlaneGrid: false,
     componentVisualizationMode: 'ShowAllNodes',
     projectionMode: 'Perspective'
+  },
+  chartState: {
+    settingPanelWidth: '30%',
+    settingPanelDefaultOpen: false
   }
 };
 
@@ -291,6 +300,18 @@ export const uiGeometryDesignerSlice = createSlice({
       action: PayloadAction<BackgroundVariant>
     ) => {
       state.analysisPanelState.flowCanvasBackgroundVariant = action.payload;
+    },
+    setChartSettingPanelWidth: (
+      state: GDState,
+      action: PayloadAction<string>
+    ) => {
+      state.chartState.settingPanelWidth = action.payload;
+    },
+    setChartSettingPanelDefaultOpen: (
+      state: GDState,
+      action: PayloadAction<boolean>
+    ) => {
+      state.chartState.settingPanelDefaultOpen = action.payload;
     }
   }
 });
@@ -313,7 +334,9 @@ export const {
   datumObjectAccordionDefaultExpandedChange,
   measureToolsAccordionDefaultExpandedChange,
   roVariablesAccordionDefaultExpandedChange,
-  setFlowCanvasBackgroundVariant
+  setFlowCanvasBackgroundVariant,
+  setChartSettingPanelWidth,
+  setChartSettingPanelDefaultOpen
 } = uiGeometryDesignerSlice.actions;
 
 export default uiGeometryDesignerSlice.reducer;

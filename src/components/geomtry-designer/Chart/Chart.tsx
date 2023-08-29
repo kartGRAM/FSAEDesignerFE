@@ -10,8 +10,9 @@ import Drawer from '@gdComponents/Drawer';
 import useUpdate from '@hooks/useUpdate';
 import {alpha} from '@mui/material/styles';
 import {numberToRgb} from '@app/utils/helpers';
-import {useSelector} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 import store, {RootState} from '@store/store';
+import {setChartSettingPanelWidth} from '@store/reducers/uiGeometryDesigner';
 import $ from 'jquery';
 import 'jqueryui';
 
@@ -48,16 +49,21 @@ export function Chart(props: ChartProps): React.ReactElement {
     (state: RootState) => state.uigd.present.enabledColorLight
   );
 
-  const [open, setOpen] = React.useState<boolean>(true);
   const handleDrawerToggle = React.useCallback(
     () => setOpen((prev) => !prev),
     []
   );
+  const dispatch = useDispatch();
 
-  const {uitgd} = store.getState();
+  const {uitgd, uigd} = store.getState();
   const zIndex = uitgd.fullScreenZIndex + uitgd.menuZIndex;
   const widthOnClosed = 48;
-  const [panelWidth, setPanelWidth] = React.useState<string>('calc(30% - 2px)');
+  const [open, setOpen] = React.useState<boolean>(
+    uigd.present.chartState?.settingPanelDefaultOpen ?? false
+  );
+  const [panelWidth, setPanelWidth] = React.useState<string>(
+    uigd.present.chartState?.settingPanelWidth ?? '30%'
+  );
 
   React.useEffect(() => {
     const resize = (e: any, ui: any) => {
@@ -69,16 +75,19 @@ export function Chart(props: ChartProps): React.ReactElement {
         ui.position.left = boxWidth;
       }
       if (drawerRef.current) {
-        drawerRef.current.style.width = `calc(${
+        drawerRef.current.style.width = `${
           (ui.position.left / boxWidth) * 100
-        }% - 0px)`;
+        }%`;
 
         drawerRef.current.style.transition = 'unset';
       }
     };
     const resizeEnd = () => {
       if (drawerRef.current) {
-        setPanelWidth(`calc(${drawerRef.current.style.width} + 0px)`);
+        const width = `${drawerRef.current.style.width}`;
+        setPanelWidth(width);
+        dispatch(setChartSettingPanelWidth(width));
+
         drawerRef.current.removeAttribute('style');
       }
       if (dividerRef.current) {
@@ -162,7 +171,7 @@ export function Chart(props: ChartProps): React.ReactElement {
         sx={{
           position: 'absolute',
           height: '100%',
-          left: `calc(${panelWidth} + 0px)`,
+          left: `${panelWidth}`,
           width: '4px',
           zIndex,
           backgroundColor: 'transparent',
