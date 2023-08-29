@@ -10,10 +10,9 @@ import {
 } from '@gd/analysis/ChartNode';
 import {Item, XYPosition} from '@gd/analysis/FlowNode';
 import FlowNodeDialog from '@gdComponents/side-panel-components/analysis/FlowNodeDialog';
-import Box from '@mui/material/Box';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import {Chart} from '@gdComponents/Chart/Chart';
-import {ChartSelector, Mode} from '@gdComponents/Chart/ChartSelector';
+import {DataSelector} from '@gdComponents/Chart/DataSelector';
 import {grey} from '@mui/material/colors';
 import useTestUpdate from '@hooks/useTestUpdate';
 import {IChartData, IChartLayout} from '@gd/charts/ICharts';
@@ -100,7 +99,6 @@ function ChartContent(props: {node: IChartNode; test: ITest}) {
   const {node, test} = props;
   const {data, layout} = node;
   const {updateWithSave} = useTestUpdate(test);
-  const [mode] = React.useState<Mode>('DataSelect');
 
   const setData = (data: IChartData[]) => {
     node.data = [...data];
@@ -113,30 +111,17 @@ function ChartContent(props: {node: IChartNode; test: ITest}) {
 
   const tempSolver = React.useRef<ITestSolver>(test.solver);
 
-  const index = undefined;
-
   const pData = node.getPlotlyData(tempSolver.current);
   const {caseResults, localInstances} = tempSolver.current;
   if (!caseResults || !localInstances) return null;
 
   const dataSelector = (
-    <Box
-      component="div"
-      sx={{
-        height: '100%'
-      }}
-    >
-      <ChartSelector
-        results={caseResults}
-        localInstances={localInstances}
-        data={data}
-        setData={setData}
-        layout={layout}
-        setLayout={setLayout}
-        mode={mode}
-        dataIndex={index}
-      />
-    </Box>
+    <DataSelector
+      results={caseResults}
+      localInstances={localInstances}
+      data={data}
+      setData={setData}
+    />
   );
 
   return (
@@ -149,6 +134,7 @@ function ChartContent(props: {node: IChartNode; test: ITest}) {
         height: '100%',
         minWidth: '0px' // minWidthを指定しないとFlexBoxがうまく動かない
       }}
+      setLayout={setLayout}
       dataSelector={dataSelector}
     />
   );

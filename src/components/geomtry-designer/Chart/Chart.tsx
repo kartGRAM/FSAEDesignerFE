@@ -15,6 +15,7 @@ import store, {RootState} from '@store/store';
 import {setChartSettingPanelWidth} from '@store/reducers/uiGeometryDesigner';
 import $ from 'jquery';
 import 'jqueryui';
+import {ChartSelector, Mode} from './ChartSelector';
 
 type PlotParamsOmit = Omit<PlotParams, 'data' | 'layout'>;
 type BoxPropsOmit = Omit<
@@ -25,11 +26,12 @@ type BoxPropsOmit = Omit<
 export interface ChartProps extends BoxPropsOmit, PlotParamsOmit {
   data?: Partial<PlotData>[];
   layout?: IChartLayout;
-  dataSelector?: React.ReactNode;
+  dataSelector: JSX.Element;
+  setLayout: (layout: IChartLayout) => void;
 }
 
 export function Chart(props: ChartProps): React.ReactElement {
-  const {layout, data, dataSelector} = props;
+  const {layout, data, dataSelector, setLayout} = props;
   const pLayout = JSON.parse(JSON.stringify(layout)) as IChartLayout;
   const update = useUpdate();
   const revision = React.useRef(0);
@@ -64,6 +66,8 @@ export function Chart(props: ChartProps): React.ReactElement {
   const [panelWidth, setPanelWidth] = React.useState<string>(
     uigd.present.chartState?.settingPanelWidth ?? '30%'
   );
+
+  const [mode] = React.useState<Mode>('DataSelect');
 
   React.useEffect(() => {
     const resize = (e: any, ui: any) => {
@@ -105,6 +109,16 @@ export function Chart(props: ChartProps): React.ReactElement {
       });
     }
   }, [dispatch]);
+
+  const drawerContent = (
+    <Box component="div" sx={{display: open ? undefined : 'none'}}>
+      <ChartSelector
+        mode={mode}
+        dataSelector={dataSelector}
+        setLayout={setLayout}
+      />
+    </Box>
+  );
 
   return (
     <Box
@@ -158,11 +172,8 @@ export function Chart(props: ChartProps): React.ReactElement {
           </IconButton>
         </Box>
         <Divider />
-        <Box component="div" sx={{display: open ? undefined : 'none'}}>
-          {dataSelector}
-        </Box>
+        {drawerContent}
       </Drawer>
-
       <Divider
         orientation="vertical"
         flexItem
