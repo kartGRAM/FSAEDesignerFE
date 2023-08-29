@@ -104,7 +104,7 @@ export function Chart(props: ChartProps): React.ReactElement {
         stop: resizeEnd
       });
     }
-  }, []);
+  }, [dispatch]);
 
   return (
     <Box

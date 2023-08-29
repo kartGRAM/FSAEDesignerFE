@@ -187,6 +187,7 @@ function DataRow(props: {
       </TableCell>
       <TableCell scope="row" padding="none" align="left" key="from">
         <NativeSelect
+          sx={{width: '100%'}}
           native
           variant="standard"
           value={from}
@@ -201,6 +202,7 @@ function DataRow(props: {
       </TableCell>
       <TableCell scope="row" padding="none" align="left" key="node">
         <NativeSelect
+          sx={{width: '100%'}}
           native
           variant="standard"
           value={dataRef.nodeID}
@@ -212,6 +214,7 @@ function DataRow(props: {
       </TableCell>
       <TableCell scope="row" padding="none" align="left" key="case">
         <NativeSelect
+          sx={{width: '100%'}}
           native
           variant="standard"
           value={dataRef.case}
