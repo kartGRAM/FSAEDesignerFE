@@ -58,11 +58,10 @@ export function Chart(props: ChartProps): React.ReactElement {
   const zIndex = uitgd.fullScreenZIndex + uitgd.menuZIndex;
   const widthOnClosed = 48;
   const [panelWidth, setPanelWidth] = React.useState<string>('calc(30% - 2px)');
-  const [left, setLeft] = React.useState<string>('calc(30% - 4px)');
 
   React.useEffect(() => {
     const resize = (e: any, ui: any) => {
-      const boxWidth = (boxRef.current?.clientWidth ?? 1000) - 16;
+      const boxWidth = boxRef.current?.getBoundingClientRect()?.width ?? 1000;
       if (ui.position.left < widthOnClosed) {
         ui.position.left = widthOnClosed;
       }
@@ -72,15 +71,14 @@ export function Chart(props: ChartProps): React.ReactElement {
       if (drawerRef.current) {
         drawerRef.current.style.width = `calc(${
           (ui.position.left / boxWidth) * 100
-        }% - 2px)`;
+        }% - 0px)`;
 
         drawerRef.current.style.transition = 'unset';
       }
     };
-    const resizeEnd = (e: any, ui: any) => {
+    const resizeEnd = () => {
       if (drawerRef.current) {
-        setPanelWidth(drawerRef.current.style.width);
-        setLeft(ui.position.left);
+        setPanelWidth(`calc(${drawerRef.current.style.width} + 0px)`);
         drawerRef.current.removeAttribute('style');
       }
       if (dividerRef.current) {
@@ -107,8 +105,6 @@ export function Chart(props: ChartProps): React.ReactElement {
         height: '100%',
         position: 'relative',
         p: 0,
-        pl: 1,
-        pr: 1,
         m: 0,
         display: 'flex',
         flexDirection: 'row',
@@ -166,7 +162,7 @@ export function Chart(props: ChartProps): React.ReactElement {
         sx={{
           position: 'absolute',
           height: '100%',
-          left,
+          left: `calc(${panelWidth} + 0px)`,
           width: '4px',
           zIndex,
           backgroundColor: 'transparent',
