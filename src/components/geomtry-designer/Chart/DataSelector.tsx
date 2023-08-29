@@ -9,7 +9,8 @@ import {
   TableContainer,
   TableRow,
   Table,
-  Box
+  Box,
+  Divider
 } from '@mui/material';
 import NativeSelect, {SelectChangeEvent} from '@mui/material/Select';
 import {
@@ -25,6 +26,7 @@ export function DataSelector(props: {
   localInstances: LocalInstances;
   data: IChartData[];
   setData: (data: IChartData[]) => void;
+  is3DPlotType: boolean;
 }) {
   const {data, setData} = props;
 
@@ -56,14 +58,18 @@ export function DataSelector(props: {
         height: '100%'
       }}
     >
-      {data.map((datum) => (
-        <DataTable
-          key={datum.nodeID}
-          {...props}
-          data={datum}
-          setData={setDatum}
-        />
+      {data.map((datum, i) => (
+        <>
+          {i > 0 ? <Divider /> : null}
+          <DataTable
+            key={datum.nodeID}
+            {...props}
+            data={datum}
+            setData={setDatum}
+          />
+        </>
       ))}
+      <Divider />
       <DataTable key="new" {...props} data={newData} setData={setDatum} />
     </Box>
   );
@@ -74,15 +80,18 @@ export function DataTable(props: {
   localInstances: LocalInstances;
   data: IChartData;
   setData: (data: IChartData) => void;
+  is3DPlotType: boolean;
 }) {
+  const {is3DPlotType} = props;
   return (
-    <Box component="div" sx={{mb: 2}}>
+    <Box component="div" sx={{mt: 2, mb: 2}}>
+      <Checkbox />
       <TableContainer>
         <Table size="small">
           <TableBody>
             <DataRow {...props} axis="x" key="x" />
             <DataRow {...props} axis="y" key="y" />
-            <DataRow {...props} axis="z" key="z" />
+            {is3DPlotType ? <DataRow {...props} axis="z" key="z" /> : null}
           </TableBody>
         </Table>
       </TableContainer>
@@ -98,7 +107,6 @@ function DataRow(props: {
   setData: (data: IChartData) => void;
 }) {
   const {results, localInstances, data, setData, axis} = props;
-  const labelId = data.nodeID + axis;
   const dataRef = data[axis];
   const {from} = dataRef;
 
@@ -144,16 +152,6 @@ function DataRow(props: {
       key={axis}
       tabIndex={-1}
     >
-      <TableCell padding="checkbox" key="cb">
-        <Checkbox
-          // onChange={(e) => setSelected(e.target.checked)}
-          color="primary"
-          // checked={selected}
-          inputProps={{
-            'aria-labelledby': labelId
-          }}
-        />
-      </TableCell>
       <TableCell scope="row" padding="none" align="left" key="from">
         <NativeSelect
           sx={{width: '100%'}}

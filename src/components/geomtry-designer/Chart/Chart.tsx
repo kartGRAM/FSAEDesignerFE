@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {PlotData} from 'plotly.js';
+import {PlotData, PlotType} from 'plotly.js';
 import {IChartLayout} from '@gd/charts/ICharts';
 import Plot, {PlotParams} from 'react-plotly.js';
 import Box, {BoxProps} from '@mui/material/Box';
@@ -26,7 +26,7 @@ type BoxPropsOmit = Omit<
 export interface ChartProps extends BoxPropsOmit, PlotParamsOmit {
   data?: Partial<PlotData>[];
   layout?: IChartLayout;
-  dataSelector: JSX.Element;
+  dataSelector: (type: PlotType) => JSX.Element;
   setLayout: (layout: IChartLayout) => void;
 }
 
@@ -59,7 +59,7 @@ export function Chart(props: ChartProps): React.ReactElement {
 
   const {uitgd, uigd} = store.getState();
   const zIndex = uitgd.fullScreenZIndex + uitgd.menuZIndex;
-  const widthOnClosed = 48;
+  const widthOnClosed = 60;
   const [open, setOpen] = React.useState<boolean>(
     uigd.present.chartState?.settingPanelDefaultOpen ?? false
   );
@@ -67,6 +67,7 @@ export function Chart(props: ChartProps): React.ReactElement {
     uigd.present.chartState?.settingPanelWidth ?? '30%'
   );
 
+  const [plotType, setPlotType] = React.useState<PlotType>('scatter');
   const [mode] = React.useState<Mode>('DataSelect');
 
   React.useEffect(() => {
@@ -110,16 +111,6 @@ export function Chart(props: ChartProps): React.ReactElement {
     }
   }, [dispatch]);
 
-  const drawerContent = (
-    <Box component="div" sx={{display: open ? undefined : 'none'}}>
-      <ChartSelector
-        mode={mode}
-        dataSelector={dataSelector}
-        setLayout={setLayout}
-      />
-    </Box>
-  );
-
   return (
     <Box
       component="div"
@@ -142,6 +133,7 @@ export function Chart(props: ChartProps): React.ReactElement {
         widthOnClose={widthOnClosed}
         onAnimationEnd={update}
         sx={{
+          pl: 1,
           '& .MuiPaper-root': {
             borderRight: 'unset',
             overflowY: 'scroll',
@@ -172,7 +164,15 @@ export function Chart(props: ChartProps): React.ReactElement {
           </IconButton>
         </Box>
         <Divider />
-        {drawerContent}
+        <Box component="div" sx={{display: open ? undefined : 'none'}}>
+          <ChartSelector
+            mode={mode}
+            type={plotType}
+            setPlotType={setPlotType}
+            dataSelector={dataSelector}
+            setLayout={setLayout}
+          />
+        </Box>
       </Drawer>
       <Divider
         orientation="vertical"
@@ -200,20 +200,31 @@ export function Chart(props: ChartProps): React.ReactElement {
         }}
       />
       <Box
-        {...{data: {}, ...props}}
-        onClick={undefined}
-        onDoubleClick={undefined}
-        onError={undefined}
         component="div"
-        id="chartContainer"
+        sx={{
+          pr: 1,
+          flexGrow: 1,
+          position: 'relative',
+          height: '100%',
+          minWidth: '0px' // minWidthを指定しないとFlexBoxがうまく動かない
+        }}
       >
-        <Plot
-          {...props}
-          data={data ?? []}
-          layout={pLayout}
-          useResizeHandler
-          style={{width: '100%', height: '100%'}}
-        />
+        <Box
+          {...{data: {}, ...props}}
+          onClick={undefined}
+          onDoubleClick={undefined}
+          onError={undefined}
+          component="div"
+          id="chartContainer"
+        >
+          <Plot
+            {...props}
+            data={data ?? []}
+            layout={pLayout}
+            useResizeHandler
+            style={{width: '100%', height: '100%'}}
+          />
+        </Box>
       </Box>
     </Box>
   );

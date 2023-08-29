@@ -16,6 +16,8 @@ import {DataSelector} from '@gdComponents/Chart/DataSelector';
 import {grey} from '@mui/material/colors';
 import useTestUpdate from '@hooks/useTestUpdate';
 import {IChartData, IChartLayout} from '@gd/charts/ICharts';
+import {PlotType} from 'plotly.js';
+import {is3DPlotType} from '@gd/charts/plotlyUtils';
 import {getRFNodeBase} from './Base';
 
 export {isChartNode};
@@ -115,12 +117,13 @@ function ChartContent(props: {node: IChartNode; test: ITest}) {
   const {caseResults, localInstances} = tempSolver.current;
   if (!caseResults || !localInstances) return null;
 
-  const dataSelector = (
+  const dataSelector = (plotType: PlotType) => (
     <DataSelector
       results={caseResults}
       localInstances={localInstances}
       data={data}
       setData={setData}
+      is3DPlotType={is3DPlotType(plotType)}
     />
   );
 
