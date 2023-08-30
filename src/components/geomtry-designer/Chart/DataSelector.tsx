@@ -24,15 +24,17 @@ import EditableTypography from '@gdComponents/EditableTypography';
 import {v4 as uuidv4} from 'uuid';
 import * as Yup from 'yup';
 import CloseIcon from '@mui/icons-material/Close';
+import {PlotType} from 'plotly.js';
+import {is3DPlotType} from '@gd/charts/plotlyUtils';
 
 export function DataSelector(props: {
   results: CaseResults;
   localInstances: LocalInstances;
   data: IChartData[];
   setData: (data: IChartData[]) => void;
-  is3DPlotType: boolean;
+  defaultPlotType: PlotType;
 }) {
-  const {data, setData} = props;
+  const {data, setData, defaultPlotType} = props;
 
   const setDatum = React.useCallback(
     (datum: IChartData) => {
@@ -59,7 +61,7 @@ export function DataSelector(props: {
 
   const newData: IChartData = {
     nodeID: uuidv4(),
-    type: 'scatter',
+    type: defaultPlotType,
     x: {case: '', from: 'measureTool', nodeID: ''},
     y: {case: '', from: 'measureTool', nodeID: ''},
     z: {case: '', from: 'measureTool', nodeID: ''},
@@ -98,10 +100,9 @@ const DataTable = React.memo(
     data: IChartData;
     setData: (data: IChartData) => void;
     deleteData?: (data: IChartData) => void;
-    is3DPlotType: boolean;
     isNew?: boolean;
   }) => {
-    const {is3DPlotType, data, setData, deleteData, isNew} = props;
+    const {data, setData, deleteData, isNew} = props;
     return (
       <Box component="div" sx={{mt: 2, mb: 2}}>
         <Box
@@ -154,7 +155,9 @@ const DataTable = React.memo(
             <TableBody>
               <DataRow {...props} axis="x" key="x" />
               <DataRow {...props} axis="y" key="y" />
-              {is3DPlotType ? <DataRow {...props} axis="z" key="z" /> : null}
+              {is3DPlotType(data.type) ? (
+                <DataRow {...props} axis="z" key="z" />
+              ) : null}
             </TableBody>
           </Table>
         </TableContainer>

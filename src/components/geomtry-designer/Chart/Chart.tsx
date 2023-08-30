@@ -26,12 +26,15 @@ type BoxPropsOmit = Omit<
 export interface ChartProps extends BoxPropsOmit, PlotParamsOmit {
   data?: Partial<PlotData>[];
   layout?: IChartLayout;
-  dataSelector: (type: PlotType) => JSX.Element;
+  dataSelector: JSX.Element;
   setLayout: (layout: IChartLayout) => void;
+
+  type: PlotType | 'composite';
+  setPlotTypeAll: (type: PlotType) => void;
 }
 
 export function Chart(props: ChartProps): React.ReactElement {
-  const {layout, data, dataSelector, setLayout} = props;
+  const {layout, data, dataSelector, setLayout, type, setPlotTypeAll} = props;
   const pLayout = JSON.parse(JSON.stringify(layout)) as IChartLayout;
   const update = useUpdate();
   const revision = React.useRef(0);
@@ -67,7 +70,6 @@ export function Chart(props: ChartProps): React.ReactElement {
     uigd.present.chartState?.settingPanelWidth ?? '30%'
   );
 
-  const [plotType, setPlotType] = React.useState<PlotType>('scatter');
   const [mode] = React.useState<Mode>('DataSelect');
 
   React.useEffect(() => {
@@ -166,9 +168,9 @@ export function Chart(props: ChartProps): React.ReactElement {
         <Divider />
         <Box component="div" sx={{display: open ? undefined : 'none'}}>
           <ChartSelector
+            type={type}
+            setPlotTypeAll={setPlotTypeAll}
             mode={mode}
-            type={plotType}
-            setPlotType={setPlotType}
             dataSelector={dataSelector}
             setLayout={setLayout}
           />

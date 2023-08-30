@@ -17,7 +17,6 @@ import {grey} from '@mui/material/colors';
 import useTestUpdate from '@hooks/useTestUpdate';
 import {IChartData, IChartLayout} from '@gd/charts/ICharts';
 import {PlotType} from 'plotly.js';
-import {is3DPlotType} from '@gd/charts/plotlyUtils';
 import {getRFNodeBase} from './Base';
 
 export {isChartNode};
@@ -102,14 +101,28 @@ function ChartContent(props: {node: IChartNode; test: ITest}) {
   const {data, layout} = node;
   const {updateWithSave} = useTestUpdate(test);
 
-  const setData = (data: IChartData[]) => {
-    node.data = [...data];
-    updateWithSave();
-  };
-  const setLayout = (layout: IChartLayout) => {
-    node.layout = {...layout};
-    updateWithSave();
-  };
+  const setData = React.useCallback(
+    (data: IChartData[]) => {
+      node.data = [...data];
+      updateWithSave();
+    },
+    [node, updateWithSave]
+  );
+  const setLayout = React.useCallback(
+    (layout: IChartLayout) => {
+      node.layout = {...layout};
+      updateWithSave();
+    },
+    [node, updateWithSave]
+  );
+
+  const setPlotTypeAll = React.useCallback(
+    (type: PlotType) => {
+      node.data = data.map((datum) => ({...datum, type}));
+      updateWithSave();
+    },
+    [data, node, updateWithSave]
+  );
 
   const tempSolver = React.useRef<ITestSolver>(test.solver);
 
@@ -117,13 +130,22 @@ function ChartContent(props: {node: IChartNode; test: ITest}) {
   const {caseResults, localInstances} = tempSolver.current;
   if (!caseResults || !localInstances) return null;
 
-  const dataSelector = (plotType: PlotType) => (
+  let plotType: PlotType | 'composite' = data[0] ? data[0].type : 'scatter';
+  if (data.length) {
+    plotType = data.reduce(
+      (prev: PlotType | 'composite', current) =>
+        prev === current.type ? prev : 'composite',
+      data[0].type
+    );
+  }
+
+  const dataSelector = (
     <DataSelector
       results={caseResults}
       localInstances={localInstances}
       data={data}
       setData={setData}
-      is3DPlotType={is3DPlotType(plotType)}
+      defaultPlotType={data[0] ? data[0].type : 'scatter'}
     />
   );
 
@@ -138,7 +160,9 @@ function ChartContent(props: {node: IChartNode; test: ITest}) {
         minWidth: '0px' // minWidthを指定しないとFlexBoxがうまく動かない
       }}
       setLayout={setLayout}
+      setPlotTypeAll={setPlotTypeAll}
       dataSelector={dataSelector}
+      type={plotType}
     />
   );
 }
