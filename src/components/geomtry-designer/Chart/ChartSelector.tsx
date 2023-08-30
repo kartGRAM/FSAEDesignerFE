@@ -7,7 +7,8 @@ import {
   FormControl,
   Select,
   OutlinedInput,
-  MenuItem
+  MenuItem,
+  InputLabel
 } from '@mui/material';
 import store from '@store/store';
 import {plotTypes} from '@gd/charts/plotlyUtils';
@@ -43,36 +44,33 @@ const DataSelectorMode = React.memo(
     const {uitgd} = store.getState();
     const menuZIndex =
       uitgd.fullScreenZIndex + uitgd.dialogZIndex + uitgd.menuZIndex;
+    const id = React.useId();
     return (
       <Box component="div">
-        <FormControl size="small">
-          <Select
-            value={type}
-            onChange={(e) => setPlotTypeAll(e.target.value as PlotType)}
-            sx={{
-              ml: 0,
-              '& legend': {display: 'none'},
-              '& fieldset': {top: 0},
-              width: 200
-            }}
-            input={<OutlinedInput />}
-            renderValue={(selected) => {
-              if (selected.length === 0) {
-                return <em>Select a tool type</em>;
-              }
-              return selected;
-            }}
-            MenuProps={{
-              sx: {zIndex: menuZIndex}
-            }}
-          >
-            {plotTypes.map((type) => (
-              <MenuItem key={type} value={type}>
-                {type}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <Box component="div" sx={{pt: 2, pb: 1}}>
+          <FormControl size="small" sx={{width: '100%', pr: 1}}>
+            <InputLabel id={id}>Plot Type</InputLabel>
+            <Select
+              labelId={id}
+              value={type}
+              onChange={(e) => setPlotTypeAll(e.target.value as PlotType)}
+              sx={{
+                ml: 0,
+                width: '100%'
+              }}
+              input={<OutlinedInput label="Plot Type" />}
+              MenuProps={{
+                sx: {zIndex: menuZIndex}
+              }}
+            >
+              {plotTypes.map((type) => (
+                <MenuItem key={type} value={type}>
+                  {type}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
 
         <Divider />
         {dataSelector}
