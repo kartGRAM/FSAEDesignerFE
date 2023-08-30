@@ -1,5 +1,6 @@
 import React from 'react';
 import TextField, {TextFieldProps} from '@mui/material/TextField';
+import Box, {BoxProps} from '@mui/material/Box';
 import {useFormik} from 'formik';
 import * as Yup from 'yup';
 
@@ -10,6 +11,7 @@ const EditableTypography = React.memo(
     validation: Yup.StringSchema;
     onSubmit: (value: string) => void;
     textFieldProps?: TextFieldProps;
+    boxProps?: BoxProps;
     disabled?: boolean;
     disableDblClickToEditMode?: boolean;
   }) => {
@@ -21,6 +23,7 @@ const EditableTypography = React.memo(
       disabled,
       disableDblClickToEditMode
     } = props;
+    const boxProps = props.boxProps ?? {};
 
     const textFieldProps = props.textFieldProps ?? {
       sx: {
@@ -108,15 +111,17 @@ const EditableTypography = React.memo(
     );
 
     return !rename ? (
-      <span
-        role="button"
-        tabIndex={0}
-        onKeyDown={handleNameKeyDown}
-        onClick={(e) => e.stopPropagation()}
-        onDoubleClick={handleNameDblClick}
-      >
-        {typography}
-      </span>
+      <Box {...boxProps} component="div">
+        <span
+          role="button"
+          tabIndex={0}
+          onKeyDown={handleNameKeyDown}
+          onClick={(e) => e.stopPropagation()}
+          onDoubleClick={handleNameDblClick}
+        >
+          {typography}
+        </span>
+      </Box>
     ) : (
       <TextField
         {...textFieldProps}

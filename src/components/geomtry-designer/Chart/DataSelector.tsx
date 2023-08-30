@@ -10,6 +10,8 @@ import {
   TableRow,
   Table,
   Box,
+  Tooltip,
+  IconButton,
   Divider
 } from '@mui/material';
 import NativeSelect, {SelectChangeEvent} from '@mui/material/Select';
@@ -21,6 +23,7 @@ import {
 import EditableTypography from '@gdComponents/EditableTypography';
 import {v4 as uuidv4} from 'uuid';
 import * as Yup from 'yup';
+import CloseIcon from '@mui/icons-material/Close';
 
 export function DataSelector(props: {
   results: CaseResults;
@@ -31,18 +34,29 @@ export function DataSelector(props: {
 }) {
   const {data, setData} = props;
 
-  const setDatum = (datum: IChartData) => {
-    let inData = false;
-    const newData = data.map((d) => {
-      if (d.nodeID === datum.nodeID) {
-        inData = true;
-        return datum;
-      }
-      return d;
-    });
-    if (!inData) newData.push(datum);
-    setData(newData);
-  };
+  const setDatum = React.useCallback(
+    (datum: IChartData) => {
+      let inData = false;
+      const newData = data.map((d) => {
+        if (d.nodeID === datum.nodeID) {
+          inData = true;
+          return datum;
+        }
+        return d;
+      });
+      if (!inData) newData.push(datum);
+      setData(newData);
+    },
+    [data, setData]
+  );
+
+  const deleteDatum = React.useCallback(
+    (datum: IChartData) => {
+      setData(data.filter((d) => d.nodeID !== datum.nodeID));
+    },
+    [data, setData]
+  );
+
   const newData: IChartData = {
     nodeID: uuidv4(),
     type: 'scatter',
@@ -67,6 +81,7 @@ export function DataSelector(props: {
             {...props}
             data={datum}
             setData={setDatum}
+            deleteData={deleteDatum}
           />
         </>
       ))}
@@ -76,159 +91,179 @@ export function DataSelector(props: {
   );
 }
 
-export function DataTable(props: {
-  results: CaseResults;
-  localInstances: LocalInstances;
-  data: IChartData;
-  setData: (data: IChartData) => void;
-  is3DPlotType: boolean;
-  isNew?: boolean;
-}) {
-  const {is3DPlotType, data, setData, isNew} = props;
-  return (
-    <Box component="div" sx={{mt: 2, mb: 2}}>
-      <Box
-        component="div"
-        sx={{display: 'flex', flexDirection: 'row', width: '100%'}}
-      >
-        <EditableTypography
-          disabled={isNew}
-          typography={<Typography>{data.name ?? 'label'}</Typography>}
-          initialValue={data.name ?? 'label'}
-          validation={Yup.string().required('required')}
-          onSubmit={(value) => {
-            if (data.name !== value) {
-              setData({...data, name: value});
-            }
-          }}
-          textFieldProps={{
-            sx: {
-              pt: 0,
-              pl: 0,
-              pr: 1,
-              minWidth: '0%',
-              flexGrow: 1,
-              '& legend': {display: 'none'},
-              '& fieldset': {top: 0}
-            },
-            InputProps: {
-              sx: {color: '#000', '& input': {p: 0.5}}
-            }
-          }}
-        />
+const DataTable = React.memo(
+  (props: {
+    results: CaseResults;
+    localInstances: LocalInstances;
+    data: IChartData;
+    setData: (data: IChartData) => void;
+    deleteData?: (data: IChartData) => void;
+    is3DPlotType: boolean;
+    isNew?: boolean;
+  }) => {
+    const {is3DPlotType, data, setData, deleteData, isNew} = props;
+    return (
+      <Box component="div" sx={{mt: 2, mb: 2}}>
+        <Box
+          component="div"
+          sx={{display: 'flex', flexDirection: 'row', width: '100%'}}
+        >
+          <EditableTypography
+            disabled={isNew}
+            typography={<Typography>{data.name ?? 'label'}</Typography>}
+            initialValue={data.name ?? 'label'}
+            validation={Yup.string().required('required')}
+            onSubmit={(value) => {
+              if (data.name !== value) {
+                setData({...data, name: value});
+              }
+            }}
+            boxProps={{
+              sx: {
+                minWidth: '0%',
+                flexGrow: 1
+              }
+            }}
+            textFieldProps={{
+              sx: {
+                pt: 0,
+                pl: 0,
+                pr: 1,
+                minWidth: '0%',
+                flexGrow: 1,
+                '& legend': {display: 'none'},
+                '& fieldset': {top: 0}
+              },
+              InputProps: {
+                sx: {color: '#000', '& input': {p: 0.5}}
+              }
+            }}
+          />
+          {!isNew ? (
+            <Tooltip title="Delete">
+              <IconButton
+                onClick={deleteData ? () => deleteData(data) : undefined}
+              >
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          ) : null}
+        </Box>
+        <TableContainer>
+          <Table size="small">
+            <TableBody>
+              <DataRow {...props} axis="x" key="x" />
+              <DataRow {...props} axis="y" key="y" />
+              {is3DPlotType ? <DataRow {...props} axis="z" key="z" /> : null}
+            </TableBody>
+          </Table>
+        </TableContainer>
       </Box>
-      <TableContainer>
-        <Table size="small">
-          <TableBody>
-            <DataRow {...props} axis="x" key="x" />
-            <DataRow {...props} axis="y" key="y" />
-            {is3DPlotType ? <DataRow {...props} axis="z" key="z" /> : null}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Box>
-  );
-}
+    );
+  }
+);
 
-function DataRow(props: {
-  results: CaseResults;
-  localInstances: LocalInstances;
-  axis: 'x' | 'y' | 'z';
-  data: IChartData;
-  setData: (data: IChartData) => void;
-}) {
-  const {results, localInstances, data, setData, axis} = props;
-  const dataRef = data[axis];
-  const {from} = dataRef;
+const DataRow = React.memo(
+  (props: {
+    results: CaseResults;
+    localInstances: LocalInstances;
+    axis: 'x' | 'y' | 'z';
+    data: IChartData;
+    setData: (data: IChartData) => void;
+  }) => {
+    const {results, localInstances, data, setData, axis} = props;
+    const dataRef = data[axis];
+    const {from} = dataRef;
 
-  const selectableData = getSelectableData(
-    results,
-    localInstances
-  ).children?.find((v) => v.name === dataRef.from)!;
+    const selectableData = getSelectableData(
+      results,
+      localInstances
+    ).children?.find((v) => v.name === dataRef.from)!;
 
-  const handleFromChanged = (e: SelectChangeEvent<string>) => {
-    const {value} = e.target;
-    const newRef = {...dataRef};
-    newRef.from = value as any;
-    const newData = {...data};
-    newData[axis] = newRef;
-    setData(newData);
-  };
+    const handleFromChanged = (e: SelectChangeEvent<string>) => {
+      const {value} = e.target;
+      const newRef = {...dataRef};
+      newRef.from = value as any;
+      const newData = {...data};
+      newData[axis] = newRef;
+      setData(newData);
+    };
 
-  const handleNodeIDChanged = (e: SelectChangeEvent<string>) => {
-    const {value} = e.target;
-    const newRef = {...dataRef};
-    newRef.nodeID = value;
-    const newData = {...data};
-    newData[axis] = newRef;
-    setData(newData);
-  };
+    const handleNodeIDChanged = (e: SelectChangeEvent<string>) => {
+      const {value} = e.target;
+      const newRef = {...dataRef};
+      newRef.nodeID = value;
+      const newData = {...data};
+      newData[axis] = newRef;
+      setData(newData);
+    };
 
-  const handleCaseChanged = (e: SelectChangeEvent<string>) => {
-    const {value} = e.target;
-    const newRef = {...dataRef};
-    newRef.case = value;
-    const newData = {...data};
-    newData[axis] = newRef;
-    setData(newData);
-  };
+    const handleCaseChanged = (e: SelectChangeEvent<string>) => {
+      const {value} = e.target;
+      const newRef = {...dataRef};
+      newRef.case = value;
+      const newData = {...data};
+      newData[axis] = newRef;
+      setData(newData);
+    };
 
-  const cases = getCases(results);
+    const cases = getCases(results);
 
-  return (
-    <TableRow
-      hover
-      role="checkbox"
-      // aria-checked={selected}
-      key={axis}
-      tabIndex={-1}
-    >
-      <TableCell scope="row" padding="none" align="left" key="from">
-        <NativeSelect
-          sx={{width: '100%'}}
-          native
-          variant="standard"
-          value={from}
-          onChange={handleFromChanged}
-        >
-          {dataFrom.map((f) => (
-            <option value={f} key={f}>
-              {f}
-            </option>
-          ))}
-        </NativeSelect>
-      </TableCell>
-      <TableCell scope="row" padding="none" align="left" key="node">
-        <NativeSelect
-          sx={{width: '100%'}}
-          native
-          variant="standard"
-          value={dataRef.nodeID}
-          onChange={handleNodeIDChanged}
-        >
-          <option aria-label="None" value="" key="none" />
-          <GetOptions data={selectableData} key={dataRef.from} />
-        </NativeSelect>
-      </TableCell>
-      <TableCell scope="row" padding="none" align="left" key="case">
-        <NativeSelect
-          sx={{width: '100%'}}
-          native
-          variant="standard"
-          value={dataRef.case}
-          onChange={handleCaseChanged}
-        >
-          <option aria-label="None" value="" key="none" />
-          {cases.map((c) => (
-            <option value={c.nodeID} key={c.nodeID}>
-              {c.name}
-            </option>
-          ))}
-        </NativeSelect>
-      </TableCell>
-    </TableRow>
-  );
-}
+    return (
+      <TableRow
+        hover
+        role="checkbox"
+        // aria-checked={selected}
+        key={axis}
+        tabIndex={-1}
+      >
+        <TableCell scope="row" padding="none" align="left" key="from">
+          <NativeSelect
+            sx={{width: '100%'}}
+            native
+            variant="standard"
+            value={from}
+            onChange={handleFromChanged}
+          >
+            {dataFrom.map((f) => (
+              <option value={f} key={f}>
+                {f}
+              </option>
+            ))}
+          </NativeSelect>
+        </TableCell>
+        <TableCell scope="row" padding="none" align="left" key="node">
+          <NativeSelect
+            sx={{width: '100%'}}
+            native
+            variant="standard"
+            value={dataRef.nodeID}
+            onChange={handleNodeIDChanged}
+          >
+            <option aria-label="None" value="" key="none" />
+            <GetOptions data={selectableData} key={dataRef.from} />
+          </NativeSelect>
+        </TableCell>
+        <TableCell scope="row" padding="none" align="left" key="case">
+          <NativeSelect
+            sx={{width: '100%'}}
+            native
+            variant="standard"
+            value={dataRef.case}
+            onChange={handleCaseChanged}
+          >
+            <option aria-label="None" value="" key="none" />
+            {cases.map((c) => (
+              <option value={c.nodeID} key={c.nodeID}>
+                {c.name}
+              </option>
+            ))}
+          </NativeSelect>
+        </TableCell>
+      </TableRow>
+    );
+  }
+);
 
 const GetOptions = (props: {
   data: SelectableDataCategory;
