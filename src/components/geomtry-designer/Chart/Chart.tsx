@@ -141,7 +141,7 @@ export function Chart(props: ChartProps): React.ReactElement {
               width: '10px'
             },
             '&::-webkit-scrollbar-thumb': {
-              backgroundColor: alpha(numberToRgb(enabledColorLight), 1),
+              backgroundColor: alpha(numberToRgb(enabledColorLight), 0.7),
               borderRadius: '5px'
             },
             '&::-webkit-scrollbar-track': {

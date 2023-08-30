@@ -3,7 +3,7 @@ import {IChartData, dataFrom} from '@gd/charts/ICharts';
 import {CaseResults} from '@worker/solverWorkerMessage';
 import {LocalInstances} from '@worker/getLocalInstances';
 import {
-  Checkbox,
+  Typography,
   TableBody,
   TableCell,
   TableContainer,
@@ -18,8 +18,9 @@ import {
   SelectableDataCategory,
   getCases
 } from '@gd/charts/getPlotlyData';
-
+import EditableTypography from '@gdComponents/EditableTypography';
 import {v4 as uuidv4} from 'uuid';
+import * as Yup from 'yup';
 
 export function DataSelector(props: {
   results: CaseResults;
@@ -70,7 +71,7 @@ export function DataSelector(props: {
         </>
       ))}
       <Divider />
-      <DataTable key="new" {...props} data={newData} setData={setDatum} />
+      <DataTable key="new" {...props} data={newData} setData={setDatum} isNew />
     </Box>
   );
 }
@@ -81,11 +82,41 @@ export function DataTable(props: {
   data: IChartData;
   setData: (data: IChartData) => void;
   is3DPlotType: boolean;
+  isNew?: boolean;
 }) {
-  const {is3DPlotType} = props;
+  const {is3DPlotType, data, setData, isNew} = props;
   return (
     <Box component="div" sx={{mt: 2, mb: 2}}>
-      <Checkbox />
+      <Box
+        component="div"
+        sx={{display: 'flex', flexDirection: 'row', width: '100%'}}
+      >
+        <EditableTypography
+          disabled={isNew}
+          typography={<Typography>{data.name ?? 'label'}</Typography>}
+          initialValue={data.name ?? 'label'}
+          validation={Yup.string().required('required')}
+          onSubmit={(value) => {
+            if (data.name !== value) {
+              setData({...data, name: value});
+            }
+          }}
+          textFieldProps={{
+            sx: {
+              pt: 0,
+              pl: 0,
+              pr: 1,
+              minWidth: '0%',
+              flexGrow: 1,
+              '& legend': {display: 'none'},
+              '& fieldset': {top: 0}
+            },
+            InputProps: {
+              sx: {color: '#000', '& input': {p: 0.5}}
+            }
+          }}
+        />
+      </Box>
       <TableContainer>
         <Table size="small">
           <TableBody>
