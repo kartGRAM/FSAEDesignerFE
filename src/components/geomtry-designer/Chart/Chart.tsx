@@ -43,6 +43,7 @@ export function Chart(props: ChartProps): React.ReactElement {
   const update = useUpdate();
   const revision = React.useRef(0);
   const dblClick = React.useRef(0);
+  const dblClickTimeout = React.useRef<NodeJS.Timer>(null!);
   const stopIncrementRevision = React.useRef(false);
   const boxRef = React.useRef<HTMLDivElement>(null);
   const drawerRef = React.useRef<HTMLDivElement>(null);
@@ -122,18 +123,25 @@ export function Chart(props: ChartProps): React.ReactElement {
   }, [dispatch]);
 
   const id = React.useId();
-  const handleBackgroundDoubleClick = React.useCallback((subplot: SubPlot) => {
-    // なぜかdblClickが反応しないため、適当にごまかす
-    if (dblClick.current) {
-      setMode('SubPlotSettings');
-      setSubplotTarget(subplot);
-    } else {
-      dblClick.current = performance.now();
-      setTimeout(() => {
+  const handleBackgroundDoubleClick = React.useCallback(
+    (subplot: SubPlot) => {
+      // なぜかdblClickが反応しないため、適当にごまかす
+      if (dblClick.current) {
+        setMode('SubPlotSettings');
+        setSubplotTarget(subplot);
+        setOpen(true);
         dblClick.current = 0;
-      }, 250);
-    }
-  }, []);
+        clearTimeout(dblClickTimeout.current);
+      } else {
+        dblClick.current = performance.now();
+        dblClickTimeout.current = setTimeout(() => {
+          dblClick.current = 0;
+          if (mode === 'SubPlotSettings') setMode('DataSelect');
+        }, 250);
+      }
+    },
+    [mode]
+  );
 
   const handlePointsClick = (e: Readonly<Plotly.PlotMouseEvent>) => {
     console.log(e);
