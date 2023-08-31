@@ -1,13 +1,16 @@
 import * as React from 'react';
 import {PlotData, PlotType} from 'plotly.js';
-import {IChartLayout} from '@gd/charts/ICharts';
+import {IChartLayout, SubPlot, subplots} from '@gd/charts/ICharts';
 import Plot, {PlotParams} from 'react-plotly.js';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import * as Plotly from 'plotly.js';
 import Box, {BoxProps} from '@mui/material/Box';
 import {IconButton, Divider} from '@mui/material';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import Drawer from '@gdComponents/Drawer';
 import useUpdate from '@hooks/useUpdate';
+import useUpdateEffect from '@hooks/useUpdateEffect';
 import {alpha} from '@mui/material/styles';
 import {numberToRgb} from '@app/utils/helpers';
 import {useSelector, useDispatch} from 'react-redux';
@@ -15,6 +18,7 @@ import store, {RootState} from '@store/store';
 import {setChartSettingPanelWidth} from '@store/reducers/uiGeometryDesigner';
 import $ from 'jquery';
 import 'jqueryui';
+
 import {ChartSelector, Mode} from './ChartSelector';
 
 type PlotParamsOmit = Omit<PlotParams, 'data' | 'layout'>;
@@ -38,13 +42,16 @@ export function Chart(props: ChartProps): React.ReactElement {
   const pLayout = JSON.parse(JSON.stringify(layout)) as IChartLayout;
   const update = useUpdate();
   const revision = React.useRef(0);
+  const dblClick = React.useRef(0);
+  const stopIncrementRevision = React.useRef(false);
   const boxRef = React.useRef<HTMLDivElement>(null);
   const drawerRef = React.useRef<HTMLDivElement>(null);
   const dividerRef = React.useRef<HTMLHRElement>(null);
 
   if (pLayout) {
     pLayout.autosize = true;
-    pLayout.datarevision = revision.current++;
+    if (!stopIncrementRevision.current)
+      pLayout.datarevision = revision.current++;
     if (!pLayout.margin) {
       pLayout.margin = {t: 24, b: 0, l: 0, r: 0};
     }
@@ -112,6 +119,44 @@ export function Chart(props: ChartProps): React.ReactElement {
       });
     }
   }, [dispatch]);
+
+  const id = React.useId();
+  const handleBackgroundDoubleClick = React.useCallback((subplot: SubPlot) => {
+    // なぜかdblClickが反応しないため、適当にごまかす
+    if (dblClick.current) {
+      console.log(subplot);
+    } else {
+      dblClick.current = performance.now();
+      setTimeout(() => {
+        dblClick.current = 0;
+      }, 250);
+    }
+  }, []);
+
+  const handlePointsClick = (e: Readonly<Plotly.PlotMouseEvent>) => {
+    console.log(e);
+  };
+
+  useUpdateEffect(() => {
+    const box = document.getElementById(id);
+    const funcs: {[index: string]: () => void} = {};
+    subplots.forEach((subplot) => {
+      const gElement = box?.getElementsByClassName(subplot)[0];
+      const rect = gElement?.getElementsByClassName('nsewdrag')[0];
+      if (rect) {
+        funcs[subplot] = () => handleBackgroundDoubleClick(subplot);
+        rect.addEventListener('click', funcs[subplot], true);
+      }
+    });
+    stopIncrementRevision.current = false;
+    return () => {
+      subplots.forEach((subplot) => {
+        const gElement = box?.getElementsByClassName(subplot)[0];
+        const rect = gElement?.getElementsByClassName('nsewdrag')[0];
+        if (rect) rect.removeEventListener('click', funcs[subplot], true);
+      });
+    };
+  });
 
   return (
     <Box
@@ -217,7 +262,7 @@ export function Chart(props: ChartProps): React.ReactElement {
           onDoubleClick={undefined}
           onError={undefined}
           component="div"
-          id="chartContainer"
+          id={id}
         >
           <Plot
             {...props}
@@ -225,6 +270,8 @@ export function Chart(props: ChartProps): React.ReactElement {
             layout={pLayout}
             useResizeHandler
             style={{width: '100%', height: '100%'}}
+            onInitialized={update}
+            onClick={handlePointsClick}
           />
         </Box>
       </Box>

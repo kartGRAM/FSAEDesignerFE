@@ -66,8 +66,23 @@ export interface IChartLayout extends Partial<Layout> {
 }
 
 type Digit = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
-type xAxis = `x${Digit}` | `x${Digit}${Digit | '0'}`;
-type yAxis = `y${Digit}` | `y${Digit}${Digit | '0'}`;
+export type xAxis = `x${Digit}` | `x${Digit}${Digit | '0'}`;
+export type yAxis = `y${Digit}` | `y${Digit}${Digit | '0'}`;
+export type SubPlot = `${'x' | Exclude<xAxis, 'x1'>}${
+  | 'y'
+  | Exclude<yAxis, 'y1'>}`;
+
+const sx: (xAxis | 'x')[] = [
+  'x',
+  ...([...Array(98)].map((_, i) => `x${i + 2}`) as xAxis[])
+];
+const sy: (yAxis | 'y')[] = [
+  'y',
+  ...([...Array(98)].map((_, i) => `y${i + 2}`) as yAxis[])
+];
+export const subplots: SubPlot[] = sx
+  .map((x) => sy.map((y) => x + y))
+  .flat() as SubPlot[];
 
 export interface IPlotData extends WOData {
   type: Exclude<WOData['type'], undefined>;

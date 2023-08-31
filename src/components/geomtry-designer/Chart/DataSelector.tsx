@@ -77,7 +77,7 @@ export function DataSelector(props: {
     >
       {data.map((datum, i) => (
         <>
-          {i > 0 ? <Divider /> : null}
+          {i > 0 ? <Divider key={`${datum.nodeID}d`} /> : null}
           <DataTable
             key={datum.nodeID}
             {...props}
