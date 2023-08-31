@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {IChartLayout} from '@gd/charts/ICharts';
+import {IChartLayout, SubPlot} from '@gd/charts/ICharts';
 import {PlotType} from 'plotly.js';
 import {
   Box,
@@ -13,26 +13,27 @@ import {
 import store from '@store/store';
 import {plotTypes} from '@gd/charts/plotlyUtils';
 
-export type Mode =
-  | 'DataSelect'
-  | 'XAxis'
-  | 'YAxis'
-  | 'ZAxis'
-  | 'DataVisualization';
+export type Mode = 'DataSelect' | 'SubPlotSettings' | 'DataVisualization';
 
-export function ChartSelector(props: {
-  mode: Mode;
-  type: PlotType | 'composite';
-  setPlotTypeAll: (type: PlotType) => void;
-  dataSelector: JSX.Element;
-  setLayout: (layout: IChartLayout) => void;
-}) {
-  const {mode} = props;
-  if (mode === 'DataSelect') {
-    return <DataSelectorMode {...props} />;
+export const ChartSelector = React.memo(
+  (props: {
+    mode: Mode;
+    type: PlotType | 'composite';
+    subplotTarget: SubPlot;
+    setPlotTypeAll: (type: PlotType) => void;
+    dataSelector: JSX.Element;
+    setLayout: (layout: IChartLayout) => void;
+  }) => {
+    const {mode} = props;
+    if (mode === 'DataSelect') {
+      return <DataSelectorMode {...props} />;
+    }
+    if (mode === 'SubPlotSettings') {
+      return <SubPlotSettings {...props} />;
+    }
+    return null;
   }
-  return null;
-}
+);
 
 const DataSelectorMode = React.memo(
   (props: {
@@ -78,3 +79,8 @@ const DataSelectorMode = React.memo(
     );
   }
 );
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, react/no-unused-prop-types
+const SubPlotSettings = React.memo((props: {subplotTarget: SubPlot}) => {
+  return null;
+});

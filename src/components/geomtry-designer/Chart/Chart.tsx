@@ -77,7 +77,8 @@ export function Chart(props: ChartProps): React.ReactElement {
     uigd.present.chartState?.settingPanelWidth ?? '30%'
   );
 
-  const [mode] = React.useState<Mode>('DataSelect');
+  const [mode, setMode] = React.useState<Mode>('DataSelect');
+  const [subplotTarget, setSubplotTarget] = React.useState<SubPlot>('xy');
 
   React.useEffect(() => {
     const resize = (e: any, ui: any) => {
@@ -124,7 +125,8 @@ export function Chart(props: ChartProps): React.ReactElement {
   const handleBackgroundDoubleClick = React.useCallback((subplot: SubPlot) => {
     // なぜかdblClickが反応しないため、適当にごまかす
     if (dblClick.current) {
-      console.log(subplot);
+      setMode('SubPlotSettings');
+      setSubplotTarget(subplot);
     } else {
       dblClick.current = performance.now();
       setTimeout(() => {
@@ -215,6 +217,7 @@ export function Chart(props: ChartProps): React.ReactElement {
           <ChartSelector
             type={type}
             setPlotTypeAll={setPlotTypeAll}
+            subplotTarget={subplotTarget}
             mode={mode}
             dataSelector={dataSelector}
             setLayout={setLayout}
