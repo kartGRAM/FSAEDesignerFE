@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react';
 import {PlotData, PlotType} from 'plotly.js';
 import {IChartLayout, SubPlot, subplots} from '@gd/charts/ICharts';
@@ -44,15 +45,13 @@ export function Chart(props: ChartProps): React.ReactElement {
   const revision = React.useRef(0);
   const dblClick = React.useRef(0);
   const dblClickTimeout = React.useRef<NodeJS.Timer>(null!);
-  const stopIncrementRevision = React.useRef(false);
   const boxRef = React.useRef<HTMLDivElement>(null);
   const drawerRef = React.useRef<HTMLDivElement>(null);
   const dividerRef = React.useRef<HTMLHRElement>(null);
 
   if (pLayout) {
     pLayout.autosize = true;
-    if (!stopIncrementRevision.current)
-      pLayout.datarevision = revision.current++;
+    pLayout.datarevision = revision.current++;
     if (!pLayout.margin) {
       pLayout.margin = {t: 24, b: 0, l: 0, r: 0};
     }
@@ -74,6 +73,8 @@ export function Chart(props: ChartProps): React.ReactElement {
   const [open, setOpen] = React.useState<boolean>(
     uigd.present.chartState?.settingPanelDefaultOpen ?? false
   );
+  const dragActive = React.useRef<boolean>(true);
+
   const [panelWidth, setPanelWidth] = React.useState<string>(
     uigd.present.chartState?.settingPanelWidth ?? '30%'
   );
@@ -83,6 +84,7 @@ export function Chart(props: ChartProps): React.ReactElement {
 
   React.useEffect(() => {
     const resize = (e: any, ui: any) => {
+      if (!open) return;
       const boxWidth = boxRef.current?.getBoundingClientRect()?.width ?? 1000;
       if (ui.position.left < widthOnClosed) {
         ui.position.left = widthOnClosed;
@@ -99,6 +101,7 @@ export function Chart(props: ChartProps): React.ReactElement {
       }
     };
     const resizeEnd = () => {
+      if (!open) return;
       if (drawerRef.current) {
         const width = `${drawerRef.current.style.width}`;
         setPanelWidth(width);
@@ -110,9 +113,9 @@ export function Chart(props: ChartProps): React.ReactElement {
         dividerRef.current.removeAttribute('style');
       }
     };
-
     if (dividerRef.current) {
       $(dividerRef.current).draggable({
+        disabled: !open,
         containment: 'parent',
         scroll: false,
         axis: 'x',
@@ -120,16 +123,16 @@ export function Chart(props: ChartProps): React.ReactElement {
         stop: resizeEnd
       });
     }
-  }, [dispatch]);
+  }, [dispatch, open]);
 
   const id = React.useId();
   const handleBackgroundDoubleClick = React.useCallback(
     (subplot: SubPlot) => {
       // なぜかdblClickが反応しないため、適当にごまかす
       if (dblClick.current) {
-        setMode('SubPlotSettings');
         setSubplotTarget(subplot);
-        setOpen(true);
+        setOpen(() => true);
+        setMode('SubPlotSettings');
         dblClick.current = 0;
         clearTimeout(dblClickTimeout.current);
       } else {
@@ -158,15 +161,33 @@ export function Chart(props: ChartProps): React.ReactElement {
         rect.addEventListener('click', funcs[subplot], true);
       }
     });
-    stopIncrementRevision.current = false;
     return () => {
       subplots.forEach((subplot) => {
         const gElement = box?.getElementsByClassName(subplot)[0];
         const rect = gElement?.getElementsByClassName('nsewdrag')[0];
-        if (rect) rect.removeEventListener('click', funcs[subplot], true);
+        if (rect) {
+          rect.removeEventListener('click', funcs[subplot], true);
+        }
       });
     };
   });
+
+  const transitionSX = open
+    ? {
+        position: 'absolute',
+        left: `${panelWidth}`,
+        transition: 'background-color 0.15s ease 0s, width 0.15s ease 0s',
+        '&:hover': {
+          width: '4px',
+          backgroundColor: numberToRgb(enabledColorLight)
+        },
+        '&:active': {
+          cursor: 'col-resize',
+          width: '4px',
+          backgroundColor: numberToRgb(enabledColorLight)
+        }
+      }
+    : {};
 
   return (
     <Box
@@ -188,7 +209,7 @@ export function Chart(props: ChartProps): React.ReactElement {
         variant="permanent"
         widthOnOpen={panelWidth}
         widthOnClose={widthOnClosed}
-        onAnimationEnd={update}
+        onTransitionEnd={update}
         sx={{
           pl: 1,
           '& .MuiPaper-root': {
@@ -228,6 +249,7 @@ export function Chart(props: ChartProps): React.ReactElement {
             subplotTarget={subplotTarget}
             mode={mode}
             dataSelector={dataSelector}
+            layout={pLayout}
             setLayout={setLayout}
           />
         </Box>
@@ -238,23 +260,13 @@ export function Chart(props: ChartProps): React.ReactElement {
         draggable={open}
         ref={dividerRef}
         sx={{
-          position: 'absolute',
+          ...transitionSX,
           height: '100%',
-          left: `${panelWidth}`,
-          width: '4px',
+          width: '2px',
           zIndex,
-          backgroundColor: 'transparent',
+          backgroundColor: alpha('#000000', 0.3),
           borderColor: alpha('#000000', 0),
-          cursor: 'col-resize',
-
-          transition: 'background-color 0.15s ease 0s',
-          '&:hover': {
-            backgroundColor: numberToRgb(enabledColorLight)
-          },
-          '&:active': {
-            cursor: 'col-resize',
-            backgroundColor: numberToRgb(enabledColorLight)
-          }
+          cursor: 'col-resize'
         }}
       />
       <Box

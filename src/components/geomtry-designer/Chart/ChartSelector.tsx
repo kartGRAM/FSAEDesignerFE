@@ -22,6 +22,7 @@ export const ChartSelector = React.memo(
     subplotTarget: SubPlot;
     setPlotTypeAll: (type: PlotType) => void;
     dataSelector: JSX.Element;
+    layout: IChartLayout;
     setLayout: (layout: IChartLayout) => void;
   }) => {
     const {mode} = props;
@@ -80,7 +81,14 @@ const DataSelectorMode = React.memo(
   }
 );
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars, react/no-unused-prop-types
-const SubPlotSettings = React.memo((props: {subplotTarget: SubPlot}) => {
-  return null;
-});
+const SubPlotSettings = React.memo(
+  (props: {
+    subplotTarget: SubPlot;
+    layout: IChartLayout;
+    setLayout: (layout: IChartLayout) => void;
+  }) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const {subplotTarget, layout, setLayout} = props;
+    return null;
+  }
+);
