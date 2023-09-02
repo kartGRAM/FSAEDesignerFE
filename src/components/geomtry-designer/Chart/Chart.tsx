@@ -3,7 +3,6 @@ import * as React from 'react';
 import {PlotData, PlotType} from 'plotly.js';
 import {IChartLayout, SubPlot, subplots} from '@gd/charts/ICharts';
 import Plot, {PlotParams} from 'react-plotly.js';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import * as Plotly from 'plotly.js';
 import Box, {BoxProps} from '@mui/material/Box';
 import {IconButton, Divider} from '@mui/material';
@@ -19,6 +18,7 @@ import store, {RootState} from '@store/store';
 import {setChartSettingPanelWidth} from '@store/reducers/uiGeometryDesigner';
 import $ from 'jquery';
 import 'jqueryui';
+import usePrevious from '@hooks/usePrevious';
 
 import {ChartSelector, Mode} from './ChartSelector';
 
@@ -73,7 +73,7 @@ export function Chart(props: ChartProps): React.ReactElement {
   const [open, setOpen] = React.useState<boolean>(
     uigd.present.chartState?.settingPanelDefaultOpen ?? false
   );
-  const dragActive = React.useRef<boolean>(true);
+  const openPrevious = usePrevious(open);
 
   const [panelWidth, setPanelWidth] = React.useState<string>(
     uigd.present.chartState?.settingPanelWidth ?? '30%'
@@ -140,7 +140,7 @@ export function Chart(props: ChartProps): React.ReactElement {
         dblClickTimeout.current = setTimeout(() => {
           dblClick.current = 0;
           if (mode === 'SubPlotSettings') setMode('DataSelect');
-        }, 250);
+        }, 200);
       }
     },
     [mode]
@@ -172,22 +172,25 @@ export function Chart(props: ChartProps): React.ReactElement {
     };
   });
 
-  const transitionSX = open
-    ? {
-        position: 'absolute',
-        left: `${panelWidth}`,
-        transition: 'background-color 0.15s ease 0s, width 0.15s ease 0s',
-        '&:hover': {
-          width: '4px',
-          backgroundColor: numberToRgb(enabledColorLight)
-        },
-        '&:active': {
-          cursor: 'col-resize',
-          width: '4px',
-          backgroundColor: numberToRgb(enabledColorLight)
+  const transitionSX =
+    open && openPrevious
+      ? {
+          position: 'absolute',
+          left: `${panelWidth}`,
+          transition: 'background-color 0.15s ease 0s, width 0.15s ease 0s',
+          '&:hover': {
+            width: '4px',
+            backgroundColor: numberToRgb(enabledColorLight)
+          },
+          '&:active': {
+            cursor: 'col-resize',
+            width: '4px',
+            backgroundColor: numberToRgb(enabledColorLight)
+          }
         }
-      }
-    : {};
+      : {};
+
+  dividerRef.current?.removeAttribute('style');
 
   return (
     <Box
@@ -209,7 +212,10 @@ export function Chart(props: ChartProps): React.ReactElement {
         variant="permanent"
         widthOnOpen={panelWidth}
         widthOnClose={widthOnClosed}
-        onTransitionEnd={update}
+        onTransitionEnd={(e) => {
+          if (e.target !== drawerRef.current) return;
+          update();
+        }}
         sx={{
           pl: 1,
           '& .MuiPaper-root': {
