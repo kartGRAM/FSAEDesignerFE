@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import store from '@store/store';
 import {plotTypes} from '@gd/charts/plotlyUtils';
+import {SubPlotSettings} from './SubPlotSettings';
 
 export type Mode = 'DataSelect' | 'SubPlotSettings' | 'DataVisualization';
 
@@ -78,17 +79,5 @@ const DataSelectorMode = React.memo(
         {dataSelector}
       </Box>
     );
-  }
-);
-
-const SubPlotSettings = React.memo(
-  (props: {
-    subplotTarget: SubPlot;
-    layout: IChartLayout;
-    setLayout: (layout: IChartLayout) => void;
-  }) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {subplotTarget, layout, setLayout} = props;
-    return null;
   }
 );

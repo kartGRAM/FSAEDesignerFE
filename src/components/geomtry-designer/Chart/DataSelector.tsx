@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {IChartData, dataFrom} from '@gd/charts/ICharts';
+import {IChartData, dataFrom, axesSet} from '@gd/charts/ICharts';
 import {CaseResults} from '@worker/solverWorkerMessage';
 import {LocalInstances} from '@worker/getLocalInstances';
 import {
@@ -177,38 +177,60 @@ const DataRow = React.memo(
     const {results, localInstances, data, setData, axis} = props;
     const dataRef = data[axis];
     const {from} = dataRef;
+    const axes = axesSet[axis];
 
     const selectableData = getSelectableData(
       results,
       localInstances
     ).children?.find((v) => v.name === dataRef.from)!;
 
-    const handleFromChanged = (e: SelectChangeEvent<string>) => {
-      const {value} = e.target;
-      const newRef = {...dataRef};
-      newRef.from = value as any;
-      const newData = {...data};
-      newData[axis] = newRef;
-      setData(newData);
-    };
+    const handleFromChanged = React.useCallback(
+      (e: SelectChangeEvent<string>) => {
+        const {value} = e.target;
+        const newRef = {...dataRef};
+        newRef.from = value as any;
+        const newData = {...data};
+        newData[axis] = newRef;
+        setData(newData);
+      },
+      [axis, data, dataRef, setData]
+    );
 
-    const handleNodeIDChanged = (e: SelectChangeEvent<string>) => {
-      const {value} = e.target;
-      const newRef = {...dataRef};
-      newRef.nodeID = value;
-      const newData = {...data};
-      newData[axis] = newRef;
-      setData(newData);
-    };
+    const handleNodeIDChanged = React.useCallback(
+      (e: SelectChangeEvent<string>) => {
+        const {value} = e.target;
+        const newRef = {...dataRef};
+        newRef.nodeID = value;
+        const newData = {...data};
+        newData[axis] = newRef;
+        setData(newData);
+      },
+      [axis, data, dataRef, setData]
+    );
 
-    const handleCaseChanged = (e: SelectChangeEvent<string>) => {
-      const {value} = e.target;
-      const newRef = {...dataRef};
-      newRef.case = value;
-      const newData = {...data};
-      newData[axis] = newRef;
-      setData(newData);
-    };
+    const handleCaseChanged = React.useCallback(
+      (e: SelectChangeEvent<string>) => {
+        const {value} = e.target;
+        const newRef = {...dataRef};
+        newRef.case = value;
+        const newData = {...data};
+        newData[axis] = newRef;
+        setData(newData);
+      },
+      [axis, data, dataRef, setData]
+    );
+
+    const handleAxisChanged = React.useCallback(
+      (e: SelectChangeEvent<string>) => {
+        if (axis === 'z') return;
+        const {value} = e.target;
+        const newData = {...data};
+        if (axis === 'x') newData.xaxis = value as any;
+        else if (axis === 'y') newData.yaxis = value as any;
+        setData(newData);
+      },
+      [axis, data, setData]
+    );
 
     const cases = getCases(results);
 
@@ -262,6 +284,23 @@ const DataRow = React.memo(
               </option>
             ))}
           </NativeSelect>
+        </TableCell>
+        <TableCell scope="row" padding="none" align="left" key="axis">
+          {axis !== 'z' ? (
+            <NativeSelect
+              sx={{width: '100%'}}
+              native
+              variant="standard"
+              value={axis === 'x' ? data.xaxis : data.yaxis}
+              onChange={handleAxisChanged}
+            >
+              {axes.map((a) => (
+                <option value={a} key={a}>
+                  {a}
+                </option>
+              ))}
+            </NativeSelect>
+          ) : null}
         </TableCell>
       </TableRow>
     );

@@ -1,5 +1,6 @@
 import {
   Layout,
+  LayoutAxis,
   PlotData,
   Datum,
   TypedArray,
@@ -29,8 +30,8 @@ export interface IChartData extends WOData {
   x: DataRef;
   y: DataRef;
   z: DataRef;
-  xaxis: xAxis;
-  yaxis: yAxis;
+  xaxis: XAxis;
+  yaxis: YAxis;
 }
 
 export const dataFrom = [
@@ -66,19 +67,26 @@ export interface IChartLayout extends Partial<Layout> {
 }
 
 type Digit = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
-export type xAxis = `x${Digit}` | `x${Digit}${Digit | '0'}`;
-export type yAxis = `y${Digit}` | `y${Digit}${Digit | '0'}`;
-export type SubPlot = `${'x' | Exclude<xAxis, 'x1'>}${
-  | 'y'
-  | Exclude<yAxis, 'y1'>}`;
+export type XAxis = `x${Digit}` | `x${Digit}${Digit | '0'}`;
+export type YAxis = `y${Digit}` | `y${Digit}${Digit | '0'}`;
+export type ZAxis = never; // `z${Digit}` | `z${Digit}${Digit | '0'}`;
 
-const sx: (xAxis | 'x')[] = [
+export const xAxes = [...Array(9)].map((_, i) => `x${i + 1}`) as XAxis[];
+export const yAxes = [...Array(9)].map((_, i) => `y${i + 1}`) as YAxis[];
+export const zAxes = [] as ZAxis[];
+export const axesSet = {x: xAxes, y: yAxes, z: zAxes} as const;
+
+export type SubPlot = `${'x' | Exclude<XAxis, 'x1'>}${
+  | 'y'
+  | Exclude<YAxis, 'y1'>}`;
+
+const sx: (XAxis | 'x')[] = [
   'x',
-  ...([...Array(98)].map((_, i) => `x${i + 2}`) as xAxis[])
+  ...([...Array(98)].map((_, i) => `x${i + 2}`) as XAxis[])
 ];
-const sy: (yAxis | 'y')[] = [
+const sy: (YAxis | 'y')[] = [
   'y',
-  ...([...Array(98)].map((_, i) => `y${i + 2}`) as yAxis[])
+  ...([...Array(98)].map((_, i) => `y${i + 2}`) as YAxis[])
 ];
 export const subplots: SubPlot[] = sx
   .map((x) => sy.map((y) => x + y))
@@ -95,8 +103,8 @@ export interface IPlotData extends WOData {
   xy?: Float32Array;
   error_x?: ErrorBar;
   error_y?: ErrorBar;
-  xaxis: xAxis;
-  yaxis: yAxis;
+  xaxis: XAxis;
+  yaxis: YAxis;
 }
 
 export type {Datum, TypedArray, ErrorBar};
@@ -117,3 +125,8 @@ export function getStats(stats: Stats): (values: number[]) => number {
       return math.median;
   }
 }
+
+export const defaultLayoutAxis: Partial<LayoutAxis> = {
+  visible: true,
+  autorange: true
+};
