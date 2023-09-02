@@ -1,7 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react';
-import {PlotData, PlotType} from 'plotly.js';
-import {IChartLayout, SubPlot, subplots} from '@gd/charts/ICharts';
+import {PlotData, PlotType, LayoutAxis, AxisName} from 'plotly.js';
+import {
+  IChartLayout,
+  SubPlot,
+  subplots,
+  defaultLayoutAxis
+} from '@gd/charts/ICharts';
 import Plot, {PlotParams} from 'react-plotly.js';
 import * as Plotly from 'plotly.js';
 import Box, {BoxProps} from '@mui/material/Box';
@@ -30,7 +35,7 @@ type BoxPropsOmit = Omit<
 
 export interface ChartProps extends BoxPropsOmit, PlotParamsOmit {
   data?: Partial<PlotData>[];
-  layout?: IChartLayout;
+  layout: IChartLayout;
   dataSelector: JSX.Element;
   setLayout: (layout: IChartLayout) => void;
 
@@ -49,13 +54,33 @@ export function Chart(props: ChartProps): React.ReactElement {
   const drawerRef = React.useRef<HTMLDivElement>(null);
   const dividerRef = React.useRef<HTMLHRElement>(null);
 
-  if (pLayout) {
-    pLayout.autosize = true;
-    pLayout.datarevision = revision.current++;
-    if (!pLayout.margin) {
-      pLayout.margin = {t: 24, b: 0, l: 0, r: 0};
-    }
+  pLayout.autosize = true;
+  pLayout.datarevision = revision.current++;
+  if (!pLayout.margin) {
+    pLayout.margin = {t: 24};
   }
+
+  (data ?? []).forEach((d) => {
+    const xaxisNumber = d.xaxis?.slice(1) ?? '1';
+    const yaxisNumber = d.yaxis?.slice(1) ?? '1';
+    const axisNumbers = [xaxisNumber, yaxisNumber];
+    const params = [
+      `xaxis${xaxisNumber !== '1' ? xaxisNumber : ''}`,
+      `yaxis${yaxisNumber !== '1' ? yaxisNumber : ''}`
+    ];
+    const axes: AxisName[] = ['x', 'y'];
+    params.forEach((param, i) => {
+      if (!(pLayout as any)[param]) {
+        const layout: Partial<LayoutAxis> = {
+          ...defaultLayoutAxis,
+          title: param,
+          overlaying: axisNumbers[i] !== '1' ? axes[i] : undefined,
+          side: axisNumbers[i] !== '1' ? 'right' : undefined
+        };
+        (pLayout as any)[param] = layout;
+      }
+    });
+  });
 
   const enabledColorLight: number = useSelector(
     (state: RootState) => state.uigd.present.enabledColorLight
@@ -74,7 +99,6 @@ export function Chart(props: ChartProps): React.ReactElement {
     uigd.present.chartState?.settingPanelDefaultOpen ?? false
   );
   const openPrevious = usePrevious(open);
-
   const [panelWidth, setPanelWidth] = React.useState<string>(
     uigd.present.chartState?.settingPanelWidth ?? '30%'
   );
