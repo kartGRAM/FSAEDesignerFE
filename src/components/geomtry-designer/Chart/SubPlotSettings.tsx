@@ -16,6 +16,9 @@ import Settings from '@gdComponents/svgs/Settings';
 import {deepCopy, isNumber} from '@utils/helpers';
 import {MuiColorInput, MuiColorInputColors} from 'mui-color-input';
 import {hovermodes} from '@gd/charts/plotlyUtils';
+import {useFormik} from 'formik';
+import yup from '@app/utils/Yup';
+import TextField from '@mui/material/TextField';
 import {Mode} from './ChartSelector';
 
 export const SubPlotSettings = React.memo(
@@ -97,6 +100,15 @@ export const SubPlotSettings = React.memo(
               onChange={(value) => {
                 const newLayout = deepCopy(layout);
                 newLayout.hovermode = value;
+                setLayout(newLayout);
+              }}
+            />
+            <NumberRow
+              name="hover distance"
+              value={layout.hoverdistance ?? 20}
+              setValue={(value) => {
+                const newLayout = deepCopy(layout);
+                newLayout.hoverdistance = value;
                 setLayout(newLayout);
               }}
             />
@@ -253,3 +265,49 @@ function SelectorRow<T>(props: {
     </TableRow>
   );
 }
+
+const NumberRow = React.memo(
+  (props: {name: string; value: number; setValue: (value: number) => void}) => {
+    const {name, value, setValue} = props;
+
+    const formik = useFormik({
+      enableReinitialize: true,
+      initialValues: {
+        value
+      },
+      validationSchema: yup.object({
+        value: yup.number().required('')
+      }),
+      onSubmit: (values) => {
+        setValue(values.value);
+      }
+    });
+
+    const onEnter = (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === 'Enter') {
+        formik.handleSubmit();
+      }
+    };
+    return (
+      <TableRow>
+        <TableCell scope="row" align="left">
+          {name}
+        </TableCell>
+        <TableCell scope="row" padding="none" align="left">
+          <TextField
+            hiddenLabel
+            name="value"
+            variant="standard"
+            onBlur={formik.handleBlur}
+            onChange={formik.handleChange}
+            onKeyDown={onEnter}
+            value={formik.values.value}
+            error={formik.touched.value && formik.errors.value !== undefined}
+            helperText={formik.touched.value && formik.errors.value}
+          />
+        </TableCell>
+        <TableCell scope="row" padding="none" align="left" />
+      </TableRow>
+    );
+  }
+);
