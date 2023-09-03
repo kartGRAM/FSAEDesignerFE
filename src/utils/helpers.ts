@@ -1,3 +1,7 @@
+export function deepCopy<T>(data: T) {
+  return JSON.parse(JSON.stringify(data)) as T;
+}
+
 export const sleep = (millisec: number) =>
   // eslint-disable-next-line no-promise-executor-return
   new Promise((res) => setTimeout(res, millisec));

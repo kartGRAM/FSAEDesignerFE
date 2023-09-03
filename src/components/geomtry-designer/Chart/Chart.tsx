@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react';
+import natsort from 'natsort';
 import {PlotData, PlotType, LayoutAxis, AxisName} from 'plotly.js';
 import {
   IChartLayout,
@@ -24,6 +25,7 @@ import {setChartSettingPanelWidth} from '@store/reducers/uiGeometryDesigner';
 import $ from 'jquery';
 import 'jqueryui';
 import usePrevious from '@hooks/usePrevious';
+import {deepCopy} from '@utils/helpers';
 
 import {ChartSelector, Mode} from './ChartSelector';
 
@@ -45,7 +47,7 @@ export interface ChartProps extends BoxPropsOmit, PlotParamsOmit {
 
 export function Chart(props: ChartProps): React.ReactElement {
   const {layout, data, dataSelector, setLayout, type, setPlotTypeAll} = props;
-  const pLayout = JSON.parse(JSON.stringify(layout)) as IChartLayout;
+  const pLayout = deepCopy(layout);
   const update = useUpdate();
   const revision = React.useRef(0);
   const dblClick = React.useRef(0);
@@ -60,27 +62,39 @@ export function Chart(props: ChartProps): React.ReactElement {
     pLayout.margin = {t: 24};
   }
 
+  // グラフの軸の設定
+  const axes = new Set<string>();
+
   (data ?? []).forEach((d) => {
     const xaxisNumber = d.xaxis?.slice(1) ?? '1';
     const yaxisNumber = d.yaxis?.slice(1) ?? '1';
-    const axisNumbers = [xaxisNumber, yaxisNumber];
-    const params = [
-      `xaxis${xaxisNumber !== '1' ? xaxisNumber : ''}`,
-      `yaxis${yaxisNumber !== '1' ? yaxisNumber : ''}`
-    ];
-    const axes: AxisName[] = ['x', 'y'];
-    params.forEach((param, i) => {
-      if (!(pLayout as any)[param]) {
+    const axisNumbers = {x: xaxisNumber, y: yaxisNumber};
+    const params = {
+      x: `xaxis${xaxisNumber !== '1' ? xaxisNumber : ''}`,
+      y: `yaxis${yaxisNumber !== '1' ? yaxisNumber : ''}`
+    };
+    axes.add(params.x);
+    axes.add(params.y);
+    (Object.keys(params) as ('x' | 'y')[]).forEach((axis) => {
+      if (!(pLayout as any)[params[axis]]) {
         const layout: Partial<LayoutAxis> = {
           ...defaultLayoutAxis,
-          title: param,
-          overlaying: axisNumbers[i] !== '1' ? axes[i] : undefined,
-          side: axisNumbers[i] !== '1' ? 'right' : undefined
+          title: params[axis],
+          overlaying: axisNumbers[axis] !== '1' ? axis : undefined,
+          side:
+            // eslint-disable-next-line no-nested-ternary
+            axis === 'x'
+              ? undefined
+              : Number(axisNumbers[axis]) % 2
+              ? 'left'
+              : 'right'
         };
-        (pLayout as any)[param] = layout;
+        (pLayout as any)[params[axis]] = layout;
       }
     });
   });
+
+  // 軸の設定ここまで
 
   const enabledColorLight: number = useSelector(
     (state: RootState) => state.uigd.present.enabledColorLight
@@ -278,9 +292,11 @@ export function Chart(props: ChartProps): React.ReactElement {
             setPlotTypeAll={setPlotTypeAll}
             subplotTarget={subplotTarget}
             mode={mode}
+            setMode={setMode}
             dataSelector={dataSelector}
             layout={pLayout}
             setLayout={setLayout}
+            axes={[...axes].sort(natsort())}
           />
         </Box>
       </Drawer>

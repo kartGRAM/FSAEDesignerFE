@@ -128,5 +128,6 @@ export function getStats(stats: Stats): (values: number[]) => number {
 
 export const defaultLayoutAxis: Partial<LayoutAxis> = {
   visible: true,
-  autorange: true
+  autorange: true,
+  automargin: true
 };

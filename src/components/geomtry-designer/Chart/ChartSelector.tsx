@@ -19,19 +19,45 @@ export type Mode = 'DataSelect' | 'SubPlotSettings' | 'DataVisualization';
 export const ChartSelector = React.memo(
   (props: {
     mode: Mode;
+    setMode: (mode: Mode) => void;
     type: PlotType | 'composite';
     subplotTarget: SubPlot;
     setPlotTypeAll: (type: PlotType) => void;
     dataSelector: JSX.Element;
     layout: IChartLayout;
     setLayout: (layout: IChartLayout) => void;
+    axes: string[];
   }) => {
-    const {mode} = props;
+    const {
+      mode,
+      setMode,
+      type,
+      setPlotTypeAll,
+      dataSelector,
+      subplotTarget,
+      layout,
+      setLayout,
+      axes
+    } = props;
     if (mode === 'DataSelect') {
-      return <DataSelectorMode {...props} />;
+      return (
+        <DataSelectorMode
+          type={type}
+          setPlotTypeAll={setPlotTypeAll}
+          dataSelector={dataSelector}
+        />
+      );
     }
     if (mode === 'SubPlotSettings') {
-      return <SubPlotSettings {...props} />;
+      return (
+        <SubPlotSettings
+          setMode={setMode}
+          subplotTarget={subplotTarget}
+          layout={layout}
+          setLayout={setLayout}
+          axes={axes}
+        />
+      );
     }
     return null;
   }
