@@ -37,7 +37,6 @@ export const SubPlotSettings = React.memo(
             <TableRow>
               <TableCell
                 scope="row"
-                padding="none"
                 align="left"
                 // sx={{width: '100%'}}
               >
@@ -58,7 +57,7 @@ export const SubPlotSettings = React.memo(
               isSubplotMode={isSubplotMode}
             />
             <TableRow>
-              <TableCell scope="row" padding="none" align="left">
+              <TableCell scope="row" align="left">
                 show legends
               </TableCell>
               <TableCell scope="row" padding="none" align="left">
@@ -134,7 +133,7 @@ const AxesVisualization = React.memo(
           const layoutAxis = (layout as any)[axis] as Partial<LayoutAxis>;
           return (
             <TableRow key={axis}>
-              <TableCell scope="row" padding="none" align="left">
+              <TableCell scope="row" align="left">
                 {axis}
               </TableCell>
               <TableCell scope="row" padding="none" align="left">
@@ -168,7 +167,7 @@ const ColorPickerRow = React.memo(
     );
     return (
       <TableRow>
-        <TableCell scope="row" padding="none" align="left">
+        <TableCell scope="row" align="left">
           {name}
         </TableCell>
         <TableCell scope="row" padding="none" align="left">
@@ -229,18 +228,20 @@ function SelectorRow<T>(props: {
 
   return (
     <TableRow>
-      <TableCell scope="row" padding="none" align="left">
+      <TableCell scope="row" align="left">
         {name}
       </TableCell>
       <TableCell scope="row" padding="none" align="left">
         <NativeSelect
           sx={{width: '100%'}}
-          value={value ? `${value}` : ''}
+          value={value || `${value}` === 'false' ? `${value}` : ''}
           native
           variant="standard"
           onChange={handleChanged}
         >
-          <option aria-label="None" value="" key="none" />
+          <option aria-label="None" value="" key="none">
+            default
+          </option>
           {selection.map((s) => (
             <option value={`${s}`} key={`${s}`}>
               {`${s}`}
