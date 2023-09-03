@@ -66,8 +66,8 @@ export function Chart(props: ChartProps): React.ReactElement {
   const axes = new Set<string>();
 
   (data ?? []).forEach((d) => {
-    const xaxisNumber = d.xaxis?.slice(1) ?? '1';
-    const yaxisNumber = d.yaxis?.slice(1) ?? '1';
+    const xaxisNumber = getAxisNumber(d.xaxis);
+    const yaxisNumber = getAxisNumber(d.yaxis);
     const axisNumbers = {x: xaxisNumber, y: yaxisNumber};
     const params = {
       x: `xaxis${xaxisNumber !== '1' ? xaxisNumber : ''}`,
@@ -77,6 +77,7 @@ export function Chart(props: ChartProps): React.ReactElement {
     axes.add(params.y);
     (Object.keys(params) as ('x' | 'y')[]).forEach((axis) => {
       if (!(pLayout as any)[params[axis]]) {
+        // if (true) {
         const layout: Partial<LayoutAxis> = {
           ...defaultLayoutAxis,
           title: params[axis],
@@ -85,7 +86,7 @@ export function Chart(props: ChartProps): React.ReactElement {
             // eslint-disable-next-line no-nested-ternary
             axis === 'x'
               ? undefined
-              : Number(axisNumbers[axis]) % 2
+              : Number(axisNumbers[axis]) % 2 === 1
               ? 'left'
               : 'right'
         };
@@ -347,3 +348,8 @@ export function Chart(props: ChartProps): React.ReactElement {
     </Box>
   );
 }
+
+const getAxisNumber = (axis?: string) => {
+  const tmp = axis?.slice(1) ?? '1';
+  return tmp !== '' ? tmp : '1';
+};

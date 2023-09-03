@@ -14,7 +14,11 @@ import store from '@store/store';
 import {plotTypes} from '@gd/charts/plotlyUtils';
 import {SubPlotSettings} from './SubPlotSettings';
 
-export type Mode = 'DataSelect' | 'SubPlotSettings' | 'DataVisualization';
+export type Mode =
+  | 'DataSelect'
+  | 'SubPlotSettings'
+  | 'AxisSettings'
+  | 'DataVisualization';
 
 export const ChartSelector = React.memo(
   (props: {

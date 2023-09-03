@@ -87,7 +87,7 @@ export function DataSelector(props: {
           />
         </>
       ))}
-      <Divider />
+      <Divider key="newd" />
       <DataTable key="new" {...props} data={newData} setData={setDatum} isNew />
     </Box>
   );
