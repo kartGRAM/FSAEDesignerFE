@@ -1,4 +1,4 @@
-import {PlotType} from 'plotly.js';
+import {PlotType, Layout} from 'plotly.js';
 
 export function is3DPlotType(type: PlotType) {
   if (type === 'scatter3d' || type === 'heatmap' || type === 'contour')
@@ -53,4 +53,13 @@ export const plotTypes: PlotType[] = [
   'violin',
   'volume',
   'waterfall'
+];
+
+export const hovermodes: Layout['hovermode'][] = [
+  'closest',
+  'x',
+  'y',
+  'x unified',
+  'y unified',
+  false
 ];
