@@ -24,6 +24,7 @@ export const SubPlotSettings = React.memo(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const {setMode, subplotTarget, layout, setLayout, axes} = props;
     const isSubplotMode = !!layout.grid;
+
     return (
       <TableContainer>
         <Table size="small">
@@ -35,6 +36,24 @@ export const SubPlotSettings = React.memo(
               axes={axes}
               isSubplotMode={isSubplotMode}
             />
+            <TableRow>
+              <TableCell scope="row" padding="none" align="left" key="from">
+                show legends
+              </TableCell>
+              <TableCell scope="row" padding="none" align="left" key="node">
+                <Checkbox
+                  checked={layout.showlegend ?? true}
+                  onChange={(_, c) => {
+                    const newLayout = deepCopy(layout);
+                    newLayout.showlegend = c;
+                    setLayout(newLayout);
+                  }}
+                />
+              </TableCell>
+              <TableCell scope="row" padding="none" align="left" key="case">
+                <Settings title="Axis settings" />
+              </TableCell>
+            </TableRow>
           </TableBody>
         </Table>
       </TableContainer>
