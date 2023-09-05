@@ -178,7 +178,7 @@ export function Chart(props: ChartProps): React.ReactElement {
         dblClick.current = performance.now();
         dblClickTimeout.current = setTimeout(() => {
           dblClick.current = 0;
-          if (mode === 'SubPlotSettings') setMode('DataSelect');
+          setMode('DataSelect');
         }, 200);
       }
     },
@@ -342,6 +342,10 @@ export function Chart(props: ChartProps): React.ReactElement {
             style={{width: '100%', height: '100%'}}
             onInitialized={update}
             onClick={handlePointsClick}
+            onLegendDoubleClick={() => {
+              setMode('LegendSettings');
+              return false;
+            }}
           />
         </Box>
       </Box>

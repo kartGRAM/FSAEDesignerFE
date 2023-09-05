@@ -76,7 +76,7 @@ export const SubPlotSettings = React.memo(
               }}
               thirdColumn={
                 <Settings
-                  title="Axis settings"
+                  title="Legend settings"
                   onClick={() => setMode('LegendSettings')}
                 />
               }
