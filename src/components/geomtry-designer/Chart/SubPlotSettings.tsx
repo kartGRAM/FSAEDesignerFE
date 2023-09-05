@@ -15,7 +15,15 @@ import NativeSelect, {SelectChangeEvent} from '@mui/material/Select';
 import Settings from '@gdComponents/svgs/Settings';
 import {deepCopy, isNumber} from '@utils/helpers';
 import {MuiColorInput, MuiColorInputColors} from 'mui-color-input';
-import {hovermodes} from '@gd/charts/plotlyUtils';
+import {
+  hoverModes,
+  dragModes,
+  barModes,
+  barNorms,
+  boxModes,
+  selectDirections,
+  clickModes
+} from '@gd/charts/plotlyUtils';
 import {useFormik} from 'formik';
 import yup from '@app/utils/Yup';
 import TextField from '@mui/material/TextField';
@@ -95,7 +103,7 @@ export const SubPlotSettings = React.memo(
             />
             <SelectorRow
               name="hover mode"
-              selection={hovermodes}
+              selection={hoverModes}
               value={layout.hovermode}
               onChange={(value) => {
                 const newLayout = deepCopy(layout);
@@ -106,9 +114,88 @@ export const SubPlotSettings = React.memo(
             <NumberRow
               name="hover distance"
               value={layout.hoverdistance ?? 20}
+              min={0}
               setValue={(value) => {
                 const newLayout = deepCopy(layout);
                 newLayout.hoverdistance = value;
+                setLayout(newLayout);
+              }}
+            />
+            <SelectorRow
+              name="drag mode"
+              selection={dragModes}
+              value={layout.dragmode}
+              onChange={(value) => {
+                const newLayout = deepCopy(layout);
+                newLayout.dragmode = value;
+                setLayout(newLayout);
+              }}
+            />
+            <SelectorRow
+              name="bar mode"
+              selection={barModes}
+              value={layout.barmode}
+              onChange={(value) => {
+                const newLayout = deepCopy(layout);
+                newLayout.barmode = value;
+                setLayout(newLayout);
+              }}
+            />
+            <SelectorRow
+              name="bar norm"
+              selection={barNorms}
+              value={layout.barnorm}
+              onChange={(value) => {
+                const newLayout = deepCopy(layout);
+                newLayout.barnorm = value;
+                setLayout(newLayout);
+              }}
+            />
+            <NumberRow
+              name="bar gap"
+              value={layout.bargap ?? 0.15}
+              setValue={(value) => {
+                const newLayout = deepCopy(layout);
+                newLayout.bargap = value;
+                setLayout(newLayout);
+              }}
+            />
+            <NumberRow
+              name="bar group gap"
+              value={layout.bargroupgap ?? 0.15}
+              setValue={(value) => {
+                const newLayout = deepCopy(layout);
+                newLayout.bargroupgap = value;
+                setLayout(newLayout);
+              }}
+            />
+            <SelectorRow
+              name="box mode"
+              selection={boxModes}
+              value={layout.boxmode}
+              onChange={(value) => {
+                const newLayout = deepCopy(layout);
+                newLayout.boxmode = value;
+                setLayout(newLayout);
+              }}
+            />
+            <SelectorRow
+              name="select direction"
+              selection={selectDirections}
+              value={layout.selectdirection}
+              onChange={(value) => {
+                const newLayout = deepCopy(layout);
+                newLayout.selectdirection = value;
+                setLayout(newLayout);
+              }}
+            />
+            <SelectorRow
+              name="click mode"
+              selection={clickModes}
+              value={layout.clickmode}
+              onChange={(value) => {
+                const newLayout = deepCopy(layout);
+                newLayout.clickmode = value;
                 setLayout(newLayout);
               }}
             />
@@ -267,8 +354,18 @@ function SelectorRow<T>(props: {
 }
 
 const NumberRow = React.memo(
-  (props: {name: string; value: number; setValue: (value: number) => void}) => {
-    const {name, value, setValue} = props;
+  (props: {
+    name: string;
+    value: number;
+    setValue: (value: number) => void;
+    min?: number;
+    max?: number;
+  }) => {
+    const {name, value, setValue, min, max} = props;
+
+    let schema = yup.number().required('');
+    if (min !== undefined) schema = schema.min(min);
+    if (max !== undefined) schema = schema.max(max);
 
     const formik = useFormik({
       enableReinitialize: true,
@@ -276,7 +373,7 @@ const NumberRow = React.memo(
         value
       },
       validationSchema: yup.object({
-        value: yup.number().required('')
+        value: schema
       }),
       onSubmit: (values) => {
         setValue(values.value);

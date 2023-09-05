@@ -55,11 +55,46 @@ export const plotTypes: PlotType[] = [
   'waterfall'
 ];
 
-export const hovermodes: Layout['hovermode'][] = [
+export const hoverModes: Layout['hovermode'][] = [
   'closest',
   'x',
   'y',
   'x unified',
   'y unified',
   false
+];
+
+export const dragModes: Layout['dragmode'][] = [
+  'zoom',
+  'pan',
+  'select',
+  'lasso',
+  'orbit',
+  'turntable',
+  false
+];
+
+export const barModes: Layout['barmode'][] = [
+  'stack',
+  'group',
+  'overlay',
+  'relative'
+];
+
+export const barNorms: Layout['barnorm'][] = ['', 'fraction', 'percent'];
+
+export const boxModes: Layout['boxmode'][] = ['group', 'overlay'];
+
+export const selectDirections: Layout['selectdirection'][] = [
+  'h',
+  'v',
+  'd',
+  'any'
+];
+
+export const clickModes: Layout['clickmode'][] = [
+  'event',
+  'select',
+  'event+select',
+  'none'
 ];
