@@ -1,5 +1,4 @@
 import * as React from 'react';
-import store from '@store/store';
 import {LayoutAxis} from 'plotly.js';
 import {IChartLayout, SubPlot} from '@gd/charts/ICharts';
 import {
@@ -8,13 +7,10 @@ import {
   TableHead,
   TableBody,
   TableRow,
-  TableCell,
-  Checkbox
+  TableCell
 } from '@mui/material';
-import NativeSelect, {SelectChangeEvent} from '@mui/material/Select';
 import Settings from '@gdComponents/svgs/Settings';
-import {deepCopy, isNumber} from '@utils/helpers';
-import {MuiColorInput, MuiColorInputColors} from 'mui-color-input';
+import {deepCopy} from '@utils/helpers';
 import {
   hoverModes,
   dragModes,
@@ -24,10 +20,13 @@ import {
   selectDirections,
   clickModes
 } from '@gd/charts/plotlyUtils';
-import {useFormik} from 'formik';
-import yup from '@app/utils/Yup';
-import TextField from '@mui/material/TextField';
 import {Mode} from './ChartSelector';
+import {
+  CheckBoxRow,
+  ColorPickerRow,
+  SelectorRow,
+  NumberRow
+} from './SettingRows';
 
 export const SubPlotSettings = React.memo(
   (props: {
@@ -240,187 +239,6 @@ const AxesVisualization = React.memo(
           );
         })}
       </>
-    );
-  }
-);
-
-const CheckBoxRow = React.memo(
-  (props: {
-    name: string;
-    value: boolean;
-    setValue: (value: boolean) => void;
-    thirdColumn: JSX.Element;
-  }) => {
-    const {name, value, setValue, thirdColumn} = props;
-    return (
-      <TableRow>
-        <TableCell scope="row" align="left">
-          {name}
-        </TableCell>
-        <TableCell scope="row" padding="none" align="left">
-          <Checkbox checked={value} onChange={(_, c) => setValue(c)} />
-        </TableCell>
-        <TableCell scope="row" padding="none" align="left">
-          {thirdColumn}
-        </TableCell>
-      </TableRow>
-    );
-  }
-);
-
-const ColorPickerRow = React.memo(
-  (props: {name: string; color: string; onChange: (color: string) => void}) => {
-    const {uitgd} = store.getState();
-    const menuZIndex =
-      uitgd.fullScreenZIndex + uitgd.menuZIndex + uitgd.dialogZIndex;
-    const {name, color, onChange} = props;
-    const handleChange = React.useCallback(
-      (newValue: string, colors: MuiColorInputColors) => {
-        onChange(colors.hex);
-      },
-      [onChange]
-    );
-    return (
-      <TableRow>
-        <TableCell scope="row" align="left">
-          {name}
-        </TableCell>
-        <TableCell scope="row" padding="none" align="left">
-          <MuiColorInput
-            variant="standard"
-            format="hex"
-            disablePopover
-            value={color}
-            onChange={handleChange}
-            sx={{
-              width: '100%',
-              '& span': {
-                display: 'none'
-              }
-            }}
-          />
-        </TableCell>
-        <TableCell scope="row" padding="none" align="left">
-          <MuiColorInput
-            format="hex"
-            value={color}
-            onChange={handleChange}
-            PopoverProps={{
-              sx: {zIndex: menuZIndex}
-            }}
-            sx={{
-              '& fieldset, input': {
-                display: 'none'
-              },
-              '& .MuiInputAdornment-root': {
-                height: 'fit-content'
-              }
-            }}
-          />
-        </TableCell>
-      </TableRow>
-    );
-  }
-);
-
-function SelectorRow<T>(props: {
-  name: string;
-  selection: T[];
-  value: T | undefined;
-  onChange: (value: T | undefined) => void;
-}) {
-  const {name, value, selection, onChange} = props;
-
-  const handleChanged = (e: SelectChangeEvent<string>) => {
-    const {value} = e.target;
-    if (value === '') onChange(undefined);
-    if (value === 'true') onChange(true as T);
-    if (value === 'false') onChange(false as T);
-    if (value === 'null') onChange(null as T);
-    if (isNumber(value)) onChange(Number(value) as T);
-    onChange(value as T);
-  };
-
-  return (
-    <TableRow>
-      <TableCell scope="row" align="left">
-        {name}
-      </TableCell>
-      <TableCell scope="row" padding="none" align="left">
-        <NativeSelect
-          sx={{width: '100%'}}
-          value={value || `${value}` === 'false' ? `${value}` : ''}
-          native
-          variant="standard"
-          onChange={handleChanged}
-        >
-          <option aria-label="None" value="" key="none">
-            default
-          </option>
-          {selection.map((s) => (
-            <option value={`${s}`} key={`${s}`}>
-              {`${s}`}
-            </option>
-          ))}
-        </NativeSelect>
-      </TableCell>
-      <TableCell scope="row" padding="none" align="left" />
-    </TableRow>
-  );
-}
-
-const NumberRow = React.memo(
-  (props: {
-    name: string;
-    value: number;
-    setValue: (value: number) => void;
-    min?: number;
-    max?: number;
-  }) => {
-    const {name, value, setValue, min, max} = props;
-
-    let schema = yup.number().required('');
-    if (min !== undefined) schema = schema.min(min);
-    if (max !== undefined) schema = schema.max(max);
-
-    const formik = useFormik({
-      enableReinitialize: true,
-      initialValues: {
-        value
-      },
-      validationSchema: yup.object({
-        value: schema
-      }),
-      onSubmit: (values) => {
-        setValue(values.value);
-      }
-    });
-
-    const onEnter = (e: React.KeyboardEvent<HTMLDivElement>) => {
-      if (e.key === 'Enter') {
-        formik.handleSubmit();
-      }
-    };
-    return (
-      <TableRow>
-        <TableCell scope="row" align="left">
-          {name}
-        </TableCell>
-        <TableCell scope="row" padding="none" align="left">
-          <TextField
-            hiddenLabel
-            name="value"
-            variant="standard"
-            onBlur={formik.handleBlur}
-            onChange={formik.handleChange}
-            onKeyDown={onEnter}
-            value={formik.values.value}
-            error={formik.touched.value && formik.errors.value !== undefined}
-            helperText={formik.touched.value && formik.errors.value}
-          />
-        </TableCell>
-        <TableCell scope="row" padding="none" align="left" />
-      </TableRow>
     );
   }
 );
