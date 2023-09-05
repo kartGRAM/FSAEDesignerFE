@@ -67,22 +67,21 @@ export const SubPlotSettings = React.memo(
               axes={axes}
               isSubplotMode={isSubplotMode}
             />
-            <TableRow>
-              <TableCell scope="row" align="left">
-                show legends
-              </TableCell>
-              <TableCell scope="row" padding="none" align="left">
-                <Checkbox
-                  checked={layout.showlegend ?? true}
-                  onChange={(_, c) => {
-                    const newLayout = deepCopy(layout);
-                    newLayout.showlegend = c;
-                    setLayout(newLayout);
-                  }}
+            <CheckBoxRow
+              name="legends"
+              value={layout.showlegend ?? true}
+              setValue={(c) => {
+                const newLayout = deepCopy(layout);
+                newLayout.showlegend = c;
+                setLayout(newLayout);
+              }}
+              thirdColumn={
+                <Settings
+                  title="Axis settings"
+                  onClick={() => setMode('LegendSettings')}
                 />
-              </TableCell>
-              <TableCell scope="row" padding="none" align="left" />
-            </TableRow>
+              }
+            />
             <ColorPickerRow
               name="paper background color"
               color={(layout.paper_bgcolor as string | undefined) ?? '#FFFFFF'}
@@ -231,23 +230,40 @@ const AxesVisualization = React.memo(
         {axes.map((axis) => {
           const layoutAxis = (layout as any)[axis] as Partial<LayoutAxis>;
           return (
-            <TableRow key={axis}>
-              <TableCell scope="row" align="left">
-                {axis}
-              </TableCell>
-              <TableCell scope="row" padding="none" align="left">
-                <Checkbox
-                  checked={!!layoutAxis.visible}
-                  onChange={(_, c) => handleChange(axis, c)}
-                />
-              </TableCell>
-              <TableCell scope="row" padding="none" align="left">
-                <Settings title="Axis settings" />
-              </TableCell>
-            </TableRow>
+            <CheckBoxRow
+              key={axis}
+              name={axis}
+              value={!!layoutAxis.visible}
+              setValue={(c) => handleChange(axis, c)}
+              thirdColumn={<Settings title="Axis settings" />}
+            />
           );
         })}
       </>
+    );
+  }
+);
+
+const CheckBoxRow = React.memo(
+  (props: {
+    name: string;
+    value: boolean;
+    setValue: (value: boolean) => void;
+    thirdColumn: JSX.Element;
+  }) => {
+    const {name, value, setValue, thirdColumn} = props;
+    return (
+      <TableRow>
+        <TableCell scope="row" align="left">
+          {name}
+        </TableCell>
+        <TableCell scope="row" padding="none" align="left">
+          <Checkbox checked={value} onChange={(_, c) => setValue(c)} />
+        </TableCell>
+        <TableCell scope="row" padding="none" align="left">
+          {thirdColumn}
+        </TableCell>
+      </TableRow>
     );
   }
 );

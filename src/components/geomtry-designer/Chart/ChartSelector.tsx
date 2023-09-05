@@ -18,6 +18,7 @@ export type Mode =
   | 'DataSelect'
   | 'SubPlotSettings'
   | 'AxisSettings'
+  | 'LegendSettings'
   | 'DataVisualization';
 
 export const ChartSelector = React.memo(
