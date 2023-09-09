@@ -54,7 +54,7 @@ export const LegendSettings = React.memo(
               onChange={(c) => {
                 const newLayout = deepCopy(layout);
                 newLayout.legend = newLayout.legend ?? {};
-                newLayout.legend.bgcolor = c;
+                newLayout.legend.bordercolor = c;
                 setLayout(newLayout);
               }}
             />
