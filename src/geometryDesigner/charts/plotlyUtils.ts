@@ -1,4 +1,4 @@
-import {PlotType, Layout} from 'plotly.js';
+import {PlotType, Layout, Legend} from 'plotly.js';
 
 export function is3DPlotType(type: PlotType) {
   if (type === 'scatter3d' || type === 'heatmap' || type === 'contour')
@@ -98,3 +98,24 @@ export const clickModes: Layout['clickmode'][] = [
   'event+select',
   'none'
 ];
+
+export const groupClicks: Legend['groupclick'][] = [
+  'toggleitem',
+  'togglegroup'
+];
+export const itemClicks: Legend['itemclick'][] = [
+  'toggle',
+  'toggleothers',
+  false
+];
+export const itemSizings: Legend['itemsizing'][] = ['trace', 'constant'];
+export const orientations: Legend['orientation'][] = ['v', 'h'];
+export const traceOrders: Legend['traceorder'][] = [
+  'grouped',
+  'normal',
+  'reversed',
+  'reversed+grouped'
+];
+export const vAligns: Legend['valign'][] = ['top', 'middle', 'bottom'];
+export const xanchor: Legend['xanchor'][] = ['auto', 'left', 'center', 'right'];
+export const yanchor: Legend['yanchor'][] = ['auto', 'top', 'middle', 'bottom'];

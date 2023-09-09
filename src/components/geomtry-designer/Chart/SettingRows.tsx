@@ -172,6 +172,7 @@ export const NumberRow = React.memo(
         </TableCell>
         <TableCell scope="row" padding="none" align="left">
           <TextField
+            sx={{width: '100%'}}
             hiddenLabel
             name="value"
             variant="standard"

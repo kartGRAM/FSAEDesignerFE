@@ -13,6 +13,7 @@ import {
 import store from '@store/store';
 import {plotTypes} from '@gd/charts/plotlyUtils';
 import {SubPlotSettings} from './SubPlotSettings';
+import {LegendSettings} from './LegendSettings';
 
 export type Mode =
   | 'DataSelect'
@@ -61,6 +62,15 @@ export const ChartSelector = React.memo(
           layout={layout}
           setLayout={setLayout}
           axes={axes}
+        />
+      );
+    }
+    if (mode === 'LegendSettings') {
+      return (
+        <LegendSettings
+          setMode={setMode}
+          layout={layout}
+          setLayout={setLayout}
         />
       );
     }
