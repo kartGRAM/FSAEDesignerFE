@@ -9,9 +9,24 @@ import {
   TableCell
 } from '@mui/material';
 import {deepCopy} from '@utils/helpers';
-import {groupClicks, itemClicks, itemSizings} from '@gd/charts/plotlyUtils';
+import {
+  groupClicks,
+  itemClicks,
+  itemSizings,
+  orientations,
+  traceOrders,
+  vAligns,
+  xAnchors,
+  yAnchors
+} from '@gd/charts/plotlyUtils';
 import {Mode} from './ChartSelector';
-import {ColorPickerRow, SelectorRow, NumberRow} from './SettingRows';
+import {
+  ColorPickerRow,
+  SelectorRow,
+  NumberRow,
+  FontRows,
+  NullableNumberRow
+} from './SettingRows';
 
 export const LegendSettings = React.memo(
   (props: {
@@ -58,9 +73,16 @@ export const LegendSettings = React.memo(
                 setLayout(newLayout);
               }}
             />
-            {
-              // Font
-            }
+            <FontRows
+              name="legend font"
+              font={legend?.font}
+              setValue={(value) => {
+                const newLayout = deepCopy(layout);
+                newLayout.legend = newLayout.legend ?? {};
+                newLayout.legend.font = value;
+                setLayout(newLayout);
+              }}
+            />
             <NumberRow
               name="border width"
               value={legend?.borderwidth ?? 0}
@@ -83,9 +105,16 @@ export const LegendSettings = React.memo(
                 setLayout(newLayout);
               }}
             />
-            {
-              // grouptitlefont
-            }
+            <FontRows
+              name="group title font"
+              font={legend?.grouptitlefont}
+              setValue={(value) => {
+                const newLayout = deepCopy(layout);
+                newLayout.legend = newLayout.legend ?? {};
+                newLayout.legend.grouptitlefont = value;
+                setLayout(newLayout);
+              }}
+            />
             <SelectorRow
               name="item click"
               selection={itemClicks}
@@ -116,6 +145,94 @@ export const LegendSettings = React.memo(
                 const newLayout = deepCopy(layout);
                 newLayout.legend = newLayout.legend ?? {};
                 newLayout.legend.itemwidth = value;
+                setLayout(newLayout);
+              }}
+            />
+            <SelectorRow
+              name="orientation"
+              selection={orientations}
+              value={legend?.orientation}
+              onChange={(value) => {
+                const newLayout = deepCopy(layout);
+                newLayout.legend = newLayout.legend ?? {};
+                newLayout.legend.orientation = value;
+                setLayout(newLayout);
+              }}
+            />
+            <NumberRow
+              name="trace group gap"
+              value={legend?.tracegroupgap ?? 10}
+              min={0}
+              setValue={(value) => {
+                const newLayout = deepCopy(layout);
+                newLayout.legend = newLayout.legend ?? {};
+                newLayout.legend.tracegroupgap = value;
+                setLayout(newLayout);
+              }}
+            />
+            <SelectorRow
+              name="trace order"
+              selection={traceOrders}
+              value={legend?.traceorder}
+              onChange={(value) => {
+                const newLayout = deepCopy(layout);
+                newLayout.legend = newLayout.legend ?? {};
+                newLayout.legend.traceorder = value;
+                setLayout(newLayout);
+              }}
+            />
+            <SelectorRow
+              name="vertical align"
+              selection={vAligns}
+              value={legend?.valign}
+              onChange={(value) => {
+                const newLayout = deepCopy(layout);
+                newLayout.legend = newLayout.legend ?? {};
+                newLayout.legend.valign = value;
+                setLayout(newLayout);
+              }}
+            />
+            <NullableNumberRow
+              name="x position"
+              value={legend?.x}
+              min={0}
+              setValue={(value) => {
+                const newLayout = deepCopy(layout);
+                newLayout.legend = newLayout.legend ?? {};
+                newLayout.legend.x = value;
+                setLayout(newLayout);
+              }}
+            />
+            <SelectorRow
+              name="x anchor"
+              selection={xAnchors}
+              value={legend?.xanchor}
+              onChange={(value) => {
+                const newLayout = deepCopy(layout);
+                newLayout.legend = newLayout.legend ?? {};
+                newLayout.legend.xanchor = value;
+                setLayout(newLayout);
+              }}
+            />
+            <NullableNumberRow
+              name="y position"
+              value={legend?.y}
+              min={0}
+              setValue={(value) => {
+                const newLayout = deepCopy(layout);
+                newLayout.legend = newLayout.legend ?? {};
+                newLayout.legend.y = value;
+                setLayout(newLayout);
+              }}
+            />
+            <SelectorRow
+              name="y anchor"
+              selection={yAnchors}
+              value={legend?.yanchor}
+              onChange={(value) => {
+                const newLayout = deepCopy(layout);
+                newLayout.legend = newLayout.legend ?? {};
+                newLayout.legend.yanchor = value;
                 setLayout(newLayout);
               }}
             />

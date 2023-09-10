@@ -191,6 +191,63 @@ export const NumberRow = React.memo(
   }
 );
 
+export const NullableNumberRow = React.memo(
+  (props: {
+    name: string;
+    value: number | undefined;
+    setValue: (value: number | undefined) => void;
+    min?: number;
+    max?: number;
+  }) => {
+    const {name, value, setValue, min, max} = props;
+
+    let schema = yup.number();
+    if (min !== undefined) schema = schema.min(min);
+    if (max !== undefined) schema = schema.max(max);
+
+    const formik = useFormik({
+      enableReinitialize: true,
+      initialValues: {
+        value
+      },
+      validationSchema: yup.object({
+        value: schema
+      }),
+      onSubmit: (values) => {
+        setValue(values.value);
+      }
+    });
+
+    const onEnter = (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === 'Enter') {
+        formik.handleSubmit();
+      }
+    };
+    return (
+      <TableRow>
+        <TableCell scope="row" align="left">
+          {name}
+        </TableCell>
+        <TableCell scope="row" padding="none" align="left">
+          <TextField
+            sx={{width: '100%'}}
+            hiddenLabel
+            name="value"
+            variant="standard"
+            onBlur={formik.handleBlur}
+            onChange={formik.handleChange}
+            onKeyDown={onEnter}
+            value={formik.values.value}
+            error={formik.touched.value && formik.errors.value !== undefined}
+            helperText={formik.touched.value && formik.errors.value}
+          />
+        </TableCell>
+        <TableCell scope="row" padding="none" align="left" />
+      </TableRow>
+    );
+  }
+);
+
 export const FontRows = React.memo(
   (props: {
     name: string;

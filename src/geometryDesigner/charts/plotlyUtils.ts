@@ -117,5 +117,15 @@ export const traceOrders: Legend['traceorder'][] = [
   'reversed+grouped'
 ];
 export const vAligns: Legend['valign'][] = ['top', 'middle', 'bottom'];
-export const xanchor: Legend['xanchor'][] = ['auto', 'left', 'center', 'right'];
-export const yanchor: Legend['yanchor'][] = ['auto', 'top', 'middle', 'bottom'];
+export const xAnchors: Legend['xanchor'][] = [
+  'auto',
+  'left',
+  'center',
+  'right'
+];
+export const yAnchors: Legend['yanchor'][] = [
+  'auto',
+  'top',
+  'middle',
+  'bottom'
+];
