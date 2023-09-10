@@ -25,7 +25,8 @@ import {
   CheckBoxRow,
   ColorPickerRow,
   SelectorRow,
-  NumberRow
+  NumberRow,
+  FontRows
 } from './SettingRows';
 
 export const SubPlotSettings = React.memo(
@@ -126,6 +127,15 @@ export const SubPlotSettings = React.memo(
               onChange={(value) => {
                 const newLayout = deepCopy(layout);
                 newLayout.dragmode = value;
+                setLayout(newLayout);
+              }}
+            />
+            <FontRows
+              name="font"
+              font={layout.font}
+              setValue={(font) => {
+                const newLayout = deepCopy(layout);
+                newLayout.font = font;
                 setLayout(newLayout);
               }}
             />

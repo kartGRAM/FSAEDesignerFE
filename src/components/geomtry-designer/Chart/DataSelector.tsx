@@ -79,8 +79,8 @@ export function DataSelector(props: {
         <>
           {i > 0 ? <Divider key={`${datum.nodeID}d`} /> : null}
           <DataTable
-            key={datum.nodeID}
             {...props}
+            key={datum.nodeID}
             data={datum}
             setData={setDatum}
             deleteData={deleteDatum}
@@ -88,7 +88,7 @@ export function DataSelector(props: {
         </>
       ))}
       <Divider key="newd" />
-      <DataTable key="new" {...props} data={newData} setData={setDatum} isNew />
+      <DataTable {...props} key="new" data={newData} setData={setDatum} isNew />
     </Box>
   );
 }

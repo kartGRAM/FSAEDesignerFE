@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {Font} from 'plotly.js';
 import store from '@store/store';
 import {TableRow, TableCell, Checkbox} from '@mui/material';
 import NativeSelect, {SelectChangeEvent} from '@mui/material/Select';
@@ -6,7 +7,7 @@ import {MuiColorInput, MuiColorInputColors} from 'mui-color-input';
 import {useFormik} from 'formik';
 import yup from '@app/utils/Yup';
 import TextField from '@mui/material/TextField';
-import {isNumber} from '@utils/helpers';
+import {isNumber, fontFamilies} from '@utils/helpers';
 
 export const CheckBoxRow = React.memo(
   (props: {
@@ -186,6 +187,50 @@ export const NumberRow = React.memo(
         </TableCell>
         <TableCell scope="row" padding="none" align="left" />
       </TableRow>
+    );
+  }
+);
+
+export const FontRows = React.memo(
+  (props: {
+    name: string;
+    font?: Partial<Font>;
+    setValue: (value: Font) => void;
+  }) => {
+    const {name, font, setValue} = props;
+
+    const newFont: Font = {
+      family: font?.family ?? 'Arial, sans-serif',
+      size: font?.size ?? 13,
+      color: font?.color ?? '#000000'
+    };
+
+    return (
+      <>
+        <SelectorRow
+          name={`${name}: font family`}
+          selection={fontFamilies}
+          value={font?.family ?? newFont.family}
+          onChange={(value) => {
+            setValue({...newFont, family: value ?? 'Arial, sans-serif'});
+          }}
+        />
+        <NumberRow
+          name={`${name}: size`}
+          value={font?.size ?? newFont.size}
+          setValue={(value) => {
+            setValue({...newFont, size: value});
+          }}
+          min={0}
+        />
+        <ColorPickerRow
+          name={`${name}: color`}
+          color={(font?.color ?? newFont.color) as string}
+          onChange={(c) => {
+            setValue({...newFont, color: c});
+          }}
+        />
+      </>
     );
   }
 );
