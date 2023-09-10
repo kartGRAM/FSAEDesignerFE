@@ -291,3 +291,56 @@ export const FontRows = React.memo(
     );
   }
 );
+
+export const StringRow = React.memo(
+  (props: {
+    name: string;
+    value: string | undefined;
+    setValue: (value: string | undefined) => void;
+  }) => {
+    const {name, value, setValue} = props;
+
+    const schema = yup.string();
+
+    const formik = useFormik({
+      enableReinitialize: true,
+      initialValues: {
+        value
+      },
+      validationSchema: yup.object({
+        value: schema
+      }),
+      onSubmit: (values) => {
+        setValue(values.value);
+      }
+    });
+
+    const onEnter = (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === 'Enter') {
+        formik.handleSubmit();
+      }
+    };
+    return (
+      <TableRow>
+        <TableCell scope="row" align="left">
+          {name}
+        </TableCell>
+        <TableCell scope="row" padding="none" align="left">
+          <TextField
+            sx={{width: '100%'}}
+            hiddenLabel
+            name="value"
+            variant="standard"
+            onBlur={formik.handleBlur}
+            onChange={formik.handleChange}
+            onKeyDown={onEnter}
+            value={formik.values.value}
+            error={formik.touched.value && formik.errors.value !== undefined}
+            helperText={formik.touched.value && formik.errors.value}
+          />
+        </TableCell>
+        <TableCell scope="row" padding="none" align="left" />
+      </TableRow>
+    );
+  }
+);

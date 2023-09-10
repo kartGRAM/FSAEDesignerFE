@@ -1,4 +1,4 @@
-import {PlotType, Layout, Legend} from 'plotly.js';
+import {PlotType, Layout, Legend, LegendTitle} from 'plotly.js';
 
 export function is3DPlotType(type: PlotType) {
   if (type === 'scatter3d' || type === 'heatmap' || type === 'contour')
@@ -128,4 +128,9 @@ export const yAnchors: Legend['yanchor'][] = [
   'top',
   'middle',
   'bottom'
+];
+export const legendTitleSides: LegendTitle['side'][] = [
+  'top',
+  'left',
+  'top left'
 ];

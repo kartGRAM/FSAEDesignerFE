@@ -17,7 +17,8 @@ import {
   traceOrders,
   vAligns,
   xAnchors,
-  yAnchors
+  yAnchors,
+  legendTitleSides
 } from '@gd/charts/plotlyUtils';
 import {Mode} from './ChartSelector';
 import {
@@ -25,6 +26,7 @@ import {
   SelectorRow,
   NumberRow,
   FontRows,
+  StringRow,
   NullableNumberRow
 } from './SettingRows';
 
@@ -156,6 +158,40 @@ export const LegendSettings = React.memo(
                 const newLayout = deepCopy(layout);
                 newLayout.legend = newLayout.legend ?? {};
                 newLayout.legend.orientation = value;
+                setLayout(newLayout);
+              }}
+            />
+            <FontRows
+              name="legend Title font"
+              font={legend?.title?.font}
+              setValue={(value) => {
+                const newLayout = deepCopy(layout);
+                newLayout.legend = newLayout.legend ?? {};
+                newLayout.legend.title = newLayout.legend.title ?? {};
+                newLayout.legend.title.font = value;
+                setLayout(newLayout);
+              }}
+            />
+            <SelectorRow
+              name="legend title side"
+              selection={legendTitleSides}
+              value={legend?.title?.side}
+              onChange={(value) => {
+                const newLayout = deepCopy(layout);
+                newLayout.legend = newLayout.legend ?? {};
+                newLayout.legend.title = newLayout.legend.title ?? {};
+                newLayout.legend.title.side = value;
+                setLayout(newLayout);
+              }}
+            />
+            <StringRow
+              name="legend title text"
+              value={legend?.title?.text}
+              setValue={(value) => {
+                const newLayout = deepCopy(layout);
+                newLayout.legend = newLayout.legend ?? {};
+                newLayout.legend.title = newLayout.legend.title ?? {};
+                newLayout.legend.title.text = value;
                 setLayout(newLayout);
               }}
             />
