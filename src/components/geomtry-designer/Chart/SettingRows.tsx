@@ -88,9 +88,68 @@ export const ColorPickerRow = React.memo(
   }
 );
 
+export const NullableColorPickerRow = React.memo(
+  (props: {
+    name: string;
+    color: string | undefined;
+    onChange: (color: string | undefined) => void;
+  }) => {
+    const {uitgd} = store.getState();
+    const menuZIndex =
+      uitgd.fullScreenZIndex + uitgd.menuZIndex + uitgd.dialogZIndex;
+    const {name, color, onChange} = props;
+    const handleChange = React.useCallback(
+      (newValue: string, colors: MuiColorInputColors) => {
+        onChange(newValue !== '' ? colors.hex : undefined);
+      },
+      [onChange]
+    );
+    return (
+      <TableRow>
+        <TableCell scope="row" align="left">
+          {name}
+        </TableCell>
+        <TableCell scope="row" padding="none" align="left">
+          <MuiColorInput
+            variant="standard"
+            format="hex"
+            disablePopover
+            value={color ?? ''}
+            onChange={handleChange}
+            sx={{
+              width: '100%',
+              '& span': {
+                display: 'none'
+              }
+            }}
+          />
+        </TableCell>
+        <TableCell scope="row" padding="none" align="left">
+          <MuiColorInput
+            format="hex"
+            value={color ?? ''}
+            onChange={handleChange}
+            PopoverProps={{
+              sx: {zIndex: menuZIndex}
+            }}
+            sx={{
+              '& fieldset, input': {
+                display: 'none'
+              },
+              '& .MuiInputAdornment-root': {
+                height: 'fit-content'
+              }
+            }}
+          />
+        </TableCell>
+      </TableRow>
+    );
+  }
+);
+
 export function SelectorRow<T>(props: {
   name: string;
-  selection: T[];
+  selection: readonly T[];
   value: T | undefined;
   onChange: (value: T | undefined) => void;
 }) {

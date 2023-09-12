@@ -146,13 +146,13 @@ export const axisTypes: AxisType[] = [
 
 export const autoRanges: Axis['autorange'][] = [true, false, 'reversed'];
 
-export const rangeMode: Axis['rangemode'][] = [
+export const rangeModes: Axis['rangemode'][] = [
   'normal',
   'tozero',
   'nonnegative'
 ];
 
-export const tickMode: Axis['tickmode'][] = ['auto', 'linear', 'array'];
+export const tickModes: Axis['tickmode'][] = ['auto', 'linear', 'array'];
 
 export const ticks: Axis['ticks'][] = ['outside', 'inside', ''];
 
@@ -228,3 +228,12 @@ export const spikeSnap: Axis['spikesnap'][] = [
   'cursor',
   'hovered data'
 ];
+
+export const spikeDashes = [
+  'solid',
+  'dot',
+  'dash',
+  'longdash',
+  'dashdot',
+  'longdashdot'
+] as const;

@@ -10,28 +10,27 @@ import {
 } from '@mui/material';
 import {deepCopy} from '@utils/helpers';
 import {
-  groupClicks,
-  itemClicks,
-  itemSizings,
-  orientations,
-  traceOrders,
-  vAligns,
-  xAnchors,
-  yAnchors,
-  legendTitleSides,
   axisTypes,
   autoRanges,
   rangeModes,
   tickModes,
   ticks,
   mirrors,
-  categoryOrders
+  categoryOrders,
+  showTickPrefixes,
+  showTickSuffixes,
+  showExponents,
+  exponentFormats,
+  spikeDashes,
+  spikeModes,
+  spikeSnaps
 } from '@gd/charts/plotlyUtils';
 import {LayoutAxis} from 'plotly.js';
 import {Mode} from './ChartSelector';
 import {
   CheckBoxRow,
   ColorPickerRow,
+  NullableColorPickerRow,
   SelectorRow,
   NumberRow,
   FontRows,
@@ -171,7 +170,7 @@ export const AxisSettings = React.memo(
             />
             <SelectorRow
               name="miror"
-              selection={mirros}
+              selection={mirrors}
               value={layoutAxis?.mirror}
               onChange={apply((prev, value) => {
                 prev.mirror = value;
@@ -205,6 +204,143 @@ export const AxisSettings = React.memo(
               value={layoutAxis.showticklabels ?? true}
               setValue={apply((prev, c) => {
                 prev.showticklabels = c;
+              })}
+            />
+            <CheckBoxRow
+              name="show spikes"
+              value={layoutAxis.showspikes ?? true}
+              setValue={apply((prev, c) => {
+                prev.showspikes = c;
+              })}
+            />
+            <NullableColorPickerRow
+              name="spike color"
+              color={(layoutAxis.tickcolor as string | undefined) ?? '#444444'}
+              onChange={apply((prev, value) => {
+                prev.tickcolor = value;
+              })}
+            />
+            <NumberRow
+              name="spike thickness"
+              value={layoutAxis.spikethickness ?? 3}
+              min={0}
+              setValue={apply((prev, value) => {
+                prev.spikethickness = value;
+              })}
+            />
+            <SelectorRow
+              name="category order"
+              selection={categoryOrders}
+              value={layoutAxis?.categoryorder}
+              onChange={apply((prev, value) => {
+                prev.categoryorder = value;
+              })}
+            />
+            {
+              // categoryArray
+            }
+            <FontRows
+              name="tick font"
+              font={layoutAxis?.tickfont}
+              setValue={apply((prev, value) => {
+                prev.tickfont = value;
+              })}
+            />
+            {
+              // itickAngle
+            }
+            <StringRow
+              name="tick prefix"
+              value={layoutAxis.tickprefix}
+              setValue={apply((prev, value) => {
+                prev.tickprefix = value;
+              })}
+            />
+            <SelectorRow
+              name="show tick prefix"
+              selection={showTickPrefixes}
+              value={layoutAxis?.showtickprefix}
+              onChange={apply((prev, value) => {
+                prev.showtickprefix = value;
+              })}
+            />
+            <StringRow
+              name="tick suffix"
+              value={layoutAxis.ticksuffix}
+              setValue={apply((prev, value) => {
+                prev.ticksuffix = value;
+              })}
+            />
+            <SelectorRow
+              name="show tick suffix"
+              selection={showTickSuffixes}
+              value={layoutAxis?.showticksuffix}
+              onChange={apply((prev, value) => {
+                prev.showticksuffix = value;
+              })}
+            />
+            <SelectorRow
+              name="show exponent"
+              selection={showExponents}
+              value={layoutAxis?.showexponent}
+              onChange={apply((prev, value) => {
+                prev.showexponent = value;
+              })}
+            />
+            <SelectorRow
+              name="exponent format"
+              selection={exponentFormats}
+              value={layoutAxis?.exponentformat}
+              onChange={apply((prev, value) => {
+                prev.exponentformat = value;
+              })}
+            />
+            <CheckBoxRow
+              name="separate thousands"
+              value={layoutAxis.separatethousands ?? false}
+              setValue={apply((prev, c) => {
+                prev.separatethousands = c;
+              })}
+            />
+            <StringRow
+              name="tick format"
+              value={layoutAxis.tickformat}
+              setValue={apply((prev, value) => {
+                prev.tickformat = value;
+              })}
+            />
+            <StringRow
+              name="hover format"
+              value={layoutAxis.hoverformat}
+              setValue={apply((prev, value) => {
+                prev.hoverformat = value;
+              })}
+            />
+            {
+              // itickformatstops
+            }
+            <SelectorRow
+              name="spike dash"
+              selection={spikeDashes}
+              value={layoutAxis?.spikedash as typeof spikeDashes[number]}
+              onChange={apply((prev, value) => {
+                prev.spikedash = value;
+              })}
+            />
+            <SelectorRow
+              name="spike mode"
+              selection={spikeModes}
+              value={layoutAxis?.spikemode}
+              onChange={apply((prev, value) => {
+                prev.spikemode = value;
+              })}
+            />
+            <SelectorRow
+              name="spike snaps"
+              selection={spikeSnapes}
+              value={layoutAxis?.spikesnap}
+              onChange={apply((prev, value) => {
+                prev.spikesnap = value;
               })}
             />
           </TableBody>
