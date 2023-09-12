@@ -184,7 +184,7 @@ export const AxisSettings = React.memo(
                 prev.ticklen = value;
               })}
             />
-            <NumberRow
+            <NullableNumberRow
               name="tick width"
               value={layoutAxis.tickwidth}
               min={0}
@@ -337,10 +337,102 @@ export const AxisSettings = React.memo(
             />
             <SelectorRow
               name="spike snaps"
-              selection={spikeSnapes}
+              selection={spikeSnaps}
               value={layoutAxis?.spikesnap}
               onChange={apply((prev, value) => {
                 prev.spikesnap = value;
+              })}
+            />
+            <CheckBoxRow
+              name="show line"
+              value={layoutAxis.showline ?? false}
+              setValue={apply((prev, c) => {
+                prev.showline = c;
+              })}
+            />
+            <ColorPickerRow
+              name="line color"
+              color={(layoutAxis.linecolor as string | undefined) ?? '#444444'}
+              onChange={apply((prev, value) => {
+                prev.linecolor = value;
+              })}
+            />
+            <NumberRow
+              name="line width"
+              value={layoutAxis.linewidth ?? 1}
+              min={0}
+              setValue={apply((prev, value) => {
+                prev.linewidth = value;
+              })}
+            />
+            <CheckBoxRow
+              name="show grid"
+              value={layoutAxis.showgrid ?? false}
+              setValue={apply((prev, c) => {
+                prev.showgrid = c;
+              })}
+            />
+            <ColorPickerRow
+              name="grid color"
+              color={(layoutAxis.linecolor as string | undefined) ?? '#eeeeee'}
+              onChange={apply((prev, value) => {
+                prev.gridcolor = value;
+              })}
+            />
+            <NumberRow
+              name="grid width"
+              value={layoutAxis.gridwidth ?? 1}
+              min={0}
+              setValue={apply((prev, value) => {
+                prev.gridwidth = value;
+              })}
+            />
+            <CheckBoxRow
+              name="zero line"
+              value={layoutAxis.zeroline ?? false}
+              setValue={apply((prev, c) => {
+                prev.zeroline = c;
+              })}
+            />
+            <ColorPickerRow
+              name="zero line color"
+              color={
+                (layoutAxis.zerolinecolor as string | undefined) ?? '#444444'
+              }
+              onChange={apply((prev, value) => {
+                prev.zerolinecolor = value;
+              })}
+            />
+            <NumberRow
+              name="zero line width"
+              value={layoutAxis.zerolinewidth ?? 1}
+              min={0}
+              setValue={apply((prev, value) => {
+                prev.zerolinewidth = value;
+              })}
+            />
+            <CheckBoxRow
+              name="show dividers"
+              value={layoutAxis.showdividers ?? false}
+              setValue={apply((prev, c) => {
+                prev.showdividers = c;
+              })}
+            />
+            <ColorPickerRow
+              name="divider color"
+              color={
+                (layoutAxis.dividercolor as string | undefined) ?? '#444444'
+              }
+              onChange={apply((prev, value) => {
+                prev.dividercolor = value;
+              })}
+            />
+            <NumberRow
+              name="divider width"
+              value={layoutAxis.zerolinewidth ?? 1}
+              min={0}
+              setValue={apply((prev, value) => {
+                prev.dividerwidth = value;
               })}
             />
           </TableBody>

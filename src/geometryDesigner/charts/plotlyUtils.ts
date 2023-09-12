@@ -223,7 +223,7 @@ export const spikeModes: Axis['spikemode'][] = [
   'toaxis+marker'
 ];
 
-export const spikeSnap: Axis['spikesnap'][] = [
+export const spikeSnaps: Axis['spikesnap'][] = [
   'data',
   'cursor',
   'hovered data'
