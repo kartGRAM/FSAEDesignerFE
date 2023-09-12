@@ -231,7 +231,6 @@ export const LegendSettings = React.memo(
             <NullableNumberRow
               name="x position"
               value={legend?.x}
-              min={0}
               setValue={(value) => {
                 const newLayout = deepCopy(layout);
                 newLayout.legend = newLayout.legend ?? {};
@@ -253,7 +252,6 @@ export const LegendSettings = React.memo(
             <NullableNumberRow
               name="y position"
               value={legend?.y}
-              min={0}
               setValue={(value) => {
                 const newLayout = deepCopy(layout);
                 newLayout.legend = newLayout.legend ?? {};

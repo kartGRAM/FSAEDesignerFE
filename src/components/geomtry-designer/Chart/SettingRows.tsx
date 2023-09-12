@@ -14,7 +14,7 @@ export const CheckBoxRow = React.memo(
     name: string;
     value: boolean;
     setValue: (value: boolean) => void;
-    thirdColumn: JSX.Element;
+    thirdColumn?: JSX.Element;
   }) => {
     const {name, value, setValue, thirdColumn} = props;
     return (
