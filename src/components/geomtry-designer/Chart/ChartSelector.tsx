@@ -14,6 +14,7 @@ import store from '@store/store';
 import {plotTypes} from '@gd/charts/plotlyUtils';
 import {SubPlotSettings} from './SubPlotSettings';
 import {LegendSettings} from './LegendSettings';
+import {LayoutAxisSettings} from './AxisSettings';
 
 export type Mode =
   | 'DataSelect'
@@ -33,6 +34,8 @@ export const ChartSelector = React.memo(
     layout: IChartLayout;
     setLayout: (layout: IChartLayout) => void;
     axes: string[];
+    targetAxis: string;
+    setTargetAxis: (axis: string) => void;
   }) => {
     const {
       mode,
@@ -43,7 +46,9 @@ export const ChartSelector = React.memo(
       subplotTarget,
       layout,
       setLayout,
-      axes
+      axes,
+      targetAxis,
+      setTargetAxis
     } = props;
     if (mode === 'DataSelect') {
       return (
@@ -62,6 +67,7 @@ export const ChartSelector = React.memo(
           layout={layout}
           setLayout={setLayout}
           axes={axes}
+          setTargetAxis={setTargetAxis}
         />
       );
     }
@@ -71,6 +77,16 @@ export const ChartSelector = React.memo(
           setMode={setMode}
           layout={layout}
           setLayout={setLayout}
+        />
+      );
+    }
+    if (mode === 'AxisSettings' && axes.includes(targetAxis)) {
+      return (
+        <LayoutAxisSettings
+          setMode={setMode}
+          layout={layout}
+          setLayout={setLayout}
+          axis={targetAxis}
         />
       );
     }

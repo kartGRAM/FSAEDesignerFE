@@ -36,9 +36,11 @@ export const SubPlotSettings = React.memo(
     layout: IChartLayout;
     setLayout: (layout: IChartLayout) => void;
     axes: string[];
+    setTargetAxis: (axis: string) => void;
   }) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {setMode, subplotTarget, layout, setLayout, axes} = props;
+    const {setMode, subplotTarget, layout, setLayout, axes, setTargetAxis} =
+      props;
     const isSubplotMode = !!layout.grid;
 
     return (
@@ -66,6 +68,7 @@ export const SubPlotSettings = React.memo(
               setLayout={setLayout}
               axes={axes}
               isSubplotMode={isSubplotMode}
+              setTargetAxis={setTargetAxis}
             />
             <CheckBoxRow
               name="legends"
@@ -221,9 +224,11 @@ const AxesVisualization = React.memo(
     setLayout: (layout: IChartLayout) => void;
     axes: string[];
     isSubplotMode: boolean;
+    setTargetAxis: (axis: string) => void;
   }) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {setMode, layout, setLayout, axes, isSubplotMode} = props;
+    const {setMode, layout, setLayout, axes, isSubplotMode, setTargetAxis} =
+      props;
     const handleChange = React.useCallback(
       (axis: string, checked: boolean) => {
         const newLayout = deepCopy(layout);
@@ -244,7 +249,15 @@ const AxesVisualization = React.memo(
               name={axis}
               value={!!layoutAxis.visible}
               setValue={(c) => handleChange(axis, c)}
-              thirdColumn={<Settings title="Axis settings" />}
+              thirdColumn={
+                <Settings
+                  title="Axis settings"
+                  onClick={() => {
+                    setTargetAxis(axis);
+                    setMode('AxisSettings');
+                  }}
+                />
+              }
             />
           );
         })}

@@ -119,6 +119,7 @@ export function Chart(props: ChartProps): React.ReactElement {
   );
 
   const [mode, setMode] = React.useState<Mode>('DataSelect');
+  const [targetAxis, setTargetAxis] = React.useState<string>('');
   const [subplotTarget, setSubplotTarget] = React.useState<SubPlot>('xy');
 
   React.useEffect(() => {
@@ -298,6 +299,8 @@ export function Chart(props: ChartProps): React.ReactElement {
             layout={pLayout}
             setLayout={setLayout}
             axes={[...axes].sort(natsort())}
+            targetAxis={targetAxis}
+            setTargetAxis={setTargetAxis}
           />
         </Box>
       </Drawer>

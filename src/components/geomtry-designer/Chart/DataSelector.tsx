@@ -65,8 +65,8 @@ export function DataSelector(props: {
     x: {case: '', from: 'measureTool', nodeID: ''},
     y: {case: '', from: 'measureTool', nodeID: ''},
     z: {case: '', from: 'measureTool', nodeID: ''},
-    xaxis: 'x1',
-    yaxis: 'y1'
+    xaxis: 'x',
+    yaxis: 'y'
   };
   return (
     <Box

@@ -67,24 +67,31 @@ export interface IChartLayout extends Partial<Layout> {
 }
 
 type Digit = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
-export type XAxis = `x${Digit}` | `x${Digit}${Digit | '0'}`;
-export type YAxis = `y${Digit}` | `y${Digit}${Digit | '0'}`;
+export type XAxisTemp = `x${Digit}` | `x${Digit}${Digit | '0'}`;
+export type YAxisTemp = `y${Digit}` | `y${Digit}${Digit | '0'}`;
+export type XAxis = `${'x' | Exclude<XAxisTemp, 'x1'>}`;
+export type YAxis = `${'y' | Exclude<YAxisTemp, 'y1'>}`;
+
 export type ZAxis = never; // `z${Digit}` | `z${Digit}${Digit | '0'}`;
 
-export const xAxes = [...Array(9)].map((_, i) => `x${i + 1}`) as XAxis[];
-export const yAxes = [...Array(9)].map((_, i) => `y${i + 1}`) as YAxis[];
+export const xAxes = [
+  'x',
+  ...[...Array(8)].map((_, i) => `x${i + 2}`)
+] as XAxis[];
+export const yAxes = [
+  'y',
+  ...[...Array(8)].map((_, i) => `y${i + 2}`)
+] as YAxis[];
 export const zAxes = [] as ZAxis[];
 export const axesSet = {x: xAxes, y: yAxes, z: zAxes} as const;
 
-export type SubPlot = `${'x' | Exclude<XAxis, 'x1'>}${
-  | 'y'
-  | Exclude<YAxis, 'y1'>}`;
+export type SubPlot = `${XAxis}${YAxis}`;
 
-const sx: (XAxis | 'x')[] = [
+const sx: XAxis[] = [
   'x',
   ...([...Array(98)].map((_, i) => `x${i + 2}`) as XAxis[])
 ];
-const sy: (YAxis | 'y')[] = [
+const sy: YAxis[] = [
   'y',
   ...([...Array(98)].map((_, i) => `y${i + 2}`) as YAxis[])
 ];
