@@ -237,3 +237,33 @@ export const spikeDashes = [
   'dashdot',
   'longdashdot'
 ] as const;
+
+export const constrains = ['range', 'domain'] as const;
+export const constrainTowards = [
+  'left',
+  'center',
+  'right',
+  'top',
+  'middle',
+  'bottom'
+] as const;
+export const sides = [
+  'top',
+  'bottom',
+  'left',
+  'right',
+  'clockwise',
+  'counterclockwise'
+] as const;
+export const layers = ['above traces', 'below traces'] as const;
+
+export const directions = ['counterclockwise', 'clockwise'] as const;
+
+export const dashes = [
+  'solid',
+  'dot',
+  'dash',
+  'longdash',
+  'dashdot',
+  'longdashdot'
+] as const;

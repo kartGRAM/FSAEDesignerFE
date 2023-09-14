@@ -87,6 +87,7 @@ export const ChartSelector = React.memo(
           layout={layout}
           setLayout={setLayout}
           axis={targetAxis}
+          axes={axes}
         />
       );
     }

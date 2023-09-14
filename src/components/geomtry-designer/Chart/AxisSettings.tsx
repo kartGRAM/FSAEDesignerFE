@@ -23,9 +23,15 @@ import {
   exponentFormats,
   spikeDashes,
   spikeModes,
-  spikeSnaps
+  spikeSnaps,
+  layers,
+  directions,
+  constrains,
+  constrainTowards,
+  sides,
+  dashes
 } from '@gd/charts/plotlyUtils';
-import {LayoutAxis, Axis} from 'plotly.js';
+import {LayoutAxis, Axis, AxisName} from 'plotly.js';
 import {Mode} from './ChartSelector';
 import {
   CheckBoxRow,
@@ -435,10 +441,16 @@ export const LayoutAxisSettings = React.memo(
     layout: IChartLayout;
     setLayout: (layout: IChartLayout) => void;
     axis: string;
+    axes: string[];
   }) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {setMode, layout, setLayout, axis} = props;
+    const {setMode, layout, setLayout, axis, axes: axesTemp} = props;
     const layoutAxis = ((layout as any)[axis] as Partial<LayoutAxis>) ?? {};
+
+    const isY = axis.includes('y');
+    const axes = axesTemp
+      .filter((a) => (isY ? a.includes('y') : !a.includes('y')))
+      .map((a) => a.replace('axis', '')) as AxisName[];
 
     const apply = <T,>(
       func: (prev: Partial<LayoutAxis>, newValue: T) => void
@@ -450,6 +462,138 @@ export const LayoutAxisSettings = React.memo(
         setLayout(newLayout);
       };
     };
-    return <AxisSettings {...props} axis={layoutAxis} apply={apply} />;
+    return (
+      <AxisSettings
+        {...props}
+        axis={layoutAxis}
+        apply={apply}
+        otherSettings={
+          <>
+            <CheckBoxRow
+              name="fixed range"
+              value={layoutAxis.fixedrange ?? false}
+              setValue={apply((prev, c) => {
+                prev.fixedrange = c;
+              })}
+            />
+            <SelectorRow
+              name="scale ahchor"
+              selection={axes}
+              value={layoutAxis.scaleanchor}
+              onChange={apply((prev, value) => {
+                prev.scaleanchor = value;
+              })}
+            />
+            <NumberRow
+              name="scale ratio"
+              value={layoutAxis.scaleratio ?? 1}
+              min={0}
+              setValue={apply((prev, value) => {
+                prev.scaleratio = value;
+              })}
+            />
+            <SelectorRow
+              name="constrain"
+              selection={constrains}
+              value={layoutAxis.constrain}
+              onChange={apply((prev, value) => {
+                prev.constrain = value as any;
+              })}
+            />
+            <SelectorRow
+              name="constrainToward"
+              selection={constrainTowards}
+              value={layoutAxis.constraintoward}
+              onChange={apply((prev, value) => {
+                prev.constraintoward = value as any;
+              })}
+            />
+            <SelectorRow
+              name="anchor"
+              selection={
+                ['free', ...axes] as NonNullable<typeof layoutAxis.anchor>[]
+              }
+              value={layoutAxis.anchor}
+              onChange={apply((prev, value) => {
+                prev.anchor = value;
+              })}
+            />
+            <SelectorRow
+              name="side"
+              selection={sides}
+              value={layoutAxis.side}
+              onChange={apply((prev, value) => {
+                prev.side = value;
+              })}
+            />
+            <SelectorRow
+              name="overlaying"
+              selection={
+                ['free', ...axes] as NonNullable<typeof layoutAxis.anchor>[]
+              }
+              value={layoutAxis.overlaying}
+              onChange={apply((prev, value) => {
+                prev.overlaying = value;
+              })}
+            />
+            <SelectorRow
+              name="layer"
+              selection={layers}
+              value={layoutAxis.layer}
+              onChange={apply((prev, value) => {
+                prev.layer = value;
+              })}
+            />
+            {
+              // domain
+            }
+            <NullableNumberRow
+              name="position"
+              value={layoutAxis.position}
+              setValue={apply((prev, value) => {
+                prev.position = value;
+              })}
+            />
+            <NullableNumberRow
+              name="rotation"
+              value={layoutAxis.rotation}
+              setValue={apply((prev, value) => {
+                prev.rotation = value;
+              })}
+            />
+            <SelectorRow
+              name="direction"
+              selection={directions}
+              value={layoutAxis.direction}
+              onChange={apply((prev, value) => {
+                prev.direction = value;
+              })}
+            />
+            <CheckBoxRow
+              name="auto margin"
+              value={layoutAxis.automargin ?? true}
+              setValue={apply((prev, c) => {
+                prev.automargin = c;
+              })}
+            />
+            <CheckBoxRow
+              name="auto tick"
+              value={layoutAxis.autotick ?? true}
+              setValue={apply((prev, c) => {
+                prev.autotick = c;
+              })}
+            />
+            <SelectorRow
+              name="grid dash"
+              selection={dashes}
+              value={layoutAxis.griddash}
+              onChange={apply((prev, value) => {
+                prev.griddash = value;
+              })}
+            />
+          </>
+        }
+      />
+    );
   }
 );
