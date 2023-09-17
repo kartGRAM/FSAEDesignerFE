@@ -190,6 +190,12 @@ export function Chart(props: ChartProps): React.ReactElement {
     console.log(e);
   };
 
+  const handleAxisDoubleClick = React.useCallback((axis: string) => {
+    setMode('AxisSettings');
+    setTargetAxis(axis);
+  }, []);
+
+  // SubplotSetting
   useUpdateEffect(() => {
     const box = document.getElementById(id);
     const funcs: {[index: string]: () => void} = {};
@@ -207,6 +213,34 @@ export function Chart(props: ChartProps): React.ReactElement {
         const rect = gElement?.getElementsByClassName('nsewdrag')[0];
         if (rect) {
           rect.removeEventListener('click', funcs[subplot], true);
+        }
+      });
+    };
+  });
+
+  // axisSetting
+  useUpdateEffect(() => {
+    const box = document.getElementById(id);
+    const funcs: {[index: string]: () => void} = {};
+    axes.forEach((axis) => {
+      const name = `${axis.replace('axis', '')}title`;
+      const items = box?.getElementsByClassName(name);
+      if (items) {
+        funcs[axis] = () => handleAxisDoubleClick(axis);
+        [...items].forEach((item) => {
+          (item as HTMLElement).style.pointerEvents = 'all';
+          item.addEventListener('dblclick', funcs[axis], false);
+        });
+      }
+    });
+    return () => {
+      axes.forEach((axis) => {
+        const name = `${axis.replace('axis', '')}title`;
+        const items = box?.getElementsByClassName(name);
+        if (items) {
+          [...items].forEach((item) =>
+            item.removeEventListener('dblclick', funcs[axis], false)
+          );
         }
       });
     };

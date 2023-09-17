@@ -76,7 +76,7 @@ export function DataSelector(props: {
       }}
     >
       {data.map((datum, i) => (
-        <>
+        <Box component="div" key={datum.nodeID}>
           {i > 0 ? <Divider key={`${datum.nodeID}d`} /> : null}
           <DataTable
             {...props}
@@ -85,10 +85,18 @@ export function DataSelector(props: {
             setData={setDatum}
             deleteData={deleteDatum}
           />
-        </>
+        </Box>
       ))}
-      <Divider key="newd" />
-      <DataTable {...props} key="new" data={newData} setData={setDatum} isNew />
+      <Box component="div" key="new">
+        <Divider key="newd" />
+        <DataTable
+          {...props}
+          key="new"
+          data={newData}
+          setData={setDatum}
+          isNew
+        />
+      </Box>
     </Box>
   );
 }
