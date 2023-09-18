@@ -118,6 +118,13 @@ export function Chart(props: ChartProps): React.ReactElement {
     uigd.present.chartState?.settingPanelWidth ?? '30%'
   );
 
+  const afterPlotFuncsRef = React.useRef<(() => void)[]>([]);
+  const afterPlot = React.useCallback(() => {
+    const funcs = afterPlotFuncsRef.current;
+    funcs.forEach((func) => func());
+    afterPlotFuncsRef.current = [];
+  }, []);
+
   const [mode, setMode] = React.useState<Mode>('DataSelect');
   const [targetAxis, setTargetAxis] = React.useState<string>('');
   const [subplotTarget, setSubplotTarget] = React.useState<SubPlot>('xy');
@@ -200,12 +207,15 @@ export function Chart(props: ChartProps): React.ReactElement {
     const box = document.getElementById(id);
     const funcs: {[index: string]: () => void} = {};
     subplots.forEach((subplot) => {
-      const gElement = box?.getElementsByClassName(subplot)[0];
-      const rect = gElement?.getElementsByClassName('nsewdrag')[0];
-      if (rect) {
-        funcs[subplot] = () => handleBackgroundDoubleClick(subplot);
-        rect.addEventListener('click', funcs[subplot], true);
-      }
+      afterPlotFuncsRef.current.push(() => {
+        const gElement = box?.getElementsByClassName(subplot)[0];
+        const rect = gElement?.getElementsByClassName('nsewdrag')[0];
+        if (rect) {
+          funcs[subplot] = () => handleBackgroundDoubleClick(subplot);
+          rect.removeEventListener('click', funcs[subplot], true);
+          rect.addEventListener('click', funcs[subplot], true);
+        }
+      });
     });
     return () => {
       subplots.forEach((subplot) => {
@@ -223,15 +233,19 @@ export function Chart(props: ChartProps): React.ReactElement {
     const box = document.getElementById(id);
     const funcs: {[index: string]: () => void} = {};
     axes.forEach((axis) => {
-      const name = `${axis.replace('axis', '')}title`;
-      const items = box?.getElementsByClassName(name);
-      if (items) {
-        funcs[axis] = () => handleAxisDoubleClick(axis);
-        [...items].forEach((item) => {
-          (item as HTMLElement).style.pointerEvents = 'all';
-          item.addEventListener('dblclick', funcs[axis], false);
-        });
-      }
+      afterPlotFuncsRef.current.push(() => {
+        const name = `${axis.replace('axis', '')}title`;
+        const items = box?.getElementsByClassName(name);
+        if (items) {
+          funcs[axis] = () => handleAxisDoubleClick(axis);
+          [...items].forEach((item) => {
+            (item as HTMLElement).style.pointerEvents = 'all';
+            (item as HTMLElement).style.cursor = 'pointer';
+            item.removeEventListener('dblclick', funcs[axis], false);
+            item.addEventListener('dblclick', funcs[axis], false);
+          });
+        }
+      });
     });
     return () => {
       axes.forEach((axis) => {
@@ -377,6 +391,7 @@ export function Chart(props: ChartProps): React.ReactElement {
             layout={pLayout}
             useResizeHandler
             style={{width: '100%', height: '100%'}}
+            onAfterPlot={afterPlot}
             onInitialized={update}
             onClick={handlePointsClick}
             onLegendDoubleClick={() => {
