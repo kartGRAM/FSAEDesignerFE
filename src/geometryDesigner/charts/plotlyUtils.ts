@@ -267,3 +267,13 @@ export const dashes = [
   'dashdot',
   'longdashdot'
 ] as const;
+
+export const positions = [
+  'top left',
+  'top center',
+  'top right',
+  'middle center',
+  'bottom left',
+  'bottom center',
+  'bottom right'
+] as const;

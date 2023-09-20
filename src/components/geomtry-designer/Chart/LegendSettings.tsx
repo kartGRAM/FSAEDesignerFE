@@ -6,7 +6,8 @@ import {
   TableHead,
   TableBody,
   TableRow,
-  TableCell
+  TableCell,
+  Typography
 } from '@mui/material';
 import {deepCopy} from '@utils/helpers';
 import {
@@ -42,6 +43,9 @@ export const LegendSettings = React.memo(
 
     return (
       <TableContainer>
+        <Typography variant="h6" sx={{pt: 1, pl: 1}}>
+          Legend Settings
+        </Typography>
         <Table size="small">
           <TableHead>
             <TableRow>

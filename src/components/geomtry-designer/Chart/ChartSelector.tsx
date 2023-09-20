@@ -8,7 +8,8 @@ import {
   Select,
   OutlinedInput,
   MenuItem,
-  InputLabel
+  InputLabel,
+  Typography
 } from '@mui/material';
 import store from '@store/store';
 import {plotTypes} from '@gd/charts/plotlyUtils';
@@ -108,6 +109,9 @@ const DataSelectorMode = React.memo(
     const id = React.useId();
     return (
       <Box component="div">
+        <Typography variant="h6" sx={{pt: 1, pl: 1}}>
+          Data Selector
+        </Typography>
         <Box component="div" sx={{pt: 2, pb: 1}}>
           <FormControl size="small" sx={{width: '100%', pr: 1}}>
             <InputLabel id={id}>Plot Type</InputLabel>

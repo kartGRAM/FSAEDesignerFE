@@ -7,7 +7,8 @@ import {
   TableHead,
   TableBody,
   TableRow,
-  TableCell
+  TableCell,
+  Typography
 } from '@mui/material';
 import Settings from '@gdComponents/svgs/Settings';
 import {deepCopy} from '@utils/helpers';
@@ -45,6 +46,9 @@ export const SubPlotSettings = React.memo(
 
     return (
       <TableContainer>
+        <Typography variant="h6" sx={{pt: 1, pl: 1}}>
+          {subplotTarget.toUpperCase()} Plot Settings
+        </Typography>
         <Table size="small">
           <TableHead>
             <TableRow>

@@ -1,14 +1,16 @@
 import * as React from 'react';
 import {IChartLayout} from '@gd/charts/ICharts';
+import {capitalize, deepCopy} from '@utils/helpers';
 import {
   TableContainer,
   Table,
   TableHead,
   TableBody,
   TableRow,
-  TableCell
+  TableCell,
+  Typography
 } from '@mui/material';
-import {deepCopy} from '@utils/helpers';
+
 import {
   axisTypes,
   autoRanges,
@@ -41,7 +43,8 @@ import {
   NumberRow,
   FontRows,
   StringRow,
-  NullableNumberRow
+  NullableNumberRow,
+  DataTitleRows
 } from './SettingRows';
 
 export const AxisSettings = React.memo(
@@ -52,12 +55,16 @@ export const AxisSettings = React.memo(
     ) => (value: T) => void;
     otherSettings?: JSX.Element;
     axis: Partial<Axis>;
+    title: string;
   }) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {setMode, apply, otherSettings, axis} = props;
+    const {setMode, apply, otherSettings, axis, title} = props;
 
     return (
       <TableContainer>
+        <Typography variant="h6" sx={{pt: 1, pl: 1}}>
+          {title} Settings
+        </Typography>
         <Table size="small">
           <TableHead>
             <TableRow>
@@ -85,9 +92,19 @@ export const AxisSettings = React.memo(
                 prev.color = c;
               })}
             />
-            {
-              // title
-            }
+            <DataTitleRows
+              name="title"
+              dataTitle={
+                typeof axis.title === 'string'
+                  ? {
+                      text: axis.title
+                    }
+                  : axis.title
+              }
+              setValue={apply((prev, value) => {
+                prev.title = value;
+              })}
+            />
             <SelectorRow
               name="axis type"
               selection={axisTypes}
@@ -467,6 +484,7 @@ export const LayoutAxisSettings = React.memo(
         {...props}
         axis={layoutAxis}
         apply={apply}
+        title={capitalize(axis)}
         otherSettings={
           <>
             <CheckBoxRow

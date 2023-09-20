@@ -173,31 +173,29 @@ export function Chart(props: ChartProps): React.ReactElement {
   }, [dispatch, open]);
 
   const id = React.useId();
-  const handleBackgroundDoubleClick = React.useCallback(
-    (subplot: SubPlot) => {
-      // なぜかdblClickが反応しないため、適当にごまかす
-      if (dblClick.current) {
-        setSubplotTarget(subplot);
-        setOpen(() => true);
-        setMode('SubPlotSettings');
+  const handleBackgroundDoubleClick = React.useCallback((subplot: SubPlot) => {
+    // なぜかdblClickが反応しないため、適当にごまかす
+    if (dblClick.current) {
+      setSubplotTarget(subplot);
+      setOpen(() => true);
+      setMode('SubPlotSettings');
+      dblClick.current = 0;
+      clearTimeout(dblClickTimeout.current);
+    } else {
+      dblClick.current = performance.now();
+      dblClickTimeout.current = setTimeout(() => {
         dblClick.current = 0;
-        clearTimeout(dblClickTimeout.current);
-      } else {
-        dblClick.current = performance.now();
-        dblClickTimeout.current = setTimeout(() => {
-          dblClick.current = 0;
-          setMode('DataSelect');
-        }, 200);
-      }
-    },
-    [mode]
-  );
+        setMode('DataSelect');
+      }, 200);
+    }
+  }, []);
 
   const handlePointsClick = (e: Readonly<Plotly.PlotMouseEvent>) => {
     console.log(e);
   };
 
   const handleAxisDoubleClick = React.useCallback((axis: string) => {
+    setOpen(() => true);
     setMode('AxisSettings');
     setTargetAxis(axis);
   }, []);
@@ -207,15 +205,17 @@ export function Chart(props: ChartProps): React.ReactElement {
     const box = document.getElementById(id);
     const funcs: {[index: string]: () => void} = {};
     subplots.forEach((subplot) => {
-      afterPlotFuncsRef.current.push(() => {
+      funcs[subplot] = () => handleBackgroundDoubleClick(subplot);
+      const func = () => {
         const gElement = box?.getElementsByClassName(subplot)[0];
         const rect = gElement?.getElementsByClassName('nsewdrag')[0];
         if (rect) {
-          funcs[subplot] = () => handleBackgroundDoubleClick(subplot);
           rect.removeEventListener('click', funcs[subplot], true);
           rect.addEventListener('click', funcs[subplot], true);
         }
-      });
+      };
+      func();
+      afterPlotFuncsRef.current.push(func);
     });
     return () => {
       subplots.forEach((subplot) => {
@@ -233,11 +233,11 @@ export function Chart(props: ChartProps): React.ReactElement {
     const box = document.getElementById(id);
     const funcs: {[index: string]: () => void} = {};
     axes.forEach((axis) => {
-      afterPlotFuncsRef.current.push(() => {
+      funcs[axis] = () => handleAxisDoubleClick(axis);
+      const func = () => {
         const name = `${axis.replace('axis', '')}title`;
         const items = box?.getElementsByClassName(name);
         if (items) {
-          funcs[axis] = () => handleAxisDoubleClick(axis);
           [...items].forEach((item) => {
             (item as HTMLElement).style.pointerEvents = 'all';
             (item as HTMLElement).style.cursor = 'pointer';
@@ -245,7 +245,9 @@ export function Chart(props: ChartProps): React.ReactElement {
             item.addEventListener('dblclick', funcs[axis], false);
           });
         }
-      });
+      };
+      func();
+      afterPlotFuncsRef.current.push(func);
     });
     return () => {
       axes.forEach((axis) => {

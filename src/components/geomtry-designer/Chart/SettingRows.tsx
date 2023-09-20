@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Font} from 'plotly.js';
+import {Font, DataTitle} from 'plotly.js';
 import store from '@store/store';
 import {TableRow, TableCell, Checkbox} from '@mui/material';
 import NativeSelect, {SelectChangeEvent} from '@mui/material/Select';
@@ -7,7 +7,8 @@ import {MuiColorInput, MuiColorInputColors} from 'mui-color-input';
 import {useFormik} from 'formik';
 import yup from '@app/utils/Yup';
 import TextField from '@mui/material/TextField';
-import {isNumber, fontFamilies} from '@utils/helpers';
+import {isNumber, fontFamilies, deepCopy} from '@utils/helpers';
+import {positions} from '@gd/charts/plotlyUtils';
 
 export const CheckBoxRow = React.memo(
   (props: {
@@ -400,6 +401,53 @@ export const StringRow = React.memo(
         </TableCell>
         <TableCell scope="row" padding="none" align="left" />
       </TableRow>
+    );
+  }
+);
+
+export const DataTitleRows = React.memo(
+  (props: {
+    name: string;
+    dataTitle?: Partial<DataTitle>;
+    setValue: (value: Partial<DataTitle>) => void;
+  }) => {
+    const {name, dataTitle, setValue} = props;
+
+    const newDataTitle: Partial<DataTitle> = deepCopy(dataTitle ?? {});
+
+    return (
+      <>
+        <StringRow
+          name={`${name}: text`}
+          value={dataTitle?.text}
+          setValue={(value) => {
+            setValue({...newDataTitle, text: value});
+          }}
+        />
+        <FontRows
+          name={`${name}`}
+          font={dataTitle?.font}
+          setValue={(font) => {
+            setValue({...newDataTitle, font});
+          }}
+        />
+        <NullableNumberRow
+          name={`${name}: standoff`}
+          value={dataTitle?.standoff}
+          setValue={(value) => {
+            setValue({...newDataTitle, standoff: value});
+          }}
+          min={0}
+        />
+        <SelectorRow
+          name={`${name}: position`}
+          selection={positions}
+          value={dataTitle?.position}
+          onChange={(value) => {
+            setValue({...newDataTitle, position: value});
+          }}
+        />
+      </>
     );
   }
 );
