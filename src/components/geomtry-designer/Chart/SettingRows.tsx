@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {Font, DataTitle} from 'plotly.js';
 import store from '@store/store';
-import {TableRow, TableCell, Checkbox} from '@mui/material';
+import {TableRow, TableCell, Checkbox, Typography} from '@mui/material';
 import NativeSelect, {SelectChangeEvent} from '@mui/material/Select';
 import {MuiColorInput, MuiColorInputColors} from 'mui-color-input';
 import {useFormik} from 'formik';
@@ -182,6 +182,47 @@ export function SelectorRow<T>(props: {
           <option aria-label="None" value="" key="none">
             default
           </option>
+          {selection.map((s) => (
+            <option value={`${s}`} key={`${s}`}>
+              {`${s}`}
+            </option>
+          ))}
+        </NativeSelect>
+      </TableCell>
+      <TableCell scope="row" padding="none" align="left" />
+    </TableRow>
+  );
+}
+
+export function NoNullSelectorRow<T>(props: {
+  name: string;
+  selection: readonly NonNullable<T>[];
+  value: NonNullable<T>;
+  onChange: (value: NonNullable<T>) => void;
+}) {
+  const {name, value, selection, onChange} = props;
+
+  const handleChanged = (e: SelectChangeEvent<string>) => {
+    const {value} = e.target;
+    if (value === 'true') onChange(true as NonNullable<T>);
+    if (value === 'false') onChange(false as NonNullable<T>);
+    if (isNumber(value)) onChange(Number(value) as NonNullable<T>);
+    onChange(value as NonNullable<T>);
+  };
+
+  return (
+    <TableRow>
+      <TableCell scope="row" align="left">
+        {name}
+      </TableCell>
+      <TableCell scope="row" padding="none" align="left">
+        <NativeSelect
+          sx={{width: '100%'}}
+          value={value || `${value}` === 'false' ? `${value}` : ''}
+          native
+          variant="standard"
+          onChange={handleChanged}
+        >
           {selection.map((s) => (
             <option value={`${s}`} key={`${s}`}>
               {`${s}`}
@@ -448,6 +489,110 @@ export const DataTitleRows = React.memo(
           }}
         />
       </>
+    );
+  }
+);
+
+export const NullableRangeRow = React.memo(
+  (props: {
+    name: string;
+    lower?: number;
+    upper?: number;
+    setValue: (params: {lower?: number; upper?: number}) => void;
+    disabled?: boolean;
+    min?: number;
+    max?: number;
+    allowReverse?: boolean;
+  }) => {
+    const {name, setValue, min, max, disabled, allowReverse} = props;
+    let {lower, upper} = props;
+    lower = lower ? Math.round(lower * 1000) / 1000 : lower;
+    upper = upper ? Math.round(upper * 1000) / 1000 : upper;
+
+    const schema = yup.object().shape(
+      {
+        lower: yup.number().when('uppwer', (upper, schema) => {
+          if (!upper) return schema;
+          let s = schema;
+          if (!allowReverse) s.lessThan(upper);
+          if (min) s = s.min(min);
+          if (max) s = s.max(max);
+          return s;
+        }),
+        upper: yup.number().when('lower', (lower, schema) => {
+          if (!lower) return schema;
+          let s = schema;
+          if (!allowReverse) s.moerThan(upper);
+          if (min) s = s.min(min);
+          if (max) s = s.max(max);
+          return s;
+        })
+      },
+      [['lower', 'upper']]
+    );
+
+    const formik = useFormik({
+      enableReinitialize: true,
+      initialValues: {
+        lower,
+        upper
+      },
+      validationSchema: schema,
+      onSubmit: (values) => {
+        setValue(values);
+      }
+    });
+
+    const onEnter = (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === 'Enter') {
+        formik.handleSubmit();
+      }
+    };
+    return (
+      <TableRow>
+        <TableCell scope="row" align="left">
+          {name}
+        </TableCell>
+        <TableCell scope="row" padding="none" align="left">
+          <TextField
+            disabled={disabled}
+            sx={{width: '45%', maxWidth: '45%', whiteSpace: 'normal'}}
+            hiddenLabel
+            name="lower"
+            variant="standard"
+            onBlur={formik.handleBlur}
+            onChange={formik.handleChange}
+            onKeyDown={onEnter}
+            value={formik.values.lower}
+            error={formik.touched.lower && formik.errors.lower !== undefined}
+            helperText={formik.touched.lower && formik.errors.lower}
+          />
+          <Typography
+            variant="caption"
+            sx={{
+              verticalAlign: '-webkit-baseline-middle',
+              pl: 1,
+              pr: 1
+            }}
+          >
+            to
+          </Typography>
+          <TextField
+            disabled={disabled}
+            sx={{width: '45%', maxWidth: '45%', whiteSpace: 'normal'}}
+            hiddenLabel
+            name="upper"
+            variant="standard"
+            onBlur={formik.handleBlur}
+            onChange={formik.handleChange}
+            onKeyDown={onEnter}
+            value={formik.values.upper}
+            error={formik.touched.upper && formik.errors.upper !== undefined}
+            helperText={formik.touched.upper && formik.errors.upper}
+          />
+        </TableCell>
+        <TableCell scope="row" padding="none" align="left" />
+      </TableRow>
     );
   }
 );

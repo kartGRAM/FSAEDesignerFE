@@ -40,11 +40,13 @@ import {
   ColorPickerRow,
   NullableColorPickerRow,
   SelectorRow,
+  NoNullSelectorRow,
   NumberRow,
   FontRows,
   StringRow,
   NullableNumberRow,
-  DataTitleRows
+  DataTitleRows,
+  NullableRangeRow
 } from './SettingRows';
 
 export const AxisSettings = React.memo(
@@ -113,12 +115,15 @@ export const AxisSettings = React.memo(
                 prev.type = value;
               })}
             />
-            <SelectorRow
+            <NoNullSelectorRow
               name="auto range"
               selection={autoRanges}
-              value={axis?.autorange}
+              value={axis?.autorange ?? true}
               onChange={apply((prev, value) => {
                 prev.autorange = value;
+                if (value === true) {
+                  prev.range = undefined;
+                }
               })}
             />
             <SelectorRow
@@ -129,9 +134,22 @@ export const AxisSettings = React.memo(
                 prev.rangemode = value;
               })}
             />
-            {
-              // range
-            }
+            <NullableRangeRow
+              name="axis range"
+              disabled={
+                `${axis?.autorange}` === 'true' ||
+                axis?.autorange === 'reversed'
+              }
+              lower={(axis?.range ?? [])[0] as number | undefined}
+              upper={(axis?.range ?? [])[1] as number | undefined}
+              allowReverse
+              setValue={apply((prev, value) => {
+                const {lower, upper} = value;
+                const l = !lower ? lower : +lower;
+                const u = !upper ? upper : +upper;
+                prev.range = [l, u];
+              })}
+            />
             <CheckBoxRow
               name="fixed range"
               value={axis.fixedrange ?? false}
