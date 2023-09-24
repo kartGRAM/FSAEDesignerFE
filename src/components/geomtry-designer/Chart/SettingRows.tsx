@@ -515,16 +515,16 @@ export const NullableRangeRow = React.memo(
           if (!upper) return schema;
           let s = schema;
           if (!allowReverse) s.lessThan(upper);
-          if (min) s = s.min(min);
-          if (max) s = s.max(max);
+          if (min !== undefined) s = s.min(min);
+          if (max !== undefined) s = s.max(max);
           return s;
         }),
         upper: yup.number().when('lower', (lower, schema) => {
           if (!lower) return schema;
           let s = schema;
-          if (!allowReverse) s.moerThan(upper);
-          if (min) s = s.min(min);
-          if (max) s = s.max(max);
+          if (!allowReverse) s.moreThan(upper);
+          if (min !== undefined) s = s.min(min);
+          if (max !== undefined) s = s.max(max);
           return s;
         })
       },

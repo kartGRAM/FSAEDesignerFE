@@ -580,9 +580,19 @@ export const LayoutAxisSettings = React.memo(
                 prev.layer = value;
               })}
             />
-            {
-              // domain
-            }
+            <NullableRangeRow
+              name="domain"
+              lower={(layoutAxis?.domain ?? [])[0] as number | undefined}
+              upper={(layoutAxis?.domain ?? [])[1] as number | undefined}
+              min={0}
+              max={1}
+              setValue={apply((prev, value) => {
+                const {lower, upper} = value;
+                const l = !lower ? 0 : +lower;
+                const u = !upper ? 1 : +upper;
+                prev.domain = [l, u];
+              })}
+            />
             <NullableNumberRow
               name="position"
               value={layoutAxis.position}
