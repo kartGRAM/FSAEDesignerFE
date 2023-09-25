@@ -54,6 +54,7 @@ export function Chart(props: ChartProps): React.ReactElement {
   const dblClickTimeout = React.useRef<NodeJS.Timer>(null!);
   const boxRef = React.useRef<HTMLDivElement>(null);
   const drawerRef = React.useRef<HTMLDivElement>(null);
+  const paperRef = React.useRef<HTMLDivElement>(null);
   const dividerRef = React.useRef<HTMLHRElement>(null);
 
   pLayout.autosize = true;
@@ -128,6 +129,10 @@ export function Chart(props: ChartProps): React.ReactElement {
   const [mode, setMode] = React.useState<Mode>('DataSelect');
   const [targetAxis, setTargetAxis] = React.useState<string>('');
   const [subplotTarget, setSubplotTarget] = React.useState<SubPlot>('xy');
+
+  React.useEffect(() => {
+    paperRef.current?.scrollTo({top: 0, behavior: 'smooth'});
+  }, [mode, targetAxis, subplotTarget]);
 
   React.useEffect(() => {
     const resize = (e: any, ui: any) => {
@@ -305,6 +310,9 @@ export function Chart(props: ChartProps): React.ReactElement {
         onTransitionEnd={(e) => {
           if (e.target !== drawerRef.current) return;
           update();
+        }}
+        PaperProps={{
+          ref: paperRef
         }}
         sx={{
           pl: 1,
