@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {IChartLayout, SubPlot} from '@gd/charts/ICharts';
+import {IChartLayout, SubPlot, IPlotData} from '@gd/charts/ICharts';
 import {PlotType} from 'plotly.js';
 import {
   Box,
@@ -15,6 +15,7 @@ import store from '@store/store';
 import {plotTypes} from '@gd/charts/plotlyUtils';
 import {SubPlotSettings} from './SubPlotSettings';
 import {LegendSettings} from './LegendSettings';
+import {DataVisualization} from './DataVisualization';
 import {LayoutAxisSettings} from './AxisSettings';
 
 export type Mode =
@@ -37,6 +38,8 @@ export const ChartSelector = React.memo(
     axes: string[];
     targetAxis: string;
     setTargetAxis: (axis: string) => void;
+    data: IPlotData | undefined;
+    setData: (data: IPlotData) => void;
   }) => {
     const {
       mode,
@@ -49,7 +52,9 @@ export const ChartSelector = React.memo(
       setLayout,
       axes,
       targetAxis,
-      setTargetAxis
+      setTargetAxis,
+      data,
+      setData
     } = props;
     if (mode === 'DataSelect') {
       return (
@@ -90,6 +95,11 @@ export const ChartSelector = React.memo(
           axis={targetAxis}
           axes={axes}
         />
+      );
+    }
+    if (mode === 'DataVisualization' && data) {
+      return (
+        <DataVisualization setMode={setMode} data={data} setData={setData} />
       );
     }
     return null;

@@ -6,7 +6,8 @@ import {
   IChartLayout,
   SubPlot,
   subplots,
-  defaultLayoutAxis
+  defaultLayoutAxis,
+  IPlotData
 } from '@gd/charts/ICharts';
 import Plot, {PlotParams} from 'react-plotly.js';
 import * as Plotly from 'plotly.js';
@@ -36,7 +37,8 @@ type BoxPropsOmit = Omit<
 >;
 
 export interface ChartProps extends BoxPropsOmit, PlotParamsOmit {
-  data?: Partial<PlotData>[];
+  data?: IPlotData[];
+  setData: (data: IPlotData) => void;
   layout: IChartLayout;
   dataSelector: JSX.Element;
   setLayout: (layout: IChartLayout) => void;
@@ -46,12 +48,11 @@ export interface ChartProps extends BoxPropsOmit, PlotParamsOmit {
 }
 
 export function Chart(props: ChartProps): React.ReactElement {
-  const {layout, data, dataSelector, setLayout, type, setPlotTypeAll} = props;
+  const {layout, data, setData, dataSelector, setLayout, type, setPlotTypeAll} =
+    props;
   const pLayout = deepCopy(layout);
   const update = useUpdate();
   const revision = React.useRef(0);
-  const dblClick = React.useRef(0);
-  const dblClickTimeout = React.useRef<NodeJS.Timer>(null!);
   const boxRef = React.useRef<HTMLDivElement>(null);
   const drawerRef = React.useRef<HTMLDivElement>(null);
   const paperRef = React.useRef<HTMLDivElement>(null);
@@ -129,6 +130,9 @@ export function Chart(props: ChartProps): React.ReactElement {
   const [mode, setMode] = React.useState<Mode>('DataSelect');
   const [targetAxis, setTargetAxis] = React.useState<string>('');
   const [subplotTarget, setSubplotTarget] = React.useState<SubPlot>('xy');
+  const [targetData, setTargetData] = React.useState<IPlotData | undefined>(
+    undefined
+  );
 
   React.useEffect(() => {
     paperRef.current?.scrollTo({top: 0, behavior: 'smooth'});
@@ -179,20 +183,10 @@ export function Chart(props: ChartProps): React.ReactElement {
 
   const id = React.useId();
   const handleBackgroundDoubleClick = React.useCallback((subplot: SubPlot) => {
-    // なぜかdblClickが反応しないため、適当にごまかす
-    if (dblClick.current) {
-      setSubplotTarget(subplot);
-      setOpen(() => true);
-      setMode('SubPlotSettings');
-      dblClick.current = 0;
-      clearTimeout(dblClickTimeout.current);
-    } else {
-      dblClick.current = performance.now();
-      dblClickTimeout.current = setTimeout(() => {
-        dblClick.current = 0;
-        setMode('DataSelect');
-      }, 200);
-    }
+    // なぜかdblClickが反応しないため、clickのdetailを使う
+    setSubplotTarget(subplot);
+    setOpen(() => true);
+    setMode('SubPlotSettings');
   }, []);
 
   const handlePointsClick = (e: Readonly<Plotly.PlotMouseEvent>) => {
@@ -205,12 +199,26 @@ export function Chart(props: ChartProps): React.ReactElement {
     setTargetAxis(axis);
   }, []);
 
+  const handleDataClick = React.useCallback(
+    (e: Readonly<Plotly.PlotMouseEvent>) => {
+      if (e.event.detail !== 2 || !e.points[0]) return;
+      const tn = e.points[0].curveNumber;
+      if (!data || !data[tn]) return;
+      setTargetData(data[tn]);
+    },
+    [data]
+  );
+
   // SubplotSetting
   useUpdateEffect(() => {
     const box = document.getElementById(id);
-    const funcs: {[index: string]: () => void} = {};
+    const funcs: {[index: string]: (e: Event) => void} = {};
     subplots.forEach((subplot) => {
-      funcs[subplot] = () => handleBackgroundDoubleClick(subplot);
+      funcs[subplot] = (e: Event) => {
+        const e2 = e as MouseEvent;
+        if (e2.detail === 2) handleBackgroundDoubleClick(subplot);
+        else setMode('DataSelect');
+      };
       const func = () => {
         const gElement = box?.getElementsByClassName(subplot)[0];
         const rect = gElement?.getElementsByClassName('nsewdrag')[0];
@@ -359,6 +367,8 @@ export function Chart(props: ChartProps): React.ReactElement {
             axes={[...axes].sort(natsort())}
             targetAxis={targetAxis}
             setTargetAxis={setTargetAxis}
+            data={targetData}
+            setData={setData}
           />
         </Box>
       </Drawer>

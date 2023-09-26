@@ -15,7 +15,7 @@ import {Chart} from '@gdComponents/Chart/Chart';
 import {DataSelector} from '@gdComponents/Chart/DataSelector';
 import {grey} from '@mui/material/colors';
 import useTestUpdate from '@hooks/useTestUpdate';
-import {IChartData, IChartLayout} from '@gd/charts/ICharts';
+import {IChartData, IChartLayout, IPlotData} from '@gd/charts/ICharts';
 import {PlotType} from 'plotly.js';
 import {getRFNodeBase} from './Base';
 
@@ -108,6 +108,21 @@ function ChartContent(props: {node: IChartNode; test: ITest}) {
     },
     [node, updateWithSave]
   );
+  const setPData = React.useCallback(
+    (data: IPlotData) => {
+      node.data = node.data.map((d) => {
+        if (d.nodeID === (data as any).nodeID) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const {x: _, y: __, z: ___, ...copy} = data;
+          return {...d, ...copy};
+        }
+        return d;
+      });
+      updateWithSave();
+    },
+    [node, updateWithSave]
+  );
+
   const setLayout = React.useCallback(
     (layout: IChartLayout) => {
       node.layout = {...layout};
@@ -159,6 +174,7 @@ function ChartContent(props: {node: IChartNode; test: ITest}) {
         height: '100%',
         minWidth: '0px' // minWidthを指定しないとFlexBoxがうまく動かない
       }}
+      setData={setPData}
       setLayout={setLayout}
       setPlotTypeAll={setPlotTypeAll}
       dataSelector={dataSelector}
