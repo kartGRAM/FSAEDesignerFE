@@ -189,22 +189,27 @@ export function Chart(props: ChartProps): React.ReactElement {
     setMode('SubPlotSettings');
   }, []);
 
-  const handlePointsClick = (e: Readonly<Plotly.PlotMouseEvent>) => {
-    console.log(e);
-  };
-
   const handleAxisDoubleClick = React.useCallback((axis: string) => {
     setOpen(() => true);
     setMode('AxisSettings');
     setTargetAxis(axis);
   }, []);
 
+  const preventBGClick = React.useRef<boolean>(false);
   const handleDataClick = React.useCallback(
     (e: Readonly<Plotly.PlotMouseEvent>) => {
       if (e.event.detail !== 2 || !e.points[0]) return;
       const tn = e.points[0].curveNumber;
       if (!data || !data[tn]) return;
+      e.event.stopPropagation();
+      e.event.stopImmediatePropagation();
+      preventBGClick.current = true;
+      setTimeout(() => {
+        preventBGClick.current = false;
+      }, 500);
       setTargetData(data[tn]);
+      setOpen(() => true);
+      setMode('DataVisualization');
     },
     [data]
   );
@@ -215,6 +220,7 @@ export function Chart(props: ChartProps): React.ReactElement {
     const funcs: {[index: string]: (e: Event) => void} = {};
     subplots.forEach((subplot) => {
       funcs[subplot] = (e: Event) => {
+        if (preventBGClick.current) return;
         const e2 = e as MouseEvent;
         if (e2.detail === 2) handleBackgroundDoubleClick(subplot);
         else setMode('DataSelect');
@@ -223,8 +229,8 @@ export function Chart(props: ChartProps): React.ReactElement {
         const gElement = box?.getElementsByClassName(subplot)[0];
         const rect = gElement?.getElementsByClassName('nsewdrag')[0];
         if (rect) {
-          rect.removeEventListener('click', funcs[subplot], true);
-          rect.addEventListener('click', funcs[subplot], true);
+          rect.removeEventListener('click', funcs[subplot]);
+          rect.addEventListener('click', funcs[subplot]);
         }
       };
       func();
@@ -235,7 +241,7 @@ export function Chart(props: ChartProps): React.ReactElement {
         const gElement = box?.getElementsByClassName(subplot)[0];
         const rect = gElement?.getElementsByClassName('nsewdrag')[0];
         if (rect) {
-          rect.removeEventListener('click', funcs[subplot], true);
+          rect.removeEventListener('click', funcs[subplot]);
         }
       });
     };
@@ -413,7 +419,7 @@ export function Chart(props: ChartProps): React.ReactElement {
             style={{width: '100%', height: '100%'}}
             onAfterPlot={afterPlot}
             onInitialized={update}
-            onClick={handlePointsClick}
+            onClick={handleDataClick}
             onLegendDoubleClick={() => {
               setMode('LegendSettings');
               return false;
