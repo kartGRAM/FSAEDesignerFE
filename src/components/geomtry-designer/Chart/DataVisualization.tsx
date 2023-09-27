@@ -11,11 +11,12 @@ import {
 } from '@mui/material';
 import {IPlotData} from '@gd/charts/ICharts';
 import {deepCopy} from '@utils/helpers';
-import {groupClicks} from '@gd/charts/plotlyUtils';
+import {plotTypes} from '@gd/charts/plotlyUtils';
 import {Mode} from './ChartSelector';
 import {
   ColorPickerRow,
   SelectorRow,
+  NoNullSelectorRow,
   NumberRow,
   FontRows,
   StringRow,
@@ -30,6 +31,14 @@ export const DataVisualization = React.memo(
   }) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const {setMode, data, setData} = props;
+
+    const apply = <T,>(func: (prev: IPlotData, newValue: T) => void) => {
+      return (value: T) => {
+        const newData = {...data};
+        func(newData, value);
+        setData(newData);
+      };
+    };
 
     return (
       <TableContainer>
@@ -48,7 +57,16 @@ export const DataVisualization = React.memo(
               <TableCell scope="row" padding="none" align="left" />
             </TableRow>
           </TableHead>
-          <TableBody>aaa</TableBody>
+          <TableBody>
+            <NoNullSelectorRow
+              name="plot type"
+              selection={plotTypes}
+              value={data.type}
+              onChange={apply((prev, value) => {
+                prev.type = value;
+              })}
+            />
+          </TableBody>
         </Table>
       </TableContainer>
     );

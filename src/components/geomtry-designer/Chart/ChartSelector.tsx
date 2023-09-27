@@ -117,6 +117,9 @@ const DataSelectorMode = React.memo(
     const menuZIndex =
       uitgd.fullScreenZIndex + uitgd.dialogZIndex + uitgd.menuZIndex;
     const id = React.useId();
+    const typesSelectable =
+      type === 'composite' ? ['composite', ...plotTypes] : plotTypes;
+
     return (
       <Box component="div">
         <Typography variant="h6" sx={{pt: 1, pl: 1}}>
@@ -128,7 +131,9 @@ const DataSelectorMode = React.memo(
             <Select
               labelId={id}
               value={type}
-              onChange={(e) => setPlotTypeAll(e.target.value as PlotType)}
+              onChange={(e) => {
+                setPlotTypeAll(e.target.value as PlotType);
+              }}
               sx={{
                 ml: 0,
                 width: '100%'
@@ -138,7 +143,7 @@ const DataSelectorMode = React.memo(
                 sx: {zIndex: menuZIndex}
               }}
             >
-              {plotTypes.map((type) => (
+              {typesSelectable.map((type) => (
                 <MenuItem key={type} value={type}>
                   {type}
                 </MenuItem>

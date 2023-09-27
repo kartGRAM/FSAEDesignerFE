@@ -130,7 +130,7 @@ export function Chart(props: ChartProps): React.ReactElement {
   const [mode, setMode] = React.useState<Mode>('DataSelect');
   const [targetAxis, setTargetAxis] = React.useState<string>('');
   const [subplotTarget, setSubplotTarget] = React.useState<SubPlot>('xy');
-  const [targetData, setTargetData] = React.useState<IPlotData | undefined>(
+  const [targetDataIdx, setTargetDataIdx] = React.useState<number | undefined>(
     undefined
   );
 
@@ -207,7 +207,7 @@ export function Chart(props: ChartProps): React.ReactElement {
       setTimeout(() => {
         preventBGClick.current = false;
       }, 500);
-      setTargetData(data[tn]);
+      setTargetDataIdx(tn);
       setOpen(() => true);
       setMode('DataVisualization');
     },
@@ -373,7 +373,11 @@ export function Chart(props: ChartProps): React.ReactElement {
             axes={[...axes].sort(natsort())}
             targetAxis={targetAxis}
             setTargetAxis={setTargetAxis}
-            data={targetData}
+            data={
+              data && targetDataIdx !== undefined
+                ? data[targetDataIdx]
+                : undefined
+            }
             setData={setData}
           />
         </Box>
