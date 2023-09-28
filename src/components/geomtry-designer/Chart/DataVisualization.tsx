@@ -9,9 +9,9 @@ import {
   TableCell,
   Typography
 } from '@mui/material';
-import {IPlotData} from '@gd/charts/ICharts';
+import {IPlotData, axesSet} from '@gd/charts/ICharts';
 import {deepCopy} from '@utils/helpers';
-import {plotTypes} from '@gd/charts/plotlyUtils';
+import {plotTypes, modes} from '@gd/charts/plotlyUtils';
 import {Mode} from './ChartSelector';
 import {
   ColorPickerRow,
@@ -64,6 +64,37 @@ export const DataVisualization = React.memo(
               value={data.type}
               onChange={apply((prev, value) => {
                 prev.type = value;
+              })}
+            />
+            <StringRow
+              name="name"
+              value={data.name}
+              setValue={apply((prev, value) => {
+                prev.name = value;
+              })}
+            />
+            <NoNullSelectorRow
+              name="x axis"
+              selection={axesSet.x}
+              value={data.xaxis}
+              onChange={apply((prev, value) => {
+                prev.xaxis = value;
+              })}
+            />
+            <NoNullSelectorRow
+              name="y axis"
+              selection={axesSet.y}
+              value={data.yaxis}
+              onChange={apply((prev, value) => {
+                prev.yaxis = value;
+              })}
+            />
+            <NoNullSelectorRow
+              name="mode"
+              selection={modes}
+              value={data.mode ?? 'lines'}
+              onChange={apply((prev, value) => {
+                prev.mode = value;
               })}
             />
           </TableBody>
