@@ -107,6 +107,9 @@ export const DataVisualization = React.memo(
                 prev.mode = value;
               })}
             />
+            {data.mode?.includes('markers') ? (
+              <MarkerRows data={data} setData={setData} />
+            ) : null}
           </TableBody>
         </Table>
       </TableContainer>
@@ -123,7 +126,8 @@ const MarkerRows = React.memo(
     ) => {
       return (value: T) => {
         const newData = {...data};
-        func(newData.marker ?? {}, value);
+        if (!newData.marker) newData.marker = {};
+        func(newData.marker, value);
         setData(newData);
       };
     };
