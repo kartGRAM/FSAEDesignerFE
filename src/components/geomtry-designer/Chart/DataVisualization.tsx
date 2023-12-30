@@ -199,6 +199,20 @@ export const DataVisualization = React.memo(
                 prev.hoverlabel.namelength = value;
               })}
             />
+            <StringRow
+              name="hover template"
+              value={data.hovertemplate as string | undefined}
+              setValue={apply((prev, value) => {
+                prev.hovertemplate = value;
+              })}
+            />
+            <StringRow
+              name="hover text"
+              value={data.hovertext as string | undefined}
+              setValue={apply((prev, value) => {
+                prev.hovertext = value;
+              })}
+            />
           </TableBody>
         </Table>
       </TableContainer>
