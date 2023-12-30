@@ -9,7 +9,7 @@ import {
   TableCell,
   Typography
 } from '@mui/material';
-import {PlotMarker} from 'plotly.js';
+import {PlotMarker, ScatterLine, ScatterMarkerLine} from 'plotly.js';
 import {IPlotData, axesSet} from '@gd/charts/ICharts';
 import {deepCopy} from '@utils/helpers';
 import {
@@ -17,12 +17,15 @@ import {
   modes,
   markers,
   colorScales,
-  sizeModes
+  sizeModes,
+  dashes,
+  lineShapes
 } from '@gd/charts/plotlyUtils';
 import {Mode} from './ChartSelector';
 import {
   CheckBoxRow,
   ColorPickerRow,
+  NullableColorPickerRow,
   SelectorRow,
   NoNullSelectorRow,
   NumberRow,
@@ -110,6 +113,12 @@ export const DataVisualization = React.memo(
             {data.mode?.includes('markers') ? (
               <MarkerRows data={data} setData={setData} />
             ) : null}
+            {data.mode?.includes('markers') ? (
+              <MarkerLineRows data={data} setData={setData} />
+            ) : null}
+            {data.mode?.includes('lines') ? (
+              <LineRows data={data} setData={setData} />
+            ) : null}
           </TableBody>
         </Table>
       </TableContainer>
@@ -142,9 +151,9 @@ const MarkerRows = React.memo(
             prev.symbol = value;
           })}
         />
-        <ColorPickerRow
+        <NullableColorPickerRow
           name="marker color"
-          color={(data.marker?.color as string | undefined) ?? '#444444'}
+          color={data.marker?.color as string | undefined}
           onChange={apply((prev, c) => {
             prev.color = c;
           })}
@@ -175,7 +184,7 @@ const MarkerRows = React.memo(
           name="marker opacity"
           min={0}
           max={1}
-          value={(data.marker as PPlotMarker)?.opacity as number}
+          value={((data.marker as PPlotMarker)?.opacity as number) ?? 1}
           setValue={apply((prev, value) => {
             prev.opacity = value;
           })}
@@ -183,7 +192,7 @@ const MarkerRows = React.memo(
         <NullableNumberRow
           name="marker size"
           min={0}
-          value={(data.marker as PPlotMarker)?.size as number}
+          value={((data.marker as PPlotMarker)?.size as number) ?? 6}
           setValue={apply((prev, value) => {
             prev.size = value;
           })}
@@ -202,6 +211,131 @@ const MarkerRows = React.memo(
           value={(data.marker as PPlotMarker)?.sizemode}
           onChange={apply((prev, value) => {
             prev.sizemode = value;
+          })}
+        />
+      </>
+    );
+  }
+);
+
+const LineRows = React.memo(
+  (props: {data: IPlotData; setData: (data: IPlotData) => void}) => {
+    const {data, setData} = props;
+
+    const apply = <T,>(
+      func: (prev: Partial<ScatterLine>, newValue: T) => void
+    ) => {
+      return (value: T) => {
+        const newData = {...data};
+        if (!newData.line) newData.line = {};
+        func(newData.line, value);
+        setData(newData);
+      };
+    };
+
+    return (
+      <>
+        <NullableColorPickerRow
+          name="line color"
+          color={data.line?.color as string | undefined}
+          onChange={apply((prev, c) => {
+            prev.color = c;
+          })}
+        />
+        <NullableNumberRow
+          name="line width"
+          min={0}
+          max={50}
+          value={data.line?.width ?? 2}
+          setValue={apply((prev, value) => {
+            prev.width = value;
+          })}
+        />
+        <SelectorRow
+          name="line dash type"
+          selection={dashes}
+          value={data.line?.dash ?? 'solid'}
+          onChange={apply((prev, value) => {
+            prev.dash = value;
+          })}
+        />
+        <SelectorRow
+          name="line shape"
+          selection={lineShapes}
+          value={data.line?.shape ?? 'linear'}
+          onChange={apply((prev, value) => {
+            prev.shape = value;
+          })}
+        />
+        <NullableNumberRow
+          name="line smoothing"
+          min={0}
+          max={1.3}
+          value={data.line?.smoothing ?? 1.0}
+          setValue={apply((prev, value) => {
+            prev.smoothing = value;
+          })}
+        />
+
+        <CheckBoxRow
+          name="line simplify"
+          value={data.line?.simplify ?? true}
+          setValue={apply((prev, value) => {
+            prev.simplify = value;
+          })}
+        />
+      </>
+    );
+  }
+);
+
+const MarkerLineRows = React.memo(
+  (props: {data: IPlotData; setData: (data: IPlotData) => void}) => {
+    const {data, setData} = props;
+
+    const apply = <T,>(
+      func: (prev: Partial<ScatterMarkerLine>, newValue: T) => void
+    ) => {
+      return (value: T) => {
+        const newData = {...data};
+        if (!newData.marker) newData.marker = {};
+        if (!newData.marker.line) newData.marker.line = {};
+        func(newData.marker.line, value);
+        setData(newData);
+      };
+    };
+    const line = (data.marker as PPlotMarker)?.line;
+
+    return (
+      <>
+        <NullableNumberRow
+          name="marker line width"
+          min={0}
+          value={line?.width as number | undefined}
+          setValue={apply((prev, value) => {
+            prev.width = value;
+          })}
+        />
+        <NullableColorPickerRow
+          name="marker line color"
+          color={line?.color as string | undefined}
+          onChange={apply((prev, c) => {
+            prev.color = c;
+          })}
+        />
+        <SelectorRow
+          name="marker line color scale"
+          selection={colorScales}
+          value={line?.colorscale}
+          onChange={apply((prev, value) => {
+            prev.colorscale = value;
+          })}
+        />
+        <CheckBoxRow
+          name="marker line color scale reverse"
+          value={line?.reversescale ?? false}
+          setValue={apply((prev, value) => {
+            prev.reversescale = value;
           })}
         />
       </>

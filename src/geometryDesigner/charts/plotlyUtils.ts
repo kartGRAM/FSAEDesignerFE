@@ -555,3 +555,12 @@ export const colorScales = [
 ];
 
 export const sizeModes = ['diameter', 'area'] as const;
+
+export const lineShapes = [
+  'linear',
+  'spline',
+  'hv',
+  'vh',
+  'hvh',
+  'vhv'
+] as const;
