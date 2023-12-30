@@ -614,3 +614,5 @@ export const hoverInfo = [
   'z+x+y+text',
   'z+x+y+name'
 ] as const;
+
+export const hoverLabelAligns = ['left', 'right', 'auto'] as const;

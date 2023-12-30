@@ -242,10 +242,12 @@ export const NumberRow = React.memo(
     setValue: (value: number) => void;
     min?: number;
     max?: number;
+    integer?: boolean;
   }) => {
-    const {name, value, setValue, min, max} = props;
+    const {name, value, setValue, min, max, integer} = props;
 
     let schema = yup.number().required('');
+    if (integer) schema = schema.integer();
     if (min !== undefined) schema = schema.min(min);
     if (max !== undefined) schema = schema.max(max);
 

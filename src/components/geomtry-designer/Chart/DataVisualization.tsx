@@ -23,7 +23,8 @@ import {
   histFuncs,
   histNorms,
   hoverOns,
-  hoverInfo
+  hoverInfo,
+  hoverLabelAligns
 } from '@gd/charts/plotlyUtils';
 import {Mode} from './ChartSelector';
 import {
@@ -153,6 +154,49 @@ export const DataVisualization = React.memo(
               value={data.hoverinfo}
               onChange={apply((prev, value) => {
                 prev.hoverinfo = value;
+              })}
+            />
+            <NullableColorPickerRow
+              name="hover label bgcolor"
+              color={data.hoverlabel?.bgcolor}
+              onChange={apply((prev, c) => {
+                if (!prev.hoverlabel) prev.hoverlabel = {};
+                prev.hoverlabel.bgcolor = c;
+              })}
+            />
+            <NullableColorPickerRow
+              name="hover label border color"
+              color={data.hoverlabel?.bordercolor}
+              onChange={apply((prev, c) => {
+                if (!prev.hoverlabel) prev.hoverlabel = {};
+                prev.hoverlabel.bordercolor = c;
+              })}
+            />
+            <FontRows
+              name="hover label font"
+              font={data.hoverlabel?.font}
+              setValue={apply((prev, value) => {
+                if (!prev.hoverlabel) prev.hoverlabel = {};
+                prev.hoverlabel.font = value;
+              })}
+            />
+            <SelectorRow
+              name="hover label align"
+              selection={hoverLabelAligns}
+              value={data.hoverlabel?.align}
+              onChange={apply((prev, value) => {
+                if (!prev.hoverlabel) prev.hoverlabel = {};
+                prev.hoverlabel.align = value;
+              })}
+            />
+            <NumberRow
+              name="hover label name length"
+              min={-1}
+              integer
+              value={data.hoverlabel?.namelength ?? 15}
+              setValue={apply((prev, value) => {
+                if (!prev.hoverlabel) prev.hoverlabel = {};
+                prev.hoverlabel.namelength = value;
               })}
             />
           </TableBody>
