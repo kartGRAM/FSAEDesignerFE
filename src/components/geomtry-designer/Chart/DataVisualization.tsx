@@ -19,7 +19,11 @@ import {
   colorScales,
   sizeModes,
   dashes,
-  lineShapes
+  lineShapes,
+  histFuncs,
+  histNorms,
+  hoverOns,
+  hoverInfo
 } from '@gd/charts/plotlyUtils';
 import {Mode} from './ChartSelector';
 import {
@@ -119,6 +123,38 @@ export const DataVisualization = React.memo(
             {data.mode?.includes('lines') ? (
               <LineRows data={data} setData={setData} />
             ) : null}
+            <SelectorRow
+              name="hist func"
+              selection={histFuncs}
+              value={data.histfunc}
+              onChange={apply((prev, value) => {
+                prev.histfunc = value;
+              })}
+            />
+            <SelectorRow
+              name="hist norm"
+              selection={histNorms}
+              value={data.histnorm}
+              onChange={apply((prev, value) => {
+                prev.histnorm = value;
+              })}
+            />
+            <SelectorRow
+              name="hover on"
+              selection={hoverOns}
+              value={data.hoveron}
+              onChange={apply((prev, value) => {
+                prev.hoveron = value;
+              })}
+            />
+            <SelectorRow
+              name="hover info"
+              selection={hoverInfo}
+              value={data.hoverinfo}
+              onChange={apply((prev, value) => {
+                prev.hoverinfo = value;
+              })}
+            />
           </TableBody>
         </Table>
       </TableContainer>

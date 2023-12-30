@@ -564,3 +564,53 @@ export const lineShapes = [
   'hvh',
   'vhv'
 ] as const;
+
+export const histFuncs = ['count', 'sum', 'avg', 'min', 'max'] as const;
+
+export const histNorms = [
+  '',
+  'percent',
+  'probability',
+  'density',
+  'probability density'
+] as const;
+
+export const hoverOns = ['points', 'fills'] as const;
+export const hoverInfo = [
+  'all',
+  'name',
+  'none',
+  'skip',
+  'text',
+  'x',
+  'x+text',
+  'x+name',
+  'x+y',
+  'x+y+text',
+  'x+y+name',
+  'x+y+z',
+  'x+y+z+text',
+  'x+y+z+name',
+  'y',
+  'y+name',
+  'y+x',
+  'y+text',
+  'y+x+text',
+  'y+x+name',
+  'y+z',
+  'y+z+text',
+  'y+z+name',
+  'y+x+z',
+  'y+x+z+text',
+  'y+x+z+name',
+  'z',
+  'z+x',
+  'z+x+text',
+  'z+x+name',
+  'z+y+x',
+  'z+y+x+text',
+  'z+y+x+name',
+  'z+x+y',
+  'z+x+y+text',
+  'z+x+y+name'
+] as const;
