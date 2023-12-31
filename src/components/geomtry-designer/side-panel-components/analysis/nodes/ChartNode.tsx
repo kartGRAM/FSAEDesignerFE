@@ -17,6 +17,7 @@ import {grey} from '@mui/material/colors';
 import useTestUpdate from '@hooks/useTestUpdate';
 import {IChartData, IChartLayout, IPlotData} from '@gd/charts/ICharts';
 import {PlotType} from 'plotly.js';
+import {Mode} from '@gdComponents/Chart/ChartSelector';
 import {getRFNodeBase} from './Base';
 
 export {isChartNode};
@@ -139,6 +140,11 @@ function ChartContent(props: {node: IChartNode; test: ITest}) {
     [data, node, updateWithSave]
   );
 
+  const [mode, setMode] = React.useState<Mode>('DataSelect');
+  const [targetDataIdx, setTargetDataIdx] = React.useState<number | undefined>(
+    undefined
+  );
+
   const tempSolver = React.useRef<ITestSolver>(test.solver);
 
   const pData = node.getPlotlyData(tempSolver.current);
@@ -161,6 +167,8 @@ function ChartContent(props: {node: IChartNode; test: ITest}) {
       data={data}
       setData={setData}
       defaultPlotType={data[0] ? data[0].type : 'scatter'}
+      setMode={setMode}
+      setTargetDataIdx={setTargetDataIdx}
     />
   );
 
@@ -179,6 +187,10 @@ function ChartContent(props: {node: IChartNode; test: ITest}) {
       setPlotTypeAll={setPlotTypeAll}
       dataSelector={dataSelector}
       type={plotType}
+      mode={mode}
+      setMode={setMode}
+      targetDataIdx={targetDataIdx}
+      setTargetDataIdx={setTargetDataIdx}
     />
   );
 }

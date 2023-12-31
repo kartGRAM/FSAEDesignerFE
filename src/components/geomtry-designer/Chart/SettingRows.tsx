@@ -355,14 +355,14 @@ export const FontRows = React.memo(
   (props: {
     name: string;
     font?: Partial<Font>;
-    setValue: (value: Font) => void;
+    setValue: (value: Partial<Font>) => void;
   }) => {
     const {name, font, setValue} = props;
 
-    const newFont: Font = {
+    const newFont: Partial<Font> = {
       family: font?.family ?? 'Arial, sans-serif',
       size: font?.size ?? 13,
-      color: font?.color ?? '#000000'
+      color: font?.color
     };
 
     return (
@@ -377,13 +377,13 @@ export const FontRows = React.memo(
         />
         <NumberRow
           name={`${name}: size`}
-          value={font?.size ?? newFont.size}
+          value={font?.size ?? newFont.size!}
           setValue={(value) => {
             setValue({...newFont, size: value});
           }}
           min={0}
         />
-        <ColorPickerRow
+        <NullableColorPickerRow
           name={`${name}: color`}
           color={(font?.color ?? newFont.color) as string}
           onChange={(c) => {

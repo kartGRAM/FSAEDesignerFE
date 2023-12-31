@@ -27,8 +27,7 @@ import $ from 'jquery';
 import 'jqueryui';
 import usePrevious from '@hooks/usePrevious';
 import {deepCopy} from '@utils/helpers';
-
-import {ChartSelector, Mode} from './ChartSelector';
+import {Mode, ChartSelector} from './ChartSelector';
 
 type PlotParamsOmit = Omit<PlotParams, 'data' | 'layout'>;
 type BoxPropsOmit = Omit<
@@ -45,11 +44,20 @@ export interface ChartProps extends BoxPropsOmit, PlotParamsOmit {
 
   type: PlotType | 'composite';
   setPlotTypeAll: (type: PlotType) => void;
+  mode: Mode;
+  setMode: React.Dispatch<React.SetStateAction<Mode>>;
+  targetDataIdx: number | undefined;
+  setTargetDataIdx: React.Dispatch<React.SetStateAction<number | undefined>>;
 }
 
 export function Chart(props: ChartProps): React.ReactElement {
   const {layout, data, setData, dataSelector, setLayout, type, setPlotTypeAll} =
     props;
+  const {mode, setMode, targetDataIdx, setTargetDataIdx} = props;
+  const [mode2, setMode2] = React.useState<Mode>('DataSelect');
+  const [targetDataIdx2, setTargetDataIdx2] = React.useState<
+    number | undefined
+  >(undefined);
   const pLayout = deepCopy(layout);
   const update = useUpdate();
   const revision = React.useRef(0);
@@ -127,12 +135,8 @@ export function Chart(props: ChartProps): React.ReactElement {
     afterPlotFuncsRef.current = [];
   }, []);
 
-  const [mode, setMode] = React.useState<Mode>('DataSelect');
   const [targetAxis, setTargetAxis] = React.useState<string>('');
   const [subplotTarget, setSubplotTarget] = React.useState<SubPlot>('xy');
-  const [targetDataIdx, setTargetDataIdx] = React.useState<number | undefined>(
-    undefined
-  );
 
   React.useEffect(() => {
     paperRef.current?.scrollTo({top: 0, behavior: 'smooth'});
@@ -182,18 +186,24 @@ export function Chart(props: ChartProps): React.ReactElement {
   }, [dispatch, open]);
 
   const id = React.useId();
-  const handleBackgroundDoubleClick = React.useCallback((subplot: SubPlot) => {
-    // なぜかdblClickが反応しないため、clickのdetailを使う
-    setSubplotTarget(subplot);
-    setOpen(() => true);
-    setMode('SubPlotSettings');
-  }, []);
+  const handleBackgroundDoubleClick = React.useCallback(
+    (subplot: SubPlot) => {
+      // なぜかdblClickが反応しないため、clickのdetailを使う
+      setSubplotTarget(subplot);
+      setOpen(() => true);
+      setMode('SubPlotSettings');
+    },
+    [setMode]
+  );
 
-  const handleAxisDoubleClick = React.useCallback((axis: string) => {
-    setOpen(() => true);
-    setMode('AxisSettings');
-    setTargetAxis(axis);
-  }, []);
+  const handleAxisDoubleClick = React.useCallback(
+    (axis: string) => {
+      setOpen(() => true);
+      setMode('AxisSettings');
+      setTargetAxis(axis);
+    },
+    [setMode]
+  );
 
   const preventBGClick = React.useRef<boolean>(false);
   const handleDataClick = React.useCallback(
@@ -211,7 +221,7 @@ export function Chart(props: ChartProps): React.ReactElement {
       setOpen(() => true);
       setMode('DataVisualization');
     },
-    [data]
+    [data, setMode, setTargetDataIdx]
   );
 
   // SubplotSetting

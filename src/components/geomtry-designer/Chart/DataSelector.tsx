@@ -26,80 +26,89 @@ import * as Yup from 'yup';
 import CloseIcon from '@mui/icons-material/Close';
 import {PlotType} from 'plotly.js';
 import {is3DPlotType} from '@gd/charts/plotlyUtils';
+import Settings from '@gdComponents/svgs/Settings';
+import {Mode} from './ChartSelector';
 
-export function DataSelector(props: {
-  results: CaseResults;
-  localInstances: LocalInstances;
-  data: IChartData[];
-  setData: (data: IChartData[]) => void;
-  defaultPlotType: PlotType;
-}) {
-  const {data, setData, defaultPlotType} = props;
+export const DataSelector = React.memo(
+  (props: {
+    results: CaseResults;
+    localInstances: LocalInstances;
+    data: IChartData[];
+    setData: (data: IChartData[]) => void;
+    defaultPlotType: PlotType;
+    setMode: React.Dispatch<React.SetStateAction<Mode>>;
+    setTargetDataIdx: React.Dispatch<React.SetStateAction<number | undefined>>;
+  }) => {
+    const {data, setData, defaultPlotType, setMode, setTargetDataIdx} = props;
 
-  const setDatum = React.useCallback(
-    (datum: IChartData) => {
-      let inData = false;
-      const newData = data.map((d) => {
-        if (d.nodeID === datum.nodeID) {
-          inData = true;
-          return datum;
-        }
-        return d;
-      });
-      if (!inData) newData.push(datum);
-      setData(newData);
-    },
-    [data, setData]
-  );
+    const setDatum = React.useCallback(
+      (datum: IChartData) => {
+        let inData = false;
+        const newData = data.map((d) => {
+          if (d.nodeID === datum.nodeID) {
+            inData = true;
+            return datum;
+          }
+          return d;
+        });
+        if (!inData) newData.push(datum);
+        setData(newData);
+      },
+      [data, setData]
+    );
 
-  const deleteDatum = React.useCallback(
-    (datum: IChartData) => {
-      setData(data.filter((d) => d.nodeID !== datum.nodeID));
-    },
-    [data, setData]
-  );
+    const deleteDatum = React.useCallback(
+      (datum: IChartData) => {
+        setData(data.filter((d) => d.nodeID !== datum.nodeID));
+      },
+      [data, setData]
+    );
 
-  const newData: IChartData = {
-    nodeID: uuidv4(),
-    type: defaultPlotType,
-    x: {case: '', from: 'measureTool', nodeID: ''},
-    y: {case: '', from: 'measureTool', nodeID: ''},
-    z: {case: '', from: 'measureTool', nodeID: ''},
-    xaxis: 'x',
-    yaxis: 'y'
-  };
-  return (
-    <Box
-      component="div"
-      sx={{
-        height: '100%'
-      }}
-    >
-      {data.map((datum, i) => (
-        <Box component="div" key={datum.nodeID}>
-          {i > 0 ? <Divider key={`${datum.nodeID}d`} /> : null}
+    const newData: IChartData = {
+      nodeID: uuidv4(),
+      type: defaultPlotType,
+      x: {case: '', from: 'measureTool', nodeID: ''},
+      y: {case: '', from: 'measureTool', nodeID: ''},
+      z: {case: '', from: 'measureTool', nodeID: ''},
+      xaxis: 'x',
+      yaxis: 'y'
+    };
+    return (
+      <Box
+        component="div"
+        sx={{
+          height: '100%'
+        }}
+      >
+        {data.map((datum, i) => (
+          <Box component="div" key={datum.nodeID}>
+            {i > 0 ? <Divider key={`${datum.nodeID}d`} /> : null}
+            <DataTable
+              {...props}
+              key={datum.nodeID}
+              data={datum}
+              setData={setDatum}
+              deleteData={deleteDatum}
+              index={i}
+              setMode={setMode}
+              setTargetDataIdx={setTargetDataIdx}
+            />
+          </Box>
+        ))}
+        <Box component="div" key="new">
+          <Divider key="newd" />
           <DataTable
             {...props}
-            key={datum.nodeID}
-            data={datum}
+            key="new"
+            data={newData}
             setData={setDatum}
-            deleteData={deleteDatum}
+            isNew
           />
         </Box>
-      ))}
-      <Box component="div" key="new">
-        <Divider key="newd" />
-        <DataTable
-          {...props}
-          key="new"
-          data={newData}
-          setData={setDatum}
-          isNew
-        />
       </Box>
-    </Box>
-  );
-}
+    );
+  }
+);
 
 const DataTable = React.memo(
   (props: {
@@ -108,9 +117,13 @@ const DataTable = React.memo(
     data: IChartData;
     setData: (data: IChartData) => void;
     deleteData?: (data: IChartData) => void;
+    setMode: React.Dispatch<React.SetStateAction<Mode>>;
+    setTargetDataIdx: React.Dispatch<React.SetStateAction<number | undefined>>;
+    index?: number;
     isNew?: boolean;
   }) => {
-    const {data, setData, deleteData, isNew} = props;
+    const {data, setData, deleteData, isNew, setMode, setTargetDataIdx, index} =
+      props;
     return (
       <Box component="div" sx={{mt: 2, mb: 2}}>
         <Box
@@ -149,13 +162,22 @@ const DataTable = React.memo(
             }}
           />
           {!isNew ? (
-            <Tooltip title="Delete">
-              <IconButton
-                onClick={deleteData ? () => deleteData(data) : undefined}
-              >
-                <CloseIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
+            <>
+              <Settings
+                title="Visualization settings"
+                onClick={() => {
+                  setMode('DataVisualization');
+                  setTargetDataIdx(index);
+                }}
+              />
+              <Tooltip title="Delete">
+                <IconButton
+                  onClick={deleteData ? () => deleteData(data) : undefined}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </>
           ) : null}
         </Box>
         <TableContainer>
