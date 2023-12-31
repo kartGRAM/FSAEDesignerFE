@@ -352,6 +352,50 @@ export const DataVisualization = React.memo(
                 prev.legendrank = value;
               })}
             />
+            <StringRow
+              name="stack group"
+              value={data.stackgroup}
+              setValue={apply((prev, value) => {
+                prev.stackgroup = value;
+              })}
+            />
+            <SelectorRow
+              name="group norm"
+              selection={['', 'fraction', 'percent'] as const}
+              value={data.groupnorm}
+              onChange={apply((prev, value) => {
+                prev.groupnorm = value;
+              })}
+            />
+            <SelectorRow
+              name="stack gaps"
+              selection={['infer zero', 'interpolate'] as const}
+              value={data.stackgaps}
+              onChange={apply((prev, value) => {
+                prev.stackgaps = value;
+              })}
+            />
+            <CheckBoxRow
+              name="connect gaps"
+              value={data.connectgaps ?? true}
+              setValue={apply((prev, value) => {
+                prev.connectgaps = value;
+              })}
+            />
+            <NoNullSelectorRow
+              name="visible"
+              selection={['true', 'false', 'legendonly'] as const}
+              value={
+                (data.visible ?? 'true').toString() as
+                  | 'true'
+                  | 'false'
+                  | 'legendonly'
+              }
+              onChange={apply((prev, value) => {
+                prev.visible =
+                  value === 'legendonly' ? value : value === 'true';
+              })}
+            />
           </TableBody>
         </Table>
       </TableContainer>
