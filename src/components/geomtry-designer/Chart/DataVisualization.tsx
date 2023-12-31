@@ -24,7 +24,12 @@ import {
   histNorms,
   hoverOns,
   hoverInfo,
-  hoverLabelAligns
+  hoverLabelAligns,
+  textInfo,
+  textPositions,
+  insideTextAnchors,
+  constrainTexts,
+  fills
 } from '@gd/charts/plotlyUtils';
 import {Mode} from './ChartSelector';
 import {
@@ -211,6 +216,88 @@ export const DataVisualization = React.memo(
               value={data.hovertext as string | undefined}
               setValue={apply((prev, value) => {
                 prev.hovertext = value;
+              })}
+            />
+            <StringRow
+              name="x hover format"
+              value={data.xhoverformat as string | undefined}
+              setValue={apply((prev, value) => {
+                prev.xhoverformat = value;
+              })}
+            />
+            <StringRow
+              name="y hover format"
+              value={data.yhoverformat as string | undefined}
+              setValue={apply((prev, value) => {
+                prev.yhoverformat = value;
+              })}
+            />
+            <StringRow
+              name="z hover format"
+              value={data.zhoverformat as string | undefined}
+              setValue={apply((prev, value) => {
+                prev.zhoverformat = value;
+              })}
+            />
+            <StringRow
+              name="text template"
+              value={data.texttemplate as string | undefined}
+              setValue={apply((prev, value) => {
+                prev.texttemplate = value;
+              })}
+            />
+            <SelectorRow
+              name="text info"
+              selection={textInfo}
+              value={data.textinfo}
+              onChange={apply((prev, value) => {
+                prev.textinfo = value;
+              })}
+            />
+            <SelectorRow
+              name="text position"
+              selection={textPositions}
+              value={data.textposition}
+              onChange={apply((prev, value) => {
+                prev.textposition = value;
+              })}
+            />
+            <FontRows
+              name="text font"
+              font={data.textfont}
+              setValue={apply((prev, value) => {
+                prev.textfont = value;
+              })}
+            />
+            <NullableNumberRow
+              name="text angle"
+              value={data.textangle as number}
+              setValue={apply((prev, value) => {
+                prev.textangle = value;
+              })}
+            />
+            <SelectorRow
+              name="inside text anchor"
+              selection={insideTextAnchors}
+              value={data.insidetextanchor}
+              onChange={apply((prev, value) => {
+                prev.insidetextanchor = value;
+              })}
+            />
+            <SelectorRow
+              name="constraint text"
+              selection={constrainTexts}
+              value={data.constraintext}
+              onChange={apply((prev, value) => {
+                prev.constraintext = value;
+              })}
+            />
+            <SelectorRow
+              name="fill"
+              selection={fills}
+              value={data.fill}
+              onChange={apply((prev, value) => {
+                prev.fill = value;
               })}
             />
           </TableBody>

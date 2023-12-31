@@ -616,3 +616,49 @@ export const hoverInfo = [
 ] as const;
 
 export const hoverLabelAligns = ['left', 'right', 'auto'] as const;
+
+export const textInfo = [
+  'label',
+  'label+text',
+  'label+value',
+  'label+percent',
+  'label+text+value',
+  'label+text+percent',
+  'label+value+percent',
+  'text',
+  'text+value',
+  'text+percent',
+  'text+value+percent',
+  'value',
+  'value+percent',
+  'percent',
+  'none'
+] as const;
+
+export const textPositions = [
+  'top left',
+  'top center',
+  'top right',
+  'middle left',
+  'middle center',
+  'middle right',
+  'bottom left',
+  'bottom center',
+  'bottom right',
+  'inside',
+  'outside',
+  'auto',
+  'none'
+] as const;
+
+export const insideTextAnchors = ['end', 'middle', 'start'] as const;
+export const constrainTexts = ['inside', 'outside', 'both', 'none'] as const;
+export const fills = [
+  'none',
+  'tozeroy',
+  'tozerox',
+  'tonexty',
+  'tonextx',
+  'toself',
+  'tonext'
+] as const;
