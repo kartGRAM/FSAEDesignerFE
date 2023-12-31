@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Font, DataTitle} from 'plotly.js';
+import {Font, DataTitle, Pattern} from 'plotly.js';
 import store from '@store/store';
 import {TableRow, TableCell, Checkbox, Typography} from '@mui/material';
 import NativeSelect, {SelectChangeEvent} from '@mui/material/Select';
@@ -389,6 +389,85 @@ export const FontRows = React.memo(
           onChange={(c) => {
             setValue({...newFont, color: c});
           }}
+        />
+      </>
+    );
+  }
+);
+
+export const PatternRows = React.memo(
+  (props: {
+    name: string;
+    pattern?: Partial<Pattern>;
+    setValue: (value: Partial<Pattern>) => void;
+  }) => {
+    const {name, pattern, setValue} = props;
+
+    const newPattern: Partial<Pattern> = {
+      ...pattern,
+      shape: pattern?.shape ?? '',
+      fillmode: pattern?.fillmode ?? 'replace',
+      solidity: pattern?.solidity ?? 0.3,
+      size: pattern?.size ?? 8
+    };
+
+    return (
+      <>
+        <SelectorRow
+          name={`${name}: shape`}
+          selection={['', '/', '\\', 'x', '-', '|', '+', '.'] as const}
+          value={newPattern.shape}
+          onChange={(value) => {
+            setValue({...newPattern, shape: value});
+          }}
+        />
+        <SelectorRow
+          name={`${name}: fillmode`}
+          selection={['replace', 'overlay'] as const}
+          value={newPattern.fillmode}
+          onChange={(value) => {
+            setValue({...newPattern, fillmode: value});
+          }}
+        />
+        <NullableColorPickerRow
+          name={`${name}: bgcolor`}
+          color={newPattern.bgcolor as string}
+          onChange={(c) => {
+            setValue({...newPattern, bgcolor: c});
+          }}
+        />
+        <NullableColorPickerRow
+          name={`${name}: fgcolor`}
+          color={newPattern.fgcolor as string}
+          onChange={(c) => {
+            setValue({...newPattern, fgcolor: c});
+          }}
+        />
+        <NullableNumberRow
+          name={`${name}: opacity`}
+          value={newPattern.fgopacity as any}
+          setValue={(value) => {
+            setValue({...newPattern, fgopacity: value as any});
+          }}
+          min={0}
+          max={1}
+        />
+        <NullableNumberRow
+          name={`${name}: size`}
+          value={newPattern.size}
+          setValue={(value) => {
+            setValue({...newPattern, size: value});
+          }}
+          min={0}
+        />
+        <NullableNumberRow
+          name={`${name}: solidity`}
+          value={newPattern.solidity}
+          setValue={(value) => {
+            setValue({...newPattern, solidity: value});
+          }}
+          min={0}
+          max={1}
         />
       </>
     );

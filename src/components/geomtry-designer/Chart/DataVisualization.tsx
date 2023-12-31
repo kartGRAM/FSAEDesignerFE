@@ -40,6 +40,7 @@ import {
   NoNullSelectorRow,
   NumberRow,
   FontRows,
+  PatternRows,
   StringRow,
   NullableNumberRow
 } from './SettingRows';
@@ -298,6 +299,57 @@ export const DataVisualization = React.memo(
               value={data.fill}
               onChange={apply((prev, value) => {
                 prev.fill = value;
+              })}
+            />
+            <NullableColorPickerRow
+              name="fill color"
+              color={data.fillcolor}
+              onChange={apply((prev, c) => {
+                prev.fillcolor = c;
+              })}
+            />
+            <PatternRows
+              name="fill pattern"
+              pattern={data.fillpattern}
+              setValue={apply((prev, value) => {
+                prev.fillpattern = value;
+              })}
+            />
+            <CheckBoxRow
+              name="show legend"
+              value={data.showlegend ?? true}
+              setValue={apply((prev, value) => {
+                prev.showlegend = value;
+              })}
+            />
+            <StringRow
+              name="legend group"
+              value={data.legendgroup}
+              setValue={apply((prev, value) => {
+                prev.legendgroup = value;
+              })}
+            />
+            <StringRow
+              name="legend group title"
+              value={data.legendgrouptitle?.text}
+              setValue={apply((prev, value) => {
+                if (!prev.legendgrouptitle) prev.legendgrouptitle = {text: ''};
+                prev.legendgrouptitle.text = value ?? '';
+              })}
+            />
+            <FontRows
+              name="legend group title font"
+              font={data.legendgrouptitle?.font}
+              setValue={apply((prev, value) => {
+                if (!prev.legendgrouptitle) prev.legendgrouptitle = {text: ''};
+                prev.legendgrouptitle.font = value;
+              })}
+            />
+            <NullableNumberRow
+              name="legend rank"
+              value={data.legendrank as number}
+              setValue={apply((prev, value) => {
+                prev.legendrank = value;
               })}
             />
           </TableBody>
