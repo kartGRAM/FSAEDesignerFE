@@ -360,18 +360,20 @@ export const NullableNumberArrayRow = React.memo(
     setValue: (value: number[] | undefined) => void;
     min?: number;
     max?: number;
+    sizeMin?: number;
+    sizeMax?: number;
     integer?: boolean;
   }) => {
-    const {name, value, setValue, min, max, integer} = props;
+    const {name, value, setValue, min, max, integer, sizeMin, sizeMax} = props;
 
-    let schema = yup.string().numberArray(!!integer);
+    let schema = yup.string().numberArray(!!integer, sizeMin, sizeMax);
     if (min !== undefined) schema = schema.arrayMin(min);
     if (max !== undefined) schema = schema.arrayMax(max);
 
     const formik = useFormik({
       enableReinitialize: true,
       initialValues: {
-        values: value ? value.map((v) => toFixedNoZero(v, 3)).join(' ,') : ''
+        values: value ? value.map((v) => toFixedNoZero(v, 3)).join(', ') : ''
       },
       validationSchema: yup.object({
         values: schema
@@ -402,7 +404,7 @@ export const NullableNumberArrayRow = React.memo(
           <TextField
             sx={{width: '100%'}}
             hiddenLabel
-            name="value"
+            name="values"
             variant="standard"
             onBlur={formik.handleBlur}
             onChange={formik.handleChange}

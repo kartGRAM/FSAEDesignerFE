@@ -31,27 +31,39 @@ yup.addMethod(yup.string, 'variableName', function () {
   );
 });
 
-// eslint-disable-next-line func-names
-yup.addMethod(yup.string, 'numberArray', function (integer?: boolean) {
-  return this.test('numberArray', '', (input, {createError}) => {
-    if (!input) return true;
-    const woSpace = input.replace(' ', '');
-    const values = woSpace.split(',');
-    for (const value of values) {
-      if (!isNumber(value)) {
+yup.addMethod(
+  yup.string,
+  'numberArray',
+  // eslint-disable-next-line func-names
+  function (integer?: boolean, sizeMin?: number, sizeMax?: number) {
+    return this.test('numberArray', '', (input, {createError}) => {
+      if (!input) return true;
+      const woSpace = input.replace(' ', '');
+      const values = woSpace.split(',');
+      if (sizeMax && values.length > sizeMax)
         return createError({
-          message: 'Invalid number array'
+          message: `Array size must be less than${sizeMax}`
         });
-      }
-      if (integer && !Number.isInteger(value)) {
+      if (sizeMin && values.length < sizeMin)
         return createError({
-          message: 'Each number must be integer'
+          message: `Array size must be greater than${sizeMin}`
         });
+      for (const value of values) {
+        if (!isNumber(value)) {
+          return createError({
+            message: 'Invalid number array'
+          });
+        }
+        if (integer && !Number.isInteger(Number(value))) {
+          return createError({
+            message: 'Each number must be integer'
+          });
+        }
       }
-    }
-    return true;
-  });
-});
+      return true;
+    });
+  }
+);
 
 // eslint-disable-next-line func-names
 yup.addMethod(yup.string, 'arrayMax', function (max: number) {
@@ -262,7 +274,11 @@ declare module 'yup' {
       end: number | null
     ): RequiredStringSchema<TType, TContext>;
     variableName(): RequiredStringSchema<TType, TContext>;
-    numberArray(integer: boolean): RequiredStringSchema<TType, TContext>;
+    numberArray(
+      integer: boolean,
+      sizeMin?: number,
+      sizeMax?: number
+    ): RequiredStringSchema<TType, TContext>;
     arrayMax(max: number): RequiredStringSchema<TType, TContext>;
     arrayMin(min: number): RequiredStringSchema<TType, TContext>;
     noMathFunctionsName(): RequiredStringSchema<TType, TContext>;

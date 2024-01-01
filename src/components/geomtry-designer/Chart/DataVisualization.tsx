@@ -42,6 +42,7 @@ import {
   NumberRow,
   FontRows,
   PatternRows,
+  DataTitleRows,
   StringRow,
   NullableNumberRow,
   NullableNumberArrayRow
@@ -146,7 +147,9 @@ export const DataVisualization = React.memo(
             <NullableNumberArrayRow
               name="domain x"
               min={0}
-              integer
+              max={1}
+              sizeMin={2}
+              sizeMax={2}
               value={data.domain?.x}
               setValue={apply((prev, value) => {
                 if (!prev.domain) prev.domain = {};
@@ -156,11 +159,13 @@ export const DataVisualization = React.memo(
             <NullableNumberArrayRow
               name="domain y"
               min={0}
-              integer
-              value={data.domain?.x}
+              max={1}
+              sizeMin={2}
+              sizeMax={2}
+              value={data.domain?.y}
               setValue={apply((prev, value) => {
                 if (!prev.domain) prev.domain = {};
-                prev.domain.x = value;
+                prev.domain.y = value;
               })}
             />
 
@@ -460,7 +465,11 @@ export const DataVisualization = React.memo(
             <SelectorRow
               name="box mean"
               selection={['true', 'false', 'sd'] as const}
-              value={data.boxmean!.toString() as 'true' | 'false' | 'sd'}
+              value={
+                !data.boxmean
+                  ? undefined
+                  : (data.boxmean.toString() as 'true' | 'false' | 'sd')
+              }
               onChange={apply((prev, value) => {
                 prev.boxmean = value === 'sd' ? value : value === 'true';
               })}
@@ -471,11 +480,13 @@ export const DataVisualization = React.memo(
                 ['all', 'outliers', 'suspectedoutliers', 'false'] as const
               }
               value={
-                data.boxpoints!.toString() as
-                  | 'all'
-                  | 'outliers'
-                  | 'suspectedoutliers'
-                  | 'false'
+                !data.boxpoints
+                  ? undefined
+                  : (data.boxpoints.toString() as
+                      | 'all'
+                      | 'outliers'
+                      | 'suspectedoutliers'
+                      | 'false')
               }
               onChange={apply((prev, value) => {
                 prev.boxpoints = value === 'false' ? false : value;
@@ -522,7 +533,11 @@ export const DataVisualization = React.memo(
             <SelectorRow
               name="z smooth"
               selection={['fast', 'best', 'false'] as const}
-              value={data.zsmooth!.toString() as 'fast' | 'best' | 'false'}
+              value={
+                !data.zsmooth
+                  ? undefined
+                  : (data.zsmooth.toString() as 'fast' | 'best' | 'false')
+              }
               onChange={apply((prev, value) => {
                 prev.zsmooth = value === 'false' ? false : value;
               })}
@@ -614,10 +629,106 @@ export const DataVisualization = React.memo(
                 prev.value = value;
               })}
             />
+            <DataTitleRows
+              name="title"
+              dataTitle={data.title}
+              setValue={apply((prev, value) => {
+                prev.title = value;
+              })}
+            />
+            <SelectorRow
+              name="branch values"
+              selection={['total', 'remainder'] as const}
+              value={data.branchvalues as 'total' | 'remainder' | undefined}
+              onChange={apply((prev, value) => {
+                prev.branchvalues = value;
+              })}
+            />
+            <StringRow
+              name="level"
+              value={data.level}
+              setValue={apply((prev, value) => {
+                prev.level = value;
+              })}
+            />
+            <CheckBoxRow
+              name="clip on axis"
+              value={data.cliponaxis ?? false}
+              setValue={apply((prev, value) => {
+                prev.cliponaxis = value;
+              })}
+            />
+            <CheckBoxRow
+              name="auto margin"
+              value={data.automargin ?? true}
+              setValue={apply((prev, value) => {
+                prev.automargin = value;
+              })}
+            />
+            <SelectorRow
+              name="location mode"
+              selection={
+                ['ISO-3', 'USA-states', 'country names', 'geojson-id'] as const
+              }
+              value={
+                data.locationmode as
+                  | 'ISO-3'
+                  | 'USA-states'
+                  | 'country names'
+                  | 'geojson-id'
+                  | undefined
+              }
+              onChange={apply((prev, value) => {
+                prev.locationmode = value;
+              })}
+            />
+            <CheckBoxRow
+              name="reverse cale"
+              value={data.reversescale ?? true}
+              setValue={apply((prev, value) => {
+                prev.reversescale = value;
+              })}
+            />
+            <NullableNumberRow
+              name="offset"
+              value={data.offset}
+              setValue={apply((prev, value) => {
+                prev.offset = value;
+              })}
+            />
             {/*
             customdata: Datum[] | Datum[][];
             selectedpoints: Datum[];
+            locations: Datum[];
+            colorbar: Partial<ColorBar>;
+            contours: Partial<{
+                coloring: 'fill' | 'heatmap' | 'lines' | 'none';
+                end: number;
+                labelfont: Partial<Font>;
+                labelformat: string;
+                operation: '=' | '<' | '>=' | '>' | '<=' | '[]' | '()' | '[)' | '(]' | '][' | ')(' | '](' | ')[';
+                showlabels: boolean;
+                showlines: boolean;
+                size: number;
+                start: number;
+                type: 'levels' | 'constraint';
+                value: number | [lowerBound: number, upperBound: number];
+            }>;
              */}
+            <CheckBoxRow
+              name="auto contour"
+              value={data.autocontour ?? true}
+              setValue={apply((prev, value) => {
+                prev.autocontour = value;
+              })}
+            />
+            <NullableNumberRow
+              name="n contours"
+              value={data.ncontours}
+              setValue={apply((prev, value) => {
+                prev.ncontours = value;
+              })}
+            />
           </TableBody>
         </Table>
       </TableContainer>
