@@ -29,7 +29,8 @@ import {
   textPositions,
   insideTextAnchors,
   constrainTexts,
-  fills
+  fills,
+  orientations
 } from '@gd/charts/plotlyUtils';
 import {Mode} from './ChartSelector';
 import {
@@ -396,6 +397,145 @@ export const DataVisualization = React.memo(
                   value === 'legendonly' ? value : value === 'true';
               })}
             />
+            {
+              // Delta Gauge number transform
+            }
+            <SelectorRow
+              name="orientation"
+              selection={orientations}
+              value={data.orientation}
+              onChange={apply((prev, value) => {
+                prev.orientation = value;
+              })}
+            />
+            <NullableNumberRow
+              name="width"
+              value={data.width as number | undefined}
+              setValue={apply((prev, value) => {
+                prev.width = value;
+              })}
+            />
+            <SelectorRow
+              name="box mean"
+              selection={['true', 'false', 'sd'] as const}
+              value={data.boxmean!.toString() as 'true' | 'false' | 'sd'}
+              onChange={apply((prev, value) => {
+                prev.boxmean = value === 'sd' ? value : value === 'true';
+              })}
+            />
+            <SelectorRow
+              name="box points"
+              selection={
+                ['all', 'outliers', 'suspectedoutliers', 'false'] as const
+              }
+              value={
+                data.boxpoints!.toString() as
+                  | 'all'
+                  | 'outliers'
+                  | 'suspectedoutliers'
+                  | 'false'
+              }
+              onChange={apply((prev, value) => {
+                prev.boxpoints = value === 'false' ? false : value;
+              })}
+            />
+            <NullableNumberRow
+              name="jitter"
+              value={data.jitter}
+              setValue={apply((prev, value) => {
+                prev.jitter = value;
+              })}
+            />
+            <NullableNumberRow
+              name="point pos"
+              value={data.pointpos}
+              setValue={apply((prev, value) => {
+                prev.pointpos = value;
+              })}
+            />
+            <NullableNumberRow
+              name="opacity"
+              value={data.opacity}
+              setValue={apply((prev, value) => {
+                prev.opacity = value;
+              })}
+              min={0}
+              max={1}
+            />
+            <CheckBoxRow
+              name="show scale"
+              value={data.showscale ?? false}
+              setValue={apply((prev, value) => {
+                prev.showscale = value;
+              })}
+            />
+            <SelectorRow
+              name="color scale"
+              selection={colorScales}
+              value={data.colorscale}
+              onChange={apply((prev, value) => {
+                prev.colorscale = value;
+              })}
+            />
+            <SelectorRow
+              name="z smooth"
+              selection={['fast', 'best', 'false'] as const}
+              value={data.zsmooth!.toString() as 'fast' | 'best' | 'false'}
+              onChange={apply((prev, value) => {
+                prev.zsmooth = value === 'false' ? false : value;
+              })}
+            />
+            <NullableNumberRow
+              name="z min"
+              value={data.zmin}
+              setValue={apply((prev, value) => {
+                prev.zmin = value;
+              })}
+            />
+            <NullableNumberRow
+              name="z min"
+              value={data.zmin}
+              setValue={apply((prev, value) => {
+                prev.zmin = value;
+              })}
+            />
+            <NullableNumberRow
+              name="z max"
+              value={data.zmax}
+              setValue={apply((prev, value) => {
+                prev.zmax = value;
+              })}
+            />
+            <NullableNumberRow
+              name="x gap"
+              value={data.xgap}
+              setValue={apply((prev, value) => {
+                prev.xgap = value;
+              })}
+            />
+            <NullableNumberRow
+              name="y gap"
+              value={data.ygap}
+              setValue={apply((prev, value) => {
+                prev.ygap = value;
+              })}
+            />
+            <CheckBoxRow
+              name="transpose"
+              value={data.transpose ?? false}
+              setValue={apply((prev, value) => {
+                prev.transpose = value;
+              })}
+            />
+            <CheckBoxRow
+              name="auto bin x"
+              value={data.autobinx ?? false}
+              setValue={apply((prev, value) => {
+                prev.autobinx = value;
+              })}
+            />
+            {/*
+            autobinx: boolean; */}
           </TableBody>
         </Table>
       </TableContainer>
