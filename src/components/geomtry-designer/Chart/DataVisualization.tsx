@@ -529,13 +529,44 @@ export const DataVisualization = React.memo(
             />
             <CheckBoxRow
               name="auto bin x"
-              value={data.autobinx ?? false}
+              value={data.autobinx ?? true}
               setValue={apply((prev, value) => {
                 prev.autobinx = value;
               })}
             />
+            {!data.autobinx ? (
+              <>
+                <NullableNumberRow
+                  name="x bin start"
+                  value={data.xbins?.start as number | undefined}
+                  setValue={apply((prev, value) => {
+                    if (!prev.xbins)
+                      prev.xbins = {start: '', end: '', size: ''};
+                    if (value) prev.xbins.start = value;
+                  })}
+                />
+                <NullableNumberRow
+                  name="x bin end"
+                  value={data.xbins?.end as number | undefined}
+                  setValue={apply((prev, value) => {
+                    if (!prev.xbins)
+                      prev.xbins = {start: '', end: '', size: ''};
+                    if (value) prev.xbins.end = value;
+                  })}
+                />
+                <NullableNumberRow
+                  name="x bin size"
+                  value={data.xbins?.size as number | undefined}
+                  setValue={apply((prev, value) => {
+                    if (!prev.xbins)
+                      prev.xbins = {start: '', end: '', size: ''};
+                    if (value) prev.xbins.size = value;
+                  })}
+                />
+              </>
+            ) : null}
             {/*
-            autobinx: boolean; */}
+             */}
           </TableBody>
         </Table>
       </TableContainer>
