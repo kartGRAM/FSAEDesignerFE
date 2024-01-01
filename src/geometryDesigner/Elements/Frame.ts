@@ -7,11 +7,10 @@ import {
   isDataElement,
   Elements,
   IElement,
-  isBody,
-  IDataFrame,
-  IBody,
   assignMeta
 } from '../IElements';
+import {isBody, IBody} from '../IElements/IBody';
+import {IDataFrame} from '../IElements/IFrame';
 import {Assembly} from './Assembly';
 import {Body} from './Body';
 

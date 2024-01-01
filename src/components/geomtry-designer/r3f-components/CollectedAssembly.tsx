@@ -2,15 +2,13 @@ import * as React from 'react';
 import * as THREE from 'three';
 import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
-import {
-  isBody,
-  isAArm,
-  isBar,
-  isBellCrank,
-  isSpringDumper,
-  isTire,
-  isLinearBushing
-} from '@gd/IElements';
+import {isAArm} from '@gd/IElements/IAArm';
+import {isBody} from '@gd/IElements/IBody';
+import {isBellCrank} from '@gd/IElements/IBellCrank';
+import {isBar} from '@gd/IElements/IBar';
+import {isTire} from '@gd/IElements/ITire';
+import {isSpringDumper} from '@gd/IElements/ISpringDumper';
+import {isLinearBushing} from '@gd/IElements/ILinearBushing';
 import Body from './Body';
 import AArm from './AArm';
 import Bar from './Bar';

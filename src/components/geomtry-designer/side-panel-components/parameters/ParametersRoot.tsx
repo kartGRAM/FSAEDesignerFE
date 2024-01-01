@@ -1,20 +1,18 @@
 import * as React from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 import {RootState} from '@store/store';
-import {
-  getElementByPath,
-  isAArm,
-  isBar,
-  isBellCrank,
-  isBody,
-  isTire,
-  isSpringDumper,
-  isLinearBushing,
-  isAssembly
-} from '@gd/IElements';
+import {getElementByPath} from '@gd/IElements';
 import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
 import {Box} from '@mui/material';
 import {alpha} from '@mui/material/styles';
+import {isAssembly} from '@gd/IElements/IAssembly';
+import {isAArm} from '@gd/IElements/IAArm';
+import {isBar} from '@gd/IElements/IBar';
+import {isBellCrank} from '@gd/IElements/IBellCrank';
+import {isBody} from '@gd/IElements/IBody';
+import {isLinearBushing} from '@gd/IElements/ILinearBushing';
+import {isSpringDumper} from '@gd/IElements/ISpringDumper';
+import {isTire} from '@gd/IElements/ITire';
 import AArmConfig from './AArmConfig';
 import BarConfig from './BarConfig';
 import SpringDumperConfig from './SpringDumperConfig';

@@ -5,25 +5,25 @@ import {
   IDataElement,
   IAssembly,
   IDataAssembly,
-  isDataAssembly,
-  isDataFrame,
-  isDataBar,
-  isDataSpringDumper,
-  isDataAArm,
-  isDataBellCrank,
-  isDataBody,
-  isDataLinearBushing,
-  isDataTire
+  isDataAssembly
 } from './IElements';
 import {AArm} from './Elements/AArm';
+import {isDataAArm} from './IElements/IAArm';
 import {Assembly} from './Elements/Assembly';
 import {Bar} from './Elements/Bar';
+import {isDataBar} from './IElements/IBar';
 import {BellCrank} from './Elements/BellCrank';
+import {isDataBellCrank} from './IElements/IBellCrank';
 import {Body} from './Elements/Body';
+import {isDataBody} from './IElements/IBody';
 import {Frame} from './Elements/Frame';
+import {isDataFrame} from './IElements/IFrame';
 import {LinearBushing} from './Elements/LinearBushing';
+import {isDataLinearBushing} from './IElements/ILinearBushing';
 import {SpringDumper} from './Elements/SpringDumper';
+import {isDataSpringDumper} from './IElements/ISpringDumper';
 import {Tire} from './Elements/Tire';
+import {isDataTire} from './IElements/ITire';
 
 export {
   AArm,

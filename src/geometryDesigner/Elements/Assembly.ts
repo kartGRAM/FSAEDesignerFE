@@ -1,5 +1,4 @@
 import {Vector3} from 'three';
-// import * as THREE from 'three';
 import {
   NamedVector3,
   NamedVector3LW,
@@ -15,24 +14,25 @@ import {
   INamedVector3RO,
   FunctionVector3
 } from '@gd/INamedValues';
-
 import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {
   isDataElement,
   MirrorError,
   Elements,
-  Joint,
-  JointAsVector3,
   NodeID,
   IElement,
   isElement,
   IDataElement,
-  IAssembly,
-  IDataAssembly,
-  isAssembly,
   assignMeta,
   isMirror
 } from '../IElements';
+import {
+  Joint,
+  JointAsVector3,
+  IAssembly,
+  IDataAssembly,
+  isAssembly
+} from '../IElements/IAssembly';
 import {Element, mirrorVec} from './ElementBase';
 import {getElement} from '../Elements';
 

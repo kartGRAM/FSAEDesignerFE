@@ -4,7 +4,8 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {ISpringDumper, isMirrorElement} from '@gd/IElements';
+import {isMirrorElement} from '@gd/IElements';
+import {ISpringDumper} from '@gd/IElements/ISpringDumper';
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '@store/store';
 import {

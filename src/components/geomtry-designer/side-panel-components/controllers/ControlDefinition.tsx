@@ -21,7 +21,9 @@ import {
 } from '@gd/controls/ExistingConstraintControl';
 
 import store from '@store/store';
-import {IElement, isLinearBushing, isSpringDumper} from '@gd/IElements';
+import {IElement} from '@gd/IElements';
+import {isLinearBushing} from '@gd/IElements/ILinearBushing';
+import {isSpringDumper} from '@gd/IElements/ISpringDumper';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
 import MenuItem from '@mui/material/MenuItem';

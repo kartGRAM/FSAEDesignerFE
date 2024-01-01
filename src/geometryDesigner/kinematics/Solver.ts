@@ -2,17 +2,13 @@
 /* eslint-disable no-lone-blocks */
 import {Matrix, SingularValueDecomposition} from 'ml-matrix';
 import {Control} from '@gd/controls/IControls';
-import {
-  IElement,
-  IAssembly,
-  isAArm,
-  isBar,
-  isTire,
-  isLinearBushing,
-  isSpringDumper,
-  isSimplifiedElement,
-  JointAsVector3
-} from '@gd/IElements';
+import {IElement, IAssembly, isSimplifiedElement} from '@gd/IElements';
+import {JointAsVector3} from '@gd/IElements/IAssembly';
+import {isAArm} from '@gd/IElements/IAArm';
+import {isBar} from '@gd/IElements/IBar';
+import {isTire} from '@gd/IElements/ITire';
+import {isSpringDumper} from '@gd/IElements/ISpringDumper';
+import {isLinearBushing} from '@gd/IElements/ILinearBushing';
 import {Vector3, Quaternion} from 'three';
 import {isPointToPlaneControl} from '@gd/controls/PointToPlaneControl';
 import {hasNearestNeighborToPlane} from '@gd/SpecialPoints';

@@ -6,7 +6,11 @@ import {useSelector, useDispatch} from 'react-redux';
 import {setMovingMode} from '@store/reducers/uiTempGeometryDesigner';
 
 import store, {RootState} from '@store/store';
-import {isAArm, isBar, isTire, isSpringDumper} from '@gd/IElements';
+
+import {isAArm} from '@gd/IElements/IAArm';
+import {isBar} from '@gd/IElements/IBar';
+import {isTire} from '@gd/IElements/ITire';
+import {isSpringDumper} from '@gd/IElements/ISpringDumper';
 import {
   canSimplifyAArm,
   isFixedElement,

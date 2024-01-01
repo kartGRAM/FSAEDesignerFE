@@ -4,11 +4,8 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {
-  IAssembly,
-  IElement,
-  isFrame /* isSimplifiedElement */
-} from '@gd/IElements';
+import {IAssembly, IElement} from '@gd/IElements';
+import {isFrame /* isSimplifiedElement */} from '@gd/IElements/IFrame';
 import {INamedVector3RO} from '@gd/INamedValues';
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '@store/store';

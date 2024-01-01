@@ -2,17 +2,15 @@
 import {
   isElement,
   isBodyOfFrame,
-  JointAsVector3,
-  IAArm,
-  isBar,
-  isSpringDumper,
-  isTire,
-  isLinearBushing,
-  isAArm,
-  ITire,
   IElement,
   isSimplifiedElement
 } from '@gd/IElements';
+import {JointAsVector3} from '@gd/IElements/IAssembly';
+import {IAArm, isAArm} from '@gd/IElements/IAArm';
+import {isBar} from '@gd/IElements/IBar';
+import {ITire, isTire} from '@gd/IElements/ITire';
+import {isSpringDumper} from '@gd/IElements/ISpringDumper';
+import {isLinearBushing} from '@gd/IElements/ILinearBushing';
 import {INamedVector3RO} from '@gd/INamedValues';
 import {Matrix} from 'ml-matrix';
 import {Quaternion, Vector3} from 'three';

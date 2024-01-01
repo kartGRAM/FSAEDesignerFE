@@ -29,12 +29,12 @@ import {
   assignMeta,
   isMirror
 } from '../IElements';
+import {Element, mirrorVec} from './ElementBase';
 import {
   ILinearBushing,
   IDataLinearBushing,
   isLinearBushing
 } from '../IElements/ILinearBushing';
-import {Element, mirrorVec} from './ElementBase';
 
 export class LinearBushing extends Element implements ILinearBushing {
   // eslint-disable-next-line class-methods-use-this

@@ -1,14 +1,12 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable max-classes-per-file */
-import {
-  IElement,
-  IAArm,
-  IBar,
-  ITire,
-  ILinearBushing,
-  JointAsVector3,
-  isSpringDumper
-} from '@gd/IElements';
+import {IElement} from '@gd/IElements';
+import {JointAsVector3} from '@gd/IElements/IAssembly';
+import {IAArm} from '@gd/IElements/IAArm';
+import {IBar} from '@gd/IElements/IBar';
+import {ITire} from '@gd/IElements/ITire';
+import {isSpringDumper} from '@gd/IElements/ISpringDumper';
+import {ILinearBushing} from '@gd/IElements/ILinearBushing';
 import {INamedVector3RO} from '@gd/INamedValues';
 import {Vector3, Quaternion} from 'three';
 

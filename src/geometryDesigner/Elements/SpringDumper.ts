@@ -13,11 +13,11 @@ import {
   MirrorError,
   Elements,
   NodeID,
-  ISpringDumper,
-  IDataSpringDumper,
   assignMeta,
   isMirror
 } from '../IElements';
+
+import {ISpringDumper, IDataSpringDumper} from '../IElements/ISpringDumper';
 import {mirrorVec} from './ElementBase';
 import {Bar} from './Bar';
 

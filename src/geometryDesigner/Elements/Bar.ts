@@ -18,12 +18,10 @@ import {
   isDataElement,
   MirrorError,
   Elements,
-  isBar,
-  IBar,
-  IDataBar,
   assignMeta,
   isMirror
 } from '../IElements';
+import {isBar, IBar, IDataBar} from '../IElements/IBar';
 import {Element, mirrorVec} from './ElementBase';
 
 export class Bar extends Element implements IBar {

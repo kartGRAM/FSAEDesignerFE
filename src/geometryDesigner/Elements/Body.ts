@@ -16,12 +16,10 @@ import {
   isBodyOfFrame,
   MirrorError,
   Elements,
-  isBody,
-  IBody,
-  IDataBody,
   assignMeta,
   isMirror
 } from '../IElements';
+import {isBody, IBody, IDataBody} from '../IElements/IBody';
 import {Element, mirrorVec, syncPointsMirror} from './ElementBase';
 
 export class Body extends Element implements IBody {

@@ -3,8 +3,6 @@ import {
   IAssembly,
   isElement,
   isAssembly
-  // IElement
-  // getElementByPath
 } from '@app/geometryDesigner/IElements';
 import {IBidirectionalNode, getRootNode} from '@gd/INode';
 import {IDataControl} from '@gd/controls/IControls';

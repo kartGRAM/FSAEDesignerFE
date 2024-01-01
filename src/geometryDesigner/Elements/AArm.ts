@@ -16,12 +16,10 @@ import {
   isDataElement,
   MirrorError,
   Elements,
-  isAArm,
-  IAArm,
-  IDataAArm,
   assignMeta,
   isMirror
 } from '../IElements';
+import {isAArm, IAArm, IDataAArm} from '../IElements/IAArm';
 import {Element, mirrorVec, syncPointsMirror} from './ElementBase';
 
 export class AArm extends Element implements IAArm {

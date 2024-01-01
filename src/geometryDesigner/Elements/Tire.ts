@@ -12,7 +12,6 @@ import {
   IDataVector3,
   INamedVector3,
   INamedVector3RO,
-  // isNamedVector3,
   FunctionVector3
 } from '@gd/INamedValues';
 
@@ -22,12 +21,10 @@ import {
   isDataElement,
   MirrorError,
   Elements,
-  isTire,
-  ITire,
-  IDataTire,
   assignMeta,
   isMirror
 } from '../IElements';
+import {isTire, ITire, IDataTire} from '../IElements/ITire';
 import {Element, mirrorVec} from './ElementBase';
 
 export class Tire extends Element implements ITire {

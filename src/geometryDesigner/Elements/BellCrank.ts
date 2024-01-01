@@ -15,12 +15,10 @@ import {
   isDataElement,
   MirrorError,
   Elements,
-  isBellCrank,
-  IBellCrank,
-  IDataBellCrank,
   assignMeta,
   isMirror
 } from '../IElements';
+import {isBellCrank, IBellCrank, IDataBellCrank} from '../IElements/IBellCrank';
 import {Element, mirrorVec, syncPointsMirror} from './ElementBase';
 
 export class BellCrank extends Element implements IBellCrank {
