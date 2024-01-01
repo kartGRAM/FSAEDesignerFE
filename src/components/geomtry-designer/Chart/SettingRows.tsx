@@ -7,7 +7,7 @@ import {MuiColorInput, MuiColorInputColors} from 'mui-color-input';
 import {useFormik} from 'formik';
 import yup from '@app/utils/Yup';
 import TextField from '@mui/material/TextField';
-import {isNumber, fontFamilies, deepCopy} from '@utils/helpers';
+import {isNumber, fontFamilies, deepCopy, toFixedNoZero} from '@utils/helpers';
 import {positions} from '@gd/charts/plotlyUtils';
 
 export const CheckBoxRow = React.memo(
@@ -301,10 +301,12 @@ export const NullableNumberRow = React.memo(
     setValue: (value: number | undefined) => void;
     min?: number;
     max?: number;
+    integer?: boolean;
   }) => {
-    const {name, value, setValue, min, max} = props;
+    const {name, value, setValue, min, max, integer} = props;
 
     let schema = yup.number();
+    if (integer) schema = schema.integer();
     if (min !== undefined) schema = schema.min(min);
     if (max !== undefined) schema = schema.max(max);
 
@@ -343,6 +345,71 @@ export const NullableNumberRow = React.memo(
             value={formik.values.value}
             error={formik.touched.value && formik.errors.value !== undefined}
             helperText={formik.touched.value && formik.errors.value}
+          />
+        </TableCell>
+        <TableCell scope="row" padding="none" align="left" />
+      </TableRow>
+    );
+  }
+);
+
+export const NullableNumberArrayRow = React.memo(
+  (props: {
+    name: string;
+    value: number[] | undefined;
+    setValue: (value: number[] | undefined) => void;
+    min?: number;
+    max?: number;
+    integer?: boolean;
+  }) => {
+    const {name, value, setValue, min, max, integer} = props;
+
+    let schema = yup.string().numberArray(!!integer);
+    if (min !== undefined) schema = schema.arrayMin(min);
+    if (max !== undefined) schema = schema.arrayMax(max);
+
+    const formik = useFormik({
+      enableReinitialize: true,
+      initialValues: {
+        values: value ? value.map((v) => toFixedNoZero(v, 3)).join(' ,') : ''
+      },
+      validationSchema: yup.object({
+        values: schema
+      }),
+      onSubmit: (values) => {
+        if (values.values === '') {
+          setValue(undefined);
+        }
+        const numbers = values.values
+          .replace(' ', '')
+          .split(',')
+          .map((v) => Number(v));
+        setValue(numbers);
+      }
+    });
+
+    const onEnter = (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === 'Enter') {
+        formik.handleSubmit();
+      }
+    };
+    return (
+      <TableRow>
+        <TableCell scope="row" align="left">
+          {name}
+        </TableCell>
+        <TableCell scope="row" padding="none" align="left">
+          <TextField
+            sx={{width: '100%'}}
+            hiddenLabel
+            name="value"
+            variant="standard"
+            onBlur={formik.handleBlur}
+            onChange={formik.handleChange}
+            onKeyDown={onEnter}
+            value={formik.values.values}
+            error={formik.touched.values && formik.errors.values !== undefined}
+            helperText={formik.touched.values && formik.errors.values}
           />
         </TableCell>
         <TableCell scope="row" padding="none" align="left" />

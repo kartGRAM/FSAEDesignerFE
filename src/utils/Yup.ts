@@ -4,6 +4,7 @@ import {AnyObject, Maybe} from 'yup/lib/types';
 import store from '@store/store';
 import {IDataFormula, mathFunctions} from '@gd/IFormula';
 import {validate, evaluate} from '@gd/Formula';
+import {isNumber} from '@utils/helpers';
 
 // eslint-disable-next-line func-names
 yup.addMethod(yup.string, 'variableNameFirstChar', function () {
@@ -28,6 +29,62 @@ yup.addMethod(yup.string, 'variableName', function () {
       return /^[a-zA-Z_0-9]+$/.test(value);
     }
   );
+});
+
+// eslint-disable-next-line func-names
+yup.addMethod(yup.string, 'numberArray', function (integer?: boolean) {
+  return this.test('numberArray', '', (input, {createError}) => {
+    if (!input) return true;
+    const woSpace = input.replace(' ', '');
+    const values = woSpace.split(',');
+    for (const value of values) {
+      if (!isNumber(value)) {
+        return createError({
+          message: 'Invalid number array'
+        });
+      }
+      if (integer && !Number.isInteger(value)) {
+        return createError({
+          message: 'Each number must be integer'
+        });
+      }
+    }
+    return true;
+  });
+});
+
+// eslint-disable-next-line func-names
+yup.addMethod(yup.string, 'arrayMax', function (max: number) {
+  return this.test('arrayMax', '', (input, {createError}) => {
+    if (!input) return true;
+    const woSpace = input.replace(' ', '');
+    const values = woSpace.split(',');
+    for (const value of values) {
+      if (Number(value) > max) {
+        return createError({
+          message: `Each number must be less than ${max}.`
+        });
+      }
+    }
+    return true;
+  });
+});
+
+// eslint-disable-next-line func-names
+yup.addMethod(yup.string, 'arrayMin', function (min: number) {
+  return this.test('arrayMax', '', (input, {createError}) => {
+    if (!input) return true;
+    const woSpace = input.replace(' ', '');
+    const values = woSpace.split(',');
+    for (const value of values) {
+      if (Number(value) < min) {
+        return createError({
+          message: `Each number must be greater than ${min}.`
+        });
+      }
+    }
+    return true;
+  });
 });
 
 // eslint-disable-next-line func-names
@@ -205,6 +262,9 @@ declare module 'yup' {
       end: number | null
     ): RequiredStringSchema<TType, TContext>;
     variableName(): RequiredStringSchema<TType, TContext>;
+    numberArray(integer: boolean): RequiredStringSchema<TType, TContext>;
+    arrayMax(max: number): RequiredStringSchema<TType, TContext>;
+    arrayMin(min: number): RequiredStringSchema<TType, TContext>;
     noMathFunctionsName(): RequiredStringSchema<TType, TContext>;
   }
 }

@@ -43,7 +43,8 @@ import {
   FontRows,
   PatternRows,
   StringRow,
-  NullableNumberRow
+  NullableNumberRow,
+  NullableNumberArrayRow
 } from './SettingRows';
 
 type PPlotMarker = Partial<PlotMarker> | undefined;
@@ -122,6 +123,47 @@ export const DataVisualization = React.memo(
                 prev.mode = value;
               })}
             />
+            <NullableNumberRow
+              name="domain row"
+              min={0}
+              integer
+              value={data.domain?.row}
+              setValue={apply((prev, value) => {
+                if (!prev.domain) prev.domain = {};
+                prev.domain.row = value;
+              })}
+            />
+            <NullableNumberRow
+              name="domain column"
+              min={0}
+              integer
+              value={data.domain?.column}
+              setValue={apply((prev, value) => {
+                if (!prev.domain) prev.domain = {};
+                prev.domain.column = value;
+              })}
+            />
+            <NullableNumberArrayRow
+              name="domain x"
+              min={0}
+              integer
+              value={data.domain?.x}
+              setValue={apply((prev, value) => {
+                if (!prev.domain) prev.domain = {};
+                prev.domain.x = value;
+              })}
+            />
+            <NullableNumberArrayRow
+              name="domain y"
+              min={0}
+              integer
+              value={data.domain?.x}
+              setValue={apply((prev, value) => {
+                if (!prev.domain) prev.domain = {};
+                prev.domain.x = value;
+              })}
+            />
+
             {data.mode?.includes('markers') ? (
               <MarkerRows data={data} setData={setData} />
             ) : null}
@@ -565,7 +607,16 @@ export const DataVisualization = React.memo(
                 />
               </>
             ) : null}
+            <NullableNumberRow
+              name="value"
+              value={data.value}
+              setValue={apply((prev, value) => {
+                prev.value = value;
+              })}
+            />
             {/*
+            customdata: Datum[] | Datum[][];
+            selectedpoints: Datum[];
              */}
           </TableBody>
         </Table>
