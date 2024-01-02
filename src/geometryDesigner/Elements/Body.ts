@@ -19,13 +19,13 @@ import {
   assignMeta,
   isMirror
 } from '../IElements';
-import {isBody, IBody, IDataBody} from '../IElements/IBody';
+import {isBody, IBody, IDataBody, className} from '../IElements/IBody';
 import {Element, mirrorVec, syncPointsMirror} from './ElementBase';
 
 export class Body extends Element implements IBody {
   // eslint-disable-next-line class-methods-use-this
   get className(): Elements {
-    return 'Body';
+    return className;
   }
 
   visible: NamedBooleanOrUndefined;

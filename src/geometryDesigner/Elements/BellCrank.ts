@@ -18,13 +18,18 @@ import {
   assignMeta,
   isMirror
 } from '../IElements';
-import {isBellCrank, IBellCrank, IDataBellCrank} from '../IElements/IBellCrank';
+import {
+  isBellCrank,
+  IBellCrank,
+  IDataBellCrank,
+  className
+} from '../IElements/IBellCrank';
 import {Element, mirrorVec, syncPointsMirror} from './ElementBase';
 
 export class BellCrank extends Element implements IBellCrank {
   // eslint-disable-next-line class-methods-use-this
   get className(): Elements {
-    return 'BellCrank';
+    return className;
   }
 
   visible: NamedBooleanOrUndefined;

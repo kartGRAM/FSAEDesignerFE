@@ -21,13 +21,13 @@ import {
   assignMeta,
   isMirror
 } from '../IElements';
-import {isBar, IBar, IDataBar} from '../IElements/IBar';
+import {isBar, IBar, IDataBar, className} from '../IElements/IBar';
 import {Element, mirrorVec} from './ElementBase';
 
 export class Bar extends Element implements IBar {
   // eslint-disable-next-line class-methods-use-this
   get className(): Elements {
-    return 'Bar';
+    return className;
   }
 
   visible: NamedBooleanOrUndefined;

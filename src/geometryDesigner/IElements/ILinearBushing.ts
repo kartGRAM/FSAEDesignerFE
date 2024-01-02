@@ -8,6 +8,8 @@ import {
 } from '@gd/INamedValues';
 import {IElement, IDataElement, IMovingElement} from '../IElements';
 
+export const className = 'LinearBushing' as const;
+
 export interface ILinearBushing extends IElement, IMovingElement {
   readonly controllable: true;
   // 固定点(フレーム側)
@@ -33,8 +35,8 @@ export interface IDataLinearBushing extends IDataElement {
 }
 
 export const isLinearBushing = (element: IElement): element is ILinearBushing =>
-  element.className === 'LinearBushing';
+  element.className === className;
 
 export const isDataLinearBushing = (
   element: IDataElement
-): element is IDataLinearBushing => element.className === 'LinearBushing';
+): element is IDataLinearBushing => element.className === className;

@@ -17,14 +17,18 @@ import {
   isMirror
 } from '../IElements';
 
-import {ISpringDumper, IDataSpringDumper} from '../IElements/ISpringDumper';
+import {
+  ISpringDumper,
+  IDataSpringDumper,
+  className
+} from '../IElements/ISpringDumper';
 import {mirrorVec} from './ElementBase';
 import {Bar} from './Bar';
 
 export class SpringDumper extends Bar implements ISpringDumper {
   // eslint-disable-next-line class-methods-use-this
   get className(): Elements {
-    return 'SpringDumper';
+    return className;
   }
 
   unit = 'mm' as const;

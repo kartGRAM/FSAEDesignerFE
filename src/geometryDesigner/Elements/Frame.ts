@@ -10,14 +10,14 @@ import {
   assignMeta
 } from '../IElements';
 import {isBody, IBody} from '../IElements/IBody';
-import {IDataFrame} from '../IElements/IFrame';
+import {IDataFrame, className} from '../IElements/IFrame';
 import {Assembly} from './Assembly';
 import {Body} from './Body';
 
 export class Frame extends Assembly {
   // eslint-disable-next-line class-methods-use-this
   get className(): Elements {
-    return 'Frame' as const;
+    return className;
   }
 
   readonly frameBody: IBody;

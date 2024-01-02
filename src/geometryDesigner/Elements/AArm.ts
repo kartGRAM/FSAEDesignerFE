@@ -19,13 +19,13 @@ import {
   assignMeta,
   isMirror
 } from '../IElements';
-import {isAArm, IAArm, IDataAArm} from '../IElements/IAArm';
+import {isAArm, IAArm, IDataAArm, className} from '../IElements/IAArm';
 import {Element, mirrorVec, syncPointsMirror} from './ElementBase';
 
 export class AArm extends Element implements IAArm {
   // eslint-disable-next-line class-methods-use-this
   get className(): Elements {
-    return 'AArm';
+    return className;
   }
 
   visible: NamedBooleanOrUndefined;

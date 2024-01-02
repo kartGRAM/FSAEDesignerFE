@@ -32,14 +32,15 @@ import {
 import {
   ILinearBushing,
   IDataLinearBushing,
-  isLinearBushing
+  isLinearBushing,
+  className
 } from '../IElements/ILinearBushing';
 import {Element, mirrorVec} from './ElementBase';
 
 export class LinearBushing extends Element implements ILinearBushing {
   // eslint-disable-next-line class-methods-use-this
   get className(): Elements {
-    return 'LinearBushing';
+    return className;
   }
 
   unit = 'mm' as const;

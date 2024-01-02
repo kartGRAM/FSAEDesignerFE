@@ -7,6 +7,8 @@ import {
 } from '@gd/INamedValues';
 import {IElement, IDataElement, IMovingElement} from '../IElements';
 
+export const className = 'SpringDumper' as const;
+
 export interface ISpringDumper extends IElement, IMovingElement {
   readonly controllable: true;
   readonly fixedPoint: INamedVector3;
@@ -27,8 +29,8 @@ export interface IDataSpringDumper extends IDataElement {
 }
 
 export const isSpringDumper = (element: IElement): element is ISpringDumper =>
-  element.className === 'SpringDumper';
+  element.className === className;
 
 export const isDataSpringDumper = (
   element: IDataElement
-): element is IDataSpringDumper => element.className === 'SpringDumper';
+): element is IDataSpringDumper => element.className === className;

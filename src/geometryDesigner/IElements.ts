@@ -45,7 +45,8 @@ export type Elements =
   | 'BellCrank'
   | 'Body'
   | 'Tire'
-  | 'LinearBushing';
+  | 'LinearBushing'
+  | 'TorsionSpring';
 
 export interface IMovingElement {
   readonly nodeID: string;

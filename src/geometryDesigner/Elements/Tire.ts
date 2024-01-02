@@ -24,13 +24,13 @@ import {
   assignMeta,
   isMirror
 } from '../IElements';
-import {isTire, ITire, IDataTire} from '../IElements/ITire';
+import {isTire, ITire, IDataTire, className} from '../IElements/ITire';
 import {Element, mirrorVec} from './ElementBase';
 
 export class Tire extends Element implements ITire {
   // eslint-disable-next-line class-methods-use-this
   get className(): Elements {
-    return 'Tire';
+    return className;
   }
 
   hasNearestNeighborToPlane = true as const;

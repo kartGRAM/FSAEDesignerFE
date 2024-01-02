@@ -3,6 +3,8 @@ import {IDataVector3, INamedVector3} from '@gd/INamedValues';
 import {IElement, IDataElement} from '../IElements';
 import {IBody} from './IBody';
 
+export const className = 'BellCrank' as const;
+
 export interface IBellCrank extends IBody {
   // Axis
   readonly fixedPoints: [INamedVector3, INamedVector3];
@@ -16,8 +18,8 @@ export interface IDataBellCrank extends IDataElement {
 }
 
 export const isBellCrank = (element: IElement): element is IBellCrank =>
-  element.className === 'BellCrank';
+  element.className === className;
 
 export const isDataBellCrank = (
   element: IDataElement
-): element is IDataBellCrank => element.className === 'BellCrank';
+): element is IDataBellCrank => element.className === className;

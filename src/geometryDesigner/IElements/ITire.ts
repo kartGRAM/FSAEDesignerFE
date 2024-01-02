@@ -8,6 +8,8 @@ import {
 import {INearestNeighborToPlane} from '@gd/SpecialPoints';
 import {IElement, IDataElement} from '../IElements';
 
+export const className = 'Tire' as const;
+
 export interface ITire extends IElement, INearestNeighborToPlane {
   readonly tireCenter: INamedVector3;
   readonly toLeftBearing: INamedNumber;
@@ -25,7 +27,7 @@ export interface IDataTire extends IDataElement {
 }
 
 export const isTire = (element: IElement): element is ITire =>
-  element.className === 'Tire';
+  element.className === className;
 
 export const isDataTire = (element: IDataElement): element is IDataTire =>
-  element.className === 'Tire';
+  element.className === className;

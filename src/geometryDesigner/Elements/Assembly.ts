@@ -31,7 +31,8 @@ import {
   JointAsVector3,
   IAssembly,
   IDataAssembly,
-  isAssembly
+  isAssembly,
+  className
 } from '../IElements/IAssembly';
 import {Element, mirrorVec} from './ElementBase';
 import {getElement} from '../Elements';
@@ -41,7 +42,7 @@ export class Assembly extends Element implements IAssembly {
 
   // eslint-disable-next-line class-methods-use-this
   get className(): Elements {
-    return 'Assembly';
+    return className;
   }
 
   _children: IElement[];

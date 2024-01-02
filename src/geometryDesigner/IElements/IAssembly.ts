@@ -15,6 +15,8 @@ export interface DataJoint {
   rhs: NodeID;
 }
 
+export const className = 'Assembly' as const;
+
 export interface IAssembly extends IElement {
   isAssembly: true;
   children: IElement[];
