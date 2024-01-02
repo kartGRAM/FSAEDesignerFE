@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {Vector3, Quaternion} from 'three';
 import {
   NamedVector3,
@@ -17,7 +18,7 @@ import {
   FunctionVector3
 } from '@gd/INamedValues';
 
-import {AtLeast1} from '@app/utils/atLeast';
+import {OneOrTwo} from '@app/utils/atLeast';
 import {v4 as uuidv4} from 'uuid';
 import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {minus} from '@app/utils/helpers';
@@ -31,20 +32,21 @@ import {
 } from '../IElements';
 import {Element, mirrorVec} from './ElementBase';
 import {
-  ILinearBushing,
-  IDataLinearBushing,
-  isLinearBushing
+  ITorsionSpring,
+  IDataTorsionSpring,
+  isLinearBushing,
+  className
 } from '../IElements/ILinearBushing';
 
-export class LinearBushing extends Element implements ILinearBushing {
+export class TorsionSpring extends Element implements ITorsionSpring {
   // eslint-disable-next-line class-methods-use-this
   get className(): Elements {
-    return 'LinearBushing';
+    return className;
   }
 
-  unit = 'mm' as const;
+  unit = 'deg' as const;
 
-  controllable = true as const;
+  controllable = false as const;
 
   visible: NamedBooleanOrUndefined;
 
@@ -60,55 +62,32 @@ export class LinearBushing extends Element implements ILinearBushing {
 
   fixedPoints: [NamedVector3, NamedVector3];
 
-  toPoints: AtLeast1<NamedNumber>;
-
-  dlMin: NamedNumber;
-
-  dlMax: NamedNumber;
+  effortPoints: OneOrTwo<NamedVector3>;
 
   dlCurrent: number = 0;
 
   dlCurrentNodeID: NodeID;
 
-  get currentPoints() {
+  get currentEffortPoints() {
     const fp = this.fixedPoints.map((p) => p.value);
-    const toP = this.toPoints.map((to) => to.value);
-    const center = fp[0].clone().add(fp[1]).multiplyScalar(0.5);
-    const dir = fp[1].clone().sub(fp[0]).normalize();
-    return toP.map((to) =>
-      center.clone().add(dir.clone().multiplyScalar(to + this.dlCurrent))
-    );
-  }
+    const axis = fp[1].clone().sub(fp[0]);
 
-  get isLimited() {
-    return (
-      Math.abs(this.dlCurrent - this.dlMin.value) < 1e-5 ||
-      Math.abs(this.dlCurrent - this.dlMax.value) < 1e-5
-    );
-  }
+    const a = (this.dlCurrent * Math.PI) / 180;
+    const q = new Quaternion().setFromAxisAngle(axis, a);
 
-  get points(): INamedVector3[] {
-    const fp = this.fixedPoints.map((p) => p.value);
-    const center = fp[0].clone().add(fp[1]).multiplyScalar(0.5);
-    const dir = fp[1].clone().sub(fp[0]).normalize();
-    const points = this.toPoints.map(
-      (to, i) =>
-        new NamedVector3({
-          name: `rodEnd${i}`,
-          parent: this,
-          value: center.clone().add(dir.clone().multiplyScalar(to.value)),
-          update: () => {},
-          nodeID: `${to.nodeID}_points`
-        })
-    );
-    return points;
+    const p = this.effortPoints.map((to) => to.value);
+    let effortP = p[1];
+    // eslint-disable-next-line prefer-destructuring
+    if (p.length === 1) effortP = p[0];
+    effortP = effortP.clone().sub(fp[0]).applyQuaternion(q).add(fp[0]);
+    return p.length === 1 ? [effortP] : [p[0], effortP];
   }
 
   getMeasurablePoints(): INamedVector3RO[] {
     const fp = this.fixedPoints.map((p) => p.value);
     const center = fp[0].clone().add(fp[1]).multiplyScalar(0.5);
     const dir = fp[1].clone().sub(fp[0]).normalize();
-    const points = this.toPoints
+    const points = this.effortPoints
       .map((to, i) => [
         new NamedVector3({
           name: `rodEnd${i}`,
@@ -306,7 +285,7 @@ export class LinearBushing extends Element implements ILinearBushing {
     });
   }
 
-  getDataElement(state: GDState): IDataLinearBushing {
+  getDataElement(state: GDState): IDataTorsionSpring {
     const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
     const mir = this.getAnotherElement(mirror);
     const baseData = super.getDataElementBase(state, mir);
@@ -323,19 +302,15 @@ export class LinearBushing extends Element implements ILinearBushing {
             .setValue(mirrorVec(mir.fixedPoints[1]))
             .getData(state)
         ],
-        toPoints: this.toPoints.map((to) => to.getData(state)),
-        dlCurrentNodeID,
-        dlMin: this.dlMin.getData(state),
-        dlMax: this.dlMax.getData(state)
+        toPoints: this.effortPoints.map((to) => to.getData(state)),
+        dlCurrentNodeID
       };
     }
     return {
       ...baseData,
       fixedPoints: this.fixedPoints.map((point) => point.getData(state)),
-      toPoints: this.toPoints.map((to) => to.getData(state)),
-      dlCurrentNodeID,
-      dlMin: this.dlMin.getData(state),
-      dlMax: this.dlMax.getData(state)
+      toPoints: this.effortPoints.map((to) => to.getData(state)),
+      dlCurrentNodeID
     };
   }
 }
