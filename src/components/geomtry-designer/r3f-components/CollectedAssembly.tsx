@@ -9,10 +9,12 @@ import {isBar} from '@gd/IElements/IBar';
 import {isTire} from '@gd/IElements/ITire';
 import {isSpringDumper} from '@gd/IElements/ISpringDumper';
 import {isLinearBushing} from '@gd/IElements/ILinearBushing';
+import {isTorsionSpring} from '@gd/IElements/ITorsionSpring';
 import Body from './Body';
 import AArm from './AArm';
 import Bar from './Bar';
 import SpringDumper from './SpringDumper';
+import TorsionSpring from './TorsionSpring';
 import BellCrank from './BellCrank';
 import LinearBushing from './LinearBushing';
 import Tire from './Tire';
@@ -38,6 +40,8 @@ const CollectedAssembly = () => {
         if (isTire(child)) return <Tire element={child} key={child.nodeID} />;
         if (isLinearBushing(child))
           return <LinearBushing element={child} key={child.nodeID} />;
+        if (isTorsionSpring(child))
+          return <TorsionSpring element={child} key={child.nodeID} />;
         return null;
       })}
     </group>

@@ -27,6 +27,7 @@ const elements = [
   // createElement('Frame'),
   createElement('SpringDumper'),
   createElement('LinearBushing'),
+  createElement('TorsionSpring'),
   createElement('Tire')
 ];
 
