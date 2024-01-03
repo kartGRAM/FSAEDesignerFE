@@ -136,7 +136,8 @@ const Vector = React.memo((props: Props) => {
     if (point && point.point.nodeID === vector.nodeID && !focused) {
       refOfVectorField.current?.focus();
     }
-  }, [focused, point, vector.nodeID]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [point, vector.nodeID]);
 
   const handleFocus = React.useCallback(() => {
     setFocused(true);

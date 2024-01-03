@@ -104,6 +104,13 @@ export function getNewElement(name: Elements): IElement {
       dlMax: 50
     });
   }
+  if (name === 'TorsionSpring') {
+    return new TorsionSpring({
+      name: 'newTorsionSpring',
+      fixedPoints: [new Vector3(0, 0, 0), new Vector3(0, 200, 0)],
+      effortPoints: [new Vector3(0, 0, 100)]
+    });
+  }
   throw Error('Not Supported Exception');
 }
 
