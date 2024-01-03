@@ -11,6 +11,7 @@ import {isBar} from '@gd/IElements/IBar';
 import {isBellCrank} from '@gd/IElements/IBellCrank';
 import {isBody} from '@gd/IElements/IBody';
 import {isLinearBushing} from '@gd/IElements/ILinearBushing';
+import {isTorsionSpring} from '@gd/IElements/ITorsionSpring';
 import {isSpringDumper} from '@gd/IElements/ISpringDumper';
 import {isTire} from '@gd/IElements/ITire';
 import AArmConfig from './AArmConfig';
@@ -20,6 +21,7 @@ import BellCrankConfig from './BellCrankConfig';
 import BodyConfig from './BodyConfig';
 import TireConfig from './TireConfig';
 import LinearBushingConfig from './LinearBushingConfig';
+import TorsionSpringConfig from './TorsionSpringConfig';
 import AssemblyConfig from './AssemblyConfig';
 
 export default function ParametersRoot() {
@@ -52,6 +54,8 @@ export default function ParametersRoot() {
     component = <TireConfig element={element} key={element.absPath} />;
   } else if (element && isLinearBushing(element)) {
     component = <LinearBushingConfig element={element} key={element.absPath} />;
+  } else if (element && isTorsionSpring(element)) {
+    component = <TorsionSpringConfig element={element} key={element.absPath} />;
   } else if (element && isAssembly(element)) {
     component = <AssemblyConfig assembly={element} key={element.absPath} />;
   }
