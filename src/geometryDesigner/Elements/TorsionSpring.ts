@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {Vector3, Quaternion} from 'three';
 import {
   NamedVector3,
@@ -9,9 +8,7 @@ import {
   NamedBooleanOrUndefined
 } from '@gd/NamedValues';
 import {
-  INamedNumber,
   INamedNumberRO,
-  IDataNumber,
   IDataVector3,
   INamedVector3,
   INamedVector3RO,
@@ -21,7 +18,6 @@ import {
 import {OneOrTwo} from '@app/utils/atLeast';
 import {v4 as uuidv4} from 'uuid';
 import {GDState} from '@store/reducers/dataGeometryDesigner';
-import {minus} from '@app/utils/helpers';
 import {
   isDataElement,
   MirrorError,
@@ -34,9 +30,9 @@ import {Element, mirrorVec} from './ElementBase';
 import {
   ITorsionSpring,
   IDataTorsionSpring,
-  isLinearBushing,
+  isTorsionSpring,
   className
-} from '../IElements/ILinearBushing';
+} from '../IElements/ITorsionSpring';
 
 export class TorsionSpring extends Element implements ITorsionSpring {
   // eslint-disable-next-line class-methods-use-this
@@ -76,47 +72,49 @@ export class TorsionSpring extends Element implements ITorsionSpring {
     const q = new Quaternion().setFromAxisAngle(axis, a);
 
     const p = this.effortPoints.map((to) => to.value);
-    let effortP = p[1];
-    // eslint-disable-next-line prefer-destructuring
-    if (p.length === 1) effortP = p[0];
-    effortP = effortP.clone().sub(fp[0]).applyQuaternion(q).add(fp[0]);
-    return p.length === 1 ? [effortP] : [p[0], effortP];
+    const effortP = p[0].clone().sub(fp[0]).applyQuaternion(q).add(fp[0]);
+    return p.length === 1 ? [effortP] : [effortP, p[1]];
   }
 
   getMeasurablePoints(): INamedVector3RO[] {
     const fp = this.fixedPoints.map((p) => p.value);
-    const center = fp[0].clone().add(fp[1]).multiplyScalar(0.5);
-    const dir = fp[1].clone().sub(fp[0]).normalize();
-    const points = this.effortPoints
-      .map((to, i) => [
-        new NamedVector3({
-          name: `rodEnd${i}`,
-          parent: this,
-          value: center
-            .clone()
-            .add(dir.clone().multiplyScalar(to.value + this.dlCurrent)),
-          update: () => {},
-          nodeID: `${to.nodeID}_points`
-        }),
-        new NamedVector3({
-          name: `rodEnd${i}_initialPosition`,
-          parent: this,
-          value: center.clone().add(dir.clone().multiplyScalar(to.value)),
-          update: () => {},
-          nodeID: `${to.nodeID}_points_initial`
-        })
-      ])
-      .flat();
-    return [...this.fixedPoints, ...points, this.centerOfGravity];
-  }
+    const axis = fp[1].clone().sub(fp[0]);
 
-  get supportDistance(): number {
-    const fp = this.fixedPoints.map((p) => p.value);
-    return fp[1].clone().sub(fp[0]).length();
+    const a = (this.dlCurrent * Math.PI) / 180;
+    const q = new Quaternion().setFromAxisAngle(axis, a);
+    const p = this.effortPoints.map((to) => to.value);
+    const effortP = p[0].clone().sub(fp[0]).applyQuaternion(q).add(fp[0]);
+    let points = [
+      new NamedVector3({
+        name: `rodEnd${0}`,
+        parent: this,
+        value: effortP,
+        update: () => {},
+        nodeID: `${this.effortPoints[0].nodeID}_current`
+      })
+    ];
+    if (this.effortPoints[1]) {
+      points = [
+        ...points,
+        new NamedVector3({
+          name: `rodEnd${1}`,
+          parent: this,
+          value: p[1],
+          update: () => {},
+          nodeID: `${this.effortPoints[1].nodeID}_current`
+        })
+      ];
+    }
+    return [
+      ...this.fixedPoints,
+      ...points,
+      ...this.effortPoints,
+      this.centerOfGravity
+    ];
   }
 
   getPoints(): INamedVector3[] {
-    return [...this.fixedPoints, ...this.points];
+    return [...this.fixedPoints, ...this.effortPoints];
   }
 
   getVariables(): INamedNumberRO[] {
@@ -138,22 +136,19 @@ export class TorsionSpring extends Element implements ITorsionSpring {
     this.rotation.value = new Quaternion();
   }
 
-  getMirror(): LinearBushing {
+  getMirror(): TorsionSpring {
     if (isMirror(this)) throw new MirrorError('ミラーはミラーできない');
     const fp: [INamedVector3, INamedVector3] = [
       mirrorVec(this.fixedPoints[0]),
       mirrorVec(this.fixedPoints[1])
     ];
-    const toPoints = this.toPoints.map((p) => minus(p.getStringValue()));
+    const effortPoints = this.effortPoints.map((p) => mirrorVec(p));
     const ip = mirrorVec(this.initialPosition);
     const cog = mirrorVec(this.centerOfGravity);
-    const toPoint0 = toPoints.shift()!;
-    const ret = new LinearBushing({
+    const ret = new TorsionSpring({
       name: `mirror_${this.name.value}`,
       fixedPoints: fp,
-      toPoints: [toPoint0, ...toPoints],
-      dlMin: this.dlMin.value,
-      dlMax: this.dlMax.value,
+      effortPoints: [...effortPoints] as any,
       initialPosition: ip,
       mass: this.mass.value,
       centerOfGravity: cog
@@ -186,21 +181,21 @@ export class TorsionSpring extends Element implements ITorsionSpring {
             FunctionVector3 | IDataVector3 | INamedVector3,
             FunctionVector3 | IDataVector3 | INamedVector3
           ];
-          toPoints: AtLeast1<number | string | IDataNumber | INamedNumber>;
-          dlMin: number;
-          dlMax: number;
+          effortPoints: OneOrTwo<
+            FunctionVector3 | IDataVector3 | INamedVector3
+          >;
           dlCurrentNodeID?: NodeID;
           initialPosition?: FunctionVector3 | IDataVector3 | INamedVector3;
           mass?: number;
           centerOfGravity?: FunctionVector3 | IDataVector3 | INamedVector3;
         }
-      | IDataLinearBushing
+      | IDataTorsionSpring
   ) {
     super(params);
 
     const {
       fixedPoints,
-      toPoints,
+      effortPoints,
       initialPosition,
       mass,
       centerOfGravity,
@@ -214,41 +209,29 @@ export class TorsionSpring extends Element implements ITorsionSpring {
         parent: this,
         value: fixedPoints[0]
       }),
-
       new NamedVector3({
         name: this.fixedPointNames[1],
         parent: this,
         value: fixedPoints[1]
       })
     ];
-    const p = [...toPoints];
+    const p = [...effortPoints];
     const point0 = p.shift()!;
-    this.toPoints = [
-      new NamedNumber({
+    this.effortPoints = [
+      new NamedVector3({
         name: `${this.pointName}1`,
         parent: this,
         value: point0
       }),
       ...p.map(
         (point, i) =>
-          new NamedNumber({
+          new NamedVector3({
             name: `${this.pointName}${i + 1}`,
             parent: this,
             value: point
           })
       )
-    ];
-
-    this.dlMin = new NamedNumber({
-      name: 'dlMin',
-      parent: this,
-      value: params.dlMin
-    });
-    this.dlMax = new NamedNumber({
-      name: 'dlMax',
-      parent: this,
-      value: params.dlMax
-    });
+    ] as OneOrTwo<NamedVector3>;
 
     this.visible = new NamedBooleanOrUndefined({
       name: 'visible',
@@ -291,7 +274,7 @@ export class TorsionSpring extends Element implements ITorsionSpring {
     const baseData = super.getDataElementBase(state, mir);
     const {dlCurrentNodeID} = this;
 
-    if (mir && isLinearBushing(mir)) {
+    if (mir && isTorsionSpring(mir)) {
       return {
         ...baseData,
         fixedPoints: [
@@ -302,14 +285,14 @@ export class TorsionSpring extends Element implements ITorsionSpring {
             .setValue(mirrorVec(mir.fixedPoints[1]))
             .getData(state)
         ],
-        toPoints: this.effortPoints.map((to) => to.getData(state)),
+        effortPoints: this.effortPoints.map((to) => to.getData(state)) as any,
         dlCurrentNodeID
       };
     }
     return {
       ...baseData,
       fixedPoints: this.fixedPoints.map((point) => point.getData(state)),
-      toPoints: this.effortPoints.map((to) => to.getData(state)),
+      effortPoints: this.effortPoints.map((to) => to.getData(state)) as any,
       dlCurrentNodeID
     };
   }
