@@ -24,6 +24,8 @@ import {SpringDumper} from './Elements/SpringDumper';
 import {isDataSpringDumper} from './IElements/ISpringDumper';
 import {Tire} from './Elements/Tire';
 import {isDataTire} from './IElements/ITire';
+import {TorsionSpring} from './Elements/TorsionSpring';
+import {isDataTorsionSpring} from './IElements/ITorsionSpring';
 
 export {
   AArm,
@@ -132,6 +134,9 @@ export function getElement(element: IDataElement): IElement {
   }
   if (isDataLinearBushing(element)) {
     return new LinearBushing(element);
+  }
+  if (isDataTorsionSpring(element)) {
+    return new TorsionSpring(element);
   }
   throw Error('Not Supported Exception');
 }

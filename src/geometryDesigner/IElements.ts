@@ -21,6 +21,7 @@ import {isObject} from '@utils/helpers';
 import {INode, IBidirectionalNode} from './INode';
 import {isBar, IBar} from './IElements/IBar';
 import {isSpringDumper, ISpringDumper} from './IElements/ISpringDumper';
+import {isTorsionSpring, ITorsionSpring} from './IElements/ITorsionSpring';
 import {isLinearBushing, ILinearBushing} from './IElements/ILinearBushing';
 import {
   IAssembly,
@@ -218,10 +219,15 @@ export const isDataElement = (params: any): params is IDataElement => {
 
 export const isSimplifiedElement = (
   element: any
-): element is IBar /* | ITire */ | ISpringDumper | ILinearBushing => {
+): element is
+  | IBar /* | ITire */
+  | ISpringDumper
+  | ITorsionSpring
+  | ILinearBushing => {
   if (!isElement(element)) return false;
   if (isBar(element)) return true;
   if (isSpringDumper(element)) return true;
+  if (isTorsionSpring(element)) return true;
   if (isLinearBushing(element)) return true;
   // if (isTire(element)) return true;
   return false;

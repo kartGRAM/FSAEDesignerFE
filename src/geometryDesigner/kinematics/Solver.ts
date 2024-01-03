@@ -9,6 +9,7 @@ import {isBar} from '@gd/IElements/IBar';
 import {isTire} from '@gd/IElements/ITire';
 import {isSpringDumper} from '@gd/IElements/ISpringDumper';
 import {isLinearBushing} from '@gd/IElements/ILinearBushing';
+import {isTorsionSpring} from '@gd/IElements/ITorsionSpring';
 import {Vector3, Quaternion} from 'three';
 import {isPointToPlaneControl} from '@gd/controls/PointToPlaneControl';
 import {hasNearestNeighborToPlane} from '@gd/SpecialPoints';
@@ -383,6 +384,9 @@ export class KinematicSolver {
             );
             constraints.push(constraint);
           });
+        }
+        if (isTorsionSpring(element)) {
+          const a = 0;
         }
       });
     }

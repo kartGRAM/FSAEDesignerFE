@@ -23,6 +23,6 @@ export interface IDataTorsionSpring extends IDataElement {
 export const isTorsionSpring = (element: IElement): element is ITorsionSpring =>
   element.className === className;
 
-export const isDataLinearBushing = (
+export const isDataTorsionSpring = (
   element: IDataElement
 ): element is IDataTorsionSpring => element.className === className;
