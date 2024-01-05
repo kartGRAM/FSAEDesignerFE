@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react';
 import * as THREE from 'three';
 import {ThreeEvent, useFrame} from '@react-three/fiber';
@@ -34,26 +35,27 @@ const TorsionSpring = (props: {element: ITorsionSpring}) => {
   useFrame(() => {
     const selectedPath = store.getState().uitgd.selectedElementAbsPath;
     const isSelected = !!selectedPath && element.absPath.includes(selectedPath);
-    let color: string | number = 'blue';
+    let color: string | number = 'lavender';
 
     const nodes = element
       .getPoints()
       .map((p) => p.value.applyMatrix3(coMatrix));
     const pts = measurablePoints.map((p) => p.value.applyMatrix3(coMatrix));
     const axis = pts[1].clone().sub(pts[1]).normalize();
-    const currentPoints = pts.slice(2, 4);
 
     meshRefs.forEach((meshRef, i) => {
+      if (!meshRef.current) return;
       meshRef.current.visible = element.visible.value ?? false;
       meshRef.current.geometry.attributes.instanceStart.needsUpdate = true;
       if (isSelected) {
         color = 0xffa500;
       }
       meshRef.current.material.color.set(color);
+
       if (i !== 1) return;
       const start = meshRef.current.geometry.attributes.instanceStart
         .array as Float32Array;
-      const p = currentPoints[0].clone().applyMatrix3(coMatrix);
+      const p = pts[2];
       start[0] = p.x;
       start[1] = p.y;
       start[2] = p.z;
@@ -92,20 +94,22 @@ const TorsionSpring = (props: {element: ITorsionSpring}) => {
   ];
 
   const pts = measurablePoints.map((p) => p.value.applyMatrix3(coMatrix));
-  const axis = pts[1].clone().sub(pts[0]).normalize();
-  const currentPoints = pts.slice(2, 4);
-  const t = currentPoints.map((c) => axis.dot(c));
-  const axisPoints = t.map((t) => axis.clone().multiplyScalar(t));
+  const axis = pts[1].clone().sub(pts[0]);
+  const lenAxis = axis.length();
+  axis.normalize();
+  const currentPoints = pts.slice(2, 2 + element.effortPoints.length);
+  const t = currentPoints.map((c) => axis.dot(c.clone().sub(pts[0])));
+  const axisPoints = t.map((t) => axis.clone().multiplyScalar(t).add(pts[0]));
   const axisLine = [...pts.slice(0, 2)];
-  let maxT = 1;
-  let minT = 1;
+  let maxT = lenAxis;
+  let minT = 0;
   t.forEach((t) => {
     if (t > maxT) {
-      axisLine[1] = axis.clone().multiplyScalar(t);
+      axisLine[1] = axis.clone().multiplyScalar(t).add(pts[0]);
       maxT = t;
     }
     if (t < minT) {
-      axisLine[0] = axis.clone().multiplyScalar(t);
+      axisLine[0] = axis.clone().multiplyScalar(t).add(pts[0]);
       minT = t;
     }
   });
