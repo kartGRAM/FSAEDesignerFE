@@ -65,7 +65,7 @@ export class TorsionSpring extends Element implements ITorsionSpring {
 
   get currentEffortPoints() {
     const fp = this.fixedPoints.map((p) => p.value);
-    const axis = fp[1].clone().sub(fp[0]);
+    const axis = fp[1].clone().sub(fp[0]).normalize();
 
     const a = (this.dlCurrent * Math.PI) / 180;
     const q = new Quaternion().setFromAxisAngle(axis, a);

@@ -306,8 +306,16 @@ export class TorsionSpringRestorer implements Restorer {
     const rotation1 = new Quaternion().setFromUnitVectors(s, sTo);
     // 軸合わせ
     points.forEach((p) => p.applyQuaternion(rotation1));
-    const e = eps[1].clone().sub(fps[0]).normalize();
-    const eTo = epsTo[1].clone().sub(fpsTo[0]).normalize();
+    const eTmp = eps[1].clone().sub(fps[0]);
+    const e = eTmp
+      .clone()
+      .sub(sTo.clone().multiplyScalar(sTo.dot(eTmp)))
+      .normalize();
+    const eToTmp = epsTo[1].clone().sub(fpsTo[0]);
+    const eTo = eToTmp
+      .clone()
+      .sub(sTo.clone().multiplyScalar(sTo.dot(eToTmp)))
+      .normalize();
     const rotation2 = new Quaternion().setFromUnitVectors(e, eTo);
     // ロッドエンドの位置まで回転
     points.forEach((p) =>
@@ -319,8 +327,16 @@ export class TorsionSpringRestorer implements Restorer {
     this.element.position.value = this.element.position.value.add(deltaP);
 
     // もう一方のロッドエンドの位置までの必要回転量をdeltaLへ
-    const e2 = eps[0].clone().sub(fps[0]).normalize();
-    const e2To = epsTo[0].clone().sub(fpsTo[0]).normalize();
+    const e2Tmp = eps[0].clone().sub(fps[0]);
+    const e2ToTmp = epsTo[0].clone().sub(fpsTo[0]);
+    const e2 = e2Tmp
+      .clone()
+      .sub(sTo.clone().multiplyScalar(sTo.dot(e2Tmp)))
+      .normalize();
+    const e2To = e2ToTmp
+      .clone()
+      .sub(sTo.clone().multiplyScalar(sTo.dot(e2ToTmp)))
+      .normalize();
     const sin = e2.cross(e2To);
     const sign = sin.dot(s) > 0 ? 1 : -1;
     this.element.dlCurrent = (Math.asin(sign * sin.length()) * 180) / Math.PI;

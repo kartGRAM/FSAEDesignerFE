@@ -55,7 +55,7 @@ const TorsionSpring = (props: {element: ITorsionSpring}) => {
       if (i !== 1) return;
       const start = meshRef.current.geometry.attributes.instanceStart
         .array as Float32Array;
-      const p = pts[2];
+      const p = element.currentEffortPoints[0].applyMatrix3(coMatrix);
       start[0] = p.x;
       start[1] = p.y;
       start[2] = p.z;
