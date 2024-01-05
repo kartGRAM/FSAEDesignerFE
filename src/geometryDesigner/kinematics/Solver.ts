@@ -30,6 +30,7 @@ import {
   AArmRestorer,
   BarRestorer,
   LinearBushingRestorer,
+  TorsionSpringRestorer,
   RelativeConstraintRestorer
 } from './Restorer';
 import {IObjectiveFunction} from './Driver';
@@ -396,8 +397,70 @@ export class KinematicSolver {
             getJointPartner(jointf0, element.fixedPoints[0].nodeID),
             getJointPartner(jointf1, element.fixedPoints[1].nodeID)
           ];
-          const node0: (Vector3 | undefined)[] = [];
-          const component0: IComponent[] = [];
+          const effortPoints: typeof fixedPoints = [];
+          const rhss: IComponent[] = [];
+          element.effortPoints.forEach((ep) => {
+            const jointp = jointDict[ep.nodeID][0];
+            jointsDone.add(jointp);
+            const epp = getJointPartner(jointp, ep.nodeID);
+            effortPoints.push(epp);
+            const points = [...fixedPoints, epp];
+            const elements = points.map((p) => p.parent as IElement);
+            let rhs: IComponent = tempComponents[elements[2].nodeID];
+            if (!rhs) {
+              if (!(points[2].nodeID in pointComponents)) {
+                pointComponents[ep.nodeID] = new PointComponent(ep, points[2]);
+                rhs = pointComponents[ep.nodeID];
+                components.push(rhs);
+              } else {
+                // eslint-disable-next-line no-multi-assign
+                rhs = pointComponents[ep.nodeID] =
+                  pointComponents[points[2].nodeID];
+              }
+            }
+            rhss.push(rhs);
+            // あまりないと思うが、すべての点が同じコンポーネントに接続されている場合無視する
+            if (
+              elements[0].nodeID === elements[2].nodeID ||
+              (isFixedElement(elements[0]) && isFixedElement(elements[2]))
+            ) {
+              return;
+            }
+            element.fixedPoints.forEach((fp, i) => {
+              const lhs: IComponent = tempComponents[elements[i].nodeID];
+              const constraint = new BarAndSpheres(
+                `bar object of aarm ${element.name.value}`,
+                lhs,
+                rhs,
+                fp.value.sub(ep.value).length(),
+                [],
+                fixedPoints[i].value,
+                isFullDegreesComponent(rhs) ? points[2].value : undefined,
+                false
+              );
+              constraints.push(constraint);
+            });
+          });
+          const constraint = new BarAndSpheres(
+            `spring bar object of aarm ${element.name.value}`,
+            rhss[0],
+            rhss[1],
+            element.effortPoints[0].value
+              .sub(element.effortPoints[1].value)
+              .length(),
+            [],
+            isFullDegreesComponent(rhss[0]) ? effortPoints[0].value : undefined,
+            isFullDegreesComponent(rhss[1]) ? effortPoints[1].value : undefined,
+            true
+          );
+          constraints.push(constraint);
+          this.restorers.push(
+            new TorsionSpringRestorer(
+              element,
+              [fixedPoints[0], fixedPoints[1]],
+              [effortPoints[0], effortPoints[1]]
+            )
+          );
         }
       });
     }

@@ -11,6 +11,7 @@ import {isBar} from '@gd/IElements/IBar';
 import {ITire, isTire} from '@gd/IElements/ITire';
 import {isSpringDumper} from '@gd/IElements/ISpringDumper';
 import {isLinearBushing} from '@gd/IElements/ILinearBushing';
+import {isTorsionSpring} from '@gd/IElements/ITorsionSpring';
 import {INamedVector3RO} from '@gd/INamedValues';
 import {Matrix} from 'ml-matrix';
 import {Quaternion, Vector3} from 'three';
@@ -304,6 +305,8 @@ export function elementIsComponent(
   if (isTire(element) && canSimplifyTire(element, jointDict)) return false;
   // LinearBushingはコンポーネント扱いしない
   if (isLinearBushing(element)) return false;
+  // TorsionSpringはコンポーネント扱いしない
+  if (isTorsionSpring(element)) return false;
   // FixedElementはコンポーネント扱いしない
   if (isFixedElement(element)) return false;
   return true;
