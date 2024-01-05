@@ -15,7 +15,6 @@ import {
   FunctionVector3
 } from '@gd/INamedValues';
 
-import {OneOrTwo} from '@app/utils/atLeast';
 import {v4 as uuidv4} from 'uuid';
 import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {
@@ -58,7 +57,7 @@ export class TorsionSpring extends Element implements ITorsionSpring {
 
   fixedPoints: [NamedVector3, NamedVector3];
 
-  effortPoints: OneOrTwo<NamedVector3>;
+  effortPoints: [NamedVector3, NamedVector3];
 
   dlCurrent: number = 0;
 
@@ -73,38 +72,27 @@ export class TorsionSpring extends Element implements ITorsionSpring {
 
     const p = this.effortPoints.map((to) => to.value);
     const effortP = p[0].clone().sub(fp[0]).applyQuaternion(q).add(fp[0]);
-    return p.length === 1 ? [effortP] : [effortP, p[1]];
+    return [effortP, p[1]];
   }
 
   getMeasurablePoints(): INamedVector3RO[] {
-    const fp = this.fixedPoints.map((p) => p.value);
-    const axis = fp[1].clone().sub(fp[0]);
-
-    const a = (this.dlCurrent * Math.PI) / 180;
-    const q = new Quaternion().setFromAxisAngle(axis, a);
-    const p = this.effortPoints.map((to) => to.value);
-    const effortP = p[0].clone().sub(fp[0]).applyQuaternion(q).add(fp[0]);
-    let points = [
+    const effortP = this.currentEffortPoints;
+    const points = [
       new NamedVector3({
         name: `rodEnd${0}`,
         parent: this,
-        value: effortP,
+        value: effortP[0],
         update: () => {},
         nodeID: `${this.effortPoints[0].nodeID}_current`
+      }),
+      new NamedVector3({
+        name: `rodEnd${1}`,
+        parent: this,
+        value: effortP[1],
+        update: () => {},
+        nodeID: `${this.effortPoints[1].nodeID}_current`
       })
     ];
-    if (this.effortPoints[1]) {
-      points = [
-        ...points,
-        new NamedVector3({
-          name: `rodEnd${1}`,
-          parent: this,
-          value: p[1],
-          update: () => {},
-          nodeID: `${this.effortPoints[1].nodeID}_current`
-        })
-      ];
-    }
     return [...this.fixedPoints, ...points, this.centerOfGravity];
   }
 
@@ -176,9 +164,10 @@ export class TorsionSpring extends Element implements ITorsionSpring {
             FunctionVector3 | IDataVector3 | INamedVector3,
             FunctionVector3 | IDataVector3 | INamedVector3
           ];
-          effortPoints: OneOrTwo<
+          effortPoints: [
+            FunctionVector3 | IDataVector3 | INamedVector3,
             FunctionVector3 | IDataVector3 | INamedVector3
-          >;
+          ];
           dlCurrentNodeID?: NodeID;
           initialPosition?: FunctionVector3 | IDataVector3 | INamedVector3;
           mass?: number;
@@ -210,23 +199,16 @@ export class TorsionSpring extends Element implements ITorsionSpring {
         value: fixedPoints[1]
       })
     ];
-    const p = [...effortPoints];
-    const point0 = p.shift()!;
     this.effortPoints = [
-      new NamedVector3({
-        name: `${this.pointName}1`,
-        parent: this,
-        value: point0
-      }),
-      ...p.map(
+      ...effortPoints.map(
         (point, i) =>
           new NamedVector3({
-            name: `${this.pointName}${i + 1}`,
+            name: `${this.pointName}${i}`,
             parent: this,
             value: point
           })
       )
-    ] as OneOrTwo<NamedVector3>;
+    ] as [NamedVector3, NamedVector3];
 
     this.visible = new NamedBooleanOrUndefined({
       name: 'visible',
@@ -280,14 +262,14 @@ export class TorsionSpring extends Element implements ITorsionSpring {
             .setValue(mirrorVec(mir.fixedPoints[1]))
             .getData(state)
         ],
-        effortPoints: this.effortPoints.map((to) => to.getData(state)) as any,
+        effortPoints: this.effortPoints.map((to) => to.getData(state)),
         dlCurrentNodeID
       };
     }
     return {
       ...baseData,
       fixedPoints: this.fixedPoints.map((point) => point.getData(state)),
-      effortPoints: this.effortPoints.map((to) => to.getData(state)) as any,
+      effortPoints: this.effortPoints.map((to) => to.getData(state)),
       dlCurrentNodeID
     };
   }

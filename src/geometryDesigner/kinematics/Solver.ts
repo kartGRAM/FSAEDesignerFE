@@ -207,7 +207,7 @@ export class KinematicSolver {
           ];
           const elements = points.map((p) => p.parent as IElement);
           this.restorers.push(new BarRestorer(element, points[0], points[1]));
-          // あまりないと思うが、AArmのすべての点が同じコンポーネントに接続されている場合無視する
+          // あまりないと思うが、Barのすべての点が同じコンポーネントに接続されている場合無視する
           if (
             elements[0].nodeID === elements[1].nodeID ||
             (isFixedElement(elements[0]) && isFixedElement(elements[1]))
@@ -385,8 +385,19 @@ export class KinematicSolver {
             constraints.push(constraint);
           });
         }
+        // TorsionSpringはComponent扱いしない
         if (isTorsionSpring(element)) {
-          const a = 0;
+          const jointf0 = jointDict[element.fixedPoints[0].nodeID][0];
+          const jointf1 = jointDict[element.fixedPoints[1].nodeID][0];
+          jointsDone.add(jointf0);
+          jointsDone.add(jointf1);
+          // 固定点の相手先を見つける
+          const fixedPoints = [
+            getJointPartner(jointf0, element.fixedPoints[0].nodeID),
+            getJointPartner(jointf1, element.fixedPoints[1].nodeID)
+          ];
+          const node0: (Vector3 | undefined)[] = [];
+          const component0: IComponent[] = [];
         }
       });
     }

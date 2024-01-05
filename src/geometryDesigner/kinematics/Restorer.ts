@@ -7,6 +7,7 @@ import {IBar} from '@gd/IElements/IBar';
 import {ITire} from '@gd/IElements/ITire';
 import {isSpringDumper} from '@gd/IElements/ISpringDumper';
 import {ILinearBushing} from '@gd/IElements/ILinearBushing';
+import {ITorsionSpring} from '@gd/IElements/ITorsionSpring';
 import {INamedVector3RO} from '@gd/INamedValues';
 import {Vector3, Quaternion} from 'three';
 
@@ -256,5 +257,72 @@ export class LinearBushingRestorer implements Restorer {
     const sign = pToDelta.dot(sTo) > 0 ? 1 : -1;
     const initialPosition = this.element.toPoints[0].value;
     this.element.dlCurrent = pToDelta.length() * sign - initialPosition;
+  }
+}
+
+export class TorsionSpringRestorer implements Restorer {
+  element: ITorsionSpring;
+
+  fixedPoints: INamedVector3RO[];
+
+  effortPoints: INamedVector3RO[];
+
+  constructor(
+    element: ITorsionSpring,
+    // fpの相手
+    fixedPoints: [INamedVector3RO, INamedVector3RO],
+    // epの相手
+    effortPoint: [INamedVector3RO, INamedVector3RO]
+  ) {
+    this.element = element;
+    this.fixedPoints = fixedPoints;
+    this.effortPoints = effortPoint;
+  }
+
+  restore(unresolvedPoints: {[key: string]: Vector3}) {
+    const points = this.element.getPoints().map((p) => p.value);
+    const fps = points.slice(0, 2);
+    const eps = points.slice(2);
+    const fpParent = this.fixedPoints[0].parent as IElement;
+    // 回転側はeps0固定側はeps1
+    const epParent = this.effortPoints[1].parent as IElement;
+
+    const fpsTo = this.fixedPoints.map(
+      (p) =>
+        unresolvedPoints[p.nodeID] ??
+        p.value
+          .applyQuaternion(fpParent.rotation.value)
+          .add(fpParent.position.value)
+    );
+    const epsTo = this.effortPoints.map(
+      (p) =>
+        unresolvedPoints[p.nodeID] ??
+        p.value
+          .applyQuaternion(epParent.rotation.value)
+          .add(epParent.position.value)
+    );
+    const s = fps[1].clone().sub(fps[0]).normalize();
+    const sTo = fpsTo[1].clone().sub(fpsTo[0]).normalize();
+    const rotation1 = new Quaternion().setFromUnitVectors(s, sTo);
+    // 軸合わせ
+    points.forEach((p) => p.applyQuaternion(rotation1));
+    const e = eps[1].clone().sub(fps[0]).normalize();
+    const eTo = epsTo[1].clone().sub(fpsTo[0]).normalize();
+    const rotation2 = new Quaternion().setFromUnitVectors(e, eTo);
+    // ロッドエンドの位置まで回転
+    points.forEach((p) =>
+      p.applyQuaternion(rotation2).add(this.element.position.value)
+    );
+    this.element.rotation.value = rotation1.multiply(rotation2);
+
+    const deltaP = fpsTo[0].clone().sub(fps[0]);
+    this.element.position.value = this.element.position.value.add(deltaP);
+
+    // もう一方のロッドエンドの位置までの必要回転量をdeltaLへ
+    const e2 = eps[0].clone().sub(fps[0]).normalize();
+    const e2To = epsTo[0].clone().sub(fpsTo[0]).normalize();
+    const sin = e2.cross(e2To);
+    const sign = sin.dot(s) > 0 ? 1 : -1;
+    this.element.dlCurrent = (Math.asin(sign * sin.length()) * 180) / Math.PI;
   }
 }

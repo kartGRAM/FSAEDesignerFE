@@ -1,5 +1,5 @@
 import React from 'react';
-import {Vector3} from 'three';
+// import {Vector3} from 'three';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
@@ -10,11 +10,11 @@ import {ITorsionSpring} from '@gd/IElements/ITorsionSpring';
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '@store/store';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
-import {NamedVector3} from '@gd/NamedValues';
-import AddBoxIcon from '@mui/icons-material/AddBox';
-import Toolbar from '@mui/material/Toolbar';
-import IconButton from '@mui/material/IconButton';
-import Tooltip from '@mui/material/Tooltip';
+// import {NamedVector3} from '@gd/NamedValues';
+// import AddBoxIcon from '@mui/icons-material/AddBox';
+// import Toolbar from '@mui/material/Toolbar';
+// import IconButton from '@mui/material/IconButton';
+// import Tooltip from '@mui/material/Tooltip';
 import {
   kinematicParamsDefaultExpandedChange,
   dynamicParamsDefaultExpandedChange
@@ -72,14 +72,13 @@ export default function TorsionSpringConfig(params: Params) {
               vector={point}
               disabled={isMirror}
               key={point.nodeID}
-              removable={i > 0}
               onRemove={() => {
                 element.effortPoints.splice(i, 1);
                 dispatch(updateAssembly(element));
               }}
             />
           ))}
-          {!isMirror && element.effortPoints.length < 2 ? (
+          {/*! isMirror && element.effortPoints.length < 2 ? (
             <Toolbar
               sx={{
                 pr: '0.7rem!important',
@@ -114,7 +113,7 @@ export default function TorsionSpringConfig(params: Params) {
                 </IconButton>
               </Tooltip>
             </Toolbar>
-          ) : null}
+                ) : null */}
         </AccordionDetails>
       </Accordion>
       <Accordion
