@@ -99,6 +99,8 @@ export const dataGeometryDesignerSlice = createSlice({
       state.analysis = action.payload.analysis;
       state.idWoTest = uuidv4();
       state.changed = false;
+      state.options = action.payload.options;
+      state.lastGlobalFormulaUpdate = uuidv4();
     },
     updateAssembly: (
       state: GDState,
@@ -189,6 +191,14 @@ export const dataGeometryDesignerSlice = createSlice({
       state.idWoTest = uuidv4();
       state.changed = true;
     },
+    setAssemblyMode: (
+      state: GDState,
+      action: PayloadAction<typeof initialState.options.assemblyMode>
+    ) => {
+      state.options.assemblyMode = action.payload;
+      state.idWoTest = uuidv4();
+      state.changed = true;
+    },
     setTests: (state: GDState, action: PayloadAction<IDataTest[]>) => {
       state.analysis = action.payload;
       state.changed = true;
@@ -216,6 +226,7 @@ export const {
   setFormulae,
   setControl,
   setTests,
+  setAssemblyMode,
   removeControl,
   toggleFixSpringDumperDuaringControl,
   setChanged

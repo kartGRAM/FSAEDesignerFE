@@ -5,12 +5,24 @@ import {LocalInstances} from '@worker/getLocalInstances';
 import {IDataFlowNode, IFlowNode, IDataEdge} from './FlowNode';
 import {IStartNode} from './StartNode';
 import {IEndNode} from './EndNode';
+import {IParameterSetter, IDataParameterSetter} from './ParameterSetter';
 
 export type TestResult =
   | 'Completed'
   | 'Solver Error'
   | 'User Canceled'
   | 'Continue';
+
+export interface ISteadyStateDynamicsParams {
+  tireData: {[key: string]: number | undefined};
+  stearing: IParameterSetter;
+  velocity: number;
+  radius: number;
+}
+export interface IDataSteadyStateDynamicsParams {
+  tireData: {[key: string]: number | undefined};
+  stearing: IDataParameterSetter;
+}
 
 export interface ITest {
   name: string;
@@ -23,6 +35,8 @@ export interface ITest {
   readonly endNode: IEndNode;
   readonly redoable: boolean;
   readonly undoable: boolean;
+  readonly calculateSteadyStateDynamics: boolean;
+  readonly steadyStateDynamics?: ISteadyStateDynamicsParams;
 
   undoBlockPoint: string;
   addNode(node: IFlowNode): void;

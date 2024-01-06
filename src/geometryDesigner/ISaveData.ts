@@ -10,7 +10,7 @@ import {RootState} from '@store/store';
 
 export interface Options {
   fixSpringDumperDuaringControl: boolean;
-  assemblyMode: 'FixedFrame' | 'FixTiresToBeGrounded';
+  assemblyMode: 'FixedFrame' | 'AllTiresGrounded';
 }
 
 export interface SavedData {

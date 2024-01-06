@@ -6,7 +6,18 @@ import DialogActions from '@mui/material/DialogActions';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
-import {DialogContent, LinearProgress, Paper} from '@mui/material';
+import {
+  DialogContent,
+  LinearProgress,
+  Paper,
+  Divider,
+  FormControl,
+  FormControlLabel,
+  RadioGroup,
+  FormLabel,
+  Radio,
+  Checkbox
+} from '@mui/material';
 import {useCallback} from 'react';
 import ReactFlow, {
   XYPosition,
@@ -29,6 +40,7 @@ import {
   setAllUIDisabled,
   removeTest
 } from '@store/reducers/uiTempGeometryDesigner';
+import {setAssemblyMode} from '@store/reducers/dataGeometryDesigner';
 import {className as STARTNODE} from '@gd/analysis/StartNode';
 import {className as ENDNODE} from '@gd/analysis/EndNode';
 import useUpdate from '@app/hooks/useUpdate';
@@ -619,10 +631,68 @@ const Content = React.memo((props: {test: ITest}) => {
   if (tempNodes.edges) edges.push(...tempNodes.edges);
   const disabled = test.solver.running;
   const {wip, done} = test.solver.progress;
+  const idAsmMode = React.useId();
+  const assemblyMode = useSelector(
+    (state: RootState) => state.dgd.present.options.assemblyMode
+  );
+
+  const onAssemblyModeChange = React.useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>, value: string) => {
+      dispatch(setAssemblyMode(value as typeof assemblyMode));
+    },
+    [dispatch]
+  );
 
   return (
     <>
-      <ItemBox />
+      <Box component="div" sx={{display: 'flex', flexDirection: 'column'}}>
+        <ItemBox />
+        <Divider />
+        <FormControl>
+          <FormLabel id={idAsmMode}>Solver Mode</FormLabel>
+          <RadioGroup
+            aria-labelledby={idAsmMode}
+            value={assemblyMode}
+            name="radio-buttons-group"
+            onChange={onAssemblyModeChange}
+          >
+            <FormControlLabel
+              value="FixedFrame"
+              control={<Radio />}
+              label="Calculate with a fixed frame."
+            />
+            <FormControlLabel
+              value="AllTiresGrounded"
+              control={<Radio />}
+              label="Calculate with all tires grounded."
+            />
+          </RadioGroup>
+          {assemblyMode === 'AllTiresGrounded' ? (
+            <>
+              <Box component="div">
+                <FormControlLabel
+                  control={<Checkbox defaultChecked />}
+                  label="Calculate Steedy State Dynamics"
+                />
+              </Box>
+              <Box component="div" sx={{pl: 2}}>
+                <RadioGroup name="radio-buttons-group">
+                  <FormControlLabel
+                    value="SkidPadMaxV"
+                    control={<Radio />}
+                    label="Calculate Skidpad. (Max V)"
+                  />
+                  <FormControlLabel
+                    value="SkidPadMinR"
+                    control={<Radio />}
+                    label="Calculate Skidpad. (Min R)"
+                  />
+                </RadioGroup>
+              </Box>
+            </>
+          ) : null}
+        </FormControl>
+      </Box>
       <Box
         onKeyDown={handleKeyDown}
         component="div"
