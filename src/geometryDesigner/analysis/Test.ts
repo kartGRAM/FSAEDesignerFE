@@ -3,14 +3,53 @@ import {v4 as uuidv4} from 'uuid';
 import {getDgd} from '@store/getDgd';
 import {setTests} from '@store/reducers/dataGeometryDesigner';
 import {testUpdateNotify} from '@store/reducers/uiTempGeometryDesigner';
+import {NamedNumber} from '@gd/NamedValues';
 import {IFlowNode, IDataEdge} from './FlowNode';
 import {StartNode, isStartNode, IStartNode} from './StartNode';
 import {EndNode, isEndNode, IEndNode} from './EndNode';
-import {ITest, IDataTest, isDataTest, IClipboardFlowNodes} from './ITest';
+import {
+  ITest,
+  IDataTest,
+  isDataTest,
+  IClipboardFlowNodes,
+  ISteadySkidPadParams,
+  IDataSteadySkidPadParams
+} from './ITest';
 import {getFlowNode} from './RestoreData';
 import validateGraph from './ValidateGraph';
 import arrangeNodes from './ArrangeNodes';
 import {TestSolver} from './TestSolver';
+import {ParameterSetter} from './ParameterSetter';
+
+export const loadSteadySkidPadParams = (
+  data: IDataSteadySkidPadParams
+): ISteadySkidPadParams => {
+  return {
+    tireData: {...data.tireData},
+    tireTorqueRatio: {...data.tireTorqueRatio},
+    stearing: new ParameterSetter(data.stearing),
+    velocity: new NamedNumber({value: data.velocity}),
+    radius: new NamedNumber({value: data.radius}),
+    globalCd: new NamedNumber({value: data.globalCd}),
+    globalCl: new NamedNumber({value: data.globalCd})
+  };
+};
+
+export const saveSteadySkidPadParams = (
+  params: ISteadySkidPadParams | undefined
+): IDataSteadySkidPadParams | undefined => {
+  if (!params) return undefined;
+  const dgd = getDgd();
+  return {
+    tireData: {...params.tireData},
+    tireTorqueRatio: {...params.tireTorqueRatio},
+    stearing: params.stearing.getData(),
+    velocity: params.velocity.getData(dgd),
+    radius: params.radius.getData(dgd),
+    globalCd: params.globalCd.getData(dgd),
+    globalCl: params.globalCl.getData(dgd)
+  };
+};
 
 export class Test implements ITest {
   name: string;
@@ -54,6 +93,12 @@ export class Test implements ITest {
       this.name = data.name;
       this.description = data.description;
       this.nodeID = data.nodeID;
+      this.calculateSteadyStateDynamics = !!data.calculateSteadyStateDynamics;
+      this.steadyStateDynamicsMode =
+        data.steadyStateDynamicsMode ?? 'SkidPadMaxV';
+      this.steadySkidPadParams = data.steadySkidPadParams
+        ? loadSteadySkidPadParams(data.steadySkidPadParams)
+        : undefined;
       this.idWoTest = data.idWoTest ?? '';
       this.edges = data.edges.reduce((prev, current) => {
         prev[`${current.source}@${current.target}`] = {...current};
@@ -266,7 +311,16 @@ export class Test implements ITest {
 
   getData(): IDataTest {
     this.cleanData();
-    const {name, description, nodeID, edges, nodes, idWoTest} = this;
+    const {
+      name,
+      description,
+      nodeID,
+      edges,
+      nodes,
+      idWoTest,
+      calculateSteadyStateDynamics,
+      steadyStateDynamicsMode
+    } = this;
     const dataNodes = [
       ...Object.values(nodes)
         .filter((node) => !node.copyFrom)
@@ -283,7 +337,10 @@ export class Test implements ITest {
       idWoTest,
       nodes: dataNodes,
       edges: Object.values(edges),
-      localStateID: uuidv4()
+      localStateID: uuidv4(),
+      calculateSteadyStateDynamics,
+      steadyStateDynamicsMode,
+      steadySkidPadParams: saveSteadySkidPadParams(this.steadySkidPadParams)
     };
   }
 
@@ -347,9 +404,19 @@ export class Test implements ITest {
 
   endNode: IEndNode;
 
+  calculateSteadyStateDynamics: boolean;
+
+  steadyStateDynamicsMode: 'SkidPadMaxV' | 'SkidPadMinR';
+
+  steadySkidPadParams?: ISteadySkidPadParams | undefined;
+
   constructor(params: {name: string; description: string} | IDataTest) {
     this.name = params.name;
     this.description = params.description;
+    this.calculateSteadyStateDynamics = false;
+    this.steadyStateDynamicsMode = 'SkidPadMaxV';
+    this.steadySkidPadParams = undefined;
+
     this.startNode = new StartNode({
       name: 'assemble & test start',
       position: {x: 0, y: 0}

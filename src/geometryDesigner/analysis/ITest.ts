@@ -2,6 +2,7 @@ import {isObject} from '@app/utils/helpers';
 import IClipboardItem from '@gd/ClipboardItem';
 import {CaseResults} from '@worker/solverWorkerMessage';
 import {LocalInstances} from '@worker/getLocalInstances';
+import {IDataNumber, INamedNumber} from '@gd/INamedValues';
 import {IDataFlowNode, IFlowNode, IDataEdge} from './FlowNode';
 import {IStartNode} from './StartNode';
 import {IEndNode} from './EndNode';
@@ -13,15 +14,24 @@ export type TestResult =
   | 'User Canceled'
   | 'Continue';
 
-export interface ISteadyStateDynamicsParams {
+export interface ISteadySkidPadParams {
   tireData: {[key: string]: number | undefined};
+  tireTorqueRatio: {[key: string]: number};
   stearing: IParameterSetter;
-  velocity: number;
-  radius: number;
+  velocity: INamedNumber;
+  radius: INamedNumber;
+  globalCd: INamedNumber;
+  globalCl: INamedNumber;
 }
-export interface IDataSteadyStateDynamicsParams {
+
+export interface IDataSteadySkidPadParams {
   tireData: {[key: string]: number | undefined};
+  tireTorqueRatio: {[key: string]: number};
   stearing: IDataParameterSetter;
+  velocity: IDataNumber;
+  radius: IDataNumber;
+  globalCd: IDataNumber;
+  globalCl: IDataNumber;
 }
 
 export interface ITest {
@@ -36,7 +46,8 @@ export interface ITest {
   readonly redoable: boolean;
   readonly undoable: boolean;
   readonly calculateSteadyStateDynamics: boolean;
-  readonly steadyStateDynamics?: ISteadyStateDynamicsParams;
+  readonly steadyStateDynamicsMode: 'SkidPadMaxV' | 'SkidPadMinR';
+  readonly steadySkidPadParams?: ISteadySkidPadParams;
 
   undoBlockPoint: string;
   addNode(node: IFlowNode): void;
@@ -81,6 +92,9 @@ export interface IDataTest {
   readonly edges: IDataEdge[];
   readonly localStateID: string;
   readonly idWoTest: string;
+  readonly calculateSteadyStateDynamics?: boolean;
+  readonly steadyStateDynamicsMode?: 'SkidPadMaxV' | 'SkidPadMinR';
+  readonly steadySkidPadParams?: IDataSteadySkidPadParams;
 }
 
 export function isDataTest(test: any): test is IDataTest {
