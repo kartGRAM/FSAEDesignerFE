@@ -68,6 +68,7 @@ import TestDescription from './TestDescription';
 import {FlowCanvasToolbar} from './FlowCanvasToolbar';
 import {getRFNode, getEdge} from './nodes/getItems';
 import {CaseResultDialog} from './CaseResultDialog';
+import SkidpadConfigDialog from './SkidpadConfigDialog';
 
 const fitViewOptions: FitViewOptions = {
   padding: 0.2
@@ -662,12 +663,15 @@ const Content = React.memo((props: {test: ITest}) => {
     [test, updateWithSave]
   );
 
+  const [skidpadConfigOpen, setSkidpadConfigOpen] =
+    React.useState<boolean>(false);
+
   return (
     <>
       <Box component="div" sx={{display: 'flex', flexDirection: 'column'}}>
         <ItemBox />
         <Divider />
-        <FormControl>
+        <FormControl sx={{pt: 3}}>
           <FormLabel id={idAsmMode}>Solver Mode</FormLabel>
           <RadioGroup
             aria-labelledby={idAsmMode}
@@ -717,6 +721,14 @@ const Content = React.memo((props: {test: ITest}) => {
                       label="Calculate Skidpad. (Min R)"
                     />
                   </RadioGroup>
+                  <Button
+                    variant="contained"
+                    onClick={() => {
+                      setSkidpadConfigOpen(true);
+                    }}
+                  >
+                    configurations
+                  </Button>
                 </Box>
               ) : null}
             </>
@@ -821,6 +833,13 @@ const Content = React.memo((props: {test: ITest}) => {
           />
         </Paper>
       </Box>
+      <SkidpadConfigDialog
+        test={test}
+        open={skidpadConfigOpen}
+        onClose={() => {
+          setSkidpadConfigOpen(false);
+        }}
+      />
     </>
   );
 });
