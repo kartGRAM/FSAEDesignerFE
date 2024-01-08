@@ -170,6 +170,43 @@ const Content = React.memo((props: {test: ITest}) => {
         flexDirection: 'column'
       }}
     >
+      {test.steadyStateDynamicsMode === 'SkidpadMaxV' ? (
+        <Box
+          component="div"
+          sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'baseline',
+            justifyContent: 'space-between'
+          }}
+        >
+          <Typography variant="subtitle1">skidpad radius</Typography>
+          <Scalar
+            nameUnvisible
+            value={config.radius}
+            unit="m"
+            onUpdate={scalarApply()}
+          />
+        </Box>
+      ) : (
+        <Box
+          component="div"
+          sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'baseline',
+            justifyContent: 'space-between'
+          }}
+        >
+          <Typography variant="subtitle1">skidpad constant velocity</Typography>
+          <Scalar
+            nameUnvisible
+            value={config.velocity}
+            unit="m/s"
+            onUpdate={scalarApply()}
+          />
+        </Box>
+      )}
       <Box
         component="div"
         sx={{
@@ -180,7 +217,7 @@ const Content = React.memo((props: {test: ITest}) => {
         }}
       >
         <Typography variant="subtitle1">
-          global Cd (entire force is applied to center of gravity)
+          global Cd (entire force is applied to the center of gravity)
         </Typography>
         <Scalar
           nameUnvisible
@@ -199,7 +236,7 @@ const Content = React.memo((props: {test: ITest}) => {
         }}
       >
         <Typography variant="subtitle1">
-          global Cl (entire force is applied to center of gravity)
+          global Cl (entire force is applied to the center of gravity)
         </Typography>
         <Scalar
           nameUnvisible

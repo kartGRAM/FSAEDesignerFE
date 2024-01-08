@@ -31,7 +31,7 @@ export const loadSteadySkidpadParams = (
     velocity: new NamedNumber({value: data.velocity}),
     radius: new NamedNumber({value: data.radius}),
     globalCd: new NamedNumber({value: data.globalCd}),
-    globalCl: new NamedNumber({value: data.globalCd}),
+    globalCl: new NamedNumber({value: data.globalCl}),
     searchMode: data.searchMode,
     velocityStepSize: data.velocityStepSize
       ? new NamedNumber({value: data.velocityStepSize})
@@ -47,21 +47,20 @@ export const saveSteadySkidpadParams = (
   params: ISteadySkidpadParams | undefined
 ): IDataSteadySkidpadParams | undefined => {
   if (!params) return undefined;
-  const dgd = getDgd();
   return {
     tireData: {...params.tireData},
     tireTorqueRatio: {...params.tireTorqueRatio},
     stearing: params.stearing.getData(),
-    velocity: params.velocity.getData(dgd),
-    radius: params.radius.getData(dgd),
-    globalCd: params.globalCd.getData(dgd),
-    globalCl: params.globalCl.getData(dgd),
+    velocity: params.velocity.getData(),
+    radius: params.radius.getData(),
+    globalCd: params.globalCd.getData(),
+    globalCl: params.globalCl.getData(),
     searchMode: params.searchMode,
     velocityStepSize: params.velocityStepSize
-      ? params.velocityStepSize.getData(dgd)
+      ? params.velocityStepSize.getData()
       : undefined,
     radiusStepSize: params.radiusStepSize
-      ? params.radiusStepSize.getData(dgd)
+      ? params.radiusStepSize.getData()
       : undefined,
     storeIntermidiateResults: params.storeIntermidiateResults
   };

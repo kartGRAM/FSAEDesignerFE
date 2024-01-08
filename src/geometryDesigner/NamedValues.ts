@@ -260,7 +260,7 @@ export class NamedNumber extends NamedValue implements INamedNumber {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getData(state: GDState): IDataNumber {
+  getData(state?: GDState): IDataNumber {
     return {
       ...super.getDataBase(),
       value: this.formula.getData()

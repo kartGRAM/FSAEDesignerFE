@@ -73,7 +73,7 @@ export interface INamedNumberRO extends Omit<INamedValue, 'getData'> {
 export interface INamedNumber extends INamedNumberRO {
   value: number;
   formula: IFormula;
-  getData(state: GDState): IDataNumber;
+  getData(state?: GDState): IDataNumber;
   getStringValue(): string;
   setValue(newValue: string | number): INamedValue;
 }
