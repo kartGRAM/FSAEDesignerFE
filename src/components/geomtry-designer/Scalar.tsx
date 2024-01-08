@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 import React, {useState} from 'react';
 import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
@@ -21,11 +22,20 @@ export interface Props {
   onFocusChanged?: (focus: boolean) => () => void;
   disabled?: boolean;
   onUpdate?: () => void;
+  nameUnvisible?: boolean;
 }
 
 export default function Scalar(props: Props) {
-  const {value, unit, removable, onRemove, onFocusChanged, disabled, onUpdate} =
-    props;
+  const {
+    value,
+    unit,
+    removable,
+    onRemove,
+    onFocusChanged,
+    disabled,
+    onUpdate,
+    nameUnvisible
+  } = props;
   const dispatch = useDispatch();
   const sValue = value.getStringValue();
 
@@ -117,56 +127,62 @@ export default function Scalar(props: Props) {
       onFocus={handleFocus}
       onBlur={handleBlur}
     >
-      <Toolbar
-        sx={{
-          pl: '0.3rem!important',
-          pr: '0.3rem!important',
-          pb: '0rem!important',
-          minHeight: '40px!important',
-          flex: '1'
-        }}
-      >
-        {!rename ? (
-          <Typography
-            sx={{flex: '1 1 100%'}}
-            color="inherit"
-            variant="subtitle1"
-            component="div"
-            onDoubleClick={handleNameDblClick}
-          >
-            {value.name}
-          </Typography>
-        ) : (
-          <TextField
-            inputRef={ref}
-            onChange={nameFormik.handleChange}
-            name="name"
-            variant="outlined"
-            size="small"
-            onKeyDown={onNameEnter}
-            value={nameFormik.values.name}
-            onBlur={onNameBlur}
-            error={nameFormik.touched.name && Boolean(nameFormik.errors.name)}
-            helperText={nameFormik.touched.name && nameFormik.errors.name}
-            sx={{
-              '& legend': {display: 'none'},
-              '& fieldset': {top: 0}
-            }}
-          />
-        )}
+      {!nameUnvisible || removable ? (
+        <Toolbar
+          sx={{
+            pl: '0.3rem!important',
+            pr: '0.3rem!important',
+            pb: '0rem!important',
+            minHeight: '40px!important',
+            flex: '1'
+          }}
+        >
+          {!nameUnvisible ? (
+            !rename ? (
+              <Typography
+                sx={{flex: '1 1 100%'}}
+                color="inherit"
+                variant="subtitle1"
+                component="div"
+                onDoubleClick={handleNameDblClick}
+              >
+                {value.name}
+              </Typography>
+            ) : (
+              <TextField
+                inputRef={ref}
+                onChange={nameFormik.handleChange}
+                name="name"
+                variant="outlined"
+                size="small"
+                onKeyDown={onNameEnter}
+                value={nameFormik.values.name}
+                onBlur={onNameBlur}
+                error={
+                  nameFormik.touched.name && Boolean(nameFormik.errors.name)
+                }
+                helperText={nameFormik.touched.name && nameFormik.errors.name}
+                sx={{
+                  '& legend': {display: 'none'},
+                  '& fieldset': {top: 0}
+                }}
+              />
+            )
+          ) : null}
 
-        {removable ? (
-          <Tooltip title="Delete" sx={{flex: '1'}}>
-            <IconButton
-              onClick={() => {
-                if (onRemove) onRemove();
-              }}
-            >
-              <DeleteIcon />
-            </IconButton>
-          </Tooltip>
-        ) : null}
-      </Toolbar>
+          {removable ? (
+            <Tooltip title="Delete" sx={{flex: '1'}}>
+              <IconButton
+                onClick={() => {
+                  if (onRemove) onRemove();
+                }}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </Tooltip>
+          ) : null}
+        </Toolbar>
+      ) : null}
       <form onSubmit={formik.handleSubmit}>
         <Box
           component="div"

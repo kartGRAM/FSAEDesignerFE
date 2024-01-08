@@ -12,6 +12,19 @@ export interface IDataControl {
   readonly speed: number; // mm/s or rad/s
 }
 
+export const createDummyDataControl = (): IDataControl => {
+  return {
+    nodeID: 'dummy',
+    name: 'not selected',
+    className: 'dummy',
+    type: 'keyboard',
+    targetElements: [],
+    inputButton: '',
+    reverse: false,
+    speed: 0 // mm/s or rad/s
+  };
+};
+
 export type ControllerTypes = 'keyboard' | 'joystick' | 'notAssigned';
 
 export abstract class Control {

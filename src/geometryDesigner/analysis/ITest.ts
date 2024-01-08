@@ -23,6 +23,7 @@ export interface ISteadySkidpadParams {
   globalCd: INamedNumber;
   globalCl: INamedNumber;
   searchMode: 'binary' | 'step';
+  storeIntermidiateResults: boolean;
   velocityStepSize?: INamedNumber;
   radiusStepSize?: INamedNumber;
 }
@@ -38,6 +39,7 @@ export interface IDataSteadySkidpadParams {
   searchMode: 'binary' | 'step';
   velocityStepSize?: IDataNumber;
   radiusStepSize?: IDataNumber;
+  storeIntermidiateResults: boolean;
 }
 
 export interface ITest {
@@ -53,7 +55,7 @@ export interface ITest {
   readonly undoable: boolean;
   calculateSteadyStateDynamics: boolean;
   steadyStateDynamicsMode: 'SkidpadMaxV' | 'SkidpadMinR';
-  readonly steadySkidpadParams?: ISteadySkidpadParams;
+  steadySkidpadParams?: ISteadySkidpadParams;
 
   undoBlockPoint: string;
   addNode(node: IFlowNode): void;

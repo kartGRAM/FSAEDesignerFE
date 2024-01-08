@@ -38,7 +38,8 @@ export const loadSteadySkidpadParams = (
       : undefined,
     radiusStepSize: data.radiusStepSize
       ? new NamedNumber({value: data.radiusStepSize})
-      : undefined
+      : undefined,
+    storeIntermidiateResults: false
   };
 };
 
@@ -61,7 +62,8 @@ export const saveSteadySkidpadParams = (
       : undefined,
     radiusStepSize: params.radiusStepSize
       ? params.radiusStepSize.getData(dgd)
-      : undefined
+      : undefined,
+    storeIntermidiateResults: params.storeIntermidiateResults
   };
 };
 
