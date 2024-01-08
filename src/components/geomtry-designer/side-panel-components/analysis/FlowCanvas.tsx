@@ -643,6 +643,25 @@ const Content = React.memo((props: {test: ITest}) => {
     [dispatch]
   );
 
+  const onDynamicsCalculateChanged = React.useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>, checked: boolean) => {
+      test.calculateSteadyStateDynamics = checked;
+      updateWithSave();
+    },
+    [test, updateWithSave]
+  );
+
+  const onSteadyStateDynamicsModeChanged = React.useCallback(
+    (
+      e: React.ChangeEvent<HTMLInputElement>,
+      mode: typeof test.steadyStateDynamicsMode
+    ) => {
+      test.steadyStateDynamicsMode = mode;
+      updateWithSave();
+    },
+    [test, updateWithSave]
+  );
+
   return (
     <>
       <Box component="div" sx={{display: 'flex', flexDirection: 'column'}}>
@@ -671,24 +690,35 @@ const Content = React.memo((props: {test: ITest}) => {
             <>
               <Box component="div">
                 <FormControlLabel
-                  control={<Checkbox defaultChecked />}
-                  label="Calculate Steedy State Dynamics"
+                  control={
+                    <Checkbox
+                      checked={test.calculateSteadyStateDynamics}
+                      onChange={onDynamicsCalculateChanged}
+                    />
+                  }
+                  label="Calculate steedy state dynamics"
                 />
               </Box>
-              <Box component="div" sx={{pl: 2}}>
-                <RadioGroup name="radio-buttons-group">
-                  <FormControlLabel
-                    value="SkidPadMaxV"
-                    control={<Radio />}
-                    label="Calculate Skidpad. (Max V)"
-                  />
-                  <FormControlLabel
-                    value="SkidPadMinR"
-                    control={<Radio />}
-                    label="Calculate Skidpad. (Min R)"
-                  />
-                </RadioGroup>
-              </Box>
+              {test.calculateSteadyStateDynamics ? (
+                <Box component="div" sx={{pl: 2}}>
+                  <RadioGroup
+                    name="radio-buttons-group"
+                    onChange={onSteadyStateDynamicsModeChanged as any}
+                    value={test.steadyStateDynamicsMode}
+                  >
+                    <FormControlLabel
+                      value="SkidpadMaxV"
+                      control={<Radio />}
+                      label="Calculate Skidpad. (Max V)"
+                    />
+                    <FormControlLabel
+                      value="SkidpadMinR"
+                      control={<Radio />}
+                      label="Calculate Skidpad. (Min R)"
+                    />
+                  </RadioGroup>
+                </Box>
+              ) : null}
             </>
           ) : null}
         </FormControl>

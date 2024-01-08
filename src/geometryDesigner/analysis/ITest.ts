@@ -14,7 +14,7 @@ export type TestResult =
   | 'User Canceled'
   | 'Continue';
 
-export interface ISteadySkidPadParams {
+export interface ISteadySkidpadParams {
   tireData: {[key: string]: number | undefined};
   tireTorqueRatio: {[key: string]: number};
   stearing: IParameterSetter;
@@ -22,9 +22,12 @@ export interface ISteadySkidPadParams {
   radius: INamedNumber;
   globalCd: INamedNumber;
   globalCl: INamedNumber;
+  searchMode: 'binary' | 'step';
+  velocityStepSize?: INamedNumber;
+  radiusStepSize?: INamedNumber;
 }
 
-export interface IDataSteadySkidPadParams {
+export interface IDataSteadySkidpadParams {
   tireData: {[key: string]: number | undefined};
   tireTorqueRatio: {[key: string]: number};
   stearing: IDataParameterSetter;
@@ -32,6 +35,9 @@ export interface IDataSteadySkidPadParams {
   radius: IDataNumber;
   globalCd: IDataNumber;
   globalCl: IDataNumber;
+  searchMode: 'binary' | 'step';
+  velocityStepSize?: IDataNumber;
+  radiusStepSize?: IDataNumber;
 }
 
 export interface ITest {
@@ -45,9 +51,9 @@ export interface ITest {
   readonly endNode: IEndNode;
   readonly redoable: boolean;
   readonly undoable: boolean;
-  readonly calculateSteadyStateDynamics: boolean;
-  readonly steadyStateDynamicsMode: 'SkidPadMaxV' | 'SkidPadMinR';
-  readonly steadySkidPadParams?: ISteadySkidPadParams;
+  calculateSteadyStateDynamics: boolean;
+  steadyStateDynamicsMode: 'SkidpadMaxV' | 'SkidpadMinR';
+  readonly steadySkidpadParams?: ISteadySkidpadParams;
 
   undoBlockPoint: string;
   addNode(node: IFlowNode): void;
@@ -72,6 +78,7 @@ export interface ITest {
     heightSpaceAligningNodes: number
   ): void;
   tryConnect(source: string, target: string): boolean;
+
   getData(): IDataTest;
   readonly nodes: {[index: string]: IFlowNode};
   readonly edges: {[index: string]: IDataEdge};
@@ -93,8 +100,8 @@ export interface IDataTest {
   readonly localStateID: string;
   readonly idWoTest: string;
   readonly calculateSteadyStateDynamics?: boolean;
-  readonly steadyStateDynamicsMode?: 'SkidPadMaxV' | 'SkidPadMinR';
-  readonly steadySkidPadParams?: IDataSteadySkidPadParams;
+  readonly steadyStateDynamicsMode?: 'SkidpadMaxV' | 'SkidpadMinR';
+  readonly steadySkidpadParams?: IDataSteadySkidpadParams;
 }
 
 export function isDataTest(test: any): test is IDataTest {
