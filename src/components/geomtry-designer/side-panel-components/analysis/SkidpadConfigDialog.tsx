@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import {
@@ -6,7 +7,9 @@ import {
   Button,
   DialogActions,
   Box,
-  Typography
+  Typography,
+  NativeSelect,
+  Checkbox
 } from '@mui/material';
 import {setConfirmDialogProps} from '@store/reducers/uiTempGeometryDesigner';
 import {PaperProps} from '@mui/material/Paper';
@@ -150,17 +153,19 @@ const Content = React.memo((props: {test: ITest}) => {
     globalCd: new NamedNumber({name: 'global cd', value: 0}),
     globalCl: new NamedNumber({name: 'global cl', value: 0}),
     searchMode: 'binary',
-    velocityStepSize: undefined,
-    radiusStepSize: undefined,
+    velocityStepSize: new NamedNumber({name: 'velocityStepSize', value: 1}),
+    radiusStepSize: new NamedNumber({name: 'radiusStepSize', value: -0.5}),
     storeIntermidiateResults: false
   };
-  const scalarApply = (func?: () => void) => {
-    return () => {
-      if (func) func();
+  const apply = <E, V>(func?: (e?: E, v?: V) => void) => {
+    return (e?: E, v?: V) => {
+      if (func) func(e, v);
       test.steadySkidpadParams = config;
       updateWithSave();
     };
   };
+
+  const fieldSX = {minWidth: 330};
 
   return (
     <Box
@@ -185,7 +190,8 @@ const Content = React.memo((props: {test: ITest}) => {
             nameUnvisible
             value={config.radius}
             unit="m"
-            onUpdate={scalarApply()}
+            onUpdate={apply()}
+            valueFieldProps={{sx: fieldSX}}
           />
         </Box>
       ) : (
@@ -203,7 +209,8 @@ const Content = React.memo((props: {test: ITest}) => {
             nameUnvisible
             value={config.velocity}
             unit="m/s"
-            onUpdate={scalarApply()}
+            onUpdate={apply()}
+            valueFieldProps={{sx: fieldSX}}
           />
         </Box>
       )}
@@ -223,7 +230,8 @@ const Content = React.memo((props: {test: ITest}) => {
           nameUnvisible
           value={config.globalCd}
           unit="N/(m/s)^2"
-          onUpdate={scalarApply()}
+          onUpdate={apply()}
+          valueFieldProps={{sx: fieldSX}}
         />
       </Box>
       <Box
@@ -242,9 +250,93 @@ const Content = React.memo((props: {test: ITest}) => {
           nameUnvisible
           value={config.globalCl}
           unit="N/(m/s)^2"
-          onUpdate={scalarApply()}
+          onUpdate={apply()}
+          valueFieldProps={{sx: fieldSX}}
         />
       </Box>
+      <Box
+        component="div"
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'baseline',
+          justifyContent: 'space-between'
+        }}
+      >
+        <Typography variant="subtitle1">store intermidiate results</Typography>
+        <Checkbox
+          sx={{m: 1, mb: 2.75, mt: 1}}
+          checked={config.storeIntermidiateResults}
+          onChange={apply((e, v) => {
+            config.storeIntermidiateResults = !!v;
+          })}
+          inputProps={{'aria-label': 'store intermidiate results'}}
+        />
+      </Box>
+      <Box
+        component="div"
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'baseline',
+          justifyContent: 'space-between'
+        }}
+      >
+        <Typography variant="subtitle1">solution search method</Typography>
+        <NativeSelect
+          variant="standard"
+          value={config.searchMode}
+          onChange={apply((e) => {
+            config.searchMode = (e?.target.value ??
+              'binary') as typeof config.searchMode;
+          })}
+          sx={{...fieldSX, m: 2, mb: 2.5, mt: 2.5}}
+        >
+          <option value="binary">binary</option>
+          <option value="step">step</option>
+        </NativeSelect>
+      </Box>
+      {config.searchMode === 'step' ? (
+        test.steadyStateDynamicsMode === 'SkidpadMaxV' ? (
+          <Box
+            component="div"
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'baseline',
+              justifyContent: 'space-between'
+            }}
+          >
+            <Typography variant="subtitle1">velocity step size</Typography>
+            <Scalar
+              nameUnvisible
+              value={config.velocityStepSize}
+              unit="m/s"
+              onUpdate={apply()}
+              valueFieldProps={{sx: fieldSX}}
+            />
+          </Box>
+        ) : (
+          <Box
+            component="div"
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'baseline',
+              justifyContent: 'space-between'
+            }}
+          >
+            <Typography variant="subtitle1">radius step size</Typography>
+            <Scalar
+              nameUnvisible
+              value={config.radiusStepSize}
+              unit="m"
+              onUpdate={apply()}
+              valueFieldProps={{sx: fieldSX}}
+            />
+          </Box>
+        )
+      ) : null}
     </Box>
   );
 });

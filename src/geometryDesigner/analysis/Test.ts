@@ -35,11 +35,11 @@ export const loadSteadySkidpadParams = (
     searchMode: data.searchMode,
     velocityStepSize: data.velocityStepSize
       ? new NamedNumber({value: data.velocityStepSize})
-      : undefined,
+      : new NamedNumber({name: 'velocityStepSize', value: 1}),
     radiusStepSize: data.radiusStepSize
       ? new NamedNumber({value: data.radiusStepSize})
-      : undefined,
-    storeIntermidiateResults: false
+      : new NamedNumber({name: 'radiusStepSize', value: -0.5}),
+    storeIntermidiateResults: data.storeIntermidiateResults
   };
 };
 

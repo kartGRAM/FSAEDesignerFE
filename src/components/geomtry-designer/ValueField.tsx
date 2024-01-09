@@ -7,7 +7,7 @@ export interface ValueFieldProps extends OutlinedTextFieldProps {
 }
 
 export const ValueField = (props: ValueFieldProps) => {
-  const {unit} = props;
+  const {unit, sx} = props;
   return (
     <TextField
       size="small"
@@ -17,6 +17,7 @@ export const ValueField = (props: ValueFieldProps) => {
         endAdornment: <InputAdornment position="end">{unit}</InputAdornment>
       }}
       sx={{
+        ...sx,
         margin: 1
         // width: '15ch'
       }}

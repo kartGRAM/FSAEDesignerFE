@@ -1,6 +1,6 @@
 /* eslint-disable no-nested-ternary */
 import React, {useState} from 'react';
-import TextField from '@mui/material/TextField';
+import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import {INamedNumber} from '@gd/INamedValues';
 import Typography from '@mui/material/Typography';
@@ -23,6 +23,7 @@ export interface Props {
   disabled?: boolean;
   onUpdate?: () => void;
   nameUnvisible?: boolean;
+  valueFieldProps?: Omit<OutlinedTextFieldProps, 'variant'>;
 }
 
 export default function Scalar(props: Props) {
@@ -34,7 +35,8 @@ export default function Scalar(props: Props) {
     onFocusChanged,
     disabled,
     onUpdate,
-    nameUnvisible
+    nameUnvisible,
+    valueFieldProps
   } = props;
   const dispatch = useDispatch();
   const sValue = value.getStringValue();
@@ -192,6 +194,7 @@ export default function Scalar(props: Props) {
           }}
         >
           <ValueField
+            {...valueFieldProps}
             disabled={disabled}
             onChange={handleChange}
             label="value"

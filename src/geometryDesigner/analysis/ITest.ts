@@ -24,8 +24,8 @@ export interface ISteadySkidpadParams {
   globalCl: INamedNumber;
   searchMode: 'binary' | 'step';
   storeIntermidiateResults: boolean;
-  velocityStepSize?: INamedNumber;
-  radiusStepSize?: INamedNumber;
+  velocityStepSize: INamedNumber;
+  radiusStepSize: INamedNumber;
 }
 
 export interface IDataSteadySkidpadParams {
