@@ -9,19 +9,25 @@ import {
   Box,
   Typography,
   NativeSelect,
-  Checkbox
+  Checkbox,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import {useSelector, useDispatch} from 'react-redux';
+import store, {RootState} from '@store/store';
 import {setConfirmDialogProps} from '@store/reducers/uiTempGeometryDesigner';
 import {PaperProps} from '@mui/material/Paper';
-import {useDispatch} from 'react-redux';
-import store from '@store/store';
 import {ITest, ISteadySkidpadParams} from '@gd/analysis/ITest';
 import useTestUpdate from '@hooks/useTestUpdate';
 import Scalar from '@gdComponents/Scalar';
 import {SetterType, ParameterSetter} from '@gd/analysis/ParameterSetter';
 import {NamedNumber} from '@gd/NamedValues';
 import {createDummyDataControl} from '@gd/controls/IControls';
+import {getControl} from '@gd/controls/Controls';
 import * as Yup from 'yup';
+import {isTire} from '@gd/IElements/ITire';
 
 export const SkidpadConfigDialog = React.memo(
   (props: {
@@ -140,6 +146,14 @@ export default SkidpadConfigDialog;
 const Content = React.memo((props: {test: ITest}) => {
   const {test} = props;
   const {updateWithSave} = useTestUpdate(test);
+  const controls = useSelector(
+    (state: RootState) => state.dgd.present.controls
+  );
+
+  const elements = useSelector(
+    (state: RootState) => state.uitgd.collectedAssembly?.children ?? []
+  );
+  const tireElements = elements.filter((e) => isTire(e));
   const config: ISteadySkidpadParams = test.steadySkidpadParams ?? {
     tireData: {},
     tireTorqueRatio: {},
@@ -214,6 +228,86 @@ const Content = React.memo((props: {test: ITest}) => {
           />
         </Box>
       )}
+      <Box
+        component="div"
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'baseline',
+          justifyContent: 'space-between'
+        }}
+      >
+        <Typography variant="subtitle1">stearing control</Typography>
+        <NativeSelect
+          variant="standard"
+          value={config.stearing.target}
+          onChange={apply((e) => {
+            let control = controls.find((c) => c.nodeID === e?.target.value);
+            if (!control) control = createDummyDataControl();
+            config.stearing = new ParameterSetter({
+              type: 'Control',
+              target: control,
+              valueFormula: '0'
+            });
+          })}
+          sx={{...fieldSX, m: 2, mb: 2.5, mt: 2.5}}
+        >
+          <option value="dummy">not selected</option>
+          {controls.map((control) => (
+            <option value={control.nodeID}>{getControl(control).name}</option>
+          ))}
+        </NativeSelect>
+      </Box>
+      <Box
+        component="div"
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'baseline',
+          justifyContent: 'space-between',
+          mr: 2,
+          mt: 1.5,
+          mb: 1.5
+        }}
+      >
+        <Accordion sx={{width: '100%'}}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography>tire data</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Typography>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+              Suspendisse malesuada lacus ex, sit amet blandit leo lobortis
+              eget.
+            </Typography>
+          </AccordionDetails>
+        </Accordion>
+      </Box>
+      <Box
+        component="div"
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'baseline',
+          justifyContent: 'space-between',
+          mr: 2,
+          mt: 1.5,
+          mb: 1.5
+        }}
+      >
+        <Accordion sx={{width: '100%'}}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography>torque ratio</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Typography>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+              Suspendisse malesuada lacus ex, sit amet blandit leo lobortis
+              eget.
+            </Typography>
+          </AccordionDetails>
+        </Accordion>
+      </Box>
       <Box
         component="div"
         sx={{
@@ -340,294 +434,3 @@ const Content = React.memo((props: {test: ITest}) => {
     </Box>
   );
 });
-
-/*
-function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
-  const {updateWithSave, node} = props;
-  const labelId = React.useId();
-  const [evaluatedValue, setEvaluatedValue] = React.useState<number | null>(
-    null
-  );
-
-  const [category, setCategory] = React.useState<SetterType | ''>('');
-  const [selectedObject, setSelectedObject] = React.useState<{
-    type: SetterType | 'NotSelected';
-    target: string;
-    valueForSelectTag: string;
-  }>({type: 'NotSelected', target: '', valueForSelectTag: ''});
-
-  const controls = useSelector(
-    (state: RootState) => state.dgd.present.controls
-  );
-
-  const onFormulaValidated = (formula: string) => {
-    setEvaluatedValue(new Formula(formula).evaluatedValue);
-  };
-
-  const reset = () => {
-    setCategory('');
-    setSelectedObject({type: 'NotSelected', target: '', valueForSelectTag: ''});
-    setEvaluatedValue(null);
-  };
-
-  const formik = useFormik({
-    enableReinitialize: true,
-    initialValues: {
-      formula: ''
-    },
-    validationSchema: yup.object({
-      formula: yup
-        .string()
-        .required('')
-        .gdFormulaIsValid(undefined, undefined, onFormulaValidated)
-    }),
-    onSubmit: (values) => {
-      formik.resetForm();
-      if (selectedObject.type === 'Control') {
-        const control = controls.find(
-          (c) => c.nodeID === selectedObject.target
-        );
-        if (!control) return;
-
-        const setter = new ParameterSetter({
-          type: 'Control',
-          target: control,
-          valueFormula: values.formula
-        });
-
-        node.listSetters.push(setter);
-        updateWithSave();
-        reset();
-      }
-    }
-  });
-
-  const onEnter = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Enter') {
-      formik.handleSubmit();
-    }
-  };
-
-  const handleFormulaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEvaluatedValue(null);
-    formik.handleChange(e);
-  };
-
-  const handleTargetChanged = (e: SelectChangeEvent<string>) => {
-    const {value} = e.target;
-    if (value.includes('@Control')) {
-      const nodeID = value.split('@')[0];
-      const control = controls.find((c) => c.nodeID === nodeID);
-      if (!control) return;
-      setSelectedObject({
-        type: 'Control',
-        target: nodeID,
-        valueForSelectTag: value
-      });
-      setCategory('Control');
-    } else {
-      setSelectedObject({
-        type: 'NotSelected',
-        target: '',
-        valueForSelectTag: ''
-      });
-      setCategory('');
-    }
-  };
-
-  const alreadyExistsInSetterList = node.listSetters.map(
-    (setter) => setter.target
-  );
-
-  if (alreadyExistsInSetterList.length === controls.length) return null;
-
-  return (
-    <TableRow >
-      <TableCell padding="checkbox">
-        <Checkbox
-          disabled
-          color="primary"
-          inputProps={{
-            'aria-labelledby': labelId
-          }}
-        />
-      </TableCell>
-      {node.copyFrom ? (
-        <TableCell padding="checkbox">
-          <Checkbox
-            disabled
-            color="primary"
-            inputProps={{
-              'aria-labelledby': labelId
-            }}
-          />
-        </TableCell>
-      ) : null}
-      <TableCell id={labelId} scope="row" padding="none" align="left">
-        <NativeSelect
-          native
-          variant="standard"
-          value={selectedObject.valueForSelectTag}
-          onChange={handleTargetChanged}
-        >
-          <option aria-label="None" value="" />
-          <optgroup label="Controls">
-            {controls
-              .filter((c) => !alreadyExistsInSetterList.includes(c.nodeID))
-              .map((control) => (
-                <option
-                  value={`${control.nodeID}@Control`}
-                  key={control.nodeID}
-                >
-                  {getControl(control).name}
-                </option>
-              ))}
-          </optgroup>
-        </NativeSelect>
-      </TableCell>
-      <TableCell align="right" padding="none">
-        {category}
-      </TableCell>
-      <TableCell align="right">
-        <TextField
-          disabled={!selectedObject.valueForSelectTag}
-          hiddenLabel
-          name="formula"
-          variant="standard"
-          onBlur={(e) => {
-            formik.handleBlur(e);
-            formik.handleSubmit();
-          }}
-          onKeyDown={onEnter}
-          onChange={handleFormulaChange}
-          value={formik.values.formula}
-          error={formik.touched.formula && formik.errors.formula !== undefined}
-          helperText={formik.touched.formula && formik.errors.formula}
-        />
-      </TableCell>
-      <TableCell align="right">{toFixedNoZero(evaluatedValue)}</TableCell>
-    </TableRow>
-  );
-}
-
-function ExistingRow(props: {
-  node: ISetterNode;
-  row: Row;
-  test: ITest;
-  isItemSelected: boolean;
-  labelId: string;
-  onClick: (targetNodeID: string) => void;
-}) {
-  const {node, row, test, onClick, isItemSelected, labelId} = props;
-
-  const {updateWithSave} = useTestUpdate(test);
-
-  const formik = useFormik({
-    enableReinitialize: true,
-    initialValues: {
-      formula: row.valueFormula
-    },
-    validationSchema: yup.object({
-      formula: yup
-        .string()
-        .required('')
-        .gdFormulaIsValid(undefined, undefined, undefined)
-    }),
-    onSubmit: (values) => {
-      formik.resetForm();
-      if (row.categories === 'Control') {
-        const setter = node.listSetters.find(
-          (setter) => setter.target === row.targetNodeID
-        );
-        if (!setter) return;
-        setter.valueFormula.formula = values.formula;
-        updateWithSave();
-      }
-    }
-  });
-
-  const onEnter = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Enter') {
-      formik.handleSubmit();
-    }
-  };
-
-  const color =
-    node.copyFrom && !node.isModRow[row.targetNodeID]
-      ? alpha('#000000', 0.36)
-      : 'unset';
-
-  return (
-    <TableRow
-      hover
-      role="checkbox"
-      aria-checked={isItemSelected}
-      tabIndex={-1}
-      key={row.targetNodeID}
-      selected={isItemSelected}
-    >
-      <TableCell padding="checkbox">
-        <Checkbox
-          disabled={!!node.copyFrom}
-          onClick={() => {
-            if (node.copyFrom) return;
-            onClick(row.targetNodeID);
-          }}
-          color="primary"
-          checked={isItemSelected}
-          inputProps={{
-            'aria-labelledby': labelId
-          }}
-        />
-      </TableCell>
-      {node.copyFrom ? (
-        <TableCell padding="checkbox">
-          <Checkbox
-            color="primary"
-            checked={node.isModRow[row.targetNodeID]}
-            onChange={(e) => {
-              node.isModRow[row.targetNodeID] = e.target.checked;
-              updateWithSave();
-            }}
-            inputProps={{
-              'aria-labelledby': labelId
-            }}
-          />
-        </TableCell>
-      ) : null}
-      <TableCell
-        component="th"
-        id={labelId}
-        scope="row"
-        padding="none"
-        sx={{color}}
-      >
-        {row.name}
-      </TableCell>
-      <TableCell align="right" sx={{color}}>
-        {row.categories}
-      </TableCell>
-      <TableCell align="right">
-        <TextField
-          disabled={!!node.copyFrom && !node.isModRow[row.targetNodeID]}
-          hiddenLabel
-          name="formula"
-          variant="standard"
-          onBlur={(e) => {
-            formik.handleBlur(e);
-            formik.handleSubmit();
-          }}
-          onKeyDown={onEnter}
-          onChange={formik.handleChange}
-          value={formik.values.formula}
-          error={formik.touched.formula && formik.errors.formula !== undefined}
-          helperText={formik.touched.formula && formik.errors.formula}
-        />
-      </TableCell>
-      <TableCell align="right" sx={{color}}>
-        {row.evaluatedValue}
-      </TableCell>
-    </TableRow>
-  );
-}
-*/

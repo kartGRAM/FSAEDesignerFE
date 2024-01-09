@@ -6,6 +6,7 @@
       "@gdComponents/*": ["src/components/geomtry-designer/*"],
       "@worker/*": ["src/worker/*"],
       "@gd/*": ["src/geometryDesigner/*"],
+      "@tire/*": ["src/tireData/*"],
       "@app/*": ["src/*"],
       "@utils/*": ["src/utils/*"],
       "@hooks/*": ["src/hooks/*"],
