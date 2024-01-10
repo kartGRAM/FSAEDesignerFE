@@ -1,6 +1,7 @@
 /* eslint-disable no-nested-ternary */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
+import {useFormik} from 'formik';
 import {
   Dialog,
   DialogContent,
@@ -22,13 +23,14 @@ import {PaperProps} from '@mui/material/Paper';
 import {ITest, ISteadySkidpadParams} from '@gd/analysis/ITest';
 import useTestUpdate from '@hooks/useTestUpdate';
 import Scalar from '@gdComponents/Scalar';
-import {SetterType, ParameterSetter} from '@gd/analysis/ParameterSetter';
+import {ParameterSetter} from '@gd/analysis/ParameterSetter';
 import {NamedNumber} from '@gd/NamedValues';
 import {createDummyDataControl} from '@gd/controls/IControls';
 import {getControl} from '@gd/controls/Controls';
-import * as Yup from 'yup';
+import yup from '@app/utils/Yup';
 import {isTire, ITire} from '@gd/IElements/ITire';
 import {listTireData} from '@tire/listTireData';
+import TextField from '@mui/material/TextField';
 
 export const SkidpadConfigDialog = React.memo(
   (props: {
@@ -183,6 +185,65 @@ const Content = React.memo((props: {test: ITest}) => {
   const fieldSX = {minWidth: 330};
   const tireData = listTireData();
 
+  const schema = yup
+    .number()
+    .typeError('You must specify a number.')
+    .required('required')
+    .min(0, 'You must specify a greater number than 0.')
+    .test(
+      'check sum of ratio > 0',
+      'Sum of ratio must greater than 0.',
+      // eslint-disable-next-line func-names
+      function (this: yup.TestContext, ratio: number | undefined | null) {
+        const valid = true;
+        const inValid = false;
+        // eslint-disable-next-line react/no-this-in-sfc
+        const name = this.path;
+        const sum = tireElements.reduce((prev, tire) => {
+          if (tire.nodeID === name) return prev;
+          // eslint-disable-next-line react/no-this-in-sfc
+          prev += this.parent[tire.nodeID];
+          return prev;
+        }, 0);
+        if (ratio === undefined) return valid;
+        if (ratio === null) return valid;
+        // 合計は0以上である必要がある
+        return sum + ratio <= 0 ? inValid : valid;
+      }
+    );
+
+  const initialValues = tireElements.reduce((prev, tire) => {
+    prev[tire.nodeID] = config.tireTorqueRatio[tire.nodeID] ?? 1;
+    return prev;
+  }, {} as {[index: string]: number});
+  const validationSchema = yup.object(
+    tireElements.reduce((prev, tire) => {
+      prev[tire.nodeID] = schema;
+      return prev;
+    }, {} as {[index: string]: typeof schema})
+  );
+  const formik = useFormik({
+    enableReinitialize: true,
+    initialValues,
+    validationSchema,
+    onSubmit: (values) => {
+      apply(() => {
+        config.tireTorqueRatio = values;
+      })();
+    }
+  });
+
+  const onEnter = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter') {
+      formik.handleSubmit();
+    }
+  };
+
+  const onBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    formik.handleSubmit();
+    formik.handleBlur(e);
+  };
+
   return (
     <Box
       component="div"
@@ -332,12 +393,46 @@ const Content = React.memo((props: {test: ITest}) => {
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Typography>torque ratio</Typography>
           </AccordionSummary>
-          <AccordionDetails>
-            <Typography>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-              Suspendisse malesuada lacus ex, sit amet blandit leo lobortis
-              eget.
-            </Typography>
+          <AccordionDetails
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap'
+            }}
+          >
+            {tireElements.map((tire) => {
+              return (
+                <Box
+                  component="div"
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between'
+                  }}
+                >
+                  <Typography variant="subtitle1" sx={{pl: 2}}>
+                    {tire.name.value}
+                  </Typography>
+                  <TextField
+                    hiddenLabel
+                    name={tire.nodeID}
+                    variant="standard"
+                    onBlur={onBlur}
+                    onChange={formik.handleChange}
+                    onKeyDown={onEnter}
+                    value={formik.values[tire.nodeID]}
+                    error={
+                      formik.touched[tire.nodeID] &&
+                      formik.errors[tire.nodeID] !== undefined
+                    }
+                    helperText={
+                      formik.touched[tire.nodeID] && formik.errors[tire.nodeID]
+                    }
+                  />
+                </Box>
+              );
+            })}
           </AccordionDetails>
         </Accordion>
       </Box>
