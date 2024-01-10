@@ -112,8 +112,12 @@ export class ParameterSweeper implements IParameterSweeper {
   }
 
   get control(): Control | undefined {
-    const {controls} = getDgd();
-    const control = controls.find((c) => c.nodeID === this.target);
+    const {controls, options} = getDgd();
+    const control = controls.find(
+      (c) =>
+        c.nodeID === this.target &&
+        (c.configuration ?? 'FixedFrame') === options.assemblyMode
+    );
     return control ? getControl(control) : undefined;
   }
 

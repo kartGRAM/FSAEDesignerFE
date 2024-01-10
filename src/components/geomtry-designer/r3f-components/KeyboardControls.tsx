@@ -8,10 +8,17 @@ import {RootState} from '@store/store';
 export const KeyboardControls = () => {
   const [, get] = useKeyboardControls<string>();
 
+  const assemblyMode = useSelector(
+    (state: RootState) => state.dgd.present.options.assemblyMode
+  );
   const controlsList = useSelector(
     (state: RootState) => state.dgd.present.controls
   )
-    .filter((c) => c.type === 'keyboard')
+    .filter(
+      (c) =>
+        c.type === 'keyboard' &&
+        (c.configuration ?? 'FixedFrame') === assemblyMode
+    )
     .reduce((prev, current) => {
       if (!prev[`controls:${current.inputButton}`])
         prev[`controls:${current.inputButton}`] = [];

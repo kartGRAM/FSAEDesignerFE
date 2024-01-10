@@ -149,6 +149,9 @@ export default SkidpadConfigDialog;
 const Content = React.memo((props: {test: ITest}) => {
   const {test} = props;
   const {updateWithSave} = useTestUpdate(test);
+  const assemblyMode = useSelector(
+    (state: RootState) => state.dgd.present.options.assemblyMode
+  );
   const controls = useSelector(
     (state: RootState) => state.dgd.present.controls
   );
@@ -305,7 +308,11 @@ const Content = React.memo((props: {test: ITest}) => {
           variant="standard"
           value={config.stearing.target}
           onChange={apply((e) => {
-            let control = controls.find((c) => c.nodeID === e?.target.value);
+            let control = controls.find(
+              (c) =>
+                c.nodeID === e?.target.value &&
+                (c.configuration ?? 'FixedFrame') === assemblyMode
+            );
             if (!control) control = createDummyDataControl();
             config.stearing = new ParameterSetter({
               type: 'Control',

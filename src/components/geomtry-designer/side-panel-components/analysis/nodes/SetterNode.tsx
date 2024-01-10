@@ -381,6 +381,9 @@ function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
     valueForSelectTag: string;
   }>({type: 'NotSelected', target: '', valueForSelectTag: ''});
 
+  const assemblyMode = useSelector(
+    (state: RootState) => state.dgd.present.options.assemblyMode
+  );
   const controls = useSelector(
     (state: RootState) => state.dgd.present.controls
   );
@@ -410,7 +413,9 @@ function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
       formik.resetForm();
       if (selectedObject.type === 'Control') {
         const control = controls.find(
-          (c) => c.nodeID === selectedObject.target
+          (c) =>
+            c.nodeID === selectedObject.target &&
+            (c.configuration ?? 'FixedFrame') === assemblyMode
         );
         if (!control) return;
 
@@ -442,7 +447,12 @@ function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
     const {value} = e.target;
     if (value.includes('@Control')) {
       const nodeID = value.split('@')[0];
-      const control = controls.find((c) => c.nodeID === nodeID);
+      const control = controls.find(
+        (c) =>
+          c.nodeID === nodeID &&
+          (c.configuration ?? 'FixedFrame') === assemblyMode
+      );
+
       if (!control) return;
       setSelectedObject({
         type: 'Control',

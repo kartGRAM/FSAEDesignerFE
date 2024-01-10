@@ -15,6 +15,7 @@ import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import {alpha} from '@mui/material/styles';
 import {IDataControl} from '@gd/controls/IControls';
+import {Options} from '@gd/ISaveData';
 import FullLayoutKeyboard, {keysInv} from './FullLayoutKeyboard';
 import {ControlDefinition} from './ControlDefinition';
 
@@ -28,6 +29,8 @@ const disabledKey =
 
 export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
   const {open, setOpen} = props;
+  const [assemblyMode, setAssemblyMode] =
+    React.useState<Options['assemblyMode']>('FixedFrame');
   const [selectedKey, setSelectedKey] = React.useState('');
   const [staged, setStaged] = React.useState<null | IDataControl | string>(
     null
@@ -41,7 +44,11 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
 
   const controls = useSelector(
     (state: RootState) => state.dgd.present.controls
-  ).filter((c) => c.type === 'keyboard');
+  ).filter(
+    (c) =>
+      c.type === 'keyboard' &&
+      (c.configuration ?? 'FixedFrame') === assemblyMode
+  );
 
   const assignedKeys = controls.map((c) => keysInv(c.inputButton)).join(' ');
 
@@ -140,7 +147,32 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
       }}
       PaperProps={{sx: {maxWidth: 'unset', width: '960px'}}}
     >
-      <DialogTitle>Key Bindings Dialog</DialogTitle>
+      <DialogTitle>
+        Key Bindings Dialog
+        <NativeSelect
+          variant="standard"
+          value={config.stearing.target}
+          onChange={apply((e) => {
+            let control = controls.find(
+              (c) =>
+                c.nodeID === e?.target.value &&
+                (c.configuration ?? 'FixedFrame') === assemblyMode
+            );
+            if (!control) control = createDummyDataControl();
+            config.stearing = new ParameterSetter({
+              type: 'Control',
+              target: control,
+              valueFormula: '0'
+            });
+          })}
+          sx={{...fieldSX, m: 2, mb: 2.5, mt: 2.5}}
+        >
+          <option value="dummy">not selected</option>
+          {controls.map((control) => (
+            <option value={control.nodeID}>{getControl(control).name}</option>
+          ))}
+        </NativeSelect>
+      </DialogTitle>
       <DialogContent
         sx={{
           '& .hg-button.assigned': {

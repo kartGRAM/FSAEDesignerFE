@@ -1,5 +1,6 @@
 import {v4 as uuidv4} from 'uuid';
 import {KinematicSolver} from '@gd/kinematics/Solver';
+import {Options} from '@gd/ISaveData';
 
 export interface IDataControl {
   readonly nodeID: string;
@@ -10,6 +11,7 @@ export interface IDataControl {
   readonly inputButton: string;
   readonly reverse: boolean;
   readonly speed: number; // mm/s or rad/s
+  readonly configuration?: Options['assemblyMode'];
 }
 
 export const createDummyDataControl = (): IDataControl => {
@@ -21,7 +23,8 @@ export const createDummyDataControl = (): IDataControl => {
     targetElements: [],
     inputButton: '',
     reverse: false,
-    speed: 0 // mm/s or rad/s
+    speed: 0, // mm/s or rad/s
+    configuration: 'FixedFrame'
   };
 };
 
@@ -54,6 +57,8 @@ export abstract class Control {
 
   reverse: boolean;
 
+  configuration: Options['assemblyMode'];
+
   constructor(
     control:
       | IDataControl
@@ -65,6 +70,7 @@ export abstract class Control {
           speed?: number;
           reverse?: boolean;
           nodeID?: string;
+          configuration?: Options['assemblyMode'];
         }
   ) {
     this._name = control.name;
@@ -74,6 +80,7 @@ export abstract class Control {
     this.inputButton = control.inputButton;
     this.speed = control.speed ?? 10;
     this.reverse = control.reverse ?? false;
+    this.configuration = control.configuration ?? 'FixedFrame';
   }
 
   getDataControlBase(): IDataControl {

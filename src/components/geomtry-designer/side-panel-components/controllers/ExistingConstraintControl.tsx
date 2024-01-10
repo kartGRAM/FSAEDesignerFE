@@ -36,9 +36,16 @@ export function ExistingConstraintControlSettings(
   const [selectedID, setSelectedID] = React.useState<string>(
     control?.targetControl ?? ''
   );
+  const assemblyMode = useSelector(
+    (state: RootState) => state.dgd.present.options.assemblyMode
+  );
   const controls = useSelector(
     (state: RootState) => state.dgd.present.controls
-  ).filter((control) => isDataPointToPlaneControl(control));
+  ).filter(
+    (control) =>
+      isDataPointToPlaneControl(control) &&
+      (control.configuration ?? 'FixedFrame') === assemblyMode
+  );
 
   const {uitgd} = store.getState();
   const zindex = uitgd.fullScreenZIndex + uitgd.dialogZIndex + uitgd.menuZIndex;
