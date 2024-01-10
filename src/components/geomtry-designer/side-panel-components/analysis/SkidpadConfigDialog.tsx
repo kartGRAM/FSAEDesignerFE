@@ -27,7 +27,8 @@ import {NamedNumber} from '@gd/NamedValues';
 import {createDummyDataControl} from '@gd/controls/IControls';
 import {getControl} from '@gd/controls/Controls';
 import * as Yup from 'yup';
-import {isTire} from '@gd/IElements/ITire';
+import {isTire, ITire} from '@gd/IElements/ITire';
+import {listTireData} from '@tire/listTireData';
 
 export const SkidpadConfigDialog = React.memo(
   (props: {
@@ -153,7 +154,7 @@ const Content = React.memo((props: {test: ITest}) => {
   const elements = useSelector(
     (state: RootState) => state.uitgd.collectedAssembly?.children ?? []
   );
-  const tireElements = elements.filter((e) => isTire(e));
+  const tireElements = elements.filter((e) => isTire(e)) as ITire[];
   const config: ISteadySkidpadParams = test.steadySkidpadParams ?? {
     tireData: {},
     tireTorqueRatio: {},
@@ -180,6 +181,7 @@ const Content = React.memo((props: {test: ITest}) => {
   };
 
   const fieldSX = {minWidth: 330};
+  const tireData = listTireData();
 
   return (
     <Box
@@ -274,12 +276,43 @@ const Content = React.memo((props: {test: ITest}) => {
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Typography>tire data</Typography>
           </AccordionSummary>
-          <AccordionDetails>
-            <Typography>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-              Suspendisse malesuada lacus ex, sit amet blandit leo lobortis
-              eget.
-            </Typography>
+          <AccordionDetails
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap'
+            }}
+          >
+            {tireElements.map((tire) => {
+              return (
+                <Box
+                  component="div"
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between'
+                  }}
+                >
+                  <Typography variant="subtitle1" sx={{pl: 2}}>
+                    {tire.name.value}
+                  </Typography>
+                  <NativeSelect
+                    variant="standard"
+                    value={config.tireData[tire.nodeID] ?? 'defaultSlickTire'}
+                    onChange={apply((e) => {
+                      config.tireData[tire.nodeID] =
+                        e?.target.value ?? 'defaultSlickTire';
+                    })}
+                    sx={{...fieldSX, m: 2, mb: 2.5, mt: 2.5}}
+                  >
+                    {Object.keys(tireData).map((id) => (
+                      <option value={id}>{tireData[id]}</option>
+                    ))}
+                  </NativeSelect>
+                </Box>
+              );
+            })}
           </AccordionDetails>
         </Accordion>
       </Box>

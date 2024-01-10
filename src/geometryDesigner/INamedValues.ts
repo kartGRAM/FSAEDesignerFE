@@ -52,6 +52,8 @@ export interface INamedString extends INamedValue {
   getData(state: GDState): IData<string>;
 }
 
+export type IDataString = IData<string>;
+
 export interface INamedBoolean extends INamedValue {
   value: boolean;
   getData(state: GDState): IData<boolean>;

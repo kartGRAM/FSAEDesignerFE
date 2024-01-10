@@ -23,6 +23,8 @@ export interface Props {
   disabled?: boolean;
   onUpdate?: () => void;
   nameUnvisible?: boolean;
+  min?: number;
+  max?: number;
   valueFieldProps?: Omit<OutlinedTextFieldProps, 'variant'>;
 }
 
@@ -36,6 +38,8 @@ export default function Scalar(props: Props) {
     disabled,
     onUpdate,
     nameUnvisible,
+    min,
+    max,
     valueFieldProps
   } = props;
   const dispatch = useDispatch();
@@ -63,13 +67,18 @@ export default function Scalar(props: Props) {
     }
   });
 
+  let schema = Yup.string().gdFormulaIsValid();
+  if (min) schema = schema.gdFormulaMin(min);
+  if (max) schema = schema.gdFormulaMax(max);
+  schema = schema.required('required');
+
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
       value: sValue
     },
     validationSchema: Yup.object({
-      value: Yup.string().gdFormulaIsValid().required('required')
+      value: schema
     }),
     onSubmit: (values) => {
       value.setValue(values.value);

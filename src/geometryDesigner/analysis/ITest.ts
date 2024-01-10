@@ -15,7 +15,7 @@ export type TestResult =
   | 'Continue';
 
 export interface ISteadySkidpadParams {
-  tireData: {[key: string]: number | undefined};
+  tireData: {[key: string]: string | undefined};
   tireTorqueRatio: {[key: string]: number};
   stearing: IParameterSetter;
   velocity: INamedNumber;
@@ -29,7 +29,7 @@ export interface ISteadySkidpadParams {
 }
 
 export interface IDataSteadySkidpadParams {
-  tireData: {[key: string]: number | undefined};
+  tireData: {[key: string]: string | undefined};
   tireTorqueRatio: {[key: string]: number};
   stearing: IDataParameterSetter;
   velocity: IDataNumber;

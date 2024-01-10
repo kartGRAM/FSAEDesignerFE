@@ -193,6 +193,42 @@ yup.addMethod(
 
 yup.addMethod(
   yup.string,
+  'gdFormulaMax',
+  // eslint-disable-next-line func-names
+  function (max: number) {
+    return this.test('gdFormulaMax', '', (value, {createError}) => {
+      if (!value) return true;
+      const ret = evaluate({formula: value});
+      return (
+        ret > max ||
+        createError({
+          message: `The evaluation value can not be greater than ${max}.`
+        })
+      );
+    });
+  }
+);
+
+yup.addMethod(
+  yup.string,
+  'gdFormulaMin',
+  // eslint-disable-next-line func-names
+  function (min: number) {
+    return this.test('gdFormulaMin', '', (value, {createError}) => {
+      if (!value) return true;
+      const ret = evaluate({formula: value});
+      return (
+        ret < min ||
+        createError({
+          message: `The evaluation value must be greater than ${min}.`
+        })
+      );
+    });
+  }
+);
+
+yup.addMethod(
+  yup.string,
   'gdFormulaNonZero',
   // eslint-disable-next-line func-names
   function () {
@@ -267,6 +303,8 @@ declare module 'yup' {
     ): RequiredStringSchema<TType, TContext>;
     variableNameFirstChar(): RequiredStringSchema<TType, TContext>;
     gdFormulaPositive(): RequiredStringSchema<TType, TContext>;
+    gdFormulaMin(min: number): RequiredStringSchema<TType, TContext>;
+    gdFormulaMax(max: number): RequiredStringSchema<TType, TContext>;
     gdFormulaNonZero(): RequiredStringSchema<TType, TContext>;
     gdFormulaInteger(): RequiredStringSchema<TType, TContext>;
     gdFormulaStepValid(
