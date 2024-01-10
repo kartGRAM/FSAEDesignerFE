@@ -119,7 +119,7 @@ export abstract class Element implements IElement {
 
   getMeasurablePoints(): INamedVector3RO[] {
     const points = this.getPoints();
-    return [...points, this.centerOfGravity];
+    return [...points, this.centerOfGravity, this.position];
   }
 
   getVariables(): INamedNumberRO[] {

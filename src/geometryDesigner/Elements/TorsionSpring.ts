@@ -93,7 +93,12 @@ export class TorsionSpring extends Element implements ITorsionSpring {
         nodeID: `${this.effortPoints[1].nodeID}_current`
       })
     ];
-    return [...this.fixedPoints, ...points, this.centerOfGravity];
+    return [
+      ...this.fixedPoints,
+      ...points,
+      this.centerOfGravity,
+      this.position
+    ];
   }
 
   getPoints(): INamedVector3[] {

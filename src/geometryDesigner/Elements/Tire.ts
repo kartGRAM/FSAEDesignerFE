@@ -120,7 +120,7 @@ export class Tire extends Element implements ITire {
       nodeID: `${this.nodeID}groundPoint`
     });
 
-    return [...points, gPointNamed, this.tireCenter];
+    return [...points, gPointNamed];
   }
 
   getPointsNodeIDs(): string[] {

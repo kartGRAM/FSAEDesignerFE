@@ -129,7 +129,12 @@ export class LinearBushing extends Element implements ILinearBushing {
         })
       ])
       .flat();
-    return [...this.fixedPoints, ...points, this.centerOfGravity];
+    return [
+      ...this.fixedPoints,
+      ...points,
+      this.centerOfGravity,
+      this.position
+    ];
   }
 
   get supportDistance(): number {
