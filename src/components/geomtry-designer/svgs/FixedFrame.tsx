@@ -543,42 +543,6 @@ export default function FixedFrame(props: {
                   data-edit="1"
                 />
               </g>
-              <g
-                id="settings"
-                visibility="hidden"
-                data-dn0="primalDraw"
-                data-dn3="18"
-                data-dn6="1"
-                data-dn7="1"
-                data-dn8="2"
-                data-dn9="round"
-                data-dn10="round"
-                data-dn11="none"
-                data-dn12="none"
-                data-dn13="none"
-                data-dn14="evenodd"
-                data-dn15="10"
-                data-dn16="1"
-                data-dn17="190"
-                data-dn18="138"
-                data-dn19="10"
-                data-dn20="0"
-                data-dn21="1"
-                data-dn22="1"
-                data-dn23="7"
-                data-dn24="path4,path6"
-                data-dn25="2"
-                data-dn26="url(#linear0)"
-                data-dn27="url(#linear1)"
-                data-dn28="url(#radial0)"
-                data-dn29="url(#radial1)"
-                data-dn33="1"
-                data-dn34="1"
-                data-dn35="10"
-                data-dn36=""
-                data-dn37="0"
-                data-dn38="64"
-              />
             </svg>
           </SvgIcon>
         </IconButton>
