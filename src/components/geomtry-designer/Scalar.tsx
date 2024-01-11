@@ -14,7 +14,7 @@ import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import {ValueField} from './ValueField';
 
-export interface Props {
+export default function Scalar(props: {
   value: INamedNumber;
   unit: string;
   removable?: boolean;
@@ -26,9 +26,7 @@ export interface Props {
   min?: number;
   max?: number;
   valueFieldProps?: Omit<OutlinedTextFieldProps, 'variant'>;
-}
-
-export default function Scalar(props: Props) {
+}) {
   const {
     value,
     unit,
