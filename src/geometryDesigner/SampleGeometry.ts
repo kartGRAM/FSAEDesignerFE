@@ -409,6 +409,7 @@ export const getSampleData = async (): Promise<SavedData> => {
     analysis: [],
     readonlyVariables: [],
     options: {
+      pinCenterOfGravityOfFrame: true,
       fixSpringDumperDuaringControl: false,
       assemblyMode: 'FixedFrame'
     },

@@ -44,6 +44,7 @@ const initialState: GDState = {
   readonlyVariables: [],
   analysis: [],
   options: {
+    pinCenterOfGravityOfFrame: true,
     fixSpringDumperDuaringControl: false,
     assemblyMode: 'FixedFrame'
   },
@@ -210,6 +211,11 @@ export const dataGeometryDesignerSlice = createSlice({
       state.options.fixSpringDumperDuaringControl =
         !state.options.fixSpringDumperDuaringControl;
       state.changed = true;
+    },
+    togglePinCenterOfGravityOfFrame: (state: GDState) => {
+      state.options.pinCenterOfGravityOfFrame =
+        !state.options.pinCenterOfGravityOfFrame;
+      state.changed = true;
     }
   }
 });
@@ -228,6 +234,7 @@ export const {
   setTests,
   setAssemblyMode,
   removeControl,
+  togglePinCenterOfGravityOfFrame,
   toggleFixSpringDumperDuaringControl,
   setChanged
 } = dataGeometryDesignerSlice.actions;

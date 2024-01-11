@@ -10,6 +10,7 @@ import {RootState} from '@store/store';
 
 export const assemblyModes = ['FixedFrame', 'AllTiresGrounded'] as const;
 export interface Options {
+  pinCenterOfGravityOfFrame: boolean;
   fixSpringDumperDuaringControl: boolean;
   assemblyMode: typeof assemblyModes[number];
 }
@@ -130,11 +131,17 @@ function convertJsonToDataAssembly(content: string): IDataAssembly | undefined {
 function convertJsonToOptions(content: string): Options {
   try {
     const data = JSON.parse(content) as Options;
+    if (data.pinCenterOfGravityOfFrame === undefined)
+      data.pinCenterOfGravityOfFrame = true;
     return data;
   } catch (err) {
     // eslint-disable-next-line no-console
     console.log(err);
-    return {assemblyMode: 'FixedFrame', fixSpringDumperDuaringControl: false};
+    return {
+      assemblyMode: 'FixedFrame',
+      fixSpringDumperDuaringControl: false,
+      pinCenterOfGravityOfFrame: true
+    };
   }
 }
 

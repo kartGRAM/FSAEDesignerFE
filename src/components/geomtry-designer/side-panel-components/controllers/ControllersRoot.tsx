@@ -10,7 +10,10 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '@store/store';
-import {toggleFixSpringDumperDuaringControl} from '@store/reducers/dataGeometryDesigner';
+import {
+  toggleFixSpringDumperDuaringControl,
+  togglePinCenterOfGravityOfFrame
+} from '@store/reducers/dataGeometryDesigner';
 import {alpha} from '@mui/material/styles';
 import {KeyBindingsDialog} from './KeyBindingsDialog';
 
@@ -18,9 +21,16 @@ export default function ControllersRoot() {
   const dispatch = useDispatch();
   const disabled = useSelector((state: RootState) => state.uitgd.uiDisabled);
   const [kbdOpen, setKbdOpen] = React.useState(false);
+
+  const assemblyMode = useSelector(
+    (state: RootState) => state.dgd.present.options.assemblyMode
+  );
   const fixSpringDumperDuaringControl = useSelector(
     (state: RootState) =>
       state.dgd.present.options.fixSpringDumperDuaringControl
+  );
+  const pinCenterOfFrame = useSelector(
+    (state: RootState) => state.dgd.present.options.pinCenterOfGravityOfFrame
   );
   const handleFSDDCChange = () => {
     dispatch(toggleFixSpringDumperDuaringControl());
@@ -62,8 +72,21 @@ export default function ControllersRoot() {
               onChange={handleFSDDCChange}
             />
           }
-          label="Fix spring dumper duaring control"
+          label="Keep spring dumper fixed state duaring operation."
         />
+        {assemblyMode === 'AllTiresGrounded' ? (
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={pinCenterOfFrame}
+                onChange={() => {
+                  dispatch(togglePinCenterOfGravityOfFrame());
+                }}
+              />
+            }
+            label="Pin center of gravity of frame object."
+          />
+        ) : null}
       </Box>
 
       <KeyBindingsDialog open={kbdOpen} setOpen={setKbdOpen} />
