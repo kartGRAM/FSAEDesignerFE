@@ -11,7 +11,7 @@ export interface IDataControl {
   readonly inputButton: string;
   readonly reverse: boolean;
   readonly speed: number; // mm/s or rad/s
-  readonly configuration?: Options['assemblyMode'];
+  configuration?: Options['assemblyMode'];
 }
 
 export const createDummyDataControl = (): IDataControl => {

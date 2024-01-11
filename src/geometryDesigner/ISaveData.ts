@@ -8,9 +8,10 @@ import {IDataFormula} from '@gd/IFormula';
 import {getScreenShot} from '@gdComponents/GDScene';
 import {RootState} from '@store/store';
 
+export const assemblyModes = ['FixedFrame', 'AllTiresGrounded'] as const;
 export interface Options {
   fixSpringDumperDuaringControl: boolean;
-  assemblyMode: 'FixedFrame' | 'AllTiresGrounded';
+  assemblyMode: typeof assemblyModes[number];
 }
 
 export interface SavedData {

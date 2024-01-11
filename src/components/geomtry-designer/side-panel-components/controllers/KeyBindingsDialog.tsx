@@ -1,5 +1,6 @@
 import * as React from 'react';
 import DialogTitle from '@mui/material/DialogTitle';
+import {NativeSelect, Divider, Box, Typography} from '@mui/material';
 import DialogContent from '@mui/material/DialogContent';
 import Dialog from '@mui/material/Dialog';
 import {useSelector, useDispatch} from 'react-redux';
@@ -8,14 +9,14 @@ import {
   setUIDisabled,
   setConfirmDialogProps
 } from '@store/reducers/uiTempGeometryDesigner';
+import {assemblyModes, Options} from '@gd/ISaveData';
 import {setControl, removeControl} from '@store/reducers/dataGeometryDesigner';
-import {Divider} from '@mui/material';
 
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import {alpha} from '@mui/material/styles';
 import {IDataControl} from '@gd/controls/IControls';
-import {Options} from '@gd/ISaveData';
+
 import FullLayoutKeyboard, {keysInv} from './FullLayoutKeyboard';
 import {ControlDefinition} from './ControlDefinition';
 
@@ -29,8 +30,12 @@ const disabledKey =
 
 export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
   const {open, setOpen} = props;
+
+  const assemblyModeDgd = useSelector(
+    (state: RootState) => state.dgd.present.options.assemblyMode
+  );
   const [assemblyMode, setAssemblyMode] =
-    React.useState<Options['assemblyMode']>('FixedFrame');
+    React.useState<Options['assemblyMode']>(assemblyModeDgd);
   const [selectedKey, setSelectedKey] = React.useState('');
   const [staged, setStaged] = React.useState<null | IDataControl | string>(
     null
@@ -61,6 +66,7 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
       dispatch(setUIDisabled(true));
     } else {
       dispatch(setUIDisabled(false));
+      setStaged(null);
     }
   }, [dispatch, open]);
 
@@ -73,13 +79,14 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
       resetNewDefinition((prev) => !prev);
       return;
     }
+    staged.configuration = assemblyMode;
     dispatch(setControl(staged));
     setStaged(null);
     resetNewDefinition((prev) => !prev);
   };
 
-  const handleClose = () => {
-    setOpen(false);
+  const handleClose = async () => {
+    if (await confirm()) setOpen(false);
   };
 
   const handleOK = () => {
@@ -87,33 +94,38 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
     setOpen(false);
   };
 
+  const confirm = async () => {
+    if (staged) {
+      const ret = await new Promise<string>((resolve) => {
+        dispatch(
+          setConfirmDialogProps({
+            zindex: zindex + dialogZIndex,
+            onClose: resolve,
+            title: 'Confirm',
+            message: `Control bindings have been changed. Do you save changes?`,
+            buttons: [
+              {text: 'Save', res: 'save'},
+              {text: "Don't save", res: 'noSave'},
+              {text: 'Cancel', res: 'cancel', autoFocus: true}
+            ]
+          })
+        );
+      });
+      dispatch(setConfirmDialogProps(undefined));
+      if (ret === 'cancel') return false;
+      if (ret === 'save') handleApply();
+      else {
+        await setStaged(null);
+      }
+    }
+    return true;
+  };
+
   const options = {
     disableButtonHold: true,
     onKeyPress: async (button: string) => {
       if (disabledKey.split(' ').includes(keysInv(button))) return;
-      if (staged) {
-        const ret = await new Promise<string>((resolve) => {
-          dispatch(
-            setConfirmDialogProps({
-              zindex: zindex + dialogZIndex,
-              onClose: resolve,
-              title: 'Confirm',
-              message: `Control bindings have been changed. Do you save changes?`,
-              buttons: [
-                {text: 'Save', res: 'save'},
-                {text: "Don't save", res: 'noSave'},
-                {text: 'Cancel', res: 'cancel', autoFocus: true}
-              ]
-            })
-          );
-        });
-        dispatch(setConfirmDialogProps(undefined));
-        if (ret === 'cancel') return;
-        if (ret === 'save') handleApply();
-        else {
-          await setStaged(null);
-        }
-      }
+      if (!(await confirm())) return;
       if (selectedKey !== button) {
         setSelectedKey(button);
       } else {
@@ -138,6 +150,13 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
       buttons: keysInv(selectedKey)
     });
 
+  const onConfigChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const {value} = e.target;
+    if (await confirm()) {
+      setAssemblyMode(value as any);
+    }
+  };
+
   return (
     <Dialog
       open={open}
@@ -147,31 +166,29 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
       }}
       PaperProps={{sx: {maxWidth: 'unset', width: '960px'}}}
     >
-      <DialogTitle>
+      <DialogTitle
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'space-between'
+        }}
+      >
         Key Bindings Dialog
-        <NativeSelect
-          variant="standard"
-          value={config.stearing.target}
-          onChange={apply((e) => {
-            let control = controls.find(
-              (c) =>
-                c.nodeID === e?.target.value &&
-                (c.configuration ?? 'FixedFrame') === assemblyMode
-            );
-            if (!control) control = createDummyDataControl();
-            config.stearing = new ParameterSetter({
-              type: 'Control',
-              target: control,
-              valueFormula: '0'
-            });
-          })}
-          sx={{...fieldSX, m: 2, mb: 2.5, mt: 2.5}}
+        <Box
+          component="div"
+          sx={{display: 'flex', flexDirection: 'row', alignItems: 'baseline'}}
         >
-          <option value="dummy">not selected</option>
-          {controls.map((control) => (
-            <option value={control.nodeID}>{getControl(control).name}</option>
-          ))}
-        </NativeSelect>
+          <Typography sx={{pr: 1}}>configuration:</Typography>
+          <NativeSelect
+            variant="standard"
+            value={assemblyMode}
+            onChange={onConfigChange}
+          >
+            {assemblyModes.map((mode) => (
+              <option value={mode}>{mode}</option>
+            ))}
+          </NativeSelect>
+        </Box>
       </DialogTitle>
       <DialogContent
         sx={{
