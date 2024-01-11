@@ -139,7 +139,8 @@ export class TorsionSpring extends Element implements ITorsionSpring {
       effortPoints: [...effortPoints] as any,
       initialPosition: ip,
       mass: this.mass.value,
-      centerOfGravity: cog
+      centerOfGravity: cog,
+      autoCalculateCenterOfGravity: this.autoCalculateCenterOfGravity.value
     });
     assignMeta(ret, {mirror: {to: this.nodeID}});
     return ret;
@@ -177,6 +178,7 @@ export class TorsionSpring extends Element implements ITorsionSpring {
           initialPosition?: FunctionVector3 | IDataVector3 | INamedVector3;
           mass?: number;
           centerOfGravity?: FunctionVector3 | IDataVector3 | INamedVector3;
+          autoCalculateCenterOfGravity?: boolean;
         }
       | IDataTorsionSpring
   ) {

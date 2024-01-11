@@ -6,6 +6,7 @@ import {
   NamedQuaternion,
   NamedString,
   NamedNumber,
+  NamedBoolean,
   NamedBooleanOrUndefined,
   isDeltaXYZ,
   isDirectionLength
@@ -94,13 +95,26 @@ export abstract class Element implements IElement {
     return null;
   }
 
-  constructor(params: {name: string} | IDataElement) {
+  constructor(
+    params:
+      | {name: string; autoCalculateCenterOfGravity?: boolean}
+      | IDataElement
+  ) {
     this._nodeID = uuidv4(); // ⇨ '2c5ea4c0-4067-11e9-8bad-9b1deb4d3b7d'
-    const {name} = params;
+    const {name, autoCalculateCenterOfGravity} = params;
     this.name = new NamedString({
       name: 'name',
       value: name,
       parent: this
+    });
+
+    this.autoCalculateCenterOfGravity = new NamedBoolean({
+      name: 'autoCalculateCenterOfGravity',
+      parent: this,
+      value:
+        autoCalculateCenterOfGravity === undefined
+          ? false
+          : autoCalculateCenterOfGravity
     });
     if (isDataElement(params)) {
       const element = params;
@@ -177,6 +191,8 @@ export abstract class Element implements IElement {
 
   abstract set centerOfGravity(v: NamedVector3);
 
+  autoCalculateCenterOfGravity: NamedBoolean;
+
   abstract get inertialTensor(): NamedMatrix3;
 
   abstract set inertialTensor(mat: NamedMatrix3);
@@ -199,11 +215,15 @@ export abstract class Element implements IElement {
         position: this.position.getData(state),
         rotation: this.rotation.getData(state),
         initialPosition: this.initialPosition.getData(state),
-        visible: this.visible.getData()
+        visible: this.visible.getData(),
+        autoCalculateCenterOfGravity:
+          this.autoCalculateCenterOfGravity.getData(state)
         // mirrorTo: this.meta?.mirror?.to
       };
     }
     this.name.value = `mirror_${mirrorElement.name.value}`;
+    this.autoCalculateCenterOfGravity.value =
+      mirrorElement.autoCalculateCenterOfGravity.value;
     return {
       isDataElement: true,
       className: this.className,
@@ -222,6 +242,8 @@ export abstract class Element implements IElement {
         .setValue(mirrorVec(mirrorElement.initialPosition))
         .getData(state),
       visible: this.visible.getData(),
+      autoCalculateCenterOfGravity:
+        this.autoCalculateCenterOfGravity.getData(state),
       mirrorTo: mirrorElement.nodeID
     };
   }

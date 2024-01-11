@@ -14,7 +14,8 @@ import {
   INamedString,
   INamedNumber,
   INamedNumberRO,
-  INamedBooleanOrUndefined
+  INamedBooleanOrUndefined,
+  INamedBoolean
 } from '@gd/INamedValues';
 import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {isObject} from '@utils/helpers';
@@ -143,6 +144,7 @@ export interface IElement extends IBidirectionalNode {
   readonly inertialTensor: INamedMatrix3;
   readonly mass: INamedNumber;
   readonly centerOfGravity: INamedVector3;
+  readonly autoCalculateCenterOfGravity: INamedBoolean;
   readonly visible: INamedBooleanOrUndefined;
   parent: IAssembly | null;
   readonly controllable?: boolean;
@@ -170,6 +172,7 @@ export interface IDataElement extends INode {
   nodeID: string;
   absPath: string;
   visible: IData<boolean | undefined>;
+  autoCalculateCenterOfGravity: IData<boolean>;
 
   mass: IDataNumber;
   centerOfGravity: IDataVector3;

@@ -30,6 +30,7 @@ export class Frame extends Assembly {
           initialPosition?: FunctionVector3;
           mass?: number;
           centerOfGravity?: FunctionVector3;
+          autoCalculateCenterOfGravity?: boolean;
         }
       | IDataFrame
   ) {

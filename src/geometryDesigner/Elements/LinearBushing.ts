@@ -183,7 +183,8 @@ export class LinearBushing extends Element implements ILinearBushing {
       dlMax: this.dlMax.value,
       initialPosition: ip,
       mass: this.mass.value,
-      centerOfGravity: cog
+      centerOfGravity: cog,
+      autoCalculateCenterOfGravity: this.autoCalculateCenterOfGravity.value
     });
     assignMeta(ret, {mirror: {to: this.nodeID}});
     return ret;
@@ -220,6 +221,7 @@ export class LinearBushing extends Element implements ILinearBushing {
           initialPosition?: FunctionVector3 | IDataVector3 | INamedVector3;
           mass?: number;
           centerOfGravity?: FunctionVector3 | IDataVector3 | INamedVector3;
+          autoCalculateCenterOfGravity?: boolean;
         }
       | IDataLinearBushing
   ) {

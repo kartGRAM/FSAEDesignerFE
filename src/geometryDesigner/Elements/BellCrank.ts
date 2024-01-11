@@ -88,7 +88,8 @@ export class BellCrank extends Element implements IBellCrank {
       points: [point0, point1, ...points],
       initialPosition: ip,
       mass: this.mass.value,
-      centerOfGravity: cog
+      centerOfGravity: cog,
+      autoCalculateCenterOfGravity: this.autoCalculateCenterOfGravity.value
     });
     assignMeta(ret, {mirror: {to: this.nodeID}});
     return ret;
@@ -122,6 +123,7 @@ export class BellCrank extends Element implements IBellCrank {
           initialPosition?: FunctionVector3 | IDataVector3 | INamedVector3;
           mass?: number;
           centerOfGravity?: FunctionVector3 | IDataVector3 | INamedVector3;
+          autoCalculateCenterOfGravity?: boolean;
         }
       | IDataBellCrank
   ) {

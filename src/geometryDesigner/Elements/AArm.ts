@@ -82,7 +82,8 @@ export class AArm extends Element implements IAArm {
       points: [point0, ...points],
       initialPosition: ip,
       mass: this.mass.value,
-      centerOfGravity: cog
+      centerOfGravity: cog,
+      autoCalculateCenterOfGravity: this.autoCalculateCenterOfGravity.value
     });
     assignMeta(ret, {mirror: {to: this.nodeID}});
     return ret;
@@ -116,6 +117,7 @@ export class AArm extends Element implements IAArm {
           initialPosition?: FunctionVector3 | IDataVector3 | INamedVector3;
           mass?: number;
           centerOfGravity?: FunctionVector3 | IDataVector3 | INamedVector3;
+          autoCalculateCenterOfGravity?: boolean;
         }
       | IDataAArm
   ) {

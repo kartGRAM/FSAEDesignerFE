@@ -145,7 +145,8 @@ export class Tire extends Element implements ITire {
       toRightBearing: minus(this.toLeftBearing.getStringValue()),
       initialPosition: ip,
       mass: this.mass.value,
-      centerOfGravity: cog
+      centerOfGravity: cog,
+      autoCalculateCenterOfGravity: this.autoCalculateCenterOfGravity.value
     });
     assignMeta(ret, {mirror: {to: this.nodeID}});
     return ret;
@@ -174,6 +175,7 @@ export class Tire extends Element implements ITire {
           initialPosition?: FunctionVector3 | IDataVector3 | INamedVector3;
           mass?: number;
           centerOfGravity?: FunctionVector3 | IDataVector3 | INamedVector3;
+          autoCalculateCenterOfGravity?: boolean;
         }
       | IDataTire
   ) {

@@ -357,7 +357,8 @@ export class Assembly extends Element implements IAssembly {
     return new NamedNumber({
       name: 'mass',
       parent: this,
-      value: mass
+      value: mass,
+      update: () => {}
     });
   }
 
@@ -366,9 +367,15 @@ export class Assembly extends Element implements IAssembly {
 
   get centerOfGravity(): NamedVector3 {
     const center = new Vector3();
-    this.children.forEach((child) => {
-      center.add(child.position.value.clone().multiplyScalar(child.mass.value));
-    });
+    const mass = this.mass.value;
+    if (mass > 0) {
+      this.children.forEach((child) => {
+        center.add(
+          child.position.value.clone().multiplyScalar(child.mass.value)
+        );
+      });
+      center.multiplyScalar(1 / mass);
+    }
     return new NamedVector3({
       name: 'centerOfGravity',
       parent: this,

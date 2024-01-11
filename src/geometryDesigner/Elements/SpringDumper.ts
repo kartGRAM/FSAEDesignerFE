@@ -49,7 +49,8 @@ export class SpringDumper extends Bar implements ISpringDumper {
       mass: this.mass.value,
       centerOfGravity: cog,
       dlMin: this.dlMin.value,
-      dlMax: this.dlMax.value
+      dlMax: this.dlMax.value,
+      autoCalculateCenterOfGravity: this.autoCalculateCenterOfGravity.value
     });
     assignMeta(ret, {mirror: {to: this.nodeID}});
     return ret;
@@ -109,6 +110,7 @@ export class SpringDumper extends Bar implements ISpringDumper {
           initialPosition?: FunctionVector3 | IDataVector3 | INamedVector3;
           mass?: number;
           centerOfGravity?: FunctionVector3 | IDataVector3 | INamedVector3;
+          autoCalculateCenterOfGravity?: boolean;
         }
       | IDataSpringDumper
   ) {
