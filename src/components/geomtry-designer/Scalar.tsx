@@ -13,6 +13,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import {getRootAssembly} from '@gd/IElements';
+import {toFixedNoZero, isNumber} from '@app/utils/helpers';
 import {ValueField} from './ValueField';
 
 export default function Scalar(props: {
@@ -130,6 +131,17 @@ export default function Scalar(props: {
     nameFormik.handleBlur(e);
   };
 
+  const [focus, setForcus] = React.useState<boolean>(false);
+
+  const handleForcus = () => {
+    setForcus(true);
+  };
+
+  const onBlur = (e: any) => {
+    setForcus(false);
+    formik.handleBlur(e);
+  };
+
   return (
     <Box
       component="div"
@@ -208,10 +220,15 @@ export default function Scalar(props: {
             label="value"
             name="value"
             variant="outlined"
-            value={formik.values.value}
+            onFocus={handleForcus}
+            onBlur={onBlur}
+            value={
+              focus || !isNumber(formik.values.value)
+                ? formik.values.value
+                : toFixedNoZero(formik.values.value, 3)
+            }
             error={formik.touched.value && Boolean(formik.errors.value)}
             helperText={formik.touched.value && formik.errors.value}
-            onBlur={formik.handleBlur}
             unit={unit}
           />
         </Box>
