@@ -12,11 +12,15 @@ import {
   setSelectedPoint,
   setOrbitControlsEnabled
 } from '@store/reducers/uiTempGeometryDesigner';
+
 import {Paper, Typography} from '@mui/material';
 import {PivotControls} from './PivotControls/PivotControls';
 
-const NodeSphere = (props: {node: INamedVector3RO}) => {
-  const {node} = props;
+const NodeSphere = (props: {
+  node: INamedVector3RO;
+  applyPosition?: boolean;
+}) => {
+  const {node, applyPosition} = props;
   const coMatrix = getMatrix3(
     useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
   );
@@ -71,6 +75,9 @@ const NodeSphere = (props: {node: INamedVector3RO}) => {
   });
 
   const position = node.value.applyMatrix3(coMatrix);
+  if (applyPosition && isElement(node.parent)) {
+    position.add(node.parent.position.value.applyMatrix3(coMatrix));
+  }
 
   const sphere = (
     <Sphere

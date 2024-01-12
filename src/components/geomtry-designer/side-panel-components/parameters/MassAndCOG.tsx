@@ -7,6 +7,8 @@ import Checkbox from '@mui/material/Checkbox';
 import {useDispatch} from 'react-redux';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
 import {isAssembly} from '@gd/IElements/IAssembly';
+import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
+import {Box} from '@mui/material';
 
 export const MassAndCOG = React.memo((props: {element: IElement}) => {
   const {element} = props;
@@ -19,8 +21,18 @@ export const MassAndCOG = React.memo((props: {element: IElement}) => {
     },
     [dispatch, element.autoCalculateCenterOfGravity]
   );
+
+  const [focus, setFocus] = React.useState<boolean>(false);
+
+  React.useEffect(() => {
+    if (focus) dispatch(setSelectedPoint({point: element.centerOfGravity}));
+  }, [dispatch, focus, element]);
   return (
-    <>
+    <Box
+      component="div"
+      onFocus={() => setFocus(true)}
+      onBlur={() => setFocus(false)}
+    >
       <Scalar
         value={element.mass}
         unit="kg"
@@ -46,6 +58,6 @@ export const MassAndCOG = React.memo((props: {element: IElement}) => {
           isMirrorElement(element)
         }
       />
-    </>
+    </Box>
   );
 });

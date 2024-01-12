@@ -72,7 +72,7 @@ export default function ControllersRoot() {
               onChange={handleFSDDCChange}
             />
           }
-          label="Keep spring dumper fixed state duaring operation."
+          label="Keep spring dumpers fixed state duaring operation."
         />
         {assemblyMode === 'AllTiresGrounded' ? (
           <FormControlLabel
@@ -84,7 +84,7 @@ export default function ControllersRoot() {
                 }}
               />
             }
-            label="Pin center of gravity of frame object."
+            label="Pin the center of gravity of frame object."
           />
         ) : null}
       </Box>
