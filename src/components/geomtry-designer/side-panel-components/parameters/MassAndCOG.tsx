@@ -6,6 +6,7 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import {useDispatch} from 'react-redux';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
+import {isAssembly} from '@gd/IElements/IAssembly';
 
 export const MassAndCOG = React.memo((props: {element: IElement}) => {
   const {element} = props;
@@ -16,21 +17,33 @@ export const MassAndCOG = React.memo((props: {element: IElement}) => {
       value.value = checked;
       if (value.parent) dispatch(updateAssembly(value));
     },
-    []
+    [dispatch, element.autoCalculateCenterOfGravity]
   );
   return (
     <>
-      <Scalar value={element.mass} unit="kg" min={0} />
+      <Scalar
+        value={element.mass}
+        unit="kg"
+        min={0}
+        disabled={isAssembly(element)}
+      />
       <FormControlLabel
+        sx={{pl: 2}}
         control={
           <Checkbox
+            disabled={isAssembly(element)}
             checked={element.autoCalculateCenterOfGravity.value}
             onChange={handleAutoChange}
           />
         }
-        label="Automatic calculate center of gravity."
+        label="Automatic calculate the center of gravity."
       />
-      <Vector />
+      <Vector
+        vector={element.centerOfGravity}
+        disabled={
+          element.autoCalculateCenterOfGravity.value || isAssembly(element)
+        }
+      />
     </>
   );
 });

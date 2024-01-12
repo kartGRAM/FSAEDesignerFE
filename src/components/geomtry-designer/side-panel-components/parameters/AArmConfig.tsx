@@ -20,13 +20,10 @@ import {
 } from '@store/reducers/uiGeometryDesigner';
 import Vector from '@gdComponents/Vector';
 import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
+import {MassAndCOG} from '@gdComponents/side-panel-components/parameters/MassAndCOG';
 import ElementName from './ElementName';
 
-interface Params {
-  element: IAArm;
-}
-
-export default function AArmConfig(params: Params) {
+export default function AArmConfig(params: {element: IAArm}) {
   const {element} = params;
 
   const isMirror = isMirrorElement(element);
@@ -130,7 +127,7 @@ export default function AArmConfig(params: Params) {
           <Typography>Dynamic Parameters</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Typography>WIP</Typography>
+          <MassAndCOG element={element} />
         </AccordionDetails>
       </Accordion>
       <Accordion>

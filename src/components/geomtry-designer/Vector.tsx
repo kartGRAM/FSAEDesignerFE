@@ -42,433 +42,442 @@ import Checkbox from '@mui/material/Checkbox';
 import {numberToRgb, toFixedNoZero} from '@app/utils/helpers';
 import {ValueField} from './ValueField';
 
-export interface Props {
-  vector: INamedVector3;
-  removable?: boolean;
-  onRemove?: () => void;
-  disabled?: boolean;
-  disableSceneButton?: boolean;
-  disablePointOffsetTool?: boolean;
-  directionMode?: boolean;
-  isNode?: boolean;
-  onUpdate?: () => void;
-  unit?: string;
-}
+const Vector = React.memo(
+  (props: {
+    vector: INamedVector3;
+    removable?: boolean;
+    onRemove?: () => void;
+    disabled?: boolean;
+    disableSceneButton?: boolean;
+    disablePointOffsetTool?: boolean;
+    directionMode?: boolean;
+    isNode?: boolean;
+    onUpdate?: () => void;
+    unit?: string;
+  }) => {
+    const {
+      vector,
+      removable,
+      onRemove,
+      disabled,
+      disableSceneButton,
+      disablePointOffsetTool,
+      directionMode,
+      isNode,
+      onUpdate
+    } = props;
+    const unit = props.unit ?? 'mm';
+    const dispatch = useDispatch();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const point = (
+      useSelector(
+        (state: RootState) => state.uitgd.gdSceneState.selectedPoint
+      ) ?? []
+    ).at(0);
+    const sVector = vector.getStringValue();
 
-const Vector = React.memo((props: Props) => {
-  const {
-    vector,
-    removable,
-    onRemove,
-    disabled,
-    disableSceneButton,
-    disablePointOffsetTool,
-    directionMode,
-    isNode,
-    onUpdate
-  } = props;
-  const unit = props.unit ?? 'mm';
-  const dispatch = useDispatch();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const point = (
-    useSelector((state: RootState) => state.uitgd.gdSceneState.selectedPoint) ??
-    []
-  ).at(0);
-  const sVector = vector.getStringValue();
+    const [expanded, setExpanded] = React.useState<boolean>(false);
+    const [rename, setRename] = React.useState<boolean>(false);
+    const [selected, setSelected] = React.useState<string>('');
+    const [focused, setFocused] = useState<boolean>(false);
 
-  const [expanded, setExpanded] = React.useState<boolean>(false);
-  const [rename, setRename] = React.useState<boolean>(false);
-  const [selected, setSelected] = React.useState<string>('');
-  const [focused, setFocused] = useState<boolean>(false);
-
-  const nameFormik = useFormik({
-    enableReinitialize: true,
-    initialValues: {
-      name: vector.name
-    },
-    validationSchema: Yup.object({
-      name: Yup.string()
-        .variableNameFirstChar()
-        .variableName()
-        .noMathFunctionsName()
-        .required('required')
-    }),
-    onSubmit: (values) => {
-      vector.name = values.name;
-      dispatch(updateAssembly(vector));
-      setRename(false);
-    }
-  });
-
-  const formik = useFormik({
-    enableReinitialize: true,
-    initialValues: {
-      x: sVector.x,
-      y: sVector.y,
-      z: sVector.z
-    },
-    validationSchema: Yup.object({
-      x: Yup.string().gdFormulaIsValid().required('required'),
-      y: Yup.string().gdFormulaIsValid().required('required'),
-      z: Yup.string().gdFormulaIsValid().required('required')
-    }),
-    onSubmit: (values) => {
-      vector.setValue(values);
-      if (vector.parent) dispatch(updateAssembly(vector));
-      if (onUpdate) onUpdate();
-    }
-  });
-
-  React.useEffect(() => {
-    if (focused && !directionMode) dispatch(setSelectedPoint({point: vector}));
-  }, [directionMode, dispatch, focused, vector]);
-
-  const ref = React.useRef<HTMLInputElement>(null);
-  const refOfVectorField = React.useRef<HTMLInputElement>(null);
-
-  React.useEffect(() => {
-    if (rename) {
-      ref.current?.focus();
-    }
-  }, [rename]);
-
-  React.useEffect(() => {
-    if (point && point.point.nodeID === vector.nodeID && !focused) {
-      refOfVectorField.current?.focus();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [point, vector.nodeID]);
-
-  const handleFocus = React.useCallback(() => {
-    setFocused(true);
-  }, []);
-
-  const handleChange = React.useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      formik.handleChange(event);
-      setTimeout(formik.handleSubmit, 0);
-    },
-    [formik]
-  );
-
-  const handleBlur = React.useCallback(() => {
-    setFocused(false);
-  }, []);
-
-  const handlePointOffsetToolAdd = React.useCallback(
-    (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-      e.stopPropagation();
-      const tools = vector.pointOffsetTools ?? [];
-      tools.push(
-        new DeltaXYZ({
-          value: {
-            name: `pointOffsetTool${tools.length}`,
-            dx: 0,
-            dy: 0,
-            dz: 0
-          },
-          parent: vector
-        })
-      );
-      vector.pointOffsetTools = tools;
-      dispatch(updateAssembly(vector));
-    },
-    [dispatch, vector]
-  );
-
-  const handlePointOffsetToolDelete = React.useCallback(
-    (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-      e.stopPropagation();
-      const tools = vector.pointOffsetTools ?? [];
-      vector.pointOffsetTools = tools.filter((tool) => tool.name !== selected);
-      dispatch(updateAssembly(vector));
-      setSelected('');
-    },
-    [vector, dispatch, selected]
-  );
-
-  const handleNameDblClick = React.useCallback(() => {
-    nameFormik.resetForm();
-    setRename(true);
-  }, [nameFormik]);
-
-  const onNameEnter = React.useCallback(
-    (e: React.KeyboardEvent<HTMLDivElement>) => {
-      if (e.key === 'Enter') {
-        nameFormik.handleSubmit();
+    const nameFormik = useFormik({
+      enableReinitialize: true,
+      initialValues: {
+        name: vector.name
+      },
+      validationSchema: Yup.object({
+        name: Yup.string()
+          .variableNameFirstChar()
+          .variableName()
+          .noMathFunctionsName()
+          .required('required')
+      }),
+      onSubmit: (values) => {
+        vector.name = values.name;
+        dispatch(updateAssembly(vector));
+        setRename(false);
       }
-    },
-    [nameFormik]
-  );
+    });
 
-  const onNameBlur = React.useCallback(
-    (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement, Element>) => {
-      setRename(false);
-      nameFormik.handleBlur(e);
-    },
-    [nameFormik]
-  );
+    const formik = useFormik({
+      enableReinitialize: true,
+      initialValues: {
+        x: sVector.x,
+        y: sVector.y,
+        z: sVector.z
+      },
+      validationSchema: Yup.object({
+        x: Yup.string().gdFormulaIsValid().required('required'),
+        y: Yup.string().gdFormulaIsValid().required('required'),
+        z: Yup.string().gdFormulaIsValid().required('required')
+      }),
+      onSubmit: (values) => {
+        vector.setValue(values);
+        if (vector.parent) dispatch(updateAssembly(vector));
+        if (onUpdate) onUpdate();
+      }
+    });
 
-  const handleAccordionOpen = React.useCallback(() => {
-    if (expanded) setSelected('');
-    setExpanded((prev) => !prev);
-  }, [expanded]);
+    React.useEffect(() => {
+      if (focused && !directionMode)
+        dispatch(setSelectedPoint({point: vector}));
+    }, [directionMode, dispatch, focused, vector]);
 
-  return (
-    <Box
-      component="div"
-      sx={{padding: 1}}
-      onFocus={handleFocus}
-      onBlur={handleBlur}
-    >
-      <Toolbar
-        sx={{
-          pl: '0.3rem!important',
-          pr: '0.3rem!important',
-          pb: '0rem!important',
-          minHeight: '40px!important',
-          flex: '1'
-        }}
+    const ref = React.useRef<HTMLInputElement>(null);
+    const refOfVectorField = React.useRef<HTMLInputElement>(null);
+
+    React.useEffect(() => {
+      if (rename) {
+        ref.current?.focus();
+      }
+    }, [rename]);
+
+    React.useEffect(() => {
+      if (point && point.point.nodeID === vector.nodeID && !focused) {
+        refOfVectorField.current?.focus();
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [point, vector.nodeID]);
+
+    const handleFocus = React.useCallback(() => {
+      setFocused(true);
+    }, []);
+
+    const handleChange = React.useCallback(
+      (event: React.ChangeEvent<HTMLInputElement>) => {
+        formik.handleChange(event);
+        setTimeout(formik.handleSubmit, 0);
+      },
+      [formik]
+    );
+
+    const handleBlur = React.useCallback(() => {
+      setFocused(false);
+    }, []);
+
+    const handlePointOffsetToolAdd = React.useCallback(
+      (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+        e.stopPropagation();
+        const tools = vector.pointOffsetTools ?? [];
+        tools.push(
+          new DeltaXYZ({
+            value: {
+              name: `pointOffsetTool${tools.length}`,
+              dx: 0,
+              dy: 0,
+              dz: 0
+            },
+            parent: vector
+          })
+        );
+        vector.pointOffsetTools = tools;
+        dispatch(updateAssembly(vector));
+      },
+      [dispatch, vector]
+    );
+
+    const handlePointOffsetToolDelete = React.useCallback(
+      (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+        e.stopPropagation();
+        const tools = vector.pointOffsetTools ?? [];
+        vector.pointOffsetTools = tools.filter(
+          (tool) => tool.name !== selected
+        );
+        dispatch(updateAssembly(vector));
+        setSelected('');
+      },
+      [vector, dispatch, selected]
+    );
+
+    const handleNameDblClick = React.useCallback(() => {
+      nameFormik.resetForm();
+      setRename(true);
+    }, [nameFormik]);
+
+    const onNameEnter = React.useCallback(
+      (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.key === 'Enter') {
+          nameFormik.handleSubmit();
+        }
+      },
+      [nameFormik]
+    );
+
+    const onNameBlur = React.useCallback(
+      (
+        e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement, Element>
+      ) => {
+        setRename(false);
+        nameFormik.handleBlur(e);
+      },
+      [nameFormik]
+    );
+
+    const handleAccordionOpen = React.useCallback(() => {
+      if (expanded) setSelected('');
+      setExpanded((prev) => !prev);
+    }, [expanded]);
+
+    return (
+      <Box
+        component="div"
+        sx={{padding: 1}}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
       >
-        {!rename ? (
-          <Typography
-            sx={{flex: '1 1 100%'}}
-            color="inherit"
-            variant="subtitle1"
-            component="div"
-            onDoubleClick={handleNameDblClick}
-          >
-            {vector.name}
-          </Typography>
-        ) : (
-          <TextField
-            inputRef={ref}
-            onChange={nameFormik.handleChange}
-            // label="name"
-            name="name"
-            variant="outlined"
-            size="small"
-            onKeyDown={onNameEnter}
-            value={nameFormik.values.name}
-            onBlur={onNameBlur}
-            error={nameFormik.touched.name && Boolean(nameFormik.errors.name)}
-            helperText={nameFormik.touched.name && nameFormik.errors.name}
-            sx={{
-              '& legend': {display: 'none'},
-              '& fieldset': {top: 0}
-            }}
-          />
-        )}
-        {isNode && !disabled ? (
-          <FormControlLabel
-            sx={{margin: 0, whiteSpace: 'nowrap'}}
-            control={
-              <Checkbox
-                checked={!!vector.meta.isFreeNode}
-                size="small"
-                onChange={(e) => {
-                  const {checked} = e.target;
-                  vector.meta.isFreeNode = checked;
-                  dispatch(updateAssembly(vector));
-                }}
-              />
-            }
-            label="free node"
-          />
-        ) : null}
-        {removable && !disabled ? (
-          <Tooltip title="Delete" sx={{flex: '1'}}>
-            <IconButton
-              onClick={() => {
-                if (onRemove) onRemove();
-              }}
-            >
-              <DeleteIcon />
-            </IconButton>
-          </Tooltip>
-        ) : null}
-      </Toolbar>
-      <form onSubmit={formik.handleSubmit}>
-        <Box
-          component="div"
+        <Toolbar
           sx={{
-            display: 'flex',
-            justifyContent: 'space-between'
+            pl: '0.3rem!important',
+            pr: '0.3rem!important',
+            pb: '0rem!important',
+            minHeight: '40px!important',
+            flex: '1'
           }}
         >
-          <ValueField
-            unit={unit}
-            inputRef={refOfVectorField}
-            disabled={disabled}
-            onChange={handleChange}
-            label="X"
-            name="x"
-            variant="outlined"
-            value={formik.values.x}
-            error={formik.touched.x && Boolean(formik.errors.x)}
-            helperText={formik.touched.x && formik.errors.x}
-            onBlur={formik.handleBlur}
-          />
-          <ValueField
-            unit={unit}
-            disabled={disabled}
-            onChange={handleChange}
-            onBlur={formik.handleBlur}
-            label="Y"
-            name="y"
-            variant="outlined"
-            value={formik.values.y}
-            error={formik.touched.y && Boolean(formik.errors.y)}
-            helperText={formik.touched.y && formik.errors.y}
-          />
-          <ValueField
-            unit={unit}
-            disabled={disabled}
-            onChange={handleChange}
-            onBlur={formik.handleBlur}
-            label="Z"
-            name="z"
-            variant="outlined"
-            value={formik.values.z}
-            error={formik.touched.z && Boolean(formik.errors.z)}
-            helperText={formik.touched.z && formik.errors.z}
-          />
-
+          {!rename ? (
+            <Typography
+              sx={{flex: '1 1 100%'}}
+              color="inherit"
+              variant="subtitle1"
+              component="div"
+              onDoubleClick={handleNameDblClick}
+            >
+              {vector.name}
+            </Typography>
+          ) : (
+            <TextField
+              inputRef={ref}
+              onChange={nameFormik.handleChange}
+              // label="name"
+              name="name"
+              variant="outlined"
+              size="small"
+              onKeyDown={onNameEnter}
+              value={nameFormik.values.name}
+              onBlur={onNameBlur}
+              error={nameFormik.touched.name && Boolean(nameFormik.errors.name)}
+              helperText={nameFormik.touched.name && nameFormik.errors.name}
+              sx={{
+                '& legend': {display: 'none'},
+                '& fieldset': {top: 0}
+              }}
+            />
+          )}
+          {isNode && !disabled ? (
+            <FormControlLabel
+              sx={{margin: 0, whiteSpace: 'nowrap'}}
+              control={
+                <Checkbox
+                  checked={!!vector.meta.isFreeNode}
+                  size="small"
+                  onChange={(e) => {
+                    const {checked} = e.target;
+                    vector.meta.isFreeNode = checked;
+                    dispatch(updateAssembly(vector));
+                  }}
+                />
+              }
+              label="free node"
+            />
+          ) : null}
+          {removable && !disabled ? (
+            <Tooltip title="Delete" sx={{flex: '1'}}>
+              <IconButton
+                onClick={() => {
+                  if (onRemove) onRemove();
+                }}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </Tooltip>
+          ) : null}
+        </Toolbar>
+        <form onSubmit={formik.handleSubmit}>
           <Box
             component="div"
-            sx={{display: 'flex', flexDirection: 'row', pt: 1}}
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between'
+            }}
           >
-            {!disableSceneButton ? (
-              !directionMode ? (
-                <>
-                  <Target
-                    disabled={disabled}
-                    title="Copy from existing points"
-                    onClick={() => {
-                      dispatch(
-                        setCopyFromExistingPointsDialogProps({
-                          open: true,
-                          onSelected: (p) => {
-                            if (isElement(vector.parent)) {
-                              p.sub(vector.parent.position.value);
+            <ValueField
+              unit={unit}
+              inputRef={refOfVectorField}
+              disabled={disabled}
+              onChange={handleChange}
+              label="X"
+              name="x"
+              variant="outlined"
+              value={formik.values.x}
+              error={formik.touched.x && Boolean(formik.errors.x)}
+              helperText={formik.touched.x && formik.errors.x}
+              onBlur={formik.handleBlur}
+            />
+            <ValueField
+              unit={unit}
+              disabled={disabled}
+              onChange={handleChange}
+              onBlur={formik.handleBlur}
+              label="Y"
+              name="y"
+              variant="outlined"
+              value={formik.values.y}
+              error={formik.touched.y && Boolean(formik.errors.y)}
+              helperText={formik.touched.y && formik.errors.y}
+            />
+            <ValueField
+              unit={unit}
+              disabled={disabled}
+              onChange={handleChange}
+              onBlur={formik.handleBlur}
+              label="Z"
+              name="z"
+              variant="outlined"
+              value={formik.values.z}
+              error={formik.touched.z && Boolean(formik.errors.z)}
+              helperText={formik.touched.z && formik.errors.z}
+            />
+
+            <Box
+              component="div"
+              sx={{display: 'flex', flexDirection: 'row', pt: 1}}
+            >
+              {!disableSceneButton ? (
+                !directionMode ? (
+                  <>
+                    <Target
+                      disabled={disabled}
+                      title="Copy from existing points"
+                      onClick={() => {
+                        dispatch(
+                          setCopyFromExistingPointsDialogProps({
+                            open: true,
+                            onSelected: (p) => {
+                              if (isElement(vector.parent)) {
+                                p.sub(vector.parent.position.value);
+                              }
+                              formik.setFieldValue('x', p.x);
+                              formik.setFieldValue('y', p.y);
+                              formik.setFieldValue('z', p.z);
+                              setTimeout(formik.handleSubmit, 0);
                             }
-                            formik.setFieldValue('x', p.x);
-                            formik.setFieldValue('y', p.y);
-                            formik.setFieldValue('z', p.z);
-                            setTimeout(formik.handleSubmit, 0);
-                          }
-                        })
-                      );
-                    }}
+                          })
+                        );
+                      }}
+                    />
+                    <Move
+                      disabled={disabled}
+                      title="Move this point dynamically"
+                      onClick={() => {
+                        dispatch(
+                          setMovePointDialogProps({
+                            open: true,
+                            target: vector,
+                            onMoved: (delta) => {
+                              const v = vector.value;
+                              v.add(delta);
+                              formik.setFieldValue('x', toFixedNoZero(v.x, 3));
+                              formik.setFieldValue('y', toFixedNoZero(v.y, 3));
+                              formik.setFieldValue('z', toFixedNoZero(v.z, 3));
+                              setTimeout(formik.handleSubmit, 0);
+                            }
+                          })
+                        );
+                      }}
+                    />
+                  </>
+                ) : (
+                  <Direction
+                    title="Copy from existing normal vector."
+                    disabled
                   />
-                  <Move
-                    disabled={disabled}
-                    title="Move this point dynamically"
-                    onClick={() => {
-                      dispatch(
-                        setMovePointDialogProps({
-                          open: true,
-                          target: vector,
-                          onMoved: (delta) => {
-                            const v = vector.value;
-                            v.add(delta);
-                            formik.setFieldValue('x', toFixedNoZero(v.x, 3));
-                            formik.setFieldValue('y', toFixedNoZero(v.y, 3));
-                            formik.setFieldValue('z', toFixedNoZero(v.z, 3));
-                            setTimeout(formik.handleSubmit, 0);
-                          }
-                        })
-                      );
-                    }}
-                  />
-                </>
-              ) : (
-                <Direction title="Copy from existing normal vector." disabled />
-              )
-            ) : null}
+                )
+              ) : null}
+            </Box>
           </Box>
-        </Box>
-      </form>
-      {!disablePointOffsetTool && !directionMode ? (
-        <Accordion
-          expanded={expanded}
-          onChange={handleAccordionOpen}
-          sx={{
-            backgroundColor: '#eee',
-            ml: 1,
-            mr: 1,
-            '&.Mui-expanded': {
+        </form>
+        {!disablePointOffsetTool && !directionMode ? (
+          <Accordion
+            expanded={expanded}
+            onChange={handleAccordionOpen}
+            sx={{
+              backgroundColor: '#eee',
               ml: 1,
               mr: 1,
-              mt: 0,
-              mb: 0
-            }
-          }}
-        >
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="panel1a-content"
-            sx={{
-              '.MuiAccordionSummary-content': {
+              '&.Mui-expanded': {
+                ml: 1,
+                mr: 1,
                 mt: 0,
                 mb: 0
-              },
-              minHeight: 0,
-              '.Mui-expanded': {
-                mt: 1,
-                mb: 1
               }
             }}
           >
-            <Toolbar
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel1a-content"
               sx={{
-                pl: '0!important',
-                pr: '1rem!important',
-                minHeight: '40px!important',
-                flex: '1'
+                '.MuiAccordionSummary-content': {
+                  mt: 0,
+                  mb: 0
+                },
+                minHeight: 0,
+                '.Mui-expanded': {
+                  mt: 1,
+                  mb: 1
+                }
               }}
             >
-              <Typography
-                sx={{flex: '1 1 100%'}}
-                color="inherit"
-                variant="subtitle1"
-                component="div"
+              <Toolbar
+                sx={{
+                  pl: '0!important',
+                  pr: '1rem!important',
+                  minHeight: '40px!important',
+                  flex: '1'
+                }}
               >
-                Point Offset Tools
-              </Typography>
-              {expanded ? (
-                <>
-                  {!disabled ? (
-                    <Tooltip title="Add" sx={{flex: '1'}}>
-                      <IconButton onClick={handlePointOffsetToolAdd}>
-                        <AddBoxIcon />
-                      </IconButton>
-                    </Tooltip>
-                  ) : null}
-                  {selected !== '' && !disabled ? (
-                    <Tooltip title="Delete" sx={{flex: '1'}}>
-                      <IconButton onClick={handlePointOffsetToolDelete}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </Tooltip>
-                  ) : null}
-                </>
-              ) : null}
-            </Toolbar>
-          </AccordionSummary>
-          <AccordionDetails sx={{padding: 0}}>
-            <PointOffsetList
-              selected={selected}
-              setSelected={setSelected}
-              vector={vector}
-              disabled={disabled}
-            />
-          </AccordionDetails>
-        </Accordion>
-      ) : null}
-    </Box>
-  );
-});
+                <Typography
+                  sx={{flex: '1 1 100%'}}
+                  color="inherit"
+                  variant="subtitle1"
+                  component="div"
+                >
+                  Point Offset Tools
+                </Typography>
+                {expanded ? (
+                  <>
+                    {!disabled ? (
+                      <Tooltip title="Add" sx={{flex: '1'}}>
+                        <IconButton onClick={handlePointOffsetToolAdd}>
+                          <AddBoxIcon />
+                        </IconButton>
+                      </Tooltip>
+                    ) : null}
+                    {selected !== '' && !disabled ? (
+                      <Tooltip title="Delete" sx={{flex: '1'}}>
+                        <IconButton onClick={handlePointOffsetToolDelete}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </Tooltip>
+                    ) : null}
+                  </>
+                ) : null}
+              </Toolbar>
+            </AccordionSummary>
+            <AccordionDetails sx={{padding: 0}}>
+              <PointOffsetList
+                selected={selected}
+                setSelected={setSelected}
+                vector={vector}
+                disabled={disabled}
+              />
+            </AccordionDetails>
+          </Accordion>
+        ) : null}
+      </Box>
+    );
+  }
+);
 export default Vector;
 
 const PointOffsetList = React.memo(
