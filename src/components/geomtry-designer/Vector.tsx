@@ -39,7 +39,7 @@ import Move from '@gdComponents/svgs/Move';
 import Direction from '@gdComponents/svgs/Direction';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
-import {numberToRgb, toFixedNoZero} from '@app/utils/helpers';
+import {numberToRgb, toFixedNoZero, isNumber} from '@app/utils/helpers';
 import {ValueField} from './ValueField';
 
 const Vector = React.memo(
@@ -219,6 +219,14 @@ const Vector = React.memo(
       setExpanded((prev) => !prev);
     }, [expanded]);
 
+    const [focus, setForcus] = React.useState<string>('');
+
+    const handleForcus = (id: string) => {
+      return () => {
+        setForcus(id);
+      };
+    };
+
     return (
       <Box
         component="div"
@@ -306,23 +314,33 @@ const Vector = React.memo(
               inputRef={refOfVectorField}
               disabled={disabled}
               onChange={handleChange}
+              onFocus={handleForcus('x')}
+              onBlur={formik.handleBlur}
               label="X"
               name="x"
               variant="outlined"
-              value={formik.values.x}
+              value={
+                focus === 'x' || !isNumber(formik.values.x)
+                  ? formik.values.x
+                  : toFixedNoZero(formik.values.x, 3)
+              }
               error={formik.touched.x && Boolean(formik.errors.x)}
               helperText={formik.touched.x && formik.errors.x}
-              onBlur={formik.handleBlur}
             />
             <ValueField
               unit={unit}
               disabled={disabled}
               onChange={handleChange}
+              onFocus={handleForcus('y')}
               onBlur={formik.handleBlur}
               label="Y"
               name="y"
               variant="outlined"
-              value={formik.values.y}
+              value={
+                focus === 'y' || !isNumber(formik.values.y)
+                  ? formik.values.y
+                  : toFixedNoZero(formik.values.y, 3)
+              }
               error={formik.touched.y && Boolean(formik.errors.y)}
               helperText={formik.touched.y && formik.errors.y}
             />
@@ -330,11 +348,16 @@ const Vector = React.memo(
               unit={unit}
               disabled={disabled}
               onChange={handleChange}
+              onFocus={handleForcus('z')}
               onBlur={formik.handleBlur}
               label="Z"
               name="z"
               variant="outlined"
-              value={formik.values.z}
+              value={
+                focus === 'z' || !isNumber(formik.values.z)
+                  ? formik.values.z
+                  : toFixedNoZero(formik.values.z, 3)
+              }
               error={formik.touched.z && Boolean(formik.errors.z)}
               helperText={formik.touched.z && formik.errors.z}
             />

@@ -204,6 +204,9 @@ export abstract class Element implements IElement {
   abstract set inertialTensor(mat: NamedMatrix3);
 
   getDataElementBase(mirrorElement: IElement | null): IDataElement {
+    if (this.autoCalculateCenterOfGravity.value) {
+      this.setCenterOfGravityAuto();
+    }
     if (!mirrorElement) {
       return {
         isDataElement: true,
@@ -211,7 +214,6 @@ export abstract class Element implements IElement {
         name: this.name.getData(),
         nodeID: this.nodeID,
         absPath: this.absPath,
-
         inertialTensor: this.inertialTensor.getData(),
         centerOfGravity: this.centerOfGravity.getData(),
         mass: this.mass.getData(),

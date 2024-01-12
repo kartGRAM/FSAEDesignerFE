@@ -373,7 +373,10 @@ export class Assembly extends Element implements IAssembly {
     if (mass > 0) {
       this.children.forEach((child) => {
         center.add(
-          child.position.value.clone().multiplyScalar(child.mass.value)
+          child.centerOfGravity.value
+            .clone()
+            .add(child.position.value)
+            .multiplyScalar(child.mass.value)
         );
       });
       center.multiplyScalar(1 / mass);
@@ -382,7 +385,8 @@ export class Assembly extends Element implements IAssembly {
       name: 'centerOfGravity',
       parent: this,
       value: center,
-      nodeID: `${this.nodeID}cog`
+      nodeID: `${this.nodeID}cog`,
+      update: () => {}
     });
   }
 

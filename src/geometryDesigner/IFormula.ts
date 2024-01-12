@@ -146,7 +146,10 @@ export const mathFunctions = [
   'SQRT2',
   'tan',
   'tanh',
-  'trunc'
+  'trunc',
+  'e',
+  'v',
+  'w'
 ];
 
 function getNamesFromFormula(formula: string): string[] {

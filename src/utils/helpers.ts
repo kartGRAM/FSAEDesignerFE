@@ -228,7 +228,8 @@ export function toFixedNoZero(
   fractionDigits: number = 10
 ): string | null {
   if (n !== 0 && !n) return null;
-  return n.toFixed(fractionDigits).replace(reToFixedNoZero, '');
+  const d = Number(n);
+  return d.toFixed(fractionDigits).replace(reToFixedNoZero, '');
 }
 
 export const capitalize = (

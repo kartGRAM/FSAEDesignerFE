@@ -49,7 +49,8 @@ export class Frame extends Assembly {
         points: [],
         initialPosition,
         mass,
-        centerOfGravity
+        centerOfGravity,
+        autoCalculateCenterOfGravity: true
       });
       assignMeta(body, {isBodyOfFrame: true});
       const joints = namedPoints.map((p, i) => ({
