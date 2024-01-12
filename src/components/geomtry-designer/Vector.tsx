@@ -134,7 +134,12 @@ const Vector = React.memo(
     }, [rename]);
 
     React.useEffect(() => {
-      if (point && point.point.nodeID === vector.nodeID && !focused) {
+      if (
+        point &&
+        point.point.nodeID === vector.nodeID &&
+        !focused &&
+        !point.noFocus
+      ) {
         refOfVectorField.current?.focus();
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps

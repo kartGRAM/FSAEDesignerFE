@@ -22,16 +22,15 @@ export const MassAndCOG = React.memo((props: {element: IElement}) => {
     [dispatch, element.autoCalculateCenterOfGravity]
   );
 
-  const [focus, setFocus] = React.useState<boolean>(false);
-
-  React.useEffect(() => {
-    if (focus) dispatch(setSelectedPoint({point: element.centerOfGravity}));
-  }, [dispatch, focus, element]);
   return (
     <Box
       component="div"
-      onFocus={() => setFocus(true)}
-      onBlur={() => setFocus(false)}
+      onFocus={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget))
+          dispatch(
+            setSelectedPoint({point: element.centerOfGravity, noFocus: true})
+          );
+      }}
     >
       <Scalar
         value={element.mass}
@@ -48,7 +47,7 @@ export const MassAndCOG = React.memo((props: {element: IElement}) => {
             onChange={handleAutoChange}
           />
         }
-        label="Automatic calculate the center of gravity."
+        label="Automatically calculate the center of gravity."
       />
       <Vector
         vector={element.centerOfGravity}

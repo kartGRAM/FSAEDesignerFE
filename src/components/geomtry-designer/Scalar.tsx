@@ -131,17 +131,6 @@ export default function Scalar(props: {
     nameFormik.handleBlur(e);
   };
 
-  const [focus, setForcus] = React.useState<boolean>(false);
-
-  const handleForcus = () => {
-    setForcus(true);
-  };
-
-  const onBlur = (e: any) => {
-    setForcus(false);
-    formik.handleBlur(e);
-  };
-
   return (
     <Box
       component="div"
@@ -220,10 +209,9 @@ export default function Scalar(props: {
             label="value"
             name="value"
             variant="outlined"
-            onFocus={handleForcus}
-            onBlur={onBlur}
+            onBlur={formik.handleBlur}
             value={
-              focus || !isNumber(formik.values.value)
+              focused || !isNumber(formik.values.value)
                 ? formik.values.value
                 : toFixedNoZero(formik.values.value, 3)
             }

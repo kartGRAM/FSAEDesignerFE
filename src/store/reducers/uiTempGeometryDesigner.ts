@@ -77,6 +77,7 @@ export interface GDState {
 export interface INamedVector3WithColor {
   point: INamedVector3RO;
   color?: number;
+  noFocus?: boolean;
 }
 
 export interface GDSceneState {

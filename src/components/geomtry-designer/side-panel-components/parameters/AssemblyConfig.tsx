@@ -52,6 +52,7 @@ type PointPair = {
 interface INamedVector3WithColor {
   point: INamedVector3RO;
   color: number;
+  noFocus?: boolean;
 }
 
 export default function AssemblyConfig(params: Params) {
