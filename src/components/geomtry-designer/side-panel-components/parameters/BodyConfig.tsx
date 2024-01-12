@@ -5,7 +5,7 @@ import AccordionDetails from '@mui/material/AccordionDetails';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {isMirrorElement} from '@gd/IElements';
+import {isMirrorElement, getRootAssembly} from '@gd/IElements';
 import {IBody} from '@gd/IElements/IBody';
 import {useDispatch, useSelector} from 'react-redux';
 import store, {RootState} from '@store/store';
@@ -15,6 +15,7 @@ import AddBoxIcon from '@mui/icons-material/AddBox';
 import Toolbar from '@mui/material/Toolbar';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
+
 import {
   kinematicParamsDefaultExpandedChange,
   dynamicParamsDefaultExpandedChange
@@ -84,7 +85,7 @@ export default function AArmConfig(params: Params) {
                   removable
                   onRemove={() => {
                     element.fixedPoints.splice(i, 1);
-                    dispatch(updateAssembly(element));
+                    dispatch(updateAssembly(getRootAssembly(element)));
                   }}
                 />
               ))}
@@ -116,7 +117,7 @@ export default function AArmConfig(params: Params) {
                             value: {x: 0, y: 0, z: 0}
                           })
                         );
-                        dispatch(updateAssembly(element));
+                        dispatch(updateAssembly(getRootAssembly(element)));
                       }}
                     >
                       <AddBoxIcon />
@@ -138,7 +139,7 @@ export default function AArmConfig(params: Params) {
                   removable
                   onRemove={() => {
                     element.points.splice(i, 1);
-                    dispatch(updateAssembly(element));
+                    dispatch(updateAssembly(getRootAssembly(element)));
                   }}
                 />
               ))}
@@ -170,7 +171,7 @@ export default function AArmConfig(params: Params) {
                             value: {x: 0, y: 0, z: 0}
                           })
                         );
-                        dispatch(updateAssembly(element));
+                        dispatch(updateAssembly(getRootAssembly(element)));
                       }}
                     >
                       <AddBoxIcon />

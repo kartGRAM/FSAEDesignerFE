@@ -5,7 +5,12 @@ import {useDispatch} from 'react-redux';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
 import {useFormik} from 'formik';
 import * as Yup from 'yup';
-import {IElement, isBodyOfFrame, isMirror} from '@gd/IElements';
+import {
+  IElement,
+  isBodyOfFrame,
+  isMirror,
+  getRootAssembly
+} from '@gd/IElements';
 
 export interface Props {
   element: IElement;
@@ -31,7 +36,7 @@ const ElementName = React.memo((props: Props) => {
     }),
     onSubmit: (values) => {
       element.name.value = values.name;
-      dispatch(updateAssembly(element));
+      dispatch(updateAssembly(getRootAssembly(element)));
       setRename(false);
     }
   });

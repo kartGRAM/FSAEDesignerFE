@@ -9,8 +9,6 @@ import {
 } from '@gd/NamedValues';
 import {IDataVector3, INamedVector3, FunctionVector3} from '@gd/INamedValues';
 import {AtLeast2} from '@app/utils/atLeast';
-
-import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {
   isDataElement,
   MirrorError,
@@ -212,29 +210,25 @@ export class BellCrank extends Element implements IBellCrank {
     });
   }
 
-  getDataElement(state: GDState): IDataBellCrank {
+  getDataElement(): IDataBellCrank {
     const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
     const mir = this.getAnotherElement(mirror);
-    const baseData = super.getDataElementBase(state, mir);
+    const baseData = super.getDataElementBase(mir);
 
     if (mir && isBellCrank(mir)) {
       return {
         ...baseData,
         fixedPoints: [
-          this.fixedPoints[0]
-            .setValue(mirrorVec(mir.fixedPoints[0]))
-            .getData(state),
-          this.fixedPoints[1]
-            .setValue(mirrorVec(mir.fixedPoints[1]))
-            .getData(state)
+          this.fixedPoints[0].setValue(mirrorVec(mir.fixedPoints[0])).getData(),
+          this.fixedPoints[1].setValue(mirrorVec(mir.fixedPoints[1])).getData()
         ],
-        points: syncPointsMirror(this.points, mir.points, state)
+        points: syncPointsMirror(this.points, mir.points)
       };
     }
     return {
       ...baseData,
-      fixedPoints: this.fixedPoints.map((point) => point.getData(state)),
-      points: this.points.map((point) => point.getData(state))
+      fixedPoints: this.fixedPoints.map((point) => point.getData()),
+      points: this.points.map((point) => point.getData())
     };
   }
 }

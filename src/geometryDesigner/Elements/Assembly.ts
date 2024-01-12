@@ -14,7 +14,6 @@ import {
   INamedVector3RO,
   FunctionVector3
 } from '@gd/INamedValues';
-import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {
   isDataElement,
   MirrorError,
@@ -461,10 +460,10 @@ export class Assembly extends Element implements IAssembly {
     }
   }
 
-  getDataElement(state: GDState): IDataAssembly | undefined {
+  getDataElement(): IDataAssembly | undefined {
     const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
     const mir = this.getAnotherElement(mirror);
-    const baseData = super.getDataElementBase(state, mir);
+    const baseData = super.getDataElementBase(mir);
 
     if (mir && isAssembly(mir)) {
       if (!isMirror(this.parent) && mir.parent !== this.parent)
@@ -484,12 +483,12 @@ export class Assembly extends Element implements IAssembly {
           if (Object.keys(myChildren).includes(child.nodeID)) {
             const myChild = myChildren[child.nodeID];
             pointsNodeIDs = [...pointsNodeIDs, ...myChild.getPointsNodeIDs()];
-            return myChild.getDataElement(state);
+            return myChild.getDataElement();
           }
           const myChild = child.getMirror();
           myChild.parent = this;
           pointsNodeIDs = [...pointsNodeIDs, ...myChild.getPointsNodeIDs()];
-          return myChild.getDataElement(state);
+          return myChild.getDataElement();
         })
         .filter((child) => child !== undefined) as IDataElement[];
 
@@ -514,7 +513,7 @@ export class Assembly extends Element implements IAssembly {
       ...baseData,
       isDataAssembly: true,
       children: this.children
-        .map((child) => child.getDataElement(state))
+        .map((child) => child.getDataElement())
         .filter((child) => child !== undefined) as IDataElement[],
       joints: this.joints.map((joint) => {
         return {lhs: joint.lhs, rhs: joint.rhs};

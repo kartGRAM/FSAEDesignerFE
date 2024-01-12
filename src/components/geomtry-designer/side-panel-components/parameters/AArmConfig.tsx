@@ -4,7 +4,7 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {isMirrorElement} from '@gd/IElements';
+import {isMirrorElement, getRootAssembly} from '@gd/IElements';
 import {IAArm} from '@gd/IElements/IAArm';
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '@store/store';
@@ -72,7 +72,7 @@ export default function AArmConfig(params: {element: IAArm}) {
               removable={i > 0}
               onRemove={() => {
                 element.points.splice(i, 1);
-                dispatch(updateAssembly(element));
+                dispatch(updateAssembly(getRootAssembly(element)));
               }}
             />
           ))}
@@ -104,7 +104,7 @@ export default function AArmConfig(params: {element: IAArm}) {
                         value: {x: 0, y: 0, z: 0}
                       })
                     );
-                    dispatch(updateAssembly(element));
+                    dispatch(updateAssembly(getRootAssembly(element)));
                   }}
                 >
                   <AddBoxIcon />

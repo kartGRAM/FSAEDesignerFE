@@ -8,9 +8,6 @@ import {
   NamedBooleanOrUndefined
 } from '@gd/NamedValues';
 import {IDataVector3, INamedVector3, FunctionVector3} from '@gd/INamedValues';
-
-import {GDState} from '@store/reducers/dataGeometryDesigner';
-// import {getIntersectionLineFromTwoPlanes} from '@utils/threeUtils';
 import {
   isDataElement,
   isBodyOfFrame,
@@ -180,27 +177,27 @@ export class Body extends Element implements IBody {
     });
   }
 
-  getDataElement(state: GDState): IDataBody {
+  getDataElement(): IDataBody {
     const bIsBodyOfFrame = isBodyOfFrame(this);
     if (bIsBodyOfFrame) {
       this.name.value = `bodyObject_${this.parent?.name.value}`;
     }
     const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
     const mir = this.getAnotherElement(mirror);
-    const baseData = super.getDataElementBase(state, mir);
+    const baseData = super.getDataElementBase(mir);
 
     if (mir && isBody(mir)) {
       return {
         ...baseData,
-        fixedPoints: syncPointsMirror(this.fixedPoints, mir.fixedPoints, state),
-        points: syncPointsMirror(this.points, mir.points, state),
+        fixedPoints: syncPointsMirror(this.fixedPoints, mir.fixedPoints),
+        points: syncPointsMirror(this.points, mir.points),
         isBodyOfFrame: bIsBodyOfFrame
       };
     }
     return {
       ...baseData,
-      fixedPoints: this.fixedPoints.map((point) => point.getData(state)),
-      points: this.points.map((point) => point.getData(state)),
+      fixedPoints: this.fixedPoints.map((point) => point.getData()),
+      points: this.points.map((point) => point.getData()),
       isBodyOfFrame: bIsBodyOfFrame
     };
   }

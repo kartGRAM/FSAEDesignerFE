@@ -11,7 +11,7 @@ import {
   setCopyFromExistingPointsDialogProps,
   setMovePointDialogProps
 } from '@store/reducers/uiTempGeometryDesigner';
-import {isElement} from '@gd/IElements';
+import {isElement, getRootAssembly} from '@gd/IElements';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
 import {RootState} from '@store/store';
 import {useFormik} from 'formik';
@@ -95,7 +95,7 @@ const Vector = React.memo(
       }),
       onSubmit: (values) => {
         vector.name = values.name;
-        dispatch(updateAssembly(vector));
+        dispatch(updateAssembly(getRootAssembly(vector)));
         setRename(false);
       }
     });
@@ -114,7 +114,7 @@ const Vector = React.memo(
       }),
       onSubmit: (values) => {
         vector.setValue(values);
-        if (vector.parent) dispatch(updateAssembly(vector));
+        if (vector.parent) dispatch(updateAssembly(getRootAssembly(vector)));
         if (onUpdate) onUpdate();
       }
     });
@@ -172,7 +172,7 @@ const Vector = React.memo(
           })
         );
         vector.pointOffsetTools = tools;
-        dispatch(updateAssembly(vector));
+        dispatch(updateAssembly(getRootAssembly(vector)));
       },
       [dispatch, vector]
     );
@@ -184,7 +184,7 @@ const Vector = React.memo(
         vector.pointOffsetTools = tools.filter(
           (tool) => tool.name !== selected
         );
-        dispatch(updateAssembly(vector));
+        dispatch(updateAssembly(getRootAssembly(vector)));
         setSelected('');
       },
       [vector, dispatch, selected]
@@ -274,7 +274,7 @@ const Vector = React.memo(
                   onChange={(e) => {
                     const {checked} = e.target;
                     vector.meta.isFreeNode = checked;
-                    dispatch(updateAssembly(vector));
+                    dispatch(updateAssembly(getRootAssembly(vector)));
                   }}
                 />
               }

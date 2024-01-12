@@ -8,7 +8,6 @@ import {
 } from '@gd/INamedValues';
 
 import {v4 as uuidv4} from 'uuid';
-import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {
   MirrorError,
   Elements,
@@ -128,13 +127,13 @@ export class SpringDumper extends Bar implements ISpringDumper {
     });
   }
 
-  getDataElement(state: GDState): IDataSpringDumper {
-    const baseData = super.getDataElement(state);
+  getDataElement(): IDataSpringDumper {
+    const baseData = super.getDataElement();
     const {dlCurrentNodeID} = this;
     const data: IDataSpringDumper = {
       ...baseData,
-      dlMin: this.dlMin.getData(state),
-      dlMax: this.dlMax.getData(state),
+      dlMin: this.dlMin.getData(),
+      dlMax: this.dlMax.getData(),
       dlCurrentNodeID
     };
     return data;

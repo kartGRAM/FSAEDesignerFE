@@ -1,4 +1,3 @@
-import {getDgd} from '@store/getDgd';
 import {
   IDataVector3,
   INamedVector3,
@@ -11,6 +10,7 @@ import {KinematicSolver} from '@gd/kinematics/Solver';
 import {NamedVector3, NamedNumber} from '@gd/NamedValues';
 import {getDataElementByID} from '@gd/IElements';
 import {getElement} from '@gd/Elements';
+import {getDgd} from '@store/getDgd';
 import {Control, IDataControl, ControllerTypes} from './IControls';
 
 export const className = 'PointToPlaneControl' as const;
@@ -144,15 +144,14 @@ export class PointToPlaneControl extends Control {
 
   getDataControl(): IDataPointToPlaneControl {
     const data = super.getDataControlBase();
-    const state = getDgd();
     return {
       ...data,
       className: this.className,
       pointIDs: this.pointIDs,
-      origin: this.origin.getData(state),
-      normal: this.normal.getData(state),
-      max: this.max.getData(state),
-      min: this.min.getData(state),
+      origin: this.origin.getData(),
+      normal: this.normal.getData(),
+      max: this.max.getData(),
+      min: this.min.getData(),
       speed: this.speed,
       reverse: this.reverse
     };

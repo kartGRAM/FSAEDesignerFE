@@ -80,7 +80,7 @@ export function getDataToSave(
 
   let {topAssembly} = state;
   if (rootState.uitgd.assembly) {
-    topAssembly = rootState.uitgd.assembly.getDataElement(state);
+    topAssembly = rootState.uitgd.assembly.getDataElement();
   }
 
   const data = new FormData();

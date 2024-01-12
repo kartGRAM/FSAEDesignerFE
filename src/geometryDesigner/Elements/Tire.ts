@@ -14,8 +14,6 @@ import {
   INamedVector3RO,
   FunctionVector3
 } from '@gd/INamedValues';
-
-import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {minus} from '@app/utils/helpers';
 import {
   isDataElement,
@@ -245,30 +243,30 @@ export class Tire extends Element implements ITire {
     });
   }
 
-  getDataElement(state: GDState): IDataTire {
+  getDataElement(): IDataTire {
     const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
     const mir = this.getAnotherElement(mirror);
-    const baseData = super.getDataElementBase(state, mir);
+    const baseData = super.getDataElementBase(mir);
 
     if (mir && isTire(mir)) {
       return {
         ...baseData,
         tireCenter: this.tireCenter
           .setValue(mirrorVec(mir.tireCenter))
-          .getData(state),
+          .getData(),
         toLeftBearing: this.toLeftBearing
           .setValue(minus(mir.toLeftBearing.getStringValue()))
-          .getData(state),
+          .getData(),
         toRightBearing: this.toRightBearing
           .setValue(minus(mir.toRightBearing.getStringValue()))
-          .getData(state)
+          .getData()
       };
     }
     return {
       ...baseData,
-      tireCenter: this.tireCenter.getData(state),
-      toLeftBearing: this.toLeftBearing.getData(state),
-      toRightBearing: this.toRightBearing.getData(state)
+      tireCenter: this.tireCenter.getData(),
+      toLeftBearing: this.toLeftBearing.getData(),
+      toRightBearing: this.toRightBearing.getData()
     };
   }
 }

@@ -16,7 +16,6 @@ import {
 } from '@gd/INamedValues';
 
 import {v4 as uuidv4} from 'uuid';
-import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {
   isDataElement,
   MirrorError,
@@ -263,31 +262,27 @@ export class TorsionSpring extends Element implements ITorsionSpring {
     });
   }
 
-  getDataElement(state: GDState): IDataTorsionSpring {
+  getDataElement(): IDataTorsionSpring {
     const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
     const mir = this.getAnotherElement(mirror);
-    const baseData = super.getDataElementBase(state, mir);
+    const baseData = super.getDataElementBase(mir);
     const {dlCurrentNodeID} = this;
 
     if (mir && isTorsionSpring(mir)) {
       return {
         ...baseData,
         fixedPoints: [
-          this.fixedPoints[0]
-            .setValue(mirrorVec(mir.fixedPoints[0]))
-            .getData(state),
-          this.fixedPoints[1]
-            .setValue(mirrorVec(mir.fixedPoints[1]))
-            .getData(state)
+          this.fixedPoints[0].setValue(mirrorVec(mir.fixedPoints[0])).getData(),
+          this.fixedPoints[1].setValue(mirrorVec(mir.fixedPoints[1])).getData()
         ],
-        effortPoints: this.effortPoints.map((to) => to.getData(state)),
+        effortPoints: this.effortPoints.map((to) => to.getData()),
         dlCurrentNodeID
       };
     }
     return {
       ...baseData,
-      fixedPoints: this.fixedPoints.map((point) => point.getData(state)),
-      effortPoints: this.effortPoints.map((to) => to.getData(state)),
+      fixedPoints: this.fixedPoints.map((point) => point.getData()),
+      effortPoints: this.effortPoints.map((to) => to.getData()),
       dlCurrentNodeID
     };
   }

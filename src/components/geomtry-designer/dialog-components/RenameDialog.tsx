@@ -4,7 +4,12 @@ import Dialog from '@mui/material/Dialog';
 import {useSelector, useDispatch} from 'react-redux';
 import store, {RootState} from '@store/store';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
-import {getElementByPath, isBodyOfFrame, isMirror} from '@gd/IElements';
+import {
+  getElementByPath,
+  isBodyOfFrame,
+  isMirror,
+  getRootAssembly
+} from '@gd/IElements';
 
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -42,7 +47,7 @@ export function RenameDialog(props: RenameDialogProps) {
     onSubmit: (values) => {
       if (element) {
         element.name.value = values.name;
-        dispatch(updateAssembly(element));
+        dispatch(updateAssembly(getRootAssembly(element)));
       }
       onClose('ok');
     }

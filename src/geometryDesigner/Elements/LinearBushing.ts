@@ -19,7 +19,6 @@ import {
 
 import {AtLeast1} from '@app/utils/atLeast';
 import {v4 as uuidv4} from 'uuid';
-import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {minus} from '@app/utils/helpers';
 import {
   isDataElement,
@@ -325,36 +324,32 @@ export class LinearBushing extends Element implements ILinearBushing {
     });
   }
 
-  getDataElement(state: GDState): IDataLinearBushing {
+  getDataElement(): IDataLinearBushing {
     const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
     const mir = this.getAnotherElement(mirror);
-    const baseData = super.getDataElementBase(state, mir);
+    const baseData = super.getDataElementBase(mir);
     const {dlCurrentNodeID} = this;
 
     if (mir && isLinearBushing(mir)) {
       return {
         ...baseData,
         fixedPoints: [
-          this.fixedPoints[0]
-            .setValue(mirrorVec(mir.fixedPoints[0]))
-            .getData(state),
-          this.fixedPoints[1]
-            .setValue(mirrorVec(mir.fixedPoints[1]))
-            .getData(state)
+          this.fixedPoints[0].setValue(mirrorVec(mir.fixedPoints[0])).getData(),
+          this.fixedPoints[1].setValue(mirrorVec(mir.fixedPoints[1])).getData()
         ],
-        toPoints: this.toPoints.map((to) => to.getData(state)),
+        toPoints: this.toPoints.map((to) => to.getData()),
         dlCurrentNodeID,
-        dlMin: this.dlMin.getData(state),
-        dlMax: this.dlMax.getData(state)
+        dlMin: this.dlMin.getData(),
+        dlMax: this.dlMax.getData()
       };
     }
     return {
       ...baseData,
-      fixedPoints: this.fixedPoints.map((point) => point.getData(state)),
-      toPoints: this.toPoints.map((to) => to.getData(state)),
+      fixedPoints: this.fixedPoints.map((point) => point.getData()),
+      toPoints: this.toPoints.map((to) => to.getData()),
       dlCurrentNodeID,
-      dlMin: this.dlMin.getData(state),
-      dlMax: this.dlMax.getData(state)
+      dlMin: this.dlMin.getData(),
+      dlMax: this.dlMax.getData()
     };
   }
 }

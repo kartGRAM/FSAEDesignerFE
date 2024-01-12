@@ -2,7 +2,12 @@ import * as React from 'react';
 import MenuItem from '@mui/material/MenuItem';
 import {useDispatch} from 'react-redux';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
-import {getElementByPath, MirrorError, isBodyOfFrame} from '@gd/IElements';
+import {
+  getElementByPath,
+  MirrorError,
+  isBodyOfFrame,
+  getRootAssembly
+} from '@gd/IElements';
 import store from '@app/store/store';
 
 import {setConfirmDialogProps} from '@store/reducers/uiTempGeometryDesigner';
@@ -58,11 +63,11 @@ export default function CreateMirror(props: Props) {
     try {
       const mirElement = element.getMirror();
       parent.appendChild(mirElement);
-      parent.getRoot()?.getDataElement(store.getState().dgd.present);
-      dispatch(updateAssembly(parent));
+      parent.getRoot()?.getDataElement();
+      dispatch(updateAssembly(getRootAssembly(parent)));
     } catch (e: unknown) {
       if (e instanceof MirrorError) {
-        dispatch(updateAssembly(parent));
+        dispatch(updateAssembly(getRootAssembly(parent)));
         await new Promise<string>((resolve) => {
           dispatch(
             setConfirmDialogProps({

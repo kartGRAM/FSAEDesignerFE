@@ -29,7 +29,7 @@ export interface INamedValue extends IBidirectionalNode {
   readonly absPath: string;
   name: string;
   value: unknown;
-  getData(state: GDState): unknown;
+  getData(): unknown;
   meta?: unknown;
   // update(newValue: unknown): this;
 }
@@ -49,19 +49,19 @@ export const isNamedData = (params: any): params is INamedData => {
 
 export interface INamedString extends INamedValue {
   value: string;
-  getData(state: GDState): IData<string>;
+  getData(): IData<string>;
 }
 
 export type IDataString = IData<string>;
 
 export interface INamedBoolean extends INamedValue {
   value: boolean;
-  getData(state: GDState): IData<boolean>;
+  getData(): IData<boolean>;
 }
 
 export interface INamedBooleanOrUndefined extends INamedValue {
   value: boolean | undefined;
-  getData(state: GDState): IData<boolean | undefined>;
+  getData(): IData<boolean | undefined>;
 }
 
 export interface IData<T> extends INamedData {
@@ -90,7 +90,7 @@ export interface IDataNumber extends IData<IDataFormula> {}
 
 export interface INamedNumberLW extends INamedNumberRO {
   value: number;
-  getData(state: GDState): IDataNumberLW;
+  getData(): IDataNumberLW;
 }
 
 export function isNamedNumberLW(value: any): value is INamedNumberLW {
@@ -124,7 +124,7 @@ export interface INamedVector3LW extends INamedVector3RO {
   readonly y: INamedNumberLW;
   readonly z: INamedNumberLW;
   value: Vector3;
-  getData(state: GDState): IDataVector3LW;
+  getData(): IDataVector3LW;
 }
 
 export function isNamedVector3LW(value: any): value is INamedVector3LW {
@@ -145,7 +145,7 @@ export interface INamedVector3 extends INamedVector3RO {
   readonly y: INamedNumber;
   readonly z: INamedNumber;
   value: Vector3;
-  getData(state: GDState): IDataVector3;
+  getData(): IDataVector3;
   setValue(
     newValue:
       | {
@@ -179,7 +179,7 @@ export interface IDataVector3 extends INamedData {
 
 export interface INamedMatrix3 extends INamedValue {
   value: Matrix3;
-  getData(state: GDState): IDataMatrix3;
+  getData(): IDataMatrix3;
 }
 
 export function isNamedMatrix3(value: any): value is INamedMatrix3 {
@@ -203,7 +203,7 @@ export interface IDataMatrix3 extends INamedData {
 
 export interface INamedQuaternion extends INamedValue {
   value: Quaternion;
-  getData(state: GDState): IDataQuaternion;
+  getData(): IDataQuaternion;
 }
 
 export function isNamedQuaternion(value: any): value is INamedQuaternion {
@@ -239,5 +239,5 @@ export interface IPointOffsetTool extends IBidirectionalNode {
   readonly parent: INamedVector3;
   getOffsetVector(): {dx: number; dy: number; dz: number};
   copy(newParent: INamedVector3): IPointOffsetTool;
-  getData(state: GDState): IDataPointOffsetTool;
+  getData(): IDataPointOffsetTool;
 }

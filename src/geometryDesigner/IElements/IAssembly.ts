@@ -1,5 +1,4 @@
 import {INamedVector3RO, INamedNumberRO} from '@gd/INamedValues';
-import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {IElement, IDataElement, NodeID} from '../IElements';
 
 export interface Joint {
@@ -36,7 +35,7 @@ export interface IAssembly extends IElement {
   flatten(noAssembly: boolean): IElement[];
   findElement(nodeID: string): IElement | undefined;
 
-  getDataElement(state: GDState): IDataAssembly | undefined;
+  getDataElement(): IDataAssembly | undefined;
 }
 
 export interface IDataAssembly extends IDataElement {

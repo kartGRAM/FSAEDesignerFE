@@ -13,7 +13,6 @@ import {
   INamedVector3RO,
   FunctionVector3
 } from '@gd/INamedValues';
-import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {
   isDataElement,
   MirrorError,
@@ -163,24 +162,24 @@ export class Bar extends Element implements IBar {
     });
   }
 
-  getDataElement(state: GDState): IDataBar {
+  getDataElement(): IDataBar {
     const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
     const mir = this.getAnotherElement(mirror);
-    const baseData = super.getDataElementBase(state, mir);
+    const baseData = super.getDataElementBase(mir);
 
     if (mir && isBar(mir)) {
       return {
         ...baseData,
         fixedPoint: this.fixedPoint
           .setValue(mirrorVec(mir.fixedPoint))
-          .getData(state),
-        point: this.point.setValue(mirrorVec(mir.point)).getData(state)
+          .getData(),
+        point: this.point.setValue(mirrorVec(mir.point)).getData()
       };
     }
     return {
       ...baseData,
-      fixedPoint: this.fixedPoint.getData(state),
-      point: this.point.getData(state)
+      fixedPoint: this.fixedPoint.getData(),
+      point: this.point.getData()
     };
   }
 }

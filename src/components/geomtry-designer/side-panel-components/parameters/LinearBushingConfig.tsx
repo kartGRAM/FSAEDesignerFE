@@ -4,7 +4,7 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {isMirrorElement} from '@gd/IElements';
+import {isMirrorElement, getRootAssembly} from '@gd/IElements';
 import {ILinearBushing} from '@gd/IElements/ILinearBushing';
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '@store/store';
@@ -14,6 +14,7 @@ import AddBoxIcon from '@mui/icons-material/AddBox';
 import Toolbar from '@mui/material/Toolbar';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
+
 import {
   kinematicParamsDefaultExpandedChange,
   dynamicParamsDefaultExpandedChange
@@ -77,7 +78,7 @@ export default function LinearBushingConfig(params: Params) {
               removable={i > 0}
               onRemove={() => {
                 element.toPoints.splice(i, 1);
-                dispatch(updateAssembly(element));
+                dispatch(updateAssembly(getRootAssembly(element)));
               }}
               onFocusChanged={(focus: boolean) => {
                 if (focus)
@@ -120,7 +121,7 @@ export default function LinearBushingConfig(params: Params) {
                         value: 0
                       })
                     );
-                    dispatch(updateAssembly(element));
+                    dispatch(updateAssembly(getRootAssembly(element)));
                   }}
                 >
                   <AddBoxIcon />

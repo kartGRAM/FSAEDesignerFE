@@ -21,7 +21,6 @@ import {
 } from '@gd/INamedValues';
 
 import {v4 as uuidv4} from 'uuid';
-import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {minus} from '@app/utils/helpers';
 // import {getIntersectionLineFromTwoPlanes} from '@utils/threeUtils';
 import {getRootNode} from '../INode';
@@ -168,7 +167,7 @@ export abstract class Element implements IElement {
     }
   }
 
-  abstract getDataElement(state: GDState): IDataElement | undefined;
+  abstract getDataElement(): IDataElement | undefined;
 
   abstract arrange(parentPosition?: Vector3 | undefined): void;
 
@@ -204,27 +203,24 @@ export abstract class Element implements IElement {
 
   abstract set inertialTensor(mat: NamedMatrix3);
 
-  getDataElementBase(
-    state: GDState,
-    mirrorElement: IElement | null
-  ): IDataElement {
+  getDataElementBase(mirrorElement: IElement | null): IDataElement {
     if (!mirrorElement) {
       return {
         isDataElement: true,
         className: this.className,
-        name: this.name.getData(state),
+        name: this.name.getData(),
         nodeID: this.nodeID,
         absPath: this.absPath,
 
-        inertialTensor: this.inertialTensor.getData(state),
-        centerOfGravity: this.centerOfGravity.getData(state),
-        mass: this.mass.getData(state),
-        position: this.position.getData(state),
-        rotation: this.rotation.getData(state),
-        initialPosition: this.initialPosition.getData(state),
+        inertialTensor: this.inertialTensor.getData(),
+        centerOfGravity: this.centerOfGravity.getData(),
+        mass: this.mass.getData(),
+        position: this.position.getData(),
+        rotation: this.rotation.getData(),
+        initialPosition: this.initialPosition.getData(),
         visible: this.visible.getData(),
         autoCalculateCenterOfGravity:
-          this.autoCalculateCenterOfGravity.getData(state)
+          this.autoCalculateCenterOfGravity.getData()
         // mirrorTo: this.meta?.mirror?.to
       };
     }
@@ -234,23 +230,22 @@ export abstract class Element implements IElement {
     return {
       isDataElement: true,
       className: this.className,
-      name: this.name.getData(state),
+      name: this.name.getData(),
       nodeID: this.nodeID,
       absPath: this.absPath,
 
-      inertialTensor: mirrorMat(mirrorElement.inertialTensor).getData(state),
+      inertialTensor: mirrorMat(mirrorElement.inertialTensor).getData(),
       centerOfGravity: this.centerOfGravity
         .setValue(mirrorVec(mirrorElement.centerOfGravity))
-        .getData(state),
-      mass: this.mass.setValue(mirrorElement.mass).getData(state),
-      position: this.position.getData(state),
-      rotation: this.rotation.getData(state),
+        .getData(),
+      mass: this.mass.setValue(mirrorElement.mass).getData(),
+      position: this.position.getData(),
+      rotation: this.rotation.getData(),
       initialPosition: this.initialPosition
         .setValue(mirrorVec(mirrorElement.initialPosition))
-        .getData(state),
+        .getData(),
       visible: this.visible.getData(),
-      autoCalculateCenterOfGravity:
-        this.autoCalculateCenterOfGravity.getData(state),
+      autoCalculateCenterOfGravity: this.autoCalculateCenterOfGravity.getData(),
       mirrorTo: mirrorElement.nodeID
     };
   }
@@ -294,8 +289,7 @@ export const getMirrorPOT = (tool: IPointOffsetTool): void => {
 
 export const syncPointsMirror = (
   mirTo: NamedVector3[],
-  mirFrom: INamedVector3[],
-  state: GDState
+  mirFrom: INamedVector3[]
 ): IDataVector3[] => {
   const listP = mirTo.reduce(
     (obj, x) =>
@@ -309,8 +303,8 @@ export const syncPointsMirror = (
       const mirrorV = mirrorVec(v);
       const tmp = listP[v.nodeID].setValue(mirrorV);
       tmp.meta = {...mirrorV.meta};
-      return tmp.getData(state);
+      return tmp.getData();
     }
-    return mirrorVec(v).getData(state);
+    return mirrorVec(v).getData();
   });
 };

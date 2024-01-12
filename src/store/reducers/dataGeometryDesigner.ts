@@ -1,10 +1,5 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
-import {
-  IAssembly,
-  isElement,
-  isAssembly
-} from '@app/geometryDesigner/IElements';
-import {IBidirectionalNode, getRootNode} from '@gd/INode';
+import {IAssembly, IDataAssembly} from '@app/geometryDesigner/IElements';
 import {IDataControl} from '@gd/controls/IControls';
 import {IDataDatumGroup} from '@gd/measure/datum/IDatumObjects';
 import {IDataMeasureTool} from '@gd/measure/measureTools/IMeasureTools';
@@ -79,7 +74,7 @@ export const dataGeometryDesignerSlice = createSlice({
       state.measureTools = initialState.measureTools;
       state.readonlyVariables = initialState.readonlyVariables;
       state.analysis = initialState.analysis;
-      state.topAssembly = action.payload?.getDataElement(state);
+      state.topAssembly = action.payload?.getDataElement();
       state.idWoTest = uuidv4();
       state.changed = false;
       state.options = initialState.options;
@@ -105,22 +100,13 @@ export const dataGeometryDesignerSlice = createSlice({
     },
     updateAssembly: (
       state: GDState,
-      action: PayloadAction<IBidirectionalNode>
+      action: PayloadAction<IDataAssembly | undefined>
     ) => {
-      const node = action.payload;
-      const root = getRootNode(node);
-      if (root && isElement(root) && isAssembly(root)) {
-        try {
-          const newState = root.getDataElement(state);
-          state.topAssembly = newState;
-        } catch (e: any) {
-          if (state.topAssembly) state.topAssembly = {...state.topAssembly};
-          // eslint-disable-next-line no-console
-          console.log(e);
-        }
-        state.idWoTest = uuidv4();
-        state.changed = true;
-      }
+      if (!action.payload && state.topAssembly)
+        state.topAssembly = {...state.topAssembly};
+      else state.topAssembly = action.payload;
+      state.idWoTest = uuidv4();
+      state.changed = true;
     },
     setFormulae: (
       state: GDState,

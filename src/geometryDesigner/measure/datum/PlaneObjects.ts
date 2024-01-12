@@ -55,7 +55,6 @@ import {
   isFunctionVector3
 } from '@gd/INamedValues';
 import {NamedNumber, NamedVector3} from '@gd/NamedValues';
-import {getDgd} from '@store/getDgd';
 
 function getNormalFromBasePlane(direction: BasePlane) {
   if (direction === 'XY') {
@@ -135,14 +134,13 @@ export class NormalConstantPlane extends Plane implements INormalConstantPlane {
   getData(): IDataNormalConstantPlane {
     const base = super.getDataBase();
 
-    const state = getDgd();
     return {
       ...base,
       className: this.className,
       normal: isNamedVector3(this.normal)
-        ? this.normal.getData(state)
+        ? this.normal.getData()
         : (this.normal as string),
-      distance: this.distance.getData(state)
+      distance: this.distance.getData()
     };
   }
 
@@ -224,12 +222,11 @@ export class FromBasePlane extends Plane implements IFromBasePlane {
 
   getData(): IDataFromBasePlane {
     const base = super.getDataBase();
-    const state = getDgd();
     return {
       ...base,
       className: this.className,
       direction: this.direction,
-      distance: this.distance.getData(state)
+      distance: this.distance.getData()
     };
   }
 
@@ -297,13 +294,12 @@ export class PointNormalPlane extends Plane implements IPointNormalPlane {
 
   getData(): IDataPointNormalPlane {
     const base = super.getDataBase();
-    const state = getDgd();
     return {
       ...base,
       className: this.className,
       point: this.point,
       normal: isNamedVector3(this.normal)
-        ? this.normal.getData(state)
+        ? this.normal.getData()
         : (this.normal as string)
     };
   }
@@ -411,13 +407,12 @@ export class FromElementBasePlane
 
   getData(): IDataFromElementBasePlane {
     const base = super.getDataBase();
-    const state = getDgd();
     return {
       ...base,
       className: this.className,
       element: this.element,
       direction: this.direction,
-      distance: this.distance.getData(state)
+      distance: this.distance.getData()
     };
   }
 
@@ -649,13 +644,12 @@ export class AxisPlaneAnglePlane extends Plane implements IAxisPlaneAnglePlane {
 
   getData(): IDataAxisPlaneAnglePlane {
     const base = super.getDataBase();
-    const state = getDgd();
     return {
       ...base,
       className: this.className,
       line: this.line,
       plane: this.plane,
-      angle: this.angle.getData(state)
+      angle: this.angle.getData()
     };
   }
 

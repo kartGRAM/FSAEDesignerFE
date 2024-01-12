@@ -4,7 +4,7 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {IAssembly, IElement} from '@gd/IElements';
+import {IAssembly, IElement, getRootAssembly} from '@gd/IElements';
 import {isFrame /* isSimplifiedElement */} from '@gd/IElements/IFrame';
 import {INamedVector3RO} from '@gd/INamedValues';
 import {useDispatch, useSelector} from 'react-redux';
@@ -308,7 +308,7 @@ export function JointsList(props: {
                 assembly.joints = assembly.joints.filter(
                   (joint, i) => i !== selected
                 );
-                dispatch(updateAssembly(assembly));
+                dispatch(updateAssembly(getRootAssembly(assembly)));
               }}
             >
               <DeleteIcon />
@@ -328,7 +328,7 @@ export function JointsList(props: {
                 );
                 if (lhs && rhs) {
                   assembly.joints.push({lhs: lhs.nodeID, rhs: rhs.nodeID});
-                  dispatch(updateAssembly(assembly));
+                  dispatch(updateAssembly(getRootAssembly(assembly)));
                 }
               }}
               ref={buttonRef}

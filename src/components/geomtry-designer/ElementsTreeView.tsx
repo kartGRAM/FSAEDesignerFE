@@ -12,7 +12,8 @@ import {
   IElement,
   getElementByPath,
   isAssembly as isAssemblyCheck,
-  isMirror as isMirrorCheck
+  isMirror as isMirrorCheck,
+  getRootAssembly
 } from '@gd/IElements';
 import {getNewElement} from '@gd/Elements';
 import {numberToRgb, getReversal, unique} from '@app/utils/helpers';
@@ -394,7 +395,7 @@ const TrashNode = React.memo(() => {
         element.parent.children = element.parent.children.filter(
           (child) => child.nodeID !== element.nodeID
         );
-        dispatch(updateAssembly(element.parent));
+        dispatch(updateAssembly(getRootAssembly(element)));
       }
     },
     [dispatch]
@@ -507,7 +508,7 @@ const MyLabel = React.memo(
           const to = getElementByPath(assembly, absPath);
           if (to && isAssemblyCheck(to)) {
             to.appendChild(newElement);
-            dispatch(updateAssembly(assembly));
+            dispatch(updateAssembly(getRootAssembly(assembly)));
             dispatch(selectElement({absPath: newElement.absPath}));
             return;
           }
@@ -535,7 +536,7 @@ const MyLabel = React.memo(
               (child) => child.nodeID !== element.nodeID
             );
             to.appendChild(element);
-            dispatch(updateAssembly(assembly));
+            dispatch(updateAssembly(getRootAssembly(assembly)));
             dispatch(selectElement({absPath: to.absPath}));
             return;
           }

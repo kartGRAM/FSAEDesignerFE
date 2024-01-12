@@ -121,7 +121,7 @@ abstract class NamedValue implements INamedValue {
 
   abstract set value(newValue: unknown);
 
-  abstract getData(state: GDState): unknown;
+  abstract getData(): unknown;
 
   getDataBase() {
     return {
@@ -186,7 +186,7 @@ export class NamedPrimitive<T> extends NamedValue {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getData(state: GDState): IData<T> {
+  getData(): IData<T> {
     return {
       ...super.getDataBase(),
       value: this.value
@@ -294,7 +294,7 @@ export class NamedNumberLW extends NamedValue implements INamedNumberLW {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getData(state: GDState): IDataNumberLW {
+  getData(): IDataNumberLW {
     return {
       ...super.getDataBase(),
       value: this.value
@@ -437,12 +437,12 @@ export class NamedVector3LW extends NamedValue implements INamedVector3LW {
     }
   }
 
-  getData(state: GDState): IDataVector3LW {
+  getData(): IDataVector3LW {
     return {
       ...super.getDataBase(),
-      x: this.x.getData(state),
-      y: this.y.getData(state),
-      z: this.z.getData(state),
+      x: this.x.getData(),
+      y: this.y.getData(),
+      z: this.z.getData(),
       mirrorTo: this.meta.mirrorTo,
       isFreeNode: this.meta.isFreeNode
     };
@@ -562,15 +562,13 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
     }
   }
 
-  getData(state: GDState): IDataVector3 {
+  getData(): IDataVector3 {
     return {
       ...super.getDataBase(),
-      x: this.x.getData(state),
-      y: this.y.getData(state),
-      z: this.z.getData(state),
-      pointOffsetTools: this.pointOffsetTools?.map((tool) =>
-        tool.getData(state)
-      ),
+      x: this.x.getData(),
+      y: this.y.getData(),
+      z: this.z.getData(),
+      pointOffsetTools: this.pointOffsetTools?.map((tool) => tool.getData()),
       mirrorTo: this.meta.mirrorTo,
       isFreeNode: this.meta.isFreeNode
     };
@@ -632,7 +630,7 @@ export class NamedMatrix3 extends NamedValue implements INamedMatrix3 {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getData(state: GDState): IDataMatrix3 {
+  getData(): IDataMatrix3 {
     const e = this.value.elements;
     return {
       ...super.getDataBase(),
@@ -692,7 +690,7 @@ export class NamedQuaternion extends NamedValue implements INamedQuaternion {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getData(state: GDState): IDataQuaternion {
+  getData(): IDataQuaternion {
     return {
       ...super.getDataBase(),
       w: this._value.w,
@@ -777,7 +775,7 @@ abstract class PointOffsetTool implements IPointOffsetTool {
 
   abstract copy(newParent: INamedVector3): IPointOffsetTool;
 
-  abstract getData(state: GDState): IDataPointOffsetTool;
+  abstract getData(): IDataPointOffsetTool;
 
   abstract getOffsetVector(): {dx: number; dy: number; dz: number};
 
@@ -858,12 +856,12 @@ export class DeltaXYZ extends PointOffsetTool implements IPointOffsetTool {
     });
   }
 
-  getData(state: GDState): IDataDeltaXYZ {
+  getData(): IDataDeltaXYZ {
     return {
       ...super.getDataBase(),
-      dx: this.dx.getData(state),
-      dy: this.dy.getData(state),
-      dz: this.dz.getData(state)
+      dx: this.dx.getData(),
+      dy: this.dy.getData(),
+      dz: this.dz.getData()
     };
   }
 
@@ -960,13 +958,13 @@ export class DirectionLength
     });
   }
 
-  getData(state: GDState): IDataDirectionLength {
+  getData(): IDataDirectionLength {
     return {
       ...super.getDataBase(),
-      nx: this.nx.getData(state),
-      ny: this.ny.getData(state),
-      nz: this.nz.getData(state),
-      l: this.l.getData(state)
+      nx: this.nx.getData(),
+      ny: this.ny.getData(),
+      nz: this.nz.getData(),
+      l: this.l.getData()
     };
   }
 

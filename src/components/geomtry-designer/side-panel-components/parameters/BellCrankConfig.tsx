@@ -4,8 +4,9 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {isMirrorElement} from '@gd/IElements';
+import {isMirrorElement, getRootAssembly} from '@gd/IElements';
 import {IBellCrank} from '@gd/IElements/IBellCrank';
+
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '@store/store';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
@@ -76,7 +77,7 @@ export default function AArmConfig(params: Params) {
               removable={i > 1}
               onRemove={() => {
                 element.points.splice(i, 1);
-                dispatch(updateAssembly(element));
+                dispatch(updateAssembly(getRootAssembly(element)));
               }}
             />
           ))}
@@ -108,7 +109,7 @@ export default function AArmConfig(params: Params) {
                         value: {x: 0, y: 0, z: 0}
                       })
                     );
-                    dispatch(updateAssembly(element));
+                    dispatch(updateAssembly(getRootAssembly(element)));
                   }}
                 >
                   <AddBoxIcon />

@@ -17,9 +17,8 @@ import {
   INamedBooleanOrUndefined,
   INamedBoolean
 } from '@gd/INamedValues';
-import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {isObject} from '@utils/helpers';
-import {INode, IBidirectionalNode} from './INode';
+import {INode, IBidirectionalNode, getRootNode} from './INode';
 import {isBar, IBar} from './IElements/IBar';
 import {isSpringDumper, ISpringDumper} from './IElements/ISpringDumper';
 import {isTorsionSpring, ITorsionSpring} from './IElements/ITorsionSpring';
@@ -158,7 +157,7 @@ export interface IElement extends IBidirectionalNode {
   getMirror(): IElement;
   unlinkMirror(): void;
   getRoot(): IAssembly | null;
-  getDataElement(state: GDState): IDataElement | undefined;
+  getDataElement(): IDataElement | undefined;
   arrange(parentPosition?: Vector3): void;
   readonly position: INamedVector3LW;
   readonly rotation: INamedQuaternion;
@@ -235,4 +234,18 @@ export const isSimplifiedElement = (
   if (isLinearBushing(element)) return true;
   // if (isTire(element)) return true;
   return false;
+};
+
+export const getRootAssembly = (node: IBidirectionalNode) => {
+  const root = getRootNode(node);
+  if (root && isElement(root) && isAssembly(root)) {
+    try {
+      return root.getDataElement();
+    } catch (e: any) {
+      // eslint-disable-next-line no-console
+      console.log(e);
+      return undefined;
+    }
+  }
+  return undefined;
 };

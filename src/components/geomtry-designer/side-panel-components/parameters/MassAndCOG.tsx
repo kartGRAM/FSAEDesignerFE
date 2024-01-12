@@ -1,7 +1,7 @@
 import * as React from 'react';
 import Scalar from '@gdComponents/Scalar';
 import Vector from '@gdComponents/Vector';
-import {IElement, isMirrorElement} from '@gd/IElements';
+import {IElement, isMirrorElement, getRootAssembly} from '@gd/IElements';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import {useDispatch} from 'react-redux';
@@ -15,7 +15,7 @@ export const MassAndCOG = React.memo((props: {element: IElement}) => {
     (e: React.ChangeEvent<HTMLInputElement>, checked: boolean) => {
       const value = element.autoCalculateCenterOfGravity;
       value.value = checked;
-      if (value.parent) dispatch(updateAssembly(value));
+      if (value.parent) dispatch(updateAssembly(getRootAssembly(value)));
     },
     [dispatch, element.autoCalculateCenterOfGravity]
   );

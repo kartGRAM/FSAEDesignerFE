@@ -4,11 +4,12 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {isMirrorElement} from '@gd/IElements';
+import {isMirrorElement, getRootAssembly} from '@gd/IElements';
 import {ITorsionSpring} from '@gd/IElements/ITorsionSpring';
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '@store/store';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
+
 import {
   kinematicParamsDefaultExpandedChange,
   dynamicParamsDefaultExpandedChange
@@ -69,7 +70,7 @@ export default function TorsionSpringConfig(params: Params) {
               key={point.nodeID}
               onRemove={() => {
                 element.effortPoints.splice(i, 1);
-                dispatch(updateAssembly(element));
+                dispatch(updateAssembly(getRootAssembly(element)));
               }}
             />
           ))}

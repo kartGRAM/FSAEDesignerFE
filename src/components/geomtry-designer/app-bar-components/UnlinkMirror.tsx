@@ -2,7 +2,7 @@ import * as React from 'react';
 import MenuItem from '@mui/material/MenuItem';
 import {useDispatch, useSelector} from 'react-redux';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
-import {getElementByPath, isMirror} from '@gd/IElements';
+import {getElementByPath, isMirror, getRootAssembly} from '@gd/IElements';
 
 import store, {RootState} from '@app/store/store';
 
@@ -43,7 +43,7 @@ export default function UnlinkMirror(props: Props) {
     dispatch(setConfirmDialogProps(undefined));
     if (ret === 'ok') {
       element.unlinkMirror();
-      dispatch(updateAssembly(element));
+      dispatch(updateAssembly(getRootAssembly(element)));
     }
   }, [dispatch, element, zindex]);
 

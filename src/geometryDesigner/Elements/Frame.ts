@@ -1,6 +1,5 @@
 import {NamedVector3} from '@gd/NamedValues';
 import {INamedVector3RO, FunctionVector3} from '@gd/INamedValues';
-import {GDState} from '@store/reducers/dataGeometryDesigner';
 
 import {
   trans,
@@ -99,8 +98,8 @@ export class Frame extends Assembly {
     }
   }
 
-  getDataElement(state: GDState): IDataFrame | undefined {
-    const data = super.getDataElement(state);
+  getDataElement(): IDataFrame | undefined {
+    const data = super.getDataElement();
     if (!data) return undefined;
     return {...data, bodyID: this.frameBody.nodeID};
   }

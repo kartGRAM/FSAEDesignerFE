@@ -12,6 +12,7 @@ import Toolbar from '@mui/material/Toolbar';
 import DeleteIcon from '@mui/icons-material/Delete';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
+import {getRootAssembly} from '@gd/IElements';
 import {ValueField} from './ValueField';
 
 export default function Scalar(props: {
@@ -60,7 +61,7 @@ export default function Scalar(props: {
     }),
     onSubmit: (values) => {
       value.name = values.name;
-      dispatch(updateAssembly(value));
+      dispatch(updateAssembly(getRootAssembly(value)));
       setRename(false);
     }
   });
@@ -80,7 +81,7 @@ export default function Scalar(props: {
     }),
     onSubmit: (values) => {
       value.setValue(values.value);
-      if (value.parent) dispatch(updateAssembly(value));
+      if (value.parent) dispatch(updateAssembly(getRootAssembly(value)));
       if (onUpdate) onUpdate();
     }
   });

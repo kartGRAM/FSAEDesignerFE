@@ -11,6 +11,8 @@ import FormGroup from '@mui/material/FormGroup';
 import {INamedVector3} from '@gd/INamedValues';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
 
+import {getRootAssembly} from '@gd/IElements';
+
 import {useDispatch} from 'react-redux';
 import {toFixedNoZero} from '@app/utils/helpers';
 
@@ -86,7 +88,7 @@ export const DeltaXYZ = (props: Props) => {
       // eslint-disable-next-line no-empty
       if (values.apply) {
         vector.pointOffsetTools![indexOfTool] = tool;
-        dispatch(updateAssembly(vector));
+        dispatch(updateAssembly(getRootAssembly(vector)));
         onClose();
       }
     }

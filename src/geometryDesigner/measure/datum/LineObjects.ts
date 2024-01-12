@@ -37,7 +37,6 @@ import {
   isFunctionVector3
 } from '@gd/INamedValues';
 import {NamedVector3} from '@gd/NamedValues';
-import {getDgd} from '@store/getDgd';
 
 export abstract class Line extends DatumObject implements ILine {
   readonly isLine = true as const;
@@ -104,15 +103,12 @@ export class PointDirectionLine extends Line implements IPointDirectionLine {
 
   getData(): IDataPointDirectionLine {
     const base = super.getDataBase();
-    const state = getDgd();
     return {
       ...base,
       className: this.className,
-      point: isNamedVector3(this.point)
-        ? this.point.getData(state)
-        : this.point,
+      point: isNamedVector3(this.point) ? this.point.getData() : this.point,
       direction: isNamedVector3(this.direction)
-        ? this.direction.getData(state)
+        ? this.direction.getData()
         : this.direction
     };
   }
