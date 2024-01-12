@@ -45,10 +45,11 @@ export interface ControlDefinitionProps {
   disabled: boolean;
   inputButton: string;
   setStaged: React.Dispatch<React.SetStateAction<null | IDataControl | string>>;
+  assemblyMode: IDataControl['configuration'];
 }
 
 export function ControlDefinition(props: ControlDefinitionProps) {
-  const {control, disabled, setStaged, inputButton} = props;
+  const {control, disabled, setStaged, inputButton, assemblyMode} = props;
   const controlInstance = control ? getControl(control) : undefined;
   const [name, setName] = React.useState<string>(controlInstance?.name ?? '');
 
@@ -167,6 +168,7 @@ export function ControlDefinition(props: ControlDefinitionProps) {
       <ExistingConstraintControlSettings
         control={controlImpl}
         setStaged={setStaged}
+        assemblyMode={assemblyMode}
       />
     );
   }

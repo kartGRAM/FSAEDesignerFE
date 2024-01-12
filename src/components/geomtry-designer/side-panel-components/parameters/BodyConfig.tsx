@@ -181,10 +181,60 @@ export default function AArmConfig(params: Params) {
               ) : null}
             </>
           ) : (
-            <Typography variant="caption" display="block" sx={{pl: 2}}>
-              This is a component of Frame Object. The component points are
-              generated automatically.
-            </Typography>
+            <>
+              <Typography variant="caption" display="block" sx={{pl: 2}}>
+                This is a component of Frame Object. The component points are
+                generated automatically.
+              </Typography>
+              {element.points.map((point, i) => (
+                <Vector
+                  disabled={isMirror}
+                  key={point.nodeID}
+                  vector={point}
+                  removable
+                  onRemove={() => {
+                    element.points.splice(i, 1);
+                    dispatch(updateAssembly(getRootAssembly(element)));
+                  }}
+                />
+              ))}
+              {!isMirror ? (
+                <Toolbar
+                  sx={{
+                    pr: '0.7rem!important',
+                    pl: '1rem!important',
+                    minHeight: '40px!important',
+                    flex: '1'
+                  }}
+                >
+                  <Typography
+                    sx={{flex: '1 1 100%'}}
+                    color="inherit"
+                    variant="subtitle1"
+                    component="div"
+                  >
+                    Additional free nodes
+                  </Typography>
+                  <Tooltip title="Add" sx={{flex: '1'}}>
+                    <IconButton
+                      onClick={() => {
+                        const l = element.points.length + 1;
+                        const vector = new NamedVector3({
+                          name: `point${l}`,
+                          parent: element,
+                          value: {x: 0, y: 0, z: 0}
+                        });
+                        element.points.push(vector);
+                        vector.meta.isFreeNode = true;
+                        dispatch(updateAssembly(getRootAssembly(element)));
+                      }}
+                    >
+                      <AddBoxIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Toolbar>
+              ) : null}
+            </>
           )}
         </AccordionDetails>
       </Accordion>

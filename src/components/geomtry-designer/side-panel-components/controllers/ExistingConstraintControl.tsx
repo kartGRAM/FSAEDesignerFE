@@ -22,12 +22,13 @@ import {useSelector} from 'react-redux';
 export interface ExistingConstraintControlProps {
   control: ExistingConstraintControl;
   setStaged: React.Dispatch<React.SetStateAction<null | IDataControl | string>>;
+  assemblyMode: IDataControl['configuration'];
 }
 
 export function ExistingConstraintControlSettings(
   props: ExistingConstraintControlProps
 ) {
-  const {control, setStaged} = props;
+  const {control, setStaged, assemblyMode} = props;
   const [speed, setSpeed] = React.useState<number | ''>(control.speed);
   const [reverse, setReverse] = React.useState<boolean>(control.reverse);
   const max = 400;
@@ -35,9 +36,6 @@ export function ExistingConstraintControlSettings(
 
   const [selectedID, setSelectedID] = React.useState<string>(
     control?.targetControl ?? ''
-  );
-  const assemblyMode = useSelector(
-    (state: RootState) => state.dgd.present.options.assemblyMode
   );
   const controls = useSelector(
     (state: RootState) => state.dgd.present.controls

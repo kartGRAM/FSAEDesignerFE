@@ -67,7 +67,7 @@ export default function AArmConfig(params: {element: IAArm}) {
             <Vector
               isNode
               disabled={isMirror}
-              key={point.name}
+              key={point.nodeID}
               vector={point}
               removable={i > 0}
               onRemove={() => {

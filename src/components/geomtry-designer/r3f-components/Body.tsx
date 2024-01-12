@@ -62,7 +62,9 @@ const Body = (props: {element: IBody}) => {
       ) ?? element.centerOfPoints;
     return point;
   }, [element.centerOfPoints, nodes]);
-  const pts = nodes.map((p) => p.value.applyMatrix3(coMatrix));
+  const pts = nodes
+    .filter((n) => !n.meta.isFreeNode)
+    .map((p) => p.value.applyMatrix3(coMatrix));
 
   useFrame(() => {
     const state = store.getState();

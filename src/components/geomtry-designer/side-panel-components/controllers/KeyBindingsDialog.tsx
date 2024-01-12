@@ -211,6 +211,7 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
           ...selectedControls
             .map((control) => [
               <ControlDefinition
+                assemblyMode={assemblyMode}
                 setStaged={setStaged}
                 control={control}
                 disabled={selectedKey === ''}
@@ -221,6 +222,7 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
             ])
             .flat(),
           <ControlDefinition
+            assemblyMode={assemblyMode}
             setStaged={setStaged}
             disabled={selectedKey === ''}
             inputButton={selectedKey}

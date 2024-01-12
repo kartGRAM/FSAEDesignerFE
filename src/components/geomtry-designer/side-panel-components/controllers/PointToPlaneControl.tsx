@@ -460,18 +460,7 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
           unit="mm"
         />
       </Box>
-      <Box component="div" sx={{flexGrow: 1, mt: 4, ml: 2}}>
-        <ValueField
-          value={speed}
-          onChange={handleInputSpeedChange}
-          onBlur={handleBlur}
-          label="Speed"
-          name="speed"
-          variant="outlined"
-          unit="mm/s"
-          inputProps={{min, max, step: 1}}
-        />
-      </Box>
+
       <Box
         component="div"
         sx={{display: 'flex', flexDirection: 'row', width: '100%', mt: 3}}
