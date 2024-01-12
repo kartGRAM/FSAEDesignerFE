@@ -290,6 +290,9 @@ export class Assembly extends Element implements IAssembly {
     return points;
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  setCenterOfGravityAuto() {}
+
   getPointsNodeIDs(): string[] {
     let points: string[] = [];
     const jointedNodeIDs = this.getJointedNodeIDs();

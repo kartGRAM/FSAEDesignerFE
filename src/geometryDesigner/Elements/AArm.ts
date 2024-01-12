@@ -60,6 +60,16 @@ export class AArm extends Element implements IAArm {
     return [...this.fixedPoints, ...this.points];
   }
 
+  setCenterOfGravityAuto() {
+    const points = [...this.fixedPoints, this.points[0]];
+    this.centerOfGravity.value = points
+      .reduce((prev, current) => {
+        prev.add(current.value);
+        return prev;
+      }, new Vector3())
+      .multiplyScalar(1 / 3);
+  }
+
   arrange(parentPosition?: Vector3) {
     const pp = parentPosition ?? new Vector3();
     this.position.value = this.initialPosition.value.clone().add(pp);

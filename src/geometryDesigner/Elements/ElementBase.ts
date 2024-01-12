@@ -114,7 +114,12 @@ export abstract class Element implements IElement {
       value:
         autoCalculateCenterOfGravity === undefined
           ? false
-          : autoCalculateCenterOfGravity
+          : autoCalculateCenterOfGravity,
+      update: (newValue: boolean) => {
+        // eslint-disable-next-line no-underscore-dangle
+        this.autoCalculateCenterOfGravity._value = newValue;
+        if (newValue) this.setCenterOfGravityAuto();
+      }
     });
     if (isDataElement(params)) {
       const element = params;
@@ -128,6 +133,8 @@ export abstract class Element implements IElement {
   getPointsNodeIDs(): string[] {
     return this.getPoints().map((p) => p.nodeID);
   }
+
+  abstract setCenterOfGravityAuto(): void;
 
   abstract getPoints(): INamedVector3RO[];
 

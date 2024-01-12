@@ -150,6 +150,7 @@ export interface IElement extends IBidirectionalNode {
   readonly controllable?: boolean;
   readonly nodeID: string;
   readonly absPath: string;
+  setCenterOfGravityAuto(): void;
   getPoints(): INamedVector3RO[];
   getVariables(): INamedNumberRO[];
   getMeasurablePoints(): INamedVector3RO[];

@@ -54,6 +54,16 @@ export class Bar extends Element implements IBar {
     return [this.fixedPoint, this.point];
   }
 
+  setCenterOfGravityAuto() {
+    const points = [this.fixedPoint, this.point];
+    this.centerOfGravity.value = points
+      .reduce((prev, current) => {
+        prev.add(current.value);
+        return prev;
+      }, new Vector3())
+      .multiplyScalar(0.5);
+  }
+
   arrange(parentPosition?: Vector3) {
     const pp = parentPosition ?? new Vector3();
     this.position.value = this.initialPosition.value.clone().add(pp);

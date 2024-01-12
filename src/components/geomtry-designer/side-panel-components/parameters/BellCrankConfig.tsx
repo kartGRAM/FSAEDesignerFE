@@ -20,6 +20,7 @@ import {
 } from '@store/reducers/uiGeometryDesigner';
 import Vector from '@gdComponents/Vector';
 import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
+import {MassAndCOG} from '@gdComponents/side-panel-components/parameters/MassAndCOG';
 import ElementName from './ElementName';
 
 interface Params {
@@ -130,7 +131,7 @@ export default function AArmConfig(params: Params) {
           <Typography>Dynamic Parameters</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Typography>WIP</Typography>
+          <MassAndCOG element={element} />
         </AccordionDetails>
       </Accordion>
       <Accordion>

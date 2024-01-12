@@ -105,6 +105,17 @@ export class TorsionSpring extends Element implements ITorsionSpring {
     return [...this.fixedPoints, ...this.effortPoints];
   }
 
+  setCenterOfGravityAuto() {
+    const points = [...this.fixedPoints];
+    if (points.length === 0) return;
+    this.centerOfGravity.value = points
+      .reduce((prev, current) => {
+        prev.add(current.value);
+        return prev;
+      }, new Vector3())
+      .multiplyScalar(1 / points.length);
+  }
+
   getVariables(): INamedNumberRO[] {
     const vars = super.getVariables();
     const dlCurrent = new NamedNumber({

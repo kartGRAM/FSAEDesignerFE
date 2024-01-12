@@ -107,6 +107,10 @@ export class Tire extends Element implements ITire {
     return [this.leftBearing, this.rightBearing];
   }
 
+  setCenterOfGravityAuto() {
+    this.centerOfGravity.value = this.tireCenter.value;
+  }
+
   getMeasurablePoints(): INamedVector3RO[] {
     const points = super.getMeasurablePoints();
     // タイヤの軸線

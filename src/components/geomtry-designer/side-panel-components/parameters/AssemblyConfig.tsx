@@ -38,6 +38,7 @@ import {
 import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
 import {numberToRgb} from '@app/utils/helpers';
 import usePrevious from '@app/hooks/usePrevious';
+import {MassAndCOG} from '@gdComponents/side-panel-components/parameters/MassAndCOG';
 import ElementName from './ElementName';
 
 interface Params {
@@ -228,7 +229,7 @@ export default function AssemblyConfig(params: Params) {
           <Typography>Dynamic Parameters</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Typography>WIP</Typography>
+          <MassAndCOG element={assembly} />
         </AccordionDetails>
       </Accordion>
       <Accordion>

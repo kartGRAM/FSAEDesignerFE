@@ -52,6 +52,16 @@ export class BellCrank extends Element implements IBellCrank {
     return [...this.fixedPoints, ...this.points];
   }
 
+  setCenterOfGravityAuto() {
+    const points = [...this.fixedPoints, this.points[0], this.points[1]];
+    this.centerOfGravity.value = points
+      .reduce((prev, current) => {
+        prev.add(current.value);
+        return prev;
+      }, new Vector3())
+      .multiplyScalar(0.25);
+  }
+
   get centerOfPoints() {
     const {fixedPoints, points} = this;
     return new NamedVector3({

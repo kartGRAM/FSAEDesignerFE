@@ -1,7 +1,7 @@
 import * as React from 'react';
 import Scalar from '@gdComponents/Scalar';
 import Vector from '@gdComponents/Vector';
-import {IElement} from '@gd/IElements';
+import {IElement, isMirrorElement} from '@gd/IElements';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import {useDispatch} from 'react-redux';
@@ -25,13 +25,13 @@ export const MassAndCOG = React.memo((props: {element: IElement}) => {
         value={element.mass}
         unit="kg"
         min={0}
-        disabled={isAssembly(element)}
+        disabled={isAssembly(element) || isMirrorElement(element)}
       />
       <FormControlLabel
         sx={{pl: 2}}
         control={
           <Checkbox
-            disabled={isAssembly(element)}
+            disabled={isAssembly(element) || isMirrorElement(element)}
             checked={element.autoCalculateCenterOfGravity.value}
             onChange={handleAutoChange}
           />
@@ -41,7 +41,9 @@ export const MassAndCOG = React.memo((props: {element: IElement}) => {
       <Vector
         vector={element.centerOfGravity}
         disabled={
-          element.autoCalculateCenterOfGravity.value || isAssembly(element)
+          element.autoCalculateCenterOfGravity.value ||
+          isAssembly(element) ||
+          isMirrorElement(element)
         }
       />
     </>

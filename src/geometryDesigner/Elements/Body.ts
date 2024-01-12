@@ -48,6 +48,17 @@ export class Body extends Element implements IBody {
     return [...this.fixedPoints, ...this.points];
   }
 
+  setCenterOfGravityAuto() {
+    const points = [...this.fixedPoints, ...this.points];
+    if (points.length === 0) return;
+    this.centerOfGravity.value = points
+      .reduce((prev, current) => {
+        prev.add(current.value);
+        return prev;
+      }, new Vector3())
+      .multiplyScalar(1 / points.length);
+  }
+
   get centerOfPoints() {
     const {fixedPoints, points} = this;
     const c = new Vector3();
