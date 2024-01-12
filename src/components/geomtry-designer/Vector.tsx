@@ -227,6 +227,11 @@ const Vector = React.memo(
       };
     };
 
+    const onBlur = (e: any) => {
+      setForcus('');
+      formik.handleBlur(e);
+    };
+
     return (
       <Box
         component="div"
@@ -315,7 +320,7 @@ const Vector = React.memo(
               disabled={disabled}
               onChange={handleChange}
               onFocus={handleForcus('x')}
-              onBlur={formik.handleBlur}
+              onBlur={onBlur}
               label="X"
               name="x"
               variant="outlined"
@@ -332,7 +337,7 @@ const Vector = React.memo(
               disabled={disabled}
               onChange={handleChange}
               onFocus={handleForcus('y')}
-              onBlur={formik.handleBlur}
+              onBlur={onBlur}
               label="Y"
               name="y"
               variant="outlined"
@@ -349,7 +354,7 @@ const Vector = React.memo(
               disabled={disabled}
               onChange={handleChange}
               onFocus={handleForcus('z')}
-              onBlur={formik.handleBlur}
+              onBlur={onBlur}
               label="Z"
               name="z"
               variant="outlined"
