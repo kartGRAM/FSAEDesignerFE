@@ -1058,8 +1058,8 @@ export class PointToPlane implements Constraint, deltaL {
     this.controledBy = controledBy;
     this.component = component;
     this._localVec = localVec;
-    this.distance = origin?.length() ?? 0;
     this.normal = normal?.clone().normalize() ?? new Vector3(0, 0, 1);
+    this.distance = origin?.clone().dot(normal) ?? 0;
     this.elementID = elementID;
     if (dlMin) this.dlMin = dlMin;
     if (dlMax) this.dlMax = dlMax;
