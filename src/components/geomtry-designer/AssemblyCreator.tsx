@@ -201,8 +201,11 @@ export default function AssemblyCreactor() {
       const state = store.getState();
 
       const assembly = state.uitgd.collectedAssembly;
+      const {assemblyMode} = state.dgd.present.options;
       const childrenIDs = assembly?.children.map((child) => child.nodeID);
       const controls = state.dgd.present.controls.reduce((prev, current) => {
+        const config = current.configuration ?? 'FixedFrame';
+        if (assemblyMode !== config) return prev;
         const control = getControl(current);
         current.targetElements
           .filter((element) => childrenIDs?.includes(element))
@@ -214,7 +217,12 @@ export default function AssemblyCreactor() {
       }, {} as {[index: string]: Control[]});
       if (assembly) {
         try {
-          const solver = new KinematicSolver(assembly, controls, true);
+          const solver = new KinematicSolver(
+            assembly,
+            assemblyMode,
+            controls,
+            true
+          );
           dispatch(setKinematicSolver(solver));
         } catch (e) {
           // eslint-disable-next-line no-console

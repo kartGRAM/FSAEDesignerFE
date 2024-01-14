@@ -19,6 +19,7 @@ export type LocalInstances = {
 export function getLocalInstances(state: GDState): LocalInstances {
   if (!state.topAssembly) throw new Error('No topAssembly');
   const assembly = getAssembly(state.topAssembly);
+  const {assemblyMode} = state.options;
   const collectedAssembly = assembly.collectElements();
   const datumManager = new DatumManager(state.datumObjects, collectedAssembly);
   datumManager.update();
@@ -35,6 +36,8 @@ export function getLocalInstances(state: GDState): LocalInstances {
   });
   const childrenIDs = collectedAssembly.children.map((child) => child.nodeID);
   const controls = state.controls.reduce((prev, current) => {
+    const config = current.configuration ?? 'FixedFrame';
+    if (assemblyMode !== config) return prev;
     const control = getControl(current);
     current.targetElements
       .filter((element) => childrenIDs?.includes(element))
@@ -44,7 +47,12 @@ export function getLocalInstances(state: GDState): LocalInstances {
       });
     return prev;
   }, {} as {[index: string]: Control[]});
-  const solver = new KinematicSolver(collectedAssembly, controls, false);
+  const solver = new KinematicSolver(
+    collectedAssembly,
+    assemblyMode,
+    controls,
+    false
+  );
   return {
     assembly,
     datumManager,

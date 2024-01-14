@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 /* eslint-disable no-lone-blocks */
 import {Matrix, SingularValueDecomposition} from 'ml-matrix';
-import {Control} from '@gd/controls/IControls';
+import {Control, IDataControl} from '@gd/controls/IControls';
 import {IElement, IAssembly, isSimplifiedElement} from '@gd/IElements';
 import {JointAsVector3} from '@gd/IElements/IAssembly';
 import {isAArm} from '@gd/IElements/IAArm';
@@ -11,7 +11,10 @@ import {isSpringDumper} from '@gd/IElements/ISpringDumper';
 import {isLinearBushing} from '@gd/IElements/ILinearBushing';
 import {isTorsionSpring} from '@gd/IElements/ITorsionSpring';
 import {Vector3, Quaternion} from 'three';
-import {isPointToPlaneControl} from '@gd/controls/PointToPlaneControl';
+import {
+  isPointToPlaneControl,
+  PointToPlaneControl
+} from '@gd/controls/PointToPlaneControl';
 import {hasNearestNeighborToPlane} from '@gd/SpecialPoints';
 import {sleep} from '@utils/helpers';
 import {
@@ -70,6 +73,7 @@ export class KinematicSolver {
 
   constructor(
     assembly: IAssembly,
+    assemblyMode: NonNullable<IDataControl['configuration']>,
     controls: {[index: string]: Control[]},
     solve?: boolean
   ) {
@@ -82,6 +86,7 @@ export class KinematicSolver {
     const jointsDone = new Set<JointAsVector3>();
     const tempComponents: {[index: string]: FullDegreesComponent} = {};
     const tempElements: {[index: string]: IElement} = {};
+    let specialControls: {[index: string]: Control[]} = {};
 
     // ステップ1: ChildrenをComponentに変換する
     {
@@ -138,18 +143,39 @@ export class KinematicSolver {
       });
     }
     // ステップ3: 平面拘束など、一つのコンポーネントに対する拘束式をピックアップする
-    const specialControls: {[index: string]: Control[]} = Object.keys(
-      controls
-    ).reduce((prev, current) => {
-      const temp = controls[current];
-      temp.forEach((control) => {
-        if (isPointToPlaneControl(control)) {
-          if (!prev[current]) prev[current] = [];
-          prev[current].push(control);
-        }
-      });
-      return prev;
-    }, {} as {[index: string]: Control[]});
+    // また、AllTiresGroundedのタイヤへの拘束を与える。
+    {
+      // 平面拘束をピックアップ
+      specialControls = Object.keys(controls).reduce((prev, current) => {
+        const temp = controls[current];
+        temp.forEach((control) => {
+          if (isPointToPlaneControl(control)) {
+            if (!prev[current]) prev[current] = [];
+            prev[current].push(control);
+          }
+        });
+        return prev;
+      }, {} as {[index: string]: Control[]});
+      // assemblyModeがAllTiresGroundedの場合
+      if (assemblyMode === 'AllTiresGrounded') {
+        const tires = children.filter((e) => isTire(e));
+        const ground = new PointToPlaneControl({
+          type: 'notAssigned',
+          targetElements: tires.map((t) => t.nodeID),
+          inputButton: '',
+          pointIDs: tires.reduce((prev, current) => {
+            prev[current.nodeID] = ['nearestNeighbor'];
+            return prev;
+          }, {} as {[index: string]: string[]}),
+          origin: new Vector3(),
+          normal: new Vector3(0, 0, 1)
+        });
+        tires.forEach((t) => {
+          if (!specialControls[t.nodeID]) specialControls[t.nodeID] = [];
+          specialControls[t.nodeID].push(ground);
+        });
+      }
+    }
     // ステップ4: コンポーネント化しないElementを幾何拘束へ変換
     {
       const {pointComponents} = this;
@@ -467,6 +493,7 @@ export class KinematicSolver {
     // ステップ5: この時点でElement間の拘束点は2点以下なので、Sphere拘束か
     // Hinge拘束か、BarAndSpher拘束を実施する。
     // この時点でコンポーネント間の拘束はただ1つの拘束式になっている。
+    // また特殊な拘束に対して処置する。
     {
       this.componentsFromNodeID = {};
       children.forEach((element) => {
