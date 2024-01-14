@@ -208,7 +208,13 @@ export class FullDegreesComponent implements IComponent {
   }
 
   unite(other: IComponent, constraint: Constraint) {
-    if (this.root === other.root) return;
+    if (this.root === other.root) {
+      this.root.unionFindTreeConstraints = [
+        ...this.root.unionFindTreeConstraints,
+        constraint
+      ];
+      return;
+    }
     const otherRoot = other.root;
     other.root.unionFindTreeParent = this.root;
     this.root.unionFindTreeConstraints = [
@@ -394,7 +400,13 @@ export class PointComponent implements IComponent {
   }
 
   unite(other: IComponent, constraint: Constraint) {
-    if (this.root === other.root) return;
+    if (this.root === other.root) {
+      this.root.unionFindTreeConstraints = [
+        ...this.root.unionFindTreeConstraints,
+        constraint
+      ];
+      return;
+    }
     const otherRoot = other.root;
     other.root.unionFindTreeParent = this.root;
     this.root.unionFindTreeConstraints = [

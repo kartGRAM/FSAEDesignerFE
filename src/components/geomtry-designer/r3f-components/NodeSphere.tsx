@@ -72,12 +72,19 @@ const NodeSphere = (props: {
           visualizationMode === 'ShowAllNodes' && !!node.parent.visible.value;
       }
     }
+    if (applyPosition && isElement(node.parent)) {
+      const position = node.value.applyMatrix3(coMatrix);
+      groupRef.current.position.copy(
+        position.add(node.parent.position.value.applyMatrix3(coMatrix))
+      );
+    }
   });
 
   const position = node.value.applyMatrix3(coMatrix);
   if (applyPosition && isElement(node.parent)) {
     position.add(node.parent.position.value.applyMatrix3(coMatrix));
   }
+  const groupRef = React.useRef<THREE.Group>(null!);
 
   const sphere = (
     <Sphere
@@ -155,7 +162,7 @@ const NodeSphere = (props: {
   );
 
   return (
-    <group position={position}>
+    <group position={position} ref={groupRef}>
       {isMoveTarget ? (
         <PivotControls
           ref={pivotControlsRef}

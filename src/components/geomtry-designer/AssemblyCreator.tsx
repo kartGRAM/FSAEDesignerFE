@@ -201,7 +201,8 @@ export default function AssemblyCreactor() {
       const state = store.getState();
 
       const assembly = state.uitgd.collectedAssembly;
-      const {assemblyMode} = state.dgd.present.options;
+      const {assemblyMode, pinCenterOfGravityOfFrame} =
+        state.dgd.present.options;
       const childrenIDs = assembly?.children.map((child) => child.nodeID);
       const controls = state.dgd.present.controls.reduce((prev, current) => {
         const config = current.configuration ?? 'FixedFrame';
@@ -220,6 +221,7 @@ export default function AssemblyCreactor() {
           const solver = new KinematicSolver(
             assembly,
             assemblyMode,
+            pinCenterOfGravityOfFrame,
             controls,
             true
           );

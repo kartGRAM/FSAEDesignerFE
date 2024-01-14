@@ -6,6 +6,7 @@ import {IElement, IAssembly, isSimplifiedElement} from '@gd/IElements';
 import {JointAsVector3} from '@gd/IElements/IAssembly';
 import {isAArm} from '@gd/IElements/IAArm';
 import {isBar} from '@gd/IElements/IBar';
+import {IBody} from '@gd/IElements/IBody';
 import {isTire} from '@gd/IElements/ITire';
 import {isSpringDumper} from '@gd/IElements/ISpringDumper';
 import {isLinearBushing} from '@gd/IElements/ILinearBushing';
@@ -74,6 +75,7 @@ export class KinematicSolver {
   constructor(
     assembly: IAssembly,
     assemblyMode: NonNullable<IDataControl['configuration']>,
+    pinFrameCOV: boolean,
     controls: {[index: string]: Control[]},
     solve?: boolean
   ) {
@@ -174,6 +176,33 @@ export class KinematicSolver {
           if (!specialControls[t.nodeID]) specialControls[t.nodeID] = [];
           specialControls[t.nodeID].push(ground);
         });
+        if (pinFrameCOV) {
+          const frame = children.find((e) => e.meta?.isBodyOfFrame) as IBody;
+          if (frame) {
+            const pointIDs = {} as {[index: string]: string[]};
+            pointIDs[frame.nodeID] = [`${frame.nodeID}cog`];
+            const XZ = new PointToPlaneControl({
+              type: 'notAssigned',
+              targetElements: [frame.nodeID],
+              inputButton: '',
+              pointIDs,
+              origin: new Vector3(),
+              normal: new Vector3(0, 1, 0)
+            });
+            const YZ = new PointToPlaneControl({
+              type: 'notAssigned',
+              targetElements: [frame.nodeID],
+              inputButton: '',
+              pointIDs,
+              origin: new Vector3(),
+              normal: new Vector3(1, 0, 0)
+            });
+            if (!specialControls[frame.nodeID])
+              specialControls[frame.nodeID] = [];
+            specialControls[frame.nodeID].push(XZ);
+            specialControls[frame.nodeID].push(YZ);
+          }
+        }
       }
     }
     // ステップ4: コンポーネント化しないElementを幾何拘束へ変換
@@ -622,7 +651,9 @@ export class KinematicSolver {
         }
         if (!elementIsComponent(element, jointDict)) return;
         // 相対固定拘束の場合は、親のみを追加
-        if (component.isRelativeFixed) return;
+        if (component.isRelativeFixed) {
+          return;
+        }
         // solverにコンポーネントを追加する
         components.push(component);
         this.componentsFromNodeID[element.nodeID] = component;

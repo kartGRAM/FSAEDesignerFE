@@ -19,7 +19,7 @@ export type LocalInstances = {
 export function getLocalInstances(state: GDState): LocalInstances {
   if (!state.topAssembly) throw new Error('No topAssembly');
   const assembly = getAssembly(state.topAssembly);
-  const {assemblyMode} = state.options;
+  const {assemblyMode, pinCenterOfGravityOfFrame} = state.options;
   const collectedAssembly = assembly.collectElements();
   const datumManager = new DatumManager(state.datumObjects, collectedAssembly);
   datumManager.update();
@@ -50,6 +50,7 @@ export function getLocalInstances(state: GDState): LocalInstances {
   const solver = new KinematicSolver(
     collectedAssembly,
     assemblyMode,
+    pinCenterOfGravityOfFrame,
     controls,
     false
   );
