@@ -76,6 +76,7 @@ export class KinematicSolver {
     assembly: IAssembly,
     assemblyMode: NonNullable<IDataControl['configuration']>,
     pinFrameCOV: boolean,
+    faceForward: boolean,
     controls: {[index: string]: Control[]},
     solve?: boolean
   ) {
@@ -176,33 +177,6 @@ export class KinematicSolver {
           if (!specialControls[t.nodeID]) specialControls[t.nodeID] = [];
           specialControls[t.nodeID].push(ground);
         });
-        if (pinFrameCOV) {
-          const frame = children.find((e) => e.meta?.isBodyOfFrame) as IBody;
-          if (frame) {
-            const pointIDs = {} as {[index: string]: string[]};
-            pointIDs[frame.nodeID] = [`${frame.nodeID}cog`];
-            const XZ = new PointToPlaneControl({
-              type: 'notAssigned',
-              targetElements: [frame.nodeID],
-              inputButton: '',
-              pointIDs,
-              origin: new Vector3(),
-              normal: new Vector3(0, 1, 0)
-            });
-            const YZ = new PointToPlaneControl({
-              type: 'notAssigned',
-              targetElements: [frame.nodeID],
-              inputButton: '',
-              pointIDs,
-              origin: new Vector3(),
-              normal: new Vector3(1, 0, 0)
-            });
-            if (!specialControls[frame.nodeID])
-              specialControls[frame.nodeID] = [];
-            specialControls[frame.nodeID].push(XZ);
-            specialControls[frame.nodeID].push(YZ);
-          }
-        }
       }
     }
     // ステップ4: コンポーネント化しないElementを幾何拘束へ変換
@@ -702,6 +676,64 @@ export class KinematicSolver {
           constraints.push(constraint);
         });
       });
+      // フレームをピン止めする
+      if (assemblyMode === 'AllTiresGrounded') {
+        const frame = children.find((e) => e.meta?.isBodyOfFrame) as IBody;
+        if (pinFrameCOV && frame) {
+          const p = frame.centerOfGravity.value;
+          const component = tempComponents[frame.nodeID];
+          constraints.push(
+            new PointToPlane(
+              `Two-dimentional Constraint of ${frame.centerOfGravity.name} of ${frame.name.value}`,
+              component,
+              () => p,
+              new Vector3(),
+              new Vector3(1, 0, 0),
+              frame.nodeID,
+              [],
+              0,
+              0
+            )
+          );
+          constraints.push(
+            new PointToPlane(
+              `Two-dimentional Constraint of ${frame.centerOfGravity.name} of ${frame.name.value}`,
+              component,
+              () => p,
+              new Vector3(),
+              new Vector3(0, 1, 0),
+              frame.nodeID,
+              [],
+              0,
+              0
+            )
+          );
+          /* const pointIDs = {} as {[index: string]: string[]};
+            pointIDs[frame.nodeID] = [`${frame.nodeID}cog`];
+            const XZ = new PointToPlaneControl({
+              type: 'notAssigned',
+              targetElements: [frame.nodeID],
+              inputButton: '',
+              pointIDs,
+              origin: new Vector3(),
+              normal: new Vector3(0, 1, 0)
+            });
+            const YZ = new PointToPlaneControl({
+              type: 'notAssigned',
+              targetElements: [frame.nodeID],
+              inputButton: '',
+              pointIDs,
+              origin: new Vector3(),
+              normal: new Vector3(1, 0, 0)
+            });
+            if (!specialControls[frame.nodeID])
+              specialControls[frame.nodeID] = [];
+            specialControls[frame.nodeID].push(XZ);
+            specialControls[frame.nodeID].push(YZ); */
+        }
+        if (faceForward && frame) {
+        }
+      }
     }
     // ステップ5: グルーピング
     // Union Find Treeを用いてグルーピングを実施する。
@@ -776,7 +808,7 @@ export class KinematicSolver {
     this.running = true;
     try {
       const start = performance.now();
-      const maxCnt = params?.maxCnt ?? 100;
+      const maxCnt = params?.maxCnt ?? 1000;
       const postProcess = params?.postProcess ?? true;
       const constraintsOptions = params?.constraintsOptions ?? {};
       const logOutput = params?.logOutput ?? false;
@@ -891,7 +923,7 @@ export class KinematicSolver {
     components.forEach((c) => c.saveQ(qCurrent));
     try {
       const start = performance.now();
-      const maxCnt = params?.maxCnt ?? 100;
+      const maxCnt = params?.maxCnt ?? 1000;
       const postProcess = params?.postProcess ?? true;
       const ignoreInequalityConstraints =
         params?.ignoreInequalityConstraints ?? true;

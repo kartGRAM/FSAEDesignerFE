@@ -85,9 +85,9 @@ const store = configureStore({
           'uitgd.gdDialogState.saveAsDialogProps.onClose',
           'uitgd.gdDialogState.confirmDialogProps'
         ],
-        warnAfter: 128
+        warnAfter: 256
       },
-      immutableCheck: {warnAfter: 128}
+      immutableCheck: {warnAfter: 256}
     }).concat(
       save({
         states: ['uigd'],

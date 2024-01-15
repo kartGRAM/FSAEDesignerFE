@@ -1061,8 +1061,8 @@ export class PointToPlane implements Constraint, deltaL {
     this.normal = normal?.clone().normalize() ?? new Vector3(0, 0, 1);
     this.distance = origin?.clone().dot(normal) ?? 0;
     this.elementID = elementID;
-    if (dlMin) this.dlMin = dlMin;
-    if (dlMax) this.dlMax = dlMax;
+    if (dlMin !== undefined) this.dlMin = dlMin;
+    if (dlMax !== undefined) this.dlMax = dlMax;
   }
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {

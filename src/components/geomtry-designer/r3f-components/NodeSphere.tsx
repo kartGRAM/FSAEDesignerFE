@@ -73,17 +73,22 @@ const NodeSphere = (props: {
       }
     }
     if (applyPosition && isElement(node.parent)) {
-      const position = node.value.applyMatrix3(coMatrix);
       groupRef.current.position.copy(
-        position.add(node.parent.position.value.applyMatrix3(coMatrix))
+        node.value
+          .applyQuaternion(node.parent.rotation.value)
+          .add(node.parent.position.value)
+          .applyMatrix3(coMatrix)
       );
     }
   });
 
-  const position = node.value.applyMatrix3(coMatrix);
+  const position = node.value;
   if (applyPosition && isElement(node.parent)) {
-    position.add(node.parent.position.value.applyMatrix3(coMatrix));
+    position
+      .applyQuaternion(node.parent.rotation.value)
+      .add(node.parent.position.value);
   }
+  position.applyMatrix3(coMatrix);
   const groupRef = React.useRef<THREE.Group>(null!);
 
   const sphere = (
