@@ -33,15 +33,12 @@ const TorsionSpring = (props: {element: ITorsionSpring}) => {
   );
 
   useFrame(() => {
+    const measurablePoints = element.getMeasurablePoints();
     const selectedPath = store.getState().uitgd.selectedElementAbsPath;
     const isSelected = !!selectedPath && element.absPath.includes(selectedPath);
     let color: string | number = 'lavender';
 
-    const nodes = element
-      .getPoints()
-      .map((p) => p.value.applyMatrix3(coMatrix));
     const pts = measurablePoints.map((p) => p.value.applyMatrix3(coMatrix));
-    const axis = pts[1].clone().sub(pts[1]).normalize();
 
     meshRefs.forEach((meshRef, i) => {
       if (!meshRef.current) return;
@@ -55,7 +52,7 @@ const TorsionSpring = (props: {element: ITorsionSpring}) => {
       if (i !== 1) return;
       const start = meshRef.current.geometry.attributes.instanceStart
         .array as Float32Array;
-      const p = element.currentEffortPoints[0].applyMatrix3(coMatrix);
+      const p = pts[2];
       start[0] = p.x;
       start[1] = p.y;
       start[2] = p.z;
@@ -69,22 +66,13 @@ const TorsionSpring = (props: {element: ITorsionSpring}) => {
       transQuaternion(element.rotation.value, coMatrix)
     );
 
-    const a = (element.dlCurrent * Math.PI) / 180;
-    const q = new THREE.Quaternion().setFromAxisAngle(axis, a);
-    const p = nodes[2]
+    const p = pts[2]
       .clone()
-      .sub(nodes[0])
-      .applyQuaternion(q)
-      .add(nodes[0])
-      .sub(nodes[2]);
-
+      .sub(element.getPoints()[2].value.applyMatrix3(coMatrix));
     dlRef.current.position.copy(p);
   });
 
-  const nodes = element.getPoints();
   const measurablePoints = element.getMeasurablePoints();
-  const fixedPoints = nodes.slice(0, 2);
-  const points = nodes.slice(2);
   const groupRef = React.useRef<THREE.Group>(null!);
   const dlRef = React.useRef<THREE.Group>(null!);
   const meshRefs = [
@@ -114,6 +102,8 @@ const TorsionSpring = (props: {element: ITorsionSpring}) => {
     }
   });
 
+  const points = measurablePoints.slice(0, 4);
+
   return (
     <group onDoubleClick={handleOnDoubleClick} ref={groupRef}>
       <Line points={axisLine} color="pink" lineWidth={4} ref={meshRefs[0]} />
@@ -131,17 +121,14 @@ const TorsionSpring = (props: {element: ITorsionSpring}) => {
           ref={meshRefs[2]}
         />
       ) : null}
-      {fixedPoints.map((node) => (
-        <NodeSphere node={node} key={node.nodeID} />
-      ))}
       {points.map((node, i) =>
-        i !== 0 ? <NodeSphere node={node} key={node.nodeID} /> : null
+        i !== 2 ? <NodeSphere node={node} key={node.nodeID} /> : null
       )}
       {measurablePoints.map((p, i) =>
         i !== 2 ? <MeasurablePoint node={p} key={p.nodeID} /> : null
       )}
       <group ref={dlRef}>
-        <NodeSphere node={points[0]} key={points[0].nodeID} />
+        <NodeSphere node={points[2]} key={points[2].nodeID} />
         <MeasurablePoint
           node={measurablePoints[2]}
           key={measurablePoints[2].nodeID}
