@@ -110,11 +110,15 @@ export class AArmRestorer implements Restorer {
       .sub(s1To.clone().multiplyScalar(s1To.dot(s2Totmp)))
       .normalize();
     const rot2 = new Quaternion().setFromUnitVectors(s2, s2To);
-    this.element.rotation.value = rot1.multiply(rot2);
+    this.element.rotation.value = rot2.multiply(rot1);
 
-    const fp = fps[0].applyQuaternion(rot2).add(this.element.position.value);
+    /* const fp = fps[0].applyQuaternion(rot2).add(this.element.position.value);
     const deltaP = fpTo[0].sub(fp);
-    this.element.position.value = this.element.position.value.add(deltaP);
+    this.element.position.value = this.element.position.value.add(deltaP); */
+
+    const fp = fps[0].applyQuaternion(rot2);
+    const deltaP = fpTo[0].sub(fp);
+    this.element.position.value = deltaP;
   }
 }
 
@@ -279,33 +283,33 @@ export class TorsionSpringRestorer implements Restorer {
     this.effortPoints = effortPoint;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   restore(unresolvedPoints: {[key: string]: Vector3}) {
     const points = this.element.getPoints().map((p) => p.value);
     const fps = points.slice(0, 2);
     const eps = points.slice(2);
-    const fpParent = this.fixedPoints[0].parent as IElement;
     // 回転側はeps0固定側はeps1
-    const epParent = this.effortPoints[1].parent as IElement;
 
-    const fpsTo = this.fixedPoints.map(
-      (p) =>
-        unresolvedPoints[p.nodeID] ??
-        p.value
-          .applyQuaternion(fpParent.rotation.value)
-          .add(fpParent.position.value)
-    );
-    const epsTo = this.effortPoints.map(
-      (p) =>
-        unresolvedPoints[p.nodeID] ??
-        p.value
-          .applyQuaternion(epParent.rotation.value)
-          .add(epParent.position.value)
-    );
+    const fpsTo = this.fixedPoints.map((p) => {
+      if (unresolvedPoints[p.nodeID]) return unresolvedPoints[p.nodeID];
+      const fpParent = p.parent as IElement;
+      return p.value
+        .applyQuaternion(fpParent.rotation.value)
+        .add(fpParent.position.value);
+    });
+    const epsTo = this.effortPoints.map((p) => {
+      if (unresolvedPoints[p.nodeID]) return unresolvedPoints[p.nodeID];
+      const epParent = this.effortPoints[1].parent as IElement;
+      return p.value
+        .applyQuaternion(epParent.rotation.value)
+        .add(epParent.position.value);
+    });
     const s = fps[1].clone().sub(fps[0]).normalize();
     const sTo = fpsTo[1].clone().sub(fpsTo[0]).normalize();
     const rotation1 = new Quaternion().setFromUnitVectors(s, sTo);
     // 軸合わせ
     points.forEach((p) => p.applyQuaternion(rotation1));
+
     const eTmp = eps[1].clone().sub(fps[0]);
     const e = eTmp
       .clone()
@@ -318,13 +322,14 @@ export class TorsionSpringRestorer implements Restorer {
       .normalize();
     const rotation2 = new Quaternion().setFromUnitVectors(e, eTo);
     // ロッドエンドの位置まで回転
-    points.forEach((p) =>
-      p.applyQuaternion(rotation2).add(this.element.position.value)
-    );
-    this.element.rotation.value = rotation1.multiply(rotation2);
+
+    points.forEach((p) => p.applyQuaternion(rotation2));
+    const rot = rotation2.multiply(rotation1);
+    // const rot = rotation1;
 
     const deltaP = fpsTo[0].clone().sub(fps[0]);
-    this.element.position.value = this.element.position.value.add(deltaP);
+    this.element.rotation.value = rot;
+    this.element.position.value = deltaP;
 
     // もう一方のロッドエンドの位置までの必要回転量をdeltaLへ
     const e2Tmp = eps[0].clone().sub(fps[0]);

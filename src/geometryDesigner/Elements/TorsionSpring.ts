@@ -82,16 +82,16 @@ export class TorsionSpring extends Element implements ITorsionSpring {
         parent: this,
         value: effortP[0],
         update: () => {},
-        // nodeID: `${this.effortPoints[0].nodeID}_current`
-        nodeID: `${this.effortPoints[0].nodeID}`
+        nodeID: `${this.effortPoints[0].nodeID}_current`
+        // nodeID: `${this.effortPoints[0].nodeID}`
       }),
       new NamedVector3({
         name: `rodEnd${1}`,
         parent: this,
         value: effortP[1],
         update: () => {},
-        // nodeID: `${this.effortPoints[1].nodeID}_current`
-        nodeID: `${this.effortPoints[1].nodeID}`
+        nodeID: `${this.effortPoints[1].nodeID}_current`
+        // nodeID: `${this.effortPoints[1].nodeID}`
       })
     ];
     return [
