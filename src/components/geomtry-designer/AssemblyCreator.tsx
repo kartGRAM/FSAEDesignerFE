@@ -222,6 +222,7 @@ export default function AssemblyCreactor() {
             assembly,
             assemblyMode,
             pinCenterOfGravityOfFrame,
+            pinCenterOfGravityOfFrame,
             controls,
             true
           );

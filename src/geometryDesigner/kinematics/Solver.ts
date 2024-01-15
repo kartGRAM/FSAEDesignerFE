@@ -708,30 +708,22 @@ export class KinematicSolver {
               0
             )
           );
-          /* const pointIDs = {} as {[index: string]: string[]};
-            pointIDs[frame.nodeID] = [`${frame.nodeID}cog`];
-            const XZ = new PointToPlaneControl({
-              type: 'notAssigned',
-              targetElements: [frame.nodeID],
-              inputButton: '',
-              pointIDs,
-              origin: new Vector3(),
-              normal: new Vector3(0, 1, 0)
-            });
-            const YZ = new PointToPlaneControl({
-              type: 'notAssigned',
-              targetElements: [frame.nodeID],
-              inputButton: '',
-              pointIDs,
-              origin: new Vector3(),
-              normal: new Vector3(1, 0, 0)
-            });
-            if (!specialControls[frame.nodeID])
-              specialControls[frame.nodeID] = [];
-            specialControls[frame.nodeID].push(XZ);
-            specialControls[frame.nodeID].push(YZ); */
-        }
-        if (faceForward && frame) {
+          if (faceForward) {
+            const p2 = p.clone().add(new Vector3(1000, 0, 0));
+            constraints.push(
+              new PointToPlane(
+                `Two-dimentional Constraint of front direction of ${frame.name.value}`,
+                component,
+                () => p2,
+                new Vector3(),
+                new Vector3(0, 1, 0),
+                frame.nodeID,
+                [],
+                0,
+                0
+              )
+            );
+          }
         }
       }
     }
@@ -808,7 +800,7 @@ export class KinematicSolver {
     this.running = true;
     try {
       const start = performance.now();
-      const maxCnt = params?.maxCnt ?? 1000;
+      const maxCnt = params?.maxCnt ?? 200;
       const postProcess = params?.postProcess ?? true;
       const constraintsOptions = params?.constraintsOptions ?? {};
       const logOutput = params?.logOutput ?? false;

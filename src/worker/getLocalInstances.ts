@@ -51,6 +51,7 @@ export function getLocalInstances(state: GDState): LocalInstances {
     collectedAssembly,
     assemblyMode,
     pinCenterOfGravityOfFrame,
+    pinCenterOfGravityOfFrame,
     controls,
     false
   );
