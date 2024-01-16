@@ -80,44 +80,50 @@ export class AArmRestorer implements Restorer {
     this.point = point;
   }
 
-  restore() {
-    const fps = this.element.fixedPoints.map((fp) => fp.value);
-    const fpParent = this.fixedPoints[0].parent as IElement;
-    const fpTo = this.fixedPoints.map((p) =>
-      p.value
+  restore(unresolvedPoints: {[key: string]: Vector3}) {
+    const points = this.element.getPoints().map((fp) => fp.value);
+    const fps = points.slice(0, 2);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const p = points[2];
+
+    const fpTo = this.fixedPoints.map((p) => {
+      if (unresolvedPoints[p.nodeID]) return unresolvedPoints[p.nodeID];
+      const fpParent = p.parent as IElement;
+      return p.value
         .applyQuaternion(fpParent.rotation.value)
-        .add(fpParent.position.value)
-    );
-    const s1 = fps[1].clone().sub(fps[0]).normalize();
-    const s1To = fpTo[1].clone().sub(fpTo[0]).normalize();
-    const rot1 = new Quaternion().setFromUnitVectors(s1, s1To);
+        .add(fpParent.position.value);
+    });
 
     const pParent = this.point.parent as IElement;
-    const pTo = this.point.value
-      .applyQuaternion(pParent.rotation.value)
-      .add(pParent.position.value);
-    const p = this.element.points[0].value.applyQuaternion(rot1);
-    fps.forEach((fp) => fp.applyQuaternion(rot1));
-    // fp0からp
-    const s2tmp = p.clone().sub(fps[0]);
-    const s2Totmp = pTo.clone().sub(fpTo[0]);
-    const s2 = s2tmp
-      .clone()
-      .sub(s1To.clone().multiplyScalar(s1To.dot(s2tmp)))
-      .normalize();
-    const s2To = s2Totmp
-      .clone()
-      .sub(s1To.clone().multiplyScalar(s1To.dot(s2Totmp)))
-      .normalize();
-    const rot2 = new Quaternion().setFromUnitVectors(s2, s2To);
-    this.element.rotation.value = rot1.multiply(rot2);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const pTo =
+      unresolvedPoints[this.point.nodeID] ??
+      this.point.value
+        .applyQuaternion(pParent.rotation.value)
+        .add(pParent.position.value);
 
-    /* const fp = fps[0].applyQuaternion(rot2).add(this.element.position.value);
-    const deltaP = fpTo[0].sub(fp);
-    this.element.position.value = this.element.position.value.add(deltaP); */
+    const s = fps[1].clone().sub(fps[0]).normalize();
+    const sTo = fpTo[1].clone().sub(fpTo[0]).normalize();
+    const rot1 = new Quaternion().setFromUnitVectors(s, sTo);
+    points.forEach((p) => p.applyQuaternion(rot1));
 
-    const fp = fps[0].applyQuaternion(rot2);
-    const deltaP = fpTo[0].sub(fp);
+    const eTmp = p.clone().sub(fps[0]);
+    const eToTmp = pTo.clone().sub(fpTo[0]);
+    const e = eTmp
+      .clone()
+      .sub(sTo.clone().multiplyScalar(sTo.dot(eTmp)))
+      .normalize();
+    const eTo = eToTmp
+      .clone()
+      .sub(sTo.clone().multiplyScalar(sTo.dot(eToTmp)))
+      .normalize();
+    const rot2 = new Quaternion().setFromUnitVectors(e, eTo);
+    points.forEach((p) => p.applyQuaternion(rot2));
+
+    this.element.rotation.value = rot2.multiply(rot1);
+    // this.element.rotation.value = rot1;
+
+    const deltaP = fpTo[0].clone().sub(fps[0]);
     this.element.position.value = deltaP;
   }
 }
