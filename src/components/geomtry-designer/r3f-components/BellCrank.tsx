@@ -162,7 +162,7 @@ const BellCrank = (props: {element: IBellCrank}) => {
           <NodeSphere node={node} key={node.nodeID} />
         ))}
         {measurablePoints.map((p) => (
-          <MeasurablePoint node={p} key={p.nodeID} />
+          <MeasurablePoint node={p} key={`${p.nodeID}m`} />
         ))}
       </group>
       {moveThisComponent ? (

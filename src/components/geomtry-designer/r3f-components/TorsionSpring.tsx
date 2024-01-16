@@ -66,13 +66,11 @@ const TorsionSpring = (props: {element: ITorsionSpring}) => {
       transQuaternion(element.rotation.value, coMatrix)
     );
 
-    const p = pts[2]
-      .clone()
-      .sub(element.getPoints()[2].value.applyMatrix3(coMatrix));
+    const p = pts[2].clone().sub(points[2].value.applyMatrix3(coMatrix));
     dlRef.current.position.copy(p);
   });
 
-  const measurablePoints = element.getMeasurablePoints();
+  const points = element.getPoints();
   const groupRef = React.useRef<THREE.Group>(null!);
   const dlRef = React.useRef<THREE.Group>(null!);
   const meshRefs = [
@@ -81,7 +79,7 @@ const TorsionSpring = (props: {element: ITorsionSpring}) => {
     React.useRef<Line2>(null!)
   ];
 
-  const pts = measurablePoints.map((p) => p.value.applyMatrix3(coMatrix));
+  const pts = points.map((p) => p.value.applyMatrix3(coMatrix));
   const axis = pts[1].clone().sub(pts[0]);
   const lenAxis = axis.length();
   axis.normalize();
@@ -101,8 +99,7 @@ const TorsionSpring = (props: {element: ITorsionSpring}) => {
       minT = t;
     }
   });
-
-  const points = measurablePoints.slice(0, 4);
+  const measurablePointsInit = element.getMeasurablePoints();
 
   return (
     <group onDoubleClick={handleOnDoubleClick} ref={groupRef}>
@@ -124,14 +121,14 @@ const TorsionSpring = (props: {element: ITorsionSpring}) => {
       {points.map((node, i) =>
         i !== 2 ? <NodeSphere node={node} key={node.nodeID} /> : null
       )}
-      {measurablePoints.map((p, i) =>
-        i !== 2 ? <MeasurablePoint node={p} key={p.nodeID} /> : null
+      {measurablePointsInit.map((p, i) =>
+        i !== 2 ? <MeasurablePoint node={p} key={`${p.nodeID}m`} /> : null
       )}
       <group ref={dlRef}>
         <NodeSphere node={points[2]} key={points[2].nodeID} />
         <MeasurablePoint
-          node={measurablePoints[2]}
-          key={measurablePoints[2].nodeID}
+          node={points[2]}
+          key={`${measurablePointsInit[2].nodeID}m`}
         />
       </group>
     </group>

@@ -110,7 +110,7 @@ export class AArmRestorer implements Restorer {
       .sub(s1To.clone().multiplyScalar(s1To.dot(s2Totmp)))
       .normalize();
     const rot2 = new Quaternion().setFromUnitVectors(s2, s2To);
-    this.element.rotation.value = rot2.multiply(rot1);
+    this.element.rotation.value = rot1.multiply(rot2);
 
     /* const fp = fps[0].applyQuaternion(rot2).add(this.element.position.value);
     const deltaP = fpTo[0].sub(fp);
