@@ -1,7 +1,7 @@
 import store from '@store/workerStore';
 import {getDgd} from '@store/getDgd';
 import {replaceState} from '@store/reducers/dataGeometryDesigner';
-import {KinematicSolver} from '@gd/kinematics/Solver';
+import {KinematicsSolver} from '@gd/kinematics/KinematicsSolver';
 import {Test} from '@gd/analysis/Test';
 import {ISnapshot} from '@gd/analysis/ISnapshot';
 import {FromParent, log, throwError} from './solverWorkerMessage';
@@ -39,7 +39,7 @@ ctx.onmessage = async (e: MessageEvent<FromParent>) => {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const test = new Test(dataTest);
-    const getSnapshot = (solver: KinematicSolver): Required<ISnapshot> => {
+    const getSnapshot = (solver: KinematicsSolver): Required<ISnapshot> => {
       solver.postProcess();
       datumManager.update();
       measureToolsManager.update();

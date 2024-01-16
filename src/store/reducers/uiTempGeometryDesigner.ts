@@ -13,7 +13,7 @@ import {RootState} from '@react-three/fiber';
 import {GetState} from 'zustand';
 import {ITest} from '@gd/analysis/ITest';
 import {Item as TestFlowNodeItem} from '@gd/analysis/FlowNode';
-import {KinematicSolver} from '@gd/kinematics/Solver';
+import {KinematicsSolver} from '@gd/kinematics/KinematicsSolver';
 
 // import {PointOffsetToolDialogProps} from '@gdComponents/dialog-components/PointOffsetToolDialog';
 
@@ -58,7 +58,7 @@ export interface GDState {
   gdDialogState: GDDialogState;
   assembly: IAssembly | undefined;
   collectedAssembly: IAssembly | undefined;
-  kinematicSolver: KinematicSolver | undefined;
+  KinematicsSolver: KinematicsSolver | undefined;
   datumManager: IDatumManager | undefined;
   measureToolsManager: IMeasureToolsManager | undefined;
   roVariablesManager: IROVariablesManager | undefined;
@@ -178,7 +178,7 @@ const initialState: GDState = {
   tests: [],
   assembly: undefined,
   collectedAssembly: undefined,
-  kinematicSolver: undefined,
+  KinematicsSolver: undefined,
   treeViewDragExpanded: [],
   draggingNewElement: null,
   draggingElementAbsPath: '',
@@ -218,7 +218,7 @@ export const uitGeometryDesignerSlice = createSlice({
         state.datumManager = undefined;
         state.measureToolsManager = undefined;
         state.roVariablesManager = undefined;
-        state.kinematicSolver = undefined;
+        state.KinematicsSolver = undefined;
         state.gdSceneState.movingMode = false;
         state.selectedElementAbsPath = '';
         return;
@@ -270,11 +270,11 @@ export const uitGeometryDesignerSlice = createSlice({
       const test = action.payload;
       state.tests = [...state.tests.filter((t) => t.nodeID !== test.nodeID)];
     },
-    setKinematicSolver: (
+    setKinematicsSolver: (
       state: GDState,
-      action: PayloadAction<KinematicSolver | undefined>
+      action: PayloadAction<KinematicsSolver | undefined>
     ) => {
-      state.kinematicSolver = action.payload;
+      state.KinematicsSolver = action.payload;
     },
     setDraggingNewElement: (
       state: GDState,
@@ -598,7 +598,7 @@ export const {
   setROVariablesManager,
   setTest,
   removeTest,
-  setKinematicSolver,
+  setKinematicsSolver,
   setUIDisabled,
   setAllUIDisabled,
   toggleFullScreen,

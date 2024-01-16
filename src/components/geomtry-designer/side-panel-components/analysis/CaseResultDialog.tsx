@@ -122,7 +122,7 @@ const CaseResultContent = React.memo((props: {test: ITest}) => {
 
   const setComponentsState = React.useCallback((ss?: ISnapshot) => {
     const {uitgd} = store.getState();
-    const solver = uitgd.kinematicSolver;
+    const solver = uitgd.KinematicsSolver;
     if (solver && ss) {
       solver.restoreState(ss);
       solver.postProcess();

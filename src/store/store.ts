@@ -49,7 +49,7 @@ const store = configureStore({
           'uitGeometryDesigner/setMeasureToolsManager',
           'uitGeometryDesigner/setROVariablesManager',
           'uitGeometryDesigner/setMeasureElementPointSetterCallback',
-          'uitGeometryDesigner/setKinematicSolver',
+          'uitGeometryDesigner/setKinematicsSolver',
           'uitGeometryDesigner/setGDSceneGetThree',
           'uitGeometryDesigner/setSelectedPoint',
           'uitGeometryDesigner/setViewDirection',
@@ -67,7 +67,7 @@ const store = configureStore({
         ],
         ignoredPaths: [
           `uitgd.assembly`,
-          `uitgd.kinematicSolver`,
+          `uitgd.KinematicsSolver`,
           'uitgd.collectedAssembly',
           'uitgd.datumManager',
           `uitgd.measureToolsManager`,

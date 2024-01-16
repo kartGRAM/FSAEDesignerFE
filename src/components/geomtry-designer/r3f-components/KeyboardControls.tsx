@@ -26,7 +26,9 @@ export const KeyboardControls = () => {
       return prev;
     }, {} as {[index: string]: Control[]});
 
-  const solver = useSelector((state: RootState) => state.uitgd.kinematicSolver);
+  const solver = useSelector(
+    (state: RootState) => state.uitgd.KinematicsSolver
+  );
   const fixSpringDumperDuaringControl = useSelector(
     (state: RootState) =>
       state.dgd.present.options.fixSpringDumperDuaringControl

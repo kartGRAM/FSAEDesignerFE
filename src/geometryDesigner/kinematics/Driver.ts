@@ -6,7 +6,7 @@ import {isElement} from '@gd/IElements';
 import {INamedVector3RO} from '@gd/INamedValues';
 import {Vector3} from 'three';
 import {IComponent} from '@gd/kinematics/KinematicComponents';
-import {KinematicSolver} from '@gd/kinematics/Solver';
+import {KinematicsSolver} from '@gd/kinematics/KinematicsSolver';
 import {getPartialDiffOfRotationMatrix} from '@gd/kinematics/KinematicFunctions';
 
 export interface IObjectiveFunction {
@@ -31,7 +31,7 @@ export class MovePointTo implements IObjectiveFunction {
   constructor(
     point: INamedVector3RO,
     target: Vector3,
-    solver: KinematicSolver
+    solver: KinematicsSolver
   ) {
     this.point = point;
     this.target = target;

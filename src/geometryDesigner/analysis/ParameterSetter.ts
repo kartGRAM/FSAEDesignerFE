@@ -5,7 +5,7 @@ import {getControl} from '@gd/controls/Controls';
 import {IFormula, IDataFormula} from '@gd/IFormula';
 import {Formula} from '@gd/Formula';
 import {getDgd} from '@store/getDgd';
-import {KinematicSolver} from '@gd/kinematics/Solver';
+import {KinematicsSolver} from '@gd/kinematics/KinematicsSolver';
 
 export type SetterType = 'GlobalVariable' | 'Control';
 
@@ -16,7 +16,7 @@ export interface IParameterSetter {
   valueFormula: IFormula;
   readonly evaluatedValue: number;
   getData(): IDataParameterSetter;
-  set(solver: KinematicSolver): void;
+  set(solver: KinematicsSolver): void;
 }
 
 export interface IDataParameterSetter {
@@ -36,7 +36,7 @@ export class ParameterSetter implements IParameterSetter {
 
   target: string;
 
-  set(solver: KinematicSolver): void {
+  set(solver: KinematicsSolver): void {
     if (this.type === 'Control') {
       const {control} = this;
       if (!control) throw new Error('Some Controls are undefinced.');

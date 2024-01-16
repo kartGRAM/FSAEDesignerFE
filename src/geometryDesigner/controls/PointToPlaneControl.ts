@@ -6,7 +6,7 @@ import {
   INamedNumber
 } from '@gd/INamedValues';
 import {PointToPlane, isPointToPlane} from '@gd/kinematics/Constraints';
-import {KinematicSolver} from '@gd/kinematics/Solver';
+import {KinematicsSolver} from '@gd/kinematics/KinematicsSolver';
 import {NamedVector3, NamedNumber} from '@gd/NamedValues';
 import {getDataElementByID} from '@gd/IElements';
 import {getElement} from '@gd/Elements';
@@ -96,7 +96,7 @@ export class PointToPlaneControl extends Control {
     return `position of ${point.name} of ${element.name.value}`;
   }
 
-  preprocess(dt: number, solver: KinematicSolver, value?: number): number[] {
+  preprocess(dt: number, solver: KinematicsSolver, value?: number): number[] {
     const deltaDl = dt * this.speed * (this.reverse ? -1 : 1);
     const roots = solver.components.map((c) => c[0]);
     const constraints = roots.reduce((prev, current) => {
@@ -125,7 +125,7 @@ export class PointToPlaneControl extends Control {
     return reserved;
   }
 
-  rollback(value: number[], solver: KinematicSolver): void {
+  rollback(value: number[], solver: KinematicsSolver): void {
     const roots = solver.components.map((c) => c[0]);
     const constraints = roots.reduce((prev, current) => {
       prev.push(

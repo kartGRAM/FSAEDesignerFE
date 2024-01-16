@@ -1,11 +1,11 @@
-import {KinematicSolver} from '@gd/kinematics/Solver';
+import {KinematicsSolver} from '@gd/kinematics/KinematicsSolver';
 import {ISnapshot} from '@gd/analysis/ISnapshot';
 import {IFlowNode, IDataFlowNode, FlowNode} from './FlowNode';
 
 export interface IActionNode extends IFlowNode {
   action(
-    solver: KinematicSolver,
-    getSnapshot: (solver: KinematicSolver) => Required<ISnapshot>,
+    solver: KinematicsSolver,
+    getSnapshot: (solver: KinematicsSolver) => Required<ISnapshot>,
     ss?: Required<ISnapshot>[]
   ): void;
 }
@@ -14,8 +14,8 @@ export interface IDataActionNode extends IDataFlowNode {}
 
 export abstract class ActionNode extends FlowNode implements IActionNode {
   abstract action(
-    solver: KinematicSolver,
-    getSnapshot: (solver: KinematicSolver) => Required<ISnapshot>,
+    solver: KinematicsSolver,
+    getSnapshot: (solver: KinematicsSolver) => Required<ISnapshot>,
     ss?: Required<ISnapshot>[]
   ): void;
 }

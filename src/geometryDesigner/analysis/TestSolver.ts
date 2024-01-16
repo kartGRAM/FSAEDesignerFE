@@ -1,7 +1,7 @@
 import {inWorker} from '@utils/helpers';
 import {getDgd} from '@store/getDgd';
 import {testUpdateNotify} from '@store/reducers/uiTempGeometryDesigner';
-import {KinematicSolver} from '@gd/kinematics/Solver';
+import {KinematicsSolver} from '@gd/kinematics/KinematicsSolver';
 import {
   isWorkerMessage,
   FromParent,
@@ -244,8 +244,8 @@ export class TestSolver implements ITestSolver {
 
   async DFSNodes(
     node: IFlowNode,
-    solver: KinematicSolver,
-    getSnapshot: (solver: KinematicSolver) => Required<ISnapshot>,
+    solver: KinematicsSolver,
+    getSnapshot: (solver: KinematicsSolver) => Required<ISnapshot>,
     ret: CaseResults,
     currentCase: string | undefined
   ): Promise<CaseResults> {

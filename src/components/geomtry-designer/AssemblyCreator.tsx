@@ -3,14 +3,14 @@ import {useSelector, useDispatch} from 'react-redux';
 import store, {RootState} from '@store/store';
 import {
   setAssemblyAndCollectedAssembly,
-  setKinematicSolver,
+  setKinematicsSolver,
   setAssembled,
   setDatumManager,
   setMeasureToolsManager,
   setROVariablesManager
 } from '@store/reducers/uiTempGeometryDesigner';
 // import {getKinematicConstrainedElements} from '@gd/KinematicFunctions';
-import {KinematicSolver} from '@gd/kinematics/Solver';
+import {KinematicsSolver} from '@gd/kinematics/KinematicsSolver';
 import {getControl} from '@gd/controls/Controls';
 import {Control} from '@gd/controls/IControls';
 import {DatumManager} from '@gd/measure/datum/DatumManager';
@@ -218,7 +218,7 @@ export default function AssemblyCreactor() {
       }, {} as {[index: string]: Control[]});
       if (assembly) {
         try {
-          const solver = new KinematicSolver(
+          const solver = new KinematicsSolver(
             assembly,
             assemblyMode,
             pinCenterOfGravityOfFrame,
@@ -226,7 +226,7 @@ export default function AssemblyCreactor() {
             controls,
             true
           );
-          dispatch(setKinematicSolver(solver));
+          dispatch(setKinematicsSolver(solver));
         } catch (e) {
           // eslint-disable-next-line no-console
           console.log(e);
@@ -237,7 +237,7 @@ export default function AssemblyCreactor() {
       }
       return;
     }
-    dispatch(setKinematicSolver(undefined));
+    dispatch(setKinematicsSolver(undefined));
 
     // else not assembled
     const {assembly} = store.getState().uitgd;

@@ -57,7 +57,7 @@ import {
 } from './KinematicComponents';
 import {ISnapshot} from '../analysis/ISnapshot';
 
-export class KinematicSolver {
+export class KinematicsSolver {
   assembly: IAssembly;
 
   components: IComponent[][];

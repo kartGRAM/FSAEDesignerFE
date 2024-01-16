@@ -5,7 +5,7 @@ import {ROVariablesManager} from '@gd/measure/readonlyVariables/ROVariablesManag
 import {getAssembly} from '@gd/Elements';
 import {getControl} from '@gd/controls/Controls';
 import {Control} from '@gd/controls/IControls';
-import {KinematicSolver} from '@gd/kinematics/Solver';
+import {KinematicsSolver} from '@gd/kinematics/KinematicsSolver';
 import {IAssembly, isMovingElement} from '@gd/IElements';
 
 export type LocalInstances = {
@@ -13,7 +13,7 @@ export type LocalInstances = {
   datumManager: DatumManager;
   measureToolsManager: MeasureToolsManager;
   roVariablesManager: ROVariablesManager;
-  solver: KinematicSolver;
+  solver: KinematicsSolver;
 };
 
 export function getLocalInstances(state: GDState): LocalInstances {
@@ -47,7 +47,7 @@ export function getLocalInstances(state: GDState): LocalInstances {
       });
     return prev;
   }, {} as {[index: string]: Control[]});
-  const solver = new KinematicSolver(
+  const solver = new KinematicsSolver(
     collectedAssembly,
     assemblyMode,
     pinCenterOfGravityOfFrame,

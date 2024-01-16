@@ -1,5 +1,5 @@
 import {v4 as uuidv4} from 'uuid';
-import {KinematicSolver} from '@gd/kinematics/Solver';
+import {KinematicsSolver} from '@gd/kinematics/KinematicsSolver';
 import {IActionNode, IDataActionNode, ActionNode} from './ActionNode';
 import {isDataFlowNode, IFlowNode, IDataFlowNode, IDataEdge} from './FlowNode';
 
@@ -16,7 +16,7 @@ export interface IDataStartNode extends IDataActionNode {
 
 export class StartNode extends ActionNode implements IStartNode {
   // eslint-disable-next-line class-methods-use-this
-  action(solver: KinematicSolver): void {
+  action(solver: KinematicsSolver): void {
     solver.restoreInitialQ();
   }
 

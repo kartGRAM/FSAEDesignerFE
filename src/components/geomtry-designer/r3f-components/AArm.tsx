@@ -66,7 +66,7 @@ const AArm = (props: {element: IAArm}) => {
     );
     if (dragRef.current) {
       dragRef.current = false;
-      const solver = store.getState().uitgd.kinematicSolver;
+      const solver = store.getState().uitgd.KinematicsSolver;
       if (solver && !solver.running) {
         const delta = targetRef.current
           .clone()

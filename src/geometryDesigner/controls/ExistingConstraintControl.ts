@@ -1,5 +1,5 @@
 import {getControl} from '@gd/controls/Controls';
-import {KinematicSolver} from '@gd/kinematics/Solver';
+import {KinematicsSolver} from '@gd/kinematics/KinematicsSolver';
 import {getDgd} from '@store/getDgd';
 import {Control, IDataControl, ControllerTypes} from './IControls';
 
@@ -51,7 +51,7 @@ export class ExistingConstraintControl extends Control {
     return `Onother control of ${control.name}`;
   }
 
-  preprocess(dt: number, solver: KinematicSolver, value?: number): unknown {
+  preprocess(dt: number, solver: KinematicsSolver, value?: number): unknown {
     const {controls} = getDgd();
     const dataControl = controls.find(
       (control) => control.nodeID === this.targetControl
@@ -65,7 +65,7 @@ export class ExistingConstraintControl extends Control {
     return control.preprocess(dtMod, solver, value);
   }
 
-  rollback(data: unknown, solver: KinematicSolver): void {
+  rollback(data: unknown, solver: KinematicsSolver): void {
     const {controls} = getDgd();
     const dataControl = controls.find(
       (control) => control.nodeID === this.targetControl

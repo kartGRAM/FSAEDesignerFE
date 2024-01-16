@@ -1,7 +1,7 @@
 import {ISnapshot} from '@gd/analysis/ISnapshot';
 
 import {v4 as uuidv4} from 'uuid';
-import {KinematicSolver} from '@gd/kinematics/Solver';
+import {KinematicsSolver} from '@gd/kinematics/KinematicsSolver';
 import {getDgd} from '@store/getDgd';
 import {
   isStartNode,
@@ -36,8 +36,8 @@ export interface IDataSetterNode extends IDataActionNode {
 
 export class SetterNode extends ActionNode implements ISetterNode {
   action(
-    solver: KinematicSolver,
-    getSnapshot: (solver: KinematicSolver) => Required<ISnapshot>,
+    solver: KinematicsSolver,
+    getSnapshot: (solver: KinematicsSolver) => Required<ISnapshot>,
     ss?: Required<ISnapshot>[]
   ): void {
     const state = getDgd();

@@ -1,6 +1,6 @@
 // eslint-env es6
 import {v4 as uuidv4} from 'uuid';
-import {KinematicSolver} from '@gd/kinematics/Solver';
+import {KinematicsSolver} from '@gd/kinematics/KinematicsSolver';
 import {getDgd} from '@store/getDgd';
 import {ISnapshot} from '@gd/analysis/ISnapshot';
 import {
@@ -36,8 +36,8 @@ export interface IDataSweepNode extends IDataActionNode {
 
 export class SweepNode extends ActionNode implements ISweepNode {
   action(
-    solver: KinematicSolver,
-    getSnapshot: (solver: KinematicSolver) => Required<ISnapshot>,
+    solver: KinematicsSolver,
+    getSnapshot: (solver: KinematicsSolver) => Required<ISnapshot>,
     ss?: Required<ISnapshot>[]
   ): void {
     const state = getDgd();

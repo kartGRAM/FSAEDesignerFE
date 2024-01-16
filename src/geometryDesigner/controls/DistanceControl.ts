@@ -1,6 +1,6 @@
 import {getDgd} from '@store/getDgd';
 import {BarAndSpheres, isBarAndSpheres} from '@gd/kinematics/Constraints';
-import {KinematicSolver} from '@gd/kinematics/Solver';
+import {KinematicsSolver} from '@gd/kinematics/KinematicsSolver';
 import {getDataElementByID} from '@gd/IElements';
 import {getElement} from '@gd/Elements';
 import {Control, IDataControl, ControllerTypes} from './IControls';
@@ -53,7 +53,7 @@ export class DistanceControl extends Control {
 
   preprocess(
     dt: number,
-    solver: KinematicSolver,
+    solver: KinematicsSolver,
     value?: number
   ): {type: 'delta' | 'absolute'; value: number[] | number} {
     const deltaDl = dt * this.speed * (this.reverse ? -1 : 1);
@@ -86,7 +86,7 @@ export class DistanceControl extends Control {
 
   rollback(
     data: {type: 'delta' | 'absolute'; value: number[] | number},
-    solver: KinematicSolver
+    solver: KinematicsSolver
   ) {
     const roots = solver.components.map((c) => c[0]);
     const constraints = roots.reduce((prev, current) => {
