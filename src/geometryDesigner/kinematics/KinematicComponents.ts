@@ -43,8 +43,87 @@ export interface IComponent {
   restoreState(state: number[]): void;
 }
 
+export abstract class ComponentBase implements IComponent {
+  abstract readonly className: string;
+
+  abstract readonly name: string;
+
+  abstract setCol(col: number): void;
+
+  abstract get col(): number;
+
+  // 自由度
+  abstract get degreeOfFreedom(): number;
+
+  // 正規化用の拘束式を得る
+  abstract getConstraintToNormalize(): Constraint | null;
+
+  abstract applyDq(dq: Matrix): void;
+
+  abstract loadQ(q: number[]): void;
+
+  abstract saveQ(q: number[]): void;
+
+  abstract applyResultToElement(): void;
+
+  abstract position: Vector3;
+
+  abstract quaternion: Quaternion;
+
+  abstract get isFixed(): boolean;
+
+  parent = this;
+
+  unionFindTreeParent = this;
+
+  unionFindTreeConstraints: Constraint[] = [];
+
+  getGroupedConstraints() {
+    if (!this.isRoot) throw new Error('ルートコンポーネントじゃない');
+    return this.unionFindTreeConstraints;
+  }
+
+  get root(): IComponent {
+    if (this.unionFindTreeParent === this) return this;
+    // 経路圧縮
+    return this.unionFindTreeParent.root;
+  }
+
+  get isRoot(): boolean {
+    return this.root === this;
+  }
+
+  unite(other: IComponent, constraint: Constraint) {
+    if (this.root === other.root) {
+      this.root.unionFindTreeConstraints = [
+        ...this.root.unionFindTreeConstraints,
+        constraint
+      ];
+      return;
+    }
+    const otherRoot = other.root;
+    other.root.unionFindTreeParent = this.root;
+    this.root.unionFindTreeConstraints = [
+      ...this.root.unionFindTreeConstraints,
+      constraint,
+      ...otherRoot.unionFindTreeConstraints
+    ];
+    otherRoot.unionFindTreeConstraints = [];
+  }
+
+  abstract reset(): void;
+
+  abstract saveInitialQ(): void;
+
+  abstract restoreInitialQ(): void;
+
+  abstract saveState(): number[];
+
+  abstract restoreState(state: number[]): void;
+}
+
 // 7自由度のコンポーネント
-export class FullDegreesComponent implements IComponent {
+export class FullDegreesComponent extends ComponentBase {
   static readonly className = 'FullDegreesComponent' as const;
 
   readonly className = FullDegreesComponent.className;
@@ -186,46 +265,8 @@ export class FullDegreesComponent implements IComponent {
     return this.isFixed || this.isRelativeFixed;
   }
 
-  parent = this;
-
-  unionFindTreeParent = this;
-
-  unionFindTreeConstraints: Constraint[] = [];
-
-  getGroupedConstraints() {
-    if (!this.isRoot) throw new Error('ルートコンポーネントじゃない');
-    return this.unionFindTreeConstraints;
-  }
-
-  get root(): IComponent {
-    if (this.unionFindTreeParent === this) return this;
-    // 経路圧縮
-    return this.unionFindTreeParent.root;
-  }
-
-  get isRoot(): boolean {
-    return this.root === this;
-  }
-
-  unite(other: IComponent, constraint: Constraint) {
-    if (this.root === other.root) {
-      this.root.unionFindTreeConstraints = [
-        ...this.root.unionFindTreeConstraints,
-        constraint
-      ];
-      return;
-    }
-    const otherRoot = other.root;
-    other.root.unionFindTreeParent = this.root;
-    this.root.unionFindTreeConstraints = [
-      ...this.root.unionFindTreeConstraints,
-      constraint,
-      ...otherRoot.unionFindTreeConstraints
-    ];
-    otherRoot.unionFindTreeConstraints = [];
-  }
-
   constructor(element: IElement) {
+    super();
     this.name = element.name.value;
     this.element = element;
     this._position = element.position.value;
@@ -276,7 +317,7 @@ export function isFullDegreesComponent(
 }
 
 // 計算にのみ使用する3自由度の点コンポーネント(bar同士をつなぐ場合のダミー)
-export class PointComponent implements IComponent {
+export class PointComponent extends ComponentBase {
   static readonly className = 'PointComponent' as const;
 
   readonly className = PointComponent.className;
@@ -374,50 +415,8 @@ export class PointComponent implements IComponent {
     return false;
   }
 
-  isRelativeFixed: boolean = false;
-
-  readonly isExcludedComponent = false;
-
-  parent = this;
-
-  unionFindTreeParent = this;
-
-  unionFindTreeConstraints: Constraint[] = [];
-
-  getGroupedConstraints() {
-    if (!this.isRoot) throw new Error('ルートコンポーネントじゃない');
-    return this.unionFindTreeConstraints;
-  }
-
-  get root(): IComponent {
-    if (this.unionFindTreeParent === this) return this;
-    // 経路圧縮
-    return this.unionFindTreeParent.root;
-  }
-
-  get isRoot(): boolean {
-    return this.root === this;
-  }
-
-  unite(other: IComponent, constraint: Constraint) {
-    if (this.root === other.root) {
-      this.root.unionFindTreeConstraints = [
-        ...this.root.unionFindTreeConstraints,
-        constraint
-      ];
-      return;
-    }
-    const otherRoot = other.root;
-    other.root.unionFindTreeParent = this.root;
-    this.root.unionFindTreeConstraints = [
-      ...this.root.unionFindTreeConstraints,
-      constraint,
-      ...otherRoot.unionFindTreeConstraints
-    ];
-    otherRoot.unionFindTreeConstraints = [];
-  }
-
   constructor(lhs: INamedVector3RO, rhs: INamedVector3RO) {
+    super();
     this.name = `${lhs.name}&${rhs.name}`;
     this.lhs = lhs;
     this.rhs = rhs;
@@ -433,18 +432,12 @@ export class PointComponent implements IComponent {
 
   _initialPosition: Vector3 = new Vector3();
 
-  _initialQuaternion: Quaternion = new Quaternion();
-
   saveInitialQ() {
     this._initialPosition = this.position.clone();
-    this._initialQuaternion = this.quaternion.clone();
   }
 
   restoreInitialQ() {
-    if (!this.isRelativeFixed) {
-      this.position = this._initialPosition.clone();
-      this.quaternion = this._initialQuaternion.clone();
-    }
+    this.position = this._initialPosition.clone();
   }
 
   saveState(): number[] {
@@ -461,4 +454,134 @@ export function isPointComponent(
   component: IComponent
 ): component is PointComponent {
   return component.className === PointComponent.className;
+}
+
+export class PointForce extends ComponentBase {
+  static readonly className = 'PointForce' as const;
+
+  readonly className = PointForce.className;
+
+  readonly name: string;
+
+  // ヤコビアンの列番号
+  _col: number = -1;
+
+  setCol(col: number) {
+    this._col = col;
+  }
+
+  get col(): number {
+    return this._col;
+  }
+
+  // 自由度(Fx,Fy,Fz)の3自由度
+  // eslint-disable-next-line class-methods-use-this
+  get degreeOfFreedom(): number {
+    return 3;
+  }
+
+  // 正規化用の拘束式を得る
+  // eslint-disable-next-line class-methods-use-this
+  getConstraintToNormalize(): Constraint | null {
+    return null;
+  }
+
+  applyDq(dq: Matrix) {
+    if (this._col === -1) return;
+    const {col} = this;
+    const dx = dq.get(col + X, 0);
+    const dy = dq.get(col + Y, 0);
+    const dz = dq.get(col + Z, 0);
+    this.force.x -= dx;
+    this.force.y -= dy;
+    this.force.z -= dz;
+  }
+
+  loadQ(q: number[]) {
+    if (this._col === -1) return;
+    const {col} = this;
+    this.force.x = q[col + X];
+    this.force.y = q[col + Y];
+    this.force.z = q[col + Z];
+  }
+
+  saveQ(q: number[]) {
+    if (this._col === -1) return;
+    const {col} = this;
+    q[col + X] = this.force.x;
+    q[col + Y] = this.force.y;
+    q[col + Z] = this.force.z;
+  }
+
+  lhs: INamedVector3RO;
+
+  rhs: INamedVector3RO;
+
+  applyResultToElement() {
+    [this.lhs, this.rhs].forEach((p) => {
+      const element = p.parent as IElement;
+      const pFrom = p.value
+        .applyQuaternion(element.rotation.value)
+        .add(element.position.value);
+      element.position.value = this.position
+        .clone()
+        .sub(pFrom)
+        .add(element.position.value);
+    });
+  }
+
+  force: Vector3;
+
+  get position() {
+    return this.force;
+  }
+
+  set position(value: Vector3) {
+    this.force = value;
+  }
+
+  get quaternion() {
+    return new Quaternion();
+  }
+
+  // eslint-disable-next-line no-empty-function
+  set quaternion(value: Quaternion) {}
+
+  _isFixed: boolean = false;
+
+  get isFixed(): boolean {
+    return false;
+  }
+
+  constructor(lhs: INamedVector3RO, rhs: INamedVector3RO) {
+    super();
+    this.name = `${lhs.name}&${rhs.name}`;
+    this.lhs = lhs;
+    this.rhs = rhs;
+    this.force = new Vector3(0, 0, 0);
+  }
+
+  reset() {
+    this.force = new Vector3(0, 0, 0);
+  }
+
+  _initialPosition: Vector3 = new Vector3();
+
+  saveInitialQ() {
+    this._initialPosition = this.position.clone();
+  }
+
+  restoreInitialQ() {
+    this.position = this._initialPosition.clone();
+  }
+
+  saveState(): number[] {
+    const p = this.position;
+    return [p.x, p.y, p.z];
+  }
+
+  restoreState(state: number[]): void {
+    const p = this.position;
+    [p.x, p.y, p.z] = state;
+  }
 }

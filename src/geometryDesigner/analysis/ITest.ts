@@ -2,7 +2,12 @@ import {isObject} from '@app/utils/helpers';
 import IClipboardItem from '@gd/ClipboardItem';
 import {CaseResults} from '@worker/solverWorkerMessage';
 import {LocalInstances} from '@worker/getLocalInstances';
-import {IDataNumber, INamedNumber} from '@gd/INamedValues';
+import {
+  IDataNumber,
+  INamedNumber,
+  INamedVector3,
+  IDataVector3
+} from '@gd/INamedValues';
 import {IDataFlowNode, IFlowNode, IDataEdge} from './FlowNode';
 import {IStartNode} from './StartNode';
 import {IEndNode} from './EndNode';
@@ -26,6 +31,7 @@ export interface ISteadySkidpadParams {
   storeIntermidiateResults: boolean;
   velocityStepSize: INamedNumber;
   radiusStepSize: INamedNumber;
+  gravity: INamedVector3;
 }
 
 export interface IDataSteadySkidpadParams {
@@ -37,9 +43,10 @@ export interface IDataSteadySkidpadParams {
   globalCd: IDataNumber;
   globalCl: IDataNumber;
   searchMode: 'binary' | 'step';
+  storeIntermidiateResults: boolean;
   velocityStepSize?: IDataNumber;
   radiusStepSize?: IDataNumber;
-  storeIntermidiateResults: boolean;
+  gravity?: IDataVector3;
 }
 
 export interface ITest {

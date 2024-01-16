@@ -1097,3 +1097,62 @@ export function isPointToPlane(
 ): constraint is PointToPlane {
   return constraint.className === pointToPlaneClassName;
 }
+
+export class FDComponentBalance implements Constraint {
+  readonly className = 'FDComponentBalance';
+
+  // 自由度を6減らす
+  constraints() {
+    return 6;
+  }
+
+  active() {
+    return true;
+  }
+
+  resetStates(): void {}
+
+  readonly isInequalityConstraint = false;
+
+  row: number = -1;
+
+  IComponent: IComponent;
+
+  get lhs() {
+    return this.IComponent;
+  }
+
+  get rhs() {
+    return this.IComponent;
+  }
+
+  name: string;
+
+  constructor(name: string, component: FullDegreesComponent) {
+    this.name = name;
+    this.IComponent = component;
+  }
+
+  setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
+    const {row, IComponent} = this;
+    const {col} = IComponent;
+    const q = IComponent.quaternion;
+
+    const e0 = q.w;
+    const e1 = q.x;
+    const e2 = q.y;
+    const e3 = q.z;
+    phi[row] = e0 * e0 + e1 * e1 + e2 * e2 + e3 * e3 - 1;
+
+    phi_q.set(row, col + Q0, 2 * e0);
+    phi_q.set(row, col + Q1, 2 * e1);
+    phi_q.set(row, col + Q2, 2 * e2);
+    phi_q.set(row, col + Q3, 2 * e3);
+  }
+
+  setJacobianAndConstraintsInequal() {}
+
+  checkInequalityConstraint(): [boolean, any] {
+    return [false, null];
+  }
+}

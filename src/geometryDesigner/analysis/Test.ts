@@ -3,7 +3,8 @@ import {v4 as uuidv4} from 'uuid';
 import {getDgd} from '@store/getDgd';
 import {setTests} from '@store/reducers/dataGeometryDesigner';
 import {testUpdateNotify} from '@store/reducers/uiTempGeometryDesigner';
-import {NamedNumber} from '@gd/NamedValues';
+import {NamedNumber, NamedVector3} from '@gd/NamedValues';
+import {Vector3} from 'three';
 import {IFlowNode, IDataEdge} from './FlowNode';
 import {StartNode, isStartNode, IStartNode} from './StartNode';
 import {EndNode, isEndNode, IEndNode} from './EndNode';
@@ -39,7 +40,10 @@ export const loadSteadySkidpadParams = (
     radiusStepSize: data.radiusStepSize
       ? new NamedNumber({value: data.radiusStepSize})
       : new NamedNumber({name: 'radiusStepSize', value: -0.5}),
-    storeIntermidiateResults: data.storeIntermidiateResults
+    storeIntermidiateResults: data.storeIntermidiateResults,
+    gravity: data.gravity
+      ? new NamedVector3({value: data.gravity})
+      : new NamedVector3({name: 'accOfGravity', value: new Vector3(0, 0, -9.8)})
   };
 };
 
