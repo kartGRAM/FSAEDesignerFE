@@ -1187,7 +1187,7 @@ export class FDComponentBalance implements Constraint {
     } = this;
     const q = component.quaternion;
     const cog = cogLocalVec.clone().applyQuaternion(q);
-    const translation = this.pointForceComponents
+    const translation = pointForceComponents
       .reduce((prev, current) => {
         const f = current.force;
         prev.add(f);
@@ -1195,7 +1195,7 @@ export class FDComponentBalance implements Constraint {
       }, new Vector3())
       .add(mg);
     // 変分の方程式がわかりやすくなるようにあえて、力x距離にする
-    const rotation = this.pointForceComponents
+    const rotation = pointForceComponents
       .reduce((prev, current, i) => {
         const f = current.force.clone();
         const s = pointLocalVec[i].clone().applyQuaternion(q);
@@ -1235,6 +1235,120 @@ export class FDComponentBalance implements Constraint {
     });
     sigmaPI.add(mgSkew.mmul(A.mmul(cogLocalSkew).mmul(G))); // (3x3) x (3x3) x (3x3) x (3x4) = 3x4
     phi_q.setSubMatrix(sigmaPI, row + 3, col + Q0);
+  }
+
+  setJacobianAndConstraintsInequal() {}
+
+  checkInequalityConstraint(): [boolean, any] {
+    return [false, null];
+  }
+}
+
+export class BarBalance implements Constraint {
+  readonly className = 'BarBalance';
+
+  // 並進運動+回転
+  constraints() {
+    return 6;
+  }
+
+  active() {
+    return true;
+  }
+
+  resetStates(): void {}
+
+  readonly isInequalityConstraint = false;
+
+  row: number = -1;
+
+  name: string;
+
+  pfLhs: PointForce;
+
+  pfRhs: PointForce;
+
+  lhs: IComponent;
+
+  rhs: IComponent;
+
+  lLocalVec: Vector3;
+
+  lLocalSkew: Matrix;
+
+  rLocalVec: Vector3;
+
+  rLocalSkew: Matrix;
+
+  mg: Vector3;
+
+  mgSkew: Matrix;
+
+  cog: number;
+
+  skewBase = skew({x: 1, y: 1, z: 1});
+
+  constructor(
+    name: string,
+    cLhs: IComponent,
+    cRhs: IComponent,
+    mass: number,
+    cog: number, // lhs基準
+    vLhs: Vector3,
+    vRhs: Vector3,
+    pfLhs: PointForce,
+    pfRhs: PointForce,
+    gravity: Vector3
+  ) {
+    this.name = name;
+    this.lhs = cLhs;
+    this.rhs = cRhs;
+    this.mg = gravity.clone().multiplyScalar(mass);
+    this.mgSkew = skew(this.mg);
+    this.cog = cog;
+    this.pfLhs = pfLhs;
+    this.pfRhs = pfRhs;
+    this.lLocalVec = vLhs.clone();
+    this.lLocalSkew = skew(this.lLocalVec).mul(2);
+    this.rLocalVec = vRhs.clone();
+    this.rLocalSkew = skew(this.rLocalVec).mul(-2);
+  }
+
+  setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
+    const {
+      row,
+      lhs,
+      rhs,
+      lLocalVec,
+      lLocalSkew,
+      rLocalVec,
+      rLocalSkew,
+      pfLhs,
+      pfRhs,
+      cog,
+      mg,
+      mgSkew,
+      skewBase
+    } = this;
+    const qLhs = lhs.quaternion;
+    const qRhs = rhs.quaternion;
+    const pLhs = lLocalVec.clone().applyQuaternion(qLhs).add(lhs.position);
+    const pRhs = rLocalVec.clone().applyQuaternion(qRhs).add(rhs.position);
+    const pCog = pRhs.clone().sub(pLhs).multiplyScalar(cog);
+
+    const translation = pfLhs.force.clone().add(pfRhs.force).add(mg);
+    // 変分の方程式がわかりやすくなるようにあえて、力x距離にする
+    // グローバル座標系原点周りのモーメントつり合い
+    const nl = pfLhs.force.clone().cross(pLhs);
+    const nr = pfRhs.force.clone().cross(pRhs);
+    const rotation = nl.add(nr).add(mg.clone().cross(pCog));
+
+    phi[row + 0] = translation.x;
+    phi[row + 1] = translation.y;
+    phi[row + 2] = translation.z;
+    phi[row + 3] = rotation.x;
+    phi[row + 4] = rotation.y;
+    phi[row + 5] = rotation.z;
   }
 
   setJacobianAndConstraintsInequal() {}
