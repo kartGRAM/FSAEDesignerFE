@@ -34,7 +34,7 @@ export function setSubMatrix(
 */
 
 // チルダマトリックスを取得
-export function skew(v: Vector3) {
+export function skew(v: {x: number; y: number; z: number}) {
   return new Matrix([
     [0, v.z, -v.y],
     [-v.z, 0, v.x],

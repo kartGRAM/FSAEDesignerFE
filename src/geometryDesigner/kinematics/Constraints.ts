@@ -13,8 +13,8 @@ import {
 import {
   IComponent,
   FullDegreesComponent,
-  isFullDegreesComponent
-  // isPointComponent
+  isFullDegreesComponent,
+  PointForce
 } from './KinematicComponents';
 
 const X = 0;
@@ -1101,7 +1101,7 @@ export function isPointToPlane(
 export class FDComponentBalance implements Constraint {
   readonly className = 'FDComponentBalance';
 
-  // 自由度を6減らす
+  // 並進運動+回転
   constraints() {
     return 6;
   }
@@ -1116,38 +1116,125 @@ export class FDComponentBalance implements Constraint {
 
   row: number = -1;
 
-  IComponent: IComponent;
-
   get lhs() {
-    return this.IComponent;
+    return this.component;
   }
 
   get rhs() {
-    return this.IComponent;
+    return this.component;
   }
 
   name: string;
 
-  constructor(name: string, component: FullDegreesComponent) {
+  component: IComponent;
+
+  pointForceComponents: PointForce[];
+
+  cogLocalVec: Vector3;
+
+  cogLocalSkew: Matrix;
+
+  pointLocalVec: Vector3[];
+
+  pointLocalVecMat: Matrix[];
+
+  pointLocalSkew: Matrix[];
+
+  mg: Vector3;
+
+  mgSkew: Matrix;
+
+  skewBase = skew({x: 1, y: 1, z: 1});
+
+  constructor(
+    name: string,
+    component: FullDegreesComponent,
+    mass: number,
+    cog: Vector3,
+    points: Vector3[],
+    pointForceComponents: PointForce[],
+    gravity: Vector3
+  ) {
     this.name = name;
-    this.IComponent = component;
+    this.component = component;
+    this.mg = gravity.clone().multiplyScalar(mass);
+    this.mgSkew = skew(this.mg);
+    this.pointForceComponents = [...pointForceComponents];
+
+    this.cogLocalVec = cog.clone();
+    this.cogLocalSkew = skew(this.cogLocalVec).mul(2);
+
+    this.pointLocalVec = points.map((p) => p.clone());
+    this.pointLocalVecMat = points.map(
+      (p) => new Matrix([[p.x], [p.y], [p.z]])
+    ); // 3x1
+    this.pointLocalSkew = this.pointLocalVec.map((p) => skew(p).mul(2));
   }
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
-    const {row, IComponent} = this;
-    const {col} = IComponent;
-    const q = IComponent.quaternion;
+    const {
+      row,
+      component,
+      pointForceComponents,
+      cogLocalVec,
+      cogLocalSkew,
+      pointLocalVec,
+      pointLocalVecMat,
+      pointLocalSkew,
+      mg,
+      mgSkew,
+      skewBase
+    } = this;
+    const q = component.quaternion;
+    const cog = cogLocalVec.clone().applyQuaternion(q);
+    const translation = this.pointForceComponents
+      .reduce((prev, current) => {
+        const f = current.force;
+        prev.add(f);
+        return prev;
+      }, new Vector3())
+      .add(mg);
+    // 変分の方程式がわかりやすくなるようにあえて、力x距離にする
+    const rotation = this.pointForceComponents
+      .reduce((prev, current, i) => {
+        const f = current.force.clone();
+        const s = pointLocalVec[i].clone().applyQuaternion(q);
+        f.cross(s);
+        prev.add(f);
+        return prev;
+      }, new Vector3())
+      .add(mg.clone().cross(cog));
 
-    const e0 = q.w;
-    const e1 = q.x;
-    const e2 = q.y;
-    const e3 = q.z;
-    phi[row] = e0 * e0 + e1 * e1 + e2 * e2 + e3 * e3 - 1;
+    phi[row + 0] = translation.x;
+    phi[row + 1] = translation.y;
+    phi[row + 2] = translation.z;
+    phi[row + 3] = rotation.x;
+    phi[row + 4] = rotation.y;
+    phi[row + 5] = rotation.z;
 
-    phi_q.set(row, col + Q0, 2 * e0);
-    phi_q.set(row, col + Q1, 2 * e1);
-    phi_q.set(row, col + Q2, 2 * e2);
-    phi_q.set(row, col + Q3, 2 * e3);
+    const {col} = component;
+
+    const A = rotationMatrix(q);
+    const G = decompositionMatrixG(q);
+    const sigmaPI = new Matrix(3, 4);
+    pointForceComponents.forEach((p, i) => {
+      const {col, force} = p;
+      phi_q.set(row + X, col + X, 1);
+      phi_q.set(row + Y, col + Y, 1);
+      phi_q.set(row + Z, col + Z, 1);
+      const localSkew = pointLocalSkew[i];
+      const fSkew = skew(force);
+      const AsG = A.mmul(localSkew).mmul(G);
+      sigmaPI.add(fSkew.mmul(AsG));
+
+      phi_q.setSubMatrix(
+        skewBase.mmul(A.mmul(pointLocalVecMat[i])),
+        row + 3,
+        col + Q0
+      );
+    });
+    sigmaPI.add(mgSkew.mmul(A.mmul(cogLocalSkew).mmul(G))); // (3x3) x (3x3) x (3x3) x (3x4) = 3x4
+    phi_q.setSubMatrix(sigmaPI, row + 3, col + Q0);
   }
 
   setJacobianAndConstraintsInequal() {}

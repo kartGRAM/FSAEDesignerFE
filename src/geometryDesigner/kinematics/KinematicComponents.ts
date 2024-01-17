@@ -565,23 +565,23 @@ export class PointForce extends ComponentBase {
     this.force = new Vector3(0, 0, 0);
   }
 
-  _initialPosition: Vector3 = new Vector3();
+  _initialForce: Vector3 = new Vector3();
 
   saveInitialQ() {
-    this._initialPosition = this.position.clone();
+    this._initialForce = this.force.clone();
   }
 
   restoreInitialQ() {
-    this.position = this._initialPosition.clone();
+    this.force = this._initialForce.clone();
   }
 
   saveState(): number[] {
-    const p = this.position;
+    const p = this.force;
     return [p.x, p.y, p.z];
   }
 
   restoreState(state: number[]): void {
-    const p = this.position;
+    const p = this.force;
     [p.x, p.y, p.z] = state;
   }
 }
