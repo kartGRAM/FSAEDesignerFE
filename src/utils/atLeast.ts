@@ -16,3 +16,5 @@ type AtLeastRec<Num, Elm, T extends unknown[], C extends unknown[]> = {
 export type AtLeast1<T> = [T, ...T[]];
 export type AtLeast2<T> = [T, T, ...T[]];
 export type AtLeast3<T> = [T, T, T, ...T[]];
+
+export type Triple<T> = [T, T, T];

@@ -4,6 +4,7 @@
 import {Matrix} from 'ml-matrix';
 import {Vector3} from 'three';
 import {isObject} from '@utils/helpers';
+import {Triple} from '@utils/atLeast';
 import {
   getStableOrthogonalVector,
   skew,
@@ -1390,6 +1391,144 @@ export class BarBalance implements Constraint {
         );
       }
     }
+  }
+
+  setJacobianAndConstraintsInequal() {}
+
+  checkInequalityConstraint(): [boolean, any] {
+    return [false, null];
+  }
+}
+
+export class AArmBalance implements Constraint {
+  readonly className = 'AArmBalance';
+
+  // 並進運動+回転
+  constraints() {
+    return 6;
+  }
+
+  active() {
+    return true;
+  }
+
+  resetStates(): void {}
+
+  readonly isInequalityConstraint = false;
+
+  row: number = -1;
+
+  name: string;
+
+  pfs: Triple<PointForce>;
+
+  components: Triple<IComponent>;
+
+  get lhs() {
+    return this.components[0];
+  }
+
+  get rhs() {
+    return this.components[1];
+  }
+
+  localVec: Triple<Vector3>;
+
+  localSkew: Triple<Matrix>;
+
+  cog: Triple<number>;
+
+  mg: Vector3;
+
+  skewBase = skew({x: 1, y: 1, z: 1});
+
+  constructor(
+    name: string,
+    components: Triple<IComponent>,
+    mass: number,
+    cog: Vector3,
+    points: Triple<Vector3>,
+    pfs: Triple<PointForce>,
+    gravity: Vector3
+  ) {
+    this.name = name;
+    this.mg = gravity.clone().multiplyScalar(mass);
+    this.cog = points.map((p) => cog.dot(p) / p.lengthSq()) as Triple<number>;
+    this.pfs = [...pfs];
+    this.components = [...components];
+    this.localVec = points.map((p) => p.clone()) as Triple<Vector3>;
+    this.localSkew = points.map((p) => skew(p)) as Triple<Matrix>;
+  }
+
+  setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
+    const {row, components, localVec, localSkew, pfs, cog, mg, skewBase} = this;
+    const colDone: number[] = [];
+    const p = components.map((c) => c.position.applyQuaternion(c.quaternion));
+    const pCog = cog.reduce(
+      (prev, t, i) => prev.add(p[i].clone().multiplyScalar(t)),
+      new Vector3()
+    );
+
+    const translation = pfs
+      .reduce((prev, p) => prev.add(p.force.clone()), new Vector3())
+      .add(mg);
+    // 変分の方程式がわかりやすくなるようにあえて、力x距離にする
+    // グローバル座標系原点周りのモーメントつり合い
+    const rotation = pfs
+      .reduce(
+        (prev, p, i) => prev.add(p.force.clone().cross(localVec[i])),
+        new Vector3()
+      )
+      .add(mg.clone().cross(pCog));
+
+    phi[row + 0] = translation.x;
+    phi[row + 1] = translation.y;
+    phi[row + 2] = translation.z;
+    phi[row + 3] = rotation.x;
+    phi[row + 4] = rotation.y;
+    phi[row + 5] = rotation.z;
+
+    components.forEach((component, i) => {
+      // Pfのヤコビアン
+      const pfCol = pfs[i].col;
+      phi_q.set(row + X, pfCol + X, 1);
+      phi_q.set(row + Y, pfCol + Y, 1);
+      phi_q.set(row + Z, pfCol + Z, 1);
+      phi_q.setSubMatrix(skewBase.mmul(getVVector(p[i])), row + 3, pfCol + X);
+      // componentのヤコビアン
+      const {col} = component;
+      const f = pfs[i].force;
+      const dP = skew(f.clone().add(mg));
+      if (!colDone.includes(col)) {
+        phi_q.setSubMatrix(dP, row + 3, col + X);
+      } else {
+        phi_q.setSubMatrix(
+          phi_q.subMatrix(row + 3, row + 5, col + X, col + Z).add(dP),
+          row + 3,
+          col + X
+        );
+      }
+      if (isFullDegreesComponent(component)) {
+        const t = cog[i];
+        const q = component.quaternion;
+        const A = rotationMatrix(q);
+        const s = localSkew[i];
+        const G = decompositionMatrixG(q);
+        const dTheta = skew(f.clone().add(mg.multiplyScalar(t)))
+          .mul(A)
+          .mul(s)
+          .mul(G);
+        if (!colDone.includes(col)) {
+          phi_q.setSubMatrix(dTheta, row + 3, col + Q0);
+        } else {
+          phi_q.setSubMatrix(
+            phi_q.subMatrix(row + 3, row + 5, col + Q0, col + Q3).add(dTheta),
+            row + 3,
+            col + Q0
+          );
+        }
+      }
+    });
   }
 
   setJacobianAndConstraintsInequal() {}
