@@ -41,6 +41,14 @@ export function skew(v: {x: number; y: number; z: number}) {
     [v.y, -v.x, 0]
   ]);
 }
+
+export const skewBase = skew({x: 1, y: 1, z: 1});
+
+// 縦ベクトルを得る
+export function getVVector(v: {x: number; y: number; z: number}) {
+  return new Matrix([[v.x], [v.y], [v.z]]);
+}
+
 // 回転行列を取得
 export function rotationMatrix(q: Quaternion) {
   const e0 = q.w;

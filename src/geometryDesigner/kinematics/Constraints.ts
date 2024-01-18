@@ -8,7 +8,9 @@ import {
   getStableOrthogonalVector,
   skew,
   rotationMatrix,
-  decompositionMatrixG
+  decompositionMatrixG,
+  skewBase,
+  getVVector
 } from './KinematicFunctions';
 import {
   IComponent,
@@ -1144,8 +1146,6 @@ export class FDComponentBalance implements Constraint {
 
   mgSkew: Matrix;
 
-  skewBase = skew({x: 1, y: 1, z: 1});
-
   constructor(
     name: string,
     component: FullDegreesComponent,
@@ -1165,9 +1165,7 @@ export class FDComponentBalance implements Constraint {
     this.cogLocalSkew = skew(this.cogLocalVec).mul(2);
 
     this.pointLocalVec = points.map((p) => p.clone());
-    this.pointLocalVecMat = points.map(
-      (p) => new Matrix([[p.x], [p.y], [p.z]])
-    ); // 3x1
+    this.pointLocalVecMat = points.map((p) => getVVector(p)); // 3x1
     this.pointLocalSkew = this.pointLocalVec.map((p) => skew(p).mul(2));
   }
 
@@ -1182,8 +1180,7 @@ export class FDComponentBalance implements Constraint {
       pointLocalVecMat,
       pointLocalSkew,
       mg,
-      mgSkew,
-      skewBase
+      mgSkew
     } = this;
     const q = component.quaternion;
     const cog = cogLocalVec.clone().applyQuaternion(q);
@@ -1230,7 +1227,7 @@ export class FDComponentBalance implements Constraint {
       phi_q.setSubMatrix(
         skewBase.mmul(A.mmul(pointLocalVecMat[i])),
         row + 3,
-        col + Q0
+        col + X
       );
     });
     sigmaPI.add(mgSkew.mmul(A.mmul(cogLocalSkew).mmul(G))); // (3x3) x (3x3) x (3x3) x (3x4) = 3x4
@@ -1349,6 +1346,50 @@ export class BarBalance implements Constraint {
     phi[row + 3] = rotation.x;
     phi[row + 4] = rotation.y;
     phi[row + 5] = rotation.z;
+
+    {
+      const pfCol = pfLhs.col;
+      phi_q.set(row + X, pfCol + X, 1);
+      phi_q.set(row + Y, pfCol + Y, 1);
+      phi_q.set(row + Z, pfCol + Z, 1);
+      phi_q.setSubMatrix(skewBase.mmul(getVVector(pLhs)), row + 3, pfCol + X);
+      const {col} = lhs;
+      const fSkew = skew(pfLhs.force);
+      const tempMat = fSkew.add(mgSkew.mul(1 - cog));
+      phi_q.setSubMatrix(tempMat, row + 3, col + X);
+
+      if (isFullDegreesComponent(lhs)) {
+        const A = rotationMatrix(qLhs);
+        const G = decompositionMatrixG(qLhs);
+        phi_q.setSubMatrix(
+          tempMat.mmul(A.mmul(lLocalSkew).mmul(G)),
+          row + 3,
+          col + Q0
+        );
+      }
+    }
+
+    {
+      const pfCol = pfRhs.col;
+      phi_q.set(row + X, pfCol + X, 1);
+      phi_q.set(row + Y, pfCol + Y, 1);
+      phi_q.set(row + Z, pfCol + Z, 1);
+      phi_q.setSubMatrix(skewBase.mmul(getVVector(pRhs)), row + 3, pfCol + X);
+      const {col} = rhs;
+      const fSkew = skew(pfRhs.force);
+      const tempMat = fSkew.add(mgSkew.mul(cog));
+      phi_q.setSubMatrix(tempMat, row + 3, col + X);
+
+      if (isFullDegreesComponent(rhs)) {
+        const A = rotationMatrix(qRhs);
+        const G = decompositionMatrixG(qRhs);
+        phi_q.setSubMatrix(
+          tempMat.mmul(A.mmul(rLocalSkew).mmul(G)),
+          row + 3,
+          col + Q0
+        );
+      }
+    }
   }
 
   setJacobianAndConstraintsInequal() {}
