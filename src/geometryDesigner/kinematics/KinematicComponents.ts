@@ -517,18 +517,7 @@ export class PointForce extends ComponentBase {
 
   rhs: INamedVector3RO;
 
-  applyResultToElement() {
-    [this.lhs, this.rhs].forEach((p) => {
-      const element = p.parent as IElement;
-      const pFrom = p.value
-        .applyQuaternion(element.rotation.value)
-        .add(element.position.value);
-      element.position.value = this.position
-        .clone()
-        .sub(pFrom)
-        .add(element.position.value);
-    });
-  }
+  applyResultToElement() {}
 
   force: Vector3;
 
@@ -546,8 +535,6 @@ export class PointForce extends ComponentBase {
 
   // eslint-disable-next-line no-empty-function
   set quaternion(value: Quaternion) {}
-
-  _isFixed: boolean = false;
 
   get isFixed(): boolean {
     return false;
@@ -583,5 +570,108 @@ export class PointForce extends ComponentBase {
   restoreState(state: number[]): void {
     const p = this.force;
     [p.x, p.y, p.z] = state;
+  }
+}
+
+// この1変数がいない場合、駆動力をぴったり合わせない限り、駆動力分のつり合いが取れないため、
+// 結果が収束しなくなる。駆動輪に、駆動力配分に従って、この項の駆動力があるものとして計算する。
+// その際駆動力分横力は減らないものとする。スリップ率を収束計算し、最終的にこの項が0に漸近するようにする。
+export class LongitudinalForceError extends ComponentBase {
+  static readonly className = 'LForceError' as const;
+
+  readonly className = PointForce.className;
+
+  readonly name: string;
+
+  // ヤコビアンの列番号
+  _col: number = -1;
+
+  setCol(col: number) {
+    this._col = col;
+  }
+
+  get col(): number {
+    return this._col;
+  }
+
+  // 駆動力のエラー
+  get degreeOfFreedom(): number {
+    return 1;
+  }
+
+  // 正規化用の拘束式を得る
+  // eslint-disable-next-line class-methods-use-this
+  getConstraintToNormalize(): Constraint | null {
+    return null;
+  }
+
+  applyDq(dq: Matrix) {
+    if (this._col === -1) return;
+    const {col} = this;
+    const dx = dq.get(col + X, 0);
+    this.force -= dx;
+  }
+
+  loadQ(q: number[]) {
+    if (this._col === -1) return;
+    const {col} = this;
+    this.force = q[col + X];
+  }
+
+  saveQ(q: number[]) {
+    if (this._col === -1) return;
+    const {col} = this;
+    q[col + X] = this.force;
+  }
+
+  applyResultToElement() {}
+
+  force: number;
+
+  get position() {
+    return new Vector3();
+  }
+
+  // eslint-disable-next-line no-empty-function
+  set position(_: Vector3) {}
+
+  get quaternion() {
+    return new Quaternion();
+  }
+
+  // eslint-disable-next-line no-empty-function
+  set quaternion(_: Quaternion) {}
+
+  get isFixed(): boolean {
+    return false;
+  }
+
+  constructor() {
+    super();
+    this.name = `LongitudinalForceError`;
+    this.force = 0;
+  }
+
+  reset() {
+    this.force = 0;
+  }
+
+  _initialForce = 0;
+
+  saveInitialQ() {
+    this._initialForce = this.force;
+  }
+
+  restoreInitialQ() {
+    this.force = this._initialForce;
+  }
+
+  saveState(): number[] {
+    const p = this.force;
+    return [p];
+  }
+
+  restoreState(state: number[]): void {
+    [this.force] = state;
   }
 }

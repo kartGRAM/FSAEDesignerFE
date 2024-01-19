@@ -670,45 +670,43 @@ export class TireBalance implements Constraint {
     phi[row + 4] = rotation.y;
     phi[row + 5] = rotation.z;
 
-    components.forEach((component, i) => {
-      // Pfのヤコビアン
-      const pfCol = pfs[i].col;
-      phi_q.set(row + X, pfCol + X, 1);
-      phi_q.set(row + Y, pfCol + Y, 1);
-      phi_q.set(row + Z, pfCol + Z, 1);
-      phi_q.setSubMatrix(skewBase.mmul(getVVector(p[i])), row + 3, pfCol + X);
-      // componentのヤコビアン
-      const {col} = component;
-      const f = pfs[i].force;
-      const dP = skew(f.clone().add(ma));
-      if (!colDone.includes(col)) {
-        phi_q.setSubMatrix(dP, row + 3, col + X);
-      } else {
-        phi_q.setSubMatrix(
-          phi_q.subMatrix(row + 3, row + 5, col + X, col + Z).add(dP),
-          row + 3,
-          col + X
-        );
-      }
-      const t = cog[i];
-      const q = component.quaternion;
-      const A = rotationMatrix(q);
-      const s = localSkew[i];
-      const G = decompositionMatrixG(q);
-      const dTheta = skew(f.clone().add(ma.multiplyScalar(t)))
-        .mul(A)
-        .mul(s)
-        .mul(G);
-      if (!colDone.includes(col)) {
-        phi_q.setSubMatrix(dTheta, row + 3, col + Q0);
-      } else {
-        phi_q.setSubMatrix(
-          phi_q.subMatrix(row + 3, row + 5, col + Q0, col + Q3).add(dTheta),
-          row + 3,
-          col + Q0
-        );
-      }
-    });
+    // Pfのヤコビアン
+    const pfCol = pfs[i].col;
+    phi_q.set(row + X, pfCol + X, 1);
+    phi_q.set(row + Y, pfCol + Y, 1);
+    phi_q.set(row + Z, pfCol + Z, 1);
+    phi_q.setSubMatrix(skewBase.mmul(getVVector(p[i])), row + 3, pfCol + X);
+    // componentのヤコビアン
+    const {col} = component;
+    const f = pfs[i].force;
+    const dP = skew(f.clone().add(ma));
+    if (!colDone.includes(col)) {
+      phi_q.setSubMatrix(dP, row + 3, col + X);
+    } else {
+      phi_q.setSubMatrix(
+        phi_q.subMatrix(row + 3, row + 5, col + X, col + Z).add(dP),
+        row + 3,
+        col + X
+      );
+    }
+    const t = cog[i];
+    const q = component.quaternion;
+    const A = rotationMatrix(q);
+    const s = localSkew[i];
+    const G = decompositionMatrixG(q);
+    const dTheta = skew(f.clone().add(ma.multiplyScalar(t)))
+      .mul(A)
+      .mul(s)
+      .mul(G);
+    if (!colDone.includes(col)) {
+      phi_q.setSubMatrix(dTheta, row + 3, col + Q0);
+    } else {
+      phi_q.setSubMatrix(
+        phi_q.subMatrix(row + 3, row + 5, col + Q0, col + Q3).add(dTheta),
+        row + 3,
+        col + Q0
+      );
+    }
   }
 
   setJacobianAndConstraintsInequal() {}
