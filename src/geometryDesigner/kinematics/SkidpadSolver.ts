@@ -56,7 +56,7 @@ import {
 } from './KinematicComponents';
 import {ISnapshot} from '../analysis/ISnapshot';
 
-export class SteadyDynamicsSolver {
+export class SkidpadSolver {
   assembly: IAssembly;
 
   components: IComponent[][];
