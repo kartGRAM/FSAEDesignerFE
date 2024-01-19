@@ -2,8 +2,8 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable max-classes-per-file */
 import {Matrix} from 'ml-matrix';
-import {Vector3} from 'three';
-import {Triple} from '@utils/atLeast';
+import {Vector3, Quaternion} from 'three';
+import {Triple, Twin} from '@utils/atLeast';
 import {
   skew,
   rotationMatrix,
@@ -425,7 +425,9 @@ export class AArmBalance implements Constraint {
     const {row, components, localVec, localSkew, pfs, cog, g} = this;
 
     const colDone: number[] = [];
-    const p = components.map((c) => c.position.applyQuaternion(c.quaternion));
+    const p = localVec.map((s, i) =>
+      s.applyQuaternion(components[i].quaternion).add(components[i].position)
+    );
     const pCog = cog.reduce(
       (prev, t, i) => prev.add(p[i].clone().multiplyScalar(t)),
       new Vector3()
@@ -442,7 +444,7 @@ export class AArmBalance implements Constraint {
     // グローバル座標系原点周りのモーメントつり合い
     const rotation = pfs
       .reduce(
-        (prev, p, i) => prev.add(p.force.clone().cross(localVec[i])),
+        (prev, pf, i) => prev.add(pf.force.clone().cross(p[i])),
         new Vector3()
       )
       .add(ma.clone().cross(pCog));
@@ -493,6 +495,218 @@ export class AArmBalance implements Constraint {
             col + Q0
           );
         }
+      }
+    });
+  }
+
+  setJacobianAndConstraintsInequal() {}
+
+  checkInequalityConstraint(): [boolean, any] {
+    return [false, null];
+  }
+}
+
+export class TireBalance implements Constraint {
+  readonly className = 'TireBalance';
+
+  // 並進運動+回転
+  constraints() {
+    return 6;
+  }
+
+  active() {
+    return true;
+  }
+
+  resetStates(): void {}
+
+  readonly isInequalityConstraint = false;
+
+  row: number = -1;
+
+  name: string;
+
+  pfs: Twin<PointForce>;
+
+  component: IComponent;
+
+  get lhs() {
+    return this.components[0];
+  }
+
+  get rhs() {
+    return this.components[1];
+  }
+
+  localVec: Twin<Vector3>;
+
+  localSkew: Twin<Matrix>;
+
+  cog: number;
+
+  g: Vector3;
+
+  mass: number;
+
+  rO: () => Vector3;
+
+  omegaO: () => Vector3;
+
+  ground: () => Vector3;
+
+  normal: () => Vector3;
+
+  getFriction: (sa: number, ia: number, fz: number) => Vector3;
+
+  constructor(
+    name: string,
+    component: FullDegreesComponent,
+    mass: number,
+    cog: number,
+    points: Twin<Vector3>, // Component基準
+    pfs: Twin<PointForce>, // Bearing部分
+    getFriction: (sa: number, ia: number, fz: number) => Vector3, // タイヤの発生する力
+    rO: () => Vector3, // 座標原点の各速度
+    omegaO: () => Vector3, // 座標原点の速度
+    ground: () => Vector3, // component座標系でのground位置
+    normal: () => Vector3,
+    gravity: Vector3
+  ) {
+    this.name = name;
+    this.cog = cog;
+    this.pfs = [...pfs];
+    this.component = component;
+    this.g = gravity.clone();
+    this.mass = mass;
+    this.rO = rO;
+    this.omegaO = omegaO;
+    this.getFriction = getFriction;
+    this.ground = ground;
+    this.normal = normal;
+    this.localVec = points.map((p) => p.clone()) as Twin<Vector3>;
+    this.localSkew = points.map((p) => skew(p)) as Twin<Matrix>;
+  }
+
+  setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
+    const {row, component, localVec, localSkew, pfs, cog, g} = this;
+
+    const colDone: number[] = [];
+    const p = localVec.map((p) =>
+      p.clone().applyQuaternion(component.quaternion).add(component.position)
+    );
+    const ground = this.ground()
+      .clone()
+      .applyQuaternion(component.quaternion)
+      .add(component.position);
+    const pCog = p[1].clone().sub(p[0]).multiplyScalar(cog);
+    // 慣性力を算出
+    const rO = this.rO();
+    const omegaO = this.omegaO();
+    const d2r_dt2 = omegaO.clone().cross(omegaO.clone().cross(rO.add(pCog)));
+    const ma = g.clone().sub(d2r_dt2).multiplyScalar(this.mass);
+    const vO = omegaO.clone().cross(rO);
+    // 接地点の速度
+    const vGround = vO.clone().add(omegaO.cross(ground));
+
+    // SAとIAとFZを求める
+    const normal = this.normal().normalize();
+    const axis = p[1].clone().sub(p[0]);
+    // axisに垂直で地面に平行なベクトル(左タイヤが進む方向)
+    const parallel = axis.clone().cross(normal).normalize();
+    // 速度ベクトルの地面に平行な成分を取得
+    const vGParallel = vGround
+      .clone()
+      .sub(normal.clone().multiplyScalar(normal.dot(vGround)));
+    // saの取得
+    const saSin = vGParallel.normalize().cross(parallel);
+    const saSign = saSin.dot(normal) > 0 ? 1 : -1;
+    const sa = (saSin.length() * saSign * 180) / Math.PI;
+
+    // iaの取得
+    const tireVirtical = axis.clone().normalize().cross(parallel);
+    const iaSin = tireVirtical.cross(normal);
+    const iaSign = iaSin.dot(parallel) > 0 ? 1 : -1;
+    const ia = (iaSin.length() * iaSign * 180) / Math.PI;
+
+    // fzの取得
+    // normal方向成分を求める
+    const fz = pfs
+      .reduce((prev, current) => {
+        const f = current.force;
+        return prev.add(normal.clone().multiplyScalar(-normal.dot(f)));
+      }, new Vector3())
+      .add(normal.clone().multiplyScalar(-normal.dot(ma)));
+
+    // タイヤの摩擦力の取得
+    const friction = this.getFriction(sa, ia, fz.length()); // この値はタイヤが垂直の時の座標系
+    // 垂直方向を合わせたのち、前方方向を合わせる
+    const q = new Quaternion()
+      .setFromUnitVectors(new Vector3(1, 0, 0), parallel)
+      .multiply(
+        new Quaternion().setFromUnitVectors(new Vector3(0, 0, 1), normal)
+      );
+    friction.applyQuaternion(q);
+
+    // 誤差項
+
+    const translation = pfs
+      .reduce((prev, p) => prev.add(p.force.clone()), new Vector3())
+      .add(ma)
+      .add(fz)
+      .add(friction);
+    // 変分の方程式がわかりやすくなるようにあえて、力x距離にする
+    // グローバル座標系原点周りのモーメントつり合い
+    const rotation = pfs
+      .reduce(
+        (prev, pf, i) => prev.add(pf.force.clone().cross(p[i])),
+        new Vector3()
+      )
+      .add(ma.clone().cross(pCog));
+
+    phi[row + 0] = translation.x;
+    phi[row + 1] = translation.y;
+    phi[row + 2] = translation.z;
+    phi[row + 3] = rotation.x;
+    phi[row + 4] = rotation.y;
+    phi[row + 5] = rotation.z;
+
+    components.forEach((component, i) => {
+      // Pfのヤコビアン
+      const pfCol = pfs[i].col;
+      phi_q.set(row + X, pfCol + X, 1);
+      phi_q.set(row + Y, pfCol + Y, 1);
+      phi_q.set(row + Z, pfCol + Z, 1);
+      phi_q.setSubMatrix(skewBase.mmul(getVVector(p[i])), row + 3, pfCol + X);
+      // componentのヤコビアン
+      const {col} = component;
+      const f = pfs[i].force;
+      const dP = skew(f.clone().add(ma));
+      if (!colDone.includes(col)) {
+        phi_q.setSubMatrix(dP, row + 3, col + X);
+      } else {
+        phi_q.setSubMatrix(
+          phi_q.subMatrix(row + 3, row + 5, col + X, col + Z).add(dP),
+          row + 3,
+          col + X
+        );
+      }
+      const t = cog[i];
+      const q = component.quaternion;
+      const A = rotationMatrix(q);
+      const s = localSkew[i];
+      const G = decompositionMatrixG(q);
+      const dTheta = skew(f.clone().add(ma.multiplyScalar(t)))
+        .mul(A)
+        .mul(s)
+        .mul(G);
+      if (!colDone.includes(col)) {
+        phi_q.setSubMatrix(dTheta, row + 3, col + Q0);
+      } else {
+        phi_q.setSubMatrix(
+          phi_q.subMatrix(row + 3, row + 5, col + Q0, col + Q3).add(dTheta),
+          row + 3,
+          col + Q0
+        );
       }
     });
   }

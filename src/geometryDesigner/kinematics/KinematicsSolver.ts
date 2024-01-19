@@ -294,23 +294,29 @@ export class KinematicsSolver {
           return;
         }
         // Tireはコンポーネント扱いしない
-        if (isTire(element) && canSimplifyTire(element, jointDict)) {
-          const jointl = jointDict[element.leftBearing.nodeID][0];
-          const jointr = jointDict[element.rightBearing.nodeID][0];
-          jointsDone.add(jointl);
-          jointsDone.add(jointr);
-          const points = [
-            getJointPartner(jointl, element.leftBearing.nodeID),
-            getJointPartner(jointr, element.rightBearing.nodeID)
-          ];
-          this.restorers.push(new TireRestorer(element, points[0], points[1]));
-
-          // 2023.06.17 二つ以上のコンポーネントにまたがるタイヤは、
-          // 一つのコンポーネント扱いとするように変更(接地点の計算が面倒極まるため)
-          // 計算負荷は虫すすことにする。
-          // 将来的には方法を考えるかも
-          // 以下はかなり特殊な場合（BRGの剛性を再現しているとか）
-          /* const constraint = new BarAndSpheres(
+        if (isTire(element)) {
+          if (canSimplifyTire(element, jointDict)) {
+            const jointl = jointDict[element.leftBearing.nodeID][0];
+            const jointr = jointDict[element.rightBearing.nodeID][0];
+            jointsDone.add(jointl);
+            jointsDone.add(jointr);
+            const points = [
+              getJointPartner(jointl, element.leftBearing.nodeID),
+              getJointPartner(jointr, element.rightBearing.nodeID)
+            ];
+            this.restorers.push(
+              new TireRestorer(element, points[0], points[1])
+            );
+          } else {
+            throw new Error(
+              'タイヤの軸は同じコンポーネントに接続される必要がある'
+            );
+            // 2023.06.17 二つ以上のコンポーネントにまたがるタイヤは、
+            // 一つのコンポーネント扱いとするように変更(接地点の計算が面倒極まるため)
+            // 計算負荷は虫すすことにする。
+            // 将来的には方法を考えるかも
+            // 以下はかなり特殊な場合（BRGの剛性を再現しているとか）
+            /* const constraint = new BarAndSpheres(
             `bar object of tire ${element.name.value}`,
             tempComponents[elements[0].nodeID],
             tempComponents[elements[1].nodeID],
@@ -320,6 +326,7 @@ export class KinematicsSolver {
             false
           );
           constraints.push(constraint); */
+          }
         }
         // LinearBushingはComponent扱いしない
         if (isLinearBushing(element)) {

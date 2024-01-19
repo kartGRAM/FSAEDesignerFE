@@ -18,3 +18,4 @@ export type AtLeast2<T> = [T, T, ...T[]];
 export type AtLeast3<T> = [T, T, T, ...T[]];
 
 export type Triple<T> = [T, T, T];
+export type Twin<T> = [T, T];
