@@ -15,7 +15,8 @@ import {
   IComponent,
   FullDegreesComponent,
   isFullDegreesComponent,
-  PointForce
+  PointForce,
+  LongitudinalForceError
 } from './KinematicComponents';
 import {Constraint} from './Constraints';
 
@@ -528,6 +529,8 @@ export class TireBalance implements Constraint {
 
   pfs: Twin<PointForce>;
 
+  error: LongitudinalForceError;
+
   component: IComponent;
 
   get lhs() {
@@ -558,26 +561,49 @@ export class TireBalance implements Constraint {
 
   getFriction: (sa: number, ia: number, fz: number) => Vector3;
 
-  constructor(
-    name: string,
-    component: FullDegreesComponent,
-    mass: number,
-    cog: number,
-    points: Twin<Vector3>, // Component基準
-    pfs: Twin<PointForce>, // Bearing部分
-    getFriction: (sa: number, ia: number, fz: number) => Vector3, // タイヤの発生する力
-    rO: () => Vector3, // 座標原点の各速度
-    omegaO: () => Vector3, // 座標原点の速度
-    ground: () => Vector3, // component座標系でのground位置
-    normal: () => Vector3,
-    gravity: Vector3
-  ) {
+  torqueRatio: number; // 駆動輪の駆動力配分
+
+  constructor(params: {
+    name: string;
+    component: FullDegreesComponent;
+    mass: number;
+    cog: number;
+    points: Twin<Vector3>; // Component基準
+    pfs: Twin<PointForce>; // Bearing部分
+    error: LongitudinalForceError;
+    torqueRatio: number;
+    getFriction: (sa: number, ia: number, fz: number) => Vector3; // タイヤの発生する力
+    rO: () => Vector3; // 座標原点の各速度
+    omegaO: () => Vector3; // 座標原点の速度
+    ground: () => Vector3; // component座標系でのground位置
+    normal: () => Vector3;
+    gravity: Vector3;
+  }) {
+    const {
+      name,
+      component,
+      mass,
+      cog,
+      points, // Component基準
+      pfs, // Bearing部分
+      error,
+      torqueRatio,
+      getFriction, // タイヤの発生する力
+      rO, // 座標原点の各速度
+      omegaO, // 座標原点の速度
+      ground, // component座標系でのground位置
+      normal,
+      gravity
+    } = params;
+
     this.name = name;
     this.cog = cog;
     this.pfs = [...pfs];
+    this.error = error;
     this.component = component;
     this.g = gravity.clone();
     this.mass = mass;
+    this.torqueRatio = torqueRatio;
     this.rO = rO;
     this.omegaO = omegaO;
     this.getFriction = getFriction;
@@ -588,7 +614,17 @@ export class TireBalance implements Constraint {
   }
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
-    const {row, component, localVec, localSkew, pfs, cog, g} = this;
+    const {
+      row,
+      component,
+      localVec,
+      localSkew,
+      pfs,
+      cog,
+      g,
+      error,
+      torqueRatio
+    } = this;
 
     const colDone: number[] = [];
     const p = localVec.map((p) =>
@@ -610,7 +646,7 @@ export class TireBalance implements Constraint {
 
     // SAとIAとFZを求める
     const normal = this.normal().normalize();
-    const axis = p[1].clone().sub(p[0]);
+    const axis = p[1].clone().sub(p[0]).normalize();
     // axisに垂直で地面に平行なベクトル(左タイヤが進む方向)
     const parallel = axis.clone().cross(normal).normalize();
     // 速度ベクトルの地面に平行な成分を取得
@@ -618,12 +654,12 @@ export class TireBalance implements Constraint {
       .clone()
       .sub(normal.clone().multiplyScalar(normal.dot(vGround)));
     // saの取得
-    const saSin = vGParallel.normalize().cross(parallel);
+    const saSin = vGParallel.clone().normalize().cross(parallel);
     const saSign = saSin.dot(normal) > 0 ? 1 : -1;
     const sa = (saSin.length() * saSign * 180) / Math.PI;
 
     // iaの取得
-    const tireVirtical = axis.clone().normalize().cross(parallel);
+    const tireVirtical = axis.clone().cross(parallel);
     const iaSin = tireVirtical.cross(normal);
     const iaSign = iaSin.dot(parallel) > 0 ? 1 : -1;
     const ia = (iaSin.length() * iaSign * 180) / Math.PI;
@@ -648,20 +684,34 @@ export class TireBalance implements Constraint {
     friction.applyQuaternion(q);
 
     // 誤差項
+    const fe = normal
+      .clone()
+      .cross(axis)
+      .multiplyScalar(-torqueRatio * error.force);
 
+    // 力のつり合い
     const translation = pfs
       .reduce((prev, p) => prev.add(p.force.clone()), new Vector3())
       .add(ma)
       .add(fz)
-      .add(friction);
+      .add(friction)
+      .add(fe);
+
     // 変分の方程式がわかりやすくなるようにあえて、力x距離にする
     // グローバル座標系原点周りのモーメントつり合い
     const rotation = pfs
       .reduce(
-        (prev, pf, i) => prev.add(pf.force.clone().cross(p[i])),
+        (prev, pf, i) =>
+          prev
+            .add(pf.force.clone().cross(p[i]))
+            .sub(
+              normal.clone().cross(ground).multiplyScalar(pf.force.dot(normal))
+            ),
         new Vector3()
       )
-      .add(ma.clone().cross(pCog));
+      .add(ma.clone().cross(pCog))
+      .sub(normal.clone().cross(ground).multiplyScalar(ma.dot(normal)))
+      .add(friction.clone().add(fe).cross(ground));
 
     phi[row + 0] = translation.x;
     phi[row + 1] = translation.y;
@@ -670,7 +720,7 @@ export class TireBalance implements Constraint {
     phi[row + 4] = rotation.y;
     phi[row + 5] = rotation.z;
 
-    // Pfのヤコビアン
+    // 力のつり合い
     const pfCol = pfs[i].col;
     phi_q.set(row + X, pfCol + X, 1);
     phi_q.set(row + Y, pfCol + Y, 1);
