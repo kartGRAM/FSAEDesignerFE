@@ -576,8 +576,8 @@ export class PointForce extends ComponentBase {
 // この1変数がいない場合、駆動力をぴったり合わせない限り、駆動力分のつり合いが取れないため、
 // 結果が収束しなくなる。駆動輪に、駆動力配分に従って、この項の駆動力があるものとして計算する。
 // その際駆動力分横力は減らないものとする。スリップ率を収束計算し、最終的にこの項が0に漸近するようにする。
-export class LongitudinalForceError extends ComponentBase {
-  static readonly className = 'LForceError' as const;
+export class GeneralVariable extends ComponentBase {
+  static readonly className = 'GeneralVariable' as const;
 
   readonly className = PointForce.className;
 
@@ -609,24 +609,24 @@ export class LongitudinalForceError extends ComponentBase {
     if (this._col === -1) return;
     const {col} = this;
     const dx = dq.get(col + X, 0);
-    this.force -= dx;
+    this.value -= dx;
   }
 
   loadQ(q: number[]) {
     if (this._col === -1) return;
     const {col} = this;
-    this.force = q[col + X];
+    this.value = q[col + X];
   }
 
   saveQ(q: number[]) {
     if (this._col === -1) return;
     const {col} = this;
-    q[col + X] = this.force;
+    q[col + X] = this.value;
   }
 
   applyResultToElement() {}
 
-  force: number;
+  value: number;
 
   get position() {
     return new Vector3();
@@ -646,32 +646,32 @@ export class LongitudinalForceError extends ComponentBase {
     return false;
   }
 
-  constructor() {
+  constructor(name: string) {
     super();
-    this.name = `LongitudinalForceError`;
-    this.force = 0;
+    this.name = name;
+    this.value = 0;
   }
 
   reset() {
-    this.force = 0;
+    this.value = 0;
   }
 
   _initialForce = 0;
 
   saveInitialQ() {
-    this._initialForce = this.force;
+    this._initialForce = this.value;
   }
 
   restoreInitialQ() {
-    this.force = this._initialForce;
+    this.value = this._initialForce;
   }
 
   saveState(): number[] {
-    const p = this.force;
+    const p = this.value;
     return [p];
   }
 
   restoreState(state: number[]): void {
-    [this.force] = state;
+    [this.value] = state;
   }
 }

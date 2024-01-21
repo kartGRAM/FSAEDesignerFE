@@ -15,6 +15,7 @@ import {isTorsionSpring} from '@gd/IElements/ITorsionSpring';
 import {INamedVector3RO} from '@gd/INamedValues';
 import {Matrix} from 'ml-matrix';
 import {Quaternion, Vector3} from 'three';
+import {isVector3} from '@utils/three';
 import {getDgd} from '@store/getDgd';
 
 // サブマトリックスを設定する
@@ -42,7 +43,67 @@ export function skew(v: {x: number; y: number; z: number}) {
   ]);
 }
 
-export const skewBase = skew({x: 1, y: 1, z: 1});
+declare module 'ml-matrix' {
+  // matrixにsubmatrixAddを追加
+  interface Matrix {
+    subMatrixAdd(matrix: Matrix, startRow: number, startColumn: number): Matrix;
+    subMatrixSub(matrix: Matrix, startRow: number, startColumn: number): Matrix;
+  }
+}
+
+// eslint-disable-next-line func-names
+Matrix.prototype.subMatrixAdd = function (
+  matrix: Matrix,
+  startRow: number,
+  startColumn: number
+) {
+  const cols = matrix.columns;
+  const {rows} = matrix;
+  return this.setSubMatrix(
+    this.subMatrix(
+      startRow,
+      startRow + rows - 1,
+      startColumn,
+      startColumn + cols - 1
+    ).add(matrix),
+    startRow,
+    startColumn
+  );
+};
+
+// eslint-disable-next-line func-names
+Matrix.prototype.subMatrixSub = function (
+  matrix: Matrix,
+  startRow: number,
+  startColumn: number
+) {
+  const cols = matrix.columns;
+  const {rows} = matrix;
+  return this.setSubMatrix(
+    this.subMatrix(
+      startRow,
+      startRow + rows - 1,
+      startColumn,
+      startColumn + cols - 1
+    ).sub(matrix),
+    startRow,
+    startColumn
+  );
+};
+
+const skewBase = skew({x: 1, y: 1, z: 1});
+
+export function deltaXcross(y: Vector3 | Matrix) {
+  if (isVector3(y)) return skewBase.mmul(getVVector(y));
+  return skewBase.mmul(y);
+}
+
+// (δX・a)bのヤコビアンを取得。
+export function deltaXdotAmulB(a: Vector3 | Matrix, b: Vector3 | Matrix) {
+  const A = (isVector3(a) ? getVVector(a) : a).transpose(); // (1x3)
+  const B = isVector3(b) ? getVVector(b) : b; // (3x1)
+  return B.mmul(A); // (3x3)
+}
 
 // 縦ベクトルを得る
 export function getVVector(v: {x: number; y: number; z: number}) {

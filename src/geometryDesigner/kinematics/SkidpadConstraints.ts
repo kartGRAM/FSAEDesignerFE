@@ -8,7 +8,7 @@ import {
   skew,
   rotationMatrix,
   decompositionMatrixG,
-  skewBase,
+  deltaXcross,
   getVVector
 } from './KinematicFunctions';
 import {
@@ -16,7 +16,7 @@ import {
   FullDegreesComponent,
   isFullDegreesComponent,
   PointForce,
-  LongitudinalForceError
+  GeneralVariable
 } from './KinematicComponents';
 import {Constraint} from './Constraints';
 
@@ -168,7 +168,7 @@ export class FDComponentBalance implements Constraint {
       sigmaPI.add(fSkew.mmul(AsG));
 
       phi_q.setSubMatrix(
-        skewBase.mmul(A.mmul(pointLocalVecMat[i])),
+        deltaXcross(A.mmul(pointLocalVecMat[i])),
         row + 3,
         col + X
       );
@@ -306,7 +306,7 @@ export class BarBalance implements Constraint {
       phi_q.set(row + X, pfCol + X, 1);
       phi_q.set(row + Y, pfCol + Y, 1);
       phi_q.set(row + Z, pfCol + Z, 1);
-      phi_q.setSubMatrix(skewBase.mmul(getVVector(pLhs)), row + 3, pfCol + X);
+      phi_q.setSubMatrix(deltaXcross(pLhs), row + 3, pfCol + X);
       const {col} = lhs;
       const fSkew = skew(pfLhs.force);
       const tempMat = fSkew.add(maSkew.mul(1 - cog));
@@ -463,7 +463,7 @@ export class AArmBalance implements Constraint {
       phi_q.set(row + X, pfCol + X, 1);
       phi_q.set(row + Y, pfCol + Y, 1);
       phi_q.set(row + Z, pfCol + Z, 1);
-      phi_q.setSubMatrix(skewBase.mmul(getVVector(p[i])), row + 3, pfCol + X);
+      phi_q.setSubMatrix(deltaXcross(p[i]), row + 3, pfCol + X);
       // componentのヤコビアン
       const {col} = component;
       const f = pfs[i].force;
@@ -471,11 +471,7 @@ export class AArmBalance implements Constraint {
       if (!colDone.includes(col)) {
         phi_q.setSubMatrix(dP, row + 3, col + X);
       } else {
-        phi_q.setSubMatrix(
-          phi_q.subMatrix(row + 3, row + 5, col + X, col + Z).add(dP),
-          row + 3,
-          col + X
-        );
+        phi_q.subMatrixAdd(dP, row + 3, col + X);
       }
       if (isFullDegreesComponent(component)) {
         const t = cog[i];
@@ -490,11 +486,7 @@ export class AArmBalance implements Constraint {
         if (!colDone.includes(col)) {
           phi_q.setSubMatrix(dTheta, row + 3, col + Q0);
         } else {
-          phi_q.setSubMatrix(
-            phi_q.subMatrix(row + 3, row + 5, col + Q0, col + Q3).add(dTheta),
-            row + 3,
-            col + Q0
-          );
+          phi_q.subMatrixAdd(dTheta, row + 3, col + Q0);
         }
       }
     });
@@ -676,12 +668,13 @@ export class TireBalance implements Constraint {
     // タイヤの摩擦力の取得
     const friction = this.getFriction(sa, ia, fz.length()); // この値はタイヤが垂直の時の座標系
     // 垂直方向を合わせたのち、前方方向を合わせる
-    const q = new Quaternion()
-      .setFromUnitVectors(new Vector3(1, 0, 0), parallel)
-      .multiply(
-        new Quaternion().setFromUnitVectors(new Vector3(0, 0, 1), normal)
-      );
-    friction.applyQuaternion(q);
+    friction.applyQuaternion(
+      new Quaternion()
+        .setFromUnitVectors(new Vector3(1, 0, 0), parallel)
+        .multiply(
+          new Quaternion().setFromUnitVectors(new Vector3(0, 0, 1), normal)
+        )
+    );
 
     // 誤差項
     const fe = normal
@@ -720,6 +713,7 @@ export class TireBalance implements Constraint {
     phi[row + 4] = rotation.y;
     phi[row + 5] = rotation.z;
 
+    // ヤコビアンの導出
     // 力のつり合い
     const pfCol = pfs[i].col;
     phi_q.set(row + X, pfCol + X, 1);
