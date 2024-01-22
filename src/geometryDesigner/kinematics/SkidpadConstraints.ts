@@ -81,28 +81,28 @@ export class FDComponentBalance implements Constraint {
 
   omega: GeneralVariable;
 
-  constructor(
-    name: string,
-    component: FullDegreesComponent,
-    mass: number,
-    cog: Vector3,
-    points: Vector3[],
-    pointForceComponents: PointForce[],
-    vO: () => Vector3, // 座標原点の速度
-    omega: GeneralVariable
-  ) {
-    this.name = name;
-    this.component = component;
-    this.mass = mass;
-    this.vO = vO;
-    this.omega = omega;
-    this.pointForceComponents = [...pointForceComponents];
+  constructor(params: {
+    name: string;
+    component: FullDegreesComponent;
+    mass: number;
+    cog: Vector3;
+    points: Vector3[];
+    pointForceComponents: PointForce[];
+    vO: () => Vector3; // 座標原点の速度
+    omega: GeneralVariable;
+  }) {
+    this.name = params.name;
+    this.component = params.component;
+    this.mass = params.mass;
+    this.vO = params.vO;
+    this.omega = params.omega;
+    this.pointForceComponents = [...params.pointForceComponents];
 
-    this.cogLocalVec = cog.clone();
+    this.cogLocalVec = params.cog.clone();
     this.cogLocalSkew = skew(this.cogLocalVec).mul(2);
 
-    this.pointLocalVec = points.map((p) => p.clone());
-    this.pointLocalVecMat = points.map((p) => getVVector(p)); // 3x1
+    this.pointLocalVec = params.points.map((p) => p.clone());
+    this.pointLocalVecMat = params.points.map((p) => getVVector(p)); // 3x1
     this.pointLocalSkew = this.pointLocalVec.map((p) => skew(p).mul(2));
   }
 
@@ -236,95 +236,77 @@ export class BarBalance implements Constraint {
 
   name: string;
 
-  pfLhs: PointForce;
+  pfs: Twin<PointForce>;
 
-  pfRhs: PointForce;
+  components: Twin<IComponent>;
 
-  lhs: IComponent;
+  localVec: Twin<Vector3>;
 
-  rhs: IComponent;
-
-  lLocalVec: Vector3;
-
-  lLocalSkew: Matrix;
-
-  rLocalVec: Vector3;
-
-  rLocalSkew: Matrix;
+  localSkew: Twin<Matrix>;
 
   cog: number;
 
-  g: Vector3;
+  g: Vector3 = new Vector3(0, 0, -9.81);
 
   mass: number;
 
-  rO: () => Vector3;
+  vO: () => Vector3;
 
-  omegaO: () => Vector3;
+  omega: GeneralVariable;
 
-  constructor(
-    name: string,
-    cLhs: IComponent,
-    cRhs: IComponent,
-    mass: number,
-    cog: number, // lhs基準
-    vLhs: Vector3,
-    vRhs: Vector3,
-    pfLhs: PointForce,
-    pfRhs: PointForce,
-    rO: () => Vector3, // 座標原点の各速度
-    omegaO: () => Vector3, // 座標原点の速度
-    gravity: Vector3
-  ) {
-    this.name = name;
-    this.lhs = cLhs;
-    this.rhs = cRhs;
-    this.cog = cog;
-    this.pfLhs = pfLhs;
-    this.pfRhs = pfRhs;
-    this.g = gravity.clone();
-    this.mass = mass;
-    this.rO = rO;
-    this.omegaO = omegaO;
-    this.lLocalVec = vLhs.clone();
-    this.lLocalSkew = skew(this.lLocalVec).mul(2);
-    this.rLocalVec = vRhs.clone();
-    this.rLocalSkew = skew(this.rLocalVec).mul(-2);
+  constructor(params: {
+    name: string;
+    components: Twin<IComponent>;
+    points: Twin<Vector3>;
+    mass: number;
+    cog: number; // lhs基準
+    vRhs: Vector3;
+    pfs: Twin<PointForce>;
+    vO: () => Vector3; // 座標原点の速度
+    omega: GeneralVariable; // 座標原点の角速度
+  }) {
+    this.name = params.name;
+    if (params.components[0] === params.components[1])
+      throw new Error('コンポーネントは別である必要がある');
+    this.components = [...params.components];
+    this.cog = params.cog;
+    this.pfs = [...params.pfs];
+    this.mass = params.mass;
+    this.vO = params.vO;
+    this.omega = params.omega;
+    this.localVec = params.points.map((p) => p.clone()) as any;
+    this.localSkew = this.localVec.map((v) => skew(v).mul(2)) as any;
   }
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
-    const {
-      row,
-      lhs,
-      rhs,
-      lLocalVec,
-      lLocalSkew,
-      rLocalVec,
-      rLocalSkew,
-      pfLhs,
-      pfRhs,
-      g,
-      cog
-    } = this;
+    const {row, components, localVec, localSkew, pfs, g, cog} = this;
 
-    const qLhs = lhs.quaternion;
-    const qRhs = rhs.quaternion;
-    const pLhs = lLocalVec.clone().applyQuaternion(qLhs).add(lhs.position);
-    const pRhs = rLocalVec.clone().applyQuaternion(qRhs).add(rhs.position);
-    const pCog = pRhs.clone().sub(pLhs).multiplyScalar(cog);
+    const pts = components.map((c, i) =>
+      localVec[i].clone().applyQuaternion(c.quaternion).add(c.position)
+    );
+    const pCog = pts[1].clone().sub(pts[0]).multiplyScalar(cog).add(pts[0]);
 
-    const rO = this.rO();
-    const omegaO = this.omegaO();
-    const d2r_dt2 = omegaO.clone().cross(omegaO.clone().cross(rO.add(pCog)));
-    const ma = g.clone().sub(d2r_dt2).multiplyScalar(this.mass);
+    const omega = new Vector3(0, 0, this.omega.value);
+    const omegaSkew = skew(omega); // 角速度のSkewMatrix
+    const omegaSkew2 = omegaSkew.mmul(omegaSkew);
+    const vO = this.vO(); // 車速
+    const cO = omega.clone().cross(vO); // 車両座標系にかかる原点の遠心力
+
+    const c = omega.clone().cross(omega.clone().cross(pCog)).add(cO);
+    const ma = g.clone().add(c).multiplyScalar(this.mass); // 遠心力＋重力
     const maSkew = skew(ma);
 
-    const translation = pfLhs.force.clone().add(pfRhs.force).add(ma);
+    const translation = pfs
+      .reduce((prev, f) => prev.add(f.force), new Vector3())
+      .add(ma);
     // 変分の方程式がわかりやすくなるようにあえて、力x距離にする
     // グローバル座標系原点周りのモーメントつり合い
-    const nl = pfLhs.force.clone().cross(pLhs);
-    const nr = pfRhs.force.clone().cross(pRhs);
-    const rotation = nl.add(nr).add(ma.clone().cross(pCog));
+    const rotation = pfs
+      .reduce(
+        (prev, f, i) => prev.add(f.force.clone().cross(pts[i])),
+        new Vector3()
+      )
+      .add(ma.clone().cross(pCog));
 
     phi[row + 0] = translation.x;
     phi[row + 1] = translation.y;
@@ -333,49 +315,40 @@ export class BarBalance implements Constraint {
     phi[row + 4] = rotation.y;
     phi[row + 5] = rotation.z;
 
-    {
-      const pfCol = pfLhs.col;
+    pfs.forEach((pf, i) => {
+      const t = i + (1 + -2 * i) * cog;
+      const pfCol = pf.col;
+      const c = components[i];
+      // 力
       phi_q.set(row + X, pfCol + X, 1);
       phi_q.set(row + Y, pfCol + Y, 1);
       phi_q.set(row + Z, pfCol + Z, 1);
-      phi_q.setSubMatrix(deltaXcross(pLhs), row + 3, pfCol + X);
+      const deltaP = omegaSkew2.mul(t * this.mass);
+      phi_q.setSubMatrix(deltaP, row, c.col + X);
+
+      // モーメント
+
+
+
+      if (isFullDegreesComponent(c)) {
+        // 力
+        const A = rotationMatrix(c.quaternion);
+        const G = decompositionMatrixG(c.quaternion);
+        phi_q.setSubMatrix(
+          deltaP.mmul(A.mmul(localSkew[i]).mmul(G)),
+          row,
+          c.col + Q0
+        );
+      }
+
+      phi_q.setSubMatrix(deltaXcross(pts[i]), row + 3, pfCol + X);
       const {col} = lhs;
       const fSkew = skew(pfLhs.force);
       const tempMat = fSkew.add(maSkew.mul(1 - cog));
       phi_q.setSubMatrix(tempMat, row + 3, col + X);
 
-      if (isFullDegreesComponent(lhs)) {
-        const A = rotationMatrix(qLhs);
-        const G = decompositionMatrixG(qLhs);
-        phi_q.setSubMatrix(
-          tempMat.mmul(A.mmul(lLocalSkew).mmul(G)),
-          row + 3,
-          col + Q0
-        );
       }
-    }
-
-    {
-      const pfCol = pfRhs.col;
-      phi_q.set(row + X, pfCol + X, 1);
-      phi_q.set(row + Y, pfCol + Y, 1);
-      phi_q.set(row + Z, pfCol + Z, 1);
-      phi_q.setSubMatrix(skewBase.mmul(getVVector(pRhs)), row + 3, pfCol + X);
-      const {col} = rhs;
-      const fSkew = skew(pfRhs.force);
-      const tempMat = fSkew.add(maSkew.mul(cog));
-      phi_q.setSubMatrix(tempMat, row + 3, col + X);
-
-      if (isFullDegreesComponent(rhs)) {
-        const A = rotationMatrix(qRhs);
-        const G = decompositionMatrixG(qRhs);
-        phi_q.setSubMatrix(
-          tempMat.mmul(A.mmul(rLocalSkew).mmul(G)),
-          row + 3,
-          col + Q0
-        );
-      }
-    }
+    });
   }
 
   setJacobianAndConstraintsInequal() {}
@@ -553,7 +526,7 @@ export class TireBalance implements Constraint {
 
   pfs: Twin<PointForce>;
 
-  error: LongitudinalForceError;
+  error: GeneralVariable;
 
   component: IComponent;
 
