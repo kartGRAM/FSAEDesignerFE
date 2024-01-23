@@ -128,11 +128,12 @@ export class FDComponentBalance implements Constraint {
     const vO = this.vO(); // 車速
     const cO = omega.clone().cross(vO); // 車両座標系にかかる原点の遠心力
     const q = component.quaternion; // 注目している部品の姿勢
-    // 部品のの車両座標系での重心
+    // 部品の部品座標系での重心
     const cog = cogLocalVec.clone().applyQuaternion(q);
+    const pCog = cog.clone().add(component.position);
     const cogSkew = skew(cog).mul(2);
     // 部品にかかる遠心力
-    const c = omega.clone().cross(omega.clone().cross(cog)).add(cO);
+    const c = omega.clone().cross(omega.clone().cross(pCog)).add(cO);
     const ma = g.clone().add(c).multiplyScalar(this.mass); // 遠心力＋重力
     const maSkew = skew(ma);
 
@@ -193,7 +194,7 @@ export class FDComponentBalance implements Constraint {
       vO,
       omega,
       omegaSkew,
-      cog,
+      pCog,
       cogSkew,
       this.mass
     ).mmul(unitZ); // (3x1)
@@ -686,18 +687,14 @@ export class TireBalance implements Constraint {
     } = this;
 
     const colDone: number[] = [];
-    const pts = localVec.map((p) =>
-      p.clone().applyQuaternion(component.quaternion).add(component.position)
-    );
+    const pts = localVec.map((p) => p.applyQuaternion(component.quaternion));
     // 接地点
-    const ground = this.ground()
-      .clone()
-      .applyQuaternion(component.quaternion)
-      .add(component.position);
+    const groundQ = this.ground().clone().applyQuaternion(component.quaternion);
 
     // 重心
-    const pCog = pts[1].clone().sub(pts[0]).multiplyScalar(cog).add(pts[0]);
-    const cogSkew = skew(pCog).mul(2);
+    const pCogQ = pts[1].clone().sub(pts[0]).multiplyScalar(cog).add(pts[0]);
+    const pCog = pCogQ.clone().add(component.position); // 車両座標系
+    const cogSkew = skew(pCogQ).mul(2);
     // 慣性力
     const omega = new Vector3(0, 0, this.omega.value);
     const omegaSkew = skew(omega); // 角速度のSkewMatrix
@@ -711,7 +708,7 @@ export class TireBalance implements Constraint {
     // 接地点の速度
     const vGround = vO
       .clone()
-      .add(omega.cross(ground.clone().add(component.position)));
+      .add(omega.cross(groundQ.clone().add(component.position)));
 
     // SAとIAとFZを求める
     const normal = new Vector3(0, 0, 1);
@@ -768,7 +765,7 @@ export class TireBalance implements Constraint {
       .add(fe);
 
     // 変分の方程式がわかりやすくなるようにあえて、力x距離にする
-    // 車両座標系原点まわりのモーメントつり合い
+    // 部品原点まわりのモーメントつり合い
     const rotation = pfs
       .reduce(
         (prev, pf, i) =>
@@ -776,16 +773,16 @@ export class TireBalance implements Constraint {
             pf.force
               .clone()
               .cross(pts[i])
-              .add(new Vector3(0, 0, -pf.force.z).cross(ground))
+              .add(new Vector3(0, 0, -pf.force.z).cross(groundQ))
           ),
         new Vector3()
       )
-      .add(ma.clone().cross(pCog).add(new Vector3(0, 0, -ma.z).cross(ground)))
-      .add(friction.clone().add(fe).cross(ground));
+      .add(ma.clone().cross(pCogQ).add(new Vector3(0, 0, -ma.z).cross(groundQ)))
+      .add(friction.clone().add(fe).cross(groundQ));
 
     phi[row + X] = translation.x;
     phi[row + Y] = translation.y;
-    // Zは0なので省略
+    // phi[row + Z] = translation.z; // Zは0なので省略
     phi[row + 2 + X] = rotation.x;
     phi[row + 2 + Y] = rotation.y;
     phi[row + 2 + Z] = rotation.z;
@@ -793,10 +790,6 @@ export class TireBalance implements Constraint {
     // 力のつり合い
     const A = rotationMatrix(component.quaternion);
     const G = decompositionMatrixG(component.quaternion);
-    phi_q.set(row + X, pfs[0].col + X, 1);
-    phi_q.set(row + Y, pfs[0].col + Y, 1);
-    phi_q.set(row + X, pfs[1].col + X, 1);
-    phi_q.set(row + Y, pfs[1].col + Y, 1);
 
     const dOmega = getDeltaOmega(
       vO,
@@ -813,9 +806,15 @@ export class TireBalance implements Constraint {
       .mul(-torqueRatio * error.value);
     const dTheta = dTheta1.add(dTheta2).mmul(G);
     const de = unitZSkew.mmul(getVVector(axis)).mul(-torqueRatio);
+    phi_q.set(row + X, pfs[0].col + X, 1);
+    phi_q.set(row + Y, pfs[0].col + Y, 1);
+    phi_q.set(row + X, pfs[1].col + X, 1);
+    phi_q.set(row + Y, pfs[1].col + Y, 1);
     phi_q.setSubMatrix(dOmega.subMatrix(0, 1, 0, 0), row, this.omega.col);
     phi_q.setSubMatrix(dTheta.subMatrix(0, 1, 0, 3), row, component.col + Q0);
     phi_q.setSubMatrix(de.subMatrix(0, 1, 0, 0), row, error.col);
+
+    // モーメントのつり合い
   }
 
   setJacobianAndConstraintsInequal() {}
