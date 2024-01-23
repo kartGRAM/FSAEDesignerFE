@@ -103,11 +103,11 @@ export function getDeltaOmega(
   omega: Vector3,
   omegaSkew: Matrix,
   cogVehicle: Vector3,
-  cogVehicleSkew: Matrix,
+  cogVehicleSkew: Matrix, // 2倍されている
   mass: number
 ) {
   const lhs = v.clone().add(omega.clone().cross(cogVehicle));
-  const rhs = omegaSkew.mmul(cogVehicleSkew);
+  const rhs = omegaSkew.mmul(cogVehicleSkew).mul(0.5);
   return rhs.add(skew(lhs)).mul(-mass);
 }
 
