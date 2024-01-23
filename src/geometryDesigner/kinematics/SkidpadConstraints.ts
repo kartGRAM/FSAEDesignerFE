@@ -8,7 +8,8 @@ import {
   skew,
   rotationMatrix,
   decompositionMatrixG,
-  deltaXcross,
+  getDeltaOmega,
+  // deltaXcross,
   getVVector
 } from './KinematicFunctions';
 import {
@@ -29,7 +30,7 @@ const Q1 = 4;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const Q2 = 5;
 const Q3 = 6;
-const unitZ = () => new Vector3(0, 0, 1);
+const unitZ = getVVector(new Vector3(0, 0, 1));
 
 export class FDComponentBalance implements Constraint {
   readonly className = 'FDComponentBalance';
@@ -180,30 +181,27 @@ export class FDComponentBalance implements Constraint {
       const AsG = A.mmul(localSkew).mmul(G);
       sigmaPI.add(fSkew.mmul(AsG));
 
-      phi_q.setSubMatrix(
-        deltaXcross(A.mmul(pointLocalVecMat[i])),
-        row + 3,
-        col + X
-      );
+      phi_q.setSubMatrix(A.mmul(pointLocalVecMat[i]).mul(-1), row + 3, col + X);
     });
     sigmaPI.add(maSkew.mmul(A.mmul(cogLocalSkew).mmul(G))); // (3x3) x (3x3) x (3x3) x (3x4) = 3x4
 
     const colOmega = this.omega.col;
     // 力のつり合い(ω部分)
-    const dOmega = getVVector(
-      unitZ()
-        .multiplyScalar(this.mass)
-        .cross(vO.clone().add(cog))
-        .add(unitZ().multiplyScalar(omega.dot(cog)))
-        .add(cog.multiplyScalar(this.omega.value))
-    ); // (3x1)
+    const dOmega = getDeltaOmega(
+      vO,
+      omega,
+      omegaSkew,
+      cog,
+      cogSkew,
+      this.mass
+    ).mmul(unitZ); // (3x1)
     phi_q.setSubMatrix(dOmega, row, colOmega);
     const dTheta = omegaSkew.mmul(omegaSkew.mmul(A.mmul(cogLocalSkew).mmul(G))); // (3x4)
     phi_q.setSubMatrix(dTheta, row, col + Q0);
     // モーメントのつり合い
-    const dOmegaRot = cogSkew.mmul(dOmega);
+    const dOmegaRot = cogSkew.mmul(dOmega).mul(-1);
     phi_q.setSubMatrix(dOmegaRot, row + 3, colOmega);
-    const dThetaRot = cogSkew.mmul(dTheta);
+    const dThetaRot = cogSkew.mmul(dTheta).mul(-1);
     sigmaPI.add(dThetaRot); // (3x3) x (3x3) x (3x3) x (3x4) = 3x4
 
     phi_q.setSubMatrix(sigmaPI, row + 3, col + Q0);
@@ -240,6 +238,14 @@ export class BarBalance implements Constraint {
 
   components: Twin<IComponent>;
 
+  get lhs() {
+    return this.components[0];
+  }
+
+  get rhs() {
+    return this.components[1];
+  }
+
   localVec: Twin<Vector3>;
 
   localSkew: Twin<Matrix>;
@@ -260,7 +266,6 @@ export class BarBalance implements Constraint {
     points: Twin<Vector3>;
     mass: number;
     cog: number; // lhs基準
-    vRhs: Vector3;
     pfs: Twin<PointForce>;
     vO: () => Vector3; // 座標原点の速度
     omega: GeneralVariable; // 座標原点の角速度
@@ -285,6 +290,7 @@ export class BarBalance implements Constraint {
       localVec[i].clone().applyQuaternion(c.quaternion).add(c.position)
     );
     const pCog = pts[1].clone().sub(pts[0]).multiplyScalar(cog).add(pts[0]);
+    const cogSkew = skew(pCog);
 
     const omega = new Vector3(0, 0, this.omega.value);
     const omegaSkew = skew(omega); // 角速度のSkewMatrix
@@ -318,6 +324,7 @@ export class BarBalance implements Constraint {
     pfs.forEach((pf, i) => {
       const t = i + (1 + -2 * i) * cog;
       const pfCol = pf.col;
+      const fSkew = skew(pf.force);
       const c = components[i];
       // 力
       phi_q.set(row + X, pfCol + X, 1);
@@ -327,8 +334,9 @@ export class BarBalance implements Constraint {
       phi_q.setSubMatrix(deltaP, row, c.col + X);
 
       // モーメント
-
-
+      phi_q.setSubMatrix(skew(pts[i]).mul(-1), row + 3, pfCol + X);
+      const deltaP2 = fSkew.add(maSkew.sub(omegaSkew2).mul(this.mass * t));
+      phi_q.setSubMatrix(deltaP2, row + 3, c.col + X);
 
       if (isFullDegreesComponent(c)) {
         // 力
@@ -339,16 +347,28 @@ export class BarBalance implements Constraint {
           row,
           c.col + Q0
         );
-      }
-
-      phi_q.setSubMatrix(deltaXcross(pts[i]), row + 3, pfCol + X);
-      const {col} = lhs;
-      const fSkew = skew(pfLhs.force);
-      const tempMat = fSkew.add(maSkew.mul(1 - cog));
-      phi_q.setSubMatrix(tempMat, row + 3, col + X);
-
+        // モーメント
+        phi_q.setSubMatrix(
+          deltaP2.mmul(A.mmul(localSkew[i]).mmul(G)),
+          row + 3,
+          c.col + Q0
+        );
       }
     });
+    const colOmega = this.omega.col;
+    // 力のつり合い(ω部分)
+    const dOmega = getDeltaOmega(
+      vO,
+      omega,
+      omegaSkew,
+      pCog,
+      cogSkew,
+      this.mass
+    ).mmul(unitZ); // (3x1)
+    phi_q.setSubMatrix(dOmega, row, colOmega);
+    // モーメントのつり合い(ω部分)
+    const dOmegaRot = cogSkew.mmul(dOmega).mul(-1);
+    phi_q.setSubMatrix(dOmegaRot, row + 3, colOmega);
   }
 
   setJacobianAndConstraintsInequal() {}
@@ -396,61 +416,68 @@ export class AArmBalance implements Constraint {
 
   cog: Triple<number>;
 
-  g: Vector3;
+  g: Vector3 = new Vector3(0, 0, -9.81);
 
   mass: number;
 
-  rO: () => Vector3;
+  vO: () => Vector3;
 
-  omegaO: () => Vector3;
+  omega: GeneralVariable;
 
-  constructor(
-    name: string,
-    components: Triple<IComponent>,
-    mass: number,
-    cog: Vector3,
-    points: Triple<Vector3>,
-    pfs: Triple<PointForce>,
-    rO: () => Vector3, // 座標原点の各速度
-    omegaO: () => Vector3, // 座標原点の速度
-    gravity: Vector3
-  ) {
-    this.name = name;
-    this.cog = points.map((p) => cog.dot(p) / p.lengthSq()) as Triple<number>;
-    this.pfs = [...pfs];
-    this.components = [...components];
-    this.g = gravity.clone();
-    this.mass = mass;
-    this.rO = rO;
-    this.omegaO = omegaO;
-    this.localVec = points.map((p) => p.clone()) as Triple<Vector3>;
-    this.localSkew = points.map((p) => skew(p)) as Triple<Matrix>;
+  constructor(params: {
+    name: string;
+    components: Triple<IComponent>;
+    points: Triple<Vector3>;
+    mass: number;
+    cog: Vector3;
+    pfs: Triple<PointForce>;
+    vO: () => Vector3; // 座標原点の速度
+    omega: GeneralVariable; // 座標原点の角速度
+  }) {
+    this.name = params.name;
+    this.cog = params.points.map(
+      (p) => params.cog.dot(p) / p.lengthSq()
+    ) as Triple<number>;
+    this.pfs = [...params.pfs];
+    this.components = [...params.components];
+    this.mass = params.mass;
+    this.vO = params.vO;
+    this.omega = params.omega;
+    this.localVec = params.points.map((p) => p.clone()) as Triple<Vector3>;
+    this.localSkew = params.points.map((p) => skew(p)) as Triple<Matrix>;
   }
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
     const {row, components, localVec, localSkew, pfs, cog, g} = this;
 
     const colDone: number[] = [];
-    const p = localVec.map((s, i) =>
+    const pts = localVec.map((s, i) =>
       s.applyQuaternion(components[i].quaternion).add(components[i].position)
     );
     const pCog = cog.reduce(
-      (prev, t, i) => prev.add(p[i].clone().multiplyScalar(t)),
+      (prev, t, i) => prev.add(pts[i].clone().multiplyScalar(t)),
       new Vector3()
     );
-    const rO = this.rO();
-    const omegaO = this.omegaO();
-    const d2r_dt2 = omegaO.clone().cross(omegaO.clone().cross(rO.add(pCog)));
-    const ma = g.clone().sub(d2r_dt2).multiplyScalar(this.mass);
+    const cogSkew = skew(pCog);
+
+    const omega = new Vector3(0, 0, this.omega.value);
+    const omegaSkew = skew(omega); // 角速度のSkewMatrix
+    const omegaSkew2 = omegaSkew.mmul(omegaSkew);
+    const vO = this.vO(); // 車速
+    const cO = omega.clone().cross(vO); // 車両座標系にかかる原点の遠心力
+
+    const c = omega.clone().cross(omega.clone().cross(pCog)).add(cO);
+    const ma = g.clone().add(c).multiplyScalar(this.mass); // 遠心力＋重力
+    const maSkew = skew(ma);
 
     const translation = pfs
-      .reduce((prev, p) => prev.add(p.force.clone()), new Vector3())
+      .reduce((prev, f) => prev.add(f.force), new Vector3())
       .add(ma);
     // 変分の方程式がわかりやすくなるようにあえて、力x距離にする
     // グローバル座標系原点周りのモーメントつり合い
     const rotation = pfs
       .reduce(
-        (prev, pf, i) => prev.add(pf.force.clone().cross(p[i])),
+        (prev, f, i) => prev.add(f.force.clone().cross(pts[i])),
         new Vector3()
       )
       .add(ma.clone().cross(pCog));
@@ -462,39 +489,78 @@ export class AArmBalance implements Constraint {
     phi[row + 4] = rotation.y;
     phi[row + 5] = rotation.z;
 
-    components.forEach((component, i) => {
-      // Pfのヤコビアン
-      const pfCol = pfs[i].col;
+    pfs.forEach((pf, i) => {
+      const t = cog[i];
+      const pfCol = pf.col;
+      const fSkew = skew(pf.force);
+      const c = components[i];
+      // 力
       phi_q.set(row + X, pfCol + X, 1);
       phi_q.set(row + Y, pfCol + Y, 1);
       phi_q.set(row + Z, pfCol + Z, 1);
-      phi_q.setSubMatrix(deltaXcross(p[i]), row + 3, pfCol + X);
-      // componentのヤコビアン
-      const {col} = component;
-      const f = pfs[i].force;
-      const dP = skew(f.clone().add(ma));
-      if (!colDone.includes(col)) {
-        phi_q.setSubMatrix(dP, row + 3, col + X);
+      const deltaP = omegaSkew2.mul(t * this.mass);
+      if (!colDone.includes(c.col)) {
+        phi_q.setSubMatrix(deltaP, row, c.col + X);
       } else {
-        phi_q.subMatrixAdd(dP, row + 3, col + X);
+        phi_q.subMatrixAdd(deltaP, row, c.col + X);
       }
-      if (isFullDegreesComponent(component)) {
-        const t = cog[i];
-        const q = component.quaternion;
-        const A = rotationMatrix(q);
-        const s = localSkew[i];
-        const G = decompositionMatrixG(q);
-        const dTheta = skew(f.clone().add(ma.multiplyScalar(t)))
-          .mul(A)
-          .mul(s)
-          .mul(G);
-        if (!colDone.includes(col)) {
-          phi_q.setSubMatrix(dTheta, row + 3, col + Q0);
+
+      // モーメント
+      phi_q.setSubMatrix(skew(pts[i]).mul(-1), row + 3, pfCol + X);
+      const deltaP2 = fSkew.add(maSkew.sub(omegaSkew2).mul(this.mass * t));
+      if (!colDone.includes(c.col)) {
+        phi_q.setSubMatrix(deltaP2, row + 3, c.col + X);
+      } else {
+        phi_q.subMatrixAdd(deltaP2, row + 3, c.col + X);
+      }
+
+      if (isFullDegreesComponent(c)) {
+        const A = rotationMatrix(c.quaternion);
+        const G = decompositionMatrixG(c.quaternion);
+        if (!colDone.includes(c.col)) {
+          // 力
+          phi_q.setSubMatrix(
+            deltaP.mmul(A.mmul(localSkew[i]).mmul(G)),
+            row,
+            c.col + Q0
+          );
+          // モーメント
+          phi_q.setSubMatrix(
+            deltaP2.mmul(A.mmul(localSkew[i]).mmul(G)),
+            row + 3,
+            c.col + Q0
+          );
         } else {
-          phi_q.subMatrixAdd(dTheta, row + 3, col + Q0);
+          // 力
+          phi_q.subMatrixAdd(
+            deltaP.mmul(A.mmul(localSkew[i]).mmul(G)),
+            row,
+            c.col + Q0
+          );
+          // モーメント
+          phi_q.subMatrixAdd(
+            deltaP2.mmul(A.mmul(localSkew[i]).mmul(G)),
+            row + 3,
+            c.col + Q0
+          );
         }
       }
+      colDone.push(c.col);
     });
+    const colOmega = this.omega.col;
+    // 力のつり合い(ω部分)
+    const dOmega = getDeltaOmega(
+      vO,
+      omega,
+      omegaSkew,
+      pCog,
+      cogSkew,
+      this.mass
+    ).mmul(unitZ); // (3x1)
+    phi_q.setSubMatrix(dOmega, row, colOmega);
+    // モーメントのつり合い(ω部分)
+    const dOmegaRot = cogSkew.mmul(dOmega).mul(-1);
+    phi_q.setSubMatrix(dOmegaRot, row + 3, colOmega);
   }
 
   setJacobianAndConstraintsInequal() {}

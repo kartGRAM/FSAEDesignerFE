@@ -91,11 +91,24 @@ Matrix.prototype.subMatrixSub = function (
   );
 };
 
-const skewBase = skew({x: 1, y: 1, z: 1});
+// const skewBase = skew({x: 1, y: 1, z: 1});
 
-export function deltaXcross(y: Vector3 | Matrix) {
+/* export function deltaXcross(y: Vector3 | Matrix) {
   if (isVector3(y)) return skewBase.mmul(getVVector(y));
   return skewBase.mmul(y);
+} */
+
+export function getDeltaOmega(
+  v: Vector3,
+  omega: Vector3,
+  omegaSkew: Matrix,
+  cogVehicle: Vector3,
+  cogVehicleSkew: Matrix,
+  mass: number
+) {
+  const lhs = v.clone().add(omega.clone().cross(cogVehicle));
+  const rhs = omegaSkew.mmul(cogVehicleSkew);
+  return rhs.add(skew(lhs)).mul(-mass);
 }
 
 // (δX・a)bのヤコビアンを取得。
