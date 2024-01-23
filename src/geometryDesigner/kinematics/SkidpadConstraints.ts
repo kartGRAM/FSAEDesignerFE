@@ -602,11 +602,11 @@ export class TireBalance implements Constraint {
   component: IComponent;
 
   get lhs() {
-    return this.components[0];
+    return this.component;
   }
 
   get rhs() {
-    return this.components[1];
+    return this.component;
   }
 
   localVec: Twin<Vector3>;
