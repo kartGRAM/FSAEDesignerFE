@@ -610,17 +610,13 @@ export class TireBalance implements Constraint {
 
   cog: number;
 
-  g: Vector3;
+  g: Vector3 = new Vector3(0, 0, -9.81);
 
   mass: number;
 
-  rO: () => Vector3;
+  vO: () => Vector3;
 
-  omegaO: () => Vector3;
-
-  ground: () => Vector3;
-
-  normal: () => Vector3;
+  omega: GeneralVariable;
 
   getFriction: (sa: number, ia: number, fz: number) => Vector3;
 
@@ -629,18 +625,15 @@ export class TireBalance implements Constraint {
   constructor(params: {
     name: string;
     component: FullDegreesComponent;
+    points: Twin<Vector3>; // Component基準
     mass: number;
     cog: number;
-    points: Twin<Vector3>; // Component基準
     pfs: Twin<PointForce>; // Bearing部分
-    error: LongitudinalForceError;
+    vO: () => Vector3; // 座標原点の速度
+    omega: GeneralVariable; // 座標原点の角速度
     torqueRatio: number;
     getFriction: (sa: number, ia: number, fz: number) => Vector3; // タイヤの発生する力
-    rO: () => Vector3; // 座標原点の各速度
-    omegaO: () => Vector3; // 座標原点の速度
-    ground: () => Vector3; // component座標系でのground位置
-    normal: () => Vector3;
-    gravity: Vector3;
+    error: GeneralVariable;
   }) {
     const {
       name,
@@ -651,12 +644,9 @@ export class TireBalance implements Constraint {
       pfs, // Bearing部分
       error,
       torqueRatio,
+      vO,
       getFriction, // タイヤの発生する力
-      rO, // 座標原点の各速度
-      omegaO, // 座標原点の速度
-      ground, // component座標系でのground位置
-      normal,
-      gravity
+      omega // 座標原点の角速度
     } = params;
 
     this.name = name;
@@ -664,14 +654,11 @@ export class TireBalance implements Constraint {
     this.pfs = [...pfs];
     this.error = error;
     this.component = component;
-    this.g = gravity.clone();
     this.mass = mass;
     this.torqueRatio = torqueRatio;
-    this.rO = rO;
-    this.omegaO = omegaO;
+    this.omega = omega;
     this.getFriction = getFriction;
-    this.ground = ground;
-    this.normal = normal;
+    this.vO = vO;
     this.localVec = points.map((p) => p.clone()) as Twin<Vector3>;
     this.localSkew = points.map((p) => skew(p)) as Twin<Matrix>;
   }
@@ -693,22 +680,30 @@ export class TireBalance implements Constraint {
     const p = localVec.map((p) =>
       p.clone().applyQuaternion(component.quaternion).add(component.position)
     );
+    // 接地点
     const ground = this.ground()
       .clone()
       .applyQuaternion(component.quaternion)
       .add(component.position);
-    const pCog = p[1].clone().sub(p[0]).multiplyScalar(cog);
-    // 慣性力を算出
-    const rO = this.rO();
-    const omegaO = this.omegaO();
-    const d2r_dt2 = omegaO.clone().cross(omegaO.clone().cross(rO.add(pCog)));
-    const ma = g.clone().sub(d2r_dt2).multiplyScalar(this.mass);
-    const vO = omegaO.clone().cross(rO);
+
+    // 重心
+    const pCog = p[1].clone().sub(p[0]).multiplyScalar(cog).add(p[0]);
+    const cogSkew = skew(pCog);
+    // 慣性力
+    const omega = new Vector3(0, 0, this.omega.value);
+    const omegaSkew = skew(omega); // 角速度のSkewMatrix
+    const omegaSkew2 = omegaSkew.mmul(omegaSkew);
+    const vO = this.vO(); // 車速
+    const cO = omega.clone().cross(vO); // 車両座標系にかかる原点の遠心力
+
+    const c = omega.clone().cross(omega.clone().cross(pCog)).add(cO);
+    const ma = g.clone().add(c).multiplyScalar(this.mass); // 遠心力＋重力
+    const maSkew = skew(ma);
     // 接地点の速度
-    const vGround = vO.clone().add(omegaO.cross(ground));
+    const vGround = vO.clone().add(omega.cross(ground));
 
     // SAとIAとFZを求める
-    const normal = this.normal().normalize();
+    const normal = new Vector3(0, 0, 1);
     const axis = p[1].clone().sub(p[0]).normalize();
     // axisに垂直で地面に平行なベクトル(左タイヤが進む方向)
     const parallel = axis.clone().cross(normal).normalize();
@@ -722,7 +717,7 @@ export class TireBalance implements Constraint {
     const sa = (saSin.length() * saSign * 180) / Math.PI;
 
     // iaの取得
-    const tireVirtical = axis.clone().cross(parallel);
+    const tireVirtical = axis.clone().cross(parallel).normalize();
     const iaSin = tireVirtical.cross(normal);
     const iaSign = iaSin.dot(parallel) > 0 ? 1 : -1;
     const ia = (iaSin.length() * iaSign * 180) / Math.PI;
