@@ -799,6 +799,7 @@ export class TireBalance implements Constraint {
       cogSkew,
       this.mass
     ).mmul(unitZ);
+    const dP = omegaSkew2.mul(this.mass);
     const dTheta1 = omegaSkew2.mmul(A).mmul(cogSkew);
     const dTheta2 = unitZSkew
       .mmul(A)
@@ -811,6 +812,7 @@ export class TireBalance implements Constraint {
     phi_q.set(row + X, pfs[1].col + X, 1);
     phi_q.set(row + Y, pfs[1].col + Y, 1);
     phi_q.setSubMatrix(dOmega.subMatrix(0, 1, 0, 0), row, this.omega.col);
+    phi_q.setSubMatrix(dP.subMatrix(0, 1, 0, 2), row, component.col + X);
     phi_q.setSubMatrix(dTheta.subMatrix(0, 1, 0, 3), row, component.col + Q0);
     phi_q.setSubMatrix(de.subMatrix(0, 1, 0, 0), row, error.col);
 
