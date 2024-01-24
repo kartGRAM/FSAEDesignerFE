@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 /* eslint-disable no-lone-blocks */
 import {Matrix, SingularValueDecomposition} from 'ml-matrix';
-import {Control, IDataControl} from '@gd/controls/IControls';
+import {Control} from '@gd/controls/IControls';
 import {IElement, IAssembly, isSimplifiedElement} from '@gd/IElements';
 import {JointAsVector3} from '@gd/IElements/IAssembly';
 import {isAArm} from '@gd/IElements/IAArm';
@@ -18,6 +18,9 @@ import {
 } from '@gd/controls/PointToPlaneControl';
 import {hasNearestNeighborToPlane} from '@gd/SpecialPoints';
 import {sleep} from '@utils/helpers';
+import {ISteadySkidpadParams} from '@gd/analysis/ITest';
+import {ISnapshot} from '@gd/analysis/ISnapshot';
+import {Triple, Twin, OneOrTwo} from '@utils/atLeast';
 import {
   getJointDictionary,
   canSimplifyAArm,
@@ -49,12 +52,19 @@ import {
   controled
 } from './Constraints';
 import {
+  BarBalance,
+  AArmBalance,
+  TireBalance,
+  FDComponentBalance
+} from './SkidpadConstraints';
+import {
   IComponent,
   FullDegreesComponent,
   isFullDegreesComponent,
-  PointComponent
+  PointComponent,
+  PointForce,
+  GeneralVariable
 } from './KinematicComponents';
-import {ISnapshot} from '../analysis/ISnapshot';
 
 export class SkidpadSolver {
   assembly: IAssembly;
@@ -73,12 +83,11 @@ export class SkidpadSolver {
 
   constructor(
     assembly: IAssembly,
-    assemblyMode: NonNullable<IDataControl['configuration']>,
-    pinFrameCOV: boolean,
-    faceForward: boolean,
+    config: ISteadySkidpadParams,
     controls: {[index: string]: Control[]},
     solve?: boolean
   ) {
+    const vO = () => new Vector3(10, 0, 0);
     this.assembly = assembly;
     const {children} = assembly;
     const joints = assembly.getJointsAsVector3();
@@ -89,6 +98,11 @@ export class SkidpadSolver {
     const tempComponents: {[index: string]: FullDegreesComponent} = {};
     const tempElements: {[index: string]: IElement} = {};
     let specialControls: {[index: string]: Control[]} = {};
+
+    const omega = new GeneralVariable('omega');
+    const error = new GeneralVariable('longitudinalForceError');
+    components.push(omega);
+    components.push(error);
 
     // ステップ1: ChildrenをComponentに変換する
     {
@@ -158,25 +172,23 @@ export class SkidpadSolver {
         });
         return prev;
       }, {} as {[index: string]: Control[]});
-      // assemblyModeがAllTiresGroundedの場合
-      if (assemblyMode === 'AllTiresGrounded') {
-        const tires = children.filter((e) => isTire(e));
-        const ground = new PointToPlaneControl({
-          type: 'notAssigned',
-          targetElements: tires.map((t) => t.nodeID),
-          inputButton: '',
-          pointIDs: tires.reduce((prev, current) => {
-            prev[current.nodeID] = ['nearestNeighbor'];
-            return prev;
-          }, {} as {[index: string]: string[]}),
-          origin: new Vector3(),
-          normal: new Vector3(0, 0, 1)
-        });
-        tires.forEach((t) => {
-          if (!specialControls[t.nodeID]) specialControls[t.nodeID] = [];
-          specialControls[t.nodeID].push(ground);
-        });
-      }
+      // assemblyModeはAllTiresGrounded
+      const tires = children.filter((e) => isTire(e));
+      const ground = new PointToPlaneControl({
+        type: 'notAssigned',
+        targetElements: tires.map((t) => t.nodeID),
+        inputButton: '',
+        pointIDs: tires.reduce((prev, current) => {
+          prev[current.nodeID] = ['nearestNeighbor'];
+          return prev;
+        }, {} as {[index: string]: string[]}),
+        origin: new Vector3(),
+        normal: new Vector3(0, 0, 1)
+      });
+      tires.forEach((t) => {
+        if (!specialControls[t.nodeID]) specialControls[t.nodeID] = [];
+        specialControls[t.nodeID].push(ground);
+      });
     }
     // ステップ4: コンポーネント化しないElementを幾何拘束へ変換
     {
@@ -184,12 +196,21 @@ export class SkidpadSolver {
       children.forEach((element) => {
         // AArmが単独で使われている場合は、BarAndSpheres2つに変更する。
         if (isAArm(element) && canSimplifyAArm(element, jointDict)) {
+          const pfs: PointForce[] = [];
           const joints = element.fixedPoints.map((p) => {
             const joint = jointDict[p.nodeID][0];
             jointsDone.add(joint);
+            // 力コンポーネント
+            const pf = new PointForce(joint.lhs, joint.rhs);
+            pfs.push(pf);
+            components.push(pf);
             return joint;
           });
           const jointu = jointDict[element.points[0].nodeID][0];
+          // 力コンポーネント
+          const pf = new PointForce(jointu.lhs, jointu.rhs);
+          pfs.push(pf);
+          components.push(pf);
           jointsDone.add(jointu);
           const ptsBody = joints.map((joint, i) =>
             getJointPartner(joint, element.fixedPoints[i].nodeID)
@@ -200,12 +221,12 @@ export class SkidpadSolver {
           this.restorers.push(
             new AArmRestorer(element, [ptsBody[0], ptsBody[1]], pUpright)
           );
-          // あまりないと思うが、AArmのすべての点が同じコンポーネントに接続されている場合無視する
+          // AArmのすべての点が同じコンポーネントに接続されている場合エラー
           if (
             body.nodeID === upright.nodeID ||
             (isFixedElement(body) && isFixedElement(upright))
           ) {
-            return;
+            throw new Error('3点が同じコンポーネントに接続されている');
           }
           ptsBody.forEach((pBody, i) => {
             const constraint = new BarAndSpheres(
@@ -222,6 +243,23 @@ export class SkidpadSolver {
             );
             constraints.push(constraint);
           });
+          // AArmBalance
+          constraints.push(
+            new AArmBalance({
+              name: `AArmBalance of${element.name.value}`,
+              components: [
+                tempComponents[body.nodeID],
+                tempComponents[body.nodeID],
+                tempComponents[upright.nodeID]
+              ],
+              points: [ptsBody[0].value, ptsBody[1].value, pUpright.value],
+              mass: element.mass.value,
+              cog: element.centerOfGravity.value,
+              pfs: pfs as Triple<PointForce>,
+              vO,
+              omega
+            })
+          );
           return;
         }
         // BarはComponent扱いしない
@@ -676,55 +714,35 @@ export class SkidpadSolver {
         });
       });
       // フレームをピン止めする
-      if (assemblyMode === 'AllTiresGrounded') {
-        const frame = children.find((e) => e.meta?.isBodyOfFrame) as IBody;
-        if (pinFrameCOV && frame) {
-          const p = frame.centerOfGravity.value;
-          const component = tempComponents[frame.nodeID];
-          constraints.push(
-            new PointToPlane(
-              `Two-dimentional Constraint of ${frame.centerOfGravity.name} of ${frame.name.value}`,
-              component,
-              () => p,
-              new Vector3(),
-              new Vector3(1, 0, 0),
-              frame.nodeID,
-              [],
-              0,
-              0
-            )
-          );
-          constraints.push(
-            new PointToPlane(
-              `Two-dimentional Constraint of ${frame.centerOfGravity.name} of ${frame.name.value}`,
-              component,
-              () => p,
-              new Vector3(),
-              new Vector3(0, 1, 0),
-              frame.nodeID,
-              [],
-              0,
-              0
-            )
-          );
-          if (faceForward) {
-            const p2 = p.clone().add(new Vector3(1000, 0, 0));
-            constraints.push(
-              new PointToPlane(
-                `Two-dimentional Constraint of front direction of ${frame.name.value}`,
-                component,
-                () => p2,
-                new Vector3(),
-                new Vector3(0, 1, 0),
-                frame.nodeID,
-                [],
-                0,
-                0
-              )
-            );
-          }
-        }
-      }
+      const frame = children.find((e) => e.meta?.isBodyOfFrame) as IBody;
+      const p = frame.centerOfGravity.value;
+      const component = tempComponents[frame.nodeID];
+      constraints.push(
+        new PointToPlane(
+          `Two-dimentional Constraint of ${frame.centerOfGravity.name} of ${frame.name.value}`,
+          component,
+          () => p,
+          new Vector3(),
+          new Vector3(1, 0, 0),
+          frame.nodeID,
+          [],
+          0,
+          0
+        )
+      );
+      constraints.push(
+        new PointToPlane(
+          `Two-dimentional Constraint of ${frame.centerOfGravity.name} of ${frame.name.value}`,
+          component,
+          () => p,
+          new Vector3(),
+          new Vector3(0, 1, 0),
+          frame.nodeID,
+          [],
+          0,
+          0
+        )
+      );
     }
     // ステップ5: グルーピング
     // Union Find Treeを用いてグルーピングを実施する。

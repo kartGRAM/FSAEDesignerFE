@@ -241,6 +241,10 @@ export function getIndexOfPoint(element: IElement, v: INamedVector3RO) {
   if (i < 0) throw new Error('拘束点が見つからない');
   return i;
 }
+// jointの一意なID
+export function getJointID(joint: JointAsVector3) {
+  return `${joint.lhs.nodeID}&${joint.rhs.nodeID}`;
+}
 
 // ElementIDまたは拘束点をもとにJointを得る
 export function getJointDictionary(
