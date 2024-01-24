@@ -749,11 +749,11 @@ export class LinearBushingBalance implements Constraint {
     const Af = rotationMatrix(cF.quaternion);
     const Gf = decompositionMatrixG(cF.quaternion);
     // Frame dP(遠心力)
-    const deltaPF = omegaSkew2.mul(this.mass);
-    phi_q.setSubMatrix(deltaPF, row, cF.col + X);
+    const dPF = omegaSkew2.mul(this.mass);
+    phi_q.setSubMatrix(dPF, row, cF.col + X);
     // Frame dΘ(遠心力)
-    const deltaThetaF = deltaPF.mmul(Af).mmul(cogLocalSkew).mmul(Gf);
-    phi_q.setSubMatrix(deltaThetaF, row, cF.col + X);
+    const dThetaFM = dPF.mmul(Af).mmul(cogLocalSkew);
+    phi_q.setSubMatrix(dThetaFM.mmul(Gf), row, cF.col + X);
 
     // dω
     const colOmega = this.omega.col;
@@ -781,53 +781,50 @@ export class LinearBushingBalance implements Constraint {
     });
 
     // モーメントのつり合いのヤコビアン
+    // Frame dP, dΘ
+    let dPFRot = new Matrix(3, 3);
+    let dThetaFRotM = new Matrix(3, 3);
     pfsFrame.forEach((pf, i) => {
-      // モーメント
       const fSkew = skew(pf.force);
-      phi_q.setSubMatrix(skew(pts[i]).mul(-1), row + 3, pfCol + X);
-      const deltaP2 = fSkew.add(maSkew.sub(omegaSkew2).mul(this.mass * t));
-      if (!colDone.includes(c.col)) {
-        phi_q.setSubMatrix(deltaP2, row + 3, c.col + X);
-      } else {
-        phi_q.subMatrixAdd(deltaP2, row + 3, c.col + X);
-      }
+      dPFRot = dPFRot.add(fSkew);
+      dThetaFRotM = dThetaFRotM.add(fSkew.mmul(Af).mmul(frameLocalSkew[i]));
+    });
+    dPFRot = dPFRot.sub(cogSkewP.mmul(dPF));
+    dThetaFRotM = dThetaFRotM.add(maSkew.mmul(Af).mmul(cogLocalSkew));
+    dThetaFRotM = dThetaFRotM.sub(cogSkewP.mmul(dThetaFM));
 
-      if (isFullDegreesComponent(c)) {
-        const A = rotationMatrix(c.quaternion);
-        const G = decompositionMatrixG(c.quaternion);
-        if (!colDone.includes(c.col)) {
-          // 力
-          phi_q.setSubMatrix(
-            deltaP.mmul(A.mmul(localSkew[i]).mmul(G)),
-            row,
-            c.col + Q0
-          );
-          // モーメント
-          phi_q.setSubMatrix(
-            deltaP2.mmul(A.mmul(localSkew[i]).mmul(G)),
-            row + 3,
-            c.col + Q0
-          );
-        } else {
-          // 力
-          phi_q.subMatrixAdd(
-            deltaP.mmul(A.mmul(localSkew[i]).mmul(G)),
-            row,
-            c.col + Q0
-          );
-          // モーメント
-          phi_q.subMatrixAdd(
-            deltaP2.mmul(A.mmul(localSkew[i]).mmul(G)),
-            row + 3,
-            c.col + Q0
-          );
-        }
+    phi_q.setSubMatrix(dPFRot, row + 3, cF.col + X);
+    phi_q.setSubMatrix(dThetaFRotM.mmul(Gf), row + 3, cF.col + X);
+
+    // RodEnd dP, dΘ
+    pfsRodEnd.forEach((pf, i) => {
+      const fSkew = skew(pf.force);
+      phi_q.setSubMatrix(fSkew, row + 3, cRs[i].col + X);
+      if (isFullDegreesComponent(cRs[i])) {
+        const Ar = rotationMatrix(cRs[i].quaternion);
+        const Gr = decompositionMatrixG(cRs[i].quaternion);
+        const dThetaR = fSkew.mmul(Ar).mmul(rodEndLocalSkew[i]).mmul(Gr);
+        phi_q.setSubMatrix(dThetaR, row + 3, cRs[i].col + X);
       }
-      colDone.push(c.col);
     });
 
-    // 力のつり合い(ω部分)
-    // モーメントのつり合い(ω部分)
+    // dFFrame
+    ptsFrame.forEach((p, i) => {
+      phi_q.setSubMatrix(
+        skew(p.multiplyScalar(-1)),
+        row + 3,
+        pfsFrame[i].col + X
+      );
+    });
+    // dFFrame
+    ptsRodEnd.forEach((p, i) => {
+      phi_q.setSubMatrix(
+        skew(p.multiplyScalar(-1)),
+        row + 3,
+        pfsRodEnd[i].col + X
+      );
+    });
+    // dOmega
     const dOmegaRot = cogSkewP.mmul(dOmega).mul(-1);
     phi_q.setSubMatrix(dOmegaRot, row + 3, colOmega);
   }
