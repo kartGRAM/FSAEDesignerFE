@@ -117,7 +117,7 @@ export function getDeltaOmega(
   mass: number
 ) {
   const lhs = v.clone().add(omega.clone().cross(cogVehicle));
-  const rhs = omegaSkew.mmul(cogVehicleSkew).mul(0.5);
+  const rhs = omegaSkew.mmul(cogVehicleSkew);
   return rhs.add(skew(lhs)).mul(-mass);
 }
 

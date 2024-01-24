@@ -133,7 +133,7 @@ export class FDComponentBalance implements Constraint {
     const cogQ = cogLocalVec.clone().applyQuaternion(q);
     const pCog = cogQ.clone().add(component.position);
     const cogSkewQ = skew(cogQ);
-    const cogSkewP = skew(pCog).mul(2);
+    const cogSkewP = skew(pCog);
     // 部品にかかる遠心力
     const c = omega.clone().cross(omega.clone().cross(pCog)).add(cO);
     const ma = g.clone().add(c).multiplyScalar(this.mass); // 遠心力＋重力
@@ -308,7 +308,7 @@ export class BarBalance implements Constraint {
       localVec[i].clone().applyQuaternion(c.quaternion).add(c.position)
     );
     const pCog = pts[1].clone().sub(pts[0]).multiplyScalar(cog).add(pts[0]);
-    const cogSkew = skew(pCog).mul(2);
+    const cogSkewP = skew(pCog);
 
     const omega = new Vector3(0, 0, this.omega.value);
     const omegaSkew = skew(omega); // 角速度のSkewMatrix
@@ -380,12 +380,12 @@ export class BarBalance implements Constraint {
       omega,
       omegaSkew,
       pCog,
-      cogSkew,
+      cogSkewP,
       this.mass
     ).mmul(unitZ); // (3x1)
     phi_q.setSubMatrix(dOmega, row, colOmega);
     // モーメントのつり合い(ω部分)
-    const dOmegaRot = cogSkew.mmul(dOmega).mul(-1);
+    const dOmegaRot = cogSkewP.mmul(dOmega).mul(-1);
     phi_q.setSubMatrix(dOmegaRot, row + 3, colOmega);
   }
 
@@ -476,7 +476,7 @@ export class AArmBalance implements Constraint {
       (prev, t, i) => prev.add(pts[i].clone().multiplyScalar(t)),
       new Vector3()
     );
-    const cogSkew = skew(pCog).mul(2);
+    const cogSkewP = skew(pCog);
 
     const omega = new Vector3(0, 0, this.omega.value);
     const omegaSkew = skew(omega); // 角速度のSkewMatrix
@@ -572,12 +572,12 @@ export class AArmBalance implements Constraint {
       omega,
       omegaSkew,
       pCog,
-      cogSkew,
+      cogSkewP,
       this.mass
     ).mmul(unitZ); // (3x1)
     phi_q.setSubMatrix(dOmega, row, colOmega);
     // モーメントのつり合い(ω部分)
-    const dOmegaRot = cogSkew.mmul(dOmega).mul(-1);
+    const dOmegaRot = cogSkewP.mmul(dOmega).mul(-1);
     phi_q.setSubMatrix(dOmegaRot, row + 3, colOmega);
   }
 
@@ -659,11 +659,13 @@ export class LinearBushingBalance implements Constraint {
   }) {
     this.name = params.name;
     this.cogLocalVec = params.cog.clone();
-    this.cogLocalSkew = skew(this.cogLocalVec);
+    this.cogLocalSkew = skew(this.cogLocalVec).mul(2);
     this.pfsFrame = [...params.pfsFrame];
     this.pfsRodEnd = [...params.pfsRodEnd];
     this.frameComponent = params.frameComponent;
     this.rodEndComponents = [...params.rodEndComponents];
+    if (this.rodEndComponents[0] === this.rodEndComponents[1])
+      throw new Error('RodEndの両端は別のコンポーネントと接続する必要あり');
     this.mass = params.mass;
     this.vO = params.vO;
     this.omega = params.omega;
@@ -682,17 +684,29 @@ export class LinearBushingBalance implements Constraint {
   }
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
-    const {row, components, localVec, localSkew, pfs, cog, g} = this;
+    const {
+      row,
+      rodEndLocalVec,
+      rodEndLocalSkew,
+      frameLocalVec,
+      frameLocalSkew,
+      pfsFrame,
+      pfsRodEnd,
+      cogLocalVec,
+      cogLocalSkew,
+      g
+    } = this;
 
-    const colDone: number[] = [];
-    const ptsFrame = frameLocalVec.map((s, i) =>
-      s.applyQuaternion(components[i].quaternion).add(components[i].position)
+    const cRs = this.rodEndComponents;
+    const cF = this.frameComponent;
+    const ptsFrame = frameLocalVec.map((s) =>
+      s.applyQuaternion(cF.quaternion).add(cF.position)
     );
-    const pCog = cog.reduce(
-      (prev, t, i) => prev.add(pts[i].clone().multiplyScalar(t)),
-      new Vector3()
+    const ptsRodEnd = rodEndLocalVec.map((s, i) =>
+      s.applyQuaternion(cRs[i].quaternion).add(cRs[i].position)
     );
-    const cogSkew = skew(pCog).mul(2);
+    const pCog = cogLocalVec.applyQuaternion(cF.quaternion).add(cF.position);
+    const cogSkewP = skew(pCog);
 
     const omega = new Vector3(0, 0, this.omega.value);
     const omegaSkew = skew(omega); // 角速度のSkewMatrix
@@ -704,15 +718,23 @@ export class LinearBushingBalance implements Constraint {
     const ma = g.clone().add(c).multiplyScalar(this.mass); // 遠心力＋重力
     const maSkew = skew(ma);
 
-    const translation = pfs
+    const translation = pfsFrame
       .reduce((prev, f) => prev.add(f.force), new Vector3())
+      .add(pfsRodEnd.reduce((prev, f) => prev.add(f.force), new Vector3()))
       .add(ma);
+
     // 変分の方程式がわかりやすくなるようにあえて、力x距離にする
     // グローバル座標系原点周りのモーメントつり合い
-    const rotation = pfs
+    const rotation = pfsFrame
       .reduce(
-        (prev, f, i) => prev.add(f.force.clone().cross(pts[i])),
+        (prev, f, i) => prev.add(f.force.clone().cross(ptsFrame[i])),
         new Vector3()
+      )
+      .add(
+        pfsRodEnd.reduce(
+          (prev, f, i) => prev.add(f.force.clone().cross(ptsRodEnd[i])),
+          new Vector3()
+        )
       )
       .add(ma.clone().cross(pCog));
 
@@ -723,23 +745,45 @@ export class LinearBushingBalance implements Constraint {
     phi[row + 4] = rotation.y;
     phi[row + 5] = rotation.z;
 
-    pfs.forEach((pf, i) => {
-      const t = cog[i];
-      const pfCol = pf.col;
-      const fSkew = skew(pf.force);
-      const c = components[i];
-      // 力
-      phi_q.set(row + X, pfCol + X, 1);
-      phi_q.set(row + Y, pfCol + Y, 1);
-      phi_q.set(row + Z, pfCol + Z, 1);
-      const deltaP = omegaSkew2.mul(t * this.mass);
-      if (!colDone.includes(c.col)) {
-        phi_q.setSubMatrix(deltaP, row, c.col + X);
-      } else {
-        phi_q.subMatrixAdd(deltaP, row, c.col + X);
-      }
+    // 力のつり合いのヤコビアン
+    const Af = rotationMatrix(cF.quaternion);
+    const Gf = decompositionMatrixG(cF.quaternion);
+    // Frame dP(遠心力)
+    const deltaPF = omegaSkew2.mul(this.mass);
+    phi_q.setSubMatrix(deltaPF, row, cF.col + X);
+    // Frame dΘ(遠心力)
+    const deltaThetaF = deltaPF.mmul(Af).mmul(cogLocalSkew).mmul(Gf);
+    phi_q.setSubMatrix(deltaThetaF, row, cF.col + X);
 
+    // dω
+    const colOmega = this.omega.col;
+    const dOmega = getDeltaOmega(
+      vO,
+      omega,
+      omegaSkew,
+      pCog,
+      cogSkewP,
+      this.mass
+    ).mmul(unitZ); // (3x1)
+    phi_q.setSubMatrix(dOmega, row, colOmega);
+
+    // dPf Frame
+    pfsFrame.forEach((pf) => {
+      phi_q.set(row + X, pf.col + X, 1);
+      phi_q.set(row + Y, pf.col + Y, 1);
+      phi_q.set(row + Z, pf.col + Z, 1);
+    });
+    // dPf RodEnd
+    pfsRodEnd.forEach((pf) => {
+      phi_q.set(row + X, pf.col + X, 1);
+      phi_q.set(row + Y, pf.col + Y, 1);
+      phi_q.set(row + Z, pf.col + Z, 1);
+    });
+
+    // モーメントのつり合いのヤコビアン
+    pfsFrame.forEach((pf, i) => {
       // モーメント
+      const fSkew = skew(pf.force);
       phi_q.setSubMatrix(skew(pts[i]).mul(-1), row + 3, pfCol + X);
       const deltaP2 = fSkew.add(maSkew.sub(omegaSkew2).mul(this.mass * t));
       if (!colDone.includes(c.col)) {
@@ -781,19 +825,10 @@ export class LinearBushingBalance implements Constraint {
       }
       colDone.push(c.col);
     });
-    const colOmega = this.omega.col;
+
     // 力のつり合い(ω部分)
-    const dOmega = getDeltaOmega(
-      vO,
-      omega,
-      omegaSkew,
-      pCog,
-      cogSkew,
-      this.mass
-    ).mmul(unitZ); // (3x1)
-    phi_q.setSubMatrix(dOmega, row, colOmega);
     // モーメントのつり合い(ω部分)
-    const dOmegaRot = cogSkew.mmul(dOmega).mul(-1);
+    const dOmegaRot = cogSkewP.mmul(dOmega).mul(-1);
     phi_q.setSubMatrix(dOmegaRot, row + 3, colOmega);
   }
 
@@ -921,7 +956,7 @@ export class TireBalance implements Constraint {
     const ground = this.ground();
     const groundQ = this.ground().clone().applyQuaternion(component.quaternion);
     const localGroundSkew = skew(ground);
-    const groundSkewQ = skew(groundQ).mul(2);
+    const groundSkewQ = skew(groundQ);
 
     // 重心
     const localCog = localVec[1]
@@ -931,9 +966,9 @@ export class TireBalance implements Constraint {
       .add(localVec[0]);
     const pCogQ = localCog.clone().applyQuaternion(component.quaternion);
     const pCog = pCogQ.clone().add(component.position); // 車両座標系
-    const cogSkewP = skew(pCog).mul(2);
-    const cogSkewQ = skew(pCogQ).mul(2);
-    const cogLocalSkew = skew(pCogQ).mul(2);
+    const cogSkewP = skew(pCog);
+    const cogSkewQ = skew(pCogQ);
+    const cogLocalSkew = skew(localCog).mul(2);
     // 慣性力
     const omega = new Vector3(0, 0, this.omega.value);
     const omegaSkew = skew(omega); // 角速度のSkewMatrix
