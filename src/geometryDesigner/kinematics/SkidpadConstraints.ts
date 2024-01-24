@@ -3,7 +3,7 @@
 /* eslint-disable max-classes-per-file */
 import {Matrix} from 'ml-matrix';
 import {Vector3, Quaternion} from 'three';
-import {Triple, Twin} from '@utils/atLeast';
+import {Triple, Twin, OneOrTwo} from '@utils/atLeast';
 import {
   skew,
   rotationMatrix,
@@ -588,12 +588,228 @@ export class AArmBalance implements Constraint {
   }
 }
 
+export class LinearBushingBalance implements Constraint {
+  readonly className = 'LinearBushingBalance';
+
+  // 並進運動+回転
+  constraints() {
+    return 6;
+  }
+
+  active() {
+    return true;
+  }
+
+  resetStates(): void {}
+
+  readonly isInequalityConstraint = false;
+
+  row: number = -1;
+
+  name: string;
+
+  pfsRodEnd: OneOrTwo<PointForce>;
+
+  pfsFrame: Twin<PointForce>;
+
+  frameComponent: FullDegreesComponent;
+
+  rodEndComponents: OneOrTwo<IComponent>;
+
+  get lhs() {
+    return this.frameComponent;
+  }
+
+  get rhs() {
+    return this.rodEndComponents[0];
+  }
+
+  frameLocalVec: Twin<Vector3>;
+
+  frameLocalSkew: Twin<Matrix>;
+
+  rodEndLocalVec: OneOrTwo<Vector3>;
+
+  rodEndLocalSkew: OneOrTwo<Matrix>;
+
+  cogLocalVec: Vector3;
+
+  cogLocalSkew: Matrix;
+
+  g: Vector3 = new Vector3(0, 0, -9.81);
+
+  mass: number;
+
+  vO: () => Vector3;
+
+  omega: GeneralVariable;
+
+  constructor(params: {
+    name: string;
+    frameComponent: FullDegreesComponent;
+    framePoints: Twin<Vector3>;
+    rodEndComponents: OneOrTwo<IComponent>;
+    rodEndPoints: OneOrTwo<Vector3>;
+    mass: number;
+    cog: Vector3; // FrameComponent基準
+    pfsFrame: Twin<PointForce>;
+    pfsRodEnd: OneOrTwo<PointForce>;
+    vO: () => Vector3; // 座標原点の速度
+    omega: GeneralVariable; // 座標原点の角速度
+  }) {
+    this.name = params.name;
+    this.cogLocalVec = params.cog.clone();
+    this.cogLocalSkew = skew(this.cogLocalVec);
+    this.pfsFrame = [...params.pfsFrame];
+    this.pfsRodEnd = [...params.pfsRodEnd];
+    this.frameComponent = params.frameComponent;
+    this.rodEndComponents = [...params.rodEndComponents];
+    this.mass = params.mass;
+    this.vO = params.vO;
+    this.omega = params.omega;
+    this.frameLocalVec = params.framePoints.map((p) =>
+      p.clone()
+    ) as Twin<Vector3>;
+    this.frameLocalSkew = params.framePoints.map((p) =>
+      skew(p)
+    ) as Twin<Matrix>;
+    this.rodEndLocalVec = params.rodEndPoints.map((p) =>
+      p.clone()
+    ) as OneOrTwo<Vector3>;
+    this.rodEndLocalSkew = params.rodEndPoints.map((p) =>
+      skew(p)
+    ) as OneOrTwo<Matrix>;
+  }
+
+  setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
+    const {row, components, localVec, localSkew, pfs, cog, g} = this;
+
+    const colDone: number[] = [];
+    const ptsFrame = frameLocalVec.map((s, i) =>
+      s.applyQuaternion(components[i].quaternion).add(components[i].position)
+    );
+    const pCog = cog.reduce(
+      (prev, t, i) => prev.add(pts[i].clone().multiplyScalar(t)),
+      new Vector3()
+    );
+    const cogSkew = skew(pCog).mul(2);
+
+    const omega = new Vector3(0, 0, this.omega.value);
+    const omegaSkew = skew(omega); // 角速度のSkewMatrix
+    const omegaSkew2 = omegaSkew.mmul(omegaSkew);
+    const vO = this.vO(); // 車速
+    const cO = omega.clone().cross(vO); // 車両座標系にかかる原点の遠心力
+
+    const c = omega.clone().cross(omega.clone().cross(pCog)).add(cO);
+    const ma = g.clone().add(c).multiplyScalar(this.mass); // 遠心力＋重力
+    const maSkew = skew(ma);
+
+    const translation = pfs
+      .reduce((prev, f) => prev.add(f.force), new Vector3())
+      .add(ma);
+    // 変分の方程式がわかりやすくなるようにあえて、力x距離にする
+    // グローバル座標系原点周りのモーメントつり合い
+    const rotation = pfs
+      .reduce(
+        (prev, f, i) => prev.add(f.force.clone().cross(pts[i])),
+        new Vector3()
+      )
+      .add(ma.clone().cross(pCog));
+
+    phi[row + 0] = translation.x;
+    phi[row + 1] = translation.y;
+    phi[row + 2] = translation.z;
+    phi[row + 3] = rotation.x;
+    phi[row + 4] = rotation.y;
+    phi[row + 5] = rotation.z;
+
+    pfs.forEach((pf, i) => {
+      const t = cog[i];
+      const pfCol = pf.col;
+      const fSkew = skew(pf.force);
+      const c = components[i];
+      // 力
+      phi_q.set(row + X, pfCol + X, 1);
+      phi_q.set(row + Y, pfCol + Y, 1);
+      phi_q.set(row + Z, pfCol + Z, 1);
+      const deltaP = omegaSkew2.mul(t * this.mass);
+      if (!colDone.includes(c.col)) {
+        phi_q.setSubMatrix(deltaP, row, c.col + X);
+      } else {
+        phi_q.subMatrixAdd(deltaP, row, c.col + X);
+      }
+
+      // モーメント
+      phi_q.setSubMatrix(skew(pts[i]).mul(-1), row + 3, pfCol + X);
+      const deltaP2 = fSkew.add(maSkew.sub(omegaSkew2).mul(this.mass * t));
+      if (!colDone.includes(c.col)) {
+        phi_q.setSubMatrix(deltaP2, row + 3, c.col + X);
+      } else {
+        phi_q.subMatrixAdd(deltaP2, row + 3, c.col + X);
+      }
+
+      if (isFullDegreesComponent(c)) {
+        const A = rotationMatrix(c.quaternion);
+        const G = decompositionMatrixG(c.quaternion);
+        if (!colDone.includes(c.col)) {
+          // 力
+          phi_q.setSubMatrix(
+            deltaP.mmul(A.mmul(localSkew[i]).mmul(G)),
+            row,
+            c.col + Q0
+          );
+          // モーメント
+          phi_q.setSubMatrix(
+            deltaP2.mmul(A.mmul(localSkew[i]).mmul(G)),
+            row + 3,
+            c.col + Q0
+          );
+        } else {
+          // 力
+          phi_q.subMatrixAdd(
+            deltaP.mmul(A.mmul(localSkew[i]).mmul(G)),
+            row,
+            c.col + Q0
+          );
+          // モーメント
+          phi_q.subMatrixAdd(
+            deltaP2.mmul(A.mmul(localSkew[i]).mmul(G)),
+            row + 3,
+            c.col + Q0
+          );
+        }
+      }
+      colDone.push(c.col);
+    });
+    const colOmega = this.omega.col;
+    // 力のつり合い(ω部分)
+    const dOmega = getDeltaOmega(
+      vO,
+      omega,
+      omegaSkew,
+      pCog,
+      cogSkew,
+      this.mass
+    ).mmul(unitZ); // (3x1)
+    phi_q.setSubMatrix(dOmega, row, colOmega);
+    // モーメントのつり合い(ω部分)
+    const dOmegaRot = cogSkew.mmul(dOmega).mul(-1);
+    phi_q.setSubMatrix(dOmegaRot, row + 3, colOmega);
+  }
+
+  setJacobianAndConstraintsInequal() {}
+
+  checkInequalityConstraint(): [boolean, any] {
+    return [false, null];
+  }
+}
+
 export class TireBalance implements Constraint {
   readonly className = 'TireBalance';
 
   // 並進運動+回転
   constraints() {
-    return 6;
+    return 5;
   }
 
   active() {

@@ -19,3 +19,4 @@ export type AtLeast3<T> = [T, T, T, ...T[]];
 
 export type Triple<T> = [T, T, T];
 export type Twin<T> = [T, T];
+export type OneOrTwo<T> = [T] | Twin<T>;
