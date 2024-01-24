@@ -171,22 +171,25 @@ export class FDComponentBalance implements Constraint {
     // ヤコビアンの導出
     const A = rotationMatrix(q);
     const G = decompositionMatrixG(q);
-    let dTheta = new Matrix(3, 4);
-    pointForceComponents.forEach((p, i) => {
-      const {col, force} = p;
+    let dThetaM = new Matrix(3, 3);
+    pointForceComponents.forEach((pf, i) => {
       // 力の部分のヤコビアン
-      phi_q.set(row + X, col + X, 1);
-      phi_q.set(row + Y, col + Y, 1);
-      phi_q.set(row + Z, col + Z, 1);
+      phi_q.set(row + X, pf.col + X, 1);
+      phi_q.set(row + Y, pf.col + Y, 1);
+      phi_q.set(row + Z, pf.col + Z, 1);
       // モーメントの部分のヤコビアン
+      phi_q.setSubMatrix(
+        A.mmul(pointLocalVecMat[i]).mul(-1),
+        row + 3,
+        pf.col + X
+      );
+      // theta部分の微分
       const localSkew = pointLocalSkew[i];
-      const fSkew = skew(force);
-      const AsG = A.mmul(localSkew).mmul(G);
-      dTheta = dTheta.add(fSkew.mmul(AsG));
-
-      phi_q.setSubMatrix(A.mmul(pointLocalVecMat[i]).mul(-1), row + 3, col + X);
+      const fSkew = skew(pf.force);
+      const As = A.mmul(localSkew);
+      dThetaM = dThetaM.add(fSkew.mmul(As));
     });
-    dTheta = dTheta.add(maSkew.mmul(A.mmul(cogLocalSkew).mmul(G))); // (3x3) x (3x3) x (3x3) x (3x4) = 3x4
+    dThetaM = dThetaM.add(maSkew.mmul(A).mmul(cogLocalSkew)); // (3x3) x (3x3) x (3x3) x (3x4) = 3x4
 
     const colOmega = this.omega.col;
     // 力のつり合い(ω部分)
@@ -200,16 +203,16 @@ export class FDComponentBalance implements Constraint {
     ).mmul(unitZ); // (3x1)
     phi_q.setSubMatrix(dOmega, row, colOmega);
     const dTheta2 = omegaSkew
-      .mmul(omegaSkew.mmul(A.mmul(cogLocalSkew).mmul(G)))
+      .mmul(omegaSkew.mmul(A).mmul(cogLocalSkew))
       .mul(this.mass); // (3x4)
-    phi_q.setSubMatrix(dTheta2, row, col + Q0);
+    phi_q.setSubMatrix(dTheta2.mmul(G), row, col + Q0);
     // モーメントのつり合い
     const dOmegaRot = cogSkew.mmul(dOmega).mul(-1);
     phi_q.setSubMatrix(dOmegaRot, row + 3, colOmega);
     const dThetaRot = cogSkew.mmul(dTheta2).mul(-1);
-    dTheta.add(dThetaRot); // (3x3) x (3x3) x (3x3) x (3x4) = 3x4
+    dThetaM.add(dThetaRot); // (3x3) x (3x3) x (3x3) x (3x4) = 3x4
 
-    phi_q.setSubMatrix(dTheta, row + 3, col + Q0);
+    phi_q.setSubMatrix(dThetaM.mmul(G), row + 3, col + Q0);
   }
 
   setJacobianAndConstraintsInequal() {}
