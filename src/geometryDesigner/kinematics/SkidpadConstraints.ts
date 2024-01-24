@@ -125,13 +125,15 @@ export class FDComponentBalance implements Constraint {
     // 車両座標系そのものの角速度と速度と遠心力
     const omega = new Vector3(0, 0, this.omega.value); // 角速度
     const omegaSkew = skew(omega); // 角速度のSkewMatrix
+    const omegaSkew2 = omegaSkew.mmul(omegaSkew); // 角速度のSkewMatrix
     const vO = this.vO(); // 車速
     const cO = omega.clone().cross(vO); // 車両座標系にかかる原点の遠心力
     const q = component.quaternion; // 注目している部品の姿勢
     // 部品の部品座標系での重心
-    const cog = cogLocalVec.clone().applyQuaternion(q);
-    const pCog = cog.clone().add(component.position);
-    const cogSkew = skew(cog).mul(2);
+    const cogQ = cogLocalVec.clone().applyQuaternion(q);
+    const pCog = cogQ.clone().add(component.position);
+    const cogSkewQ = skew(cogQ);
+    const cogSkewP = skew(pCog).mul(2);
     // 部品にかかる遠心力
     const c = omega.clone().cross(omega.clone().cross(pCog)).add(cO);
     const ma = g.clone().add(c).multiplyScalar(this.mass); // 遠心力＋重力
@@ -156,7 +158,7 @@ export class FDComponentBalance implements Constraint {
         prev.add(f);
         return prev;
       }, new Vector3())
-      .add(ma.clone().cross(cog));
+      .add(ma.clone().cross(cogQ));
 
     // 方程式のつり合い
     phi[row + X] = translation.x;
@@ -171,48 +173,56 @@ export class FDComponentBalance implements Constraint {
     // ヤコビアンの導出
     const A = rotationMatrix(q);
     const G = decompositionMatrixG(q);
-    let dThetaM = new Matrix(3, 3);
-    pointForceComponents.forEach((pf, i) => {
-      // 力の部分のヤコビアン
+    const colOmega = this.omega.col;
+    // 力のつり合いのヤコビアン
+    // dP
+    pointForceComponents.forEach((pf) => {
       phi_q.set(row + X, pf.col + X, 1);
       phi_q.set(row + Y, pf.col + Y, 1);
       phi_q.set(row + Z, pf.col + Z, 1);
-      // モーメントの部分のヤコビアン
+    });
+    // dω
+    const dOmega = getDeltaOmega(
+      vO,
+      omega,
+      omegaSkew,
+      pCog,
+      cogSkewP,
+      this.mass
+    ).mmul(unitZ); // (3x1)
+    phi_q.setSubMatrix(dOmega, row, colOmega);
+    // dP
+    const dP = omegaSkew2.mul(this.mass);
+    phi_q.setSubMatrix(dP, row, col + X);
+    // dΘ
+    const dThetaMCF = omegaSkew2.mmul(A).mmul(cogLocalSkew).mul(this.mass);
+    phi_q.setSubMatrix(dThetaMCF.mmul(G), row, col + Q0);
+
+    // モーメントの部分のヤコビアン
+    let dThetaM = new Matrix(3, 3);
+    pointForceComponents.forEach((pf, i) => {
+      // dP
       phi_q.setSubMatrix(
         A.mmul(pointLocalVecMat[i]).mul(-1),
         row + 3,
         pf.col + X
       );
       // theta部分の微分
-      const localSkew = pointLocalSkew[i];
       const fSkew = skew(pf.force);
-      const As = A.mmul(localSkew);
+      const As = A.mmul(pointLocalSkew[i]);
       dThetaM = dThetaM.add(fSkew.mmul(As));
     });
+    // dP
+    phi_q.setSubMatrix(cogSkewQ.mmul(omegaSkew2).mul(-1), row + 3, col + X);
+
+    // dTheta
     dThetaM = dThetaM.add(maSkew.mmul(A).mmul(cogLocalSkew)); // (3x3) x (3x3) x (3x3) x (3x4) = 3x4
-
-    const colOmega = this.omega.col;
-    // 力のつり合い(ω部分)
-    const dOmega = getDeltaOmega(
-      vO,
-      omega,
-      omegaSkew,
-      pCog,
-      cogSkew,
-      this.mass
-    ).mmul(unitZ); // (3x1)
-    phi_q.setSubMatrix(dOmega, row, colOmega);
-    const dTheta2 = omegaSkew
-      .mmul(omegaSkew.mmul(A).mmul(cogLocalSkew))
-      .mul(this.mass); // (3x4)
-    phi_q.setSubMatrix(dTheta2.mmul(G), row, col + Q0);
-    // モーメントのつり合い
-    const dOmegaRot = cogSkew.mmul(dOmega).mul(-1);
-    phi_q.setSubMatrix(dOmegaRot, row + 3, colOmega);
-    const dThetaRot = cogSkew.mmul(dTheta2).mul(-1);
-    dThetaM.add(dThetaRot); // (3x3) x (3x3) x (3x3) x (3x4) = 3x4
-
+    dThetaM = dThetaM.add(cogSkewQ.mmul(dThetaMCF).mul(-1));
     phi_q.setSubMatrix(dThetaM.mmul(G), row + 3, col + Q0);
+
+    // dω
+    const dOmegaRot = cogSkewQ.mmul(dOmega).mul(-1);
+    phi_q.setSubMatrix(dOmegaRot, row + 3, colOmega);
   }
 
   setJacobianAndConstraintsInequal() {}
@@ -815,7 +825,7 @@ export class TireBalance implements Constraint {
       this.mass
     ).mmul(unitZ);
     const dP = omegaSkew2.mul(this.mass);
-    const dTheta1 = omegaSkew2.mmul(A).mmul(cogLocalSkew);
+    const dTheta1 = omegaSkew2.mmul(A).mmul(cogLocalSkew).mul(this.mass);
     const dTheta2 = unitZSkew
       .mmul(A)
       .mmul(localAxisSkew)
