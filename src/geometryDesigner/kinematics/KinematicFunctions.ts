@@ -17,7 +17,10 @@ import {Matrix} from 'ml-matrix';
 import {Quaternion, Vector3} from 'three';
 import {isVector3} from '@utils/three';
 import {getDgd} from '@store/getDgd';
-import {FullDegreesComponent} from '@gd/kinematics/KinematicComponents';
+import {
+  FullDegreesComponent,
+  PointForce
+} from '@gd/kinematics/KinematicComponents';
 import {TireRestorer} from '@gd/kinematics/Restorer';
 
 // サブマトリックスを設定する
@@ -283,17 +286,17 @@ export function getJointPartner(joint: JointAsVector3, nodeID: string) {
 export function getNamedVector3FromJoint(
   joint: JointAsVector3,
   nodeID1: string,
-  nodeID2: string
+  nodeID2?: string
 ): [INamedVector3RO, INamedVector3RO] {
   if (
     joint.lhs.parent?.nodeID === nodeID1 &&
-    joint.rhs.parent?.nodeID === nodeID2
+    (joint.rhs.parent?.nodeID === nodeID2 ?? joint.rhs.parent?.nodeID)
   ) {
     return [joint.lhs, joint.rhs];
   }
   if (
     joint.rhs.parent?.nodeID === nodeID1 &&
-    joint.lhs.parent?.nodeID === nodeID2
+    (joint.lhs.parent?.nodeID === nodeID2 ?? joint.lhs.parent?.nodeID)
   ) {
     return [joint.rhs, joint.lhs];
   }
@@ -453,4 +456,17 @@ export function getSimplifiedTireConstrainsParams(
   const pLocal = point.value.applyQuaternion(dq).add(dp);
   const func = () => pLocal;
   return [pComponent, func];
+}
+
+export function getPFComponent(
+  pointForceComponents: {[index: string]: PointForce},
+  joint: JointAsVector3
+) {
+  const id = `${joint.lhs.nodeID}&${joint.rhs.nodeID}`;
+  if (!pointForceComponents[id]) {
+    const pf = new PointForce(joint.lhs, joint.rhs);
+    pointForceComponents[id] = pf;
+    return pf;
+  }
+  return pointForceComponents[id];
 }

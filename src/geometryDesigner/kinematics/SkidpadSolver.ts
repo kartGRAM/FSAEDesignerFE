@@ -31,7 +31,8 @@ import {
   getJointsToOtherComponents,
   getNamedVector3FromJoint,
   getSimplifiedTireConstrainsParams,
-  elementIsComponent
+  elementIsComponent,
+  getPFComponent
 } from './KinematicFunctions';
 import {
   Restorer,
@@ -107,6 +108,7 @@ export class SkidpadSolver {
     const constraints: Constraint[] = [];
     const components: IComponent[] = [];
     const jointsDone = new Set<JointAsVector3>();
+    const pointForceComponents: {[index: string]: PointForce} = {};
     const tempComponents: {[index: string]: FullDegreesComponent} = {};
     const tempElements: {[index: string]: IElement} = {};
     let specialControls: {[index: string]: Control[]} = {};
@@ -211,22 +213,17 @@ export class SkidpadSolver {
           const pfs: PointForce[] = [];
           const joints = element.fixedPoints.map((p) => {
             const joint = jointDict[p.nodeID][0];
-            if (!jointsDone.has(joint)) {
-              // 力コンポーネント
-              const pf = new PointForce(joint.lhs, joint.rhs);
-              pfs.push(pf);
-              components.push(pf);
-            }
+            const pf = getPFComponent(pointForceComponents, joint);
+            pfs.push(pf);
+            components.push(pf);
             jointsDone.add(joint);
             return joint;
           });
           const jointu = jointDict[element.points[0].nodeID][0];
           // 力コンポーネント
-          if (!jointsDone.has(jointu)) {
-            const pf = new PointForce(jointu.lhs, jointu.rhs);
-            pfs.push(pf);
-            components.push(pf);
-          }
+          const pf = getPFComponent(pointForceComponents, jointu);
+          pfs.push(pf);
+          components.push(pf);
           jointsDone.add(jointu);
           const ptsBody = joints.map((joint, i) =>
             getJointPartner(joint, element.fixedPoints[i].nodeID)
@@ -283,16 +280,12 @@ export class SkidpadSolver {
           const pfs: PointForce[] = [];
           const jointf = jointDict[element.fixedPoint.nodeID][0];
           const jointp = jointDict[element.point.nodeID][0];
-          if (!jointsDone.has(jointf)) {
-            const pf = new PointForce(jointf.lhs, jointf.rhs);
-            pfs.push(pf);
-            components.push(pf);
-          }
-          if (!jointsDone.has(jointp)) {
-            const pf = new PointForce(jointp.lhs, jointp.rhs);
-            pfs.push(pf);
-            components.push(pf);
-          }
+          const pff = getPFComponent(pointForceComponents, jointf);
+          pfs.push(pff);
+          components.push(pff);
+          const pfp = getPFComponent(pointForceComponents, jointp);
+          pfs.push(pfp);
+          components.push(pfp);
           jointsDone.add(jointf);
           jointsDone.add(jointp);
           const points = [
@@ -380,16 +373,12 @@ export class SkidpadSolver {
             const pfs: PointForce[] = [];
             const jointl = jointDict[element.leftBearing.nodeID][0];
             const jointr = jointDict[element.rightBearing.nodeID][0];
-            if (!jointsDone.has(jointl)) {
-              const pf = new PointForce(jointl.lhs, jointl.rhs);
-              pfs.push(pf);
-              components.push(pf);
-            }
-            if (!jointsDone.has(jointr)) {
-              const pf = new PointForce(jointr.lhs, jointr.rhs);
-              pfs.push(pf);
-              components.push(pf);
-            }
+            const pfl = getPFComponent(pointForceComponents, jointl);
+            pfs.push(pfl);
+            components.push(pfl);
+            const pfr = getPFComponent(pointForceComponents, jointr);
+            pfs.push(pfr);
+            components.push(pfr);
             jointsDone.add(jointl);
             jointsDone.add(jointr);
             const points = [
@@ -463,16 +452,12 @@ export class SkidpadSolver {
             getJointPartner(jointf0, element.fixedPoints[0].nodeID),
             getJointPartner(jointf1, element.fixedPoints[1].nodeID)
           ];
-          if (!jointsDone.has(jointf0)) {
-            const pf = new PointForce(jointf0.lhs, jointf0.rhs);
-            pfsFrame.push(pf);
-            components.push(pf);
-          }
-          if (!jointsDone.has(jointf1)) {
-            const pf = new PointForce(jointf1.lhs, jointf1.rhs);
-            pfsFrame.push(pf);
-            components.push(pf);
-          }
+          const pf0 = getPFComponent(pointForceComponents, jointf0);
+          pfsFrame.push(pf0);
+          components.push(pf0);
+          const pf1 = getPFComponent(pointForceComponents, jointf1);
+          pfsFrame.push(pf1);
+          components.push(pf1);
           jointsDone.add(jointf0);
           jointsDone.add(jointf1);
           const node0: (Vector3 | undefined)[] = [];
@@ -484,11 +469,9 @@ export class SkidpadSolver {
           if (!frameComponent) throw new Error('frameComponentが見つからない');
           element.points.forEach((point, i) => {
             const jointp = jointDict[point.nodeID][0];
-            if (!jointsDone.has(jointp)) {
-              const pf = new PointForce(jointp.lhs, jointp.rhs);
-              pfsRodEnd.push(pf);
-              components.push(pf);
-            }
+            const pf = getPFComponent(pointForceComponents, jointp);
+            pfsRodEnd.push(pf);
+            components.push(pf);
             jointsDone.add(jointp);
             const points = [
               ...fixedPoints,
@@ -777,6 +760,16 @@ export class SkidpadSolver {
           element.nodeID
         );
         // 拘束の多い順に拘束式を作成
+        const pfs: PointForce[] = [];
+        const joints = jointDict[element.nodeID];
+        const points: Vector3[] = [];
+        joints.forEach((joint) => {
+          const pf = getPFComponent(pointForceComponents, joint);
+          pfs.push(pf);
+          components.push(pf);
+          const [pThis] = getNamedVector3FromJoint(joint, element.nodeID);
+          points.push(pThis.value);
+        });
         partnerIDs.forEach((partnerID) => {
           const otherComponent = tempComponents[partnerID];
           const otherElement = tempElements[partnerID];
@@ -815,6 +808,20 @@ export class SkidpadSolver {
           }
           constraints.push(constraint);
         });
+
+        // FDComponentBalance
+        constraints.push(
+          new FDComponentBalance({
+            name: `FDComponentBalance of${element.name.value}`,
+            component,
+            mass: element.mass.value,
+            cog: element.centerOfGravity.value,
+            points,
+            pointForceComponents: pfs,
+            vO,
+            omega
+          })
+        );
       });
       // フレームをピン止めする
       const frame = children.find((e) => e.meta?.isBodyOfFrame) as IBody;
@@ -847,41 +854,18 @@ export class SkidpadSolver {
         )
       );
     }
-    // ステップ5: グルーピング
-    // Union Find Treeを用いてグルーピングを実施する。
+    // ステップ5: 正規化拘束式の作成
     {
-      constraints.forEach((constraint) => {
-        if (constraint.lhs.isFixed && constraint.rhs.isFixed) return;
-        if (constraint.lhs.isFixed) {
-          constraint.rhs.root.unionFindTreeConstraints.push(constraint);
-          return;
-        }
-        if (constraint.rhs.isFixed) {
-          constraint.lhs.root.unionFindTreeConstraints.push(constraint);
-          return;
-        }
-        if (constraint.rhs === constraint.lhs) {
-          constraint.lhs.root.unionFindTreeConstraints.push(constraint);
-          return;
-        }
-
-        constraint.lhs.unite(constraint.rhs, constraint);
-      });
-      const rootComponents = components.filter((component) => component.isRoot);
+      const rootComponents = [components[0]];
       this.components = rootComponents.map((root) => {
-        const grouped = [
-          root,
-          ...components.filter(
-            (component) => component.root === root && component !== root
-          )
-        ];
-        grouped.forEach((component) => {
+        root.unionFindTreeConstraints = [...constraints];
+        components.forEach((component) => {
           const constraintToNormalize = component.getConstraintToNormalize();
           if (constraintToNormalize) {
             root.unionFindTreeConstraints.push(constraintToNormalize);
           }
         });
-        return grouped;
+        return components;
       });
       // コンポーネントの列番号を設定
       this.components.forEach((components) => {
