@@ -875,6 +875,8 @@ export class SkidpadSolver {
           return prev;
         }, 0);
       });
+      console.log(`joint size = ${joints.length}`);
+      console.log(`pf size = ${Object.keys(pointForceComponents).length}`);
     }
     // 上記4ステップでプリプロセッサ完了
     if (solve)
@@ -949,8 +951,8 @@ export class SkidpadSolver {
 
           const norm = dq.norm('frobenius');
           eq = norm < 1.0e-4;
-          // console.log(`norm=${norm.toFixed(3)}`);
-          if (norm > minNorm * 1000 || Number.isNaN(norm)) {
+          console.log(`norm=${norm.toFixed(3)}`);
+          if (norm > minNorm * 100000000000 || Number.isNaN(norm)) {
             // eslint-disable-next-line no-console
             console.log(`norm=${norm.toFixed(3)}`);
             // eslint-disable-next-line no-console
