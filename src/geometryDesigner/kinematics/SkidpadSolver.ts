@@ -455,7 +455,8 @@ export class SkidpadSolver {
         }
         // LinearBushingはComponent扱いしない
         if (isLinearBushing(element)) {
-          const pfs: PointForce[] = [];
+          const pfsFrame: PointForce[] = [];
+          const pfsRodEnd: PointForce[] = [];
           const jointf0 = jointDict[element.fixedPoints[0].nodeID][0];
           const jointf1 = jointDict[element.fixedPoints[1].nodeID][0];
           const fixedPoints = [
@@ -464,12 +465,12 @@ export class SkidpadSolver {
           ];
           if (!jointsDone.has(jointf0)) {
             const pf = new PointForce(jointf0.lhs, jointf0.rhs);
-            pfs.push(pf);
+            pfsFrame.push(pf);
             components.push(pf);
           }
           if (!jointsDone.has(jointf1)) {
             const pf = new PointForce(jointf1.lhs, jointf1.rhs);
-            pfs.push(pf);
+            pfsFrame.push(pf);
             components.push(pf);
           }
           jointsDone.add(jointf0);
@@ -477,11 +478,15 @@ export class SkidpadSolver {
           const node0: (Vector3 | undefined)[] = [];
           const component0: IComponent[] = [];
           const rodEndComponents: IComponent[] = [];
+          const rodEndPoints: Vector3[] = [];
+          const frameComponent =
+            tempComponents[fixedPoints[0].parent?.nodeID ?? ''];
+          if (!frameComponent) throw new Error('frameComponentが見つからない');
           element.points.forEach((point, i) => {
             const jointp = jointDict[point.nodeID][0];
             if (!jointsDone.has(jointp)) {
               const pf = new PointForce(jointp.lhs, jointp.rhs);
-              pfs.push(pf);
+              pfsRodEnd.push(pf);
               components.push(pf);
             }
             jointsDone.add(jointp);
@@ -526,6 +531,9 @@ export class SkidpadSolver {
               );
             }
             rodEndComponents.push(rhs);
+            rodEndPoints.push(
+              isFullDegreesComponent(rhs) ? points[2].value : new Vector3()
+            );
 
             const controledBy =
               controls[element.nodeID]?.map((control) => control.nodeID) ?? [];
@@ -567,18 +575,20 @@ export class SkidpadSolver {
             );
             constraints.push(constraint);
           });
-          // BarBalance
+          // LinearBushingBalance
           constraints.push(
             new LinearBushingBalance({
               name: `LinearBushingBalance of${element.name.value}`,
-              components: [lhs, rhs],
-              points: [
-                isFullDegreesComponent(lhs) ? points[0].value : new Vector3(),
-                isFullDegreesComponent(rhs) ? points[1].value : new Vector3()
-              ],
+              frameComponent,
+              framePoints: [fixedPoints[0].value, fixedPoints[1].value],
+              rodEndComponents: rodEndComponents as OneOrTwo<IComponent>,
+              rodEndPoints: rodEndPoints as OneOrTwo<Vector3>,
+              cog: fixedPoints[0].value
+                .add(fixedPoints[1].value)
+                .multiplyScalar(0.5), // 要修正
+              pfsFrame: pfsFrame as Twin<PointForce>,
+              pfsRodEnd: pfsRodEnd as OneOrTwo<PointForce>,
               mass: element.mass.value,
-              cog: 0.5, // 要修正
-              pfs: pfs as Twin<PointForce>,
               vO,
               omega
             })
