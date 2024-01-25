@@ -290,13 +290,13 @@ export function getNamedVector3FromJoint(
 ): [INamedVector3RO, INamedVector3RO] {
   if (
     joint.lhs.parent?.nodeID === nodeID1 &&
-    (joint.rhs.parent?.nodeID === nodeID2 ?? joint.rhs.parent?.nodeID)
+    joint.rhs.parent?.nodeID === (nodeID2 ?? joint.rhs.parent?.nodeID)
   ) {
     return [joint.lhs, joint.rhs];
   }
   if (
     joint.rhs.parent?.nodeID === nodeID1 &&
-    (joint.lhs.parent?.nodeID === nodeID2 ?? joint.lhs.parent?.nodeID)
+    joint.lhs.parent?.nodeID === (nodeID2 ?? joint.lhs.parent?.nodeID)
   ) {
     return [joint.rhs, joint.lhs];
   }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 import store, {RootState} from '@store/store';
@@ -11,6 +12,7 @@ import {
 } from '@store/reducers/uiTempGeometryDesigner';
 // import {getKinematicConstrainedElements} from '@gd/KinematicFunctions';
 import {KinematicsSolver} from '@gd/kinematics/KinematicsSolver';
+import {SkidpadSolver} from '@gd/kinematics/SkidpadSolver';
 import {getControl} from '@gd/controls/Controls';
 import {Control} from '@gd/controls/IControls';
 import {DatumManager} from '@gd/measure/datum/DatumManager';
@@ -218,7 +220,7 @@ export default function AssemblyCreactor() {
       }, {} as {[index: string]: Control[]});
       if (assembly) {
         try {
-          const solver = new KinematicsSolver(
+          /* const solver = new KinematicsSolver(
             assembly,
             assemblyMode,
             pinCenterOfGravityOfFrame,
@@ -226,7 +228,12 @@ export default function AssemblyCreactor() {
             controls,
             true
           );
-          dispatch(setKinematicsSolver(solver));
+          dispatch(setKinematicsSolver(solver)); */
+
+          const params = state.uitgd.tests[2].steadySkidpadParams;
+          if (params) {
+            const solver = new SkidpadSolver(assembly, params, controls, true);
+          }
         } catch (e) {
           // eslint-disable-next-line no-console
           console.log(e);
