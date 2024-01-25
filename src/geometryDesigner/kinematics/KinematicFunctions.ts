@@ -17,6 +17,8 @@ import {Matrix} from 'ml-matrix';
 import {Quaternion, Vector3} from 'three';
 import {isVector3} from '@utils/three';
 import {getDgd} from '@store/getDgd';
+import {FullDegreesComponent} from '@gd/kinematics/KinematicComponents';
+import {TireRestorer} from '@gd/kinematics/Restorer';
 
 // サブマトリックスを設定する
 /*
@@ -406,4 +408,49 @@ export function elementIsComponent(
   // FixedElementはコンポーネント扱いしない
   if (isFixedElement(element)) return false;
   return true;
+}
+
+export function getSimplifiedTireConstrainsParams(
+  element: ITire,
+  jointDict: JointDict,
+  tempComponents: {[index: string]: FullDegreesComponent},
+  pID: string
+): [FullDegreesComponent, (normal: Vector3, distance: number) => Vector3] {
+  const plTo = getJointPartner(
+    jointDict[element.leftBearing.nodeID][0],
+    element.leftBearing.nodeID
+  );
+  const prTo = getJointPartner(
+    jointDict[element.rightBearing.nodeID][0],
+    element.rightBearing.nodeID
+  ).value;
+  const pl = element.leftBearing.value;
+  const pr = element.rightBearing.value;
+  // タイヤの親コンポーネントとの相対座標及び回転を取得
+  const {position: dp, rotation: dq} = TireRestorer.getTireLocalPosition(
+    pl,
+    pr,
+    plTo.value,
+    prTo
+  );
+  const parent = plTo.parent as IElement;
+  const pComponent = tempComponents[parent.nodeID];
+  const dqi = dq.clone().invert();
+  if (pID === 'nearestNeighbor') {
+    const func = (normal: Vector3, distance: number) => {
+      const pdqi = pComponent.quaternion.clone().invert();
+      // タイヤ空間上へ法線方向を変換する
+      const n = normal.clone().applyQuaternion(pdqi).applyQuaternion(dqi);
+      // タイヤ空間内での、平面への最近傍点
+      const point = element.getNearestNeighborToPlane(n, distance);
+      return point.applyQuaternion(dq).add(dp);
+    };
+    return [pComponent, func];
+  }
+  const points = element.getMeasurablePoints();
+  const point = points.find((point) => point.nodeID === pID);
+  if (!point) throw new Error('pointが見つからない');
+  const pLocal = point.value.applyQuaternion(dq).add(dp);
+  const func = () => pLocal;
+  return [pComponent, func];
 }

@@ -21,6 +21,7 @@ import {sleep} from '@utils/helpers';
 import {ISteadySkidpadParams} from '@gd/analysis/ITest';
 import {ISnapshot} from '@gd/analysis/ISnapshot';
 import {Triple, Twin, OneOrTwo} from '@utils/atLeast';
+import {getTire} from '@tire/listTireData';
 import {
   getJointDictionary,
   canSimplifyAArm,
@@ -29,6 +30,7 @@ import {
   isFixedElement,
   getJointsToOtherComponents,
   getNamedVector3FromJoint,
+  getSimplifiedTireConstrainsParams,
   elementIsComponent
 } from './KinematicFunctions';
 import {
@@ -84,12 +86,21 @@ export class SkidpadSolver {
   constructor(
     assembly: IAssembly,
     config: ISteadySkidpadParams,
-    controls: {[index: string]: Control[]},
+    controlsAll: {[index: string]: Control[]},
     solve?: boolean
   ) {
     const vO = () => new Vector3(10, 0, 0);
     this.assembly = assembly;
     const {children} = assembly;
+    const controls = Object.keys(controlsAll).reduce((dict, key) => {
+      const cls = controlsAll[key].filter(
+        (f) => f.nodeID === config.stearing.target
+      );
+      if (cls.length > 0) {
+        dict[key] = cls;
+      }
+      return dict;
+    }, {} as {[index: string]: Control[]});
     const joints = assembly.getJointsAsVector3();
     const jointDict = getJointDictionary(children, joints);
     const constraints: Constraint[] = [];
@@ -199,18 +210,22 @@ export class SkidpadSolver {
           const pfs: PointForce[] = [];
           const joints = element.fixedPoints.map((p) => {
             const joint = jointDict[p.nodeID][0];
+            if (!jointsDone.has(joint)) {
+              // 力コンポーネント
+              const pf = new PointForce(joint.lhs, joint.rhs);
+              pfs.push(pf);
+              components.push(pf);
+            }
             jointsDone.add(joint);
-            // 力コンポーネント
-            const pf = new PointForce(joint.lhs, joint.rhs);
-            pfs.push(pf);
-            components.push(pf);
             return joint;
           });
           const jointu = jointDict[element.points[0].nodeID][0];
           // 力コンポーネント
-          const pf = new PointForce(jointu.lhs, jointu.rhs);
-          pfs.push(pf);
-          components.push(pf);
+          if (!jointsDone.has(jointu)) {
+            const pf = new PointForce(jointu.lhs, jointu.rhs);
+            pfs.push(pf);
+            components.push(pf);
+          }
           jointsDone.add(jointu);
           const ptsBody = joints.map((joint, i) =>
             getJointPartner(joint, element.fixedPoints[i].nodeID)
@@ -264,8 +279,19 @@ export class SkidpadSolver {
         }
         // BarはComponent扱いしない
         if (isBar(element) || isSpringDumper(element)) {
+          const pfs: PointForce[] = [];
           const jointf = jointDict[element.fixedPoint.nodeID][0];
           const jointp = jointDict[element.point.nodeID][0];
+          if (!jointsDone.has(jointf)) {
+            const pf = new PointForce(jointf.lhs, jointf.rhs);
+            pfs.push(pf);
+            components.push(pf);
+          }
+          if (!jointsDone.has(jointp)) {
+            const pf = new PointForce(jointp.lhs, jointp.rhs);
+            pfs.push(pf);
+            components.push(pf);
+          }
           jointsDone.add(jointf);
           jointsDone.add(jointp);
           const points = [
@@ -328,26 +354,93 @@ export class SkidpadSolver {
             element.nodeID
           );
           constraints.push(constraint);
+
+          // BarBalance
+          constraints.push(
+            new BarBalance({
+              name: `BarBalance of${element.name.value}`,
+              components: [lhs, rhs],
+              points: [
+                isFullDegreesComponent(lhs) ? points[0].value : new Vector3(),
+                isFullDegreesComponent(rhs) ? points[1].value : new Vector3()
+              ],
+              mass: element.mass.value,
+              cog: 0.5, // 要修正
+              pfs: pfs as Twin<PointForce>,
+              vO,
+              omega
+            })
+          );
           return;
         }
         // Tireはコンポーネント扱いしない
-        if (isTire(element) && canSimplifyTire(element, jointDict)) {
-          const jointl = jointDict[element.leftBearing.nodeID][0];
-          const jointr = jointDict[element.rightBearing.nodeID][0];
-          jointsDone.add(jointl);
-          jointsDone.add(jointr);
-          const points = [
-            getJointPartner(jointl, element.leftBearing.nodeID),
-            getJointPartner(jointr, element.rightBearing.nodeID)
-          ];
-          this.restorers.push(new TireRestorer(element, points[0], points[1]));
-
-          // 2023.06.17 二つ以上のコンポーネントにまたがるタイヤは、
-          // 一つのコンポーネント扱いとするように変更(接地点の計算が面倒極まるため)
-          // 計算負荷は虫すすことにする。
-          // 将来的には方法を考えるかも
-          // 以下はかなり特殊な場合（BRGの剛性を再現しているとか）
-          /* const constraint = new BarAndSpheres(
+        if (isTire(element)) {
+          if (canSimplifyTire(element, jointDict)) {
+            const pfs: PointForce[] = [];
+            const jointl = jointDict[element.leftBearing.nodeID][0];
+            const jointr = jointDict[element.rightBearing.nodeID][0];
+            if (!jointsDone.has(jointl)) {
+              const pf = new PointForce(jointl.lhs, jointl.rhs);
+              pfs.push(pf);
+              components.push(pf);
+            }
+            if (!jointsDone.has(jointr)) {
+              const pf = new PointForce(jointr.lhs, jointr.rhs);
+              pfs.push(pf);
+              components.push(pf);
+            }
+            jointsDone.add(jointl);
+            jointsDone.add(jointr);
+            const points = [
+              getJointPartner(jointl, element.leftBearing.nodeID),
+              getJointPartner(jointr, element.rightBearing.nodeID)
+            ];
+            this.restorers.push(
+              new TireRestorer(element, points[0], points[1])
+            );
+            // TireBalance
+            const torqueRatioSum = Object.keys(config.tireTorqueRatio).reduce(
+              // eslint-disable-next-line no-return-assign
+              (prev, id) => (prev += config.tireTorqueRatio[id]),
+              0
+            );
+            const [component, func] = getSimplifiedTireConstrainsParams(
+              element,
+              jointDict,
+              tempComponents,
+              'nearestNeighbor'
+            );
+            const normal = new Vector3(0, 0, 1);
+            const tire = getTire(config.tireData[element.nodeID] ?? '');
+            constraints.push(
+              new TireBalance({
+                name: `TireBalance of${element.name.value}`,
+                component,
+                points: [points[0].value, points[1].value],
+                mass: element.mass.value,
+                cog: 0.5, // 要修正
+                pfs: pfs as Twin<PointForce>,
+                vO,
+                omega,
+                torqueRatio:
+                  config.tireTorqueRatio[element.nodeID] / torqueRatioSum,
+                getFriction: (sa, ia, fz) => {
+                  // 要修正
+                  const {fx, fy} = tire.get({sa, sl: 0, fz, ia});
+                  return new Vector3(fx, fy, 0);
+                },
+                error,
+                ground: () => func(normal, 0)
+              })
+            );
+          } else {
+            throw new Error('Tireは同じコンポーネントに接続される必要がある');
+            // 2023.06.17 二つ以上のコンポーネントにまたがるタイヤは、
+            // 一つのコンポーネント扱いとするように変更(接地点の計算が面倒極まるため)
+            // 計算負荷は無視することにする。
+            // 将来的には方法を考えるかも
+            // 以下はかなり特殊な場合（BRGの剛性を再現しているとか）
+            /* const constraint = new BarAndSpheres(
             `bar object of tire ${element.name.value}`,
             tempComponents[elements[0].nodeID],
             tempComponents[elements[1].nodeID],
@@ -357,15 +450,27 @@ export class SkidpadSolver {
             false
           );
           constraints.push(constraint); */
+          }
         }
         // LinearBushingはComponent扱いしない
         if (isLinearBushing(element)) {
+          const pfs: PointForce[] = [];
           const jointf0 = jointDict[element.fixedPoints[0].nodeID][0];
           const jointf1 = jointDict[element.fixedPoints[1].nodeID][0];
           const fixedPoints = [
             getJointPartner(jointf0, element.fixedPoints[0].nodeID),
             getJointPartner(jointf1, element.fixedPoints[1].nodeID)
           ];
+          if (!jointsDone.has(jointf0)) {
+            const pf = new PointForce(jointf0.lhs, jointf0.rhs);
+            pfs.push(pf);
+            components.push(pf);
+          }
+          if (!jointsDone.has(jointf1)) {
+            const pf = new PointForce(jointf1.lhs, jointf1.rhs);
+            pfs.push(pf);
+            components.push(pf);
+          }
           jointsDone.add(jointf0);
           jointsDone.add(jointf1);
           const node0: (Vector3 | undefined)[] = [];
@@ -404,12 +509,14 @@ export class SkidpadSolver {
               );
             }
 
-            // あまりないと思うが、AArmのすべての点が同じコンポーネントに接続されている場合無視する
+            // あまりないと思うが、LinearBushingのすべての点が同じコンポーネントに接続されている場合無視する
             if (
               elements[0].nodeID === elements[2].nodeID ||
               (isFixedElement(elements[0]) && isFixedElement(elements[2]))
             ) {
-              return;
+              throw new Error(
+                'LinearBushingのRodEndはFrameと別のコンポーネントに接続されている必要がある'
+              );
             }
 
             const controledBy =
@@ -544,69 +651,30 @@ export class SkidpadSolver {
             if (isPointToPlaneControl(control)) {
               // 点を平面に拘束する
               if (isTire(element) && canSimplifyTire(element, jointDict)) {
-                const plTo = getJointPartner(
-                  jointDict[element.leftBearing.nodeID][0],
-                  element.leftBearing.nodeID
-                );
-                const prTo = getJointPartner(
-                  jointDict[element.rightBearing.nodeID][0],
-                  element.rightBearing.nodeID
-                ).value;
-                const pl = element.leftBearing.value;
-                const pr = element.rightBearing.value;
-                // タイヤの親コンポーネントとの相対座標及び回転を取得
-                const {position: dp, rotation: dq} =
-                  TireRestorer.getTireLocalPosition(pl, pr, plTo.value, prTo);
-                const parent = plTo.parent as IElement;
-                const pComponent = tempComponents[parent.nodeID];
                 control.pointIDs[element.nodeID].forEach((pID) => {
-                  if (pID === 'nearestNeighbor') {
-                    const dqi = dq.clone().invert();
-                    const constraint = new PointToPlane(
-                      `Two-dimentional Constraint of nearest neighbor of ${element.name.value}`,
-                      pComponent,
-                      (normal, distance) => {
-                        const pdqi = pComponent.quaternion.clone().invert();
-                        // タイヤ空間上へ法線方向を変換する
-                        const n = normal
-                          .clone()
-                          .applyQuaternion(pdqi)
-                          .applyQuaternion(dqi);
-                        // タイヤ空間内での、平面への最近傍点
-                        const point = element.getNearestNeighborToPlane(
-                          n,
-                          distance
-                        );
-                        return point.applyQuaternion(dq).add(dp);
-                      },
-                      control.origin.value,
-                      control.normal.value,
-                      element.nodeID,
-                      [control.nodeID],
-                      control.min.value,
-                      control.max.value
+                  const [pComponent, localVec] =
+                    getSimplifiedTireConstrainsParams(
+                      element,
+                      jointDict,
+                      tempComponents,
+                      pID
                     );
-                    constraints.push(constraint);
-                  } else {
-                    const points = element.getMeasurablePoints();
-                    const point = points.find((point) => point.nodeID === pID);
-                    if (point) {
-                      // 親コンポーネント上での座標
-                      const pLocal = point.value.applyQuaternion(dq).add(dp);
-                      const constraint = new PointToPlane(
-                        `Two-dimentional Constraint of ${point.name} of ${element.name.value}`,
-                        pComponent,
-                        () => pLocal,
-                        control.origin.value,
-                        control.normal.value,
-                        element.nodeID,
-                        [control.nodeID],
-                        control.min.value,
-                        control.max.value
-                      );
-                      constraints.push(constraint);
-                    }
-                  }
+                  const name =
+                    pID === 'nearestNeighbor'
+                      ? `Two-dimentional Constraint of nearest neighbor of ${element.name.value}`
+                      : `Two-dimentional Constraint of ${element.name.value}`;
+                  const constraint = new PointToPlane(
+                    name,
+                    pComponent,
+                    localVec,
+                    control.origin.value,
+                    control.normal.value,
+                    element.nodeID,
+                    [control.nodeID],
+                    control.min.value,
+                    control.max.value
+                  );
+                  constraints.push(constraint);
                 });
                 return;
               }
