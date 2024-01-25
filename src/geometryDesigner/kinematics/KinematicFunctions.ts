@@ -461,12 +461,12 @@ export function getSimplifiedTireConstrainsParams(
 export function getPFComponent(
   pointForceComponents: {[index: string]: PointForce},
   joint: JointAsVector3
-) {
+): [PointForce, boolean] {
   const id = `${joint.lhs.nodeID}&${joint.rhs.nodeID}`;
   if (!pointForceComponents[id]) {
     const pf = new PointForce(joint.lhs, joint.rhs);
     pointForceComponents[id] = pf;
-    return pf;
+    return [pf, true];
   }
-  return pointForceComponents[id];
+  return [pointForceComponents[id], false];
 }

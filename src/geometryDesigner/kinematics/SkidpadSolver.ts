@@ -213,17 +213,17 @@ export class SkidpadSolver {
           const pfs: PointForce[] = [];
           const joints = element.fixedPoints.map((p) => {
             const joint = jointDict[p.nodeID][0];
-            const pf = getPFComponent(pointForceComponents, joint);
+            const [pf, isNew] = getPFComponent(pointForceComponents, joint);
             pfs.push(pf);
-            components.push(pf);
+            if (isNew) components.push(pf);
             jointsDone.add(joint);
             return joint;
           });
           const jointu = jointDict[element.points[0].nodeID][0];
           // 力コンポーネント
-          const pf = getPFComponent(pointForceComponents, jointu);
+          const [pf, isNew] = getPFComponent(pointForceComponents, jointu);
           pfs.push(pf);
-          components.push(pf);
+          if (isNew) components.push(pf);
           jointsDone.add(jointu);
           const ptsBody = joints.map((joint, i) =>
             getJointPartner(joint, element.fixedPoints[i].nodeID)
@@ -280,12 +280,12 @@ export class SkidpadSolver {
           const pfs: PointForce[] = [];
           const jointf = jointDict[element.fixedPoint.nodeID][0];
           const jointp = jointDict[element.point.nodeID][0];
-          const pff = getPFComponent(pointForceComponents, jointf);
+          const [pff, isNewf] = getPFComponent(pointForceComponents, jointf);
           pfs.push(pff);
-          components.push(pff);
-          const pfp = getPFComponent(pointForceComponents, jointp);
+          if (isNewf) components.push(pff);
+          const [pfp, isNewp] = getPFComponent(pointForceComponents, jointp);
           pfs.push(pfp);
-          components.push(pfp);
+          if (isNewp) components.push(pfp);
           jointsDone.add(jointf);
           jointsDone.add(jointp);
           const points = [
@@ -373,12 +373,12 @@ export class SkidpadSolver {
             const pfs: PointForce[] = [];
             const jointl = jointDict[element.leftBearing.nodeID][0];
             const jointr = jointDict[element.rightBearing.nodeID][0];
-            const pfl = getPFComponent(pointForceComponents, jointl);
+            const [pfl, isNewl] = getPFComponent(pointForceComponents, jointl);
             pfs.push(pfl);
-            components.push(pfl);
-            const pfr = getPFComponent(pointForceComponents, jointr);
+            if (isNewl) components.push(pfl);
+            const [pfr, isNewr] = getPFComponent(pointForceComponents, jointr);
             pfs.push(pfr);
-            components.push(pfr);
+            if (isNewr) components.push(pfr);
             jointsDone.add(jointl);
             jointsDone.add(jointr);
             const points = [
@@ -452,12 +452,12 @@ export class SkidpadSolver {
             getJointPartner(jointf0, element.fixedPoints[0].nodeID),
             getJointPartner(jointf1, element.fixedPoints[1].nodeID)
           ];
-          const pf0 = getPFComponent(pointForceComponents, jointf0);
+          const [pf0, isNew0] = getPFComponent(pointForceComponents, jointf0);
           pfsFrame.push(pf0);
-          components.push(pf0);
-          const pf1 = getPFComponent(pointForceComponents, jointf1);
+          if (isNew0) components.push(pf0);
+          const [pf1, isNew1] = getPFComponent(pointForceComponents, jointf1);
           pfsFrame.push(pf1);
-          components.push(pf1);
+          if (isNew1) components.push(pf1);
           jointsDone.add(jointf0);
           jointsDone.add(jointf1);
           const node0: (Vector3 | undefined)[] = [];
@@ -469,9 +469,9 @@ export class SkidpadSolver {
           if (!frameComponent) throw new Error('frameComponentが見つからない');
           element.points.forEach((point, i) => {
             const jointp = jointDict[point.nodeID][0];
-            const pf = getPFComponent(pointForceComponents, jointp);
+            const [pf, isNew] = getPFComponent(pointForceComponents, jointp);
             pfsRodEnd.push(pf);
-            components.push(pf);
+            if (isNew) components.push(pf);
             jointsDone.add(jointp);
             const points = [
               ...fixedPoints,
@@ -764,9 +764,9 @@ export class SkidpadSolver {
         const joints = jointDict[element.nodeID];
         const points: Vector3[] = [];
         joints.forEach((joint) => {
-          const pf = getPFComponent(pointForceComponents, joint);
+          const [pf, isNew] = getPFComponent(pointForceComponents, joint);
           pfs.push(pf);
-          components.push(pf);
+          if (isNew) components.push(pf);
           const [pThis] = getNamedVector3FromJoint(joint, element.nodeID);
           points.push(pThis.value);
         });
