@@ -57,6 +57,7 @@ import {
   BarBalance,
   AArmBalance,
   TireBalance,
+  LinearBushingBalance,
   FDComponentBalance
 } from './SkidpadConstraints';
 import {
@@ -475,8 +476,14 @@ export class SkidpadSolver {
           jointsDone.add(jointf1);
           const node0: (Vector3 | undefined)[] = [];
           const component0: IComponent[] = [];
+          const rodEndComponents: IComponent[] = [];
           element.points.forEach((point, i) => {
             const jointp = jointDict[point.nodeID][0];
+            if (!jointsDone.has(jointp)) {
+              const pf = new PointForce(jointp.lhs, jointp.rhs);
+              pfs.push(pf);
+              components.push(pf);
+            }
             jointsDone.add(jointp);
             const points = [
               ...fixedPoints,
@@ -518,6 +525,7 @@ export class SkidpadSolver {
                 'LinearBushingのRodEndはFrameと別のコンポーネントに接続されている必要がある'
               );
             }
+            rodEndComponents.push(rhs);
 
             const controledBy =
               controls[element.nodeID]?.map((control) => control.nodeID) ?? [];
@@ -544,6 +552,7 @@ export class SkidpadSolver {
                 constraints.push(constraint);
               }
             }
+
             const constraint = new LinearBushingSingleEnd(
               `Linear bushing object of ${element.name.value}`,
               tempComponents[elements[0].nodeID],
@@ -558,6 +567,22 @@ export class SkidpadSolver {
             );
             constraints.push(constraint);
           });
+          // BarBalance
+          constraints.push(
+            new LinearBushingBalance({
+              name: `LinearBushingBalance of${element.name.value}`,
+              components: [lhs, rhs],
+              points: [
+                isFullDegreesComponent(lhs) ? points[0].value : new Vector3(),
+                isFullDegreesComponent(rhs) ? points[1].value : new Vector3()
+              ],
+              mass: element.mass.value,
+              cog: 0.5, // 要修正
+              pfs: pfs as Twin<PointForce>,
+              vO,
+              omega
+            })
+          );
         }
         // TorsionSpringはComponent扱いしない
         if (isTorsionSpring(element)) {
