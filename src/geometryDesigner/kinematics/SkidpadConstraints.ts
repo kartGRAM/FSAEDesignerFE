@@ -121,6 +121,7 @@ export class FDComponentBalance implements Constraint {
       pointLocalSkew,
       g
     } = this;
+    const pfsIDs = this.pfsPointNodeIDs;
 
     // 車両座標系そのものの角速度と速度と遠心力
     const omega = new Vector3(0, 0, this.omega.value); // 角速度
@@ -141,8 +142,8 @@ export class FDComponentBalance implements Constraint {
 
     // 力のつり合い
     const translation = pointForceComponents
-      .reduce((prev, current) => {
-        const f = current.force;
+      .reduce((prev, current, i) => {
+        const f = current.force.clone().multiplyScalar(current.sign(pfsIDs[i]));
         prev.add(f);
         return prev;
       }, new Vector3())
@@ -152,7 +153,7 @@ export class FDComponentBalance implements Constraint {
     // 変分の方程式がわかりやすくなるようにあえて、力x距離にする
     const rotation = pointForceComponents
       .reduce((prev, current, i) => {
-        const f = current.force.clone();
+        const f = current.force.clone().multiplyScalar(current.sign(pfsIDs[i]));
         const s = pointLocalVec[i].clone().applyQuaternion(q);
         f.cross(s);
         prev.add(f);
@@ -176,10 +177,10 @@ export class FDComponentBalance implements Constraint {
     const colOmega = this.omega.col;
     // 力のつり合いのヤコビアン
     // dP
-    pointForceComponents.forEach((pf) => {
-      phi_q.set(row + X, pf.col + X, 1);
-      phi_q.set(row + Y, pf.col + Y, 1);
-      phi_q.set(row + Z, pf.col + Z, 1);
+    pointForceComponents.forEach((pf, i) => {
+      phi_q.set(row + X, pf.col + X, pf.sign(pfsIDs[i]));
+      phi_q.set(row + Y, pf.col + Y, pf.sign(pfsIDs[i]));
+      phi_q.set(row + Z, pf.col + Z, pf.sign(pfsIDs[i]));
     });
     // dω
     const dOmega = getDeltaOmega(
@@ -203,9 +204,13 @@ export class FDComponentBalance implements Constraint {
     pointForceComponents.forEach((pf, i) => {
       // dF
       const Ari = pointLocalVec[i].applyQuaternion(q);
-      phi_q.setSubMatrix(skew(Ari).mul(-1), row + 3, pf.col + X);
+      phi_q.setSubMatrix(
+        skew(Ari).mul(-pf.sign(pfsIDs[i])),
+        row + 3,
+        pf.col + X
+      );
       // theta部分の微分
-      const fSkew = skew(pf.force);
+      const fSkew = skew(pf.force).mul(pf.sign(pfsIDs[i]));
       const As = A.mmul(pointLocalSkew[i]);
       dThetaM = dThetaM.add(fSkew.mmul(As));
     });
@@ -949,6 +954,7 @@ export class TireBalance implements Constraint {
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
     const {row, localVec, localSkew, pfs, cog, g, error, torqueRatio} = this;
     const {component, localAxisSkew} = this;
+    const pfsIDs = this.pfsPointNodeIDs;
 
     const q = this.component.quaternion;
     const {position} = this.component;
@@ -1004,8 +1010,10 @@ export class TireBalance implements Constraint {
     // fzの取得
     // normal方向成分を求める
     const fz = pfs
-      .reduce((prev, current) => {
-        return prev.add(new Vector3(0, 0, -current.force.z));
+      .reduce((prev, current, i) => {
+        return prev.add(
+          new Vector3(0, 0, -current.force.z * current.sign(pfsIDs[i]))
+        );
       }, new Vector3())
       .add(new Vector3(0, 0, -ma.z));
 
@@ -1030,7 +1038,11 @@ export class TireBalance implements Constraint {
 
     // 力のつり合い
     const translation = pfs
-      .reduce((prev, p) => prev.add(p.force), new Vector3())
+      .reduce(
+        (prev, pf, i) =>
+          prev.add(pf.force.clone().multiplyScalar(pf.sign(pfsIDs[i]))),
+        new Vector3()
+      )
       .add(ma)
       .add(fz)
       .add(friction)
@@ -1044,8 +1056,13 @@ export class TireBalance implements Constraint {
           prev.add(
             pf.force
               .clone()
+              .multiplyScalar(pf.sign(pfsIDs[i]))
               .cross(pQ[i])
-              .add(new Vector3(0, 0, -pf.force.z).cross(groundQ))
+              .add(
+                new Vector3(0, 0, -pf.force.z * pf.sign(pfsIDs[i])).cross(
+                  groundQ
+                )
+              )
           ),
         new Vector3()
       )
@@ -1063,10 +1080,10 @@ export class TireBalance implements Constraint {
     const A = rotationMatrix(q);
     const G = decompositionMatrixG(q);
     // dF
-    phi_q.set(row + X, pfs[0].col + X, 1);
-    phi_q.set(row + Y, pfs[0].col + Y, 1);
-    phi_q.set(row + X, pfs[1].col + X, 1);
-    phi_q.set(row + Y, pfs[1].col + Y, 1);
+    phi_q.set(row + X, pfs[0].col + X, pfs[0].sign(pfsIDs[0]));
+    phi_q.set(row + Y, pfs[0].col + Y, pfs[0].sign(pfsIDs[0]));
+    phi_q.set(row + X, pfs[1].col + X, pfs[1].sign(pfsIDs[1]));
+    phi_q.set(row + Y, pfs[1].col + Y, pfs[1].sign(pfsIDs[1]));
     // dω
     const dOmega = getDeltaOmega(
       vO,
@@ -1099,17 +1116,22 @@ export class TireBalance implements Constraint {
     // モーメントのつり合い
     // df
     pfs.forEach((pf, i) => {
-      const dPf = pSkewQ[i].mul(-1).subMatrixAdd(groundSkewQ.mmul(unitZ), 0, 2);
+      const dPf = pSkewQ[i]
+        .mul(-pf.sign(pfsIDs[i]))
+        .subMatrixAdd(groundSkewQ.mmul(unitZ), 0, 2);
       phi_q.setSubMatrix(dPf, row + 2, pf.col);
     });
 
     // dΘ
     let dThetaM = new Matrix(3, 3);
     pfs.forEach((pf, i) => {
-      const fSkew = skew(pf.force);
+      const fSkew = skew(pf.force).mul(pf.sign(pfsIDs[i]));
       dThetaM = dThetaM.add(fSkew.mmul(A).mmul(localSkew[i]));
       dThetaM = dThetaM.add(
-        unitZSkew.mmul(A).mmul(groundSkewQ).mul(-pf.force.z)
+        unitZSkew
+          .mmul(A)
+          .mmul(groundSkewQ)
+          .mul(-pf.force.z * pf.sign(pfsIDs[i]))
       );
     });
     dThetaM = dThetaM.add(maSkew.mmul(A).mmul(cogLocalSkew));
