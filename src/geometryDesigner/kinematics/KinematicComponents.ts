@@ -579,7 +579,7 @@ export class PointForce extends ComponentBase {
 export class GeneralVariable extends ComponentBase {
   static readonly className = 'GeneralVariable' as const;
 
-  readonly className = PointForce.className;
+  readonly className = GeneralVariable.className;
 
   readonly name: string;
 

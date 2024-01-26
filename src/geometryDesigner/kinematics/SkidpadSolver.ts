@@ -952,7 +952,7 @@ export class SkidpadSolver {
           const norm = dq.norm('frobenius');
           eq = norm < 1.0e-4;
           console.log(`norm=${norm.toFixed(3)}`);
-          if (norm > minNorm * 100000000000 || Number.isNaN(norm)) {
+          if (norm > minNorm * 100000 || Number.isNaN(norm)) {
             // eslint-disable-next-line no-console
             console.log(`norm=${norm.toFixed(3)}`);
             // eslint-disable-next-line no-console
