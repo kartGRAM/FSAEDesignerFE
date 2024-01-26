@@ -887,6 +887,10 @@ export class TireBalance implements Constraint {
 
   torqueRatio: number; // 駆動輪の駆動力配分
 
+  localAxis: Vector3;
+
+  localAxisSkew: Matrix;
+
   constructor(params: {
     name: string;
     component: FullDegreesComponent;
@@ -929,26 +933,22 @@ export class TireBalance implements Constraint {
     this.ground = ground;
     this.localVec = points.map((p) => p.clone()) as Twin<Vector3>;
     this.localSkew = points.map((p) => skew(p)) as Twin<Matrix>;
+
+    this.localAxis = this.localVec[1].clone().sub(this.localVec[0]).normalize();
+    this.localAxisSkew = skew(this.localAxis).mul(2);
   }
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
-    const {
-      row,
-      component,
-      localVec,
-      localSkew,
-      pfs,
-      cog,
-      g,
-      error,
-      torqueRatio
-    } = this;
+    const {row, localVec, localSkew, pfs, cog, g, error, torqueRatio} = this;
+    const {component, localAxisSkew} = this;
 
-    const p = localVec.map((p) => p.applyQuaternion(component.quaternion));
-    const pSkew = p.map((p) => skew(p));
+    const q = this.component.quaternion;
+    const {position} = this.component;
+    const pQ = localVec.map((p) => p.applyQuaternion(q));
+    const pSkewQ = pQ.map((p) => skew(p));
     // 接地点
     const ground = this.ground();
-    const groundQ = this.ground().clone().applyQuaternion(component.quaternion);
+    const groundQ = this.ground().clone().applyQuaternion(q);
     const localGroundSkew = skew(ground);
     const groundSkewQ = skew(groundQ);
 
@@ -958,8 +958,8 @@ export class TireBalance implements Constraint {
       .sub(localVec[0])
       .multiplyScalar(cog)
       .add(localVec[0]);
-    const pCogQ = localCog.clone().applyQuaternion(component.quaternion);
-    const pCog = pCogQ.clone().add(component.position); // 車両座標系
+    const pCogQ = localCog.clone().applyQuaternion(q);
+    const pCog = pCogQ.clone().add(position); // 車両座標系
     const cogSkewP = skew(pCog);
     const cogSkewQ = skew(pCogQ);
     const cogLocalSkew = skew(localCog).mul(2);
@@ -974,22 +974,16 @@ export class TireBalance implements Constraint {
     const ma = g.clone().add(c).multiplyScalar(this.mass); // 遠心力＋重力
     const maSkew = skew(ma);
     // 接地点の速度
-    const vGround = vO
-      .clone()
-      .add(omega.cross(groundQ.clone().add(component.position)));
+    const vGround = vO.clone().add(omega.cross(groundQ.clone().add(position)));
+    // vGround.z = 0; // 念のため
 
     // SAとIAとFZを求める
     const normal = new Vector3(0, 0, 1);
-    const axis = p[1].clone().sub(p[0]).normalize();
-    const localAxisSkew = skew(localVec[1].clone().sub(localVec[0])).mul(2);
+    const axis = this.localAxis.clone().applyQuaternion(q);
     // axisに垂直で地面に平行なベクトル(左タイヤが進む方向)
     const parallel = axis.clone().cross(normal).normalize();
-    // 速度ベクトルの地面に平行な成分を取得
-    const vGParallel = vGround
-      .clone()
-      .sub(normal.clone().multiplyScalar(normal.dot(vGround)));
     // saの取得
-    const saSin = vGParallel.clone().normalize().cross(parallel);
+    const saSin = parallel.clone().normalize().cross(vGround);
     const saSign = saSin.dot(normal) > 0 ? 1 : -1;
     const sa = (saSin.length() * saSign * 180) / Math.PI;
 
@@ -1008,14 +1002,13 @@ export class TireBalance implements Constraint {
       .add(new Vector3(0, 0, -ma.z));
 
     // タイヤの摩擦力の取得
-    const friction = this.getFriction(sa, ia, fz.length()); // この値はタイヤが垂直の時の座標系
+    const friction = this.getFriction(sa, ia, fz.z); // この値はタイヤが垂直の時の座標系
     // 垂直方向を合わせたのち、前方方向を合わせる
     friction.applyQuaternion(
-      new Quaternion()
-        .setFromUnitVectors(new Vector3(1, 0, 0), parallel)
-        .multiply(
+      new Quaternion().setFromUnitVectors(new Vector3(1, 0, 0), parallel)
+      /* .multiply(
           new Quaternion().setFromUnitVectors(new Vector3(0, 0, 1), normal)
-        )
+        ) */
     );
     const frictionSkew = skew(friction);
 
@@ -1042,7 +1035,7 @@ export class TireBalance implements Constraint {
           prev.add(
             pf.force
               .clone()
-              .cross(p[i])
+              .cross(pQ[i])
               .add(new Vector3(0, 0, -pf.force.z).cross(groundQ))
           ),
         new Vector3()
@@ -1058,8 +1051,8 @@ export class TireBalance implements Constraint {
     phi[row + 2 + Z] = rotation.z;
 
     // 力のつり合い
-    const A = rotationMatrix(component.quaternion);
-    const G = decompositionMatrixG(component.quaternion);
+    const A = rotationMatrix(q);
+    const G = decompositionMatrixG(q);
     // dF
     phi_q.set(row + X, pfs[0].col + X, 1);
     phi_q.set(row + Y, pfs[0].col + Y, 1);
@@ -1082,12 +1075,11 @@ export class TireBalance implements Constraint {
 
     // dΘ
     let dThetaMF = omegaSkew2.mmul(A).mmul(cogLocalSkew).mul(this.mass);
-    dThetaMF = dThetaMF.add(
-      unitZSkew
-        .mmul(A)
-        .mmul(localAxisSkew)
-        .mul(-torqueRatio * error.value)
-    );
+    const dThetaMError = unitZSkew
+      .mmul(A)
+      .mmul(localAxisSkew)
+      .mul(-torqueRatio * error.value);
+    dThetaMF = dThetaMF.add(dThetaMError);
     const dTheta = dThetaMF.mmul(G);
     phi_q.setSubMatrix(dTheta.subMatrix(0, 1, 0, 3), row, component.col + Q0);
 
@@ -1098,7 +1090,7 @@ export class TireBalance implements Constraint {
     // モーメントのつり合い
     // df
     pfs.forEach((pf, i) => {
-      const dPf = pSkew[i].mul(-1).subMatrixAdd(skew(pCogQ).mmul(unitZ), 0, 2);
+      const dPf = pSkewQ[i].mul(-1).subMatrixAdd(groundSkewQ.mmul(unitZ), 0, 2);
       phi_q.setSubMatrix(dPf, row + 2, pf.col);
     });
 
@@ -1107,27 +1099,17 @@ export class TireBalance implements Constraint {
     pfs.forEach((pf, i) => {
       const fSkew = skew(pf.force);
       dThetaM = dThetaM.add(fSkew.mmul(A).mmul(localSkew[i]));
-      dThetaM = dThetaM.sub(
-        unitZSkew.mmul(A).mmul(localAxisSkew).mul(pf.force.z)
+      dThetaM = dThetaM.add(
+        unitZSkew.mmul(A).mmul(groundSkewQ).mul(-pf.force.z)
       );
     });
     dThetaM = dThetaM.add(maSkew.mmul(A).mmul(cogLocalSkew));
     dThetaM = dThetaM.add(
       frictionSkew.add(feSkew).mmul(A).mmul(localGroundSkew)
     );
-    dThetaM = dThetaM.add(
-      skew(groundQ)
-        .mmul(unitZSkew)
-        .mmul(A)
-        .mmul(localAxisSkew)
-        .mul(torqueRatio * error.value)
-    );
-    const temp = groundSkewQ
-      .mmul(unitZ)
-      .mmul(unitZ.transpose())
-      .sub(cogSkewQ)
-      .mul(this.mass);
-    const temp2 = temp.mul(omegaSkew2);
+    dThetaM = dThetaM.add(groundSkewQ.mmul(dThetaMError));
+    const temp = groundSkewQ.mmul(unitZ).mmul(unitZ.transpose()).sub(cogSkewQ);
+    const temp2 = temp.mul(omegaSkew2).mul(this.mass);
     dThetaM = dThetaM.add(temp2.mmul(A).mmul(cogLocalSkew));
     phi_q.setSubMatrix(dThetaM.mmul(G), row + 2, component.col + Q0);
 
