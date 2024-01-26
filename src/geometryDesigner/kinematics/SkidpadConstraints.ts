@@ -82,6 +82,8 @@ export class FDComponentBalance implements Constraint {
 
   omega: GeneralVariable;
 
+  pfsPointNodeIDs: string[]; // ジョイント部分のローカルベクトルのノードID 作用反作用で定義
+
   constructor(params: {
     name: string;
     component: FullDegreesComponent;
@@ -89,6 +91,7 @@ export class FDComponentBalance implements Constraint {
     cog: Vector3;
     points: Vector3[];
     pointForceComponents: PointForce[];
+    pfsPointNodeIDs: string[]; // ジョイント部分のローカルベクトルのノードID 作用反作用どちらで使うかを判定する
     vO: () => Vector3; // 座標原点の速度
     omega: GeneralVariable;
   }) {
@@ -98,6 +101,7 @@ export class FDComponentBalance implements Constraint {
     this.vO = params.vO;
     this.omega = params.omega;
     this.pointForceComponents = [...params.pointForceComponents];
+    this.pfsPointNodeIDs = [...params.pfsPointNodeIDs];
 
     this.cogLocalVec = params.cog.clone();
     this.cogLocalSkew = skew(this.cogLocalVec).mul(2);
@@ -891,6 +895,8 @@ export class TireBalance implements Constraint {
 
   localAxisSkew: Matrix;
 
+  pfsPointNodeIDs: Twin<string>; // ジョイント部分のローカルベクトルのノードID 作用反作用どちらで使うかを判定する
+
   constructor(params: {
     name: string;
     component: FullDegreesComponent;
@@ -898,6 +904,7 @@ export class TireBalance implements Constraint {
     mass: number;
     cog: number;
     pfs: Twin<PointForce>; // Bearing部分
+    pfsPointNodeIDs: Twin<string>; // ジョイント部分のローカルベクトルのノードID 作用反作用で定義
     vO: () => Vector3; // 座標原点の速度
     omega: GeneralVariable; // 座標原点の角速度
     torqueRatio: number;
@@ -923,6 +930,7 @@ export class TireBalance implements Constraint {
     this.name = name;
     this.cog = cog;
     this.pfs = [...pfs];
+    this.pfsPointNodeIDs = [...params.pfsPointNodeIDs];
     this.error = error;
     this.component = component;
     this.mass = mass;

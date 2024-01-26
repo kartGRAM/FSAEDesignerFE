@@ -407,6 +407,10 @@ export class SkidpadSolver {
                 name: `TireBalance of${element.name.value}`,
                 component,
                 points: [points[0].value, points[1].value],
+                pfsPointNodeIDs: [
+                  element.leftBearing.nodeID,
+                  element.rightBearing.nodeID
+                ],
                 mass: element.mass.value,
                 cog: 0.5, // 要修正
                 pfs: pfs as Twin<PointForce>,
@@ -763,12 +767,14 @@ export class SkidpadSolver {
         const pfs: PointForce[] = [];
         const joints = jointDict[element.nodeID];
         const points: Vector3[] = [];
+        const pNodeIDs: string[] = [];
         joints.forEach((joint) => {
           const [pf, isNew] = getPFComponent(pointForceComponents, joint);
           pfs.push(pf);
           if (isNew) components.push(pf);
           const [pThis] = getNamedVector3FromJoint(joint, element.nodeID);
           points.push(pThis.value);
+          pNodeIDs.push(pThis.nodeID);
         });
         partnerIDs.forEach((partnerID) => {
           const otherComponent = tempComponents[partnerID];
@@ -818,6 +824,7 @@ export class SkidpadSolver {
             cog: element.centerOfGravity.value,
             points,
             pointForceComponents: pfs,
+            pfsPointNodeIDs: pNodeIDs,
             vO,
             omega
           })

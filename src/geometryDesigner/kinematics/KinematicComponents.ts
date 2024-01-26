@@ -513,9 +513,9 @@ export class PointForce extends ComponentBase {
     q[col + Z] = this.force.z;
   }
 
-  lhs: INamedVector3RO;
+  lhs: string;
 
-  rhs: INamedVector3RO;
+  rhs: string;
 
   applyResultToElement() {}
 
@@ -540,28 +540,17 @@ export class PointForce extends ComponentBase {
     return false;
   }
 
-  sign(component: IComponent): number {
-    if (component === this.cLhs) return 1;
-    if (component === this.cRhs) return -1;
-    throw new Error('コンポーネントと一致しない');
+  sign(localVectorNodeID: string): number {
+    if (localVectorNodeID === this.lhs) return 1;
+    if (localVectorNodeID === this.rhs) return -1;
+    throw new Error('NodeIDが一致しない');
   }
 
-  cLhs: IComponent;
-
-  cRhs: IComponent;
-
-  constructor(
-    lhs: INamedVector3RO,
-    rhs: INamedVector3RO,
-    cLhs: IComponent,
-    cRhs: IComponent
-  ) {
+  constructor(lhs: INamedVector3RO, rhs: INamedVector3RO) {
     super();
     this.name = `${lhs.name}&${rhs.name}`;
-    this.lhs = lhs;
-    this.rhs = rhs;
-    this.cLhs = cLhs;
-    this.cRhs = cRhs;
+    this.lhs = lhs.nodeID;
+    this.rhs = rhs.nodeID;
     this.force = new Vector3(0, 0, 0);
   }
 
