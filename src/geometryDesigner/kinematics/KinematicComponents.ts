@@ -608,8 +608,10 @@ export class GeneralVariable extends ComponentBase {
   applyDq(dq: Matrix) {
     if (this._col === -1) return;
     const {col} = this;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const dx = dq.get(col + X, 0);
-    this.value -= dx;
+    // this.value -= dx;
+    this.value = 0;
   }
 
   loadQ(q: number[]) {

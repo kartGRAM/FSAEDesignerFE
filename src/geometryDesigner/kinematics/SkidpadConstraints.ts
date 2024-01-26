@@ -212,7 +212,7 @@ export class FDComponentBalance implements Constraint {
       col + X
     );
 
-    // dTheta
+    // dΘ
     dThetaM = dThetaM.add(maSkew.mmul(A).mmul(cogLocalSkew)); // (3x3) x (3x3) x (3x3) x (3x4) = 3x4
     dThetaM = dThetaM.add(cogSkewQ.mmul(dThetaMCF).mul(-1));
     phi_q.setSubMatrix(dThetaM.mmul(G), row + 3, col + Q0);
@@ -1010,6 +1010,7 @@ export class TireBalance implements Constraint {
           new Quaternion().setFromUnitVectors(new Vector3(0, 0, 1), normal)
         ) */
     );
+    friction.set(0, 0, 0);
     const frictionSkew = skew(friction);
 
     // 誤差項
@@ -1120,7 +1121,7 @@ export class TireBalance implements Constraint {
     phi_q.setSubMatrix(temp.mmul(dOmega), row + 2, this.omega.col);
 
     // de
-    const de2 = groundSkewQ.mmul(unitZSkew).mmul(getVVector(axis));
+    const de2 = groundSkewQ.mmul(de).mul(-1);
     phi_q.setSubMatrix(de2, row + 2, this.error.col);
   }
 
