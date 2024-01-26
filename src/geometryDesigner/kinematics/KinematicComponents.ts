@@ -541,8 +541,12 @@ export class PointForce extends ComponentBase {
   }
 
   sign(localVectorNodeID: string): number {
-    if (localVectorNodeID === this.lhs) return 1;
-    if (localVectorNodeID === this.rhs) return -1;
+    if (localVectorNodeID === this.lhs) {
+      return 1;
+    }
+    if (localVectorNodeID === this.rhs) {
+      return -1;
+    }
     throw new Error('NodeIDが一致しない');
   }
 
