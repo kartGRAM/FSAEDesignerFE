@@ -391,7 +391,7 @@ export class SkidpadSolver {
             // TireBalance
             const torqueRatioSum = Object.keys(config.tireTorqueRatio).reduce(
               // eslint-disable-next-line no-return-assign
-              (prev, id) => (prev += config.tireTorqueRatio[id]),
+              (prev, id) => (prev += Number(config.tireTorqueRatio[id])),
               0
             );
             const [component, func] = getSimplifiedTireConstrainsParams(

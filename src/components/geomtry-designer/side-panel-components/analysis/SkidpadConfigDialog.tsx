@@ -427,6 +427,7 @@ const Content = React.memo((props: {test: ITest}) => {
                     {tire.name.value}
                   </Typography>
                   <TextField
+                    type="number"
                     hiddenLabel
                     name={tire.nodeID}
                     variant="standard"
