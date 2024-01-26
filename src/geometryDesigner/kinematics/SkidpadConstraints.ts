@@ -72,8 +72,6 @@ export class FDComponentBalance implements Constraint {
 
   pointLocalVec: Vector3[];
 
-  pointLocalVecMat: Matrix[];
-
   pointLocalSkew: Matrix[];
 
   g: Vector3 = new Vector3(0, 0, -9.81);
@@ -105,7 +103,6 @@ export class FDComponentBalance implements Constraint {
     this.cogLocalSkew = skew(this.cogLocalVec).mul(2);
 
     this.pointLocalVec = params.points.map((p) => p.clone());
-    this.pointLocalVecMat = params.points.map((p) => getVVector(p)); // 3x1
     this.pointLocalSkew = this.pointLocalVec.map((p) => skew(p).mul(2));
   }
 
@@ -117,7 +114,6 @@ export class FDComponentBalance implements Constraint {
       cogLocalVec,
       cogLocalSkew,
       pointLocalVec,
-      pointLocalVecMat,
       pointLocalSkew,
       g
     } = this;
@@ -201,12 +197,9 @@ export class FDComponentBalance implements Constraint {
     // モーメントの部分のヤコビアン
     let dThetaM = new Matrix(3, 3);
     pointForceComponents.forEach((pf, i) => {
-      // dP
-      phi_q.setSubMatrix(
-        A.mmul(pointLocalVecMat[i]).mul(-1),
-        row + 3,
-        pf.col + X
-      );
+      // dF
+      const Ari = pointLocalVec[i].applyQuaternion(q);
+      phi_q.setSubMatrix(skew(Ari).mul(-1), row + 3, pf.col + X);
       // theta部分の微分
       const fSkew = skew(pf.force);
       const As = A.mmul(pointLocalSkew[i]);
