@@ -1063,7 +1063,12 @@ export class TireBalance implements Constraint {
     // 力のつり合い
     const A = rotationMatrix(component.quaternion);
     const G = decompositionMatrixG(component.quaternion);
-
+    // dF
+    phi_q.set(row + X, pfs[0].col + X, 1);
+    phi_q.set(row + Y, pfs[0].col + Y, 1);
+    phi_q.set(row + X, pfs[1].col + X, 1);
+    phi_q.set(row + Y, pfs[1].col + Y, 1);
+    // dω
     const dOmega = getDeltaOmega(
       vO,
       omega,
@@ -1072,28 +1077,32 @@ export class TireBalance implements Constraint {
       cogSkewP,
       this.mass
     ).mmul(unitZ);
-    const dP = omegaSkew2.mul(this.mass);
-    const dTheta1 = omegaSkew2.mmul(A).mmul(cogLocalSkew).mul(this.mass);
-    const dTheta2 = unitZSkew
-      .mmul(A)
-      .mmul(localAxisSkew)
-      .mul(-torqueRatio * error.value);
-    const dTheta = dTheta1.add(dTheta2).mmul(G);
-    const de = unitZSkew.mmul(getVVector(axis)).mul(-torqueRatio);
-    phi_q.set(row + X, pfs[0].col + X, 1);
-    phi_q.set(row + Y, pfs[0].col + Y, 1);
-    phi_q.set(row + X, pfs[1].col + X, 1);
-    phi_q.set(row + Y, pfs[1].col + Y, 1);
     phi_q.setSubMatrix(dOmega.subMatrix(0, 1, 0, 0), row, this.omega.col);
+
+    // dP
+    const dP = omegaSkew2.mul(this.mass);
     phi_q.setSubMatrix(dP.subMatrix(0, 1, 0, 2), row, component.col + X);
+
+    // dΘ
+    let dThetaMF = omegaSkew2.mmul(A).mmul(cogLocalSkew).mul(this.mass);
+    dThetaMF = dThetaMF.add(
+      unitZSkew
+        .mmul(A)
+        .mmul(localAxisSkew)
+        .mul(-torqueRatio * error.value)
+    );
+    const dTheta = dThetaMF.mmul(G);
     phi_q.setSubMatrix(dTheta.subMatrix(0, 1, 0, 3), row, component.col + Q0);
+
+    // de
+    const de = unitZSkew.mmul(getVVector(axis)).mul(-torqueRatio);
     phi_q.setSubMatrix(de.subMatrix(0, 1, 0, 0), row, error.col);
 
     // モーメントのつり合い
-    // pf
+    // df
     pfs.forEach((pf, i) => {
       const dPf = pSkew[i].mul(-1).subMatrixAdd(skew(pCogQ).mmul(unitZ), 0, 2);
-      phi_q.setSubMatrix(dPf, row + 3, pf.col);
+      phi_q.setSubMatrix(dPf, row + 2, pf.col);
     });
 
     // dΘ
@@ -1123,14 +1132,17 @@ export class TireBalance implements Constraint {
       .mul(this.mass);
     const temp2 = temp.mul(omegaSkew2);
     dThetaM = dThetaM.add(temp2.mmul(A).mmul(cogLocalSkew));
-    phi_q.setSubMatrix(dThetaM.mmul(G), row + 3, component.col + Q0);
+    phi_q.setSubMatrix(dThetaM.mmul(G), row + 2, component.col + Q0);
+
     // dP
-    phi_q.setSubMatrix(temp2, row + 3, component.col + X);
+    phi_q.setSubMatrix(temp2, row + 2, component.col + X);
+
     // dω
-    phi_q.setSubMatrix(temp.mmul(dOmega), row + 3, this.omega.col);
+    phi_q.setSubMatrix(temp.mmul(dOmega), row + 2, this.omega.col);
+
     // de
     const de2 = groundSkewQ.mmul(unitZSkew).mmul(getVVector(axis));
-    phi_q.setSubMatrix(de2, row + 3, this.error.col);
+    phi_q.setSubMatrix(de2, row + 2, this.error.col);
   }
 
   setJacobianAndConstraintsInequal() {}
