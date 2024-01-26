@@ -951,7 +951,7 @@ export class TireBalance implements Constraint {
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
     const {row, localVec, localSkew, pfs, cog, g, error, torqueRatio} = this;
-    const {component, localAxisSkew, pfCoefs} = this;
+    const {component, localAxis, localAxisSkew, pfCoefs} = this;
 
     const q = this.component.quaternion;
     const {position} = this.component;
@@ -959,8 +959,8 @@ export class TireBalance implements Constraint {
     const pSkewQ = pQ.map((p) => skew(p));
     // 接地点
     const ground = this.ground();
-    const groundQ = this.ground().clone().applyQuaternion(q);
     const localGroundSkew = skew(ground);
+    const groundQ = this.ground().clone().applyQuaternion(q);
     const groundSkewQ = skew(groundQ);
 
     // 重心
@@ -990,7 +990,7 @@ export class TireBalance implements Constraint {
 
     // SAとIAとFZを求める
     const normal = new Vector3(0, 0, 1);
-    const axis = this.localAxis.clone().applyQuaternion(q);
+    const axis = localAxis.clone().applyQuaternion(q);
     // axisに垂直で地面に平行なベクトル(左タイヤが進む方向)
     const parallel = axis.clone().cross(normal).normalize();
     // saの取得
@@ -1127,7 +1127,7 @@ export class TireBalance implements Constraint {
       dThetaM = dThetaM.add(
         unitZSkew
           .mmul(A)
-          .mmul(groundSkewQ)
+          .mmul(localGroundSkew)
           .mul(-pf.force.z * pfCoefs[i])
       );
     });
