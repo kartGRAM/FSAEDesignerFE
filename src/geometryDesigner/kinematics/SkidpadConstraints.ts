@@ -1113,8 +1113,9 @@ export class TireBalance implements Constraint {
     // df
     pfs.forEach((pf, i) => {
       const dPf = pSkewQ[i]
+        .mul(-1)
         .subMatrixAdd(groundSkewQ.mmul(unitZ), 0, 2)
-        .mul(-pfCoefs[i]);
+        .mul(pfCoefs[i]);
       phi_q.setSubMatrix(dPf, row + 3, pf.col);
     });
 
