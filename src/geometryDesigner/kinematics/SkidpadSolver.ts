@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable camelcase */
 /* eslint-disable no-lone-blocks */
 import {Matrix, SingularValueDecomposition} from 'ml-matrix';
@@ -402,6 +403,7 @@ export class SkidpadSolver {
             );
             const normal = new Vector3(0, 0, 1);
             const tire = getTire(config.tireData[element.nodeID] ?? '');
+
             constraints.push(
               new TireBalance({
                 name: `TireBalance of${element.name.value}`,
