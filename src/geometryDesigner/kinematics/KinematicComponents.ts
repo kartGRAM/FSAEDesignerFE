@@ -540,11 +540,28 @@ export class PointForce extends ComponentBase {
     return false;
   }
 
-  constructor(lhs: INamedVector3RO, rhs: INamedVector3RO) {
+  sign(component: IComponent): number {
+    if (component === this.cLhs) return 1;
+    if (component === this.cRhs) return -1;
+    throw new Error('コンポーネントと一致しない');
+  }
+
+  cLhs: IComponent;
+
+  cRhs: IComponent;
+
+  constructor(
+    lhs: INamedVector3RO,
+    rhs: INamedVector3RO,
+    cLhs: IComponent,
+    cRhs: IComponent
+  ) {
     super();
     this.name = `${lhs.name}&${rhs.name}`;
     this.lhs = lhs;
     this.rhs = rhs;
+    this.cLhs = cLhs;
+    this.cRhs = cRhs;
     this.force = new Vector3(0, 0, 0);
   }
 
