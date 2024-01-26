@@ -206,7 +206,11 @@ export class FDComponentBalance implements Constraint {
       dThetaM = dThetaM.add(fSkew.mmul(As));
     });
     // dP
-    phi_q.setSubMatrix(cogSkewQ.mmul(omegaSkew2).mul(-1), row + 3, col + X);
+    phi_q.setSubMatrix(
+      cogSkewQ.mmul(omegaSkew2).mul(-this.mass),
+      row + 3,
+      col + X
+    );
 
     // dTheta
     dThetaM = dThetaM.add(maSkew.mmul(A).mmul(cogLocalSkew)); // (3x3) x (3x3) x (3x3) x (3x4) = 3x4
