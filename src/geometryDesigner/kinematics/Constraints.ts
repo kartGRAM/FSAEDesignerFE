@@ -112,7 +112,7 @@ export class Sphere implements Constraint {
       return;
     }
     this.lLocalVec = vlhs.clone();
-    this.lLocalSkew = skew(this.lLocalVec).mul(2);
+    this.lLocalSkew = skew(this.lLocalVec).mul(-2);
   }
 
   setVrhs(vrhs: Vector3, checkSwap: boolean = true): void {
@@ -121,7 +121,7 @@ export class Sphere implements Constraint {
       return;
     }
     this.rLocalVec = vrhs.clone();
-    this.rLocalSkew = skew(this.rLocalVec).mul(-2);
+    this.rLocalSkew = skew(this.rLocalVec).mul(2);
     if (this.rhs.isFixed) {
       this.target = this.rhs.position
         .clone()
@@ -153,9 +153,9 @@ export class Sphere implements Constraint {
     }
 
     this.lLocalVec = vlhs?.clone() ?? new Vector3();
-    this.lLocalSkew = skew(this.lLocalVec).mul(2);
+    this.lLocalSkew = skew(this.lLocalVec).mul(-2);
     this.rLocalVec = vrhs?.clone() ?? new Vector3();
-    this.rLocalSkew = skew(this.rLocalVec).mul(-2);
+    this.rLocalSkew = skew(this.rLocalVec).mul(2);
     if (this.rhs.isFixed) {
       this.isFixed = true;
       this.target = this.rhs.position
@@ -301,11 +301,11 @@ export class Hinge implements Constraint {
       this.rhs = crhs;
     }
     this.lLocalVec = vlhs[0].clone();
-    this.lLocalSkew = skew(this.lLocalVec).mul(2);
+    this.lLocalSkew = skew(this.lLocalVec).mul(-2);
     this.rLocalVec = vrhs[0].clone();
-    this.rLocalSkew = skew(this.rLocalVec).mul(-2);
+    this.rLocalSkew = skew(this.rLocalVec).mul(2);
     this.rAxisVec = vlhs[1].clone().sub(this.rLocalVec);
-    this.rAxisSkew = skew(this.rAxisVec).mul(2);
+    this.rAxisSkew = skew(this.rAxisVec).mul(-2);
     const lAxisVec = vrhs[1].clone().sub(this.lLocalVec);
     if (
       this.rAxisVec.lengthSq() < Number.EPSILON ||
@@ -325,8 +325,8 @@ export class Hinge implements Constraint {
     }
     this.lOrthogonalVec = [oVec1, oVec2];
     this.lOrthogonalSkew = [
-      skew(this.lOrthogonalVec[0]).mul(2),
-      skew(this.lOrthogonalVec[1]).mul(2)
+      skew(this.lOrthogonalVec[0]).mul(-2),
+      skew(this.lOrthogonalVec[1]).mul(-2)
     ];
   }
 
@@ -523,9 +523,9 @@ export class BarAndSpheres implements Constraint, deltaL {
       this.rhs = crhs;
     }
     this.lLocalVec = vlhs?.clone() ?? new Vector3();
-    this.lLocalSkew = skew(this.lLocalVec).mul(2);
+    this.lLocalSkew = skew(this.lLocalVec).mul(-2);
     this.rLocalVec = vrhs?.clone() ?? new Vector3();
-    this.rLocalSkew = skew(this.rLocalVec).mul(-2);
+    this.rLocalSkew = skew(this.rLocalVec).mul(2);
     if (this.rhs.isFixed) {
       this.isFixed = true;
       this.target = this.rhs.position
@@ -780,7 +780,7 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
     }
 
     this.resLocalVec = vRodEndSide?.clone() ?? new Vector3();
-    this.resLocalSkew = skew(this.resLocalVec).mul(-2);
+    this.resLocalSkew = skew(this.resLocalVec).mul(2);
 
     if (this.fixed.isFixed) {
       this.isFixed = true;
@@ -792,16 +792,16 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
         .add(this.fixed.position);
     }
     this.fixedLocalSkew = [
-      skew(this.fixedLocalVec[0]).mul(-2),
-      skew(this.fixedLocalVec[1]).mul(-2)
+      skew(this.fixedLocalVec[0]).mul(2),
+      skew(this.fixedLocalVec[1]).mul(2)
     ];
 
     const oVec1 = getStableOrthogonalVector(fixedAxisVec);
     const oVec2 = fixedAxisVec.cross(oVec1).normalize();
     this.fixedOrthogonalVec = [oVec1, oVec2];
     this.fixedOrthogonalSkew = [
-      skew(this.fixedOrthogonalVec[0]).mul(-2),
-      skew(this.fixedOrthogonalVec[1]).mul(-2)
+      skew(this.fixedOrthogonalVec[0]).mul(2),
+      skew(this.fixedOrthogonalVec[1]).mul(2)
     ];
   }
 
@@ -999,7 +999,7 @@ export class PointToPlane implements Constraint, deltaL {
   }
 
   get localSkew(): Matrix {
-    return skew(this._localVec(this.normal, this.distance)).mul(2);
+    return skew(this._localVec(this.normal, this.distance)).mul(-2);
   }
 
   distance: number;
