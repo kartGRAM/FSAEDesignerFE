@@ -186,7 +186,7 @@ export function getPartialDiffOfRotationMatrix(
   const G = decompositionMatrixG(q);
 
   // const s = math.transpose(math.matrix([v.x, v.y, v.z]));
-  return A.mul(2).mmul(s).mmul(G);
+  return A.mul(-2).mmul(s).mmul(G);
   /*
   const a_q = math.matrix([
     [4 * e0, -2 * e3, 2 * e2], // X行 e0列
