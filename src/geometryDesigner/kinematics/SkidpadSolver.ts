@@ -410,7 +410,7 @@ export class SkidpadSolver {
             const normal = new Vector3(0, 0, 1);
             const tire = getTire(config.tireData[element.nodeID] ?? '');
 
-            constraints.push(
+            /* constraints.push(
               new TireBalance({
                 name: `TireBalance of${element.name.value}`,
                 component,
@@ -434,7 +434,7 @@ export class SkidpadSolver {
                 error,
                 ground: () => func(normal, 0)
               })
-            );
+            ); */
           } else {
             throw new Error('Tireは同じコンポーネントに接続される必要がある');
             // 2023.06.17 二つ以上のコンポーネントにまたがるタイヤは、
@@ -966,7 +966,7 @@ export class SkidpadSolver {
           const norm = dq.norm('frobenius');
           eq = norm < 1.0e-4;
           console.log(`norm=${norm.toFixed(3)}`);
-          if (norm > minNorm * 1000 || Number.isNaN(norm)) {
+          if (norm > minNorm * 100000 || Number.isNaN(norm)) {
             // eslint-disable-next-line no-console
             console.log(`norm=${norm.toFixed(3)}`);
             // eslint-disable-next-line no-console

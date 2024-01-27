@@ -199,10 +199,10 @@ export class FDComponentBalance implements Constraint {
 
     // dP
     const dP = omegaSkew2.mul(this.mass);
-    // phi_q.setSubMatrix(dP, row, col + X);
+    phi_q.setSubMatrix(dP, row, col + X);
     // dΘ
     const dThetaMCF = omegaSkew2.mmul(A).mmul(cogLocalSkew).mul(this.mass);
-    // phi_q.setSubMatrix(dThetaMCF.mmul(G), row, col + Q0);
+    phi_q.setSubMatrix(dThetaMCF.mmul(G), row, col + Q0);
 
     // モーメントの部分のヤコビアン
     let dThetaM = new Matrix(3, 3);
@@ -213,18 +213,18 @@ export class FDComponentBalance implements Constraint {
         .multiplyScalar(-pfCoefs[i]);
       phi_q.setSubMatrix(skew(Ari), row + 3, pf.col + X);
       // theta部分の微分
-      const fSkew = skew(pf.force).mul(pfCoefs[i]);
+      const fSkew = skew(pf.force.clone().multiplyScalar(pfCoefs[i]));
       const As = A.mmul(pointLocalSkew[i]);
       dThetaM = dThetaM.add(fSkew.mmul(As));
     });
     // dP
     const dPRot = cogSkewQ.mmul(omegaSkew2).mul(-this.mass);
-    // phi_q.setSubMatrix(dPRot, row + 3, col + X);
+    phi_q.setSubMatrix(dPRot, row + 3, col + X);
 
     // dΘ
     dThetaM = dThetaM.add(maSkew.mmul(A).mmul(cogLocalSkew)); // (3x3) x (3x3) x (3x3) x (3x4) = 3x4
     dThetaM = dThetaM.add(cogSkewQ.mmul(dThetaMCF).mul(-1));
-    // phi_q.setSubMatrix(dThetaM.mmul(G), row + 3, col + Q0);
+    phi_q.setSubMatrix(dThetaM.mmul(G), row + 3, col + Q0);
 
     // dω
     const dOmegaRot = cogSkewQ.mmul(dOmega).mul(-1);
