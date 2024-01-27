@@ -122,7 +122,7 @@ export class SkidpadSolver {
 
     const omega = new GeneralVariable('omega');
     const error = new GeneralVariable('longitudinalForceError');
-    // components.push(omega);
+    components.push(omega);
     // components.push(error);
 
     // ステップ1: ChildrenをComponentに変換する
@@ -382,10 +382,10 @@ export class SkidpadSolver {
             const jointr = jointDict[element.rightBearing.nodeID][0];
             const [pfl, isNewl] = getPFComponent(pointForceComponents, jointl);
             pfs.push(pfl);
-            // if (isNewl) components.push(pfl);
+            if (isNewl) components.push(pfl);
             const [pfr, isNewr] = getPFComponent(pointForceComponents, jointr);
             pfs.push(pfr);
-            // if (isNewr) components.push(pfr);
+            if (isNewr) components.push(pfr);
             jointsDone.add(jointl);
             jointsDone.add(jointr);
             const points = [
@@ -410,7 +410,6 @@ export class SkidpadSolver {
             const normal = new Vector3(0, 0, 1);
             const tire = getTire(config.tireData[element.nodeID] ?? '');
 
-            /*
             constraints.push(
               new TireBalance({
                 name: `TireBalance of${element.name.value}`,
@@ -435,7 +434,7 @@ export class SkidpadSolver {
                 error,
                 ground: () => func(normal, 0)
               })
-            ); */
+            );
           } else {
             throw new Error('Tireは同じコンポーネントに接続される必要がある');
             // 2023.06.17 二つ以上のコンポーネントにまたがるタイヤは、
@@ -678,7 +677,7 @@ export class SkidpadSolver {
       children.forEach((element) => {
         const component = tempComponents[element.nodeID];
         // 特殊な拘束に対する拘束式を作成(例えば平面へ点を拘束するなど)
-        /* if (specialControls[element.nodeID]) {
+        if (specialControls[element.nodeID]) {
           specialControls[element.nodeID].forEach((control) => {
             if (isPointToPlaneControl(control)) {
               // 点を平面に拘束する
@@ -760,15 +759,13 @@ export class SkidpadSolver {
             }
           });
         }
-        */
         if (!elementIsComponent(element, jointDict)) return;
-        if (!isBody(element) || isBodyOfFrame(element)) return;
         // 相対固定拘束の場合は、親のみを追加
         if (component.isRelativeFixed) {
           return;
         }
         // solverにコンポーネントを追加する
-        // components.push(component);
+        components.push(component);
         this.componentsFromNodeID[element.nodeID] = component;
         // 関連するジョイントを得る(すでに検討済みであれば破棄)
         const [partnerIDs, jDict] = getJointsToOtherComponents(
@@ -783,12 +780,11 @@ export class SkidpadSolver {
         joints.forEach((joint) => {
           const [pf, isNew] = getPFComponent(pointForceComponents, joint);
           pfs.push(pf);
-          /* if (isNew) */ components.push(pf);
+          if (isNew) components.push(pf);
           const [pThis] = getNamedVector3FromJoint(joint, element.nodeID);
           points.push(pThis.value);
           pNodeIDs.push(pThis.nodeID);
         });
-        /*
         partnerIDs.forEach((partnerID) => {
           const otherComponent = tempComponents[partnerID];
           const otherElement = tempElements[partnerID];
@@ -826,7 +822,7 @@ export class SkidpadSolver {
             );
           }
           constraints.push(constraint);
-        }); */
+        });
 
         // FDComponentBalance
         constraints.push(
@@ -847,7 +843,7 @@ export class SkidpadSolver {
       const frame = children.find((e) => e.meta?.isBodyOfFrame) as IBody;
       const p = frame.centerOfGravity.value;
       const component = tempComponents[frame.nodeID];
-      /* constraints.push(
+      constraints.push(
         new PointToPlane(
           `Two-dimentional Constraint of ${frame.centerOfGravity.name} of ${frame.name.value}`,
           component,
@@ -872,20 +868,19 @@ export class SkidpadSolver {
           0,
           0
         )
-      ); */
+      );
     }
     // ステップ5: 正規化拘束式の作成
     {
       const rootComponents = [components[0]];
       this.components = rootComponents.map((root) => {
         root.unionFindTreeConstraints = [...constraints];
-        /*
         components.forEach((component) => {
           const constraintToNormalize = component.getConstraintToNormalize();
           if (constraintToNormalize) {
             root.unionFindTreeConstraints.push(constraintToNormalize);
           }
-        }); */
+        });
         return components;
       });
       // コンポーネントの列番号を設定
@@ -925,7 +920,7 @@ export class SkidpadSolver {
     this.running = true;
     try {
       const start = performance.now();
-      const maxCnt = params?.maxCnt ?? 10; // 200;
+      const maxCnt = params?.maxCnt ?? 200; // 200;
       const postProcess = params?.postProcess ?? true;
       const constraintsOptions = params?.constraintsOptions ?? {};
       const logOutput = params?.logOutput ?? false;
