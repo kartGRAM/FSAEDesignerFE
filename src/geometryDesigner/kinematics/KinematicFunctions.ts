@@ -43,9 +43,9 @@ export function setSubMatrix(
 export function skew(v: {x: number; y: number; z: number} | Matrix) {
   if ('x' in v) {
     return new Matrix([
-      [0, v.z, -v.y],
-      [-v.z, 0, v.x],
-      [v.y, -v.x, 0]
+      [0, -v.z, v.y],
+      [v.z, 0, -v.x],
+      [-v.y, v.x, 0]
     ]);
   }
   const x = v.get(0, 0);
