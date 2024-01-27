@@ -105,10 +105,10 @@ export class FDComponentBalance implements Constraint {
     this.pfCoefs = this.pfs.map((pf, i) => pf.sign(params.pfsPointNodeIDs[i]));
 
     this.cogLocalVec = params.cog.clone();
-    this.cogLocalSkew = skew(this.cogLocalVec).mul(2);
+    this.cogLocalSkew = skew(this.cogLocalVec).mul(-2);
 
     this.pointLocalVec = params.points.map((p) => p.clone());
-    this.pointLocalSkew = this.pointLocalVec.map((p) => skew(p).mul(2));
+    this.pointLocalSkew = this.pointLocalVec.map((p) => skew(p).mul(-2));
   }
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
@@ -947,10 +947,10 @@ export class TireBalance implements Constraint {
     this.vO = vO;
     this.ground = ground;
     this.localVec = points.map((p) => p.clone()) as Twin<Vector3>;
-    this.localSkew = points.map((p) => skew(p)) as Twin<Matrix>;
+    this.localSkew = points.map((p) => skew(p).mul(-2)) as Twin<Matrix>;
 
     this.localAxis = this.localVec[1].clone().sub(this.localVec[0]).normalize();
-    this.localAxisSkew = skew(this.localAxis).mul(2);
+    this.localAxisSkew = skew(this.localAxis).mul(-2);
   }
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
@@ -963,7 +963,7 @@ export class TireBalance implements Constraint {
     const pSkewQ = pQ.map((p) => skew(p));
     // 接地点
     const ground = this.ground();
-    const localGroundSkew = skew(ground);
+    const localGroundSkew = skew(ground).mul(-2);
     const groundQ = this.ground().clone().applyQuaternion(q);
     const groundSkewQ = skew(groundQ);
 
@@ -977,7 +977,7 @@ export class TireBalance implements Constraint {
     const pCog = pCogQ.clone().add(position); // 車両座標系
     const cogSkewP = skew(pCog);
     const cogSkewQ = skew(pCogQ);
-    const cogLocalSkew = skew(localCog).mul(2);
+    const cogLocalSkew = skew(localCog).mul(-2);
     // 慣性力
     const omega = new Vector3(0, 0, this.omega.value);
     const omegaSkew = skew(omega); // 角速度のSkewMatrix
