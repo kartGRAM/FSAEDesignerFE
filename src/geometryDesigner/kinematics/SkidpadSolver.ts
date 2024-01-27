@@ -222,7 +222,7 @@ export class SkidpadSolver {
             const joint = jointDict[p.nodeID][0];
             const [pf, isNew] = getPFComponent(pointForceComponents, joint);
             pfs.push(pf);
-            // if (isNew) components.push(pf);
+            if (isNew) components.push(pf);
             jointsDone.add(joint);
             return joint;
           });
@@ -230,7 +230,7 @@ export class SkidpadSolver {
           // 力コンポーネント
           const [pf, isNew] = getPFComponent(pointForceComponents, jointu);
           pfs.push(pf);
-          // if (isNew) components.push(pf);
+          if (isNew) components.push(pf);
           jointsDone.add(jointu);
           const ptsBody = joints.map((joint, i) =>
             getJointPartner(joint, element.fixedPoints[i].nodeID)
@@ -289,10 +289,10 @@ export class SkidpadSolver {
           const jointp = jointDict[element.point.nodeID][0];
           const [pff, isNewf] = getPFComponent(pointForceComponents, jointf);
           pfs.push(pff);
-          // if (isNewf) components.push(pff);
+          if (isNewf) components.push(pff);
           const [pfp, isNewp] = getPFComponent(pointForceComponents, jointp);
           pfs.push(pfp);
-          // if (isNewp) components.push(pfp);
+          if (isNewp) components.push(pfp);
           jointsDone.add(jointf);
           jointsDone.add(jointp);
           const points = [
@@ -318,7 +318,7 @@ export class SkidpadSolver {
                 points[0]
               );
               lhs = pointComponents[element.fixedPoint.nodeID];
-              // components.push(lhs);
+              components.push(lhs);
             } else {
               // eslint-disable-next-line no-multi-assign
               lhs = pointComponents[element.fixedPoint.nodeID] =
@@ -332,7 +332,7 @@ export class SkidpadSolver {
                 points[1]
               );
               rhs = pointComponents[element.point.nodeID];
-              // components.push(rhs);
+              components.push(rhs);
             } else {
               // eslint-disable-next-line no-multi-assign
               rhs = pointComponents[element.fixedPoint.nodeID] =
@@ -354,7 +354,7 @@ export class SkidpadSolver {
             isSpringDumper(element) ? element.dlMax.value : undefined,
             element.nodeID
           );
-          // constraints.push(constraint);
+          constraints.push(constraint);
 
           // BarBalance
           /* constraints.push(
@@ -410,7 +410,7 @@ export class SkidpadSolver {
             const normal = new Vector3(0, 0, 1);
             const tire = getTire(config.tireData[element.nodeID] ?? '');
 
-            /* constraints.push(
+            constraints.push(
               new TireBalance({
                 name: `TireBalance of${element.name.value}`,
                 component,
@@ -434,7 +434,7 @@ export class SkidpadSolver {
                 error,
                 ground: () => func(normal, 0)
               })
-            ); */
+            );
           } else {
             throw new Error('Tireは同じコンポーネントに接続される必要がある');
             // 2023.06.17 二つ以上のコンポーネントにまたがるタイヤは、
@@ -466,10 +466,10 @@ export class SkidpadSolver {
           ];
           const [pf0, isNew0] = getPFComponent(pointForceComponents, jointf0);
           pfsFrame.push(pf0);
-          // if (isNew0) components.push(pf0);
+          if (isNew0) components.push(pf0);
           const [pf1, isNew1] = getPFComponent(pointForceComponents, jointf1);
           pfsFrame.push(pf1);
-          // if (isNew1) components.push(pf1);
+          if (isNew1) components.push(pf1);
           jointsDone.add(jointf0);
           jointsDone.add(jointf1);
           const node0: (Vector3 | undefined)[] = [];
@@ -483,7 +483,7 @@ export class SkidpadSolver {
             const jointp = jointDict[point.nodeID][0];
             const [pf, isNew] = getPFComponent(pointForceComponents, jointp);
             pfsRodEnd.push(pf);
-            // if (isNew) components.push(pf);
+            if (isNew) components.push(pf);
             jointsDone.add(jointp);
             const points = [
               ...fixedPoints,
@@ -498,7 +498,7 @@ export class SkidpadSolver {
                   points[2]
                 );
                 rhs = pointComponents[point.nodeID];
-                // components.push(rhs);
+                components.push(rhs);
               } else {
                 // eslint-disable-next-line no-multi-assign
                 rhs = pointComponents[point.nodeID] =
@@ -552,7 +552,7 @@ export class SkidpadSolver {
                   v0,
                   isFullDegreesComponent(rhs) ? points[2].value : undefined
                 );
-                // constraints.push(constraint);
+                constraints.push(constraint);
               }
             }
 
@@ -568,7 +568,7 @@ export class SkidpadSolver {
               element.dlMax.value,
               element.nodeID
             );
-            // constraints.push(constraint);
+            constraints.push(constraint);
           });
           // LinearBushingBalance
           /*
@@ -823,6 +823,7 @@ export class SkidpadSolver {
           }
           constraints.push(constraint);
         });
+        // if (!isBody(element) || isBodyOfFrame(element)) return;
 
         // FDComponentBalance
         constraints.push(
