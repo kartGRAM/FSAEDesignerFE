@@ -979,28 +979,28 @@ export class TireBalance implements Constraint {
     const omega = new Vector3(0, 0, this.omega.value);
     const omegaSkew = skew(omega); // 角速度のSkewMatrix
     const omegaSkew2 = omegaSkew.mmul(omegaSkew);
-    const vO = this.vO(); // 車速
+    const vO = this.vO(); // 車速(m/s)
     const cO = omega.clone().cross(vO); // 車両座標系にかかる原点の遠心力
 
     const c = omega.clone().cross(omega.clone().cross(pCog)).add(cO);
     const ma = g.clone().add(c).multiplyScalar(this.mass); // 遠心力＋重力
     const maSkew = skew(ma);
     // 接地点の速度
-    const vGround = vO.clone().add(omega.cross(groundQ.clone().add(position)));
+    const vOmega = omega
+      .clone()
+      .cross(groundQ.clone().add(position).multiplyScalar(0.001));
+    const vGround = vO.clone().add(vOmega);
     // vGround.z = 0; // 念のため
 
     // SAとIAとFZを求める
     const normal = new Vector3(0, 0, 1);
     const axis = localAxis.clone().applyQuaternion(q);
-    // axisに垂直で地面に平行なベクトル(左タイヤが進む方向)
+    // axisに垂直で地面に平行なベクトル(Vの方向を向いている)
     const parallel = axis.clone().cross(normal).normalize();
+    if (parallel.dot(vGround) < 0) parallel.multiplyScalar(-1);
     // saの取得
-    const saSin = parallel
-      .clone()
-      .normalize()
-      .cross(vGround.clone().normalize());
-    const saSign = saSin.dot(normal) > 0 ? 1 : -1;
-    const sa = (saSin.length() * saSign * 180) / Math.PI;
+    const saSin = parallel.clone().cross(vGround.clone().normalize());
+    const sa = (saSin.z * 180) / Math.PI;
 
     // iaの取得
     const tireVirtical = axis.clone().cross(parallel).normalize();
@@ -1112,7 +1112,7 @@ export class TireBalance implements Constraint {
 
     // de
     const de = unitZSkew.mmul(getVVector(axis)).mul(-torqueRatio);
-    phi_q.setSubMatrix(de.subMatrix(0, 1, 0, 0), row, error.col);
+    // phi_q.setSubMatrix(de.subMatrix(0, 1, 0, 0), row, error.col);
     // phi_q.setSubMatrix(de, row, error.col);
 
     // モーメントのつり合い
@@ -1157,7 +1157,7 @@ export class TireBalance implements Constraint {
 
     // de
     const de2 = groundSkewQ.mmul(de).mul(-1);
-    phi_q.setSubMatrix(de2, row + 2, this.error.col);
+    // phi_q.setSubMatrix(de2, row + 2, this.error.col);
     // phi_q.setSubMatrix(de2, row + 3, this.error.col);
   }
 
