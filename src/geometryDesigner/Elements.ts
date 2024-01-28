@@ -91,8 +91,8 @@ export function getNewElement(name: Elements): IElement {
     return new Tire({
       name: 'newTire',
       tireCenter: new Vector3(0, 0, 220),
-      toLeftBearing: -30,
-      toRightBearing: -60
+      toOuterBearing: -30,
+      toInnerBearing: -60
     });
   }
   if (name === 'LinearBushing') {

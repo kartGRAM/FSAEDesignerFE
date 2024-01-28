@@ -297,13 +297,13 @@ export class KinematicsSolver {
         // Tireはコンポーネント扱いしない
         if (isTire(element)) {
           if (canSimplifyTire(element, jointDict)) {
-            const jointl = jointDict[element.leftBearing.nodeID][0];
-            const jointr = jointDict[element.rightBearing.nodeID][0];
+            const jointl = jointDict[element.outerBearing.nodeID][0];
+            const jointr = jointDict[element.innerBearing.nodeID][0];
             jointsDone.add(jointl);
             jointsDone.add(jointr);
             const points = [
-              getJointPartner(jointl, element.leftBearing.nodeID),
-              getJointPartner(jointr, element.rightBearing.nodeID)
+              getJointPartner(jointl, element.outerBearing.nodeID),
+              getJointPartner(jointr, element.innerBearing.nodeID)
             ];
             this.restorers.push(
               new TireRestorer(element, points[0], points[1])

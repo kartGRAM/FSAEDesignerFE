@@ -42,28 +42,28 @@ export default function TireConfig(params: Params) {
       if (focus)
         dispatch(
           setSelectedPoint({
-            point: element.leftBearing
+            point: element.outerBearing
           })
         );
       return () => {
         // if (!focus) dispatch(setSelectedPoint(null));
       };
     },
-    [dispatch, element.leftBearing]
+    [dispatch, element.outerBearing]
   );
   const onRightBearingFocusChanged = React.useCallback(
     (focus: boolean) => {
       if (focus)
         dispatch(
           setSelectedPoint({
-            point: element.rightBearing
+            point: element.innerBearing
           })
         );
       return () => {
         // if (!focus) dispatch(setSelectedPoint(null));
       };
     },
-    [dispatch, element.rightBearing]
+    [dispatch, element.innerBearing]
   );
 
   React.useEffect(() => {
@@ -91,13 +91,13 @@ export default function TireConfig(params: Params) {
           <Vector vector={element.tireCenter} disabled={isMirror} />
           <Scalar
             onFocusChanged={onLeftBearingFocusChanged}
-            value={element.toLeftBearing}
+            value={element.toOuterBearing}
             unit="mm"
             disabled={isMirror}
           />
           <Scalar
             onFocusChanged={onRightBearingFocusChanged}
-            value={element.toRightBearing}
+            value={element.toInnerBearing}
             unit="mm"
             disabled={isMirror}
           />

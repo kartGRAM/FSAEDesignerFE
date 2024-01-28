@@ -25,8 +25,8 @@ const getUprightAssy = (): Assembly => {
   const tire = new Tire({
     name: 'leftTire',
     tireCenter: {...tireCenter, y: 'baseTread/2'},
-    toLeftBearing: -30,
-    toRightBearing: -60
+    toOuterBearing: -30,
+    toInnerBearing: -60
   });
 
   tire.tireCenter.pointOffsetTools.push(
@@ -61,11 +61,11 @@ const getUprightAssy = (): Assembly => {
     children: [tire, upright],
     joints: [
       {
-        lhs: tire.leftBearing.nodeID,
+        lhs: tire.outerBearing.nodeID,
         rhs: upright.points[1].nodeID
       },
       {
-        lhs: tire.rightBearing.nodeID,
+        lhs: tire.innerBearing.nodeID,
         rhs: upright.points[2].nodeID
       }
     ]
@@ -86,8 +86,8 @@ const getFrontLeftSuspension = (): Assembly => {
   const tire = new Tire({
     name: 'leftTire',
     tireCenter: {...tireCenter, y: 'baseTread/2'},
-    toLeftBearing: -30,
-    toRightBearing: -60
+    toOuterBearing: -30,
+    toInnerBearing: -60
   });
 
   tire.tireCenter.pointOffsetTools.push(
@@ -122,11 +122,11 @@ const getFrontLeftSuspension = (): Assembly => {
     children: [tire, upright],
     joints: [
       {
-        lhs: tire.leftBearing.nodeID,
+        lhs: tire.outerBearing.nodeID,
         rhs: upright.points[1].nodeID
       },
       {
-        lhs: tire.rightBearing.nodeID,
+        lhs: tire.innerBearing.nodeID,
         rhs: upright.points[2].nodeID
       }
     ]
@@ -244,8 +244,8 @@ const getLeftRearSuspension = (): Assembly => {
   const tire = new Tire({
     name: 'leftTire',
     tireCenter: {...tireCenter, y: 'baseTread/2'},
-    toLeftBearing: -30,
-    toRightBearing: -60
+    toOuterBearing: -30,
+    toInnerBearing: -60
   });
 
   const upright = new Body({
@@ -270,8 +270,8 @@ const getLeftRearSuspension = (): Assembly => {
     name: 'uprightSubAssy',
     children: [tire, upright],
     joints: [
-      {lhs: tire.leftBearing.nodeID, rhs: upright.points[0].nodeID},
-      {lhs: tire.rightBearing.nodeID, rhs: upright.points[1].nodeID}
+      {lhs: tire.outerBearing.nodeID, rhs: upright.points[0].nodeID},
+      {lhs: tire.innerBearing.nodeID, rhs: upright.points[1].nodeID}
     ]
   });
 

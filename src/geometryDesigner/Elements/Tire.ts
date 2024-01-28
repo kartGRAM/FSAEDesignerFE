@@ -14,7 +14,7 @@ import {
   INamedVector3RO,
   FunctionVector3
 } from '@gd/INamedValues';
-import {minus} from '@app/utils/helpers';
+// import {minus} from '@app/utils/helpers';
 import {
   isDataElement,
   MirrorError,
@@ -59,9 +59,11 @@ export class Tire extends Element implements ITire {
 
   tireCenter: NamedVector3;
 
-  toLeftBearing: NamedNumber;
+  tireAxis: NamedVector3;
 
-  toRightBearing: NamedNumber;
+  toInnerBearing: NamedNumber;
+
+  toOuterBearing: NamedNumber;
 
   initialPosition: NamedVector3;
 
@@ -74,35 +76,37 @@ export class Tire extends Element implements ITire {
   rotation: NamedQuaternion;
 
   /* UpdateMethodが適当。直す必要あり */
-  get leftBearing(): NamedVector3LW {
+  get outerBearing(): NamedVector3LW {
+    const axis = this.tireAxis.value.clone().normalize();
     return new NamedVector3LW({
-      name: 'leftBaring',
+      name: 'OuterBaring',
       parent: this,
       value: this.tireCenter.originalValue.add(
-        new Vector3(0, this.toLeftBearing.value, 0)
+        axis.multiplyScalar(this.toOuterBearing.value)
       ),
       nodeID: `${this.nodeID}leftBRG`
     });
   }
 
   /* 直す必要あり */
-  get rightBearing(): NamedVector3LW {
+  get innerBearing(): NamedVector3LW {
+    const axis = this.tireAxis.value.clone().normalize();
     return new NamedVector3LW({
-      name: 'rightBaring',
+      name: 'InnerBaring',
       parent: this,
       value: this.tireCenter.originalValue.add(
-        new Vector3(0, this.toRightBearing.value, 0)
+        axis.multiplyScalar(this.toInnerBearing.value)
       ),
       nodeID: `${this.nodeID}rightBRG`
     });
   }
 
   get bearingDistance(): number {
-    return Math.abs(this.toLeftBearing.value - this.toRightBearing.value);
+    return Math.abs(this.toOuterBearing.value - this.toInnerBearing.value);
   }
 
   getPoints(): INamedVector3RO[] {
-    return [this.leftBearing, this.rightBearing];
+    return [this.outerBearing, this.innerBearing];
   }
 
   setCenterOfGravityAuto() {
@@ -143,8 +147,9 @@ export class Tire extends Element implements ITire {
     const ret = new Tire({
       name: `mirror_${this.name.value}`,
       tireCenter: center,
-      toLeftBearing: minus(this.toRightBearing.getStringValue()),
-      toRightBearing: minus(this.toLeftBearing.getStringValue()),
+      tireAxis: mirrorVec(this.tireAxis),
+      toOuterBearing: this.toOuterBearing.getStringValue(),
+      toInnerBearing: this.toInnerBearing.getStringValue(),
       initialPosition: ip,
       mass: this.mass.value,
       centerOfGravity: cog,
@@ -172,8 +177,9 @@ export class Tire extends Element implements ITire {
       | {
           name: string;
           tireCenter: FunctionVector3 | IDataVector3 | INamedVector3;
-          toLeftBearing: number | string;
-          toRightBearing: number | string;
+          tireAxis?: FunctionVector3 | IDataVector3 | INamedVector3;
+          toOuterBearing: number | string;
+          toInnerBearing: number | string;
           initialPosition?: FunctionVector3 | IDataVector3 | INamedVector3;
           mass?: number;
           centerOfGravity?: FunctionVector3 | IDataVector3 | INamedVector3;
@@ -182,14 +188,8 @@ export class Tire extends Element implements ITire {
       | IDataTire
   ) {
     super(params);
-    const {
-      tireCenter,
-      toLeftBearing,
-      toRightBearing,
-      initialPosition,
-      mass,
-      centerOfGravity
-    } = params;
+    const {tireCenter, tireAxis, initialPosition, mass, centerOfGravity} =
+      params;
 
     this.tireCenter = new NamedVector3({
       name: 'tireCenter',
@@ -197,15 +197,25 @@ export class Tire extends Element implements ITire {
       value: tireCenter ?? new Vector3()
     });
 
-    this.toLeftBearing = new NamedNumber({
-      name: 'toLeftBearing',
+    this.tireAxis = new NamedVector3({
+      name: 'tireAxis',
       parent: this,
-      value: toLeftBearing
+      value: tireAxis ?? new Vector3(0, 1, 0)
     });
-    this.toRightBearing = new NamedNumber({
-      name: 'toRightBearing',
+
+    this.toOuterBearing = new NamedNumber({
+      name: 'toOuterBearing',
       parent: this,
-      value: toRightBearing
+      value: isDataElement(params)
+        ? params.toLeftBearing
+        : params.toOuterBearing
+    });
+    this.toInnerBearing = new NamedNumber({
+      name: 'toInnerBearing',
+      parent: this,
+      value: isDataElement(params)
+        ? params.toRightBearing
+        : params.toInnerBearing
     });
 
     this.visible = new NamedBooleanOrUndefined({
@@ -254,19 +264,21 @@ export class Tire extends Element implements ITire {
         tireCenter: this.tireCenter
           .setValue(mirrorVec(mir.tireCenter))
           .getData(),
-        toLeftBearing: this.toLeftBearing
-          .setValue(minus(mir.toLeftBearing.getStringValue()))
+        tireAxis: this.tireAxis.setValue(mirrorVec(mir.tireAxis)).getData(),
+        toLeftBearing: this.toOuterBearing
+          .setValue(mir.toOuterBearing.getStringValue())
           .getData(),
-        toRightBearing: this.toRightBearing
-          .setValue(minus(mir.toRightBearing.getStringValue()))
+        toRightBearing: this.toInnerBearing
+          .setValue(mir.toInnerBearing.getStringValue())
           .getData()
       };
     }
     return {
       ...baseData,
       tireCenter: this.tireCenter.getData(),
-      toLeftBearing: this.toLeftBearing.getData(),
-      toRightBearing: this.toRightBearing.getData()
+      tireAxis: this.tireAxis.getData(),
+      toLeftBearing: this.toOuterBearing.getData(),
+      toRightBearing: this.toInnerBearing.getData()
     };
   }
 }

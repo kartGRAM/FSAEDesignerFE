@@ -378,8 +378,8 @@ export class SkidpadSolver {
         if (isTire(element)) {
           if (canSimplifyTire(element, jointDict)) {
             const pfs: PointForce[] = [];
-            const jointl = jointDict[element.leftBearing.nodeID][0];
-            const jointr = jointDict[element.rightBearing.nodeID][0];
+            const jointl = jointDict[element.outerBearing.nodeID][0];
+            const jointr = jointDict[element.innerBearing.nodeID][0];
             const [pfl, isNewl] = getPFComponent(pointForceComponents, jointl);
             pfs.push(pfl);
             if (isNewl) components.push(pfl);
@@ -389,8 +389,8 @@ export class SkidpadSolver {
             jointsDone.add(jointl);
             jointsDone.add(jointr);
             const points = [
-              getJointPartner(jointl, element.leftBearing.nodeID),
-              getJointPartner(jointr, element.rightBearing.nodeID)
+              getJointPartner(jointl, element.outerBearing.nodeID),
+              getJointPartner(jointr, element.innerBearing.nodeID)
             ];
             this.restorers.push(
               new TireRestorer(element, points[0], points[1])
@@ -416,8 +416,8 @@ export class SkidpadSolver {
                 component,
                 points: [points[0].value, points[1].value],
                 pfsPointNodeIDs: [
-                  element.leftBearing.nodeID,
-                  element.rightBearing.nodeID
+                  element.outerBearing.nodeID,
+                  element.innerBearing.nodeID
                 ],
                 mass: element.mass.value,
                 cog: 0.5, // 要修正

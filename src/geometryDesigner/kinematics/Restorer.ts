@@ -165,7 +165,7 @@ export class TireRestorer implements Restorer {
   }
 
   restore() {
-    const fp = this.element.leftBearing.value;
+    const fp = this.element.outerBearing.value;
     const fpParent = this.leftBearing.parent as IElement;
     const fpTo = this.leftBearing.value
       .applyQuaternion(fpParent.rotation.value)
@@ -178,7 +178,7 @@ export class TireRestorer implements Restorer {
 
     const {position, rotation} = TireRestorer.getTireLocalPosition(
       fp,
-      this.element.rightBearing.value,
+      this.element.innerBearing.value,
       fpTo,
       pTo
     );

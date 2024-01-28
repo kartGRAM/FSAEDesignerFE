@@ -354,11 +354,11 @@ export function canSimplifyAArm(aArm: IAArm, jointDict: JointDict): boolean {
 
 // Tireを単純化できるか？
 export function canSimplifyTire(element: ITire, jointDict: JointDict): boolean {
-  const jointl = jointDict[element.leftBearing.nodeID][0];
-  const jointr = jointDict[element.rightBearing.nodeID][0];
+  const jointl = jointDict[element.outerBearing.nodeID][0];
+  const jointr = jointDict[element.innerBearing.nodeID][0];
   const points = [
-    getJointPartner(jointl, element.leftBearing.nodeID),
-    getJointPartner(jointr, element.rightBearing.nodeID)
+    getJointPartner(jointl, element.outerBearing.nodeID),
+    getJointPartner(jointr, element.innerBearing.nodeID)
   ];
   const elements = points.map((p) => p.parent as IElement);
   // Tireの両端が同じコンポーネントに接続されている場合(通常の状態)であればタイヤは無視する。
@@ -420,15 +420,15 @@ export function getSimplifiedTireConstrainsParams(
   pID: string
 ): [FullDegreesComponent, (normal: Vector3, distance: number) => Vector3] {
   const plTo = getJointPartner(
-    jointDict[element.leftBearing.nodeID][0],
-    element.leftBearing.nodeID
+    jointDict[element.outerBearing.nodeID][0],
+    element.outerBearing.nodeID
   );
   const prTo = getJointPartner(
-    jointDict[element.rightBearing.nodeID][0],
-    element.rightBearing.nodeID
+    jointDict[element.innerBearing.nodeID][0],
+    element.innerBearing.nodeID
   ).value;
-  const pl = element.leftBearing.value;
-  const pr = element.rightBearing.value;
+  const pl = element.outerBearing.value;
+  const pr = element.innerBearing.value;
   // タイヤの親コンポーネントとの相対座標及び回転を取得
   const {position: dp, rotation: dq} = TireRestorer.getTireLocalPosition(
     pl,
