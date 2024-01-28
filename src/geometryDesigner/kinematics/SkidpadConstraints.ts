@@ -995,7 +995,10 @@ export class TireBalance implements Constraint {
     // axisに垂直で地面に平行なベクトル(左タイヤが進む方向)
     const parallel = axis.clone().cross(normal).normalize();
     // saの取得
-    const saSin = parallel.clone().normalize().cross(vGround);
+    const saSin = parallel
+      .clone()
+      .normalize()
+      .cross(vGround.clone().normalize());
     const saSign = saSin.dot(normal) > 0 ? 1 : -1;
     const sa = (saSin.length() * saSign * 180) / Math.PI;
 
