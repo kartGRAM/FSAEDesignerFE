@@ -1025,7 +1025,7 @@ export class TireBalance implements Constraint {
           new Quaternion().setFromUnitVectors(new Vector3(0, 0, 1), normal)
         ) */
     );
-    friction.set(0, 0, 0);
+    // friction.set(0, 0, 0);
     const frictionSkew = skew(friction);
 
     // 誤差項
@@ -1112,7 +1112,7 @@ export class TireBalance implements Constraint {
 
     // de
     const de = unitZSkew.mmul(getVVector(axis)).mul(-torqueRatio);
-    // phi_q.setSubMatrix(de.subMatrix(0, 1, 0, 0), row, error.col);
+    phi_q.setSubMatrix(de.subMatrix(0, 1, 0, 0), row, error.col);
     // phi_q.setSubMatrix(de, row, error.col);
 
     // モーメントのつり合い
@@ -1157,7 +1157,7 @@ export class TireBalance implements Constraint {
 
     // de
     const de2 = groundSkewQ.mmul(de).mul(-1);
-    // phi_q.setSubMatrix(de2, row + 2, this.error.col);
+    phi_q.setSubMatrix(de2, row + 2, this.error.col);
     // phi_q.setSubMatrix(de2, row + 3, this.error.col);
   }
 

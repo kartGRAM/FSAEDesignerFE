@@ -123,7 +123,7 @@ export class SkidpadSolver {
     const omega = new GeneralVariable('omega');
     const error = new GeneralVariable('longitudinalForceError');
     components.push(omega);
-    // components.push(error);
+    components.push(error);
 
     // ステップ1: ChildrenをComponentに変換する
     {
