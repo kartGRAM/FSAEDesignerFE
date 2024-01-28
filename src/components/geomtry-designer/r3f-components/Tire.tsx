@@ -57,6 +57,13 @@ const Tire = (props: {element: ITire}) => {
   const groupRef = React.useRef<THREE.Group>(null!);
   const meshRef = React.useRef<THREE.Mesh>(null!);
   const materialRef = React.useRef<THREE.MeshBasicMaterial>(null!);
+  const rotationQ = transQuaternion(
+    new THREE.Quaternion().setFromUnitVectors(
+      new THREE.Vector3(1, 0, 0),
+      element.tireAxis.value.clone().normalize()
+    ),
+    coMatrix
+  );
 
   return (
     <group onDoubleClick={handleOnDoubleClick} ref={groupRef}>
@@ -64,7 +71,8 @@ const Tire = (props: {element: ITire}) => {
         args={[radius, 64]}
         position={center}
         ref={meshRef}
-        rotation={new THREE.Euler(0, Math.PI / 2, 0, 'XYZ')}
+        quaternion={rotationQ}
+        // rotation={new THREE.Euler(0, Math.PI / 2, 0, 'XYZ')}
       >
         {isSelected ? (
           <meshBasicMaterial

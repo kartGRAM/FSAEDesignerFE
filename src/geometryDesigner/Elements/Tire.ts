@@ -36,7 +36,7 @@ export class Tire extends Element implements ITire {
   getNearestNeighborToPlane(normal: Vector3): Vector3 {
     const n = normal.clone().normalize();
     // タイヤの軸の方向ベクトル
-    const axis = new Vector3(0, 1, 0);
+    const axis = this.tireAxis.value.clone().normalize();
     // 平面に平行なベクトル...②
     const g = axis.clone().cross(n);
     const r = this.radius;

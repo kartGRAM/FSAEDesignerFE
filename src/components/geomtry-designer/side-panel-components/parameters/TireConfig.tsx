@@ -89,6 +89,7 @@ export default function TireConfig(params: Params) {
         </AccordionSummary>
         <AccordionDetails sx={{padding: 0}}>
           <Vector vector={element.tireCenter} disabled={isMirror} />
+          <Vector vector={element.tireAxis} directionMode disabled={isMirror} />
           <Scalar
             onFocusChanged={onLeftBearingFocusChanged}
             value={element.toOuterBearing}
