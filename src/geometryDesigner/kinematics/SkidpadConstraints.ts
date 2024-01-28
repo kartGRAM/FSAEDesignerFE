@@ -221,7 +221,7 @@ export class FDComponentBalance implements Constraint {
     // dΘ
     dThetaM = dThetaM.add(maSkew.mmul(A).mmul(cogLocalSkew)); // (3x3) x (3x3) x (3x3) x (3x4) = 3x4
     dThetaM = dThetaM.add(cogSkewQ.mmul(dThetaMCF).mul(-1));
-    // phi_q.setSubMatrix(dThetaM.mmul(G), row + 3, col + Q0);
+    phi_q.setSubMatrix(dThetaM.mmul(G), row + 3, col + Q0);
 
     // dω
     const dOmegaRot = cogSkewQ.mmul(dOmega).mul(-1);
@@ -1141,7 +1141,7 @@ export class TireBalance implements Constraint {
     const temp = groundSkewQ.mmul(unitZ).mmul(unitZ.transpose()).sub(cogSkewQ);
     const temp2 = temp.mmul(omegaSkew2).mul(this.mass);
     dThetaM = dThetaM.add(temp2.mmul(A).mmul(cogLocalSkew));
-    // phi_q.setSubMatrix(dThetaM.mmul(G), row + 2, component.col + Q0);
+    phi_q.setSubMatrix(dThetaM.mmul(G), row + 2, component.col + Q0);
     // phi_q.setSubMatrix(dThetaM.mmul(G), row + 3, component.col + Q0);
 
     // dP
