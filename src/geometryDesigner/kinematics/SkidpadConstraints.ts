@@ -1000,7 +1000,7 @@ export class TireBalance implements Constraint {
     if (parallel.dot(vGround) < 0) parallel.multiplyScalar(-1);
     // saの取得
     const saSin = parallel.clone().cross(vGround.clone().normalize());
-    const sa = (saSin.z * 180) / Math.PI;
+    const sa = (Math.asin(saSin.z) * 180) / Math.PI;
 
     // iaの取得
     const tireVirtical = axis.clone().cross(parallel).normalize();

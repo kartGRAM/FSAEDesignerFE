@@ -123,7 +123,7 @@ export class SkidpadSolver {
     const omega = new GeneralVariable('omega');
     const error = new GeneralVariable('longitudinalForceError');
     components.push(omega);
-    omega.value = 0.2;
+    // omega.value = 0.2;
     components.push(error);
 
     // ステップ1: ChildrenをComponentに変換する
@@ -960,7 +960,9 @@ export class SkidpadSolver {
           const matPhi = Matrix.columnVector(phi);
           const dq = new SingularValueDecomposition(phi_q, {
             autoTranspose: true
-          }).solve(matPhi);
+          })
+            .solve(matPhi)
+            .mul(1);
 
           // 差分を反映
           components.forEach((component) => component.applyDq(dq));
