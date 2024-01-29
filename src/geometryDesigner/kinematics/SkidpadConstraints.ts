@@ -986,9 +986,7 @@ export class TireBalance implements Constraint {
     const ma = g.clone().add(c).multiplyScalar(this.mass); // 遠心力＋重力
     const maSkew = skew(ma);
     // 接地点の速度
-    const vOmega = omega
-      .clone()
-      .cross(groundQ.clone().add(position).multiplyScalar(0.001));
+    const vOmega = omega.clone().cross(groundQ.clone().add(position));
     const vGround = vO.clone().add(vOmega);
     // vGround.z = 0; // 念のため
 
