@@ -450,6 +450,7 @@ export class PointComponent extends ComponentBase {
     [p.x, p.y, p.z] = state;
   }
 }
+
 export function isPointComponent(
   component: IComponent
 ): component is PointComponent {
@@ -583,8 +584,8 @@ export class PointForce extends ComponentBase {
   }
 }
 
-// この1変数がいない場合、駆動力をぴったり合わせない限り、駆動力分のつり合いが取れないため、
-// 結果が収束しなくなる。駆動輪に、駆動力配分に従って、この項の駆動力があるものとして計算する。
+// 例えば変数を追加しない場合、場合、駆動力をぴったり合わせない限り、駆動力分のつり合いが取れないため、
+// 結果が収束しなくなる。駆動輪に、駆動力配分に従って、追加の駆動力があるものとして計算する。
 // その際駆動力分横力は減らないものとする。スリップ率を収束計算し、最終的にこの項が0に漸近するようにする。
 export class GeneralVariable extends ComponentBase {
   static readonly className = 'GeneralVariable' as const;

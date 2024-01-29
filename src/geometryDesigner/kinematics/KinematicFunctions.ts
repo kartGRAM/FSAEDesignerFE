@@ -15,7 +15,6 @@ import {isTorsionSpring} from '@gd/IElements/ITorsionSpring';
 import {INamedVector3RO} from '@gd/INamedValues';
 import {Matrix} from 'ml-matrix';
 import {Quaternion, Vector3} from 'three';
-import {isVector3} from '@utils/three';
 import {getDgd} from '@store/getDgd';
 import {
   FullDegreesComponent,
@@ -23,21 +22,7 @@ import {
 } from '@gd/kinematics/KinematicComponents';
 import {TireRestorer} from '@gd/kinematics/Restorer';
 
-// サブマトリックスを設定する
-/*
-export function setSubMatrix(
-  rowStart: number,
-  columnStart: number,
-  matrix: Matrix,
-  submatrix: Matrix
-) {
-  for (let row = 0; row < submatrix.rows; ++row) {
-    for (let col = 0; col < submatrix.columns; ++col) {
-      matrix.set(row + rowStart, col + columnStart, submatrix.get(row, col));
-    }
-  }
-}
-*/
+const I = Matrix.eye(3, 3);
 
 // チルダマトリックスを取得
 export function skew(v: {x: number; y: number; z: number} | Matrix) {
@@ -56,6 +41,34 @@ export function skew(v: {x: number; y: number; z: number} | Matrix) {
     [-z, 0, x],
     [y, -x, 0]
   ]);
+}
+
+// k=U/|U| として、δk=XδU のXを返す。
+export function normalizedVectorDiff(u: Vector3): Matrix {
+  const abs = u.length();
+  const u3 = abs ** 3;
+  const u2 = abs ** 2;
+  const U = getVVector(u);
+  const UUt = U.mmul(U.transpose());
+  return I.mul(u2)
+    .sub(UUt)
+    .mul(1 / u3);
+}
+
+// タイヤの軸に垂直で、地面に平行な前方向ベクトルkから、回転行列を作成
+export function getFrictionRotation(
+  normalizedFrontVector: Vector3
+): [Quaternion, Matrix] {
+  const k = normalizedFrontVector;
+  const q = new Quaternion().setFromUnitVectors(new Vector3(1, 0, 0), k);
+  return [
+    q,
+    new Matrix([
+      [k.x, k.y, 0],
+      [-k.y, k.x, 0],
+      [0, 0, 0]
+    ])
+  ];
 }
 
 declare module 'ml-matrix' {
@@ -106,13 +119,6 @@ Matrix.prototype.subMatrixSub = function (
   );
 };
 
-// const skewBase = skew({x: 1, y: 1, z: 1});
-
-/* export function deltaXcross(y: Vector3 | Matrix) {
-  if (isVector3(y)) return skewBase.mmul(getVVector(y));
-  return skewBase.mmul(y);
-} */
-
 export function getDeltaOmega(
   v: Vector3,
   omega: Vector3,
@@ -124,13 +130,6 @@ export function getDeltaOmega(
   const lhs = v.clone().add(omega.clone().cross(cogVehicle));
   const rhs = omegaSkew.mmul(cogVehicleSkew);
   return rhs.add(skew(lhs)).mul(-mass);
-}
-
-// (δX・a)bのヤコビアンを取得。
-export function deltaXdotAmulB(a: Vector3 | Matrix, b: Vector3 | Matrix) {
-  const A = (isVector3(a) ? getVVector(a) : a).transpose(); // (1x3)
-  const B = isVector3(b) ? getVVector(b) : b; // (3x1)
-  return B.mmul(A); // (3x3)
 }
 
 // 縦ベクトルを得る
@@ -185,25 +184,7 @@ export function getPartialDiffOfRotationMatrix(
   const A = rotationMatrix(q);
   const G = decompositionMatrixG(q);
 
-  // const s = math.transpose(math.matrix([v.x, v.y, v.z]));
   return A.mul(-2).mmul(s).mmul(G);
-  /*
-  const a_q = math.matrix([
-    [4 * e0, -2 * e3, 2 * e2], // X行 e0列
-    [2 * e3, 4 * e0, -2 * e1], // Y行 e0列
-    [-2 * e2, 2 * e1, 4 * e0], // Z行 e0列
-    [4 * e1, 2 * e2, 2 * e3],
-    [2 * e2, 0, -2 * e0],
-    [2 * e3, 2 * e0, 0],
-    [0, 2 * e1, 2 * e0],
-    [2 * e1, 4 * e2, 2 * e3],
-    [-2 * e0, 2 * e3, 0],
-    [0, -2 * e0, 2 * e1],
-    [2 * e0, 0, 2 * e2],
-    [2 * e1, 2 * e2, 4 * e3]
-  ]);
-  return math.transpose(math.reshape(math.multiply(a_q, s), [4, 3]));
-  */
 }
 
 // 二つのマトリックスを比較
@@ -385,15 +366,7 @@ export function isFixedElement(element: IElement) {
   return false;
 }
 
-export function axisRotationFromQuaternion(q: Quaternion) {
-  const {x, y, z, w} = q;
-  return new Matrix([
-    [1 - 2 * y ** 2 - 2 * z ** 2, 2 * x * y + 2 * w * z, 2 * x * z - 2 * w * y],
-    [2 * x * y - 2 * w * z, 1 - 2 * x ** 2 - 2 * z ** 2, 2 * y * z + 2 * w * x],
-    [2 * x * z - 2 * w * y, 2 * y * z - 2 * w * x, 1 - 2 * x ** 2 - 2 * y ** 2]
-  ]);
-}
-
+// エレメントがコンポーネントに変換されるか_
 export function elementIsComponent(
   element: IElement,
   jointDict: JointDict
@@ -413,6 +386,8 @@ export function elementIsComponent(
   return true;
 }
 
+// 簡素化されたタイヤの親コンポーネントと、
+// 最近傍点の親コンポーネント基準の位置ベクトルを得る
 export function getSimplifiedTireConstrainsParams(
   element: ITire,
   jointDict: JointDict,
@@ -458,6 +433,7 @@ export function getSimplifiedTireConstrainsParams(
   return [pComponent, func];
 }
 
+// Jointから一つPFComponentを得る
 export function getPFComponent(
   pointForceComponents: {[index: string]: PointForce},
   joint: JointAsVector3
