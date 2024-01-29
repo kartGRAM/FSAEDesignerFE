@@ -10,6 +10,7 @@ import {
   rotationMatrix,
   decompositionMatrixG,
   getDeltaOmega,
+  getFrictionRotation,
   // deltaXcross,
   getVVector
 } from './KinematicFunctions';
@@ -32,6 +33,8 @@ const Q1 = 4;
 const Q2 = 5;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const Q3 = 6;
+
+const normal = new Vector3(0, 0, 1);
 const unitZ = getVVector(new Vector3(0, 0, 1));
 const unitZSkew = skew(new Vector3(0, 0, 1));
 
@@ -991,7 +994,6 @@ export class TireBalance implements Constraint {
     // vGround.z = 0; // 念のため
 
     // SAとIAとFZを求める
-    const normal = new Vector3(0, 0, 1);
     const axis = localAxis.clone().applyQuaternion(q);
     // axisに垂直で地面に平行なベクトル(Vの方向を向いている)
     const parallel = axis.clone().cross(normal).normalize();
@@ -1017,12 +1019,11 @@ export class TireBalance implements Constraint {
     // タイヤの摩擦力の取得
     const friction = this.getFriction(sa, ia, fz.z); // この値はタイヤが垂直の時の座標系
     // 垂直方向を合わせたのち、前方方向を合わせる
-    friction.applyQuaternion(
-      new Quaternion().setFromUnitVectors(new Vector3(1, 0, 0), parallel)
-      /* .multiply(
-          new Quaternion().setFromUnitVectors(new Vector3(0, 0, 1), normal)
-        ) */
-    );
+
+    const [frictionRot, frictionRotMat] = getFrictionRotation(parallel);
+    const f2 = frictionRotMat.mmul(getVVector(friction));
+    friction.applyQuaternion(frictionRot);
+
     // friction.set(0, 0, 0);
     const frictionSkew = skew(friction);
 

@@ -64,11 +64,45 @@ export function getFrictionRotation(
   return [
     q,
     new Matrix([
-      [k.x, k.y, 0],
-      [-k.y, k.x, 0],
+      [k.x, -k.y, 0],
+      [k.y, k.x, 0],
       [0, 0, 0]
     ])
   ];
+}
+
+// FrictionRotationMatrix φ に対して、δφ F
+// φはkベクトルの関数とする
+export function frictionRotationDiff(
+  deltaNormarizedFrontVector: Matrix,
+  F: Vector3
+): Matrix {
+  const dk = deltaNormarizedFrontVector;
+  const Fv = getVVector(F);
+
+  const dPhi_dkx = new Matrix([
+    [1, 0, 0],
+    [0, 1, 0],
+    [0, 0, 0]
+  ]);
+
+  const dPhi_dky = new Matrix([
+    [0, -1, 0],
+    [1, 0, 0],
+    [0, 0, 0]
+  ]);
+
+  const dPhi_dkxF = dPhi_dkx.mmul(Fv); // (3x1)
+  const dPhi_dkyF = dPhi_dky.mmul(Fv); // (3x1)
+
+  const lhs = dPhi_dkxF.mmul(dk.subMatrix(0, 0, 0, dk.columns - 1)); // (3x1 x 1x n) = (3xn)
+  const rhs = dPhi_dkyF.mmul(dk.subMatrix(1, 1, 0, dk.columns - 1)); // (3xn)
+
+  return lhs.add(rhs);
+}
+
+export function getAsinDiff(sin: number): number {
+  return 1 / Math.sqrt(1 - sin ** 2);
 }
 
 declare module 'ml-matrix' {
