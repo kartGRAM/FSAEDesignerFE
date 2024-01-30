@@ -219,7 +219,9 @@ export class FullDegreesComponent extends ComponentBase {
   applyResultToApplication() {
     if (this._col === -1) return;
     if (this.degreeOfFreedom === 7) {
-      this.element.position.value = this.position;
+      this.element.position.value = this.position.multiplyScalar(
+        1 / this.scale
+      );
       this.element.rotation.value = this.quaternion;
     }
   }
@@ -276,14 +278,14 @@ export class FullDegreesComponent extends ComponentBase {
     super(scale);
     this.name = element.name.value;
     this.element = element;
-    this._position = element.position.value;
+    this._position = element.position.value.multiplyScalar(this.scale);
     this._quaternion = element.rotation.value;
     this._isFixed = isFixedElement(element); // fixedElementになった場合、ソルバに評価されない
   }
 
   reset() {
     const {element} = this;
-    this._position = element.position.value;
+    this._position = element.position.value.multiplyScalar(this.scale);
     this._quaternion = element.rotation.value;
     this._isFixed = isFixedElement(element); // fixedElementになった場合、ソルバに評価されない
   }
@@ -388,6 +390,7 @@ export class PointComponent extends ComponentBase {
         .add(element.position.value);
       element.position.value = this.position
         .clone()
+        .multiplyScalar(1 / this.scale)
         .sub(pFrom)
         .add(element.position.value);
     });
@@ -424,11 +427,17 @@ export class PointComponent extends ComponentBase {
     const element = lhs.parent as IElement;
     this._position = lhs.value
       .applyQuaternion(element.rotation.value)
-      .add(element.position.value);
+      .add(element.position.value)
+      .multiplyScalar(this.scale);
   }
 
   reset() {
-    this._position = this.lhs.value;
+    const {lhs} = this;
+    const element = lhs.parent as IElement;
+    this._position = lhs.value
+      .applyQuaternion(element.rotation.value)
+      .add(element.position.value)
+      .multiplyScalar(this.scale);
   }
 
   _initialPosition: Vector3 = new Vector3();
