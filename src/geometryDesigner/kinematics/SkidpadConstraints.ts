@@ -16,6 +16,7 @@ import {
 } from './KinematicFunctions';
 import {
   IComponent,
+  IVariable,
   FullDegreesComponent,
   isFullDegreesComponent,
   PointForce,
@@ -56,13 +57,7 @@ export class FDComponentBalance implements Constraint {
 
   row: number = -1;
 
-  get lhs() {
-    return this.component;
-  }
-
-  get rhs() {
-    return this.component;
-  }
+  relevantVariables: IVariable[];
 
   name: string;
 
@@ -105,7 +100,10 @@ export class FDComponentBalance implements Constraint {
     this.vO = params.vO;
     this.omega = params.omega;
     this.pfs = [...params.pointForceComponents];
+
     this.pfCoefs = this.pfs.map((pf, i) => pf.sign(params.pfsPointNodeIDs[i]));
+
+    this.relevantVariables = [this.component, this.omega, ...this.pfs];
 
     this.cogLocalVec = params.cog.clone();
     this.cogLocalSkew = skew(this.cogLocalVec).mul(-2);
@@ -262,13 +260,7 @@ export class BarBalance implements Constraint {
 
   components: Twin<IComponent>;
 
-  get lhs() {
-    return this.components[0];
-  }
-
-  get rhs() {
-    return this.components[1];
-  }
+  relevantVariables: IVariable[];
 
   localVec: Twin<Vector3>;
 
@@ -300,9 +292,11 @@ export class BarBalance implements Constraint {
     this.components = [...params.components];
     this.cog = params.cog;
     this.pfs = [...params.pfs];
+    this.omega = params.omega;
+
+    this.relevantVariables = [...this.components, this.omega, ...this.pfs];
     this.mass = params.mass;
     this.vO = params.vO;
-    this.omega = params.omega;
     this.localVec = params.points.map((p) => p.clone()) as any;
     this.localSkew = this.localVec.map((v) => skew(v).mul(2)) as any;
   }
@@ -426,13 +420,7 @@ export class AArmBalance implements Constraint {
 
   components: Triple<IComponent>;
 
-  get lhs() {
-    return this.components[0];
-  }
-
-  get rhs() {
-    return this.components[1];
-  }
+  relevantVariables: IVariable[];
 
   localVec: Triple<Vector3>;
 
@@ -464,9 +452,10 @@ export class AArmBalance implements Constraint {
     ) as Triple<number>;
     this.pfs = [...params.pfs];
     this.components = [...params.components];
+    this.omega = params.omega;
+    this.relevantVariables = [...this.components, this.omega, ...this.pfs];
     this.mass = params.mass;
     this.vO = params.vO;
-    this.omega = params.omega;
     this.localVec = params.points.map((p) => p.clone()) as Triple<Vector3>;
     this.localSkew = params.points.map((p) => skew(p)) as Triple<Matrix>;
   }
@@ -622,13 +611,7 @@ export class LinearBushingBalance implements Constraint {
 
   rodEndComponents: OneOrTwo<IComponent>;
 
-  get lhs() {
-    return this.frameComponent;
-  }
-
-  get rhs() {
-    return this.rodEndComponents[0];
-  }
+  relevantVariables: IVariable[];
 
   frameLocalVec: Twin<Vector3>;
 
@@ -675,6 +658,14 @@ export class LinearBushingBalance implements Constraint {
     this.mass = params.mass;
     this.vO = params.vO;
     this.omega = params.omega;
+
+    this.relevantVariables = [
+      this.frameComponent,
+      ...this.rodEndComponents,
+      this.omega,
+      ...this.pfsFrame,
+      ...this.pfsRodEnd
+    ];
     this.frameLocalVec = params.framePoints.map((p) =>
       p.clone()
     ) as Twin<Vector3>;
@@ -868,13 +859,7 @@ export class TireBalance implements Constraint {
 
   component: IComponent;
 
-  get lhs() {
-    return this.component;
-  }
-
-  get rhs() {
-    return this.component;
-  }
+  relevantVariables: IVariable[];
 
   localVec: Twin<Vector3>;
 
@@ -943,6 +928,13 @@ export class TireBalance implements Constraint {
     this.mass = mass;
     this.torqueRatio = torqueRatio;
     this.omega = omega;
+
+    this.relevantVariables = [
+      this.component,
+      this.omega,
+      this.error,
+      ...this.pfs
+    ];
     this.getFriction = getFriction;
     this.vO = vO;
     this.ground = ground;

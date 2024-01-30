@@ -53,6 +53,7 @@ export function getLocalInstances(state: GDState): LocalInstances {
     pinCenterOfGravityOfFrame,
     pinCenterOfGravityOfFrame,
     controls,
+    0.001,
     false
   );
   return {

@@ -320,7 +320,7 @@ export class FullDegreesComponent extends ComponentBase {
 }
 
 export function isFullDegreesComponent(
-  component: IComponent
+  component: IVariable
 ): component is FullDegreesComponent {
   return component.className === FullDegreesComponent.className;
 }

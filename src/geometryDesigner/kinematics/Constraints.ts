@@ -11,6 +11,7 @@ import {
   decompositionMatrixG
 } from './KinematicFunctions';
 import {
+  IVariable,
   IComponent,
   FullDegreesComponent,
   isFullDegreesComponent
@@ -46,8 +47,7 @@ export function controled(object: any): object is deltaL {
 
 export interface Constraint {
   readonly className: string;
-  readonly lhs: IComponent;
-  readonly rhs: IComponent;
+  readonly relevantVariables: IVariable[];
   readonly isInequalityConstraint: boolean;
   row: number;
   active(options: ConstraintsOptions): boolean;
@@ -85,6 +85,8 @@ export class Sphere implements Constraint {
   readonly isInequalityConstraint = false;
 
   row: number = -1;
+
+  relevantVariables: IComponent[];
 
   lhs: IComponent;
 
@@ -151,10 +153,11 @@ export class Sphere implements Constraint {
       this.lhs = clhs;
       this.rhs = crhs;
     }
+    this.relevantVariables = [this.lhs, this.rhs];
 
-    this.lLocalVec = vlhs?.clone() ?? new Vector3();
+    this.lLocalVec = vlhs?.clone().multiplyScalar(clhs.scale) ?? new Vector3();
     this.lLocalSkew = skew(this.lLocalVec).mul(-2);
-    this.rLocalVec = vrhs?.clone() ?? new Vector3();
+    this.rLocalVec = vrhs?.clone().multiplyScalar(crhs.scale) ?? new Vector3();
     this.rLocalSkew = skew(this.rLocalVec).mul(2);
     if (this.rhs.isFixed) {
       this.isFixed = true;
@@ -253,6 +256,8 @@ export class Hinge implements Constraint {
 
   row: number = -1;
 
+  relevantVariables: IComponent[];
+
   lhs: IComponent;
 
   rhs: IComponent;
@@ -300,13 +305,15 @@ export class Hinge implements Constraint {
       this.lhs = clhs;
       this.rhs = crhs;
     }
-    this.lLocalVec = vlhs[0].clone();
+
+    this.relevantVariables = [this.lhs, this.rhs];
+    this.lLocalVec = vlhs[0].clone().multiplyScalar(clhs.scale);
     this.lLocalSkew = skew(this.lLocalVec).mul(-2);
-    this.rLocalVec = vrhs[0].clone();
+    this.rLocalVec = vrhs[0].clone().multiplyScalar(crhs.scale);
     this.rLocalSkew = skew(this.rLocalVec).mul(2);
-    this.rAxisVec = vlhs[1].clone().sub(this.rLocalVec);
+    this.rAxisVec = this.lLocalVec.clone().sub(this.rLocalVec);
     this.rAxisSkew = skew(this.rAxisVec).mul(-2);
-    const lAxisVec = vrhs[1].clone().sub(this.lLocalVec);
+    const lAxisVec = this.rLocalVec.clone().sub(this.lLocalVec);
     if (
       this.rAxisVec.lengthSq() < Number.EPSILON ||
       lAxisVec.lengthSq() < Number.EPSILON
@@ -410,10 +417,11 @@ export class Hinge implements Constraint {
   }
 }
 
-const barAndSpheresClassName = 'BarAndSpheres' as const;
-type BarAndSpheresClassName = typeof barAndSpheresClassName;
 export class BarAndSpheres implements Constraint, deltaL {
-  readonly className: BarAndSpheresClassName = barAndSpheresClassName;
+  readonly className: typeof BarAndSpheres.barAndSpheresClassName =
+    BarAndSpheres.barAndSpheresClassName;
+
+  static barAndSpheresClassName = 'BarAndSpheres' as const;
 
   // 自由度を1減らす
   constraints(options: ConstraintsOptions) {
@@ -433,7 +441,7 @@ export class BarAndSpheres implements Constraint, deltaL {
   }
 
   resetStates(): void {
-    this.dl = 0;
+    this._dl = 0;
   }
 
   get isInequalityConstraint() {
@@ -441,6 +449,8 @@ export class BarAndSpheres implements Constraint, deltaL {
   }
 
   row: number = -1;
+
+  relevantVariables: IComponent[];
 
   lhs: IComponent;
 
@@ -462,7 +472,10 @@ export class BarAndSpheres implements Constraint, deltaL {
 
   set dl(value: number) {
     if (this.controled) {
-      this._dl = Math.min(this.dlMax, Math.max(this.dlMin, value));
+      this._dl = Math.min(
+        this.dlMax,
+        Math.max(this.dlMin, value * this.lhs.scale)
+      );
     }
   }
 
@@ -508,8 +521,6 @@ export class BarAndSpheres implements Constraint, deltaL {
     this.controledBy = controledBy;
     this.elementID = elementID ?? '';
     this.isSpringDumper = (!this.controled && isSpringDumper) ?? false;
-    if (dlMin) this.dlMin = dlMin;
-    if (dlMax) this.dlMax = dlMax;
     if (clhs.isFixed) {
       if (crhs.isFixed) throw new Error('拘束式の両端が固定されている');
       // 固定側はrhsにする
@@ -522,9 +533,12 @@ export class BarAndSpheres implements Constraint, deltaL {
       this.lhs = clhs;
       this.rhs = crhs;
     }
-    this.lLocalVec = vlhs?.clone() ?? new Vector3();
+    this.relevantVariables = [this.lhs, this.rhs];
+    if (dlMin) this.dlMin = dlMin * this.lhs.scale;
+    if (dlMax) this.dlMax = dlMax * this.lhs.scale;
+    this.lLocalVec = vlhs?.clone().multiplyScalar(clhs.scale) ?? new Vector3();
     this.lLocalSkew = skew(this.lLocalVec).mul(-2);
-    this.rLocalVec = vrhs?.clone() ?? new Vector3();
+    this.rLocalVec = vrhs?.clone().multiplyScalar(crhs.scale) ?? new Vector3();
     this.rLocalSkew = skew(this.rLocalVec).mul(2);
     if (this.rhs.isFixed) {
       this.isFixed = true;
@@ -550,7 +564,7 @@ export class BarAndSpheres implements Constraint, deltaL {
     let {l2} = this;
     if (this.isSpringDumper && fixSpringDumpersAtCurrentPositions)
       l2 = this.getDistanceOfEndPoints() ** 2;
-    if (this.controled) l2 = (Math.sqrt(l2) + this.dl) ** 2;
+    if (this.controled) l2 = (Math.sqrt(l2) + this._dl) ** 2;
     this.setJacobianAndConstraintsImpl(l2, phi_q, phi);
   }
 
@@ -653,7 +667,7 @@ export class BarAndSpheres implements Constraint, deltaL {
 export function isBarAndSpheres(
   constraint: Constraint
 ): constraint is BarAndSpheres {
-  return constraint.className === barAndSpheresClassName;
+  return constraint.className === BarAndSpheres.barAndSpheresClassName;
 }
 
 export class LinearBushingSingleEnd implements Constraint, deltaL {
@@ -674,16 +688,8 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
 
   readonly isInequalityConstraint = false;
 
-  get lhs() {
-    return this.res;
-  }
-
-  get rhs() {
-    return this.fixed;
-  }
-
   resetStates(): void {
-    this.dl = 0;
+    this._dl = 0;
   }
 
   readonly controledBy: string[];
@@ -698,6 +704,8 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
 
   fixed: IComponent;
 
+  relevantVariables: IComponent[];
+
   resLocalVec: Vector3;
 
   resLocalSkew: Matrix;
@@ -710,7 +718,18 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
 
   hasDl = true as const;
 
-  dl: number = 0;
+  _dl: number = 0;
+
+  set dl(value: number) {
+    this._dl = Math.min(
+      this.dlMax,
+      Math.max(this.dlMin, value * this.fixed.scale)
+    );
+  }
+
+  get dl(): number {
+    return this._dl / this.fixed.scale;
+  }
 
   elementID: string;
 
@@ -747,16 +766,29 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
   ) {
     this.controledBy = controledBy;
     this.elementID = elementID ?? '';
-    this.initialLength = initialLength;
-    this.center = vFixed[1].clone().add(vFixed[0]).multiplyScalar(0.5);
+    this.initialLength = initialLength * cFixed.scale;
     this.fixed = cFixed;
     this.res = cRodEndSide;
-    this.fixedLocalVec = [vFixed[0].clone(), vFixed[1].clone()];
-    const fixedAxisVec = vFixed[1].clone().sub(vFixed[0]);
+
+    this.relevantVariables = [cFixed, cRodEndSide];
+    this.fixedLocalVec = [
+      vFixed[0].clone().multiplyScalar(cFixed.scale),
+      vFixed[1].clone().multiplyScalar(cFixed.scale)
+    ];
+    this.center = this.fixedLocalVec[1]
+      .clone()
+      .add(this.fixedLocalVec[0])
+      .multiplyScalar(0.5);
+
+    const fixedAxisVec = this.fixedLocalVec[1]
+      .clone()
+      .sub(this.fixedLocalVec[0]);
     this.fixedAxisVec = fixedAxisVec.clone();
     if (fixedAxisVec.lengthSq() < Number.EPSILON) {
       throw new Error('リニアブッシュを保持するする2点が近すぎます');
     }
+    const vRE = vRodEndSide?.clone().multiplyScalar(cRodEndSide.scale);
+
     this.sphere = new Sphere(
       name,
       this.fixed,
@@ -769,17 +801,17 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
             .normalize()
             .multiplyScalar(this.initialLength)
         ),
-      vRodEndSide
+      vRE
     );
 
     this.name = name;
-    if (dlMin) this.dlMin = dlMin;
-    if (dlMax) this.dlMax = dlMax;
+    if (dlMin) this.dlMin = dlMin * cFixed.scale;
+    if (dlMax) this.dlMax = dlMax * cFixed.scale;
     if (cRodEndSide.isFixed) {
       throw new Error('RodEnd側が固定されている');
     }
 
-    this.resLocalVec = vRodEndSide?.clone() ?? new Vector3();
+    this.resLocalVec = vRE?.clone() ?? new Vector3();
     this.resLocalSkew = skew(this.resLocalVec).mul(2);
 
     if (this.fixed.isFixed) {
@@ -818,7 +850,7 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
           this.fixedAxisVec
             .clone()
             .normalize()
-            .multiplyScalar(this.initialLength + this.dl)
+            .multiplyScalar(this.initialLength + this._dl)
         )
       );
       this.sphere.setJacobianAndConstraints(phi_q, phi);
@@ -929,19 +961,15 @@ export class QuaternionConstraint implements Constraint {
 
   IComponent: IComponent;
 
-  get lhs() {
-    return this.IComponent;
-  }
-
-  get rhs() {
-    return this.IComponent;
-  }
+  relevantVariables: IComponent[];
 
   name: string;
 
   constructor(name: string, component: FullDegreesComponent) {
     this.name = name;
     this.IComponent = component;
+
+    this.relevantVariables = [component];
   }
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
@@ -983,7 +1011,7 @@ export class PointToPlane implements Constraint, deltaL {
   }
 
   resetStates(): void {
-    this.dl = 0;
+    this._dl = 0;
   }
 
   readonly isInequalityConstraint = false;
@@ -991,6 +1019,8 @@ export class PointToPlane implements Constraint, deltaL {
   row: number = -1;
 
   component: IComponent;
+
+  relevantVariables: IComponent[];
 
   _localVec: (normal: Vector3, distance: number) => Vector3;
 
@@ -1010,14 +1040,6 @@ export class PointToPlane implements Constraint, deltaL {
 
   target: Vector3 = new Vector3();
 
-  get lhs() {
-    return this.component;
-  }
-
-  get rhs() {
-    return this.component;
-  }
-
   dlMin: number = Number.MIN_SAFE_INTEGER;
 
   dlMax: number = Number.MAX_SAFE_INTEGER;
@@ -1027,11 +1049,14 @@ export class PointToPlane implements Constraint, deltaL {
   hasDl = true as const;
 
   set dl(value: number) {
-    this._dl = Math.min(this.dlMax, Math.max(this.dlMin, value));
+    this._dl = Math.min(
+      this.dlMax,
+      Math.max(this.dlMin, value * this.component.scale)
+    );
   }
 
   get dl(): number {
-    return this._dl;
+    return this._dl / this.component.scale;
   }
 
   elementID: string;
@@ -1056,12 +1081,14 @@ export class PointToPlane implements Constraint, deltaL {
     this.name = name;
     this.controledBy = controledBy;
     this.component = component;
+    this.relevantVariables = [component];
     this._localVec = localVec;
     this.normal = normal?.clone().normalize() ?? new Vector3(0, 0, 1);
-    this.distance = origin?.clone().dot(normal) ?? 0;
+    this.distance =
+      origin?.clone().multiplyScalar(component.scale).dot(normal) ?? 0;
     this.elementID = elementID;
-    if (dlMin !== undefined) this.dlMin = dlMin;
-    if (dlMax !== undefined) this.dlMax = dlMax;
+    if (dlMin !== undefined) this.dlMin = dlMin * component.scale;
+    if (dlMax !== undefined) this.dlMax = dlMax * component.scale;
   }
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {

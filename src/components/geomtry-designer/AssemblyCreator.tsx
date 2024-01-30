@@ -220,19 +220,21 @@ export default function AssemblyCreactor() {
       }, {} as {[index: string]: Control[]});
       if (assembly) {
         try {
-          /* const solver = new KinematicsSolver(
+          const solver = new KinematicsSolver(
             assembly,
             assemblyMode,
             pinCenterOfGravityOfFrame,
             pinCenterOfGravityOfFrame,
             controls,
+            0.001,
             true
           );
-          dispatch(setKinematicsSolver(solver)); */
+          dispatch(setKinematicsSolver(solver));
+          /*
           const params = state.uitgd.tests[2].steadySkidpadParams;
           if (params) {
             const solver = new SkidpadSolver(assembly, params, controls, true);
-          }
+          } */
         } catch (e) {
           // eslint-disable-next-line no-console
           console.log(e);

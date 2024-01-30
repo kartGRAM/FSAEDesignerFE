@@ -79,6 +79,7 @@ export class KinematicsSolver {
     pinFrameCOV: boolean,
     faceForward: boolean,
     controls: {[index: string]: Control[]},
+    scale: number,
     solve?: boolean
   ) {
     this.assembly = assembly;
@@ -101,7 +102,10 @@ export class KinematicsSolver {
          除外しないで、あとから判定させる。
         if (isFixedElement(element)) return;
         */
-        tempComponents[element.nodeID] = new FullDegreesComponent(element);
+        tempComponents[element.nodeID] = new FullDegreesComponent(
+          element,
+          scale
+        );
         tempElements[element.nodeID] = element;
       });
     }
@@ -252,7 +256,8 @@ export class KinematicsSolver {
             if (!(points[0].nodeID in pointComponents)) {
               pointComponents[element.fixedPoint.nodeID] = new PointComponent(
                 element.fixedPoint,
-                points[0]
+                points[0],
+                scale
               );
               lhs = pointComponents[element.fixedPoint.nodeID];
               components.push(lhs);
@@ -266,7 +271,8 @@ export class KinematicsSolver {
             if (!(points[1].nodeID in pointComponents)) {
               pointComponents[element.point.nodeID] = new PointComponent(
                 element.point,
-                points[1]
+                points[1],
+                scale
               );
               rhs = pointComponents[element.point.nodeID];
               components.push(rhs);
@@ -354,7 +360,8 @@ export class KinematicsSolver {
               if (!(points[2].nodeID in pointComponents)) {
                 pointComponents[point.nodeID] = new PointComponent(
                   point,
-                  points[2]
+                  points[2],
+                  scale
                 );
                 rhs = pointComponents[point.nodeID];
                 components.push(rhs);
@@ -446,7 +453,11 @@ export class KinematicsSolver {
             let rhs: IComponent = tempComponents[elements[2].nodeID];
             if (!rhs) {
               if (!(points[2].nodeID in pointComponents)) {
-                pointComponents[ep.nodeID] = new PointComponent(ep, points[2]);
+                pointComponents[ep.nodeID] = new PointComponent(
+                  ep,
+                  points[2],
+                  scale
+                );
                 rhs = pointComponents[ep.nodeID];
                 components.push(rhs);
               } else {
@@ -700,21 +711,16 @@ export class KinematicsSolver {
     // Union Find Treeを用いてグルーピングを実施する。
     {
       constraints.forEach((constraint) => {
-        if (constraint.lhs.isFixed && constraint.rhs.isFixed) return;
-        if (constraint.lhs.isFixed) {
-          constraint.rhs.root.unionFindTreeConstraints.push(constraint);
-          return;
-        }
-        if (constraint.rhs.isFixed) {
-          constraint.lhs.root.unionFindTreeConstraints.push(constraint);
-          return;
-        }
-        if (constraint.rhs === constraint.lhs) {
-          constraint.lhs.root.unionFindTreeConstraints.push(constraint);
-          return;
-        }
-
-        constraint.lhs.unite(constraint.rhs, constraint);
+        const freeComponents = constraint.relevantVariables.filter(
+          (c) => !isFullDegreesComponent(c) || !c.isFixed
+        );
+        freeComponents.forEach((c, i) => {
+          if (i === 0) {
+            c.root.unionFindTreeConstraints.push(constraint);
+            return;
+          }
+          freeComponents[0].unite(c, constraint);
+        });
       });
       const rootComponents = components.filter((component) => component.isRoot);
       this.components = rootComponents.map((root) => {
@@ -725,7 +731,9 @@ export class KinematicsSolver {
           )
         ];
         grouped.forEach((component) => {
-          const constraintToNormalize = component.getConstraintToNormalize();
+          const constraintToNormalize = isFullDegreesComponent(component)
+            ? component.getConstraintToNormalize()
+            : null;
           if (constraintToNormalize) {
             root.unionFindTreeConstraints.push(constraintToNormalize);
           }
@@ -1138,7 +1146,7 @@ export class KinematicsSolver {
   postProcess(): void {
     // Componentの位置、回転をElementに反映
     this.components.forEach((components) =>
-      components.forEach((component) => component.applyResultToElement())
+      components.forEach((component) => component.applyResultToApplication())
     );
     // 簡略化したElementに計算結果を反映する
     const unresolvedPoints = Object.keys(this.pointComponents).reduce(
