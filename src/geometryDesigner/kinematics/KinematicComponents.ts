@@ -214,9 +214,9 @@ export class FullDegreesComponent extends ComponentBase {
   applyResultToApplication() {
     if (this._col === -1) return;
     if (this.degreeOfFreedom === 7) {
-      this.element.position.value = this.position.multiplyScalar(
-        1 / this.scale
-      );
+      this.element.position.value = this.position
+        .clone()
+        .multiplyScalar(1 / this.scale);
       this.element.rotation.value = this.quaternion;
     }
   }

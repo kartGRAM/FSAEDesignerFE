@@ -117,10 +117,6 @@ export class PointToPlaneControl extends Control {
       } else {
         constraint.dl += deltaDl;
       }
-      constraint.dl = Math.min(
-        constraint.dlMax,
-        Math.max(constraint.dlMin, constraint.dl)
-      );
     });
     return reserved;
   }

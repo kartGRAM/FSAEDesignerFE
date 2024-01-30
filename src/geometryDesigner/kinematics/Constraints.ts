@@ -1026,7 +1026,8 @@ export class PointToPlane implements Constraint, deltaL {
   _localVec: (normal: Vector3, distance: number) => Vector3;
 
   get localVec(): Vector3 {
-    return this._localVec(this.normal, this.distance);
+    const lvec = this._localVec(this.normal, this.distance);
+    return lvec;
   }
 
   get localSkew(): Matrix {

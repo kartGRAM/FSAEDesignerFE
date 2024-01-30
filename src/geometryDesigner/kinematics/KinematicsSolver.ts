@@ -1151,7 +1151,9 @@ export class KinematicsSolver {
     // 簡略化したElementに計算結果を反映する
     const unresolvedPoints = Object.keys(this.pointComponents).reduce(
       (prev, current) => {
-        prev[current] = this.pointComponents[current].position.clone();
+        prev[current] = this.pointComponents[current].position
+          .clone()
+          .multiplyScalar(1 / this.pointComponents[current].scale);
         return prev;
       },
       {} as {[key: string]: Vector3}
