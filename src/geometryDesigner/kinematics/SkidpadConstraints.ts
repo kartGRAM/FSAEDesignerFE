@@ -991,7 +991,7 @@ export class TireBalance implements Constraint {
     // 接地点の速度
     const vOmega = omega.clone().cross(groundQ.clone().add(position));
     const vGround = vO.clone().add(vOmega);
-    // vGround.z = 0; // 念のため
+    vGround.z = 0; // 念のため
 
     // SAとIAとFZを求める
     const axis = localAxis.clone().applyQuaternion(q);

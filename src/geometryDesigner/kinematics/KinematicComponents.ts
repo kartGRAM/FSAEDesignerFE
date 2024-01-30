@@ -15,27 +15,23 @@ const Q1 = 4;
 const Q2 = 5;
 const Q3 = 6;
 
-export interface IComponent {
+export interface IVariable {
   readonly className: string;
   readonly name: string;
   readonly col: number;
   setCol(col: number): void;
   readonly degreeOfFreedom: number;
-  // 正規化用の拘束式を得る
-  getConstraintToNormalize(): Constraint | null;
+  readonly scale: number; // 長さのスケール（できるだけ長さを-3~3にそろえる）
   applyDq(dq: Matrix): void;
   loadQ(q: number[]): void;
   saveQ(q: number[]): void;
-  applyResultToElement(): void;
-  position: Vector3;
-  quaternion: Quaternion;
-  readonly isFixed: boolean;
+  applyResultToApplication(): void;
   getGroupedConstraints(): Constraint[];
-  get root(): IComponent;
+  get root(): IVariable;
   get isRoot(): boolean;
-  unionFindTreeParent: IComponent;
+  unionFindTreeParent: IVariable;
   unionFindTreeConstraints: Constraint[];
-  unite(other: IComponent, constraint: Constraint): void;
+  unite(other: IVariable, constraint: Constraint): void;
   reset(): void;
   saveInitialQ(): void;
   restoreInitialQ(): void;
@@ -43,7 +39,13 @@ export interface IComponent {
   restoreState(state: number[]): void;
 }
 
-export abstract class ComponentBase implements IComponent {
+export interface IComponent extends IVariable {
+  position: Vector3;
+  quaternion: Quaternion;
+  readonly isFixed: boolean;
+}
+
+export abstract class VariableBase implements IVariable {
   abstract readonly className: string;
 
   abstract readonly name: string;
@@ -55,8 +57,7 @@ export abstract class ComponentBase implements IComponent {
   // 自由度
   abstract get degreeOfFreedom(): number;
 
-  // 正規化用の拘束式を得る
-  abstract getConstraintToNormalize(): Constraint | null;
+  readonly scale: number;
 
   abstract applyDq(dq: Matrix): void;
 
@@ -64,13 +65,7 @@ export abstract class ComponentBase implements IComponent {
 
   abstract saveQ(q: number[]): void;
 
-  abstract applyResultToElement(): void;
-
-  abstract position: Vector3;
-
-  abstract quaternion: Quaternion;
-
-  abstract get isFixed(): boolean;
+  abstract applyResultToApplication(): void;
 
   parent = this;
 
@@ -78,12 +73,16 @@ export abstract class ComponentBase implements IComponent {
 
   unionFindTreeConstraints: Constraint[] = [];
 
+  constructor(scale: number) {
+    this.scale = scale;
+  }
+
   getGroupedConstraints() {
     if (!this.isRoot) throw new Error('ルートコンポーネントじゃない');
     return this.unionFindTreeConstraints;
   }
 
-  get root(): IComponent {
+  get root(): IVariable {
     if (this.unionFindTreeParent === this) return this;
     // 経路圧縮
     return this.unionFindTreeParent.root;
@@ -120,6 +119,14 @@ export abstract class ComponentBase implements IComponent {
   abstract saveState(): number[];
 
   abstract restoreState(state: number[]): void;
+}
+
+export abstract class ComponentBase extends VariableBase implements IComponent {
+  abstract position: Vector3;
+
+  abstract quaternion: Quaternion;
+
+  abstract get isFixed(): boolean;
 }
 
 // 7自由度のコンポーネント
@@ -209,7 +216,7 @@ export class FullDegreesComponent extends ComponentBase {
 
   element: IElement;
 
-  applyResultToElement() {
+  applyResultToApplication() {
     if (this._col === -1) return;
     if (this.degreeOfFreedom === 7) {
       this.element.position.value = this.position;
@@ -265,8 +272,8 @@ export class FullDegreesComponent extends ComponentBase {
     return this.isFixed || this.isRelativeFixed;
   }
 
-  constructor(element: IElement) {
-    super();
+  constructor(element: IElement, scale: number) {
+    super(scale);
     this.name = element.name.value;
     this.element = element;
     this._position = element.position.value;
@@ -341,12 +348,6 @@ export class PointComponent extends ComponentBase {
     return 3;
   }
 
-  // 正規化用の拘束式を得る
-  // eslint-disable-next-line class-methods-use-this
-  getConstraintToNormalize(): Constraint | null {
-    return null;
-  }
-
   // とりあえず点の位置だけ合わせる(あとはRestorer任せ)
   applyDq(dq: Matrix) {
     if (this._col === -1) return;
@@ -379,7 +380,7 @@ export class PointComponent extends ComponentBase {
 
   rhs: INamedVector3RO;
 
-  applyResultToElement() {
+  applyResultToApplication() {
     [this.lhs, this.rhs].forEach((p) => {
       const element = p.parent as IElement;
       const pFrom = p.value
@@ -415,8 +416,8 @@ export class PointComponent extends ComponentBase {
     return false;
   }
 
-  constructor(lhs: INamedVector3RO, rhs: INamedVector3RO) {
-    super();
+  constructor(lhs: INamedVector3RO, rhs: INamedVector3RO, scale: number) {
+    super(scale);
     this.name = `${lhs.name}&${rhs.name}`;
     this.lhs = lhs;
     this.rhs = rhs;
@@ -457,7 +458,7 @@ export function isPointComponent(
   return component.className === PointComponent.className;
 }
 
-export class PointForce extends ComponentBase {
+export class PointForce extends VariableBase {
   static readonly className = 'PointForce' as const;
 
   readonly className = PointForce.className;
@@ -479,12 +480,6 @@ export class PointForce extends ComponentBase {
   // eslint-disable-next-line class-methods-use-this
   get degreeOfFreedom(): number {
     return 3;
-  }
-
-  // 正規化用の拘束式を得る
-  // eslint-disable-next-line class-methods-use-this
-  getConstraintToNormalize(): Constraint | null {
-    return null;
   }
 
   applyDq(dq: Matrix) {
@@ -518,28 +513,9 @@ export class PointForce extends ComponentBase {
 
   rhs: string;
 
-  applyResultToElement() {}
+  applyResultToApplication() {}
 
   force: Vector3;
-
-  get position() {
-    return this.force;
-  }
-
-  set position(value: Vector3) {
-    this.force = value;
-  }
-
-  get quaternion() {
-    return new Quaternion();
-  }
-
-  // eslint-disable-next-line no-empty-function
-  set quaternion(value: Quaternion) {}
-
-  get isFixed(): boolean {
-    return false;
-  }
 
   sign(localVectorNodeID: string): number {
     if (localVectorNodeID === this.lhs) {
@@ -551,8 +527,8 @@ export class PointForce extends ComponentBase {
     throw new Error('NodeIDが一致しない');
   }
 
-  constructor(lhs: INamedVector3RO, rhs: INamedVector3RO) {
-    super();
+  constructor(lhs: INamedVector3RO, rhs: INamedVector3RO, scale: number) {
+    super(scale);
     this.name = `${lhs.name}&${rhs.name}`;
     this.lhs = lhs.nodeID;
     this.rhs = rhs.nodeID;
@@ -587,7 +563,7 @@ export class PointForce extends ComponentBase {
 // 例えば変数を追加しない場合、場合、駆動力をぴったり合わせない限り、駆動力分のつり合いが取れないため、
 // 結果が収束しなくなる。駆動輪に、駆動力配分に従って、追加の駆動力があるものとして計算する。
 // その際駆動力分横力は減らないものとする。スリップ率を収束計算し、最終的にこの項が0に漸近するようにする。
-export class GeneralVariable extends ComponentBase {
+export class GeneralVariable extends VariableBase {
   static readonly className = 'GeneralVariable' as const;
 
   readonly className = GeneralVariable.className;
@@ -605,15 +581,8 @@ export class GeneralVariable extends ComponentBase {
     return this._col;
   }
 
-  // 駆動力のエラー
   get degreeOfFreedom(): number {
     return 1;
-  }
-
-  // 正規化用の拘束式を得る
-  // eslint-disable-next-line class-methods-use-this
-  getConstraintToNormalize(): Constraint | null {
-    return null;
   }
 
   applyDq(dq: Matrix) {
@@ -636,30 +605,12 @@ export class GeneralVariable extends ComponentBase {
     q[col + X] = this.value;
   }
 
-  applyResultToElement() {}
+  applyResultToApplication() {}
 
   value: number;
 
-  get position() {
-    return new Vector3();
-  }
-
-  // eslint-disable-next-line no-empty-function
-  set position(_: Vector3) {}
-
-  get quaternion() {
-    return new Quaternion();
-  }
-
-  // eslint-disable-next-line no-empty-function
-  set quaternion(_: Quaternion) {}
-
-  get isFixed(): boolean {
-    return false;
-  }
-
-  constructor(name: string) {
-    super();
+  constructor(name: string, scale: number) {
+    super(scale);
     this.name = name;
     this.value = 0;
   }
