@@ -459,14 +459,17 @@ export function getSimplifiedTireConstrainsParams(
       const point = element
         .getNearestNeighborToPlane(n, distance / scale)
         .multiplyScalar(scale);
-      return point.applyQuaternion(dq).add(dp);
+      return point.applyQuaternion(dq).add(dp.multiplyScalar(scale));
     };
     return [pComponent, func];
   }
   const points = element.getMeasurablePoints();
   const point = points.find((point) => point.nodeID === pID);
   if (!point) throw new Error('pointが見つからない');
-  const pLocal = point.value.multiplyScalar(scale).applyQuaternion(dq).add(dp);
+  const pLocal = point.value
+    .multiplyScalar(scale)
+    .applyQuaternion(dq)
+    .add(dp.multiplyScalar(scale));
   const func = () => pLocal;
   return [pComponent, func];
 }

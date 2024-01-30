@@ -105,10 +105,12 @@ export class FDComponentBalance implements Constraint {
 
     this.relevantVariables = [this.component, this.omega, ...this.pfs];
 
-    this.cogLocalVec = params.cog.clone();
+    this.cogLocalVec = params.cog.clone().multiplyScalar(this.component.scale);
     this.cogLocalSkew = skew(this.cogLocalVec).mul(-2);
 
-    this.pointLocalVec = params.points.map((p) => p.clone());
+    this.pointLocalVec = params.points.map((p) =>
+      p.clone().multiplyScalar(this.component.scale)
+    );
     this.pointLocalSkew = this.pointLocalVec.map((p) => skew(p).mul(-2));
   }
 
@@ -297,7 +299,10 @@ export class BarBalance implements Constraint {
     this.relevantVariables = [...this.components, this.omega, ...this.pfs];
     this.mass = params.mass;
     this.vO = params.vO;
-    this.localVec = params.points.map((p) => p.clone()) as any;
+    const {scale} = this.components[0];
+    this.localVec = params.points.map((p) =>
+      p.clone().multiplyScalar(scale)
+    ) as any;
     this.localSkew = this.localVec.map((v) => skew(v).mul(2)) as any;
   }
 
@@ -456,8 +461,13 @@ export class AArmBalance implements Constraint {
     this.relevantVariables = [...this.components, this.omega, ...this.pfs];
     this.mass = params.mass;
     this.vO = params.vO;
-    this.localVec = params.points.map((p) => p.clone()) as Triple<Vector3>;
-    this.localSkew = params.points.map((p) => skew(p)) as Triple<Matrix>;
+    const {scale} = this.components[0];
+    this.localVec = params.points.map((p) =>
+      p.clone().multiplyScalar(scale)
+    ) as Triple<Vector3>;
+    this.localSkew = this.localVec.map((p) =>
+      skew(p).mul(-2)
+    ) as Triple<Matrix>;
   }
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
@@ -647,11 +657,10 @@ export class LinearBushingBalance implements Constraint {
     omega: GeneralVariable; // 座標原点の角速度
   }) {
     this.name = params.name;
-    this.cogLocalVec = params.cog.clone();
-    this.cogLocalSkew = skew(this.cogLocalVec).mul(2);
     this.pfsFrame = [...params.pfsFrame];
     this.pfsRodEnd = [...params.pfsRodEnd];
     this.frameComponent = params.frameComponent;
+    const {scale} = this.frameComponent;
     this.rodEndComponents = [...params.rodEndComponents];
     if (this.rodEndComponents[0] === this.rodEndComponents[1])
       throw new Error('RodEndの両端は別のコンポーネントと接続する必要あり');
@@ -666,16 +675,18 @@ export class LinearBushingBalance implements Constraint {
       ...this.pfsFrame,
       ...this.pfsRodEnd
     ];
+    this.cogLocalVec = params.cog.clone().multiplyScalar(scale);
+    this.cogLocalSkew = skew(this.cogLocalVec).mul(2);
     this.frameLocalVec = params.framePoints.map((p) =>
-      p.clone()
+      p.clone().multiplyScalar(scale)
     ) as Twin<Vector3>;
-    this.frameLocalSkew = params.framePoints.map((p) =>
+    this.frameLocalSkew = this.frameLocalVec.map((p) =>
       skew(p)
     ) as Twin<Matrix>;
     this.rodEndLocalVec = params.rodEndPoints.map((p) =>
-      p.clone()
+      p.clone().multiplyScalar(scale)
     ) as OneOrTwo<Vector3>;
-    this.rodEndLocalSkew = params.rodEndPoints.map((p) =>
+    this.rodEndLocalSkew = this.rodEndLocalVec.map((p) =>
       skew(p)
     ) as OneOrTwo<Matrix>;
   }
@@ -935,11 +946,14 @@ export class TireBalance implements Constraint {
       this.error,
       ...this.pfs
     ];
+    const {scale} = this.component;
     this.getFriction = getFriction;
     this.vO = vO;
     this.ground = ground;
-    this.localVec = points.map((p) => p.clone()) as Twin<Vector3>;
-    this.localSkew = points.map((p) => skew(p).mul(-2)) as Twin<Matrix>;
+    this.localVec = points.map((p) =>
+      p.clone().multiplyScalar(scale)
+    ) as Twin<Vector3>;
+    this.localSkew = this.localVec.map((p) => skew(p).mul(-2)) as Twin<Matrix>;
 
     this.localAxis = this.localVec[1].clone().sub(this.localVec[0]).normalize();
     this.localAxisSkew = skew(this.localAxis).mul(-2);

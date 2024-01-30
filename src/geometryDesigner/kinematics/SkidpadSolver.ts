@@ -101,7 +101,7 @@ export class SkidpadSolver {
     forceScale: number,
     solve?: boolean
   ) {
-    const vO = () => new Vector3(10, 0, 0);
+    const vO = () => new Vector3(10, 0, 0).multiplyScalar(scale * 1000);
     this.assembly = assembly;
     const {children} = assembly;
     const controls = Object.keys(controlsAll).reduce((dict, key) => {
@@ -775,7 +775,7 @@ export class SkidpadSolver {
                     (normal, distance) => {
                       return element.getNearestNeighborToPlane(
                         normal,
-                        distance
+                        distance / component.scale
                       );
                     },
                     control.origin.value,
@@ -790,7 +790,7 @@ export class SkidpadSolver {
                   const points = element.getMeasurablePoints();
                   const point = points.find((point) => point.nodeID === pID);
                   if (point) {
-                    const p = point.value;
+                    const p = point.value.multiplyScalar(component.scale);
                     const constraint = new PointToPlane(
                       `Two-dimentional Constraint of ${point.name} of ${element.name.value}`,
                       component,
@@ -896,7 +896,7 @@ export class SkidpadSolver {
       });
       // フレームをピン止めする
       const frame = children.find((e) => e.meta?.isBodyOfFrame) as IBody;
-      const p = frame.centerOfGravity.value;
+      const p = frame.centerOfGravity.value.multiplyScalar(scale);
       const component = tempComponents[frame.nodeID];
       constraints.push(
         new PointToPlane(
@@ -1136,7 +1136,9 @@ export class SkidpadSolver {
     // 簡略化したElementに計算結果を反映する
     const unresolvedPoints = Object.keys(this.pointComponents).reduce(
       (prev, current) => {
-        prev[current] = this.pointComponents[current].position.clone();
+        prev[current] = this.pointComponents[current].position
+          .clone()
+          .multiplyScalar(1 / this.pointComponents[current].scale);
         return prev;
       },
       {} as {[key: string]: Vector3}

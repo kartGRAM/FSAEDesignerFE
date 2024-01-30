@@ -569,7 +569,7 @@ export class KinematicsSolver {
                     (normal, distance) => {
                       return element.getNearestNeighborToPlane(
                         normal,
-                        distance
+                        distance / component.scale
                       );
                     },
                     control.origin.value,
@@ -584,7 +584,7 @@ export class KinematicsSolver {
                   const points = element.getMeasurablePoints();
                   const point = points.find((point) => point.nodeID === pID);
                   if (point) {
-                    const p = point.value;
+                    const p = point.value.multiplyScalar(component.scale);
                     const constraint = new PointToPlane(
                       `Two-dimentional Constraint of ${point.name} of ${element.name.value}`,
                       component,
@@ -660,13 +660,13 @@ export class KinematicsSolver {
       if (assemblyMode === 'AllTiresGrounded') {
         const frame = children.find((e) => e.meta?.isBodyOfFrame) as IBody;
         if (pinFrameCOV && frame) {
-          const p = frame.centerOfGravity.value;
+          const p = frame.centerOfGravity.value.multiplyScalar(scale);
           const component = tempComponents[frame.nodeID];
           constraints.push(
             new PointToPlane(
               `Two-dimentional Constraint of ${frame.centerOfGravity.name} of ${frame.name.value}`,
               component,
-              () => p,
+              () => p.clone(),
               new Vector3(),
               new Vector3(1, 0, 0),
               frame.nodeID,
@@ -679,7 +679,7 @@ export class KinematicsSolver {
             new PointToPlane(
               `Two-dimentional Constraint of ${frame.centerOfGravity.name} of ${frame.name.value}`,
               component,
-              () => p,
+              () => p.clone(),
               new Vector3(),
               new Vector3(0, 1, 0),
               frame.nodeID,
@@ -689,12 +689,14 @@ export class KinematicsSolver {
             )
           );
           if (faceForward) {
-            const p2 = p.clone().add(new Vector3(1000, 0, 0));
+            const p2 = p
+              .clone()
+              .add(new Vector3(1000, 0, 0).multiplyScalar(scale));
             constraints.push(
               new PointToPlane(
                 `Two-dimentional Constraint of front direction of ${frame.name.value}`,
                 component,
-                () => p2,
+                () => p2.clone(),
                 new Vector3(),
                 new Vector3(0, 1, 0),
                 frame.nodeID,
