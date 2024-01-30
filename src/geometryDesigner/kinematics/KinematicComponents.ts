@@ -31,7 +31,7 @@ export interface IVariable {
   get isRoot(): boolean;
   unionFindTreeParent: IVariable;
   unionFindTreeConstraints: Constraint[];
-  unite(other: IVariable, constraint: Constraint): void;
+  unite(other: IVariable): void;
   reset(): void;
   saveInitialQ(): void;
   restoreInitialQ(): void;
@@ -92,19 +92,14 @@ export abstract class VariableBase implements IVariable {
     return this.root === this;
   }
 
-  unite(other: IComponent, constraint: Constraint) {
+  unite(other: IComponent) {
     if (this.root === other.root) {
-      this.root.unionFindTreeConstraints = [
-        ...this.root.unionFindTreeConstraints,
-        constraint
-      ];
       return;
     }
     const otherRoot = other.root;
     other.root.unionFindTreeParent = this.root;
     this.root.unionFindTreeConstraints = [
       ...this.root.unionFindTreeConstraints,
-      constraint,
       ...otherRoot.unionFindTreeConstraints
     ];
     otherRoot.unionFindTreeConstraints = [];

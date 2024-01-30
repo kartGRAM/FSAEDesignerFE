@@ -719,7 +719,7 @@ export class KinematicsSolver {
             c.root.unionFindTreeConstraints.push(constraint);
             return;
           }
-          freeComponents[0].unite(c, constraint);
+          freeComponents[0].unite(c);
         });
       });
       const rootComponents = components.filter((component) => component.isRoot);
