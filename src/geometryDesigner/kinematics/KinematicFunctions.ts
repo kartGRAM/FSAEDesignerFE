@@ -447,6 +447,8 @@ export function getSimplifiedTireConstrainsParams(
   );
   const parent = plTo.parent as IElement;
   const pComponent = tempComponents[parent.nodeID];
+  const {scale} = pComponent;
+
   const dqi = dq.clone().invert();
   if (pID === 'nearestNeighbor') {
     const func = (normal: Vector3, distance: number) => {
@@ -454,7 +456,9 @@ export function getSimplifiedTireConstrainsParams(
       // タイヤ空間上へ法線方向を変換する
       const n = normal.clone().applyQuaternion(pdqi).applyQuaternion(dqi);
       // タイヤ空間内での、平面への最近傍点
-      const point = element.getNearestNeighborToPlane(n, distance);
+      const point = element
+        .getNearestNeighborToPlane(n, distance / scale)
+        .multiplyScalar(scale);
       return point.applyQuaternion(dq).add(dp);
     };
     return [pComponent, func];
@@ -462,7 +466,7 @@ export function getSimplifiedTireConstrainsParams(
   const points = element.getMeasurablePoints();
   const point = points.find((point) => point.nodeID === pID);
   if (!point) throw new Error('pointが見つからない');
-  const pLocal = point.value.applyQuaternion(dq).add(dp);
+  const pLocal = point.value.multiplyScalar(scale).applyQuaternion(dq).add(dp);
   const func = () => pLocal;
   return [pComponent, func];
 }

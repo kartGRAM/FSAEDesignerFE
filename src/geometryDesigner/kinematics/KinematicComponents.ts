@@ -40,8 +40,8 @@ export interface IVariable {
 }
 
 export interface IComponent extends IVariable {
-  position: Vector3;
-  quaternion: Quaternion;
+  readonly position: Vector3;
+  readonly quaternion: Quaternion;
   readonly isFixed: boolean;
 }
 
@@ -66,8 +66,6 @@ export abstract class VariableBase implements IVariable {
   abstract saveQ(q: number[]): void;
 
   abstract applyResultToApplication(): void;
-
-  parent = this;
 
   unionFindTreeParent = this;
 
@@ -117,9 +115,11 @@ export abstract class VariableBase implements IVariable {
 }
 
 export abstract class ComponentBase extends VariableBase implements IComponent {
-  abstract position: Vector3;
+  parent = this;
 
-  abstract quaternion: Quaternion;
+  abstract get position(): Vector3;
+
+  abstract get quaternion(): Quaternion;
 
   abstract get isFixed(): boolean;
 }
@@ -223,30 +223,16 @@ export class FullDegreesComponent extends ComponentBase {
 
   _position: Vector3;
 
-  get position() {
+  get position(): Vector3 {
     if (this.isRelativeFixed) return this.parent.position;
     return this._position;
   }
 
-  set position(value: Vector3) {
-    if (this.isRelativeFixed) {
-      this.parent.position = value;
-    }
-    this._position = value;
-  }
-
   _quaternion: Quaternion;
 
-  get quaternion() {
+  get quaternion(): Quaternion {
     if (this.isRelativeFixed) return this.parent.quaternion;
     return this._quaternion;
-  }
-
-  set quaternion(value: Quaternion) {
-    if (this.isRelativeFixed) {
-      this.parent.quaternion = value;
-    }
-    this._quaternion = value;
   }
 
   _isFixed: boolean = false;
@@ -296,8 +282,8 @@ export class FullDegreesComponent extends ComponentBase {
 
   restoreInitialQ() {
     if (!this.isRelativeFixed) {
-      this.position = this._initialPosition.clone();
-      this.quaternion = this._initialQuaternion.clone();
+      this._position = this._initialPosition.clone();
+      this._quaternion = this._initialQuaternion.clone();
     }
   }
 
@@ -397,10 +383,6 @@ export class PointComponent extends ComponentBase {
     return this._position;
   }
 
-  set position(value: Vector3) {
-    this._position = value;
-  }
-
   get quaternion() {
     return new Quaternion();
   }
@@ -442,7 +424,7 @@ export class PointComponent extends ComponentBase {
   }
 
   restoreInitialQ() {
-    this.position = this._initialPosition.clone();
+    this._position = this._initialPosition.clone();
   }
 
   saveState(): number[] {

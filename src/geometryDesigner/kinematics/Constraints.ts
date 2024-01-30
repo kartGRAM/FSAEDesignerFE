@@ -546,7 +546,8 @@ export class BarAndSpheres implements Constraint, deltaL {
         .clone()
         .add(this.rLocalVec.applyQuaternion(this.rhs.quaternion));
     }
-    this.l2 = l * l;
+    const ls = l * clhs.scale;
+    this.l2 = ls * ls;
   }
 
   setJacobianAndConstraints(
