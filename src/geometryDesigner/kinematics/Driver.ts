@@ -51,9 +51,9 @@ export class MovePointTo implements IObjectiveFunction {
     δf = (2p +2As -2w)Tδp + (2p-2w)・δAs
        = (2p + 2As - 2w)Tδp + (2p - 2w)T・(As~・G)δq
     */
-    const w2 = this.target.clone().multiplyScalar(2);
+    const w2 = this.target.clone().multiplyScalar(2 * this.component.scale);
     const q = this.component.quaternion;
-    const s = this.point.value;
+    const s = this.point.value.multiplyScalar(this.component.scale);
     const p2 = this.component.position.clone().multiplyScalar(2);
     const As2 = s.clone().applyQuaternion(q).multiplyScalar(2);
     const dfdp = p2.clone().add(As2).sub(w2);

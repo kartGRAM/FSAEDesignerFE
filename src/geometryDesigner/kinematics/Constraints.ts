@@ -311,9 +311,15 @@ export class Hinge implements Constraint {
     this.lLocalSkew = skew(this.lLocalVec).mul(-2);
     this.rLocalVec = vrhs[0].clone().multiplyScalar(crhs.scale);
     this.rLocalSkew = skew(this.rLocalVec).mul(2);
-    this.rAxisVec = this.lLocalVec.clone().sub(this.rLocalVec);
+    this.rAxisVec = vrhs[1]
+      .clone()
+      .multiplyScalar(crhs.scale)
+      .sub(this.rLocalVec);
     this.rAxisSkew = skew(this.rAxisVec).mul(-2);
-    const lAxisVec = this.rLocalVec.clone().sub(this.lLocalVec);
+    const lAxisVec = vlhs[1]
+      .clone()
+      .multiplyScalar(clhs.scale)
+      .sub(this.lLocalVec);
     if (
       this.rAxisVec.lengthSq() < Number.EPSILON ||
       lAxisVec.lengthSq() < Number.EPSILON
