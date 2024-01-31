@@ -42,6 +42,7 @@ const normal = new Vector3(0, 0, 1);
 const unitZ = getVVector(new Vector3(0, 0, 1));
 const unitZT = unitZ.transpose();
 const unitZSkew = skew(new Vector3(0, 0, 1));
+const nnT = unitZ.mmul(unitZT);
 
 export class FDComponentBalance implements Constraint {
   readonly className = 'FDComponentBalance';
@@ -984,12 +985,18 @@ export class TireBalance implements Constraint {
 
     this.localAxis = this.localVec[1].clone().sub(this.localVec[0]).normalize();
     this.localAxisSkew = skew(this.localAxis).mul(-2);
+
+    const para = this.localAxis.clone().cross(normal);
+    if (para.dot(new Vector3(1, 0, 0)) < 0) {
+      this.localAxis.multiplyScalar(-1);
+      this.localAxisSkew = this.localAxisSkew.clone().mul(-1);
+    }
   }
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
     const {row, localVec, localSkew, pfs, cog, g, error, torqueRatio} = this;
     const {component, localAxis, pfCoefs} = this;
-    let {localAxisSkew} = this;
+    const {localAxisSkew} = this;
 
     const q = this.component.quaternion;
     const {position} = this.component;
@@ -1036,7 +1043,7 @@ export class TireBalance implements Constraint {
     const dvG = groundSkewP.mmul(unitZ).mul(-1); // (3x1)
     const vGn = vGround.clone().normalize();
     const vGnSkew = skew(vGn);
-    const dvGn_dvG = normalizedVectorDiff(vGn); // (3x3)
+    const dvGn_dvG = normalizedVectorDiff(vGround); // (3x3)
     const dvGn = dvGn_dvG.mmul(dvG); // (3x1)
 
     // SAとIAとFZを求める
@@ -1044,21 +1051,17 @@ export class TireBalance implements Constraint {
     // axisに垂直で地面に平行なベクトル(Vの方向を向いている)
     const para = axis.clone().cross(normal);
     if (para.dot(vGround) < 0) {
-      para.multiplyScalar(-1);
-      axis.multiplyScalar(-1);
-      localAxis.multiplyScalar(-1);
-      this.localAxisSkew = this.localAxisSkew.clone().mul(-1);
-      localAxisSkew = this.localAxisSkew;
+      throw new Error('ベクトルの向きが逆になった');
     }
-    const dPara = unitZSkew.mmul(A).mmul(localAxisSkew).mmul(G); // (3x4)
+    const dPara = unitZSkew.mmul(A).mmul(localAxisSkew).mmul(G).mul(-1); // (3x4)
     const k = para.clone().normalize(); // 長さ1
     const kSkew = skew(k); // (3x3)
-    const dk_dpara = normalizedVectorDiff(k); // (3x3)
+    const dk_dpara = normalizedVectorDiff(para); // (3x3)
     const dk = dk_dpara.mmul(dPara); // (3x3) * (3x4) = (3x4)
     // saの取得
     const saSin = k.clone().cross(vGn).dot(normal);
     const dSaSin_Q = unitZT.mmul(vGnSkew).mmul(dk).mul(-1); // (1x3) * (3x3) * (3x4) = (1x4)
-    const dSaSin_Omega = unitZT.mmul(kSkew.mmul(dvGn)); // (1x3) * (3x3) * (3x1) = (1x1)
+    const dSaSin_Omega = unitZT.mmul(kSkew).mmul(dvGn); // (1x3) * (3x3) * (3x1) = (1x1)
     const sa = (Math.asin(saSin) * 180) / Math.PI;
     const dsa_dSaSin = asinDiff(saSin);
     const dSa_Q = dSaSin_Q.clone().mul(dsa_dSaSin); // (1x4)
@@ -1083,25 +1086,23 @@ export class TireBalance implements Constraint {
     const {saDiff, iaDiff, fzDiff} = this.getFrictionDiff(sa, ia, fz.z);
     const dFt_Q = saDiff.mmul(dSa_Q); // (3x1)*(1x4) = (3x4)
     const dFt_Omega = saDiff.mmul(dSa_Omega); // (3x1)*(1x1) = (3x1)
-    const dFt_df = fzDiff.mmul(unitZT);
+    const dFt_df = fzDiff.mmul(unitZT); // (3x1)*(1x3) = (3x3)
 
     // 垂直方向を合わせたのち、前方方向を合わせる
     const [frictionRot, frictionRotMat] = getFrictionRotation(k);
     const dFtR_Q1 = frictionRotationDiff(dk, frictionOrg); // (3x4);
     const dFtR_Q2 = frictionRotMat.mmul(dFt_Q); // (3x4)
-    const dFtR_Q = dFtR_Q1.add(dFtR_Q2);
+    const dFtR_Q = dFtR_Q1.clone().add(dFtR_Q2);
     const dFtR_Omega = frictionRotMat.mmul(dFt_Omega); // (3x1)
-    const dFtR_df = frictionRotMat.mmul(dFt_df);
+    const dFtR_df = frictionRotMat.mmul(dFt_df); // (3x1)
 
-    const friction = frictionOrg.applyQuaternion(frictionRot);
+    // const friction2 = frictionRotMat.mmul(getVVector(frictionOrg));
+    const friction = frictionOrg.clone().applyQuaternion(frictionRot);
     // friction.set(0, 0, 0);
     const frictionSkew = skew(friction);
 
     // 誤差項
-    const fe = normal
-      .clone()
-      .cross(axis)
-      .multiplyScalar(-torqueRatio * error.value);
+    const fe = para.multiplyScalar(torqueRatio * error.value);
     const feSkew = skew(fe);
 
     // 力のつり合い
@@ -1152,22 +1153,21 @@ export class TireBalance implements Constraint {
     });
 
     // dω
-    const dOmega = getDeltaOmega(
+    const dOmegaByCentrifugal = getDeltaOmega(
       vO,
       omega,
       omegaSkew,
       pCog,
       cogSkewP,
       this.mass
-    )
-      .mmul(unitZ)
-      .add(dFtR_Omega);
-    phi_q.setSubMatrix(dOmega.subMatrix(0, 1, 0, 0), row, this.omega.col);
+    ).mmul(unitZ);
+    const dOmega1 = dOmegaByCentrifugal.clone().add(dFtR_Omega);
+    phi_q.setSubMatrix(dOmega1.subMatrix(0, 1, 0, 0), row, this.omega.col);
     // phi_q.setSubMatrix(dOmega, row, this.omega.col);
 
     // dP
-    const dP = omegaSkew2.clone().mul(this.mass);
-    phi_q.setSubMatrix(dP.subMatrix(0, 1, 0, 2), row, component.col + X);
+    const dP1 = omegaSkew2.clone().mul(this.mass);
+    phi_q.setSubMatrix(dP1.subMatrix(0, 1, 0, 2), row, component.col + X);
     // phi_q.setSubMatrix(dP, row, component.col + X);
 
     // dΘ
@@ -1183,20 +1183,17 @@ export class TireBalance implements Constraint {
 
     // de
     const de = unitZSkew.mmul(getVVector(axis)).mul(-torqueRatio);
-    // phi_q.setSubMatrix(de.subMatrix(0, 1, 0, 0), row, error.col);
+    phi_q.setSubMatrix(de.subMatrix(0, 1, 0, 0), row, error.col);
     // phi_q.setSubMatrix(de, row, error.col);
 
     // モーメントのつり合い
     // df
     pfs.forEach((pf, i) => {
-      const a = groundSkewQ.mmul(unitZ);
-      const dPf2 = pSkewQ[i]
-        .clone()
-        .mul(-1)
-        .subMatrixAdd(a, 0, 2)
-        .clone()
-        .mul(pfCoefs[i])
-        .sub(groundSkewQ.mmul(dFtR_df));
+      const dPf2 = groundSkewQ
+        .mmul(nnT)
+        .sub(pSkewQ[i])
+        .sub(groundSkewQ.mmul(dFtR_df))
+        .mul(pfCoefs[i]);
       phi_q.setSubMatrix(dPf2, row + 2, pf.col);
       // phi_q.setSubMatrix(dPf, row + 3, pf.col);
     });
@@ -1204,23 +1201,20 @@ export class TireBalance implements Constraint {
     // dΘ
     let dThetaM = new Matrix(3, 3);
     pfs.forEach((pf, i) => {
-      const fSkew = skew(pf.force).mul(pfCoefs[i]);
+      const fSkew = skew(pf.force).mul(pfCoefs[i]); // (3x3)
+      const fz = nnT.mmul(getVVector(pf.force).mul(pfCoefs[i])); // (3x3)*(3x1) = (3x1)
+      const fzSkew = skew(fz);
       dThetaM = dThetaM.add(fSkew.mmul(A).mmul(localSkew[i]));
-      dThetaM = dThetaM.add(
-        unitZSkew
-          .mmul(A)
-          .mmul(localGroundSkew)
-          .mul(-pf.force.z * pfCoefs[i])
-      );
+      dThetaM = dThetaM.sub(fzSkew.mmul(A).mmul(localGroundSkew));
     });
     dThetaM = dThetaM.add(maSkew.mmul(A).mmul(cogLocalSkew));
-    dThetaM = dThetaM.add(
-      frictionSkew.add(feSkew).mmul(A).mmul(localGroundSkew)
-    );
-    dThetaM = dThetaM.add(groundSkewQ.mmul(dThetaMError));
-    const temp = groundSkewQ.mmul(unitZ).mmul(unitZ.transpose()).sub(cogSkewQ);
+    const temp = groundSkewQ.mmul(nnT).sub(cogSkewQ);
     const temp2 = temp.mmul(omegaSkew2).mul(this.mass);
     dThetaM = dThetaM.add(temp2.mmul(A).mmul(cogLocalSkew));
+    dThetaM = dThetaM.add(
+      frictionSkew.clone().add(feSkew).mmul(A).mmul(localGroundSkew)
+    );
+    dThetaM = dThetaM.add(groundSkewQ.mmul(dThetaMError));
     const dTheta2 = dThetaM.mmul(G).sub(groundSkewQ.mmul(dFtR_Q));
     phi_q.setSubMatrix(dTheta2, row + 2, component.col + Q0);
     // phi_q.setSubMatrix(dThetaM.mmul(G), row + 3, component.col + Q0);
@@ -1230,13 +1224,15 @@ export class TireBalance implements Constraint {
     // phi_q.setSubMatrix(temp2, row + 3, component.col + X);
 
     // dω
-    const dOmega2 = temp.mmul(dOmega).sub(groundSkewQ.mmul(dFtR_Omega));
+    const dOmega2 = temp
+      .mmul(dOmegaByCentrifugal)
+      .sub(groundSkewQ.mmul(dFtR_Omega));
     phi_q.setSubMatrix(dOmega2, row + 2, this.omega.col);
     // phi_q.setSubMatrix(temp.mmul(dOmega), row + 3, this.omega.col);
 
     // de
     const de2 = groundSkewQ.mmul(de).mul(-1);
-    // phi_q.setSubMatrix(de2, row + 2, this.error.col);
+    phi_q.setSubMatrix(de2, row + 2, this.error.col);
     // phi_q.setSubMatrix(de2, row + 3, this.error.col);
   }
 

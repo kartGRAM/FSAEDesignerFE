@@ -130,6 +130,7 @@ export function frictionRotationDiff(
 
 export function asinDiff(sin: number): number {
   return 180 / (Math.sqrt(1 - sin ** 2) * Math.PI);
+  // return Math.PI / (Math.sqrt(1 - sin ** 2) * 180);
 }
 
 declare module 'ml-matrix' {
@@ -154,7 +155,9 @@ Matrix.prototype.subMatrixAdd = function (
       startRow + rows - 1,
       startColumn,
       startColumn + cols - 1
-    ).add(matrix),
+    )
+      .clone()
+      .add(matrix),
     startRow,
     startColumn
   );
@@ -174,7 +177,9 @@ Matrix.prototype.subMatrixSub = function (
       startRow + rows - 1,
       startColumn,
       startColumn + cols - 1
-    ).sub(matrix),
+    )
+      .clone()
+      .sub(matrix),
     startRow,
     startColumn
   );
@@ -185,7 +190,7 @@ export function getDeltaOmega(
   omega: Vector3,
   omegaSkew: Matrix,
   cogVehicle: Vector3,
-  cogVehicleSkew: Matrix, // 2倍されている
+  cogVehicleSkew: Matrix,
   mass: number
 ) {
   const lhs = v.clone().add(omega.clone().cross(cogVehicle));
