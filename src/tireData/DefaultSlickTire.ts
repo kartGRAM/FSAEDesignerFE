@@ -20,8 +20,8 @@ export class DefaultSlickTire implements ITireData {
   }
 
   fzDiff(params: {sa: number; sl: number; ia: number; fz: number}): TireRes {
-    const {sa} = params;
-    return {fx: 0, fy: -sa * 0.36, mz: 0};
+    const {sa, sl} = params;
+    return {fx: sl * 0.4, fy: -sa * 0.36, mz: 0};
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

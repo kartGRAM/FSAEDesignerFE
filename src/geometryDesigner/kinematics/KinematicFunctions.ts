@@ -21,6 +21,7 @@ import {
   PointForce
 } from '@gd/kinematics/KinematicComponents';
 import {TireRestorer} from '@gd/kinematics/Restorer';
+import {ITireData} from '@tire/ITireData';
 
 const I = Matrix.eye(3, 3);
 
@@ -41,6 +42,30 @@ export function skew(v: {x: number; y: number; z: number} | Matrix) {
     [-z, 0, x],
     [y, -x, 0]
   ]);
+}
+
+export function saDiff(
+  data: ITireData,
+  params: {sa: number; sl: number; ia: number; fz: number}
+) {
+  const diff = data.saDiff(params);
+  return getVVector({x: diff.fx, y: diff.fy, z: 0});
+}
+
+export function iaDiff(
+  data: ITireData,
+  params: {sa: number; sl: number; ia: number; fz: number}
+) {
+  const diff = data.iaDiff(params);
+  return getVVector({x: diff.fx, y: diff.fy, z: 0});
+}
+
+export function fzDiff(
+  data: ITireData,
+  params: {sa: number; sl: number; ia: number; fz: number}
+) {
+  const diff = data.fzDiff(params);
+  return getVVector({x: diff.fx, y: diff.fy, z: 0});
 }
 
 // k=U/|U| として、δk=XδU のXを返す。
@@ -101,8 +126,8 @@ export function frictionRotationDiff(
   return lhs.add(rhs);
 }
 
-export function getAsinDiff(sin: number): number {
-  return 1 / Math.sqrt(1 - sin ** 2);
+export function asinDiff(sin: number): number {
+  return 180 / (Math.sqrt(1 - sin ** 2) * Math.PI);
 }
 
 declare module 'ml-matrix' {
@@ -458,8 +483,9 @@ export function getSimplifiedTireConstrainsParams(
       // タイヤ空間内での、平面への最近傍点
       const point = element
         .getNearestNeighborToPlane(n, distance / scale)
+        .clone()
         .multiplyScalar(scale);
-      return point.applyQuaternion(dq).add(dp.multiplyScalar(scale));
+      return point.applyQuaternion(dq).add(dp.clone().multiplyScalar(scale));
     };
     return [pComponent, func];
   }

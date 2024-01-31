@@ -39,6 +39,9 @@ import {
   getNamedVector3FromJoint,
   getSimplifiedTireConstrainsParams,
   elementIsComponent,
+  saDiff,
+  iaDiff,
+  fzDiff,
   getPFComponent
 } from './KinematicFunctions';
 import {
@@ -464,6 +467,16 @@ export class SkidpadSolver {
                   const {fx, fy} = tire.get({sa, sl: 0, fz, ia});
                   return new Vector3(fx, fy, 0);
                 },
+                getFrictionDiff: (sa, ia, fz) => {
+                  // 要修正
+                  const params = {sa, sl: 0, fz, ia};
+                  return {
+                    saDiff: saDiff(tire, params),
+                    iaDiff: iaDiff(tire, params),
+                    fzDiff: fzDiff(tire, params)
+                  };
+                },
+
                 error,
                 ground: () => func(normal, 0)
               })
