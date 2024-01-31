@@ -1028,9 +1028,7 @@ export class SkidpadSolver {
           const matPhi = Matrix.columnVector(phi);
           const dq = new SingularValueDecomposition(phi_q, {
             autoTranspose: true
-          })
-            .solve(matPhi)
-            .mul(1);
+          }).solve(matPhi);
 
           // 差分を反映
           components.forEach((component) => component.applyDq(dq));

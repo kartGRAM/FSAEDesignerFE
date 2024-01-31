@@ -237,7 +237,7 @@ export default function AssemblyCreactor() {
               assembly,
               params,
               controls,
-              0.001,
+              1,
               1,
               true
             );

@@ -1011,7 +1011,7 @@ export class KinematicsSolver {
               .transpose();
 
             // ヘッセ行列を更新
-            const s = dq.mul(-1);
+            const s = dq.clone().mul(-1);
             const y = deltaLN1.sub(deltaL);
             const Hs = H.mmul(s);
             const sy = s.dot(y);
@@ -1027,7 +1027,7 @@ export class KinematicsSolver {
             }
 
             if (Math.abs(sy) > Number.EPSILON) {
-              const yy = y.transpose().mmul(y.mul(1 / sy));
+              const yy = y.transpose().mmul(y.clone().mul(1 / sy));
               H.add(yy);
               HConverged = false;
             } else if (logOutput) {

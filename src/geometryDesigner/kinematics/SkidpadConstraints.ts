@@ -202,7 +202,7 @@ export class FDComponentBalance implements Constraint {
     phi_q.setSubMatrix(dOmega, row, colOmega);
 
     // dP
-    const dP = omegaSkew2.mul(this.mass);
+    const dP = omegaSkew2.clone().mul(this.mass);
     phi_q.setSubMatrix(dP, row, col + X);
     // dΘ
     const dThetaMCF = omegaSkew2.mmul(A).mmul(cogLocalSkew).mul(this.mass);
@@ -357,12 +357,17 @@ export class BarBalance implements Constraint {
       phi_q.set(row + X, pfCol + X, 1);
       phi_q.set(row + Y, pfCol + Y, 1);
       phi_q.set(row + Z, pfCol + Z, 1);
-      const deltaP = omegaSkew2.mul(t * this.mass);
+      const deltaP = omegaSkew2.clone().mul(t * this.mass);
       phi_q.setSubMatrix(deltaP, row, c.col + X);
 
       // モーメント
       phi_q.setSubMatrix(skew(pts[i]).mul(-1), row + 3, pfCol + X);
-      const deltaP2 = fSkew.add(maSkew.sub(omegaSkew2).mul(this.mass * t));
+      const deltaP2 = fSkew.add(
+        maSkew
+          .clone()
+          .sub(omegaSkew2)
+          .mul(this.mass * t)
+      );
       phi_q.setSubMatrix(deltaP2, row + 3, c.col + X);
 
       if (isFullDegreesComponent(c)) {
@@ -525,7 +530,7 @@ export class AArmBalance implements Constraint {
       phi_q.set(row + X, pfCol + X, 1);
       phi_q.set(row + Y, pfCol + Y, 1);
       phi_q.set(row + Z, pfCol + Z, 1);
-      const deltaP = omegaSkew2.mul(t * this.mass);
+      const deltaP = omegaSkew2.clone().mul(t * this.mass);
       if (!colDone.includes(c.col)) {
         phi_q.setSubMatrix(deltaP, row, c.col + X);
       } else {
@@ -534,7 +539,12 @@ export class AArmBalance implements Constraint {
 
       // モーメント
       phi_q.setSubMatrix(skew(pts[i]).mul(-1), row + 3, pfCol + X);
-      const deltaP2 = fSkew.add(maSkew.sub(omegaSkew2).mul(this.mass * t));
+      const deltaP2 = fSkew.add(
+        maSkew
+          .clone()
+          .sub(omegaSkew2)
+          .mul(this.mass * t)
+      );
       if (!colDone.includes(c.col)) {
         phi_q.setSubMatrix(deltaP2, row + 3, c.col + X);
       } else {
@@ -761,7 +771,7 @@ export class LinearBushingBalance implements Constraint {
     const Af = rotationMatrix(cF.quaternion);
     const Gf = decompositionMatrixG(cF.quaternion);
     // Frame dP(遠心力)
-    const dPF = omegaSkew2.mul(this.mass);
+    const dPF = omegaSkew2.clone().mul(this.mass);
     phi_q.setSubMatrix(dPF, row, cF.col + X);
     // Frame dΘ(遠心力)
     const dThetaFM = dPF.mmul(Af).mmul(cogLocalSkew);
@@ -1023,7 +1033,7 @@ export class TireBalance implements Constraint {
     const vOmega = omega.clone().cross(pGround);
     const vGround = vO.clone().add(vOmega);
     vGround.z = 0; // 念のため
-    const dvG = groundSkewP.mul(-1).mmul(unitZ); // (3x1)
+    const dvG = groundSkewP.mmul(unitZ).mul(-1); // (3x1)
     const vGn = vGround.clone().normalize();
     const vGnSkew = skew(vGn);
     const dvGn_dvG = normalizedVectorDiff(vGn); // (3x3)
@@ -1037,7 +1047,7 @@ export class TireBalance implements Constraint {
       para.multiplyScalar(-1);
       axis.multiplyScalar(-1);
       localAxis.multiplyScalar(-1);
-      this.localAxisSkew = this.localAxisSkew.mul(-1);
+      this.localAxisSkew = this.localAxisSkew.clone().mul(-1);
       localAxisSkew = this.localAxisSkew;
     }
     const dPara = unitZSkew.mmul(A).mmul(localAxisSkew).mmul(G); // (3x4)
@@ -1047,12 +1057,12 @@ export class TireBalance implements Constraint {
     const dk = dk_dpara.mmul(dPara); // (3x3) * (3x4) = (3x4)
     // saの取得
     const saSin = k.clone().cross(vGn).dot(normal);
-    const dSaSin_Q = unitZT.mul(-1).mmul(vGnSkew).mmul(dk); // (1x3) * (3x3) * (3x4) = (1x4)
+    const dSaSin_Q = unitZT.mmul(vGnSkew).mmul(dk).mul(-1); // (1x3) * (3x3) * (3x4) = (1x4)
     const dSaSin_Omega = unitZT.mmul(kSkew.mmul(dvGn)); // (1x3) * (3x3) * (3x1) = (1x1)
     const sa = (Math.asin(saSin) * 180) / Math.PI;
     const dsa_dSaSin = asinDiff(saSin);
-    const dSa_Q = dSaSin_Q.mul(dsa_dSaSin); // (1x4)
-    const dSa_Omega = dSaSin_Omega.mul(dsa_dSaSin); // (1x1)
+    const dSa_Q = dSaSin_Q.clone().mul(dsa_dSaSin); // (1x4)
+    const dSa_Omega = dSaSin_Omega.clone().mul(dsa_dSaSin); // (1x1)
 
     // iaの取得
     const tireVirtical = axis.clone().cross(k).normalize();
@@ -1135,7 +1145,7 @@ export class TireBalance implements Constraint {
     const dpf = Matrix.eye(3, 3).add(dFtR_df);
     pfs.forEach((pf, i) => {
       phi_q.setSubMatrix(
-        dpf.subMatrix(0, 1, 0, 2).mul(pfCoefs[i]),
+        dpf.subMatrix(0, 1, 0, 2).clone().mul(pfCoefs[i]),
         row,
         pf.col
       );
@@ -1156,7 +1166,7 @@ export class TireBalance implements Constraint {
     // phi_q.setSubMatrix(dOmega, row, this.omega.col);
 
     // dP
-    const dP = omegaSkew2.mul(this.mass);
+    const dP = omegaSkew2.clone().mul(this.mass);
     phi_q.setSubMatrix(dP.subMatrix(0, 1, 0, 2), row, component.col + X);
     // phi_q.setSubMatrix(dP, row, component.col + X);
 
@@ -1181,8 +1191,10 @@ export class TireBalance implements Constraint {
     pfs.forEach((pf, i) => {
       const a = groundSkewQ.mmul(unitZ);
       const dPf2 = pSkewQ[i]
+        .clone()
         .mul(-1)
         .subMatrixAdd(a, 0, 2)
+        .clone()
         .mul(pfCoefs[i])
         .sub(groundSkewQ.mmul(dFtR_df));
       phi_q.setSubMatrix(dPf2, row + 2, pf.col);

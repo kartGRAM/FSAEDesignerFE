@@ -75,9 +75,11 @@ export function normalizedVectorDiff(u: Vector3): Matrix {
   const u2 = abs ** 2;
   const U = getVVector(u);
   const UUt = U.mmul(U.transpose());
-  return I.mul(u2)
+  const d = I.clone()
+    .mul(u2)
     .sub(UUt)
     .mul(1 / u3);
+  return d;
 }
 
 // タイヤの軸に垂直で、地面に平行な前方向ベクトルkから、回転行列を作成
@@ -188,7 +190,7 @@ export function getDeltaOmega(
 ) {
   const lhs = v.clone().add(omega.clone().cross(cogVehicle));
   const rhs = omegaSkew.mmul(cogVehicleSkew);
-  return rhs.add(skew(lhs)).mul(-mass);
+  return rhs.add(skew(lhs).mul(-mass));
 }
 
 // 縦ベクトルを得る
