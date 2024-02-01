@@ -207,7 +207,7 @@ export class FDComponentBalance implements Constraint {
     phi_q.setSubMatrix(dOmega, row, colOmega);
 
     // dP
-    const dP = omegaSkew2.clone().mul(this.mass);
+    const dP = omegaSkew2.clone().mul(-this.mass);
     phi_q.setSubMatrix(dP, row, col + X);
     // dΘ
     const dThetaMCF = omegaSkew2.mmul(A).mmul(cogLocalSkew).mul(-this.mass);
@@ -228,12 +228,12 @@ export class FDComponentBalance implements Constraint {
       dThetaM = dThetaM.add(fSkew.mmul(As));
     });
     // dP
-    const dPRot = cogSkewQ.mmul(omegaSkew2).mul(this.mass);
+    const dPRot = cogSkewQ.mmul(dP).mul(-1);
     phi_q.setSubMatrix(dPRot, row + 3, col + X);
 
     // dΘ
     dThetaM = dThetaM.add(maSkew.mmul(A).mmul(cogLocalSkew)); // (3x3) x (3x3) x (3x3) x (3x4) = 3x4
-    dThetaM = dThetaM.add(cogSkewQ.mmul(dThetaMCF));
+    dThetaM = dThetaM.add(cogSkewQ.mmul(dThetaMCF).mul(-1));
     phi_q.setSubMatrix(dThetaM.mmul(G), row + 3, col + Q0);
 
     // dω
@@ -1029,7 +1029,7 @@ export class TireBalance implements Constraint {
     // 接地点
     const ground = this.ground();
     const localGroundSkew = skew(ground).mul(-2);
-    const groundQ = this.ground().clone().applyQuaternion(q);
+    const groundQ = ground.clone().applyQuaternion(q);
     const groundSkewQ = skew(groundQ);
     const pGround = groundQ.clone().add(position);
     const groundSkewP = skew(pGround);
@@ -1067,7 +1067,7 @@ export class TireBalance implements Constraint {
     // 接地点の速度
     const vOmega = omega.clone().cross(pGround);
     const vGround = vO.clone().add(vOmega);
-    vGround.z = 0; // 念のため
+    // vGround.z = 0; // 念のため
     const dvG = groundSkewP.mmul(unitZ).mul(-1); // (3x1)
     const vGn = vGround.clone().normalize();
     const vGnSkew = skew(vGn);
