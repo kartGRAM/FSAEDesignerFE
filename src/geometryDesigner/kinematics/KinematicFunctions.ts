@@ -74,7 +74,7 @@ export function normalizedVectorDiff(u: Vector3): Matrix {
   const u3 = abs ** 3;
   const u2 = abs ** 2;
   const U = getVVector(u);
-  const UUt = U.mmul(U.transpose());
+  const UUt = U.mmul(U.clone().transpose());
   const d = I.clone()
     .mul(u2)
     .sub(UUt)
@@ -195,7 +195,7 @@ export function getDeltaOmega(
 ) {
   const lhs = v.clone().add(omega.clone().cross(cogVehicle));
   const rhs = omegaSkew.mmul(cogVehicleSkew);
-  return rhs.add(skew(lhs).mul(mass));
+  return rhs.add(skew(lhs)).mul(mass);
 }
 
 // 縦ベクトルを得る
