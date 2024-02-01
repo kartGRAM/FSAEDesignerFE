@@ -68,6 +68,7 @@ import {
   BarBalance,
   AArmBalance,
   TireBalance,
+  isTireBalance,
   LinearBushingBalance,
   FDComponentBalance
 } from './SkidpadConstraints';
@@ -963,12 +964,18 @@ export class SkidpadSolver {
       });
     }
     // 上記4ステップでプリプロセッサ完了
-    if (solve)
+    if (solve) {
+      this.solve({
+        constraintsOptions: {onAssemble: true, disableTireFriction: true},
+        postProcess: true,
+        logOutput: true
+      });
       this.solve({
         constraintsOptions: {onAssemble: true},
         postProcess: true,
         logOutput: true
       });
+    }
   }
 
   getGroupItBelongsTo(component: IVariable): [IVariable, IVariable[]] {
@@ -1001,6 +1008,10 @@ export class SkidpadSolver {
         const constraints = root
           .getGroupedConstraints()
           .filter((constraint) => constraint.active(constraintsOptions));
+        constraints.forEach((c) => {
+          if (isTireBalance(c))
+            c.disableTireFriction = !!constraintsOptions.disableTireFriction;
+        });
 
         const equations = constraints.reduce((prev, current) => {
           current.row = prev;

@@ -28,6 +28,7 @@ const Q3 = 6;
 export interface ConstraintsOptions {
   onAssemble?: boolean;
   fixSpringDumpersAtCurrentPositions?: boolean;
+  disableTireFriction?: boolean;
 }
 
 interface deltaL {
