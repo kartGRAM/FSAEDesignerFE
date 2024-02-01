@@ -1036,8 +1036,7 @@ export class TireBalance implements Constraint, Balance {
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
     const {row, localVec, localSkew, pfs, cog, g, error, torqueRatio} = this;
-    const {component, localAxis, pfCoefs} = this;
-    const {localAxisSkew} = this;
+    const {component, pfCoefs} = this;
 
     const q = this.component.quaternion;
     const {position} = this.component;
@@ -1162,7 +1161,7 @@ export class TireBalance implements Constraint, Balance {
     // dΘ
     const dThetaMF = omegaSkew2.mmul(A).mmul(cogLocalSkew).mul(-this.mass);
     const dThetaMError = dk_dQ.clone().mul(torqueRatio * error.value);
-    const dTheta = dThetaMF.mmul(G).add(dk_dQ).add(dFtR_dQ);
+    const dTheta = dThetaMF.mmul(G).add(dThetaMError).add(dFtR_dQ);
     phi_q.setSubMatrix(dTheta.subMatrix(0, 1, 0, 3), row, component.col + Q0);
     // phi_q.setSubMatrix(dTheta, row, component.col + Q0);
 
@@ -1242,6 +1241,7 @@ export class TireBalance implements Constraint, Balance {
     const omegaSkew = skew(omega); // 角速度のSkewMatrix(3x3)
     const vO = this.vO(); // 車速(m/s)
     const cO = omega.clone().cross(vO).multiplyScalar(-1); // 車両座標系にかかる原点の遠心力
+    // const c02 = omegaSkew.mmul(getVVector(vO)).mul(-1);
 
     const c = omega
       .clone()
