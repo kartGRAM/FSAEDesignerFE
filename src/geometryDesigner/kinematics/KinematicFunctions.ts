@@ -195,7 +195,7 @@ export function getDeltaOmega(
 ) {
   const lhs = v.clone().add(omega.clone().cross(cogVehicle));
   const rhs = omegaSkew.mmul(cogVehicleSkew);
-  return rhs.add(skew(lhs).mul(-mass));
+  return rhs.add(skew(lhs).mul(mass));
 }
 
 // 縦ベクトルを得る

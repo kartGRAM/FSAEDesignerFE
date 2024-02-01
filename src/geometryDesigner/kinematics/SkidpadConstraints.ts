@@ -138,7 +138,7 @@ export class FDComponentBalance implements Constraint {
     const omegaSkew = skew(omega); // 角速度のSkewMatrix
     const omegaSkew2 = omegaSkew.mmul(omegaSkew); // 角速度のSkewMatrix
     const vO = this.vO(); // 車速
-    const cO = omega.clone().cross(vO); // 車両座標系にかかる原点の遠心力
+    const cO = omega.clone().cross(vO).multiplyScalar(-1); // 車両座標系にかかる原点の遠心力
     const q = component.quaternion; // 注目している部品の姿勢
     // 部品の部品座標系での重心
     const cogQ = cogLocalVec.clone().applyQuaternion(q);
@@ -146,7 +146,11 @@ export class FDComponentBalance implements Constraint {
     const cogSkewQ = skew(cogQ);
     const cogSkewP = skew(pCog);
     // 部品にかかる遠心力
-    const c = omega.clone().cross(omega.clone().cross(pCog)).add(cO);
+    const c = omega
+      .clone()
+      .cross(omega.clone().cross(pCog))
+      .multiplyScalar(-1)
+      .add(cO);
     const ma = g.clone().add(c).multiplyScalar(this.mass); // 遠心力＋重力
     const maSkew = skew(ma);
 
@@ -206,7 +210,7 @@ export class FDComponentBalance implements Constraint {
     const dP = omegaSkew2.clone().mul(this.mass);
     phi_q.setSubMatrix(dP, row, col + X);
     // dΘ
-    const dThetaMCF = omegaSkew2.mmul(A).mmul(cogLocalSkew).mul(this.mass);
+    const dThetaMCF = omegaSkew2.mmul(A).mmul(cogLocalSkew).mul(-this.mass);
     phi_q.setSubMatrix(dThetaMCF.mmul(G), row, col + Q0);
 
     // モーメントの部分のヤコビアン
@@ -224,12 +228,12 @@ export class FDComponentBalance implements Constraint {
       dThetaM = dThetaM.add(fSkew.mmul(As));
     });
     // dP
-    const dPRot = cogSkewQ.mmul(omegaSkew2).mul(-this.mass);
+    const dPRot = cogSkewQ.mmul(omegaSkew2).mul(this.mass);
     phi_q.setSubMatrix(dPRot, row + 3, col + X);
 
     // dΘ
     dThetaM = dThetaM.add(maSkew.mmul(A).mmul(cogLocalSkew)); // (3x3) x (3x3) x (3x3) x (3x4) = 3x4
-    dThetaM = dThetaM.add(cogSkewQ.mmul(dThetaMCF).mul(-1));
+    dThetaM = dThetaM.add(cogSkewQ.mmul(dThetaMCF));
     phi_q.setSubMatrix(dThetaM.mmul(G), row + 3, col + Q0);
 
     // dω
@@ -745,9 +749,13 @@ export class LinearBushingBalance implements Constraint {
     const omegaSkew = skew(omega); // 角速度のSkewMatrix
     const omegaSkew2 = omegaSkew.mmul(omegaSkew);
     const vO = this.vO(); // 車速
-    const cO = omega.clone().cross(vO); // 車両座標系にかかる原点の遠心力
+    const cO = omega.clone().cross(vO).multiplyScalar(-1); // 車両座標系にかかる原点の遠心力
 
-    const c = omega.clone().cross(omega.clone().cross(pCog)).add(cO);
+    const c = omega
+      .clone()
+      .cross(omega.clone().cross(pCog))
+      .multiplyScalar(-1)
+      .add(cO);
     const ma = g.clone().add(c).multiplyScalar(this.mass); // 遠心力＋重力
     const maSkew = skew(ma);
 
@@ -1042,9 +1050,13 @@ export class TireBalance implements Constraint {
     const omegaSkew = skew(omega); // 角速度のSkewMatrix(3x3)
     const omegaSkew2 = omegaSkew.mmul(omegaSkew); // (3x3)
     const vO = this.vO(); // 車速(m/s)
-    const cO = omega.clone().cross(vO); // 車両座標系にかかる原点の遠心力
+    const cO = omega.clone().cross(vO).multiplyScalar(-1); // 車両座標系にかかる原点の遠心力
 
-    const c = omega.clone().cross(omega.clone().cross(pCog)).add(cO);
+    const c = omega
+      .clone()
+      .cross(omega.clone().cross(pCog))
+      .multiplyScalar(-1)
+      .add(cO);
     const ma = g.clone().add(c).multiplyScalar(this.mass); // 遠心力＋重力
     const maSkew = skew(ma); // (3x3)
 
@@ -1190,12 +1202,12 @@ export class TireBalance implements Constraint {
     // phi_q.setSubMatrix(dOmega, row, this.omega.col);
 
     // dP
-    const dP1 = omegaSkew2.clone().mul(this.mass);
+    const dP1 = omegaSkew2.clone().mul(-this.mass);
     phi_q.setSubMatrix(dP1.subMatrix(0, 1, 0, 2), row, component.col + X);
     // phi_q.setSubMatrix(dP, row, component.col + X);
 
     // dΘ
-    let dThetaMF = omegaSkew2.mmul(A).mmul(cogLocalSkew).mul(this.mass);
+    let dThetaMF = omegaSkew2.mmul(A).mmul(cogLocalSkew).mul(-this.mass);
     const dThetaMError = unitZSkew
       .mmul(A)
       .mmul(localAxisSkew)
@@ -1234,7 +1246,7 @@ export class TireBalance implements Constraint {
     });
     dThetaM = dThetaM.add(maSkew.mmul(A).mmul(cogLocalSkew));
     const temp = groundSkewQ.mmul(nnT).sub(cogSkewQ);
-    const temp2 = temp.mmul(omegaSkew2).mul(this.mass);
+    const temp2 = temp.mmul(omegaSkew2).mul(-this.mass);
     dThetaM = dThetaM.add(temp2.mmul(A).mmul(cogLocalSkew));
     dThetaM = dThetaM.add(
       frictionSkew.clone().add(feSkew).mmul(A).mmul(localGroundSkew)
