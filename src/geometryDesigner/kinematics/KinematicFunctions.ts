@@ -259,7 +259,7 @@ export function equal(
   rhs: Matrix,
   eps = 1.0e-3
 ): [boolean, number] {
-  const sub = lhs.sub(rhs);
+  const sub = lhs.clone().sub(rhs);
   const l = sub.norm('frobenius');
   // eslint-disable-next-line no-console
   console.log(`norm:${l}`);
@@ -502,7 +502,7 @@ export function getSimplifiedTireConstrainsParams(
   const pLocal = point.value
     .multiplyScalar(scale)
     .applyQuaternion(dq)
-    .add(dp.multiplyScalar(scale));
+    .add(dp.clone().multiplyScalar(scale));
   const func = () => pLocal;
   return [pComponent, func];
 }

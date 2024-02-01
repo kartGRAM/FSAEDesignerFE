@@ -1206,8 +1206,8 @@ export class TireBalance implements Constraint {
     // phi_q.setSubMatrix(dTheta, row, component.col + Q0);
 
     // de
-    const de = unitZSkew.mmul(getVVector(axis)).mul(-torqueRatio);
-    const de22 = getVVector(para).mul(-torqueRatio);
+    const deOld = unitZSkew.mmul(getVVector(axis)).mul(-torqueRatio);
+    const de = getVVector(para).mul(torqueRatio);
     phi_q.setSubMatrix(de.subMatrix(0, 1, 0, 0), row, error.col);
     // phi_q.setSubMatrix(de, row, error.col);
 

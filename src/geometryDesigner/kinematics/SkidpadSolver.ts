@@ -997,7 +997,7 @@ export class SkidpadSolver {
     this.running = true;
     try {
       const start = performance.now();
-      const maxCnt = params?.maxCnt ?? 200; // 200;
+      const maxCnt = params?.maxCnt ?? 50; // 200;
       const postProcess = params?.postProcess ?? true;
       const constraintsOptions = params?.constraintsOptions ?? {};
       const logOutput = params?.logOutput ?? false;
