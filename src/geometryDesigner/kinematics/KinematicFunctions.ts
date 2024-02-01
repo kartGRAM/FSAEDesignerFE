@@ -38,9 +38,9 @@ export function skew(v: {x: number; y: number; z: number} | Matrix) {
   const y = v.get(1, 0);
   const z = v.get(2, 0);
   return new Matrix([
-    [0, z, -y],
-    [-z, 0, x],
-    [y, -x, 0]
+    [0, -z, y],
+    [z, 0, -x],
+    [-y, x, 0]
   ]);
 }
 
