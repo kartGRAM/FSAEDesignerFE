@@ -451,6 +451,7 @@ export class SkidpadSolver {
               new TireBalance({
                 name: `TireBalance of${element.name.value}`,
                 component,
+                element,
                 points: [points[0].value, points[1].value],
                 pfsPointNodeIDs: [
                   element.outerBearing.nodeID,
@@ -897,6 +898,7 @@ export class SkidpadSolver {
         constraints.push(
           new FDComponentBalance({
             name: `FDComponentBalance of${element.name.value}`,
+            element,
             component,
             mass: element.mass.value,
             cog: element.centerOfGravity.value,
@@ -1046,7 +1048,7 @@ export class SkidpadSolver {
 
           const norm = dq.norm('frobenius');
           eq = norm < 1.0e-4;
-          console.log(`norm=${norm.toFixed(3)}`);
+          console.log(`norm=${norm.toFixed(4)}`);
           if (norm > minNorm * 100000 || Number.isNaN(norm)) {
             // eslint-disable-next-line no-console
             console.log(`norm=${norm.toFixed(3)}`);

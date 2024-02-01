@@ -145,6 +145,11 @@ export class LinearBushing extends Element implements ILinearBushing {
     return [...this.fixedPoints, ...this.points];
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  getForceResults(): {name: string; point: Vector3; result: Vector3}[] {
+    return [];
+  }
+
   setCenterOfGravityAuto() {
     const points = [...this.fixedPoints];
     if (points.length === 0) return;

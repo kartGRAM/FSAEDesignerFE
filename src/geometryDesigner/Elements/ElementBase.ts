@@ -137,6 +137,8 @@ export abstract class Element implements IElement {
 
   abstract getPoints(): INamedVector3RO[];
 
+  abstract getForceResults(): {name: string; point: Vector3; result: Vector3}[];
+
   getMeasurablePoints(): INamedVector3RO[] {
     const points = this.getPoints();
     return [...points, this.centerOfGravity, this.position];

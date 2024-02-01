@@ -45,6 +45,11 @@ export class Body extends Element implements IBody {
     return [...this.fixedPoints, ...this.points];
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  getForceResults(): {name: string; point: Vector3; result: Vector3}[] {
+    return [];
+  }
+
   setCenterOfGravityAuto() {
     const points = [...this.fixedPoints, ...this.points];
     if (points.length === 0) return;

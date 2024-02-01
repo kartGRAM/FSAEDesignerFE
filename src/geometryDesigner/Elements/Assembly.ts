@@ -290,6 +290,11 @@ export class Assembly extends Element implements IAssembly {
   }
 
   // eslint-disable-next-line class-methods-use-this
+  getForceResults(): {name: string; point: Vector3; result: Vector3}[] {
+    return [];
+  }
+
+  // eslint-disable-next-line class-methods-use-this
   setCenterOfGravityAuto() {}
 
   getPointsNodeIDs(): string[] {

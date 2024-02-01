@@ -109,6 +109,11 @@ export class Tire extends Element implements ITire {
     return [this.outerBearing, this.innerBearing];
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  getForceResults(): {name: string; point: Vector3; result: Vector3}[] {
+    return [];
+  }
+
   setCenterOfGravityAuto() {
     this.centerOfGravity.value = this.tireCenter.value;
   }

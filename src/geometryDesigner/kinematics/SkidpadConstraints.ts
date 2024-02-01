@@ -5,6 +5,8 @@
 import {Matrix} from 'ml-matrix';
 import {Vector3, Quaternion} from 'three';
 import {Triple, Twin, OneOrTwo} from '@utils/atLeast';
+import {IElement} from '@gd/IElements';
+import {ITire} from '@gd/IElements/ITire';
 import {
   skew,
   rotationMatrix,
@@ -44,7 +46,11 @@ const unitZT = unitZ.transpose();
 const unitZSkew = skew(new Vector3(0, 0, 1));
 const nnT = unitZ.mmul(unitZT);
 
-export class FDComponentBalance implements Constraint {
+export interface Balance {
+  applytoElement(): void;
+}
+
+export class FDComponentBalance implements Constraint, Balance {
   readonly className = 'FDComponentBalance';
 
   // 並進運動+回転
@@ -65,6 +71,8 @@ export class FDComponentBalance implements Constraint {
   relevantVariables: IVariable[];
 
   name: string;
+
+  element: IElement;
 
   component: IComponent;
 
@@ -91,6 +99,7 @@ export class FDComponentBalance implements Constraint {
   constructor(params: {
     name: string;
     component: FullDegreesComponent;
+    element: IElement;
     mass: number;
     cog: Vector3;
     points: Vector3[];
@@ -100,6 +109,7 @@ export class FDComponentBalance implements Constraint {
     omega: GeneralVariable;
   }) {
     this.name = params.name;
+    this.element = params.element;
     this.component = params.component;
     this.mass = params.mass;
     this.vO = params.vO;
@@ -240,6 +250,8 @@ export class FDComponentBalance implements Constraint {
     const dOmegaRot = cogSkewQ.mmul(dOmega).mul(-1);
     phi_q.setSubMatrix(dOmegaRot, row + 3, colOmega);
   }
+
+  applytoElement() {}
 
   setJacobianAndConstraintsInequal() {}
 
@@ -877,7 +889,7 @@ export class LinearBushingBalance implements Constraint {
   }
 }
 
-export class TireBalance implements Constraint {
+export class TireBalance implements Constraint, Balance {
   static className = 'TireBalance' as const;
 
   readonly className = TireBalance.className;
@@ -904,6 +916,8 @@ export class TireBalance implements Constraint {
   error: GeneralVariable;
 
   component: IComponent;
+
+  element: ITire;
 
   relevantVariables: IVariable[];
 
@@ -944,6 +958,7 @@ export class TireBalance implements Constraint {
   constructor(params: {
     name: string;
     component: FullDegreesComponent;
+    element: ITire;
     points: Twin<Vector3>; // Component基準
     mass: number;
     cog: number;
@@ -964,6 +979,7 @@ export class TireBalance implements Constraint {
     const {
       name,
       component,
+      element,
       mass,
       cog,
       points, // Component基準
@@ -978,13 +994,14 @@ export class TireBalance implements Constraint {
     } = params;
 
     this.name = name;
+    this.component = component;
+    this.element = element;
     this.cog = cog;
     this.pfs = [...pfs];
     this.pfCoefs = this.pfs.map((pf, i) =>
       pf.sign(params.pfsPointNodeIDs[i])
     ) as Twin<number>;
     this.error = error;
-    this.component = component;
     this.mass = mass;
     this.torqueRatio = torqueRatio;
     this.omega = omega;
@@ -1032,7 +1049,6 @@ export class TireBalance implements Constraint {
     const groundQ = ground.clone().applyQuaternion(q);
     const groundSkewQ = skew(groundQ);
     const pGround = groundQ.clone().add(position);
-    const groundSkewP = skew(pGround);
 
     // 重心
     const localCog = localVec[1]
@@ -1045,100 +1061,37 @@ export class TireBalance implements Constraint {
     const cogSkewP = skew(pCog);
     const cogSkewQ = skew(pCogQ);
     const cogLocalSkew = skew(localCog).mul(-2);
-    // 慣性力
-    const omega = new Vector3(0, 0, this.omega.value);
-    const omegaSkew = skew(omega); // 角速度のSkewMatrix(3x3)
-    const omegaSkew2 = omegaSkew.mmul(omegaSkew); // (3x3)
-    const vO = this.vO(); // 車速(m/s)
-    const cO = omega.clone().cross(vO).multiplyScalar(-1); // 車両座標系にかかる原点の遠心力
-
-    const c = omega
-      .clone()
-      .cross(omega.clone().cross(pCog))
-      .multiplyScalar(-1)
-      .add(cO);
-    const ma = g.clone().add(c).multiplyScalar(this.mass); // 遠心力＋重力
-    const maSkew = skew(ma); // (3x3)
 
     // 回転行列
     const A = rotationMatrix(q);
     const G = decompositionMatrixG(q);
 
-    // 接地点の速度
-    const vOmega = omega.clone().cross(pGround);
-    const vGround = vO.clone().add(vOmega);
-    // vGround.z = 0; // 念のため
-    const dvG = groundSkewP.mmul(unitZ).mul(-1); // (3x1)
-    const vGn = vGround.clone().normalize();
-    const vGnSkew = skew(vGn);
-    const dvGn_dvG = normalizedVectorDiff(vGround); // (3x3)
-    const dvGn = dvGn_dvG.mmul(dvG); // (3x1)
-
-    // SAとIAとFZを求める
-    const axis = localAxis.clone().applyQuaternion(q);
-    // axisに垂直で地面に平行なベクトル(Vの方向を向いている)
-    const para = axis.clone().cross(normal);
-    if (para.dot(vGround) < 0) {
-      throw new Error('ベクトルの向きが逆になった');
-    }
-    const dPara = unitZSkew.mmul(A).mmul(localAxisSkew).mmul(G).mul(-1); // (3x4)
-    const k = para.clone().normalize(); // 長さ1
-    const kSkew = skew(k); // (3x3)
-    const dk_dpara = normalizedVectorDiff(para); // (3x3)
-    const dk = dk_dpara.mmul(dPara); // (3x3) * (3x4) = (3x4)
-    // saの取得
-    const saSin = normal.dot(k.clone().cross(vGn));
-    const dSaSin_Q = unitZT.mmul(vGnSkew).mmul(dk).mul(-1); // (1x3) * (3x3) * (3x4) = (1x4)
-    const dSaSin_Omega = unitZT.mmul(kSkew).mmul(dvGn); // (1x3) * (3x3) * (3x1) = (1x1)
-    const sa = (Math.asin(saSin) * 180) / Math.PI;
-    const dsa_dSaSin = asinDiff(saSin);
-    const dSa_Q = dSaSin_Q.clone().mul(dsa_dSaSin); // (1x4)
-    const dSa_Omega = dSaSin_Omega.clone().mul(dsa_dSaSin); // (1x1)
-
-    // iaの取得
-    const tireVirtical = axis.clone().cross(k).normalize();
-    const iaSin = tireVirtical.clone().cross(normal).dot(k);
-    let ia = (Math.asin(iaSin) * 180) / Math.PI;
-    ia = 0; // iaの求め方がおかしい
-
-    // fzの取得
-    // normal方向成分を求める
-    const fz = pfs
-      .reduce((prev, current, i) => {
-        return prev.add(new Vector3(0, 0, -current.force.z * pfCoefs[i]));
-      }, new Vector3())
-      .add(new Vector3(0, 0, -ma.z));
-    if (fz.z < 0) {
-      throw new Error('Fzが負になった');
-    }
-
-    // タイヤの摩擦力の取得
-    const frictionOrg = this.getFriction(sa, ia, fz.z); // この値はタイヤが垂直の時の座標系
-    const {saDiff, iaDiff, fzDiff} = this.getFrictionDiff(sa, ia, fz.z);
-    const dFt_Q = saDiff.mmul(dSa_Q); // (3x1)*(1x4) = (3x4)
-    const dFt_Omega = saDiff.mmul(dSa_Omega); // (3x1)*(1x1) = (3x1)
-    const dFt_df = fzDiff.mmul(unitZT).mul(-1); // (3x1)*(1x3) = (3x3)
-
-    // 垂直方向を合わせたのち、前方方向を合わせる
-    const [frictionRot, frictionRotMat] = getFrictionRotation(k);
-    const dFtR_Q1 = frictionRotationDiff(dk, frictionOrg); // (3x4);
-    const dFtR_Q2 = frictionRotMat.mmul(dFt_Q); // (3x4)
-    const dFtR_Q = dFtR_Q1.clone().add(dFtR_Q2);
-    const dFtR_Omega = frictionRotMat.mmul(dFt_Omega); // (3x1)
-    const dFtR_df = frictionRotMat.mmul(dFt_df); // (3x1)
-    if (this.disableTireFriction) {
-      frictionOrg.set(0, 0, 0);
-      dFtR_Q.mul(0);
-      dFtR_Omega.mul(0);
-      dFtR_df.mul(0);
-    }
-
-    // const friction2 = frictionRotMat.mmul(getVVector(frictionOrg));
-    const friction = frictionOrg.clone().applyQuaternion(frictionRot);
+    // 慣性力など
+    const {
+      ma,
+      omegaSkew,
+      omega,
+      vO,
+      friction,
+      fz,
+      k,
+      dk_dQ,
+      dFtR_df,
+      dFtR_dOmega,
+      dFtR_dQ
+    } = this.getTireVectors({
+      pGround,
+      A,
+      G,
+      q,
+      pCog
+    });
+    const maSkew = skew(ma); // (3x3)
+    const omegaSkew2 = omegaSkew.mmul(omegaSkew); // (3x3)
     const frictionSkew = skew(friction);
 
     // 誤差項
-    const fe = para.clone().multiplyScalar(torqueRatio * error.value);
+    const fe = k.clone().multiplyScalar(torqueRatio * error.value);
     const feSkew = skew(fe);
 
     // 力のつり合い
@@ -1197,7 +1150,7 @@ export class TireBalance implements Constraint {
       cogSkewP,
       this.mass
     ).mmul(unitZ);
-    const dOmega1 = dOmegaByCentrifugal.clone().add(dFtR_Omega);
+    const dOmega1 = dOmegaByCentrifugal.clone().add(dFtR_dOmega);
     phi_q.setSubMatrix(dOmega1.subMatrix(0, 1, 0, 0), row, this.omega.col);
     // phi_q.setSubMatrix(dOmega, row, this.omega.col);
 
@@ -1207,19 +1160,14 @@ export class TireBalance implements Constraint {
     // phi_q.setSubMatrix(dP, row, component.col + X);
 
     // dΘ
-    let dThetaMF = omegaSkew2.mmul(A).mmul(cogLocalSkew).mul(-this.mass);
-    const dThetaMError = unitZSkew
-      .mmul(A)
-      .mmul(localAxisSkew)
-      .mul(-torqueRatio * error.value);
-    dThetaMF = dThetaMF.add(dThetaMError);
-    const dTheta = dThetaMF.mmul(G).add(dFtR_Q);
+    const dThetaMF = omegaSkew2.mmul(A).mmul(cogLocalSkew).mul(-this.mass);
+    const dThetaMError = dk_dQ.clone().mul(torqueRatio * error.value);
+    const dTheta = dThetaMF.mmul(G).add(dk_dQ).add(dFtR_dQ);
     phi_q.setSubMatrix(dTheta.subMatrix(0, 1, 0, 3), row, component.col + Q0);
     // phi_q.setSubMatrix(dTheta, row, component.col + Q0);
 
     // de
-    // const deOld = unitZSkew.mmul(getVVector(axis)).mul(-torqueRatio);
-    const de = getVVector(para).mul(torqueRatio);
+    const de = getVVector(k).mul(torqueRatio);
     phi_q.setSubMatrix(de.subMatrix(0, 1, 0, 0), row, error.col);
     // phi_q.setSubMatrix(de, row, error.col);
 
@@ -1251,8 +1199,10 @@ export class TireBalance implements Constraint {
     dThetaM = dThetaM.add(
       frictionSkew.clone().add(feSkew).mmul(A).mmul(localGroundSkew)
     );
-    dThetaM = dThetaM.add(groundSkewQ.mmul(dThetaMError).mul(-1));
-    const dTheta2 = dThetaM.mmul(G).sub(groundSkewQ.mmul(dFtR_Q));
+    const dTheta2 = dThetaM
+      .mmul(G)
+      .sub(groundSkewQ.mmul(dFtR_dQ))
+      .sub(groundSkewQ.mmul(dThetaMError));
     phi_q.setSubMatrix(dTheta2, row + 2, component.col + Q0);
     // phi_q.setSubMatrix(dThetaM.mmul(G), row + 3, component.col + Q0);
 
@@ -1263,7 +1213,7 @@ export class TireBalance implements Constraint {
     // dω
     const dOmega2 = temp
       .mmul(dOmegaByCentrifugal)
-      .sub(groundSkewQ.mmul(dFtR_Omega));
+      .sub(groundSkewQ.mmul(dFtR_dOmega));
     phi_q.setSubMatrix(dOmega2, row + 2, this.omega.col);
     // phi_q.setSubMatrix(temp.mmul(dOmega), row + 3, this.omega.col);
 
@@ -1272,6 +1222,122 @@ export class TireBalance implements Constraint {
     phi_q.setSubMatrix(de2, row + 2, this.error.col);
     // phi_q.setSubMatrix(de2, row + 3, this.error.col);
   }
+
+  getTireVectors({
+    pGround,
+    A,
+    G,
+    q,
+    pCog
+  }: {
+    pGround: Vector3;
+    A: Matrix;
+    G: Matrix;
+    q: Quaternion;
+    pCog: Vector3;
+  }) {
+    const {localAxis, localAxisSkew, pfs, pfCoefs, g} = this;
+    // 慣性力
+    const omega = new Vector3(0, 0, this.omega.value);
+    const omegaSkew = skew(omega); // 角速度のSkewMatrix(3x3)
+    const vO = this.vO(); // 車速(m/s)
+    const cO = omega.clone().cross(vO).multiplyScalar(-1); // 車両座標系にかかる原点の遠心力
+
+    const c = omega
+      .clone()
+      .cross(omega.clone().cross(pCog))
+      .multiplyScalar(-1)
+      .add(cO);
+    const ma = g.clone().add(c).multiplyScalar(this.mass); // 遠心力＋重力
+
+    const groundSkewP = skew(pGround);
+    // 接地点の速度
+    const vOmega = omega.clone().cross(pGround);
+    const vGround = vO.clone().add(vOmega);
+    // vGround.z = 0; // 念のため
+    const dvG = groundSkewP.mmul(unitZ).mul(-1); // (3x1)
+    const vGn = vGround.clone().normalize();
+    const vGnSkew = skew(vGn);
+    const dvGn_dvG = normalizedVectorDiff(vGround); // (3x3)
+    const dvGn = dvGn_dvG.mmul(dvG); // (3x1)
+
+    // SAとIAとFZを求める
+    const axis = localAxis.clone().applyQuaternion(q);
+    // axisに垂直で地面に平行なベクトル(Vの方向を向いている)
+    const para = axis.clone().cross(normal);
+    if (para.dot(vGround) < 0) {
+      throw new Error('ベクトルの向きが逆になった');
+    }
+    const dPara_dQ = unitZSkew.mmul(A).mmul(localAxisSkew).mmul(G).mul(-1); // (3x4)
+    const k = para.clone().normalize(); // 長さ1
+    const kSkew = skew(k); // (3x3)
+    const dk_dPara = normalizedVectorDiff(para); // (3x3)
+    const dk_dQ = dk_dPara.mmul(dPara_dQ); // (3x3) * (3x4) = (3x4)
+    // saの取得
+    const saSin = normal.dot(k.clone().cross(vGn));
+    const dSaSin_dQ = unitZT.mmul(vGnSkew).mmul(dk_dQ).mul(-1); // (1x3) * (3x3) * (3x4) = (1x4)
+    const dSaSin_dOmega = unitZT.mmul(kSkew).mmul(dvGn); // (1x3) * (3x3) * (3x1) = (1x1)
+    const sa = (Math.asin(saSin) * 180) / Math.PI;
+    const dsa_dSaSin = asinDiff(saSin);
+    const dSa_dQ = dSaSin_dQ.clone().mul(dsa_dSaSin); // (1x4)
+    const dSa_dOmega = dSaSin_dOmega.clone().mul(dsa_dSaSin); // (1x1)
+
+    // iaの取得
+    const tireVirtical = axis.clone().cross(k).normalize();
+    const iaSin = tireVirtical.clone().cross(normal).dot(k);
+    let ia = (Math.asin(iaSin) * 180) / Math.PI;
+    ia = 0; // iaの求め方がおかしい
+
+    // fzの取得
+    // normal方向成分を求める
+    const fz = pfs
+      .reduce((prev, current, i) => {
+        return prev.add(new Vector3(0, 0, -current.force.z * pfCoefs[i]));
+      }, new Vector3())
+      .add(new Vector3(0, 0, -ma.z));
+    if (fz.z < 0) {
+      throw new Error('Fzが負になった');
+    }
+
+    // タイヤの摩擦力の取得
+    const frictionOrg = this.getFriction(sa, ia, fz.z); // この値はタイヤが垂直の時の座標系
+    const {saDiff, iaDiff, fzDiff} = this.getFrictionDiff(sa, ia, fz.z);
+    const dFt_dQ = saDiff.mmul(dSa_dQ); // (3x1)*(1x4) = (3x4)
+    const dFt_dOmega = saDiff.mmul(dSa_dOmega); // (3x1)*(1x1) = (3x1)
+    const dFt_df = fzDiff.mmul(unitZT).mul(-1); // (3x1)*(1x3) = (3x3)
+
+    // 垂直方向を合わせたのち、前方方向を合わせる
+    const [frictionRot, frictionRotMat] = getFrictionRotation(k);
+    const dFtR_dQ1 = frictionRotationDiff(dk_dQ, frictionOrg); // (3x4);
+    const dFtR_dQ2 = frictionRotMat.mmul(dFt_dQ); // (3x4)
+    const dFtR_dQ = dFtR_dQ1.clone().add(dFtR_dQ2);
+    const dFtR_dOmega = frictionRotMat.mmul(dFt_dOmega); // (3x1)
+    const dFtR_df = frictionRotMat.mmul(dFt_df); // (3x1)
+    if (this.disableTireFriction) {
+      frictionOrg.set(0, 0, 0);
+      dFtR_dQ.mul(0);
+      dFtR_dOmega.mul(0);
+      dFtR_df.mul(0);
+    }
+
+    // const friction2 = frictionRotMat.mmul(getVVector(frictionOrg));
+    const friction = frictionOrg.clone().applyQuaternion(frictionRot);
+    return {
+      friction,
+      ma,
+      fz,
+      vO,
+      omega,
+      omegaSkew,
+      k,
+      dk_dQ,
+      dFtR_dQ,
+      dFtR_dOmega,
+      dFtR_df
+    };
+  }
+
+  applytoElement() {}
 
   setJacobianAndConstraintsInequal() {}
 
