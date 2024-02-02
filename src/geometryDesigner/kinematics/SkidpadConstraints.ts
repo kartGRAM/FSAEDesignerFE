@@ -1116,18 +1116,17 @@ export class TireBalance implements Constraint, Balance {
     const fe = k.clone().multiplyScalar(torqueRatio * error.value);
     const feSkew = skew(fe);
 
-    // 駆動力による車軸周りのモーメント(車軸周りのモーメントはこの項がないと釣り合わない)
-    const lmX = -tireRadius * (frictionX + torqueRatio * error.value);
-    const mX = axis.clone().multiplyScalar(lmX);
-
-    const dMX_dFtxOrdFex = getVVector(axis).mul(-tireRadius); // (3x1)
-    const dMX_de = dMX_dFtxOrdFex.clone().mul(torqueRatio); // (3x1)
-    const dMX_dOmega = dMX_dFtxOrdFex.mmul(dFtx_dOmega); // (3x1)*(1x1) = (3x1)
-    const dMX_df = dMX_dFtxOrdFex.mmul(dFtx_df); // (3x1)*(1x3) = (3x3)
-    const dMX_dP = dMX_dFtxOrdFex.mmul(dFtx_dP); // (3x1)*(1x3) = (3x3)
-    const dMX_dQ1 = dMX_dFtxOrdFex.mmul(dFtx_dQ); // (3x1)*(1x4) = (3x4)
-    const dMX_dQ2 = A.mmul(this.localAxisSkew).mmul(G).mul(lmX); // (3x4)
-    const dMX_dQ = dMX_dQ1.clone().add(dMX_dQ2);
+    const {mX, dMX_dOmega, dMX_de, dMX_df, dMX_dP, dMX_dQ} =
+      this.getDriveMoment({
+        frictionX,
+        dFtx_dOmega,
+        dFtx_dP,
+        dFtx_dQ,
+        dFtx_df,
+        axis,
+        A,
+        G
+      });
 
     // 力のつり合い
     const translation = pfs
@@ -1263,15 +1262,38 @@ export class TireBalance implements Constraint, Balance {
     // phi_q.setSubMatrix(de2, row + 3, this.error.col);
   }
 
-  getTireVectors({
-    pGround,
-    axis,
-    localGroundSkew,
-    A,
-    G,
-    q,
-    pCog
-  }: {
+  getTireVectorParams(): {
+    pGround: Vector3;
+    axis: Vector3;
+    localGroundSkew: Matrix;
+    A: Matrix;
+    G: Matrix;
+    q: Quaternion;
+    pCog: Vector3;
+  } {
+    const {localAxis, localVec, localCog} = this;
+    const q = this.component.quaternion;
+    const {position} = this.component;
+    // 接地点
+    const ground = this.ground();
+    const localGroundSkew = skew(ground).mul(-2);
+    const groundQ = ground.clone().applyQuaternion(q);
+    const pGround = groundQ.clone().add(position);
+    // pGround.z = 0;
+
+    // 重心
+    const pCogQ = localCog.clone().applyQuaternion(q);
+    const pCog = pCogQ.clone().add(position); // 車両座標系
+
+    // 回転行列
+    const A = rotationMatrix(q);
+    const G = decompositionMatrixG(q);
+    const axis = localAxis.clone().applyQuaternion(q);
+
+    return {pGround, axis, localGroundSkew, A, G, q, pCog};
+  }
+
+  getTireVectors(params?: {
     pGround: Vector3;
     axis: Vector3;
     localGroundSkew: Matrix;
@@ -1280,8 +1302,10 @@ export class TireBalance implements Constraint, Balance {
     q: Quaternion;
     pCog: Vector3;
   }) {
+    const {pGround, axis, localGroundSkew, A, G, pCog} =
+      params ?? this.getTireVectorParams();
     // console.log(`ground.z: ${pGround.z}`);
-    const {localAxis, localAxisSkew, pfs, pfCoefs, g} = this;
+    const {localAxisSkew, pfs, pfCoefs, g} = this;
     // 慣性力
     const omega = new Vector3(0, 0, this.omega.value);
     const omegaSkew = skew(omega); // 角速度のSkewMatrix(3x3)
@@ -1399,6 +1423,9 @@ export class TireBalance implements Constraint, Balance {
       omega,
       omegaSkew,
       k,
+      A,
+      G,
+      axis,
       dk_dQ,
       dFtR_dP,
       dFtR_dQ,
@@ -1408,6 +1435,42 @@ export class TireBalance implements Constraint, Balance {
       dFtx_dP,
       dFtx_dQ,
       dFtx_df
+    };
+  }
+
+  getDriveMoment(params?: {
+    frictionX: number;
+    dFtx_dOmega: Matrix;
+    dFtx_dP: Matrix;
+    dFtx_dQ: Matrix;
+    dFtx_df: Matrix;
+    axis: Vector3;
+    A: Matrix;
+    G: Matrix;
+  }) {
+    const {tireRadius, torqueRatio, error} = this;
+    const {A, G, frictionX, dFtx_dOmega, dFtx_df, dFtx_dP, dFtx_dQ, axis} =
+      params ?? this.getTireVectors();
+
+    // 駆動力による車軸周りのモーメント(車軸周りのモーメントはこの項がないと釣り合わない)
+    const lmX = -tireRadius * (frictionX + torqueRatio * error.value);
+    const mX = axis.clone().multiplyScalar(lmX);
+
+    const dMX_dFtxOrdFex = getVVector(axis).mul(-tireRadius); // (3x1)
+    const dMX_de = dMX_dFtxOrdFex.clone().mul(torqueRatio); // (3x1)
+    const dMX_dOmega = dMX_dFtxOrdFex.mmul(dFtx_dOmega); // (3x1)*(1x1) = (3x1)
+    const dMX_df = dMX_dFtxOrdFex.mmul(dFtx_df); // (3x1)*(1x3) = (3x3)
+    const dMX_dP = dMX_dFtxOrdFex.mmul(dFtx_dP); // (3x1)*(1x3) = (3x3)
+    const dMX_dQ1 = dMX_dFtxOrdFex.mmul(dFtx_dQ); // (3x1)*(1x4) = (3x4)
+    const dMX_dQ2 = A.mmul(this.localAxisSkew).mmul(G).mul(lmX); // (3x4)
+    const dMX_dQ = dMX_dQ1.clone().add(dMX_dQ2);
+    return {
+      mX,
+      dMX_dOmega,
+      dMX_de,
+      dMX_df,
+      dMX_dP,
+      dMX_dQ
     };
   }
 
