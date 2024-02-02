@@ -1005,7 +1005,7 @@ export class SkidpadSolver {
     this.running = true;
     try {
       const start = performance.now();
-      const maxCnt = params?.maxCnt ?? 200; // 200;
+      const maxCnt = params?.maxCnt ?? 50; // 200;
       const postProcess = params?.postProcess ?? true;
       const constraintsOptions = params?.constraintsOptions ?? {};
       const logOutput = params?.logOutput ?? false;
@@ -1054,7 +1054,7 @@ export class SkidpadSolver {
           components.forEach((component) => component.applyDq(dq));
 
           const norm = dq.norm('frobenius');
-          eq = norm < 1.0e-4;
+          eq = norm < 1.0e-2;
           console.log(`norm=${norm.toFixed(4)}`);
           if (norm > minNorm * 100000 || Number.isNaN(norm)) {
             // eslint-disable-next-line no-console

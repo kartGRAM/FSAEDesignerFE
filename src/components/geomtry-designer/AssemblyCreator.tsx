@@ -229,9 +229,7 @@ export default function AssemblyCreactor() {
             0.001,
             true
           );
-          dispatch(setKinematicsSolver(solver));
-          */
-
+          dispatch(setKinematicsSolver(solver)); */
           const params = state.uitgd.tests[2].steadySkidpadParams;
           if (params) {
             const solver = new SkidpadSolver(

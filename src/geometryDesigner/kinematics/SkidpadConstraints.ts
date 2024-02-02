@@ -1314,7 +1314,8 @@ export class TireBalance implements Constraint, Balance {
     const localGroundSkew = skew(ground).mul(-2);
     const groundQ = ground.clone().applyQuaternion(q);
     const pGround = groundQ.clone().add(position);
-    // console.log(`pGround= ${pGround.z}`);
+    // console.log(`pGround= ${ground.z}`);
+    // console.log(`cog= ${localCog.z}`);
     // pGround.z = 0;
 
     // 重心
@@ -1325,7 +1326,8 @@ export class TireBalance implements Constraint, Balance {
     const A = rotationMatrix(q);
     const G = decompositionMatrixG(q);
     const axis = localAxis.clone().applyQuaternion(q);
-    // const radius = ground.clone().sub(localCog).applyQuaternion(q);
+
+    const radius = ground.clone().sub(localCog).applyQuaternion(q);
     // console.log(`radius= ${radius.length()}`);
 
     return {pGround, axis, localGroundSkew, A, G, q, pCog};
