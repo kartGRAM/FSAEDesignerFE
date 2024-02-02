@@ -83,19 +83,14 @@ export function normalizedVectorDiff(u: Vector3): Matrix {
 }
 
 // タイヤの軸に垂直で、地面に平行な前方向ベクトルkから、回転行列を作成
-export function getFrictionRotation(
-  normalizedFrontVector: Vector3
-): [Quaternion, Matrix] {
+export function getFrictionRotation(normalizedFrontVector: Vector3): Matrix {
   const k = normalizedFrontVector;
-  const q = new Quaternion().setFromUnitVectors(new Vector3(1, 0, 0), k);
-  return [
-    q,
-    new Matrix([
-      [k.x, -k.y, 0],
-      [k.y, k.x, 0],
-      [0, 0, 0]
-    ])
-  ];
+  // const q = new Quaternion().setFromUnitVectors(new Vector3(1, 0, 0), k);
+  return new Matrix([
+    [k.x, -k.y, 0],
+    [k.y, k.x, 0],
+    [0, 0, 0]
+  ]);
 }
 
 // FrictionRotationMatrix φ に対して、δφ F
@@ -201,6 +196,14 @@ export function getDeltaOmega(
 // 縦ベクトルを得る
 export function getVVector(v: {x: number; y: number; z: number}) {
   return new Matrix([[v.x], [v.y], [v.z]]);
+}
+
+// 縦ベクトルを得る
+export function getVector3(v: Matrix) {
+  const x = v.get(0, 0);
+  const y = v.get(1, 0);
+  const z = v.get(2, 0);
+  return new Vector3(x, y, z);
 }
 
 // 回転行列を取得
