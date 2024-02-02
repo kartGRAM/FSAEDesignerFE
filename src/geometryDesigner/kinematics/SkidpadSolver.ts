@@ -452,6 +452,7 @@ export class SkidpadSolver {
                 name: `TireBalance of${element.name.value}`,
                 component,
                 element,
+                tireRadius: element.diameter / 2,
                 points: [points[0].value, points[1].value],
                 pfsPointNodeIDs: [
                   element.outerBearing.nodeID,
