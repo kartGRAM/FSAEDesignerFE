@@ -38,7 +38,7 @@ export class Tire extends Element implements ITire {
     // タイヤの軸の方向ベクトル
     const axis = this.tireAxis.value.clone().normalize();
     // 平面に平行なベクトル...②
-    const g = axis.clone().cross(n);
+    const g = axis.clone().cross(n).normalize();
     const r = this.radius;
 
     // ②を軸にaxisを90度回転した単位ベクトルに、半径をかけた点が最近傍点

@@ -131,18 +131,18 @@ export class AArmRestorer implements Restorer {
 export class TireRestorer implements Restorer {
   element: ITire;
 
-  leftBearing: INamedVector3RO;
+  outerBearing: INamedVector3RO;
 
-  rightBearing: INamedVector3RO;
+  innerBearing: INamedVector3RO;
 
   constructor(
     element: ITire,
-    leftBearing: INamedVector3RO,
-    rightBearing: INamedVector3RO
+    outerBearing: INamedVector3RO,
+    innerBearing: INamedVector3RO
   ) {
     this.element = element;
-    this.leftBearing = leftBearing;
-    this.rightBearing = rightBearing;
+    this.outerBearing = outerBearing;
+    this.innerBearing = innerBearing;
   }
 
   static getTireLocalPosition(
@@ -165,19 +165,18 @@ export class TireRestorer implements Restorer {
   }
 
   restore() {
-    const fp = this.element.outerBearing.value;
-    const fpParent = this.leftBearing.parent as IElement;
-    const fpTo = this.leftBearing.value
+    const fpParent = this.outerBearing.parent as IElement;
+    const fpTo = this.outerBearing.value
       .applyQuaternion(fpParent.rotation.value)
       .add(fpParent.position.value);
 
-    const pParent = this.rightBearing.parent as IElement;
-    const pTo = this.rightBearing.value
+    const pParent = this.innerBearing.parent as IElement;
+    const pTo = this.innerBearing.value
       .applyQuaternion(pParent.rotation.value)
       .add(pParent.position.value);
 
     const {position, rotation} = TireRestorer.getTireLocalPosition(
-      fp,
+      this.element.outerBearing.value,
       this.element.innerBearing.value,
       fpTo,
       pTo

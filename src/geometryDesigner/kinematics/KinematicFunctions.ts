@@ -462,7 +462,11 @@ export function getSimplifiedTireConstrainsParams(
   jointDict: JointDict,
   tempComponents: {[index: string]: FullDegreesComponent},
   pID: string
-): [FullDegreesComponent, (normal: Vector3, distance: number) => Vector3] {
+): [
+  FullDegreesComponent,
+  (normal: Vector3, distance: number) => Vector3,
+  string
+] {
   const plTo = getJointPartner(
     jointDict[element.outerBearing.nodeID][0],
     element.outerBearing.nodeID
@@ -497,7 +501,7 @@ export function getSimplifiedTireConstrainsParams(
         .multiplyScalar(scale);
       return point.applyQuaternion(dq).add(dp.clone().multiplyScalar(scale));
     };
-    return [pComponent, func];
+    return [pComponent, func, parent.nodeID];
   }
   const points = element.getMeasurablePoints();
   const point = points.find((point) => point.nodeID === pID);
@@ -507,7 +511,7 @@ export function getSimplifiedTireConstrainsParams(
     .applyQuaternion(dq)
     .add(dp.clone().multiplyScalar(scale));
   const func = () => pLocal;
-  return [pComponent, func];
+  return [pComponent, func, parent.nodeID];
 }
 
 // Jointから一つPFComponentを得る

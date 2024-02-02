@@ -97,6 +97,8 @@ export class FDComponentBalance implements Constraint, Balance {
 
   pfCoefs: number[]; // ジョイント部分のローカルベクトルのノードID 作用反作用で定義
 
+  conectedTireBalance: TireBalance[];
+
   constructor(params: {
     name: string;
     component: FullDegreesComponent;
@@ -108,6 +110,7 @@ export class FDComponentBalance implements Constraint, Balance {
     pfsPointNodeIDs: string[]; // ジョイント部分のローカルベクトルのノードID 作用反作用どちらで使うかを判定する
     vO: () => Vector3; // 座標原点の速度
     omega: GeneralVariable;
+    connectedTireBalance: TireBalance[];
   }) {
     this.name = params.name;
     this.element = params.element;
@@ -119,6 +122,8 @@ export class FDComponentBalance implements Constraint, Balance {
     this.pfs = [...params.pointForceComponents];
 
     this.pfCoefs = this.pfs.map((pf, i) => pf.sign(params.pfsPointNodeIDs[i]));
+
+    this.conectedTireBalance = params.connectedTireBalance;
 
     this.relevantVariables = [this.component, this.omega, ...this.pfs];
 
@@ -169,6 +174,11 @@ export class FDComponentBalance implements Constraint, Balance {
     const ma = g.clone().add(c).multiplyScalar(this.mass); // 遠心力＋重力
     const maSkew = skew(ma);
 
+    // タイヤが接続されていればその駆動力の反モーメントを受け取る
+    const driveMomentAndDiffs = this.conectedTireBalance.map((tb) =>
+      tb.getDriveMoment()
+    );
+
     // 力のつり合い
     const translation = pfs
       .reduce((prev, current, i) => {
@@ -187,6 +197,9 @@ export class FDComponentBalance implements Constraint, Balance {
         return prev;
       }, new Vector3())
       .add(ma.clone().cross(cogQ));
+    driveMomentAndDiffs.forEach((dm) => {
+      rotation.add(dm.mX.clone().multiplyScalar(-1));
+    });
 
     // 方程式のつり合い
     phi[row + X] = translation.x;
@@ -250,6 +263,27 @@ export class FDComponentBalance implements Constraint, Balance {
     // dω
     const dOmegaRot = cogSkewQ.mmul(dOmega).mul(-1);
     phi_q.setSubMatrix(dOmegaRot, row + 3, colOmega);
+
+    driveMomentAndDiffs.forEach((dm) => {
+      const {
+        dMX_dOmega,
+        dMX_de,
+        dMX_df,
+        dMX_dP,
+        dMX_dQ,
+        pfsCols,
+        pfCoefs,
+        targetComponentCol,
+        targetErrorCol
+      } = dm;
+      pfsCols.forEach((col, i) => {
+        phi_q.subMatrixSub(dMX_df.clone().mul(pfCoefs[i]), row + 3, col + X);
+      });
+      phi_q.subMatrixSub(dMX_dP, row + 3, targetComponentCol + X);
+      phi_q.subMatrixSub(dMX_dQ, row + 3, targetComponentCol + Q0);
+      phi_q.subMatrixSub(dMX_de, row + 3, targetErrorCol);
+      phi_q.subMatrixSub(dMX_dOmega, row + 3, this.omega.col);
+    });
   }
 
   applytoElement() {}
@@ -1127,6 +1161,7 @@ export class TireBalance implements Constraint, Balance {
         A,
         G
       });
+    // console.log(mX);
 
     // 力のつり合い
     const translation = pfs
@@ -1279,6 +1314,7 @@ export class TireBalance implements Constraint, Balance {
     const localGroundSkew = skew(ground).mul(-2);
     const groundQ = ground.clone().applyQuaternion(q);
     const pGround = groundQ.clone().add(position);
+    // console.log(`pGround= ${pGround.z}`);
     // pGround.z = 0;
 
     // 重心
@@ -1289,6 +1325,8 @@ export class TireBalance implements Constraint, Balance {
     const A = rotationMatrix(q);
     const G = decompositionMatrixG(q);
     const axis = localAxis.clone().applyQuaternion(q);
+    // const radius = ground.clone().sub(localCog).applyQuaternion(q);
+    // console.log(`radius= ${radius.length()}`);
 
     return {pGround, axis, localGroundSkew, A, G, q, pCog};
   }
@@ -1470,7 +1508,11 @@ export class TireBalance implements Constraint, Balance {
       dMX_de,
       dMX_df,
       dMX_dP,
-      dMX_dQ
+      dMX_dQ,
+      pfsCols: this.pfs.map((pf) => pf.col),
+      pfCoefs: this.pfCoefs,
+      targetComponentCol: this.component.col,
+      targetErrorCol: this.error.col
     };
   }
 

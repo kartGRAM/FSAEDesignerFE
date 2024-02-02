@@ -126,6 +126,7 @@ export class SkidpadSolver {
     const tempComponents: {[index: string]: FullDegreesComponent} = {};
     const tempElements: {[index: string]: IElement} = {};
     let specialControls: {[index: string]: Control[]} = {};
+    const tireBalances: {[index: string]: TireBalance[]} = {};
 
     const omega = new GeneralVariable('omega', 1);
     const error = new GeneralVariable('longitudinalForceError', 1);
@@ -438,52 +439,55 @@ export class SkidpadSolver {
               (prev, id) => (prev += Number(config.tireTorqueRatio[id])),
               0
             );
-            const [component, func] = getSimplifiedTireConstrainsParams(
-              element,
-              jointDict,
-              tempComponents,
-              'nearestNeighbor'
-            );
+            const [component, func, componentID] =
+              getSimplifiedTireConstrainsParams(
+                element,
+                jointDict,
+                tempComponents,
+                'nearestNeighbor'
+              );
             const normal = new Vector3(0, 0, 1);
             const tire = getTire(config.tireData[element.nodeID] ?? '');
 
-            constraints.push(
-              new TireBalance({
-                name: `TireBalance of${element.name.value}`,
-                component,
-                element,
-                tireRadius: element.diameter / 2,
-                points: [points[0].value, points[1].value],
-                pfsPointNodeIDs: [
-                  element.outerBearing.nodeID,
-                  element.innerBearing.nodeID
-                ],
-                mass: element.mass.value,
-                cog: 0.5, // 要修正
-                pfs: pfs as Twin<PointForce>,
-                vO,
-                omega,
-                torqueRatio:
-                  config.tireTorqueRatio[element.nodeID] / torqueRatioSum,
-                getFriction: (sa, ia, fz) => {
-                  // 要修正
-                  const {fx, fy} = tire.get({sa, sl: 0, fz, ia});
-                  return new Vector3(fx, fy, 0);
-                },
-                getFrictionDiff: (sa, ia, fz) => {
-                  // 要修正
-                  const params = {sa, sl: 0, fz, ia};
-                  return {
-                    saDiff: saDiff(tire, params),
-                    iaDiff: iaDiff(tire, params),
-                    fzDiff: fzDiff(tire, params)
-                  };
-                },
+            const tireBalance = new TireBalance({
+              name: `TireBalance of${element.name.value}`,
+              component,
+              element,
+              tireRadius: element.diameter / 2,
+              points: [points[0].value, points[1].value],
+              pfsPointNodeIDs: [
+                element.outerBearing.nodeID,
+                element.innerBearing.nodeID
+              ],
+              mass: element.mass.value,
+              cog: 0.5, // 要修正
+              pfs: pfs as Twin<PointForce>,
+              vO,
+              omega,
+              torqueRatio:
+                config.tireTorqueRatio[element.nodeID] / torqueRatioSum,
+              getFriction: (sa, ia, fz) => {
+                // 要修正
+                const {fx, fy} = tire.get({sa, sl: 0, fz, ia});
+                return new Vector3(fx, fy, 0);
+              },
+              getFrictionDiff: (sa, ia, fz) => {
+                // 要修正
+                const params = {sa, sl: 0, fz, ia};
+                return {
+                  saDiff: saDiff(tire, params),
+                  iaDiff: iaDiff(tire, params),
+                  fzDiff: fzDiff(tire, params)
+                };
+              },
+              error,
+              ground: () => func(normal, 0)
+            });
 
-                error,
-                ground: () => func(normal, 0)
-              })
-            );
+            if (!tireBalances[componentID]) tireBalances[componentID] = [];
+            tireBalances[componentID].push(tireBalance);
+
+            constraints.push(tireBalance);
           } else {
             throw new Error('Tireは同じコンポーネントに接続される必要がある');
             // 2023.06.17 二つ以上のコンポーネントにまたがるタイヤは、
@@ -901,6 +905,7 @@ export class SkidpadSolver {
             name: `FDComponentBalance of${element.name.value}`,
             element,
             component,
+            connectedTireBalance: tireBalances[element.nodeID] ?? [],
             mass: element.mass.value,
             cog: element.centerOfGravity.value,
             points,
@@ -1000,7 +1005,7 @@ export class SkidpadSolver {
     this.running = true;
     try {
       const start = performance.now();
-      const maxCnt = params?.maxCnt ?? 50; // 200;
+      const maxCnt = params?.maxCnt ?? 200; // 200;
       const postProcess = params?.postProcess ?? true;
       const constraintsOptions = params?.constraintsOptions ?? {};
       const logOutput = params?.logOutput ?? false;
@@ -1031,6 +1036,7 @@ export class SkidpadSolver {
         let minNorm = Number.MAX_SAFE_INTEGER;
         let eq = false;
         while (!eq && ++i < maxCnt) {
+          phi_q.mul(0); // add subをする場合があるので0リードしておく
           constraints.forEach((constraint) => {
             constraint.setJacobianAndConstraints(
               phi_q,
