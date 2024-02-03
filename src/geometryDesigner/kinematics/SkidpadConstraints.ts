@@ -1213,7 +1213,8 @@ export class TireBalance implements Constraint, Balance {
       cogSkewP,
       this.mass
     ).mmul(unitZ);
-    const dOmega1 = dOmegaByCentrifugal.clone().add(dFtR_dOmega);
+    const dOmega1 = dOmegaByCentrifugal.clone();
+    dOmega1.add(dFtR_dOmega);
     phi_q.subMatrixAdd(dOmega1.subMatrix(0, 1, 0, 0), row, this.omega.col);
 
     // dP

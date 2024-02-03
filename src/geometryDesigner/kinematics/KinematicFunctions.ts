@@ -75,10 +75,9 @@ export function normalizedVectorDiff(u: Vector3): Matrix {
   const u2 = abs ** 2;
   const U = getVVector(u);
   const UUt = U.mmul(U.clone().transpose());
-  const d = I.clone()
-    .mul(u2)
-    .sub(UUt)
-    .mul(1 / u3);
+  const u2I = I.clone().mul(u2);
+  const temp = u2I.sub(UUt);
+  const d = temp.mul(1 / u3);
   return d;
 }
 

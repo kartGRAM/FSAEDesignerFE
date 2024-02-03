@@ -1054,7 +1054,7 @@ export class SkidpadSolver {
           components.forEach((component) => component.applyDq(dq));
 
           const norm = dq.norm('frobenius');
-          eq = norm < 2.35e-1;
+          eq = norm < 1e-4;
           console.log(`norm=${norm.toFixed(4)}`);
           if (norm > minNorm * 100000 || Number.isNaN(norm)) {
             // eslint-disable-next-line no-console
