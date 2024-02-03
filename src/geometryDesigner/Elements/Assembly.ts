@@ -380,6 +380,7 @@ export class Assembly extends Element implements IAssembly {
         center.add(
           child.centerOfGravity.value
             .clone()
+            .applyQuaternion(child.rotation.value)
             .add(child.position.value)
             .multiplyScalar(child.mass.value)
         );

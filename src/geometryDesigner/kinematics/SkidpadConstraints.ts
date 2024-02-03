@@ -216,13 +216,23 @@ export class FDComponentBalance implements Constraint, Balance {
     const G = decompositionMatrixG(q);
     const colOmega = this.omega.col;
     // 力のつり合いのヤコビアン
+
     // df
     const df = Matrix.eye(3, 3);
     pfs.forEach((pf, i) => {
       phi_q.subMatrixAdd(df.clone().mul(pfCoefs[i]), row + X, pf.col + X);
     });
+
+    // dP
+    const dP = omegaSkew2.clone().mul(-this.mass);
+    phi_q.subMatrixAdd(dP, row, col + X);
+
+    // dQ
+    const dTheta1 = omegaSkew2.mmul(A).mmul(cogLocalSkew).mul(-this.mass);
+    phi_q.subMatrixAdd(dTheta1.mmul(G), row, col + Q0);
+
     // dω
-    const dOmega = getDeltaOmega(
+    const dOmega1 = getDeltaOmega(
       vO,
       omega,
       omegaSkew,
@@ -230,38 +240,36 @@ export class FDComponentBalance implements Constraint, Balance {
       cogSkewP,
       this.mass
     ).mmul(unitZ); // (3x1)
-    phi_q.subMatrixAdd(dOmega, row, colOmega);
-
-    // dP
-    const dP = omegaSkew2.clone().mul(-this.mass);
-    phi_q.subMatrixAdd(dP, row, col + X);
-    // dΘ
-    const dThetaMCF = omegaSkew2.mmul(A).mmul(cogLocalSkew).mul(-this.mass);
-    phi_q.subMatrixAdd(dThetaMCF.mmul(G), row, col + Q0);
+    phi_q.subMatrixAdd(dOmega1, row, colOmega);
 
     // モーメントの部分のヤコビアン
-    let dThetaM = new Matrix(3, 3);
+    // dF
     pfs.forEach((pf, i) => {
-      // dF
       const dpf = pSkewQ[i].clone().mul(-pfCoefs[i]);
       phi_q.subMatrixAdd(dpf, row + 3, pf.col + X);
-      // theta部分の微分
-      const fSkew = skew(pf.force.clone().multiplyScalar(pfCoefs[i]));
-      const As = A.mmul(pointLocalSkew[i]);
-      dThetaM = dThetaM.add(fSkew.mmul(As));
     });
+
     // dP
     const dPRot = cogSkewQ.mmul(dP).mul(-1);
     phi_q.subMatrixAdd(dPRot, row + 3, col + X);
 
-    // dΘ
-    dThetaM.add(maSkew.mmul(A).mmul(cogLocalSkew)); // (3x3) x (3x3) x (3x3) x (3x4) = 3x4
-    dThetaM.add(cogSkewQ.mmul(dThetaMCF).mul(-1));
-    phi_q.subMatrixAdd(dThetaM.mmul(G), row + 3, col + Q0);
+    // dQ
+    const dTheta2 = new Matrix(3, 3);
+    pfs.forEach((pf, i) => {
+      // theta部分の微分
+      const dThetabyF = skew(pf.force.clone())
+        .mmul(A)
+        .mmul(pointLocalSkew[i])
+        .mul(pfCoefs[i]);
+      dTheta2.add(dThetabyF);
+    });
+    dTheta2.add(maSkew.mmul(A).mmul(cogLocalSkew));
+    dTheta2.add(cogSkewQ.mmul(dTheta1).mul(-1));
+    phi_q.subMatrixAdd(dTheta2.mmul(G), row + 3, col + Q0);
 
     // dω
-    const dOmegaRot = cogSkewQ.mmul(dOmega).mul(-1);
-    phi_q.subMatrixAdd(dOmegaRot, row + 3, colOmega);
+    const dOmega2 = cogSkewQ.mmul(dOmega1).mul(-1);
+    phi_q.subMatrixAdd(dOmega2, row + 3, colOmega);
 
     driveMomentAndDiffs.forEach((dm) => {
       const {
@@ -271,12 +279,11 @@ export class FDComponentBalance implements Constraint, Balance {
         dMX_dP,
         dMX_dQ,
         pfsCols,
-        pfCoefs,
         targetComponentCol,
         targetErrorCol
       } = dm;
       pfsCols.forEach((col, i) => {
-        phi_q.subMatrixSub(dMX_df.clone().mul(pfCoefs[i]), row + 3, col + X);
+        phi_q.subMatrixSub(dMX_df[i], row + 3, col + X);
       });
       phi_q.subMatrixSub(dMX_dP, row + 3, targetComponentCol + X);
       phi_q.subMatrixSub(dMX_dQ, row + 3, targetComponentCol + Q0);
@@ -1210,7 +1217,8 @@ export class TireBalance implements Constraint, Balance {
     phi_q.subMatrixAdd(dOmega1.subMatrix(0, 1, 0, 0), row, this.omega.col);
 
     // dP
-    const dP1 = omegaSkew2.clone().mul(-this.mass).add(dFtR_dP);
+    const dP1 = omegaSkew2.clone().mul(-this.mass);
+    dP1.add(dFtR_dP);
     phi_q.subMatrixAdd(dP1.subMatrix(0, 1, 0, 2), row, component.col + X);
 
     // dΘ
@@ -1229,7 +1237,7 @@ export class TireBalance implements Constraint, Balance {
     // df
     pfs.forEach((pf, i) => {
       const df2 = groundSkewQ.mmul(nnT).sub(pSkewQ[i]).mul(pfCoefs[i]);
-      df2.add(groundSkewQ.mmul(dFtR_df).mul(pfCoefs[i]));
+      df2.add(groundSkewQ.mmul(dFtR_df).mul(-pfCoefs[i]));
       phi_q.subMatrixAdd(df2, row + 2, pf.col);
     });
 
@@ -1247,10 +1255,10 @@ export class TireBalance implements Constraint, Balance {
     dThetaM.add(mazSkew.mmul(A).mmul(localGroundSkew));
     dThetaM.add(frictionSkew.clone().add(feSkew).mmul(A).mmul(localGroundSkew));
 
-    // maの中の遠心力の位置座標のQの寄与分: ωｘ(ωx(p+Acog))のＡの微分
+    // maの中の遠心力の位置座標のQの寄与分: -ωｘ(ωx(p+Acog))のＡの微分
     const temp = groundSkewQ.mmul(nnT).sub(cogSkewQ);
     dThetaM.add(
-      temp.mmul(omegaSkew2).mul(-this.mass).mmul(A).mmul(cogLocalSkew)
+      temp.mmul(omegaSkew2).mmul(A).mmul(cogLocalSkew).mul(-this.mass)
     );
     // 残り（駆動力の中の分やerrorの中の分）
     const dTheta2 = dThetaM.mmul(G);
@@ -1274,7 +1282,7 @@ export class TireBalance implements Constraint, Balance {
 
     // 駆動力による微分
     pfs.forEach((pf, i) => {
-      phi_q.subMatrixAdd(dMX_df.clone().mul(pfCoefs[i]), row + 2, pf.col + X);
+      phi_q.subMatrixAdd(dMX_df[i], row + 2, pf.col + X);
     });
     phi_q.subMatrixAdd(dMX_dP, row + 2, component.col + X);
     phi_q.subMatrixAdd(dMX_dQ, row + 2, component.col + Q0);
@@ -1485,6 +1493,7 @@ export class TireBalance implements Constraint, Balance {
     const dMx_dFtx = getVVector(axis).mul(-tireRadius); // (3x1)
     const dMX_de = dMx_dFtx.clone().mul(torqueRatio); // (3x1)
     const dMX_dOmega = dMx_dFtx.mmul(dFtx_dOmega); // (3x1)*(1x1) = (3x1)
+
     const dMX_df = dMx_dFtx.mmul(dFtx_df); // (3x1)*(1x3) = (3x3)
     const dMX_dP = dMx_dFtx.mmul(dFtx_dP); // (3x1)*(1x3) = (3x3)
     const dMX_dQ1 = dMx_dFtx.mmul(dFtx_dQ); // (3x1)*(1x4) = (3x4)
@@ -1494,11 +1503,10 @@ export class TireBalance implements Constraint, Balance {
       mX,
       dMX_dOmega,
       dMX_de,
-      dMX_df,
+      dMX_df: this.pfCoefs.map((co) => dMX_df.clone().mul(co)),
       dMX_dP,
       dMX_dQ,
       pfsCols: this.pfs.map((pf) => pf.col),
-      pfCoefs: this.pfCoefs,
       targetComponentCol: this.component.col,
       targetErrorCol: this.error.col
     };

@@ -116,9 +116,11 @@ export function frictionRotationDiff(
 
   const dPhi_dkxF = dPhi_dkx.mmul(Fv); // (3x1)
   const dPhi_dkyF = dPhi_dky.mmul(Fv); // (3x1)
+  const dkx = dk.subMatrix(0, 0, 0, dk.columns - 1);
+  const dky = dk.subMatrix(1, 1, 0, dk.columns - 1);
 
-  const lhs = dPhi_dkxF.mmul(dk.subMatrix(0, 0, 0, dk.columns - 1)); // (3x1 x 1x n) = (3xn)
-  const rhs = dPhi_dkyF.mmul(dk.subMatrix(1, 1, 0, dk.columns - 1)); // (3xn)
+  const lhs = dPhi_dkxF.mmul(dkx); // (3x1 x 1x n) = (3xn)
+  const rhs = dPhi_dkyF.mmul(dky); // (3xn)
 
   return lhs.add(rhs);
 }
@@ -188,9 +190,10 @@ export function getDeltaOmega(
   cogVehicleSkew: Matrix,
   mass: number
 ) {
-  const lhs = v.clone().add(omega.clone().cross(cogVehicle));
+  const v2 = omega.clone().cross(cogVehicle);
+  const lhs = skew(v.clone().add(v2));
   const rhs = omegaSkew.mmul(cogVehicleSkew);
-  return rhs.add(skew(lhs)).mul(mass);
+  return rhs.add(lhs).mul(mass);
 }
 
 // 縦ベクトルを得る

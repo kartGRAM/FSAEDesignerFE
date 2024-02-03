@@ -18,6 +18,7 @@ export interface ITire extends IElement, INearestNeighborToPlane {
   readonly innerBearing: INamedVector3LW;
   readonly outerBearing: INamedVector3LW;
   readonly diameter: number;
+  readonly radius: number;
   readonly bearingDistance: number;
 }
 

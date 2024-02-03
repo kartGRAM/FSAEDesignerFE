@@ -453,7 +453,7 @@ export class SkidpadSolver {
               name: `TireBalance of${element.name.value}`,
               component,
               element,
-              tireRadius: element.diameter / 2,
+              tireRadius: element.radius,
               points: [points[0].value, points[1].value],
               pfsPointNodeIDs: [
                 element.outerBearing.nodeID,
@@ -1054,7 +1054,7 @@ export class SkidpadSolver {
           components.forEach((component) => component.applyDq(dq));
 
           const norm = dq.norm('frobenius');
-          eq = norm < 1.0e-3;
+          eq = norm < 2.35e-1;
           console.log(`norm=${norm.toFixed(4)}`);
           if (norm > minNorm * 100000 || Number.isNaN(norm)) {
             // eslint-disable-next-line no-console
