@@ -1099,7 +1099,6 @@ export class PointToPlane implements Constraint, deltaL {
     const {col, position, quaternion: q} = component;
     const A = rotationMatrix(q);
     const G = decompositionMatrixG(q);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const {r, dr_dQ} = localVec(normal, distance);
     const s = r.clone().applyQuaternion(q).add(position);
     const nT = new Matrix([[normal.x, normal.y, normal.z]]); // (1x3)
@@ -1111,7 +1110,7 @@ export class PointToPlane implements Constraint, deltaL {
     if (isFullDegreesComponent(component)) {
       const localSkew = skew(r).mul(-2);
       const dQ = nT.mmul(A).mmul(localSkew).mmul(G);
-      // dQ.add(nT.mmul(A).mmul(dr_dQ));
+      dQ.add(nT.mmul(A).mmul(dr_dQ));
       // (1x3) * (3x3) * (3x3) * (3x4) → (1x4)
       phi_q.setSubMatrix(dQ, row, col + Q0);
     }

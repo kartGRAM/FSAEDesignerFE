@@ -246,6 +246,19 @@ export function decompositionMatrixG(q: Quaternion) {
   ]);
 }
 
+// 逆変換の部分分解行列を取得
+export function decompositionMatrixE(q: Quaternion) {
+  const e0 = q.w;
+  const e1 = q.x;
+  const e2 = q.y;
+  const e3 = q.z;
+  return new Matrix([
+    [-e1, e0, -e3, e2],
+    [-e2, e3, e0, -e1],
+    [-e3, -e2, e1, e0]
+  ]);
+}
+
 // 回転行列をQで偏微分したものを求める。
 export function getPartialDiffOfRotationMatrix(
   q: Quaternion,
@@ -497,38 +510,32 @@ export function getSimplifiedTireConstrainsParams(
     const func = (normal: Vector3) => {
       const q = pComponent.quaternion;
       const qi = q.clone().invert();
-      const A = rotationMatrix(q);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const At = A.transpose();
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const G = decompositionMatrixG(q);
+      const At = rotationMatrix(q).transpose();
+      const E = decompositionMatrixE(q);
+      const globalNormalSkew = skew(normal).mul(-2);
 
       // 法線ベクトルを、部品座標系へ回転させる
       const n = normal.clone().applyQuaternion(qi);
-      const nSkew = skew(n);
-      const dn_dQ = new Matrix(3, 4);
+      const dn_dQ = At.mmul(globalNormalSkew).mmul(E);
 
       // 地面に平行で前を向いたベクトルpara
       const para = localAxis.clone().cross(n);
-      const dPara_dQ = nSkew.mmul(dn_dQ).mul(-1);
+      const dPara_dQ = localAxisSkew.mmul(dn_dQ);
 
       // paraを正規化
       const k = para.clone().normalize();
-      const kSkew = skew(k);
       const dk_dQ = normalizedVectorDiff(para).mmul(dPara_dQ);
 
       // 地面方向を得る（長さは1なので正規化不要）
       const i = localAxis.clone().cross(k);
-      const di_dQLHS = localAxisSkew.mmul(dk_dQ);
-      const di_dQRHS = kSkew.mmul(dn_dQ);
-      const di_dQ = di_dQLHS.sub(di_dQRHS);
+      const di_dQ = localAxisSkew.mmul(dk_dQ);
 
       // タイヤ中心から地面までの変位
       const l = i.clone().multiplyScalar(radius);
       const dl_dQ = di_dQ.clone().mul(radius);
 
       const r = localTireCenter.clone().add(l);
-      const dr_dQ = dl_dQ.mul(0);
+      const dr_dQ = dl_dQ;
 
       return {r, dr_dQ};
     };
