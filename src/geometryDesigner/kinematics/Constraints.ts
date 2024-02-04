@@ -1030,16 +1030,7 @@ export class PointToPlane implements Constraint, deltaL {
 
   relevantVariables: IComponent[];
 
-  _localVec: (normal: Vector3, distance: number) => Vector3;
-
-  get localVec(): Vector3 {
-    const lvec = this._localVec(this.normal, this.distance);
-    return lvec;
-  }
-
-  get localSkew(): Matrix {
-    return skew(this._localVec(this.normal, this.distance)).mul(-2);
-  }
+  localVec: (normal: Vector3, distance: number) => {r: Vector3; dr_dQ: Matrix};
 
   distance: number;
 
@@ -1079,7 +1070,10 @@ export class PointToPlane implements Constraint, deltaL {
   constructor(
     name: string,
     component: IComponent,
-    localVec: (normal: Vector3, distance: number) => Vector3,
+    localVec: (
+      normal: Vector3,
+      distance: number
+    ) => {r: Vector3; dr_dQ: Matrix},
     origin: Vector3,
     normal: Vector3,
     elementID: string,
@@ -1091,7 +1085,7 @@ export class PointToPlane implements Constraint, deltaL {
     this.controledBy = controledBy;
     this.component = component;
     this.relevantVariables = [component];
-    this._localVec = localVec;
+    this.localVec = localVec;
     this.normal = normal?.clone().normalize() ?? new Vector3(0, 0, 1);
     this.distance =
       origin?.clone().multiplyScalar(component.scale).dot(normal) ?? 0;
@@ -1101,20 +1095,25 @@ export class PointToPlane implements Constraint, deltaL {
   }
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
-    const {row, component, localVec, localSkew, normal, distance, _dl} = this;
+    const {row, component, localVec, normal, distance, _dl} = this;
     const {col, position, quaternion: q} = component;
     const A = rotationMatrix(q);
     const G = decompositionMatrixG(q);
-    const s = localVec.clone().applyQuaternion(q);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const {r, dr_dQ} = localVec(normal, distance);
+    const s = r.clone().applyQuaternion(q).add(position);
     const nT = new Matrix([[normal.x, normal.y, normal.z]]); // (1x3)
 
     // 平面拘束
-    phi[row] = position.clone().add(s).dot(normal) - distance - _dl;
+    phi[row] = normal.dot(s) - distance - _dl;
     // 平面拘束方程式の変分
     phi_q.setSubMatrix(nT, row, col + X);
     if (isFullDegreesComponent(component)) {
+      const localSkew = skew(r).mul(-2);
+      const dQ = nT.mmul(A).mmul(localSkew).mmul(G);
+      // dQ.add(nT.mmul(A).mmul(dr_dQ));
       // (1x3) * (3x3) * (3x3) * (3x4) → (1x4)
-      phi_q.setSubMatrix(nT.mmul(A).mmul(localSkew).mmul(G), row, col + Q0);
+      phi_q.setSubMatrix(dQ, row, col + Q0);
     }
   }
 

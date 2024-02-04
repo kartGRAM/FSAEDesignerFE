@@ -527,7 +527,7 @@ export class KinematicsSolver {
               // 点を平面に拘束する
               if (isTire(element) && canSimplifyTire(element, jointDict)) {
                 control.pointIDs[element.nodeID].forEach((pID) => {
-                  const [pComponent, localVec] =
+                  const {pComponent, groundLocalVec} =
                     getSimplifiedTireConstrainsParams(
                       element,
                       jointDict,
@@ -541,7 +541,7 @@ export class KinematicsSolver {
                   const constraint = new PointToPlane(
                     name,
                     pComponent,
-                    localVec,
+                    groundLocalVec,
                     control.origin.value,
                     control.normal.value,
                     element.nodeID,
@@ -567,10 +567,13 @@ export class KinematicsSolver {
                     `Two-dimentional Constraint of nearest neighbor of ${element.name.value}`,
                     component,
                     (normal, distance) => {
-                      return element.getNearestNeighborToPlane(
-                        normal,
-                        distance / component.scale
-                      );
+                      return {
+                        r: element.getNearestNeighborToPlane(
+                          normal,
+                          distance / component.scale
+                        ),
+                        dr_dQ: new Matrix(3, 4)
+                      };
                     },
                     control.origin.value,
                     control.normal.value,
@@ -588,7 +591,7 @@ export class KinematicsSolver {
                     const constraint = new PointToPlane(
                       `Two-dimentional Constraint of ${point.name} of ${element.name.value}`,
                       component,
-                      () => p,
+                      () => ({r: p, dr_dQ: new Matrix(3, 4)}),
                       control.origin.value,
                       control.normal.value,
                       element.nodeID,
@@ -666,7 +669,7 @@ export class KinematicsSolver {
             new PointToPlane(
               `Two-dimentional Constraint of ${frame.centerOfGravity.name} of ${frame.name.value}`,
               component,
-              () => p.clone(),
+              () => ({r: p.clone(), dr_dQ: new Matrix(3, 4)}),
               new Vector3(),
               new Vector3(1, 0, 0),
               frame.nodeID,
@@ -679,7 +682,7 @@ export class KinematicsSolver {
             new PointToPlane(
               `Two-dimentional Constraint of ${frame.centerOfGravity.name} of ${frame.name.value}`,
               component,
-              () => p.clone(),
+              () => ({r: p.clone(), dr_dQ: new Matrix(3, 4)}),
               new Vector3(),
               new Vector3(0, 1, 0),
               frame.nodeID,
@@ -696,7 +699,7 @@ export class KinematicsSolver {
               new PointToPlane(
                 `Two-dimentional Constraint of front direction of ${frame.name.value}`,
                 component,
-                () => p2.clone(),
+                () => ({r: p2.clone(), dr_dQ: new Matrix(3, 4)}),
                 new Vector3(),
                 new Vector3(0, 1, 0),
                 frame.nodeID,

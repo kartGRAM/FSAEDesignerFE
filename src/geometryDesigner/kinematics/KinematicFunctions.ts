@@ -464,11 +464,114 @@ export function getSimplifiedTireConstrainsParams(
   jointDict: JointDict,
   tempComponents: {[index: string]: FullDegreesComponent},
   pID: string
-): [
-  FullDegreesComponent,
-  (normal: Vector3, distance: number) => Vector3,
-  string
-] {
+): {
+  pComponent: FullDegreesComponent;
+  pComponentNodeID: string;
+  groundLocalVec: (normal: Vector3) => {r: Vector3; dr_dQ: Matrix};
+} {
+  const pOuter = getJointPartner(
+    jointDict[element.outerBearing.nodeID][0],
+    element.outerBearing.nodeID
+  ).value;
+  const pInner = getJointPartner(
+    jointDict[element.innerBearing.nodeID][0],
+    element.innerBearing.nodeID
+  );
+  const outer = element.toOuterBearing.value;
+  // 親コンポーネントのローカル空間上での回転軸
+  const localAxis = pOuter.clone().sub(pInner.value);
+  localAxis.normalize();
+  const localAxisSkew = skew(localAxis).mul(-2);
+  // pOuter基準でのtireCenter
+  const localTireCenter = pOuter
+    .clone()
+    .sub(localAxis.clone().multiplyScalar(outer));
+
+  const parent = pInner.parent as IElement;
+  const pComponent = tempComponents[parent.nodeID];
+  const {scale} = pComponent;
+  localTireCenter.multiplyScalar(scale);
+  const radius = element.radius * scale;
+
+  if (pID === 'nearestNeighbor') {
+    const func = (normal: Vector3) => {
+      const q = pComponent.quaternion;
+      const qi = q.clone().invert();
+      const A = rotationMatrix(q);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const At = A.transpose();
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const G = decompositionMatrixG(q);
+
+      // 法線ベクトルを、部品座標系へ回転させる
+      const n = normal.clone().applyQuaternion(qi);
+      const nSkew = skew(n);
+      const dn_dQ = new Matrix(3, 4);
+
+      // 地面に平行で前を向いたベクトルpara
+      const para = localAxis.clone().cross(n);
+      const dPara_dQ = nSkew.mmul(dn_dQ).mul(-1);
+
+      // paraを正規化
+      const k = para.clone().normalize();
+      const kSkew = skew(k);
+      const dk_dQ = normalizedVectorDiff(para).mmul(dPara_dQ);
+
+      // 地面方向を得る（長さは1なので正規化不要）
+      const i = localAxis.clone().cross(k);
+      const di_dQLHS = localAxisSkew.mmul(dk_dQ);
+      const di_dQRHS = kSkew.mmul(dn_dQ);
+      const di_dQ = di_dQLHS.sub(di_dQRHS);
+
+      // タイヤ中心から地面までの変位
+      const l = i.clone().multiplyScalar(radius);
+      const dl_dQ = di_dQ.clone().mul(radius);
+
+      const r = localTireCenter.clone().add(l);
+      const dr_dQ = dl_dQ.mul(0);
+
+      return {r, dr_dQ};
+    };
+
+    return {
+      pComponent,
+      groundLocalVec: func,
+      pComponentNodeID: parent.nodeID
+    };
+  }
+
+  // タイヤの親コンポーネントとの相対座標及び回転を取得
+  const pl = element.outerBearing.value;
+  const pr = element.innerBearing.value;
+  const {position: dp, rotation: dq} = TireRestorer.getTireLocalPosition(
+    pl,
+    pr,
+    pOuter,
+    pInner.value
+  );
+  dp.multiplyScalar(scale);
+  const points = element.getMeasurablePoints();
+  const point = points.find((point) => point.nodeID === pID);
+  if (!point) throw new Error('pointが見つからない');
+  const pLocal = point.value.multiplyScalar(scale).applyQuaternion(dq).add(dp);
+  const func = () => ({r: pLocal, dr_dQ: new Matrix(3, 4)});
+  return {
+    pComponent,
+    groundLocalVec: func,
+    pComponentNodeID: parent.nodeID
+  };
+}
+
+export function getSimplifiedTireConstrainsParamsOld(
+  element: ITire,
+  jointDict: JointDict,
+  tempComponents: {[index: string]: FullDegreesComponent},
+  pID: string
+): {
+  pComponent: FullDegreesComponent;
+  pComponentNodeID: string;
+  groundLocalVec: (normal: Vector3) => {r: Vector3; dr_dQ: Matrix};
+} {
   const plTo = getJointPartner(
     jointDict[element.outerBearing.nodeID][0],
     element.outerBearing.nodeID
@@ -493,25 +596,25 @@ export function getSimplifiedTireConstrainsParams(
 
   const dqi = dq.clone().invert();
   if (pID === 'nearestNeighbor') {
-    const func = (normal: Vector3, distance: number) => {
+    const func = (normal: Vector3) => {
       const pdqi = pComponent.quaternion.clone().invert();
       // タイヤ空間上へ法線方向を変換する
       const n = normal.clone().applyQuaternion(pdqi).applyQuaternion(dqi);
       // タイヤ空間内での、平面への最近傍点
       const point = element
-        .getNearestNeighborToPlane(n, distance / scale)
+        .getNearestNeighborToPlane(n, 0)
         .clone()
         .multiplyScalar(scale);
-      return point.applyQuaternion(dq).add(dp);
+      return {r: point.applyQuaternion(dq).add(dp), dr_dQ: new Matrix(3, 4)};
     };
-    return [pComponent, func, parent.nodeID];
+    return {pComponent, groundLocalVec: func, pComponentNodeID: parent.nodeID};
   }
   const points = element.getMeasurablePoints();
   const point = points.find((point) => point.nodeID === pID);
   if (!point) throw new Error('pointが見つからない');
   const pLocal = point.value.multiplyScalar(scale).applyQuaternion(dq).add(dp);
-  const func = () => pLocal;
-  return [pComponent, func, parent.nodeID];
+  const func = () => ({r: pLocal, dr_dQ: new Matrix(3, 4)});
+  return {pComponent, groundLocalVec: func, pComponentNodeID: parent.nodeID};
 }
 
 // Jointから一つPFComponentを得る

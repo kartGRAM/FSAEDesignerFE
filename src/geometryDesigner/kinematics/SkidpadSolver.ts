@@ -439,13 +439,16 @@ export class SkidpadSolver {
               (prev, id) => (prev += Number(config.tireTorqueRatio[id])),
               0
             );
-            const [component, func, componentID] =
-              getSimplifiedTireConstrainsParams(
-                element,
-                jointDict,
-                tempComponents,
-                'nearestNeighbor'
-              );
+            const {
+              pComponent: component,
+              groundLocalVec,
+              pComponentNodeID: componentID
+            } = getSimplifiedTireConstrainsParams(
+              element,
+              jointDict,
+              tempComponents,
+              'nearestNeighbor'
+            );
             const normal = new Vector3(0, 0, 1);
             const tire = getTire(config.tireData[element.nodeID] ?? '');
 
@@ -481,7 +484,7 @@ export class SkidpadSolver {
                 };
               },
               error,
-              ground: () => func(normal, 0)
+              ground: () => groundLocalVec(normal)
             });
 
             if (!tireBalances[componentID]) tireBalances[componentID] = [];
@@ -753,7 +756,7 @@ export class SkidpadSolver {
               // 点を平面に拘束する
               if (isTire(element) && canSimplifyTire(element, jointDict)) {
                 control.pointIDs[element.nodeID].forEach((pID) => {
-                  const [pComponent, localVec] =
+                  const {pComponent, groundLocalVec} =
                     getSimplifiedTireConstrainsParams(
                       element,
                       jointDict,
@@ -767,7 +770,7 @@ export class SkidpadSolver {
                   const constraint = new PointToPlane(
                     name,
                     pComponent,
-                    localVec,
+                    groundLocalVec,
                     control.origin.value,
                     control.normal.value,
                     element.nodeID,
@@ -793,10 +796,13 @@ export class SkidpadSolver {
                     `Two-dimentional Constraint of nearest neighbor of ${element.name.value}`,
                     component,
                     (normal, distance) => {
-                      return element.getNearestNeighborToPlane(
-                        normal,
-                        distance / component.scale
-                      );
+                      return {
+                        r: element.getNearestNeighborToPlane(
+                          normal,
+                          distance / component.scale
+                        ),
+                        dr_dQ: new Matrix(3, 4)
+                      };
                     },
                     control.origin.value,
                     control.normal.value,
@@ -814,7 +820,7 @@ export class SkidpadSolver {
                     const constraint = new PointToPlane(
                       `Two-dimentional Constraint of ${point.name} of ${element.name.value}`,
                       component,
-                      () => p,
+                      () => ({r: p, dr_dQ: new Matrix(3, 4)}),
                       control.origin.value,
                       control.normal.value,
                       element.nodeID,
@@ -924,7 +930,7 @@ export class SkidpadSolver {
         new PointToPlane(
           `Two-dimentional Constraint of ${frame.centerOfGravity.name} of ${frame.name.value}`,
           component,
-          () => p,
+          () => ({r: p, dr_dQ: new Matrix(3, 4)}),
           new Vector3(),
           new Vector3(1, 0, 0),
           frame.nodeID,
@@ -937,7 +943,7 @@ export class SkidpadSolver {
         new PointToPlane(
           `Two-dimentional Constraint of ${frame.centerOfGravity.name} of ${frame.name.value}`,
           component,
-          () => p,
+          () => ({r: p, dr_dQ: new Matrix(3, 4)}),
           new Vector3(),
           new Vector3(0, 1, 0),
           frame.nodeID,

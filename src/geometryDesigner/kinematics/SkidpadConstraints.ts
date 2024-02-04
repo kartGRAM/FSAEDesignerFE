@@ -197,9 +197,9 @@ export class FDComponentBalance implements Constraint, Balance {
         return prev;
       }, new Vector3())
       .add(ma.clone().cross(cogQ));
-    driveMomentAndDiffs.forEach((dm) => {
+    /* driveMomentAndDiffs.forEach((dm) => {
       rotation.sub(dm.mX);
-    });
+    }); */
 
     // 方程式のつり合い
     phi[row + X] = translation.x;
@@ -271,7 +271,7 @@ export class FDComponentBalance implements Constraint, Balance {
     const dOmega2 = cogSkewQ.mmul(dOmega1).mul(-1);
     phi_q.subMatrixAdd(dOmega2, row + 3, colOmega);
 
-    driveMomentAndDiffs.forEach((dm) => {
+    /* driveMomentAndDiffs.forEach((dm) => {
       const {
         dMX_dOmega,
         dMX_de,
@@ -289,7 +289,7 @@ export class FDComponentBalance implements Constraint, Balance {
       phi_q.subMatrixSub(dMX_dQ, row + 3, targetComponentCol + Q0);
       phi_q.subMatrixSub(dMX_de, row + 3, targetErrorCol);
       phi_q.subMatrixSub(dMX_dOmega, row + 3, this.omega.col);
-    });
+    }); */
   }
 
   applytoElement() {}
@@ -976,7 +976,7 @@ export class TireBalance implements Constraint, Balance {
 
   omega: GeneralVariable;
 
-  ground: () => Vector3;
+  ground: () => {r: Vector3; dr_dQ: Matrix}; // コンポーネント座標系における接地点
 
   getFriction: (sa: number, ia: number, fz: number) => Vector3;
 
@@ -1021,7 +1021,7 @@ export class TireBalance implements Constraint, Balance {
       fz: number
     ) => {saDiff: Matrix; iaDiff: Matrix; fzDiff: Matrix};
     error: GeneralVariable;
-    ground: () => Vector3; // コンポーネント座標系における接地点
+    ground: () => {r: Vector3; dr_dQ: Matrix}; // コンポーネント座標系における接地点
     tireRadius: number; // タイヤ半径
   }) {
     const {
@@ -1296,7 +1296,7 @@ export class TireBalance implements Constraint, Balance {
     const q = this.component.quaternion;
     const {position} = this.component;
     // 接地点
-    const ground = this.ground();
+    const {r: ground, dr_dQ: dGround_dQ} = this.ground();
     const localGroundSkew = skew(ground).mul(-2);
     const groundQ = ground.clone().applyQuaternion(q);
     const pGround = groundQ.clone().add(position);
