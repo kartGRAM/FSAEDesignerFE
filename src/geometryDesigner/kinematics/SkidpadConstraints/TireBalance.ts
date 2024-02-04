@@ -206,8 +206,18 @@ export class TireBalance implements Constraint, Balance {
     const {component, pfCoefs, cogLocalSkew} = this;
 
     // 重心とか接地点とか軸とか
-    const {pGround, groundQ, cogQ, axis, localGroundSkew, A, G, q, pCog} =
-      this.getTireVectorParams();
+    const {
+      pGround,
+      groundQ,
+      cogQ,
+      axis,
+      localGroundSkew,
+      A,
+      G,
+      q,
+      pCog,
+      dLocalGround_dQ
+    } = this.getTireVectorParams();
     const pQ = localVec.map((p) => p.clone().applyQuaternion(q));
     const pSkewQ = pQ.map((p) => skew(p));
     const groundSkewQ = skew(groundQ);
@@ -239,6 +249,7 @@ export class TireBalance implements Constraint, Balance {
       pGround,
       axis,
       localGroundSkew,
+      dLocalGround_dQ,
       A,
       G,
       q,
@@ -352,18 +363,27 @@ export class TireBalance implements Constraint, Balance {
     });
 
     // dΘ
-    // 自明な部分
     const dThetaM = new Matrix(3, 3);
+    const dTheta2 = new Matrix(3, 4);
+    // 自明な部分
     pfs.forEach((pf, i) => {
       const fSkew = skew(pf.force).mul(pfCoefs[i]); // (3x3)
       dThetaM.add(fSkew.mmul(A).mmul(localSkew[i]));
-      const fzSkew = skew(nnT.mmul(getVVector(pf.force))).mul(-pfCoefs[i]); // (3x3)
-      dThetaM.add(fzSkew.mmul(A).mmul(localGroundSkew));
+      const m_nnTFSkew_A = skew(nnT.mmul(getVVector(pf.force)))
+        .mmul(A)
+        .mul(-pfCoefs[i]); // (3x3)
+      dThetaM.add(m_nnTFSkew_A.mmul(localGroundSkew));
+      dTheta2.add(m_nnTFSkew_A.mmul(dLocalGround_dQ));
     });
     dThetaM.add(maSkew.mmul(A).mmul(cogLocalSkew));
-    const mazSkew = skew(nnT.mmul(getVVector(ma))).mul(-1); // (3x3)
-    dThetaM.add(mazSkew.mmul(A).mmul(localGroundSkew));
-    dThetaM.add(frictionSkew.clone().add(feSkew).mmul(A).mmul(localGroundSkew));
+    const m_nnTMASkew_A = skew(nnT.mmul(getVVector(ma)))
+      .mmul(A)
+      .mul(-1); // (3x3)
+    dThetaM.add(m_nnTMASkew_A.mmul(A).mmul(localGroundSkew));
+    dTheta2.add(m_nnTMASkew_A.mmul(dLocalGround_dQ));
+    const tireFSkew_A = frictionSkew.clone().add(feSkew).mmul(A);
+    dThetaM.add(tireFSkew_A.mmul(localGroundSkew));
+    dTheta2.add(tireFSkew_A.mmul(dLocalGround_dQ));
 
     // maの中の遠心力の位置座標のQの寄与分: -ωｘ(ωx(p+Acog))のＡの微分
     const temp = groundSkewQ.mmul(nnT).sub(cogSkewQ);
@@ -371,7 +391,7 @@ export class TireBalance implements Constraint, Balance {
       temp.mmul(omegaSkew2).mmul(A).mmul(cogLocalSkew).mul(-this.mass)
     );
     // 残り（駆動力の中の分やerrorの中の分）
-    const dTheta2 = dThetaM.mmul(G);
+    dTheta2.add(dThetaM.mmul(G));
     dTheta2.sub(groundSkewQ.mmul(dFtR_dQ));
     dTheta2.sub(groundSkewQ.mmul(dThetaMError));
     phi_q.subMatrixAdd(dTheta2, row + 2, component.col + Q0);
@@ -405,7 +425,7 @@ export class TireBalance implements Constraint, Balance {
     const q = this.component.quaternion;
     const {position} = this.component;
     // 接地点
-    const {r: ground, dr_dQ: dGround_dQ} = this.ground();
+    const {r: ground, dr_dQ: dLocalGround_dQ} = this.ground();
     const localGroundSkew = skew(ground).mul(-2);
     const groundQ = ground.clone().applyQuaternion(q);
     const pGround = groundQ.clone().add(position);
@@ -425,11 +445,23 @@ export class TireBalance implements Constraint, Balance {
     // const radius = pGround.clone().sub(pCog);
     // console.log(`radius= ${radius.length()}`);
 
-    return {pGround, axis, localGroundSkew, A, G, q, pCog, cogQ, groundQ};
+    return {
+      pGround,
+      groundQ,
+      dLocalGround_dQ,
+      localGroundSkew,
+      axis,
+      A,
+      G,
+      q,
+      pCog,
+      cogQ
+    };
   }
 
   getTireVectors(params?: {
     pGround: Vector3;
+    dLocalGround_dQ: Matrix;
     axis: Vector3;
     localGroundSkew: Matrix;
     A: Matrix;
@@ -437,7 +469,7 @@ export class TireBalance implements Constraint, Balance {
     q: Quaternion;
     pCog: Vector3;
   }) {
-    const {pGround, axis, localGroundSkew, A, G, pCog} =
+    const {pGround, axis, localGroundSkew, A, G, pCog, dLocalGround_dQ} =
       params ?? this.getTireVectorParams();
     const {localAxisSkew, pfs, pfCoefs, g} = this;
 
@@ -462,7 +494,8 @@ export class TireBalance implements Constraint, Balance {
     // vGround.z = 0; // 念のため
     const dvG_dOmega = groundSkewP.mmul(unitZ).mul(-1); // (3x1)
     const dvG_dP = omegaSkew.clone(); // (3x3)
-    const dvG_dQ = omegaSkew.mmul(A).mmul(localGroundSkew).mmul(G); // (3x4)
+    const dvG_dQtemp = localGroundSkew.mmul(G).add(dLocalGround_dQ); // (3x4)
+    const dvG_dQ = omegaSkew.mmul(A).mmul(dvG_dQtemp); // (3x4)
     const vGn = vGround.clone().normalize();
     const vGnSkew = skew(vGn);
     const dvGn_dvG = normalizedVectorDiff(vGround); // (3x3)

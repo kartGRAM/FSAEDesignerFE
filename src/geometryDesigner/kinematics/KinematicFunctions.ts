@@ -511,7 +511,10 @@ export function getSimplifiedTireConstrainsParams(
       const q = pComponent.quaternion;
       const qi = q.clone().invert();
       const At = rotationMatrix(q).transpose();
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const E = decompositionMatrixE(q);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const G = decompositionMatrixG(qi);
       const globalNormalSkew = skew(normal).mul(-2);
 
       // 法線ベクトルを、部品座標系へ回転させる
