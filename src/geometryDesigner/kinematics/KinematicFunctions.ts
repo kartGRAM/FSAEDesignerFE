@@ -494,7 +494,7 @@ export function getSimplifiedTireConstrainsParams(
   // 親コンポーネントのローカル空間上での回転軸
   const localAxis = pOuter.clone().sub(pInner.value);
   localAxis.normalize();
-  const localAxisSkew = skew(localAxis).mul(-2);
+  const localAxisSkew = skew(localAxis);
   // pOuter基準でのtireCenter
   const localTireCenter = pOuter
     .clone()
@@ -511,11 +511,8 @@ export function getSimplifiedTireConstrainsParams(
       const q = pComponent.quaternion;
       const qi = q.clone().invert();
       const At = rotationMatrix(q).transpose();
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const E = decompositionMatrixE(q);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const G = decompositionMatrixG(qi);
-      const globalNormalSkew = skew(normal).mul(-2);
+      const globalNormalSkew = skew(normal).mul(2);
 
       // 法線ベクトルを、部品座標系へ回転させる
       const n = normal.clone().applyQuaternion(qi);

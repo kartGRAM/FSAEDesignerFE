@@ -278,10 +278,10 @@ export class TireBalance implements Constraint, Balance {
 
     // 力のつり合い
     const translation = pfs
-      .reduce(
-        (prev, pf, i) => prev.add(pf.force.clone().multiplyScalar(pfCoefs[i])),
-        new Vector3()
-      )
+      .reduce((prev, pf, i) => {
+        const fi = pf.force.clone().multiplyScalar(pfCoefs[i]);
+        return prev.add(fi);
+      }, new Vector3())
       .add(ma)
       .add(fz)
       .add(friction)
@@ -290,17 +290,11 @@ export class TireBalance implements Constraint, Balance {
     // 部品原点まわりのモーメントつり合い
     // 変分の方程式がわかりやすくなるようにあえて、力x距離にする
     const rotation = pfs
-      .reduce(
-        (prev, pf, i) =>
-          prev.add(
-            pf.force
-              .clone()
-              .multiplyScalar(pfCoefs[i])
-              .cross(pQ[i])
-              .add(new Vector3(0, 0, -pf.force.z * pfCoefs[i]).cross(groundQ))
-          ),
-        new Vector3()
-      )
+      .reduce((prev, pf, i) => {
+        const mf = pf.force.clone().multiplyScalar(pfCoefs[i]).cross(pQ[i]);
+        const mfg = new Vector3(0, 0, -pf.force.z * pfCoefs[i]).cross(groundQ);
+        return prev.add(mf).add(mfg);
+      }, new Vector3())
       .add(ma.clone().cross(cogQ))
       .add(new Vector3(0, 0, -ma.z).cross(groundQ))
       .add(friction.clone().add(fe).cross(groundQ))
@@ -494,8 +488,9 @@ export class TireBalance implements Constraint, Balance {
     // vGround.z = 0; // 念のため
     const dvG_dOmega = groundSkewP.mmul(unitZ).mul(-1); // (3x1)
     const dvG_dP = omegaSkew.clone(); // (3x3)
-    const dvG_dQtemp = localGroundSkew.mmul(G).add(dLocalGround_dQ); // (3x4)
-    const dvG_dQ = omegaSkew.mmul(A).mmul(dvG_dQtemp); // (3x4)
+    const dvG_dQ1 = omegaSkew.mmul(A).mmul(localGroundSkew).mmul(G);
+    const dvG_dQ2 = omegaSkew.mmul(A).mmul(dLocalGround_dQ); // (3x4)
+    const dvG_dQ = dvG_dQ1.clone().add(dvG_dQ2); // (3x4)
     const vGn = vGround.clone().normalize();
     const vGnSkew = skew(vGn);
     const dvGn_dvG = normalizedVectorDiff(vGround); // (3x3)

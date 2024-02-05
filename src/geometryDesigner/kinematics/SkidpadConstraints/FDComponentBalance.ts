@@ -204,8 +204,8 @@ export class FDComponentBalance implements Constraint, Balance {
     });
 
     // dP
-    const dP = omegaSkew2.clone().mul(-this.mass);
-    phi_q.subMatrixAdd(dP, row, col + X);
+    const dP1 = omegaSkew2.clone().mul(-this.mass);
+    phi_q.subMatrixAdd(dP1, row, col + X);
 
     // dQ
     const dTheta1 = omegaSkew2.mmul(A).mmul(cogLocalSkew).mul(-this.mass);
@@ -225,13 +225,13 @@ export class FDComponentBalance implements Constraint, Balance {
     // モーメントの部分のヤコビアン
     // dF
     pfs.forEach((pf, i) => {
-      const dpf = pSkewQ[i].clone().mul(-pfCoefs[i]);
-      phi_q.subMatrixAdd(dpf, row + 3, pf.col + X);
+      const df = pSkewQ[i].clone().mul(-pfCoefs[i]);
+      phi_q.subMatrixAdd(df, row + 3, pf.col + X);
     });
 
     // dP
-    const dPRot = cogSkewQ.mmul(dP).mul(-1);
-    phi_q.subMatrixAdd(dPRot, row + 3, col + X);
+    const dP2 = cogSkewQ.mmul(dP1).mul(-1);
+    phi_q.subMatrixAdd(dP2, row + 3, col + X);
 
     // dQ
     const dTheta2 = new Matrix(3, 3);
