@@ -576,7 +576,7 @@ export class GeneralVariable extends VariableBase {
     const {col} = this;
     const dx = dq.get(col + X, 0);
     this.value -= dx;
-    // this.value = 0
+    // this.value = 0;
   }
 
   loadQ(q: number[]) {

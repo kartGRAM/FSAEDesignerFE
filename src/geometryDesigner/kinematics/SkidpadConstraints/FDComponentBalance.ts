@@ -155,9 +155,9 @@ export class FDComponentBalance implements Constraint, Balance {
     const maSkew = skew(ma);
 
     // タイヤが接続されていればその駆動力の反モーメントを受け取る
-    const driveMomentAndDiffs = this.conectedTireBalance.map((tb) =>
+    /* const driveMomentAndDiffs = this.conectedTireBalance.map((tb) =>
       tb.getDriveMoment()
-    );
+    ); */
 
     // 力のつり合い
     const translation = pfs
@@ -237,7 +237,7 @@ export class FDComponentBalance implements Constraint, Balance {
     const dTheta2 = new Matrix(3, 3);
     pfs.forEach((pf, i) => {
       // theta部分の微分
-      const dThetabyF = skew(pf.force.clone())
+      const dThetabyF = skew(pf.force)
         .mmul(A)
         .mmul(pointLocalSkew[i])
         .mul(pfCoefs[i]);

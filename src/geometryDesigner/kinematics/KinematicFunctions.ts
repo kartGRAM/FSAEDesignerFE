@@ -491,8 +491,12 @@ export function getSimplifiedTireConstrainsParams(
     element.innerBearing.nodeID
   );
   const outer = element.toOuterBearing.value;
+  const inner = element.toInnerBearing.value;
   // 親コンポーネントのローカル空間上での回転軸
-  const localAxis = pOuter.clone().sub(pInner.value);
+  const localAxis = pOuter
+    .clone()
+    .sub(pInner.value)
+    .multiplyScalar(outer - inner);
   localAxis.normalize();
   const localAxisSkew = skew(localAxis);
   // pOuter基準でのtireCenter

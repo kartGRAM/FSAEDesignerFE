@@ -309,7 +309,8 @@ export class TireBalance implements Constraint, Balance {
 
     // 力のつり合い
     // dF
-    const df = Matrix.eye(3, 3).add(dFtR_df);
+    const df = Matrix.eye(3, 3);
+    df.add(dFtR_df);
     pfs.forEach((pf, i) => {
       phi_q.subMatrixAdd(
         df.subMatrix(0, 1, 0, 2).clone().mul(pfCoefs[i]),
@@ -373,7 +374,7 @@ export class TireBalance implements Constraint, Balance {
     const m_nnTMASkew_A = skew(nnT.mmul(getVVector(ma)))
       .mmul(A)
       .mul(-1); // (3x3)
-    dThetaM.add(m_nnTMASkew_A.mmul(A).mmul(localGroundSkew));
+    dThetaM.add(m_nnTMASkew_A.mmul(localGroundSkew));
     dTheta2.add(m_nnTMASkew_A.mmul(dLocalGround_dQ));
     const tireFSkew_A = frictionSkew.clone().add(feSkew).mmul(A);
     dThetaM.add(tireFSkew_A.mmul(localGroundSkew));
@@ -637,6 +638,16 @@ export class TireBalance implements Constraint, Balance {
     const dMX_dQ1 = dMx_dFtx.mmul(dFtx_dQ); // (3x1)*(1x4) = (3x4)
     const dMX_dQ2 = A.mmul(this.localAxisSkew).mmul(G).mul(lmX); // (3x4)
     const dMX_dQ = dMX_dQ1.clone().add(dMX_dQ2);
+
+    if (this.disableTireFriction) {
+      mX.multiplyScalar(0);
+      dMX_dOmega.mul(0);
+      dMX_de.mul(0);
+      dMX_df.mul(0);
+      dMX_dP.mul(0);
+      dMX_dQ.mul(0);
+    }
+
     return {
       mX,
       dMX_dOmega,
