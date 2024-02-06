@@ -22,12 +22,9 @@ import {
 import {Constraint} from '../Constraints';
 
 const X = 0;
-const Y = 1;
-const Z = 2;
 const Q0 = 3;
 
 const unitZ = getVVector(new Vector3(0, 0, 1));
-const unitZT = unitZ.transpose();
 
 export class BarBalance implements Constraint {
   readonly className = 'BarBalance';
@@ -108,7 +105,6 @@ export class BarBalance implements Constraint {
     const pts = components.map((c, i) =>
       localVec[i].clone().applyQuaternion(c.quaternion).add(c.position)
     );
-
     const pSkewP = pts.map((p) => skew(p));
     const pCog = pts[1].clone().sub(pts[0]).multiplyScalar(cog).add(pts[0]);
     const cogSkewP = skew(pCog);
@@ -133,8 +129,9 @@ export class BarBalance implements Constraint {
         return prev.add(pf);
       }, new Vector3())
       .add(ma);
-    // 変分の方程式がわかりやすくなるようにあえて、力x距離にする
+
     // グローバル座標系原点周りのモーメントつり合い
+    // 変分の方程式がわかりやすくなるようにあえて、力x距離にする
     const rotation = pfs
       .reduce((prev, f, i) => {
         const pfm = f.force.clone().cross(pts[i]).multiplyScalar(pfCoefs[i]);
@@ -161,14 +158,17 @@ export class BarBalance implements Constraint {
       const df1 = I.clone().mul(pfCoefs[i]);
       phi_q.subMatrixAdd(df1, row, pfCol + X);
 
-      // 位置
       // dP
       const dP1 = omegaSkew2.clone().mul(-t * this.mass);
       phi_q.subMatrixAdd(dP1, row, c.col + X);
 
       // モーメントのつり合い
       // df
-      phi_q.subMatrixAdd(pSkewP[i].clone().mul(-1), row + 3, pfCol + X);
+      phi_q.subMatrixAdd(
+        pSkewP[i].clone().mul(-pfCoefs[i]),
+        row + 3,
+        pfCol + X
+      );
 
       // dP
       const dP2 = fSkew
@@ -182,14 +182,19 @@ export class BarBalance implements Constraint {
 
         // 力のつり合い(dQ)
         phi_q.subMatrixAdd(
-          dP1.mmul(A.mmul(localSkew[i]).mmul(G)),
+          dP1.mmul(A).mmul(localSkew[i]).mmul(G),
           row,
           c.col + Q0
         );
 
         // モーメントのつり合い(dQ)
+        /* const dQM2 = fSkew
+          .add(maSkew.clone().mul(t))
+          .mmul(A)
+          .mmul(localSkew[i]);
+        dQM2.add(cogSkewP.mmul(dP1).mmul(A).mmul(localSkew[i]).mul(-1)); */
         phi_q.subMatrixAdd(
-          dP2.mmul(A.mmul(localSkew[i]).mmul(G)),
+          dP2.mmul(A).mmul(localSkew[i]).mmul(G),
           row + 3,
           c.col + Q0
         );

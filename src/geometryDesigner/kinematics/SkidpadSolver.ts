@@ -307,11 +307,14 @@ export class SkidpadSolver {
           const pfs: PointForce[] = [];
           const jointf = jointDict[element.fixedPoint.nodeID][0];
           const jointp = jointDict[element.point.nodeID][0];
+          const pNodeIDs: string[] = [];
           const [pff, isNewf] = getPFComponent(
             pointForceComponents,
             jointf,
             forceScale
           );
+          const [pf] = getNamedVector3FromJoint(jointf, element.nodeID);
+          pNodeIDs.push(pf.nodeID);
           pfs.push(pff);
           if (isNewf) components.push(pff);
           const [pfp, isNewp] = getPFComponent(
@@ -319,6 +322,8 @@ export class SkidpadSolver {
             jointp,
             forceScale
           );
+          const [pp] = getNamedVector3FromJoint(jointp, element.nodeID);
+          pNodeIDs.push(pp.nodeID);
           pfs.push(pfp);
           if (isNewp) components.push(pfp);
           jointsDone.add(jointf);
@@ -387,21 +392,21 @@ export class SkidpadSolver {
           constraints.push(constraint);
 
           // BarBalance
-          /* constraints.push(
-            new BarBalance({
-              name: `BarBalance of${element.name.value}`,
-              components: [lhs, rhs],
-              points: [
-                isFullDegreesComponent(lhs) ? points[0].value : new Vector3(),
-                isFullDegreesComponent(rhs) ? points[1].value : new Vector3()
-              ],
-              mass: element.mass.value,
-              cog: 0.5, // 要修正
-              pfs: pfs as Twin<PointForce>,
-              vO,
-              omega
-            })
-          ); */
+          const balance = new BarBalance({
+            name: `BarBalance of${element.name.value}`,
+            components: [lhs, rhs],
+            points: [
+              isFullDegreesComponent(lhs) ? points[0].value : new Vector3(),
+              isFullDegreesComponent(rhs) ? points[1].value : new Vector3()
+            ],
+            mass: element.mass.value,
+            cog: 0.5, // 要修正
+            pfs: pfs as Twin<PointForce>,
+            vO,
+            omega,
+            pfsPointNodeIDs: pNodeIDs
+          });
+          constraints.push(balance);
           return;
         }
         // Tireはコンポーネント扱いしない
@@ -979,11 +984,14 @@ export class SkidpadSolver {
     }
     // 上記4ステップでプリプロセッサ完了
     if (solve) {
+      console.log('Assemble...........');
       this.solve({
         constraintsOptions: {onAssemble: true, disableTireFriction: true},
         postProcess: true,
         logOutput: true
       });
+      console.log('');
+      console.log('tire friction............');
       this.solve({
         constraintsOptions: {onAssemble: true},
         postProcess: true,
@@ -1056,7 +1064,7 @@ export class SkidpadSolver {
             autoTranspose: true
           })
             .solve(matPhi)
-            .mul(0.5);
+            .mul(1);
 
           /*
           const iPhi_q = inverse(phi_q, true);
@@ -1076,7 +1084,6 @@ export class SkidpadSolver {
           const r = 10 / (components[0] as GeneralVariable).value;
           const phiMax = Math.max(...phi);
           const phiMaxIdx = phi.indexOf(phiMax);
-          console.log(``);
           console.log(`round: ${i}`);
           // console.log(`max_dot26   = ${Math.max(...dot26)}`);
           // console.log(`max_d26   = ${Math.max(...d26)}`);
@@ -1085,6 +1092,7 @@ export class SkidpadSolver {
           console.log(`radius= ${r}`);
           eq = norm < 1e-4;
           console.log(`norm=${norm.toFixed(4)}`);
+          console.log(``);
           if (norm > minNorm * 100000 || Number.isNaN(norm)) {
             // eslint-disable-next-line no-console
             console.log(`norm=${norm.toFixed(3)}`);
