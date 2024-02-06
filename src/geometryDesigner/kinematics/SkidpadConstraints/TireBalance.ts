@@ -299,6 +299,9 @@ export class TireBalance implements Constraint, Balance {
       .add(new Vector3(0, 0, -ma.z).cross(groundQ))
       .add(friction.clone().add(fe).cross(groundQ))
       .add(mX);
+    // モーメントベクトルのAxis成分は完全になくす
+    const nError = axis.clone().multiplyScalar(axis.dot(rotation));
+    rotation.sub(nError);
 
     phi[row + X] = translation.x;
     phi[row + Y] = translation.y;

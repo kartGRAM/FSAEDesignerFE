@@ -1057,7 +1057,6 @@ export class SkidpadSolver {
           }).solve(matPhi);
 
           const iPhi_q = inverse(phi_q, true);
-
           const {data: iData} = iPhi_q as any;
           const id26 = iData[26];
           const dot26Org = phi.map((p, i) => phi[i] * id26[i]);
@@ -1076,6 +1075,7 @@ export class SkidpadSolver {
           const phiMaxIdx = phi.indexOf(phiMax);
           console.log(``);
           console.log(`round: ${i}`);
+          console.log(`max_dot26   = ${Math.max(...dot26)}`);
           console.log(`max_d26   = ${Math.max(...d26)}`);
           console.log(`phi_max   = ${phiMax}`);
           console.log(`phi_maxIdx= ${phiMaxIdx}`);
