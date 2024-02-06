@@ -516,7 +516,8 @@ export function getSimplifiedTireConstrainsParams(
       const qi = q.clone().invert();
       const At = rotationMatrix(q).transpose();
       const E = decompositionMatrixE(q);
-      const globalNormalSkew = skew(normal).mul(2);
+      // -2なのか？2じゃなくて？
+      const globalNormalSkew = skew(normal).mul(-2);
 
       // 法線ベクトルを、部品座標系へ回転させる
       const n = normal.clone().applyQuaternion(qi);
