@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable camelcase */
 /* eslint-disable no-lone-blocks */
-import {Matrix, SingularValueDecomposition} from 'ml-matrix';
+import {Matrix, SingularValueDecomposition, inverse} from 'ml-matrix';
 import {Control} from '@gd/controls/IControls';
 import {
   IElement,
@@ -984,11 +984,11 @@ export class SkidpadSolver {
         postProcess: true,
         logOutput: true
       });
-      this.solve({
+      /* this.solve({
         constraintsOptions: {onAssemble: true},
         postProcess: true,
         logOutput: true
-      });
+      }); */
     }
   }
 
@@ -1056,13 +1056,31 @@ export class SkidpadSolver {
             autoTranspose: true
           }).solve(matPhi);
 
+          const iPhi_q = inverse(phi_q, true);
+
+          const {data: iData} = iPhi_q as any;
+          const id26 = iData[26];
+          const dot26Org = phi.map((p, i) => phi[i] * id26[i]);
+          const large26 = dot26Org.map((x) => (x > 0.001 ? 1 : 0));
+          const dot26 = dot26Org.map((x, i) => x * large26[i]);
+
+          const {data} = phi_q as any;
+          const d26 = data.map((d: any) => d[26]);
+
           // 差分を反映
           components.forEach((component) => component.applyDq(dq));
 
           const norm = dq.norm('frobenius');
           const r = 10 / (components[0] as GeneralVariable).value;
+          const phiMax = Math.max(...phi);
+          const phiMaxIdx = phi.indexOf(phiMax);
+          console.log(``);
+          console.log(`round: ${i}`);
+          console.log(`max_d26   = ${Math.max(...d26)}`);
+          console.log(`phi_max   = ${phiMax}`);
+          console.log(`phi_maxIdx= ${phiMaxIdx}`);
           console.log(`radius= ${r}`);
-          eq = norm < 1e-3;
+          eq = norm < 1e-4;
           console.log(`norm=${norm.toFixed(4)}`);
           if (norm > minNorm * 100000 || Number.isNaN(norm)) {
             // eslint-disable-next-line no-console

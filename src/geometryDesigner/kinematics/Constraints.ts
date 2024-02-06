@@ -1099,6 +1099,7 @@ export class PointToPlane implements Constraint, deltaL {
     const {col, position, quaternion: q} = component;
     const A = rotationMatrix(q);
     const G = decompositionMatrixG(q);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const {r, dr_dQ} = localVec(normal, distance);
     const s = r.clone().applyQuaternion(q).add(position);
     const nT = new Matrix([[normal.x, normal.y, normal.z]]); // (1x3)

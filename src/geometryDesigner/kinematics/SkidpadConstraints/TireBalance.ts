@@ -600,14 +600,15 @@ export class TireBalance implements Constraint, Balance {
       G,
       axis,
       dk_dQ,
-      dFtR_dP,
-      dFtR_dQ,
-      dFtR_dOmega,
-      dFtR_df,
       dFtx_dOmega,
       dFtx_dP,
       dFtx_dQ,
-      dFtx_df
+      dFtx_df,
+
+      dFtR_dP,
+      dFtR_dQ,
+      dFtR_dOmega,
+      dFtR_df
     };
   }
 
@@ -638,15 +639,6 @@ export class TireBalance implements Constraint, Balance {
     const dMX_dQ1 = dMx_dFtx.mmul(dFtx_dQ); // (3x1)*(1x4) = (3x4)
     const dMX_dQ2 = A.mmul(this.localAxisSkew).mmul(G).mul(lmX); // (3x4)
     const dMX_dQ = dMX_dQ1.clone().add(dMX_dQ2);
-
-    if (this.disableTireFriction) {
-      mX.multiplyScalar(0);
-      dMX_dOmega.mul(0);
-      dMX_de.mul(0);
-      dMX_df.mul(0);
-      dMX_dP.mul(0);
-      dMX_dQ.mul(0);
-    }
 
     return {
       mX,
