@@ -6,7 +6,7 @@ import {isElement} from '@gd/IElements';
 import {INamedVector3RO} from '@gd/INamedValues';
 import {Vector3} from 'three';
 import {IComponent} from '@gd/kinematics/KinematicComponents';
-import {KinematicsSolver} from '@gd/kinematics/KinematicsSolver';
+import {ISolver} from '@gd/kinematics/ISolver';
 import {getPartialDiffOfRotationMatrix} from '@gd/kinematics/KinematicFunctions';
 
 export interface IObjectiveFunction {
@@ -28,11 +28,7 @@ export class MovePointTo implements IObjectiveFunction {
 
   component: IComponent;
 
-  constructor(
-    point: INamedVector3RO,
-    target: Vector3,
-    solver: KinematicsSolver
-  ) {
+  constructor(point: INamedVector3RO, target: Vector3, solver: ISolver) {
     this.point = point;
     this.target = target;
     if (!isElement(point.parent)) throw new Error('pointの親がElementじゃない');

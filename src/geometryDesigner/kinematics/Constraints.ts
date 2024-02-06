@@ -487,8 +487,10 @@ export class BarAndSpheres implements Constraint, deltaL {
   }
 
   get dl(): number {
-    if (this.controled) return this._dl;
-    return this.getDistanceOfEndPoints() - Math.sqrt(this.l2);
+    if (this.controled) return this._dl / this.lhs.scale;
+    return (
+      (this.getDistanceOfEndPoints() - Math.sqrt(this.l2)) / this.lhs.scale
+    );
   }
 
   name: string;

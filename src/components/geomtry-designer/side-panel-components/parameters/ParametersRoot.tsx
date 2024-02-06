@@ -42,10 +42,10 @@ export default function ParametersRoot() {
   let component: JSX.Element | null = null;
   if (element && isAArm(element)) {
     component = <AArmConfig element={element} key={element.absPath} />;
-  } else if (element && isBar(element)) {
-    component = <BarConfig element={element} key={element.absPath} />;
   } else if (element && isSpringDumper(element)) {
     component = <SpringDumperConfig element={element} key={element.absPath} />;
+  } else if (element && isBar(element)) {
+    component = <BarConfig element={element} key={element.absPath} />;
   } else if (element && isBellCrank(element)) {
     component = <BellCrankConfig element={element} key={element.absPath} />;
   } else if (element && isBody(element)) {

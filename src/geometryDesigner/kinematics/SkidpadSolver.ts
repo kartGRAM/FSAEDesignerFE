@@ -81,8 +81,9 @@ import {
   PointForce,
   GeneralVariable
 } from './KinematicComponents';
+import {ISolver} from './ISolver';
 
-export class SkidpadSolver {
+export class SkidpadSolver implements ISolver {
   assembly: IAssembly;
 
   components: IVariable[][];
@@ -108,7 +109,8 @@ export class SkidpadSolver {
     const vO = () => new Vector3(10, 0, 0).multiplyScalar(scale * 1000);
     this.assembly = assembly;
     const {children} = assembly;
-    const controls = Object.keys(controlsAll).reduce((dict, key) => {
+
+    /* const controls = Object.keys(controlsAll).reduce((dict, key) => {
       const cls = controlsAll[key].filter(
         (f) => f.nodeID === config.stearing.target
       );
@@ -116,7 +118,8 @@ export class SkidpadSolver {
         dict[key] = cls;
       }
       return dict;
-    }, {} as {[index: string]: Control[]});
+    }, {} as {[index: string]: Control[]}); */
+    const controls = controlsAll;
     const joints = assembly.getJointsAsVector3();
     const jointDict = getJointDictionary(children, joints);
     const constraints: Constraint[] = [];
@@ -1135,6 +1138,9 @@ export class SkidpadSolver {
     }
     this.running = false;
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  solveObjectiveFunction() {}
 
   async wait(): Promise<void> {
     // eslint-disable-next-line no-await-in-loop

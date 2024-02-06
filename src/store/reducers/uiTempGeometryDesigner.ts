@@ -13,7 +13,7 @@ import {RootState} from '@react-three/fiber';
 import {GetState} from 'zustand';
 import {ITest} from '@gd/analysis/ITest';
 import {Item as TestFlowNodeItem} from '@gd/analysis/FlowNode';
-import {KinematicsSolver} from '@gd/kinematics/KinematicsSolver';
+import {ISolver} from '@gd/kinematics/ISolver';
 
 // import {PointOffsetToolDialogProps} from '@gdComponents/dialog-components/PointOffsetToolDialog';
 
@@ -58,7 +58,7 @@ export interface GDState {
   gdDialogState: GDDialogState;
   assembly: IAssembly | undefined;
   collectedAssembly: IAssembly | undefined;
-  KinematicsSolver: KinematicsSolver | undefined;
+  KinematicsSolver: ISolver | undefined;
   datumManager: IDatumManager | undefined;
   measureToolsManager: IMeasureToolsManager | undefined;
   roVariablesManager: IROVariablesManager | undefined;
@@ -272,7 +272,7 @@ export const uitGeometryDesignerSlice = createSlice({
     },
     setKinematicsSolver: (
       state: GDState,
-      action: PayloadAction<KinematicsSolver | undefined>
+      action: PayloadAction<ISolver | undefined>
     ) => {
       state.KinematicsSolver = action.payload;
     },

@@ -1,5 +1,5 @@
 import {v4 as uuidv4} from 'uuid';
-import {KinematicsSolver} from '@gd/kinematics/KinematicsSolver';
+import {ISolver} from '@gd/kinematics/ISolver';
 import {Options} from '@gd/ISaveData';
 
 export interface IDataControl {
@@ -96,13 +96,9 @@ export abstract class Control {
     };
   }
 
-  abstract preprocess(
-    dt: number,
-    solver: KinematicsSolver,
-    value?: number
-  ): unknown;
+  abstract preprocess(dt: number, solver: ISolver, value?: number): unknown;
 
-  abstract rollback(data: unknown, solver: KinematicsSolver): void;
+  abstract rollback(data: unknown, solver: ISolver): void;
 
   abstract getDataControl(): IDataControl;
 }
