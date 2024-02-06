@@ -984,11 +984,11 @@ export class SkidpadSolver {
         postProcess: true,
         logOutput: true
       });
-      /* this.solve({
+      this.solve({
         constraintsOptions: {onAssemble: true},
         postProcess: true,
         logOutput: true
-      }); */
+      });
     }
   }
 
@@ -1054,8 +1054,11 @@ export class SkidpadSolver {
           const matPhi = Matrix.columnVector(phi);
           const dq = new SingularValueDecomposition(phi_q, {
             autoTranspose: true
-          }).solve(matPhi);
+          })
+            .solve(matPhi)
+            .mul(0.5);
 
+          /*
           const iPhi_q = inverse(phi_q, true);
           const {data: iData} = iPhi_q as any;
           const id26 = iData[26];
@@ -1064,7 +1067,7 @@ export class SkidpadSolver {
           const dot26 = dot26Org.map((x, i) => x * large26[i]);
 
           const {data} = phi_q as any;
-          const d26 = data.map((d: any) => d[26]);
+          const d26 = data.map((d: any) => d[26]); */
 
           // 差分を反映
           components.forEach((component) => component.applyDq(dq));
@@ -1075,8 +1078,8 @@ export class SkidpadSolver {
           const phiMaxIdx = phi.indexOf(phiMax);
           console.log(``);
           console.log(`round: ${i}`);
-          console.log(`max_dot26   = ${Math.max(...dot26)}`);
-          console.log(`max_d26   = ${Math.max(...d26)}`);
+          // console.log(`max_dot26   = ${Math.max(...dot26)}`);
+          // console.log(`max_d26   = ${Math.max(...d26)}`);
           console.log(`phi_max   = ${phiMax}`);
           console.log(`phi_maxIdx= ${phiMaxIdx}`);
           console.log(`radius= ${r}`);

@@ -100,7 +100,6 @@ export class FDComponentBalance implements Constraint, Balance {
     this.omega = params.omega;
     this.g = new Vector3(0, 0, -9810 * this.component.scale);
     this.pfs = [...params.pointForceComponents];
-
     this.pfCoefs = this.pfs.map((pf, i) => pf.sign(params.pfsPointNodeIDs[i]));
 
     this.conectedTireBalance = params.connectedTireBalance;
