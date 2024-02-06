@@ -83,6 +83,7 @@ import {
 } from './KinematicComponents';
 import {ISolver} from './ISolver';
 
+const v = 0.1;
 export class SkidpadSolver implements ISolver {
   assembly: IAssembly;
 
@@ -106,7 +107,7 @@ export class SkidpadSolver implements ISolver {
     forceScale: number,
     solve?: boolean
   ) {
-    const vO = () => new Vector3(10, 0, 0).multiplyScalar(scale * 1000);
+    const vO = () => new Vector3(v, 0, 0).multiplyScalar(scale * 1000);
     this.assembly = assembly;
     const {children} = assembly;
 
@@ -1084,7 +1085,7 @@ export class SkidpadSolver implements ISolver {
           components.forEach((component) => component.applyDq(dq));
 
           const norm = dq.norm('frobenius');
-          const r = 10 / (components[0] as GeneralVariable).value;
+          const r = v / (components[0] as GeneralVariable).value;
           const phiMax = Math.max(...phi);
           const phiMaxIdx = phi.indexOf(phiMax);
           console.log(`round: ${i}`);
