@@ -4,6 +4,7 @@
 import {Matrix} from 'ml-matrix';
 import {Vector3} from 'three';
 import {isObject} from '@utils/helpers';
+import {Constraint, ConstraintsOptions} from '@gd/kinematics/IConstraint';
 import {
   getStableOrthogonalVector,
   skew,
@@ -11,7 +12,6 @@ import {
   decompositionMatrixG
 } from './KinematicFunctions';
 import {
-  IVariable,
   IComponent,
   FullDegreesComponent,
   isFullDegreesComponent
@@ -24,12 +24,6 @@ const Q0 = 3;
 const Q1 = 4;
 const Q2 = 5;
 const Q3 = 6;
-
-export interface ConstraintsOptions {
-  onAssemble?: boolean;
-  fixSpringDumpersAtCurrentPositions?: boolean;
-  disableTireFriction?: boolean;
-}
 
 interface deltaL {
   hasDl: true;
@@ -44,29 +38,6 @@ export function hasDl(object: any): object is deltaL {
 
 export function controled(object: any): object is deltaL {
   return isObject(object) && object.hasDl && object.controled;
-}
-
-export interface Constraint {
-  readonly className: string;
-  readonly relevantVariables: IVariable[];
-  readonly isInequalityConstraint: boolean;
-  row: number;
-  active(options: ConstraintsOptions): boolean;
-  constraints(options: ConstraintsOptions): number;
-  readonly name: string;
-  setJacobianAndConstraints(
-    phi_q: Matrix,
-    phi: number[],
-    options: ConstraintsOptions
-  ): void;
-
-  setJacobianAndConstraintsInequal(
-    phi_q: Matrix,
-    phi: number[],
-    hint: any
-  ): any;
-  checkInequalityConstraint(): [boolean, any];
-  resetStates(): void;
 }
 
 export class Sphere implements Constraint {

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable camelcase */
 /* eslint-disable no-lone-blocks */
@@ -29,6 +30,7 @@ import {ISteadySkidpadParams} from '@gd/analysis/ITest';
 import {ISnapshot} from '@gd/analysis/ISnapshot';
 import {Triple, Twin, OneOrTwo} from '@utils/atLeast';
 import {getTire} from '@tire/listTireData';
+import {Constraint, ConstraintsOptions} from '@gd/kinematics/IConstraint';
 import {
   getJointDictionary,
   canSimplifyAArm,
@@ -54,8 +56,6 @@ import {
   RelativeConstraintRestorer
 } from './Restorer';
 import {
-  ConstraintsOptions,
-  Constraint,
   Sphere,
   Hinge,
   BarAndSpheres,
@@ -83,8 +83,11 @@ import {
 } from './KinematicComponents';
 import {ISolver} from './ISolver';
 
-const v = 0.1;
 export class SkidpadSolver implements ISolver {
+  static className = 'SkidpadSolver' as const;
+
+  readonly className = SkidpadSolver.className;
+
   assembly: IAssembly;
 
   components: IVariable[][];
@@ -99,6 +102,10 @@ export class SkidpadSolver implements ISolver {
 
   firstSolved = false;
 
+  v: number;
+
+  r: number | undefined;
+
   constructor(
     assembly: IAssembly,
     config: ISteadySkidpadParams,
@@ -107,6 +114,8 @@ export class SkidpadSolver implements ISolver {
     forceScale: number,
     solve?: boolean
   ) {
+    this.v = config.velocity.value;
+    const {v} = this;
     const vO = () => new Vector3(v, 0, 0).multiplyScalar(scale * 1000);
     this.assembly = assembly;
     const {children} = assembly;
@@ -988,7 +997,7 @@ export class SkidpadSolver implements ISolver {
     }
     // 上記4ステップでプリプロセッサ完了
     if (solve) {
-      console.log('Assemble...........');
+      console.log('calculating initial force...........');
       this.solve({
         constraintsOptions: {onAssemble: true, disableTireFriction: true},
         postProcess: true,
@@ -1086,25 +1095,22 @@ export class SkidpadSolver implements ISolver {
 
           const norm_dq = dq.norm('frobenius');
           const norm_phi = matPhi.norm('frobenius');
-          const r = v / (components[0] as GeneralVariable).value;
+          this.r = this.v / (components[0] as GeneralVariable).value;
           const phiMax = Math.max(...phi);
           const phiMaxIdx = phi.indexOf(phiMax);
-          console.log(`round: ${i}`);
-          // console.log(`max_dot26   = ${Math.max(...dot26)}`);
-          // console.log(`max_d26   = ${Math.max(...d26)}`);
-          console.log(`phi_max   = ${phiMax}`);
-          console.log(`phi_maxIdx= ${phiMaxIdx}`);
-          console.log(`radius= ${r}`);
-          console.log(`norm_dq=  ${norm_dq.toFixed(4)}`);
-          console.log(`norm_phi= ${norm_phi.toFixed(4)}`);
-          console.log(``);
+          if (logOutput) {
+            console.log(`round: ${i}`);
+            console.log(`phi_max   = ${phiMax}`);
+            console.log(`phi_maxIdx= ${phiMaxIdx}`);
+            console.log(`radius= ${this.r}`);
+            console.log(`norm_dq=  ${norm_dq.toFixed(4)}`);
+            console.log(`norm_phi= ${norm_phi.toFixed(4)}`);
+            console.log(``);
+          }
           eq = norm_dq < 1e-4 && norm_phi < 1e-6;
           if (norm_dq > minNorm * 100000 || Number.isNaN(norm_dq)) {
-            // eslint-disable-next-line no-console
             console.log(`norm_dq=  ${norm_dq.toFixed(4)}`);
-            // eslint-disable-next-line no-console
             console.log(`norm_phi= ${norm_phi.toFixed(4)}`);
-            // eslint-disable-next-line no-console
             console.log('収束していない');
             throw new Error('ニュートンラプソン法収束エラー');
           }
@@ -1226,4 +1232,8 @@ export class SkidpadSolver implements ISolver {
       restorer.restore(unresolvedPoints);
     });
   }
+}
+
+export function isSkidpadSolver(solver: ISolver): solver is SkidpadSolver {
+  return solver.className === SkidpadSolver.className;
 }

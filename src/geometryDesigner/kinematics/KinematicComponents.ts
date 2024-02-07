@@ -4,8 +4,9 @@ import {Matrix} from 'ml-matrix';
 import {IElement} from '@gd/IElements';
 import {INamedVector3RO} from '@gd/INamedValues';
 import {Vector3, Quaternion} from 'three';
+import {Constraint} from '@gd/kinematics/IConstraint';
 import {isFixedElement} from './KinematicFunctions';
-import {Constraint, QuaternionConstraint} from './Constraints';
+import {QuaternionConstraint} from './Constraints';
 
 const X = 0;
 const Y = 1;

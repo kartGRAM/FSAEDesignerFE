@@ -1,9 +1,10 @@
+import {ConstraintsOptions} from '@gd/kinematics/IConstraint';
 import {IObjectiveFunction} from './Driver';
-import {ConstraintsOptions} from './Constraints';
 import {ISnapshot} from '../analysis/ISnapshot';
 import {IVariable, IComponent} from './KinematicComponents';
 
 export interface ISolver {
+  readonly className: string;
   readonly running: boolean;
   readonly components: IVariable[][];
   readonly componentsFromNodeID: {[index: string]: IComponent};

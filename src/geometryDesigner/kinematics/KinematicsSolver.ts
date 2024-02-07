@@ -18,6 +18,7 @@ import {
 } from '@gd/controls/PointToPlaneControl';
 import {hasNearestNeighborToPlane} from '@gd/SpecialPoints';
 import {sleep} from '@utils/helpers';
+import {Constraint, ConstraintsOptions} from '@gd/kinematics/IConstraint';
 import {
   getJointDictionary,
   canSimplifyAArm,
@@ -40,8 +41,6 @@ import {
 } from './Restorer';
 import {IObjectiveFunction} from './Driver';
 import {
-  ConstraintsOptions,
-  Constraint,
   Sphere,
   Hinge,
   BarAndSpheres,
@@ -60,6 +59,10 @@ import {ISnapshot} from '../analysis/ISnapshot';
 import {ISolver} from './ISolver';
 
 export class KinematicsSolver implements ISolver {
+  static className = 'KinematicsSolver' as const;
+
+  readonly className = KinematicsSolver.className;
+
   assembly: IAssembly;
 
   components: IComponent[][];
@@ -1168,4 +1171,10 @@ export class KinematicsSolver implements ISolver {
       restorer.restore(unresolvedPoints);
     });
   }
+}
+
+export function isKinematicsSolver(
+  solver: ISolver
+): solver is KinematicsSolver {
+  return solver.className === KinematicsSolver.className;
 }

@@ -5,6 +5,7 @@ import {Matrix} from 'ml-matrix';
 import {Vector3, Quaternion} from 'three';
 import {Twin} from '@utils/atLeast';
 import {ITire} from '@gd/IElements/ITire';
+import {Constraint} from '@gd/kinematics/IConstraint';
 import {
   skew,
   rotationMatrix,
@@ -25,7 +26,7 @@ import {
   PointForce,
   GeneralVariable
 } from '../KinematicComponents';
-import {Constraint} from '../Constraints';
+
 import {Balance} from '../SkidpadConstraints';
 
 const X = 0;
