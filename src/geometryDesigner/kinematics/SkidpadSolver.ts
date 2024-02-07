@@ -1243,12 +1243,6 @@ export class SkidpadSolver implements ISolver {
     this.components.forEach((components) =>
       components.forEach((component) => component.applyResultToApplication())
     );
-    this.components.forEach((components) => {
-      const constraints = components[0].unionFindTreeConstraints;
-      constraints.forEach((constraint) => {
-        if (isBalance(constraint)) constraint.applytoElement();
-      });
-    });
     // 簡略化したElementに計算結果を反映する
     const unresolvedPoints = Object.keys(this.pointComponents).reduce(
       (prev, current) => {
@@ -1261,6 +1255,12 @@ export class SkidpadSolver implements ISolver {
     );
     this.restorers.forEach((restorer) => {
       restorer.restore(unresolvedPoints);
+    });
+    this.components.forEach((components) => {
+      const constraints = components[0].unionFindTreeConstraints;
+      constraints.forEach((constraint) => {
+        if (isBalance(constraint)) constraint.applytoElement();
+      });
     });
   }
 }

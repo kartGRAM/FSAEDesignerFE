@@ -247,7 +247,8 @@ export class TireBalance implements Constraint, Balance {
       dFtx_dOmega,
       dFtx_dP,
       dFtx_dQ,
-      dFtx_df
+      dFtx_df,
+      fe
     } = this.getTireVectors({
       pGround,
       axis,
@@ -259,12 +260,9 @@ export class TireBalance implements Constraint, Balance {
       pCog
     });
     const maSkew = skew(ma); // (3x3)
+    const feSkew = skew(fe);
     const omegaSkew2 = omegaSkew.mmul(omegaSkew); // (3x3)
     const frictionSkew = skew(friction);
-
-    // 誤差項
-    const fe = k.clone().multiplyScalar(torqueRatio * error.value);
-    const feSkew = skew(fe);
 
     const {mX, dMX_dOmega, dMX_de, dMX_df, dMX_dP, dMX_dQ} =
       this.getDriveMoment({
@@ -577,6 +575,9 @@ export class TireBalance implements Constraint, Balance {
 
     const friction = getVector3(frictionRotMat.mmul(getVVector(frictionOrg)));
 
+    // 誤差項
+    const fe = k.clone().multiplyScalar(this.torqueRatio * this.error.value);
+
     // FxとFtによる反力
     if (this.disableTireFriction) {
       frictionX = 0;
@@ -597,6 +598,8 @@ export class TireBalance implements Constraint, Balance {
       sa,
       friction,
       frictionX,
+      fe,
+      c,
       ma,
       fz,
       vO,
@@ -660,7 +663,34 @@ export class TireBalance implements Constraint, Balance {
     };
   }
 
-  applytoElement() {}
+  applytoElement() {
+    const {friction, fe, fz, k, c} = this.getTireVectors();
+    const fall = friction.clone().add(fe);
+    const fx = k.clone().multiplyScalar(k.dot(fall));
+    const fy = fall.clone().sub(fx);
+    const q = this.element.rotation.value.invert();
+
+    const {element} = this;
+    element.fx = fx.applyQuaternion(q);
+    element.fy = fy.applyQuaternion(q);
+    element.fz = fz.applyQuaternion(q);
+    element.outerBearingForce = this.pfs[0].force
+      .clone()
+      .multiplyScalar(this.pfCoefs[0])
+      .applyQuaternion(q);
+    element.innerBearingForce = this.pfs[1].force
+      .clone()
+      .multiplyScalar(this.pfCoefs[1])
+      .applyQuaternion(q);
+    element.centrifugalForce = c
+      .clone()
+      .multiplyScalar(this.mass)
+      .applyQuaternion(q);
+    element.gravity = this.g
+      .clone()
+      .multiplyScalar(this.mass)
+      .applyQuaternion(q);
+  }
 
   setJacobianAndConstraintsInequal() {}
 
