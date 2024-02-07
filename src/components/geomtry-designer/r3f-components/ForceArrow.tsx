@@ -1,18 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react';
 import * as THREE from 'three';
-import {ThreeEvent, useFrame} from '@react-three/fiber';
+import {useFrame} from '@react-three/fiber';
 import {IElement, transQuaternion} from '@gd/IElements';
 import {Cone, Cylinder, Html} from '@react-three/drei';
-import {useSelector, useDispatch} from 'react-redux';
-import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
-import store, {RootState} from '@store/store';
+import {useSelector} from 'react-redux';
+import {RootState} from '@store/store';
 import {getMatrix3} from '@gd/NamedValues';
-import {INamedVector3RO} from '@gd/INamedValues';
-import {
-  setSelectedPoint,
-  setOrbitControlsEnabled
-} from '@store/reducers/uiTempGeometryDesigner';
 import {isSkidpadSolver} from '@gd/kinematics/SkidpadSolver';
 import {Paper, Typography} from '@mui/material';
 import {jetMap} from '@utils/helpers';
@@ -32,9 +26,6 @@ const ForceArrow = (props: {
   const solver = useSelector(
     (state: RootState) => state.uitgd.KinematicsSolver
   );
-  const invCoMatrix = coMatrix.clone().transpose();
-  const materialRef = React.useRef<THREE.MeshBasicMaterial>(null);
-  const dispatch = useDispatch();
 
   useFrame(() => {
     if (!isSkidpadSolver(solver)) return;

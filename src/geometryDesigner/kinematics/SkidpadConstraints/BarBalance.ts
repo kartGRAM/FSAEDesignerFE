@@ -71,9 +71,12 @@ export class BarBalance implements Constraint, Balance {
 
   omega: GeneralVariable;
 
+  element: IBar;
+
   constructor(params: {
     name: string;
     components: Twin<IComponent>;
+    element: IBar;
     points: Twin<Vector3>;
     mass: number;
     cog: number; // lhs基準
@@ -82,6 +85,7 @@ export class BarBalance implements Constraint, Balance {
     vO: () => Vector3; // 座標原点の速度
     omega: GeneralVariable; // 座標原点の角速度
   }) {
+    this.element = params.element;
     this.name = params.name;
     if (params.components[0] === params.components[1])
       throw new Error('コンポーネントは別である必要がある');
@@ -102,21 +106,39 @@ export class BarBalance implements Constraint, Balance {
     this.localSkew = this.localVec.map((v) => skew(v).mul(-2)) as any;
   }
 
-  applytoElement() {}
+  applytoElement() {
+    const q = this.element.rotation.value.invert();
+    const {c} = this.getCentrifugalForce();
+    const {element} = this;
 
-  setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
-    const {row, components, localVec, localSkew, pfs, g, cog, pfCoefs} = this;
+    element.fixedPointForce = this.pfs[0].force
+      .clone()
+      .multiplyScalar(this.pfCoefs[0])
+      .applyQuaternion(q);
 
+    element.pointForce = this.pfs[1].force
+      .clone()
+      .multiplyScalar(this.pfCoefs[1])
+      .applyQuaternion(q);
+    element.centrifugalForce = c
+      .clone()
+      .multiplyScalar(this.mass)
+      .applyQuaternion(q);
+    element.gravity = this.g
+      .clone()
+      .multiplyScalar(this.mass)
+      .applyQuaternion(q);
+  }
+
+  getCentrifugalForce() {
+    const {localVec, components, cog} = this;
     const pts = components.map((c, i) =>
       localVec[i].clone().applyQuaternion(c.quaternion).add(c.position)
     );
-    const pSkewP = pts.map((p) => skew(p));
     const pCog = pts[1].clone().sub(pts[0]).multiplyScalar(cog).add(pts[0]);
     const cogSkewP = skew(pCog);
 
     const omega = new Vector3(0, 0, this.omega.value);
-    const omegaSkew = skew(omega); // 角速度のSkewMatrix
-    const omegaSkew2 = omegaSkew.mmul(omegaSkew);
     const vO = this.vO(); // 車速
     const cO = omega.clone().cross(vO).multiplyScalar(-1); // 車両座標系にかかる原点の遠心力
 
@@ -125,6 +147,24 @@ export class BarBalance implements Constraint, Balance {
       .cross(omega.clone().cross(pCog))
       .multiplyScalar(-1)
       .add(cO);
+    return {
+      vO,
+      c,
+      omega,
+      pCog,
+      cogSkewP,
+      pts
+    };
+  }
+
+  setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
+    const {row, components, localSkew, pfs, g, cog, pfCoefs} = this;
+
+    const {pts, omega, c, pCog, cogSkewP, vO} = this.getCentrifugalForce();
+
+    const omegaSkew = skew(omega); // 角速度のSkewMatrix
+    const omegaSkew2 = omegaSkew.mmul(omegaSkew);
+    const pSkewP = pts.map((p) => skew(p));
     const ma = g.clone().add(c).multiplyScalar(this.mass); // 遠心力＋重力
     const maSkew = skew(ma);
 

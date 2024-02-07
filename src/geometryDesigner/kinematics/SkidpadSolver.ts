@@ -416,6 +416,7 @@ export class SkidpadSolver implements ISolver {
           // BarBalance
           const balance = new BarBalance({
             name: `BarBalance of${element.name.value}`,
+            element,
             components: [lhs, rhs],
             points: [
               isFullDegreesComponent(lhs) ? points[0].value : new Vector3(),

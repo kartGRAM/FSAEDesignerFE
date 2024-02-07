@@ -60,8 +60,41 @@ export class Bar extends Element implements IBar {
     force: Vector3;
     nodeID: string;
   }[] {
-    return [];
+    return [
+      {
+        name: 'centrifugal force',
+        point: this.centerOfGravity.value,
+        force: this.centrifugalForce,
+        nodeID: `${this.centerOfGravity.nodeID}c`
+      },
+      {
+        name: 'gravity',
+        point: this.centerOfGravity.value,
+        nodeID: `${this.centerOfGravity.nodeID}g`,
+        force: this.gravity
+      },
+      {
+        name: 'force1',
+        point: this.fixedPoint.value,
+        nodeID: this.fixedPoint.nodeID,
+        force: this.fixedPointForce
+      },
+      {
+        name: 'force2',
+        point: this.point.value,
+        nodeID: this.point.nodeID,
+        force: this.pointForce
+      }
+    ];
   }
+
+  centrifugalForce: Vector3 = new Vector3();
+
+  gravity: Vector3 = new Vector3();
+
+  fixedPointForce: Vector3 = new Vector3();
+
+  pointForce: Vector3 = new Vector3();
 
   setCenterOfGravityAuto() {
     const points = [this.fixedPoint, this.point];
