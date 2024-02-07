@@ -63,11 +63,14 @@ export class SkidpadSolverControl extends Control {
     }
     const reserved = solver.v;
     const deltaDl = dt * this.speed * (this.reverse ? -1 : 1);
+    const max = this.maxV.value;
+    const min = this.minV.value;
     if (value || value === 0) {
       solver.v = value;
     } else {
       solver.v += deltaDl;
     }
+    solver.v = Math.max(max, Math.min(solver.v, min));
     return reserved;
   }
 
