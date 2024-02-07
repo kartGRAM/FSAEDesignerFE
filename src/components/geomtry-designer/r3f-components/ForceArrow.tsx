@@ -59,11 +59,10 @@ const ForceArrow = (props: {
     // 位置の反映
     groupRef.current.position.copy(force.point.clone().applyMatrix3(coMatrix));
     const nf = force.force.clone().normalize();
-    const dq = new THREE.Quaternion().setFromUnitVectors(
+    const q = new THREE.Quaternion().setFromUnitVectors(
       new THREE.Vector3(0, 0, 1),
       nf
     );
-    const q = element.rotation.value.invert().multiply(dq);
     groupRef.current.quaternion.copy(transQuaternion(q, coMatrix));
   });
 

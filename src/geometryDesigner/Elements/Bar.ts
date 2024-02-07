@@ -53,7 +53,6 @@ export class Bar extends Element implements IBar {
     return [this.fixedPoint, this.point];
   }
 
-  // eslint-disable-next-line class-methods-use-this
   getForceResults(): {
     name: string;
     point: Vector3;

@@ -11,6 +11,7 @@ import {getMatrix3} from '@gd/NamedValues';
 import {Line2} from 'three-stdlib';
 import NodeSphere from './NodeSphere';
 import MeasurablePoint from './MeasurablePointSphere';
+import ForceArrow from './ForceArrow';
 
 const SpringDumper = (props: {element: ISpringDumper}) => {
   const {element} = props;
@@ -74,6 +75,9 @@ const SpringDumper = (props: {element: ISpringDumper}) => {
       ))}
       {measurablePoints.map((p) => (
         <MeasurablePoint node={p} key={`${p.nodeID}m`} />
+      ))}
+      {element.getForceResults().map((res, i) => (
+        <ForceArrow element={element} index={i} key={res.nodeID} />
       ))}
     </group>
   );

@@ -55,14 +55,38 @@ export class SpringDumper extends Bar implements ISpringDumper {
     return ret;
   }
 
-  // eslint-disable-next-line class-methods-use-this
   getForceResults(): {
     name: string;
     point: Vector3;
     force: Vector3;
     nodeID: string;
   }[] {
-    return [];
+    return [
+      {
+        name: 'centrifugal force',
+        point: this.centerOfGravity.value,
+        force: this.centrifugalForce,
+        nodeID: `${this.centerOfGravity.nodeID}c`
+      },
+      {
+        name: 'gravity',
+        point: this.centerOfGravity.value,
+        nodeID: `${this.centerOfGravity.nodeID}g`,
+        force: this.gravity
+      },
+      {
+        name: 'force1',
+        point: this.fixedPoint.value,
+        nodeID: this.fixedPoint.nodeID,
+        force: this.fixedPointForce
+      },
+      {
+        name: 'force2',
+        point: this.currentPoint,
+        nodeID: this.point.nodeID,
+        force: this.pointForce
+      }
+    ];
   }
 
   dlMin: NamedNumber;
