@@ -44,6 +44,7 @@ export const KeyboardControls = () => {
     Object.keys(state).forEach((key) => {
       if (!state[key]) return;
       const controls = controlsList[key];
+      if (!controls) return;
       const snapshot = solver.getSnapshot();
       controls.forEach((control) => {
         rollbackParams.push({

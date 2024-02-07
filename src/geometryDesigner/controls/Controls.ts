@@ -9,6 +9,10 @@ import {
   isDataPointToPlaneControl
 } from './PointToPlaneControl';
 import {
+  SkidpadSolverControl,
+  isDataSkidpadSolverControl
+} from './SkidpadSolverControl';
+import {
   ExistingConstraintControl,
   isDataExistingConstraintControl
 } from './ExistingConstraintControl';
@@ -21,5 +25,7 @@ export function getControl(control: IDataControl): Control {
     return new PointToPlaneControl(control);
   if (isDataExistingConstraintControl(control))
     return new ExistingConstraintControl(control);
+  if (isDataSkidpadSolverControl(control))
+    return new SkidpadSolverControl(control);
   throw Error('Not Supported Exception');
 }

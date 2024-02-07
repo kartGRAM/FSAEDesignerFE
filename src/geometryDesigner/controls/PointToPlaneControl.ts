@@ -13,11 +13,8 @@ import {getElement} from '@gd/Elements';
 import {getDgd} from '@store/getDgd';
 import {Control, IDataControl, ControllerTypes} from './IControls';
 
-export const className = 'PointToPlaneControl' as const;
-type ClassName = typeof className;
-
 export interface IDataPointToPlaneControl extends IDataControl {
-  readonly className: ClassName;
+  readonly className: typeof PointToPlaneControl.className;
   readonly pointIDs: {[index: string]: string[]};
   readonly origin: IDataVector3;
   readonly normal: IDataVector3;
@@ -29,11 +26,13 @@ export function isDataPointToPlaneControl(
   control: IDataControl | undefined | null
 ): control is IDataPointToPlaneControl {
   if (!control) return false;
-  return control.className === className;
+  return control.className === PointToPlaneControl.className;
 }
 
 export class PointToPlaneControl extends Control {
-  readonly className = className;
+  static className = 'PointToPlaneControl' as const;
+
+  readonly className = PointToPlaneControl.className;
 
   pointIDs: {[index: string]: string[]};
 
@@ -158,5 +157,5 @@ export function isPointToPlaneControl(
   control: Control | undefined | null
 ): control is PointToPlaneControl {
   if (!control) return false;
-  return control.className === className;
+  return control.className === PointToPlaneControl.className;
 }

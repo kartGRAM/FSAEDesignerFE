@@ -3,11 +3,8 @@ import {ISolver} from '@gd/kinematics/ISolver';
 import {getDgd} from '@store/getDgd';
 import {Control, IDataControl, ControllerTypes} from './IControls';
 
-export const className = 'ExistingConstraintControl' as const;
-type ClassName = typeof className;
-
 export interface IDataExistingConstraintControl extends IDataControl {
-  readonly className: ClassName;
+  readonly className: typeof ExistingConstraintControl.className;
   readonly targetControl: string;
 }
 
@@ -15,11 +12,13 @@ export function isDataExistingConstraintControl(
   control: IDataControl | undefined | null
 ): control is IDataExistingConstraintControl {
   if (!control) return false;
-  return control.className === className;
+  return control.className === ExistingConstraintControl.className;
 }
 
 export class ExistingConstraintControl extends Control {
-  readonly className = className;
+  static className = 'ExistingConstraintControl' as const;
+
+  readonly className = ExistingConstraintControl.className;
 
   targetControl: string;
 
@@ -91,5 +90,5 @@ export function isExistingConstraintControl(
   control: Control | undefined | null
 ): control is ExistingConstraintControl {
   if (!control) return false;
-  return control.className === className;
+  return control.className === ExistingConstraintControl.className;
 }

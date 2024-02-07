@@ -11,13 +11,15 @@ import {
 } from '@gd/controls/DistanceControl';
 import {
   PointToPlaneControl,
-  isDataPointToPlaneControl,
-  className as pointToPlane
+  isDataPointToPlaneControl
 } from '@gd/controls/PointToPlaneControl';
 import {
+  SkidpadSolverControl,
+  isDataSkidpadSolverControl
+} from '@gd/controls/SkidpadSolverControl';
+import {
   ExistingConstraintControl,
-  isDataExistingConstraintControl,
-  className as existingConstraint
+  isDataExistingConstraintControl
 } from '@gd/controls/ExistingConstraintControl';
 
 import store from '@store/store';
@@ -38,6 +40,7 @@ import {Typography} from '@mui/material';
 import {LinearBushingControlSettings} from './LinearBushingControl';
 import {DistanceControlSettings} from './DistanceControl';
 import {PointToPlaneControlSettings} from './PointToPlaneControl';
+import {SkidpadSolverControlSettings} from './SkidpadSolverControl';
 import {ExistingConstraintControlSettings} from './ExistingConstraintControl';
 
 export interface ControlDefinitionProps {
@@ -56,18 +59,18 @@ export function ControlDefinition(props: ControlDefinitionProps) {
   const {uitgd} = store.getState();
   const zindex = uitgd.fullScreenZIndex + uitgd.dialogZIndex + uitgd.menuZIndex;
 
-  const [selectedID, setSelectedID] = React.useState<string>(
-    // eslint-disable-next-line no-nested-ternary
-    isDataPointToPlaneControl(control)
-      ? pointToPlane
-      : // eslint-disable-next-line no-nested-ternary
-      isDataExistingConstraintControl(control)
-      ? existingConstraint
-      : control?.targetElements[0] ?? ''
-    /*: control?.targetElements
-      ? control.targetElements[0]
-      : '' */
-  );
+  let initialSelectedID: string = '';
+  if (isDataPointToPlaneControl(control))
+    initialSelectedID = PointToPlaneControl.className;
+  else if (isDataExistingConstraintControl(control))
+    initialSelectedID = ExistingConstraintControl.className;
+  else if (isDataSkidpadSolverControl(control))
+    initialSelectedID = SkidpadSolverControl.className;
+  else {
+    initialSelectedID = control?.targetElements[0] ?? '';
+  }
+
+  const [selectedID, setSelectedID] = React.useState<string>(initialSelectedID);
   const prevID = usePrevious(selectedID);
 
   const state = store.getState();
@@ -129,7 +132,7 @@ export function ControlDefinition(props: ControlDefinitionProps) {
       <DistanceControlSettings control={controlImpl} setStaged={setStaged} />
     );
   }
-  if (inputButton !== '' && selectedID === pointToPlane) {
+  if (inputButton !== '' && selectedID === PointToPlaneControl.className) {
     let controlImpl: PointToPlaneControl;
     if (isDataPointToPlaneControl(control)) {
       controlImpl = new PointToPlaneControl(control);
@@ -150,7 +153,31 @@ export function ControlDefinition(props: ControlDefinitionProps) {
       />
     );
   }
-  if (inputButton !== '' && selectedID === existingConstraint) {
+  if (inputButton !== '' && selectedID === SkidpadSolverControl.className) {
+    let controlImpl: SkidpadSolverControl;
+    if (isDataSkidpadSolverControl(control)) {
+      controlImpl = new SkidpadSolverControl(control);
+    } else {
+      controlImpl = new SkidpadSolverControl({
+        type: 'keyboard',
+        targetElements: [],
+        inputButton
+      });
+      if (prevID !== selectedID) {
+        setTimeout(() => setStaged(controlImpl.getDataControl()), 0);
+      }
+    }
+    components = (
+      <SkidpadSolverControlSettings
+        control={controlImpl}
+        setStaged={setStaged}
+      />
+    );
+  }
+  if (
+    inputButton !== '' &&
+    selectedID === ExistingConstraintControl.className
+  ) {
     let controlImpl: ExistingConstraintControl;
     if (isDataExistingConstraintControl(control)) {
       controlImpl = new ExistingConstraintControl(control);
@@ -218,9 +245,15 @@ export function ControlDefinition(props: ControlDefinitionProps) {
             <ListSubheader key="GeometricConstraints">
               Geometric constraints
             </ListSubheader>
-            <MenuItem value={pointToPlane}>Two-Dimensional Constraint</MenuItem>
-            <MenuItem value={existingConstraint}>
+            <MenuItem value={SkidpadSolverControl.className}>
+              Two-Dimensional Constraint
+            </MenuItem>
+            <MenuItem value={ExistingConstraintControl.className}>
               Another Control for Existing Constraint
+            </MenuItem>
+            <ListSubheader key="SolverControl">Solver control</ListSubheader>
+            <MenuItem value={SkidpadSolverControl.className}>
+              Skidpad solver parameter control
             </MenuItem>
           </Select>
         </FormControl>
