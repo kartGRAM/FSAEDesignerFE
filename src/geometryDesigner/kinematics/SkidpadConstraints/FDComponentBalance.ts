@@ -4,7 +4,7 @@
 import {Matrix} from 'ml-matrix';
 import {Vector3, Quaternion} from 'three';
 import {IElement} from '@gd/IElements';
-import {Constraint} from '@gd/kinematics/IConstraint';
+import {Constraint, ConstraintsOptions} from '@gd/kinematics/IConstraint';
 import {
   skew,
   rotationMatrix,
@@ -39,8 +39,8 @@ export class FDComponentBalance implements Constraint, Balance {
     return 6;
   }
 
-  active() {
-    return true;
+  active(options: ConstraintsOptions) {
+    return !options.disableForce;
   }
 
   resetStates(): void {}

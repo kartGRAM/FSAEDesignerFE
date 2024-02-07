@@ -28,7 +28,7 @@ import {hasNearestNeighborToPlane} from '@gd/SpecialPoints';
 import {sleep} from '@utils/helpers';
 import {ISteadySkidpadParams} from '@gd/analysis/ITest';
 import {ISnapshot} from '@gd/analysis/ISnapshot';
-import {Triple, Twin, OneOrTwo} from '@utils/atLeast';
+import {Twin} from '@utils/atLeast';
 import {getTire} from '@tire/listTireData';
 import {Constraint, ConstraintsOptions} from '@gd/kinematics/IConstraint';
 import {
@@ -102,7 +102,7 @@ export class SkidpadSolver implements ISolver {
 
   firstSolved = false;
 
-  v: number;
+  v: number; // m/s
 
   r: number | undefined;
 
