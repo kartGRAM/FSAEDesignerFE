@@ -106,6 +106,8 @@ export class SkidpadSolver implements ISolver {
 
   r: number | undefined;
 
+  lapTime: number | undefined;
+
   constructor(
     assembly: IAssembly,
     config: ISteadySkidpadParams,
@@ -1108,16 +1110,16 @@ export class SkidpadSolver implements ISolver {
           const norm_phi = matPhi.norm('frobenius');
           const omega = (components[0] as GeneralVariable).value;
           this.r = this.v / omega;
+          this.lapTime = Math.abs((Math.PI * 2) / omega);
           const phiMax = Math.max(...phi);
           const phiMaxIdx = phi.indexOf(phiMax);
           if (logOutput) {
-            const lapTime = Math.abs((Math.PI * 2) / omega);
             console.log(`round: ${i}`);
             console.log(`phi_max   = ${phiMax.toFixed(4)}`);
             console.log(`phi_maxIdx= ${phiMaxIdx}`);
             console.log(`velocity=   ${this.v.toFixed(4)} m/s`);
             console.log(`radius=     ${this.r.toFixed(4)} m`);
-            console.log(`lap time=   ${lapTime.toFixed(4)} s`);
+            console.log(`lap time=   ${this.lapTime.toFixed(4)} s`);
             console.log(`norm_dq=    ${norm_dq.toFixed(4)}`);
             console.log(`norm_phi=   ${norm_phi.toFixed(4)}`);
             console.log(``);

@@ -61,16 +61,21 @@ export const KeyboardControls = () => {
           logOutput: true
         });
       } catch (e: any) {
-        solver.restoreState(snapshot);
-        rollbackParams.forEach(({control, value}) =>
-          control.rollback(value, solver)
-        );
-        solver.solve({
-          constraintsOptions: {
-            fixSpringDumpersAtCurrentPositions: fixSpringDumperDuaringControl
-          },
-          logOutput: true
-        });
+        try {
+          solver.restoreState(snapshot);
+          rollbackParams.forEach(({control, value}) =>
+            control.rollback(value, solver)
+          );
+          solver.solve({
+            constraintsOptions: {
+              fixSpringDumpersAtCurrentPositions: fixSpringDumperDuaringControl
+            },
+            logOutput: true
+          });
+        } catch (e: any) {
+          // eslint-disable-next-line no-console
+          console.log(e);
+        }
       }
     });
   });
