@@ -59,9 +59,15 @@ export const KeyboardControls = () => {
           }
         });
       } catch (e: any) {
+        console.log(e);
         rollbackParams.forEach(({control, value}) =>
           control.rollback(value, solver)
         );
+        solver.solve({
+          constraintsOptions: {
+            fixSpringDumpersAtCurrentPositions: fixSpringDumperDuaringControl
+          }
+        });
       }
     });
   });

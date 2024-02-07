@@ -2,7 +2,7 @@ import {
   LinearBushingSingleEnd,
   isLinearBushingSingleEnd
 } from '@gd/kinematics/Constraints';
-import {KinematicsSolver} from '@gd/kinematics/KinematicsSolver';
+import {ISolver} from '@gd/kinematics/ISolver';
 import {getDataElementByID} from '@gd/IElements';
 import {getDgd} from '@store/getDgd';
 import {getElement} from '@gd/Elements';
@@ -47,7 +47,7 @@ export class LinearBushingControl extends Control {
     return `position of ${element.name.value}`;
   }
 
-  preprocess(dt: number, solver: KinematicsSolver, value?: number): number[] {
+  preprocess(dt: number, solver: ISolver, value?: number): number[] {
     const deltaDl = dt * this.speed * (this.reverse ? -1 : 1);
     const roots = solver.components.map((c) => c[0]);
     const constraints = roots.reduce((prev, current) => {
@@ -73,7 +73,7 @@ export class LinearBushingControl extends Control {
     return reserved;
   }
 
-  rollback(data: number[], solver: KinematicsSolver): void {
+  rollback(data: number[], solver: ISolver): void {
     const roots = solver.components.map((c) => c[0]);
     const constraints = roots.reduce((prev, current) => {
       prev.push(

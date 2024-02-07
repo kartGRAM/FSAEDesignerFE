@@ -1084,7 +1084,8 @@ export class SkidpadSolver implements ISolver {
           // 差分を反映
           components.forEach((component) => component.applyDq(dq));
 
-          const norm = dq.norm('frobenius');
+          const norm_dq = dq.norm('frobenius');
+          const norm_phi = matPhi.norm('frobenius');
           const r = v / (components[0] as GeneralVariable).value;
           const phiMax = Math.max(...phi);
           const phiMaxIdx = phi.indexOf(phiMax);
@@ -1094,18 +1095,21 @@ export class SkidpadSolver implements ISolver {
           console.log(`phi_max   = ${phiMax}`);
           console.log(`phi_maxIdx= ${phiMaxIdx}`);
           console.log(`radius= ${r}`);
-          eq = norm < 1e-4;
-          console.log(`norm=${norm.toFixed(4)}`);
+          console.log(`norm_dq=  ${norm_dq.toFixed(4)}`);
+          console.log(`norm_phi= ${norm_phi.toFixed(4)}`);
           console.log(``);
-          if (norm > minNorm * 100000 || Number.isNaN(norm)) {
+          eq = norm_dq < 1e-4 && norm_phi < 1e-6;
+          if (norm_dq > minNorm * 100000 || Number.isNaN(norm_dq)) {
             // eslint-disable-next-line no-console
-            console.log(`norm=${norm.toFixed(3)}`);
+            console.log(`norm_dq=  ${norm_dq.toFixed(4)}`);
+            // eslint-disable-next-line no-console
+            console.log(`norm_phi= ${norm_phi.toFixed(4)}`);
             // eslint-disable-next-line no-console
             console.log('収束していない');
             throw new Error('ニュートンラプソン法収束エラー');
           }
-          if (norm < minNorm) {
-            minNorm = norm;
+          if (norm_dq < minNorm) {
+            minNorm = norm_dq;
           }
         }
         if (i >= maxCnt) {

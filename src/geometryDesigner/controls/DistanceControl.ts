@@ -1,6 +1,6 @@
 import {getDgd} from '@store/getDgd';
 import {BarAndSpheres, isBarAndSpheres} from '@gd/kinematics/Constraints';
-import {KinematicsSolver} from '@gd/kinematics/KinematicsSolver';
+import {ISolver} from '@gd/kinematics/ISolver';
 import {getDataElementByID} from '@gd/IElements';
 import {getElement} from '@gd/Elements';
 import {Control, IDataControl, ControllerTypes} from './IControls';
@@ -51,11 +51,7 @@ export class DistanceControl extends Control {
     return `position of ${element.name.value}`;
   }
 
-  preprocess(
-    dt: number,
-    solver: KinematicsSolver,
-    value?: number
-  ): {type: 'delta' | 'absolute'; value: number[] | number} {
+  preprocess(dt: number, solver: ISolver, value?: number): {value: number[]} {
     const deltaDl = dt * this.speed * (this.reverse ? -1 : 1);
     const roots = solver.components.map((c) => c[0]);
     const constraints = roots.reduce((prev, current) => {
@@ -69,13 +65,15 @@ export class DistanceControl extends Control {
       return prev;
     }, [] as BarAndSpheres[]);
     if (!value && value !== 0) {
-      constraints.forEach((constraint) => {
-        constraint.dl += deltaDl;
-      });
-      return {type: 'delta', value: deltaDl};
+      return {
+        value: constraints.map((constraint) => {
+          const tmp = constraint.dl;
+          constraint.dl += deltaDl;
+          return tmp;
+        })
+      };
     }
     return {
-      type: 'absolute',
       value: constraints.map((constraint) => {
         const tmp = constraint.dl;
         constraint.dl = value;
@@ -84,10 +82,7 @@ export class DistanceControl extends Control {
     };
   }
 
-  rollback(
-    data: {type: 'delta' | 'absolute'; value: number[] | number},
-    solver: KinematicsSolver
-  ) {
+  rollback(data: {value: number[]}, solver: ISolver) {
     const roots = solver.components.map((c) => c[0]);
     const constraints = roots.reduce((prev, current) => {
       prev.push(
@@ -100,11 +95,7 @@ export class DistanceControl extends Control {
       return prev;
     }, [] as BarAndSpheres[]);
     constraints.forEach((constraint, i) => {
-      if (data.type === 'delta') {
-        constraint.dl -= data.value as number;
-      } else {
-        constraint.dl = (data.value as number[])[i];
-      }
+      constraint.dl = data.value[i];
     });
   }
 

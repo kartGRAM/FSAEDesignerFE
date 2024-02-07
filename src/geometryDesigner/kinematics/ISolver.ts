@@ -1,11 +1,12 @@
 import {IObjectiveFunction} from './Driver';
 import {ConstraintsOptions} from './Constraints';
 import {ISnapshot} from '../analysis/ISnapshot';
-import {IComponent} from './KinematicComponents';
+import {IVariable, IComponent} from './KinematicComponents';
 
 export interface ISolver {
-  running: boolean;
-  componentsFromNodeID: {[index: string]: IComponent};
+  readonly running: boolean;
+  readonly components: IVariable[][];
+  readonly componentsFromNodeID: {[index: string]: IComponent};
 
   solve(params?: {
     fixSpringDumperAtCurrentPosition?: boolean;
