@@ -1186,7 +1186,7 @@ export class SkidpadSolver implements ISolver {
         }
       });
     });
-    this.stdForce = maxForce;
+    this.stdForce = maxForce * 2;
   }
 
   // eslint-disable-next-line class-methods-use-this

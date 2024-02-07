@@ -15,7 +15,7 @@ import {
 } from '@store/reducers/uiTempGeometryDesigner';
 import {isSkidpadSolver} from '@gd/kinematics/SkidpadSolver';
 import {Paper, Typography} from '@mui/material';
-import {range} from '@utils/helpers';
+import {jetMap} from '@utils/helpers';
 
 const ForceArrow = (props: {
   element: IElement;
@@ -41,11 +41,20 @@ const ForceArrow = (props: {
     const std = solver.stdForce;
     const force = element.getForceResults()[index];
     const magnitude = force.force.length();
-    const size = (stdLength * magnitude) / solver.stdForce;
+    const size = (stdLength * magnitude) / std;
+    if (size < Number.EPSILON ** 16) {
+      coneMeshRef.current.visible = false;
+      cylinderMeshRef.current.visible = false;
+      return;
+    }
+    const rgb = jetMap(size, 0, stdLength);
+    const color = rgb.r * 256 ** 2 + rgb.g * 256 + rgb.b;
+    coneMaterialRef.current.color.set(color);
+    cylinderMaterialRef.current.color.set(color);
 
     const cone = coneMeshRef.current;
     const cylinderGeometry = cylinderMeshRef.current.geometry;
-    // cylinderGeometry.attributes.position.needsUpdate = true;
+    cylinderGeometry.attributes.position.needsUpdate = true;
     const cylinderVtx = cylinderGeometry.attributes.position.array;
     cylinderVtx.forEach((p, i) => {
       if (i % 3 !== 1) return;
@@ -70,6 +79,8 @@ const ForceArrow = (props: {
   const groupRef = React.useRef<THREE.Group>(null!);
   const coneMeshRef = React.useRef<THREE.Mesh>(null!);
   const cylinderMeshRef = React.useRef<THREE.Mesh>(null!);
+  const coneMaterialRef = React.useRef<THREE.MeshBasicMaterial>(null!);
+  const cylinderMaterialRef = React.useRef<THREE.MeshBasicMaterial>(null!);
   if (!isSkidpadSolver(solver)) return null;
 
   return (
@@ -80,8 +91,12 @@ const ForceArrow = (props: {
         position={new THREE.Vector3(0, 0, stdLength + 10).applyMatrix3(
           coMatrix
         )}
-      />
-      <Cylinder ref={cylinderMeshRef} args={[2, 2, stdLength]} />
+      >
+        <meshBasicMaterial ref={coneMaterialRef} />
+      </Cone>
+      <Cylinder ref={cylinderMeshRef} args={[2, 2, stdLength]}>
+        <meshBasicMaterial ref={cylinderMaterialRef} />
+      </Cylinder>
     </group>
   );
 };

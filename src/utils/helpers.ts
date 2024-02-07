@@ -282,3 +282,32 @@ export function inWorker() {
   if (self.document) return false;
   return true;
 }
+
+export function jetMap(v: number, min: number, max: number) {
+  const c: color = {r: 1, g: 1, b: 1}; // white
+  if (v < min) v = min;
+  if (v > max) v = max;
+  const dv = max - min;
+
+  if (v < min + 0.25 * dv) {
+    c.r = 0;
+    c.g = (4 * (v - min)) / dv;
+  } else if (v < min + 0.5 * dv) {
+    c.r = 0;
+    c.b = 1 + (4 * (min + 0.25 * dv - v)) / dv;
+  } else if (v < min + 0.75 * dv) {
+    c.r = (4 * (v - min - 0.5 * dv)) / dv;
+    c.b = 0;
+  } else {
+    c.g = 1 + (4 * (min + 0.75 * dv - v)) / dv;
+    c.b = 0;
+  }
+  c.r *= 255;
+  c.r = Math.round(c.r);
+  c.g *= 255;
+  c.g = Math.round(c.g);
+  c.b *= 255;
+  c.b = Math.round(c.b);
+
+  return c;
+}

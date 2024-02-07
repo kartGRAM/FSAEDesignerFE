@@ -124,12 +124,12 @@ export class Tire extends Element implements ITire {
         name: 'centrifugal force',
         point: this.centerOfGravity.value,
         force: this.centrifugalForce,
-        nodeID: this.centerOfGravity.nodeID
+        nodeID: `${this.centerOfGravity.nodeID}c`
       },
       {
         name: 'gravity',
         point: this.centerOfGravity.value,
-        nodeID: this.centerOfGravity.nodeID,
+        nodeID: `${this.centerOfGravity.nodeID}g`,
         force: this.gravity
       },
       {
