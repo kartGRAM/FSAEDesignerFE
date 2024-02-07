@@ -120,8 +120,7 @@ export class SkidpadSolver implements ISolver {
     config: ISteadySkidpadParams,
     controlsAll: {[index: string]: Control[]},
     scale: number,
-    forceScale: number,
-    solve?: boolean
+    forceScale: number
   ) {
     this.config = config;
     this.v = config.velocity.value;
@@ -1006,9 +1005,7 @@ export class SkidpadSolver implements ISolver {
       });
     }
     // 上記4ステップでプリプロセッサ完了
-    if (solve) {
-      this.firstSolve();
-    }
+    this.firstSolve();
   }
 
   getGroupItBelongsTo(component: IVariable): [IVariable, IVariable[]] {

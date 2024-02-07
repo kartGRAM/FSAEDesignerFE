@@ -237,8 +237,7 @@ export default function AssemblyCreactor() {
               params,
               controls,
               0.001,
-              1,
-              true
+              1
             );
             dispatch(setKinematicsSolver(solver));
           }

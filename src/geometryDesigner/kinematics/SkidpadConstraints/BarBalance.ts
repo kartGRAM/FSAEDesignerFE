@@ -32,8 +32,32 @@ export class BarBalance implements Constraint, Balance {
 
   isBalance: true = true;
 
+  isSpring: boolean = false;
+
+  disableSpring: boolean = false;
+
+  freeLength: number = 0;
+
+  k: number = 0; // N/m
+
+  get axis() {
+    const {pts} = this.getCentrifugalForce();
+    return pts[1].clone().sub(pts[0]);
+  }
+
+  setPreload() {
+    const {axis, pfs, k} = this;
+    const length = axis.length();
+    const nAxis = axis.normalize();
+    const f = pfs[0].force.clone();
+    const fl = nAxis.dot(f);
+    const dl = fl / k;
+    this.freeLength = length + dl;
+  }
+
   // 並進運動+回転
   constraints() {
+    if (this.isSpring && !this.disableSpring) return 7;
     return 6;
   }
 
@@ -84,7 +108,13 @@ export class BarBalance implements Constraint, Balance {
     pfsPointNodeIDs: string[]; // ジョイント部分のローカルベクトルのノードID 作用反作用どちらで使うかを判定する
     vO: () => Vector3; // 座標原点の速度
     omega: GeneralVariable; // 座標原点の角速度
+    isSpring?: boolean;
+    k?: number;
   }) {
+    if (params.isSpring && params.k && params.k > 0) {
+      this.isSpring = true;
+      this.k = params.k;
+    }
     this.element = params.element;
     this.name = params.name;
     if (params.components[0] === params.components[1])
