@@ -57,7 +57,8 @@ export const KeyboardControls = () => {
         solver.solve({
           constraintsOptions: {
             fixSpringDumpersAtCurrentPositions: fixSpringDumperDuaringControl
-          }
+          },
+          logOutput: true
         });
       } catch (e: any) {
         solver.restoreState(snapshot);
@@ -67,7 +68,8 @@ export const KeyboardControls = () => {
         solver.solve({
           constraintsOptions: {
             fixSpringDumpersAtCurrentPositions: fixSpringDumperDuaringControl
-          }
+          },
+          logOutput: true
         });
       }
     });

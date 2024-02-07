@@ -997,6 +997,17 @@ export class SkidpadSolver implements ISolver {
     }
     // 上記4ステップでプリプロセッサ完了
     if (solve) {
+      console.log('calculating initial position...........');
+      this.solve({
+        constraintsOptions: {
+          onAssemble: true,
+          disableTireFriction: true,
+          disableForce: true
+        },
+        postProcess: true,
+        logOutput: true
+      });
+      console.log('');
       console.log('calculating initial force...........');
       this.solve({
         constraintsOptions: {onAssemble: true, disableTireFriction: true},
@@ -1004,7 +1015,7 @@ export class SkidpadSolver implements ISolver {
         logOutput: true
       });
       console.log('');
-      console.log('tire friction............');
+      console.log('calculating with tire friction............');
       this.solve({
         constraintsOptions: {onAssemble: true},
         postProcess: true,
@@ -1095,16 +1106,20 @@ export class SkidpadSolver implements ISolver {
 
           const norm_dq = dq.norm('frobenius');
           const norm_phi = matPhi.norm('frobenius');
-          this.r = this.v / (components[0] as GeneralVariable).value;
+          const omega = (components[0] as GeneralVariable).value;
+          this.r = this.v / omega;
           const phiMax = Math.max(...phi);
           const phiMaxIdx = phi.indexOf(phiMax);
           if (logOutput) {
+            const lapTime = Math.abs((Math.PI * 2) / omega);
             console.log(`round: ${i}`);
-            console.log(`phi_max   = ${phiMax}`);
+            console.log(`phi_max   = ${phiMax.toFixed(4)}`);
             console.log(`phi_maxIdx= ${phiMaxIdx}`);
-            console.log(`radius= ${this.r}`);
-            console.log(`norm_dq=  ${norm_dq.toFixed(4)}`);
-            console.log(`norm_phi= ${norm_phi.toFixed(4)}`);
+            console.log(`velocity=   ${this.v.toFixed(4)} m/s`);
+            console.log(`radius=     ${this.r.toFixed(4)} m`);
+            console.log(`lap time=   ${lapTime.toFixed(4)} s`);
+            console.log(`norm_dq=    ${norm_dq.toFixed(4)}`);
+            console.log(`norm_phi=   ${norm_phi.toFixed(4)}`);
             console.log(``);
           }
           eq = norm_dq < 1e-4 && norm_phi < 1e-6;
