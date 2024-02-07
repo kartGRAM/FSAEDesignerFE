@@ -44,6 +44,7 @@ export const KeyboardControls = () => {
     Object.keys(state).forEach((key) => {
       if (!state[key]) return;
       const controls = controlsList[key];
+      const snapshot = solver.getSnapshot();
       controls.forEach((control) => {
         rollbackParams.push({
           control,
@@ -59,7 +60,7 @@ export const KeyboardControls = () => {
           }
         });
       } catch (e: any) {
-        console.log(e);
+        solver.restoreState(snapshot);
         rollbackParams.forEach(({control, value}) =>
           control.rollback(value, solver)
         );
