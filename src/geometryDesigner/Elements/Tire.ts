@@ -110,9 +110,62 @@ export class Tire extends Element implements ITire {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  getForceResults(): {name: string; point: Vector3; result: Vector3}[] {
-    return [];
+  getForceResults(): {name: string; point: Vector3; force: Vector3}[] {
+    const ground = new Vector3(0, 0, 1).applyQuaternion(
+      this.rotation.value.invert()
+    );
+    return [
+      {
+        name: 'centrifugal force',
+        point: this.centerOfGravity.value,
+        force: this.centrifugalForce
+      },
+      {
+        name: 'gravity',
+        point: this.centerOfGravity.value,
+        force: this.gravity
+      },
+      {
+        name: 'longitudinal force (fx)',
+        point: ground,
+        force: this.fx
+      },
+      {
+        name: 'lateral force (fy)',
+        point: ground,
+        force: this.fy
+      },
+      {
+        name: 'normal load (fz)',
+        point: ground,
+        force: this.fz
+      },
+      {
+        name: 'inner bearing force',
+        point: this.innerBearing.value,
+        force: this.innerBearingForce
+      },
+      {
+        name: 'outer bearing force',
+        point: this.outerBearing.value,
+        force: this.outerBearingForce
+      }
+    ];
   }
+
+  centrifugalForce: Vector3 = new Vector3();
+
+  gravity: Vector3 = new Vector3();
+
+  fy: Vector3 = new Vector3();
+
+  fx: Vector3 = new Vector3();
+
+  fz: Vector3 = new Vector3();
+
+  innerBearingForce = new Vector3();
+
+  outerBearingForce = new Vector3();
 
   setCenterOfGravityAuto() {
     this.centerOfGravity.value = this.tireCenter.value;

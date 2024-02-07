@@ -56,7 +56,7 @@ export class SpringDumper extends Bar implements ISpringDumper {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  getForceResults(): {name: string; point: Vector3; result: Vector3}[] {
+  getForceResults(): {name: string; point: Vector3; force: Vector3}[] {
     return [];
   }
 

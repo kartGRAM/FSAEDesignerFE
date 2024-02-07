@@ -151,7 +151,7 @@ export interface IElement extends IBidirectionalNode {
   readonly absPath: string;
   setCenterOfGravityAuto(): void;
   getPoints(): INamedVector3RO[];
-  getForceResults(): {name: string; point: Vector3; result: Vector3}[];
+  getForceResults(): {name: string; point: Vector3; force: Vector3}[];
   getVariables(): INamedNumberRO[];
   getMeasurablePoints(): INamedVector3RO[];
   getPointsNodeIDs(): string[];
