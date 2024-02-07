@@ -80,7 +80,8 @@ import {
   isFullDegreesComponent,
   PointComponent,
   PointForce,
-  GeneralVariable
+  GeneralVariable,
+  isPointForce
 } from './KinematicComponents';
 import {ISolver} from './ISolver';
 
@@ -102,6 +103,9 @@ export class SkidpadSolver implements ISolver {
   running: boolean = false;
 
   firstSolved = false;
+
+  // 表示する際の基準となる力の大きさ
+  stdForce: number = 1000;
 
   v: number; // m/s
 
@@ -1172,6 +1176,17 @@ export class SkidpadSolver implements ISolver {
       postProcess: true,
       logOutput: true
     });
+
+    let maxForce = 1000;
+    this.components.forEach((components) => {
+      components.forEach((component) => {
+        if (isPointForce(component)) {
+          const magnitude = component.force.length();
+          if (magnitude > maxForce) maxForce = Number(magnitude.toFixed(0));
+        }
+      });
+    });
+    this.stdForce = maxForce;
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -1259,12 +1274,17 @@ export class SkidpadSolver implements ISolver {
     this.components.forEach((components) => {
       const constraints = components[0].unionFindTreeConstraints;
       constraints.forEach((constraint) => {
-        if (isBalance(constraint)) constraint.applytoElement();
+        if (isBalance(constraint)) {
+          constraint.applytoElement();
+        }
       });
     });
   }
 }
 
-export function isSkidpadSolver(solver: ISolver): solver is SkidpadSolver {
+export function isSkidpadSolver(
+  solver: ISolver | undefined
+): solver is SkidpadSolver {
+  if (!solver) return false;
   return solver.className === SkidpadSolver.className;
 }

@@ -9,6 +9,7 @@ import {transQuaternion} from '@gd/IElements';
 import {ITire} from '@gd/IElements/ITire';
 import {getMatrix3} from '@gd/NamedValues';
 import NodeSphere from './NodeSphere';
+import ForceArrow from './ForceArrow';
 import MeasurablePoint from './MeasurablePointSphere';
 
 const Tire = (props: {element: ITire}) => {
@@ -90,6 +91,7 @@ const Tire = (props: {element: ITire}) => {
       {measurablePoints.map((p) => (
         <MeasurablePoint node={p} key={`${p.nodeID}m`} />
       ))}
+      <ForceArrow element={element} index={0} />
     </group>
   );
 };

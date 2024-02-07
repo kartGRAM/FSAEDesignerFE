@@ -547,6 +547,10 @@ export class PointForce extends VariableBase {
   }
 }
 
+export function isPointForce(component: IVariable): component is PointForce {
+  return component.className === PointForce.className;
+}
+
 // 例えば変数を追加しない場合、場合、駆動力をぴったり合わせない限り、駆動力分のつり合いが取れないため、
 // 結果が収束しなくなる。駆動輪に、駆動力配分に従って、追加の駆動力があるものとして計算する。
 // その際駆動力分横力は減らないものとする。スリップ率を収束計算し、最終的にこの項が0に漸近するようにする。

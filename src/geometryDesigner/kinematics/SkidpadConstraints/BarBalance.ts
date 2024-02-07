@@ -20,13 +20,14 @@ import {
   PointForce,
   GeneralVariable
 } from '../KinematicComponents';
+import {Balance} from '../SkidpadConstraints';
 
 const X = 0;
 const Q0 = 3;
 
 const unitZ = getVVector(new Vector3(0, 0, 1));
 
-export class BarBalance implements Constraint {
+export class BarBalance implements Constraint, Balance {
   readonly className = 'BarBalance';
 
   isBalance: true = true;
@@ -100,6 +101,8 @@ export class BarBalance implements Constraint {
     ) as any;
     this.localSkew = this.localVec.map((v) => skew(v).mul(-2)) as any;
   }
+
+  applytoElement() {}
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
     const {row, components, localVec, localSkew, pfs, g, cog, pfCoefs} = this;
