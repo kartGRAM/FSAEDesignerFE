@@ -5,6 +5,7 @@ import {
   INamedNumber,
   INamedVector3LW
 } from '@gd/INamedValues';
+import {Vector3} from 'three';
 import {INearestNeighborToPlane} from '@gd/SpecialPoints';
 import {IElement, IDataElement} from '../IElements';
 
@@ -20,6 +21,14 @@ export interface ITire extends IElement, INearestNeighborToPlane {
   readonly diameter: number;
   readonly radius: number;
   readonly bearingDistance: number;
+
+  centrifugalForce: Vector3;
+  gravity: Vector3;
+  fy: Vector3;
+  fx: Vector3;
+  fz: Vector3;
+  innerBearingForce: Vector3;
+  outerBearingForce: Vector3;
 }
 
 export interface IDataTire extends IDataElement {

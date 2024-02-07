@@ -34,7 +34,12 @@ const unitZ = getVVector(new Vector3(0, 0, 1));
 const unitZT = unitZ.transpose();
 
 export interface Balance {
+  isBalance: true;
   applytoElement(): void;
+}
+
+export function isBalance(constraint: any): constraint is Balance {
+  return 'isBalance' in constraint && constraint.isBalance;
 }
 
 export class AArmBalance implements Constraint {

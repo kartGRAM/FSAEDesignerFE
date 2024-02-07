@@ -45,6 +45,8 @@ export class TireBalance implements Constraint, Balance {
 
   readonly className = TireBalance.className;
 
+  isBalance: true = true;
+
   // 並進運動+回転
   constraints() {
     return 5;

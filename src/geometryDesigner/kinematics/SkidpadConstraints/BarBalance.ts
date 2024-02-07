@@ -29,6 +29,8 @@ const unitZ = getVVector(new Vector3(0, 0, 1));
 export class BarBalance implements Constraint {
   readonly className = 'BarBalance';
 
+  isBalance: true = true;
+
   // 並進運動+回転
   constraints() {
     return 6;

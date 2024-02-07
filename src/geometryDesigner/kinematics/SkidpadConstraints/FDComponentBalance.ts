@@ -34,6 +34,8 @@ const unitZT = unitZ.transpose();
 export class FDComponentBalance implements Constraint, Balance {
   readonly className = 'FDComponentBalance';
 
+  isBalance: true = true;
+
   // 並進運動+回転
   constraints() {
     return 6;
