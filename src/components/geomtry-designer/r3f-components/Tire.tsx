@@ -91,7 +91,9 @@ const Tire = (props: {element: ITire}) => {
       {measurablePoints.map((p) => (
         <MeasurablePoint node={p} key={`${p.nodeID}m`} />
       ))}
-      <ForceArrow element={element} index={0} />
+      {element.getForceResults().map((res, i) => (
+        <ForceArrow element={element} index={i} key={res.nodeID} />
+      ))}
     </group>
   );
 };

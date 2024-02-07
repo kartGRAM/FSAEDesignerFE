@@ -15,9 +15,16 @@ import {
 } from '@store/reducers/uiTempGeometryDesigner';
 import {isSkidpadSolver} from '@gd/kinematics/SkidpadSolver';
 import {Paper, Typography} from '@mui/material';
+import {range} from '@utils/helpers';
 
-const ForceArrow = (props: {element: IElement; index: number}) => {
+const ForceArrow = (props: {
+  element: IElement;
+  index: number;
+  stdLength?: number;
+}) => {
   const {element, index} = props;
+  // eslint-disable-next-line react/destructuring-assignment
+  const stdLength = props.stdLength ?? 450;
   const coMatrix = getMatrix3(
     useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
   );
@@ -33,9 +40,24 @@ const ForceArrow = (props: {element: IElement; index: number}) => {
     if (!isSkidpadSolver(solver)) return;
     const std = solver.stdForce;
     const force = element.getForceResults()[index];
+    const magnitude = force.force.length();
+    const size = (stdLength * magnitude) / solver.stdForce;
 
+    const cone = coneMeshRef.current;
+    const cylinderGeometry = cylinderMeshRef.current.geometry;
+    // cylinderGeometry.attributes.position.needsUpdate = true;
+    const cylinderVtx = cylinderGeometry.attributes.position.array;
+    cylinderVtx.forEach((p, i) => {
+      if (i % 3 !== 1) return;
+      if (p > 0) cylinderVtx[i] = size;
+      else cylinderVtx[i] = 0;
+    });
+    cone.position.copy(
+      new THREE.Vector3(0, 0, size + 10).applyMatrix3(coMatrix)
+    );
+
+    // 位置の反映
     groupRef.current.position.copy(force.point.clone().applyMatrix3(coMatrix));
-
     const nf = force.force.clone().normalize();
     const dq = new THREE.Quaternion().setFromUnitVectors(
       new THREE.Vector3(0, 0, 1),
@@ -54,14 +76,12 @@ const ForceArrow = (props: {element: IElement; index: number}) => {
     <group ref={groupRef}>
       <Cone
         ref={coneMeshRef}
-        args={[5, 15]}
-        position={new THREE.Vector3(0, 0, 45).applyMatrix3(coMatrix)}
+        args={[5, 20]}
+        position={new THREE.Vector3(0, 0, stdLength + 10).applyMatrix3(
+          coMatrix
+        )}
       />
-      <Cylinder
-        ref={cylinderMeshRef}
-        args={[2, 2, 40]}
-        position={new THREE.Vector3(0, 0, 20).applyMatrix3(coMatrix)}
-      />
+      <Cylinder ref={cylinderMeshRef} args={[2, 2, stdLength]} />
     </group>
   );
 };

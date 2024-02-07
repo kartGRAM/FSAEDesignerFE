@@ -107,7 +107,12 @@ export class TorsionSpring extends Element implements ITorsionSpring {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  getForceResults(): {name: string; point: Vector3; force: Vector3}[] {
+  getForceResults(): {
+    name: string;
+    point: Vector3;
+    force: Vector3;
+    nodeID: string;
+  }[] {
     return [];
   }
 

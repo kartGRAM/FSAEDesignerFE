@@ -110,44 +110,56 @@ export class Tire extends Element implements ITire {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  getForceResults(): {name: string; point: Vector3; force: Vector3}[] {
-    const ground = new Vector3(0, 0, 1).applyQuaternion(
-      this.rotation.value.invert()
+  getForceResults(): {
+    name: string;
+    point: Vector3;
+    force: Vector3;
+    nodeID: string;
+  }[] {
+    const ground = this.getNearestNeighborToPlane(
+      new Vector3(0, 0, 1).applyQuaternion(this.rotation.value.invert())
     );
     return [
       {
         name: 'centrifugal force',
         point: this.centerOfGravity.value,
-        force: this.centrifugalForce
+        force: this.centrifugalForce,
+        nodeID: this.centerOfGravity.nodeID
       },
       {
         name: 'gravity',
         point: this.centerOfGravity.value,
+        nodeID: this.centerOfGravity.nodeID,
         force: this.gravity
       },
       {
         name: 'longitudinal force (fx)',
         point: ground,
+        nodeID: 'ground x',
         force: this.fx
       },
       {
         name: 'lateral force (fy)',
         point: ground,
+        nodeID: 'ground y',
         force: this.fy
       },
       {
         name: 'normal load (fz)',
         point: ground,
+        nodeID: 'ground z',
         force: this.fz
       },
       {
         name: 'inner bearing force',
         point: this.innerBearing.value,
+        nodeID: this.innerBearing.nodeID,
         force: this.innerBearingForce
       },
       {
         name: 'outer bearing force',
         point: this.outerBearing.value,
+        nodeID: this.outerBearing.nodeID,
         force: this.outerBearingForce
       }
     ];

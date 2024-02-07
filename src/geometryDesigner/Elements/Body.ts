@@ -46,7 +46,12 @@ export class Body extends Element implements IBody {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  getForceResults(): {name: string; point: Vector3; force: Vector3}[] {
+  getForceResults(): {
+    name: string;
+    point: Vector3;
+    force: Vector3;
+    nodeID: string;
+  }[] {
     return [];
   }
 
