@@ -104,6 +104,8 @@ export class SkidpadSolver implements ISolver {
 
   v: number; // m/s
 
+  config: ISteadySkidpadParams;
+
   r: number | undefined;
 
   lapTime: number | undefined;
@@ -116,9 +118,9 @@ export class SkidpadSolver implements ISolver {
     forceScale: number,
     solve?: boolean
   ) {
+    this.config = config;
     this.v = config.velocity.value;
-    const {v} = this;
-    const vO = () => new Vector3(v, 0, 0).multiplyScalar(scale * 1000);
+    const vO = () => new Vector3(this.v, 0, 0).multiplyScalar(scale * 1000);
     this.assembly = assembly;
     const {children} = assembly;
 
@@ -999,30 +1001,7 @@ export class SkidpadSolver implements ISolver {
     }
     // 上記4ステップでプリプロセッサ完了
     if (solve) {
-      console.log('calculating initial position...........');
-      this.solve({
-        constraintsOptions: {
-          onAssemble: true,
-          disableTireFriction: true,
-          disableForce: true
-        },
-        postProcess: true,
-        logOutput: true
-      });
-      console.log('');
-      console.log('calculating initial force...........');
-      this.solve({
-        constraintsOptions: {onAssemble: true, disableTireFriction: true},
-        postProcess: true,
-        logOutput: true
-      });
-      console.log('');
-      console.log('calculating with tire friction............');
-      this.solve({
-        constraintsOptions: {onAssemble: true},
-        postProcess: true,
-        logOutput: true
-      });
+      this.firstSolve();
     }
   }
 
@@ -1167,6 +1146,33 @@ export class SkidpadSolver implements ISolver {
     this.running = false;
   }
 
+  private firstSolve() {
+    console.log('calculating initial position...........');
+    this.solve({
+      constraintsOptions: {
+        onAssemble: true,
+        disableTireFriction: true,
+        disableForce: true
+      },
+      postProcess: true,
+      logOutput: true
+    });
+    console.log('');
+    console.log('calculating initial force...........');
+    this.solve({
+      constraintsOptions: {onAssemble: true, disableTireFriction: true},
+      postProcess: true,
+      logOutput: true
+    });
+    console.log('');
+    console.log('calculating with tire friction............');
+    this.solve({
+      constraintsOptions: {onAssemble: true},
+      postProcess: true,
+      logOutput: true
+    });
+  }
+
   // eslint-disable-next-line class-methods-use-this
   solveObjectiveFunction() {}
 
@@ -1178,9 +1184,10 @@ export class SkidpadSolver implements ISolver {
   restoreInitialQ() {
     try {
       if (!this.firstSolved) {
-        this.solve();
+        this.firstSolve();
         return;
       }
+      this.v = this.config.velocity.value;
       this.components.forEach((components) => {
         components[0].getGroupedConstraints().forEach((c) => c.resetStates());
         components.forEach((component) => component.restoreInitialQ());

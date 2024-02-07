@@ -70,7 +70,7 @@ export class SkidpadSolverControl extends Control {
     } else {
       solver.v += deltaDl;
     }
-    solver.v = Math.max(max, Math.min(solver.v, min));
+    solver.v = Math.max(min, Math.min(solver.v, max));
     return reserved;
   }
 
