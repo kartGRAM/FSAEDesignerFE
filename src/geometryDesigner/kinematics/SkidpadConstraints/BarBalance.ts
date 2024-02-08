@@ -46,24 +46,9 @@ export class BarBalance implements Constraint, Balance {
 
   k: number = 0; // N/m
 
-  setPreload() {
-    const {pts, ma} = this.getCentrifugalForce();
-    const u = pts[1].clone().sub(pts[0]);
-    const {pfs, pfCoefs, k, t} = this;
-    const length = u.length();
-    const axis = u.normalize();
-    // 地面に垂直でない成分は、完全に釣り合っているはず。
-    const fn = pfs.map((pf) => n.clone().multiplyScalar(pf.force.dot(n)));
-    const fxy = pfs.map((pf, i) => pf.force.clone().sub(fn[i]));
-    const fl = fxy.map((f) => f.dot(f) / f.dot(axis));
-
-    const dl = (fl[0] - fl[1]) / (2 * k);
-    this.freeLength = length + dl;
-  }
-
   // 並進運動+回転
   constraints(options: ConstraintsOptions) {
-    if (this.isSpring && !options.disableSpringElasticity) return 6;
+    if (this.isSpring && !options.disableSpringElasticity) return 7;
     return 6;
   }
 
@@ -176,6 +161,21 @@ export class BarBalance implements Constraint, Balance {
       cogSkewP,
       pts
     };
+  }
+
+  setPreload() {
+    const {pts, ma} = this.getCentrifugalForce();
+    const u = pts[1].clone().sub(pts[0]);
+    const {pfs, pfCoefs, k, t} = this;
+    const length = u.length();
+    const axis = u.normalize();
+    // 地面に垂直でない成分は、完全に釣り合っているはず。
+    const fn = pfs.map((pf) => n.clone().multiplyScalar(pf.force.dot(n)));
+    const fxy = pfs.map((pf, i) => pf.force.clone().sub(fn[i]));
+    const fl = fxy.map((f) => f.dot(f) / f.dot(axis));
+
+    const dl = (fl[0] - fl[1]) / (2 * k);
+    this.freeLength = length + dl;
   }
 
   setJacobianAndConstraints(
@@ -302,12 +302,11 @@ export class BarBalance implements Constraint, Balance {
         return null;
       });
       const du_dP = pts.map((p, i) => {
-        return I.clone().mul(-1 * i);
+        return I.clone().mul(-1 + 2 * i);
       });
       const du_dTheta = pts.map((p, i) => {
-        return A[i]?.mmul(localSkew[i]).mul(-1 * i);
+        return A[i]?.mmul(localSkew[i]).mul(-1 + 2 * i);
       });
-      const {pfs, pfCoefs, k, t} = this;
 
       const l = u.length();
       const dl_du = normVectorDiff(u);
@@ -328,39 +327,49 @@ export class BarBalance implements Constraint, Balance {
         du_dTheta ? dAxis_du.mmul(du_dTheta) : undefined
       );
 
-      const f0 = pfs[0].force.clone().multiplyScalar(pfCoefs[0]);
-      const f = f0.sub(n.clone().multiplyScalar(f0.dot(n)));
-      const df_df0 = I.clone().sub(nnT).mul(pfCoefs[0]);
+      const f = pfs.map((pf, i) => pf.force.clone().multiplyScalar(pfCoefs[i]));
+      f.forEach((f) => f.sub(n.clone().multiplyScalar(f.dot(n))));
+      const df_dfi = f.map((f, i) => I.clone().sub(nnT).mul(pfCoefs[i]));
 
       // 現在の軸方向の力の大きさ (|f| / cos(Θ) ) = |f|^2 / f・ax
-      const fdotAx = f.dot(axis);
-      const f2 = f.dot(f);
-      const fl = f2 / fdotAx;
+      const fdotAx = f.map((f) => f.dot(axis));
+      const f2 = f.map((f) => f.dot(f));
+      const fl = f2.map((f2, i) => f2 / fdotAx[i]);
       // d_fl = {d(f^2)*fdotAx - f^2*d(f・ax)} / (f・ax)^2
       // なので、構成要素を求める。
-      const df2_df = getVVector(f).transpose().mul(2); // (1x3);
-      const dfDotAx_df = getVVector(axis).transpose(); // (1x3);
-      const dFDotAx_dAxis = getVVector(f).transpose(); // (1x3);
+      const df2_df = f.map((f) => getVVector(f).transpose().mul(2)); // (1x3);
+      const dfDotAx_df = f.map(() => getVVector(axis).transpose()); // (1x3);
+      const dFDotAx_dAxis = f.map((f) => getVVector(f).transpose()); // (1x3);
 
-      const dfl_df = df2_df
-        .clone()
-        .mul(fdotAx)
-        .sub(dfDotAx_df.clone().mul(f2))
-        .mul(1 / fdotAx ** 2);
-      const dfl_dAxis = dFDotAx_dAxis.clone().mul(-f2 / fdotAx ** 2);
-      const dfl_df0 = dfl_df.mmul(df_df0);
+      const dfl_df = df2_df.map((df2_df, i) =>
+        df2_df
+          .clone()
+          .mul(fdotAx[i])
+          .sub(dfDotAx_df[i].clone().mul(f2[i]))
+          .mul(1 / fdotAx[i] ** 2)
+      );
+      const dfl_dAxis = dFDotAx_dAxis.reduce((prev, dfDotAx_dAxis, i) => {
+        const tmp = dfDotAx_dAxis.clone().mul(-f2[i] / fdotAx[i] ** 2);
+        tmp.mul(-i * 0.5);
+        return prev.add(tmp);
+      }, new Matrix(1, 3));
+      const dfl_dfi = dfl_df.map((dfl_df, i) =>
+        dfl_df.mmul(df_dfi[i]).mul(-i * 0.5)
+      );
       const dfl_dP = dAxis_dP.map((dAxis_dP) => dfl_dAxis.mmul(dAxis_dP));
       const dfl_dTheta = dAxis_dTheta.map((dAxis_dTheta) =>
         dAxis_dTheta ? dfl_dAxis.mmul(dAxis_dTheta) : undefined
       );
 
-      phi[row + 6] = fl - ideal;
+      phi[row + 6] = (fl[0] - fl[1]) / 2 - ideal;
       // 力のつり合い
-      phi_q.subMatrixAdd(dfl_df0, row + 6, pfs[0].col);
+      this.pfs.forEach((pf, i) => {
+        phi_q.subMatrixAdd(dfl_dfi[i], row + 6, pf.col);
+      });
       components.forEach((c, i) => {
         // dP
         const dP = dfl_dP[i].clone().sub(dIdeal_dP[i]);
-        phi_q.subMatrixAdd(dfl_df0, row + 6, c.col + X);
+        phi_q.subMatrixAdd(dP, row + 6, c.col + X);
 
         if (isFullDegreesComponent(c)) {
           // dQ

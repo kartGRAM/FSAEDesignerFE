@@ -1199,9 +1199,18 @@ export class SkidpadSolver implements ISolver {
       });
     });
 
+    console.log('');
     console.log('calculating with tire frictions............');
     this.solve({
       constraintsOptions: {disableSpringElasticity: true},
+      postProcess: true,
+      logOutput: true
+    });
+
+    console.log('');
+    console.log('calculating with spring force............');
+    this.solve({
+      constraintsOptions: {disableSpringElasticity: false},
       postProcess: true,
       logOutput: true
     });
