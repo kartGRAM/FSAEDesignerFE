@@ -81,6 +81,13 @@ export function normalizedVectorDiff(u: Vector3): Matrix {
   return d;
 }
 
+// k=|u| として、δk=Xδu のXを返す。
+export function normVectorDiff(u: Vector3): Matrix {
+  const abs = u.length();
+  const uT = getVVector(u).transpose();
+  return uT.mul(1 / abs);
+}
+
 // タイヤの軸に垂直で、地面に平行な前方向ベクトルkから、回転行列を作成
 export function getFrictionRotation(normalizedFrontVector: Vector3): Matrix {
   const k = normalizedFrontVector;

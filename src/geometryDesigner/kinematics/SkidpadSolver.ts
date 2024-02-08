@@ -124,7 +124,7 @@ export class SkidpadSolver implements ISolver {
     forceScale: number
   ) {
     this.config = config;
-    this.v = config.velocity.value * 0.1;
+    this.v = config.velocity.value;
     const vO = () => new Vector3(this.v, 0, 0).multiplyScalar(scale * 1000);
     this.assembly = assembly;
     const {children} = assembly;
@@ -1030,7 +1030,7 @@ export class SkidpadSolver implements ISolver {
     this.running = true;
     try {
       const start = performance.now();
-      const maxCnt = params?.maxCnt ?? 50; // 200;
+      const maxCnt = params?.maxCnt ?? 15; // 200;
       const postProcess = params?.postProcess ?? true;
       const constraintsOptions = params?.constraintsOptions ?? {};
       const logOutput = params?.logOutput ?? false;
@@ -1077,16 +1077,16 @@ export class SkidpadSolver implements ISolver {
             .solve(matPhi)
             .mul(1);
 
-          /*
+          const row = constraintsOptions.disableForce ? 0 : 92;
           const iPhi_q = inverse(phi_q, true);
           const {data: iData} = iPhi_q as any;
-          const id26 = iData[26];
-          const dot26Org = phi.map((p, i) => phi[i] * id26[i]);
-          const large26 = dot26Org.map((x) => (x > 0.001 ? 1 : 0));
-          const dot26 = dot26Org.map((x, i) => x * large26[i]);
+          const id = iData[row];
+          const dotOrg = phi.map((p, i) => phi[i] * id[i]);
+          const large = dotOrg.map((x) => (x > 0.001 ? 1 : 0));
+          const dot = dotOrg.map((x, i) => x * large[i]);
 
           const {data} = phi_q as any;
-          const d26 = data.map((d: any) => d[26]); */
+          const d = data.map((d: any) => d[row]);
 
           // 差分を反映
           components.forEach((component) => component.applyDq(dq));
@@ -1098,10 +1098,19 @@ export class SkidpadSolver implements ISolver {
           this.lapTime = Math.abs((Math.PI * 2) / omega);
           const phiMax = Math.max(...phi);
           const phiMaxIdx = phi.indexOf(phiMax);
+          const dqData = (dq as any).data.map((d: any) => d[0]);
+          const dqMax = Math.max(...dqData);
+          const dqMin = Math.min(...dqData);
+          const dqMaxIdx = dqData.indexOf(dqMax);
+          const dqMinIdx = dqData.indexOf(dqMin);
           if (logOutput) {
             console.log(`round: ${i}`);
             console.log(`phi_max   = ${phiMax.toFixed(4)}`);
             console.log(`phi_maxIdx= ${phiMaxIdx}`);
+            console.log(`dq_max   = ${dqMax.toFixed(4)}`);
+            console.log(`dq_min   = ${dqMin.toFixed(4)}`);
+            console.log(`dq_maxIdx= ${dqMaxIdx}`);
+            console.log(`dq_minIdx= ${dqMinIdx}`);
             console.log(`velocity=   ${this.v.toFixed(4)} m/s`);
             console.log(`radius=     ${this.r.toFixed(4)} m`);
             console.log(`lap time=   ${this.lapTime.toFixed(4)} s`);
@@ -1110,6 +1119,9 @@ export class SkidpadSolver implements ISolver {
             console.log(``);
           }
           eq = norm_dq < 1e-4 && norm_phi < 1e-4;
+          if (constraintsOptions.disableTireFriction) {
+            eq = norm_dq < 2e-1 && norm_phi < 2e-1;
+          }
           if (norm_dq > minNorm * 100000 || Number.isNaN(norm_dq)) {
             console.log(`norm_dq=  ${norm_dq.toFixed(4)}`);
             console.log(`norm_phi= ${norm_phi.toFixed(4)}`);
@@ -1160,7 +1172,7 @@ export class SkidpadSolver implements ISolver {
         disableTireFriction: true,
         disableForce: true
       },
-      postProcess: false,
+      postProcess: true,
       logOutput: true
     });
     console.log('');
@@ -1170,7 +1182,7 @@ export class SkidpadSolver implements ISolver {
         disableSpringElasticity: true,
         disableTireFriction: true
       },
-      postProcess: false,
+      postProcess: true,
       logOutput: true
     });
     console.log('');
