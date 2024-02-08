@@ -28,36 +28,38 @@ const Q0 = 3;
 const unitZ = getVVector(new Vector3(0, 0, 1));
 
 export class BarBalance implements Constraint, Balance {
-  readonly className = 'BarBalance';
+  static className = 'BarBalance' as const;
+
+  readonly className = BarBalance.className;
 
   isBalance: true = true;
 
   isSpring: boolean = false;
 
-  disableSpring: boolean = false;
-
   freeLength: number = 0;
 
   k: number = 0; // N/m
 
-  get axis() {
-    const {pts} = this.getCentrifugalForce();
-    return pts[1].clone().sub(pts[0]);
-  }
-
   setPreload() {
-    const {axis, pfs, k} = this;
-    const length = axis.length();
-    const nAxis = axis.normalize();
-    const f = pfs[0].force.clone();
-    const fl = nAxis.dot(f);
-    const dl = fl / k;
+    const {pts, ma} = this.getCentrifugalForce();
+    const u = pts[1].clone().sub(pts[0]);
+    const {pfs, pfCoefs, k, t} = this;
+    const length = u.length();
+    const axis = u.normalize();
+    const f = pfs.map((pf, i) =>
+      pf.force
+        .clone()
+        .multiplyScalar(pfCoefs[i])
+        .sub(ma.clone().multiplyScalar(t[i]))
+    );
+    const fl = f.map((f) => f.dot(axis));
+    const dl = (fl[1] - fl[0]) / (2 * k);
     this.freeLength = length + dl;
   }
 
   // 並進運動+回転
-  constraints() {
-    if (this.isSpring && !this.disableSpring) return 7;
+  constraints(options: ConstraintsOptions) {
+    if (this.isSpring && !options.disableSpringElasticity) return 6;
     return 6;
   }
 
@@ -97,6 +99,8 @@ export class BarBalance implements Constraint, Balance {
 
   element: IBar;
 
+  t: number[];
+
   constructor(params: {
     name: string;
     components: Twin<IComponent>;
@@ -134,6 +138,7 @@ export class BarBalance implements Constraint, Balance {
       p.clone().multiplyScalar(scale)
     ) as any;
     this.localSkew = this.localVec.map((v) => skew(v).mul(-2)) as any;
+    this.t = this.pfs.map((_, i) => i + (1 + -2 * i) * this.cog);
   }
 
   getCentrifugalForce() {
@@ -153,9 +158,12 @@ export class BarBalance implements Constraint, Balance {
       .cross(omega.clone().cross(pCog))
       .multiplyScalar(-1)
       .add(cO);
+
+    const ma = this.g.clone().add(c).multiplyScalar(this.mass); // 遠心力＋重力
     return {
       vO,
       c,
+      ma,
       omega,
       pCog,
       cogSkewP,
@@ -163,15 +171,18 @@ export class BarBalance implements Constraint, Balance {
     };
   }
 
-  setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
-    const {row, components, localSkew, pfs, g, cog, pfCoefs} = this;
+  setJacobianAndConstraints(
+    phi_q: Matrix,
+    phi: number[],
+    options: ConstraintsOptions
+  ) {
+    const {row, components, localSkew, pfs, pfCoefs} = this;
 
-    const {pts, omega, c, pCog, cogSkewP, vO} = this.getCentrifugalForce();
+    const {pts, omega, pCog, cogSkewP, vO, ma} = this.getCentrifugalForce();
 
     const omegaSkew = skew(omega); // 角速度のSkewMatrix
     const omegaSkew2 = omegaSkew.mmul(omegaSkew);
     const pSkewP = pts.map((p) => skew(p));
-    const ma = g.clone().add(c).multiplyScalar(this.mass); // 遠心力＋重力
     const maSkew = skew(ma);
 
     const translation = pfs
@@ -199,10 +210,10 @@ export class BarBalance implements Constraint, Balance {
 
     const I = Matrix.eye(3, 3);
     pfs.forEach((pf, i) => {
-      const t = i + (1 + -2 * i) * cog;
       const pfCol = pf.col;
       const fSkew = skew(pf.force.clone().multiplyScalar(pfCoefs[i]));
       const c = components[i];
+      const t = this.t[i];
 
       // 力のつり合い
       // df
@@ -265,6 +276,10 @@ export class BarBalance implements Constraint, Balance {
     // モーメントのつり合い(ω部分)
     const dOmega2 = cogSkewP.mmul(dOmega1).mul(-1);
     phi_q.subMatrixAdd(dOmega2, row + 3, colOmega);
+
+    if (this.isSpring && !options.disableSpringElasticity) {
+      const a = 0;
+    }
   }
 
   setJacobianAndConstraintsInequal() {}
@@ -296,4 +311,8 @@ export class BarBalance implements Constraint, Balance {
       .multiplyScalar(this.mass)
       .applyQuaternion(q);
   }
+}
+
+export function isBarBalance(c: Constraint): c is BarBalance {
+  return c.className === BarBalance.className;
 }

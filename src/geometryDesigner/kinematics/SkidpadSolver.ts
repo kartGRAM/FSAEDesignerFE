@@ -66,6 +66,7 @@ import {
 } from './Constraints';
 import {
   BarBalance,
+  isBarBalance,
   AArmBalance,
   TireBalance,
   isTireBalance,
@@ -123,7 +124,7 @@ export class SkidpadSolver implements ISolver {
     forceScale: number
   ) {
     this.config = config;
-    this.v = config.velocity.value;
+    this.v = config.velocity.value * 0.1;
     const vO = () => new Vector3(this.v, 0, 0).multiplyScalar(scale * 1000);
     this.assembly = assembly;
     const {children} = assembly;
@@ -426,7 +427,9 @@ export class SkidpadSolver implements ISolver {
             pfs: pfs as Twin<PointForce>,
             vO,
             omega,
-            pfsPointNodeIDs: pNodeIDs
+            pfsPointNodeIDs: pNodeIDs,
+            isSpring: isSpringDumper(element),
+            k: 26217 // N/m : 150lbs/in
           });
           constraints.push(balance);
           return;
@@ -1106,7 +1109,7 @@ export class SkidpadSolver implements ISolver {
             console.log(`norm_phi=   ${norm_phi.toFixed(4)}`);
             console.log(``);
           }
-          eq = norm_dq < 1e-4 && norm_phi < 1e-6;
+          eq = norm_dq < 1e-4 && norm_phi < 1e-4;
           if (norm_dq > minNorm * 100000 || Number.isNaN(norm_dq)) {
             console.log(`norm_dq=  ${norm_dq.toFixed(4)}`);
             console.log(`norm_phi= ${norm_phi.toFixed(4)}`);
@@ -1150,7 +1153,7 @@ export class SkidpadSolver implements ISolver {
   }
 
   private firstSolve() {
-    console.log('calculating initial position...........');
+    console.log('calculating initial positions...........');
     this.solve({
       constraintsOptions: {
         disableSpringElasticity: true,
@@ -1161,7 +1164,7 @@ export class SkidpadSolver implements ISolver {
       logOutput: true
     });
     console.log('');
-    console.log('calculating initial force...........');
+    console.log('calculating initial forces...........');
     this.solve({
       constraintsOptions: {
         disableSpringElasticity: true,
@@ -1171,7 +1174,20 @@ export class SkidpadSolver implements ISolver {
       logOutput: true
     });
     console.log('');
-    console.log('calculating with tire friction............');
+    console.log('calculating spring preloads...........');
+    this.components.forEach((components) => {
+      const root = components[0];
+      const constraints = root.getGroupedConstraints().filter((constraint) =>
+        constraint.active({
+          disableTireFriction: true
+        })
+      );
+      constraints.forEach((c) => {
+        if (isBarBalance(c) && c.isSpring) c.setPreload();
+      });
+    });
+
+    console.log('calculating with tire frictions............');
     this.solve({
       constraintsOptions: {disableSpringElasticity: true},
       postProcess: true,
