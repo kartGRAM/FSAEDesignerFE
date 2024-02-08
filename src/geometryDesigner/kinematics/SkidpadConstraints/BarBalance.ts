@@ -136,30 +136,6 @@ export class BarBalance implements Constraint, Balance {
     this.localSkew = this.localVec.map((v) => skew(v).mul(-2)) as any;
   }
 
-  applytoElement() {
-    const q = this.element.rotation.value.invert();
-    const {c} = this.getCentrifugalForce();
-    const {element} = this;
-
-    element.fixedPointForce = this.pfs[0].force
-      .clone()
-      .multiplyScalar(this.pfCoefs[0])
-      .applyQuaternion(q);
-
-    element.pointForce = this.pfs[1].force
-      .clone()
-      .multiplyScalar(this.pfCoefs[1])
-      .applyQuaternion(q);
-    element.centrifugalForce = c
-      .clone()
-      .multiplyScalar(this.mass)
-      .applyQuaternion(q);
-    element.gravity = this.g
-      .clone()
-      .multiplyScalar(this.mass)
-      .applyQuaternion(q);
-  }
-
   getCentrifugalForce() {
     const {localVec, components, cog} = this;
     const pts = components.map((c, i) =>
@@ -295,5 +271,29 @@ export class BarBalance implements Constraint, Balance {
 
   checkInequalityConstraint(): [boolean, any] {
     return [false, null];
+  }
+
+  applytoElement() {
+    const q = this.element.rotation.value.invert();
+    const {c} = this.getCentrifugalForce();
+    const {element} = this;
+
+    element.fixedPointForce = this.pfs[0].force
+      .clone()
+      .multiplyScalar(this.pfCoefs[0])
+      .applyQuaternion(q);
+
+    element.pointForce = this.pfs[1].force
+      .clone()
+      .multiplyScalar(this.pfCoefs[1])
+      .applyQuaternion(q);
+    element.centrifugalForce = c
+      .clone()
+      .multiplyScalar(this.mass)
+      .applyQuaternion(q);
+    element.gravity = this.g
+      .clone()
+      .multiplyScalar(this.mass)
+      .applyQuaternion(q);
   }
 }

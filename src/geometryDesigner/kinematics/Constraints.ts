@@ -403,16 +403,18 @@ export class BarAndSpheres implements Constraint, deltaL {
 
   // 自由度を1減らす
   constraints(options: ConstraintsOptions) {
-    const {onAssemble, fixSpringDumpersAtCurrentPositions} = options;
-    if (onAssemble) return 1;
+    const {disableSpringElasticity, fixSpringDumpersAtCurrentPositions} =
+      options;
+    if (disableSpringElasticity) return 1;
     if (this.isSpringDumper && fixSpringDumpersAtCurrentPositions) return 1;
     if (this.isSpringDumper) return 0;
     return 1;
   }
 
   active(options: ConstraintsOptions) {
-    const {onAssemble, fixSpringDumpersAtCurrentPositions} = options;
-    if (onAssemble) return true;
+    const {disableSpringElasticity, fixSpringDumpersAtCurrentPositions} =
+      options;
+    if (disableSpringElasticity) return true;
     if (this.isSpringDumper && fixSpringDumpersAtCurrentPositions) return true;
     if (this.isSpringDumper) return false;
     return true;
@@ -535,9 +537,10 @@ export class BarAndSpheres implements Constraint, deltaL {
     phi: number[],
     options: ConstraintsOptions
   ) {
-    const {onAssemble, fixSpringDumpersAtCurrentPositions} = options;
+    const {disableSpringElasticity, fixSpringDumpersAtCurrentPositions} =
+      options;
     if (
-      !onAssemble &&
+      !disableSpringElasticity &&
       this.isSpringDumper &&
       !fixSpringDumpersAtCurrentPositions
     )
@@ -656,9 +659,9 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
 
   // 自由度を2減らす
   constraints(options: ConstraintsOptions) {
-    const {onAssemble} = options;
+    const {disableSpringElasticity} = options;
     // 組み立て時は固定する
-    if (onAssemble) return 3;
+    if (disableSpringElasticity) return 3;
     if (this.controled) return 3;
     return 2;
   }
@@ -823,7 +826,7 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
     phi: number[],
     options: ConstraintsOptions
   ) {
-    const {onAssemble} = options;
+    const {disableSpringElasticity} = options;
     if (this.controled) {
       this.sphere.row = this.row;
       this.sphere.setVlhs(
@@ -837,7 +840,7 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
       this.sphere.setJacobianAndConstraints(phi_q, phi);
       return;
     }
-    if (onAssemble) {
+    if (disableSpringElasticity) {
       this.sphere.row = this.row;
       this.sphere.setVlhs(
         this.center

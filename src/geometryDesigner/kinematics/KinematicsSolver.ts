@@ -761,7 +761,7 @@ export class KinematicsSolver implements ISolver {
     // 上記4ステップでプリプロセッサ完了
     if (solve)
       this.solve({
-        constraintsOptions: {onAssemble: true},
+        constraintsOptions: {disableSpringElasticity: true},
         postProcess: true,
         logOutput: true
       });

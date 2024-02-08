@@ -1153,24 +1153,27 @@ export class SkidpadSolver implements ISolver {
     console.log('calculating initial position...........');
     this.solve({
       constraintsOptions: {
-        onAssemble: true,
+        disableSpringElasticity: true,
         disableTireFriction: true,
         disableForce: true
       },
-      postProcess: true,
+      postProcess: false,
       logOutput: true
     });
     console.log('');
     console.log('calculating initial force...........');
     this.solve({
-      constraintsOptions: {onAssemble: true, disableTireFriction: true},
-      postProcess: true,
+      constraintsOptions: {
+        disableSpringElasticity: true,
+        disableTireFriction: true
+      },
+      postProcess: false,
       logOutput: true
     });
     console.log('');
     console.log('calculating with tire friction............');
     this.solve({
-      constraintsOptions: {onAssemble: true},
+      constraintsOptions: {disableSpringElasticity: true},
       postProcess: true,
       logOutput: true
     });

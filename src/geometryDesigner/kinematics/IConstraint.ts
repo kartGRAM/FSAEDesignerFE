@@ -2,9 +2,9 @@ import {Matrix} from 'ml-matrix';
 import {IVariable} from './KinematicComponents';
 
 export interface ConstraintsOptions {
-  onAssemble?: boolean;
   disableForce?: boolean;
   disableTireFriction?: boolean;
+  disableSpringElasticity?: boolean;
   fixSpringDumpersAtCurrentPositions?: boolean;
 }
 

@@ -28,7 +28,7 @@ ctx.onmessage = async (e: MessageEvent<FromParent>) => {
       solver.restoreState(message.initialSnapshot);
     } else {
       solver.solve({
-        constraintsOptions: {onAssemble: true},
+        constraintsOptions: {disableSpringElasticity: true},
         postProcess: true,
         logOutput: true
       });
