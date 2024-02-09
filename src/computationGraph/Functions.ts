@@ -1,5 +1,7 @@
 import {Matrix} from 'ml-matrix';
 
+export type Vector3Like = {x: number; y: number; z: number};
+
 export function skew(v: {x: number; y: number; z: number} | Matrix) {
   if ('x' in v) {
     return new Matrix([
@@ -17,4 +19,9 @@ export function skew(v: {x: number; y: number; z: number} | Matrix) {
     [z, 0, -x],
     [-y, x, 0]
   ]);
+}
+
+export function getVVector(value: Vector3Like) {
+  const {x, y, z} = value;
+  return new Matrix([[x], [y], [z]]);
 }

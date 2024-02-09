@@ -1,29 +1,29 @@
 import {Matrix} from 'ml-matrix';
 import {isNumber} from '@utils/helpers';
 import {Constant, isConstant} from './Constant';
+import {IVector3} from './IVector3';
 import {Vector3} from './Vector3';
-import {Scalar} from './Scalar';
-import {skew} from './Functions';
+import {IScalar} from './IScalar';
+import {skew, Vector3Like, getVVector} from './Functions';
 
-export class ConstantVector3 extends Constant {
+export class ConstantVector3 extends Constant implements IVector3 {
   // eslint-disable-next-line class-methods-use-this
   diff(): void {}
 
-  constructor(value: Matrix | {x: number; y: number; z: number}) {
+  constructor(value: Matrix | Vector3Like) {
     if ('x' in value) {
-      const {x, y, z} = value;
-      const mat = new Matrix([[x], [y], [z]]);
+      const mat = getVVector(value);
       super(mat);
     } else {
       super(value);
     }
   }
 
-  mul(other: Scalar | number) {
+  mul(other: IScalar | number) {
     return new Vector3(() => {
       const lhs = this.value; // (3x1)
       const rhs = isNumber(other) ? Matrix.eye(1, 1).mul(other) : other.value; // (1x1)
-      return {
+      return () => {
         value: lhs.clone().mul(rhs), // (3x1)
         diff: (mat?: Matrix) => {
           if (!mat) mat = Matrix.eye(3, 3);
@@ -33,7 +33,7 @@ export class ConstantVector3 extends Constant {
     });
   }
 
-  dot(other: Vector3 | ConstantVector3) {
+  dot(other: IVector3) {
     return new Vector3(() => {
       const lhs = this.value; // (3x1)
       const rhs = other.value; // (3x1)
@@ -48,7 +48,7 @@ export class ConstantVector3 extends Constant {
     });
   }
 
-  cross(other: Vector3 | ConstantVector3) {
+  cross(other: IVector3) {
     return new Vector3(() => {
       const lhs = this.value; // (3x1)
       const rhs = other.value; // (3x1)

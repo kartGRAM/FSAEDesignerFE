@@ -1,46 +1,50 @@
 import {Matrix} from 'ml-matrix';
 import {isNumber} from '@utils/helpers';
-import {IComputationNode, RetType} from './IComputationNode';
-import {IScalar} from './IScalar';
-import {IVector3} from './IVector3';
+import {IComputationNode} from './IComputationNode';
+import {Scalar} from './Scalar';
 import {isConstant} from './Constant';
 import {ConstantVector3} from './ConstantVector3';
-import {VariableVector3} from './VariableVector3';
-import {skew} from './Functions';
+import {Vector3} from './Vector3';
+import {skew, getVVector, Vector3Like} from './Functions';
 
-export class Vector3 implements IVector3 {
+export class VariableVector3 implements IComputationNode {
   readonly isVector3 = true;
 
-  _value: () => RetType;
+  _value: Matrix;
 
-  _diff: (mat?: Matrix) => void;
+  _diff: Matrix;
 
-  constructor(value: () => RetType) {
-    this._value = value;
-    this._diff = () => {};
+  rows: number;
+
+  setValue(value: Vector3Like) {
+    this._value = getVVector(value);
+  }
+
+  constructor(rows: number) {
+    this._value = new Matrix(3, 1);
+    this.rows = rows;
+    this._diff = new Matrix(rows, 3);
   }
 
   get value() {
-    const {value, diff} = this._value();
-    this._diff = diff;
-    if (value.rows !== 3 && value.columns !== 1)
-      throw new Error('3次元ベクトルじゃない');
-    return value;
+    this._diff = new Matrix(this.rows, 3);
+    return this._value;
   }
 
-  diff(mat?: Matrix): void {
-    this._diff(mat);
+  diff(mat: Matrix): void {
+    this._diff.add(mat);
   }
 
-  mul(other: IScalar | number) {
+  mul(other: Scalar | number) {
     return new Vector3(() => {
       const lhs = this.value; // (3x1)
       const rhs = isNumber(other) ? Matrix.eye(1, 1).mul(other) : other.value; // (1x1)
       return {
         value: lhs.clone().mul(rhs), // (3x1)
         diff: (mat?: Matrix) => {
-          if (!mat) mat = Matrix.eye(3, 3);
-          this.diff(mat.clone().mul(rhs)); // (3x3)
+          if (this.rows === 3 && !mat) mat = Matrix.eye(3, 3);
+          else if (!mat) throw new Error('rowsが3以外では、matが必要');
+          this.diff(mat.clone().mul(rhs)); // (row x 3)
           if (!isNumber(other)) other.diff(mat.mmul(lhs)); // (3x1)
         }
       };

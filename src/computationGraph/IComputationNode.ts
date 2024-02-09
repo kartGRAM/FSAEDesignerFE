@@ -4,6 +4,7 @@ export type RetType = {value: Matrix; diff: (mat?: Matrix) => void};
 
 export interface IComputationNode {
   readonly value: Matrix;
+  readonly rows: number;
 
-  diff(mat?: Matrix): void;
+  diff(fromLhs?: Matrix, fromRhs?: Matrix): void;
 }

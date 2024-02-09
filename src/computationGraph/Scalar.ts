@@ -1,8 +1,9 @@
 import {Matrix} from 'ml-matrix';
 import {isNumber} from '@utils/helpers';
-import {IComputationNode, RetType} from './IComputationNode';
+import {RetType} from './IComputationNode';
+import {IScalar} from './IScalar';
 
-export class Scalar implements IComputationNode {
+export class Scalar implements IScalar {
   readonly isScalar = true;
 
   _value: () => RetType;
@@ -44,8 +45,4 @@ export class Scalar implements IComputationNode {
       };
     });
   }
-}
-
-export function isScalar(node: IComputationNode): node is Scalar {
-  return 'isScalar' in node;
 }
