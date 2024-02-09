@@ -41,7 +41,8 @@ export class Vector3 implements IVector3 {
       return {
         value: lhs.clone().mul(rhs), // (3x1)
         diff: (mat?: Matrix) => {
-          if (!mat) mat = Matrix.eye(3, 3);
+          if (this.rows === 3 && !mat) mat = Matrix.eye(3, 3);
+          else if (!mat) throw new Error('rowsが3以外では、matが必要');
           this.diff(mat.clone().mul(rhs)); // (3x3)
           if (!isNumber(other)) other.diff(mat.mmul(lhs)); // (3x1)
         }
@@ -75,7 +76,8 @@ export class Vector3 implements IVector3 {
       return {
         value: lSkew.mmul(rhs), // (1x1)
         diff: (mat?: Matrix) => {
-          if (!mat) mat = Matrix.eye(3, 3);
+          if (this.rows === 3 && !mat) mat = Matrix.eye(3, 3);
+          else if (!mat) throw new Error('rowsが3以外では、matが必要');
           this.diff(mat.mmul(rSkew).mul(-1)); // (1x3)
           if (!isConstant(other)) other.diff(mat.mmul(lSkew)); // (1x3)
         }
