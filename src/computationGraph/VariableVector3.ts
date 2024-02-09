@@ -91,4 +91,36 @@ export class VariableVector3 implements IVector3, IVariable {
       };
     }, this.rows);
   }
+
+  add(other: IVector3): IVector3 {
+    return new Vector3(() => {
+      const lhs = this.value; // (3x1)
+      const rhs = other.value; // (3x1)
+      return {
+        value: lhs.clone().add(rhs), // (1x1)
+        diff: (mat?: Matrix) => {
+          if (this.rows === 3 && !mat) mat = Matrix.eye(3, 3);
+          else if (!mat) throw new Error('rowsが3以外では、matが必要');
+          this.diff(mat); // (1x3)
+          if (!isConstant(other)) other.diff(mat); // (1x3)
+        }
+      };
+    }, this.rows);
+  }
+
+  sub(other: IVector3): IVector3 {
+    return new Vector3(() => {
+      const lhs = this.value; // (3x1)
+      const rhs = other.value; // (3x1)
+      return {
+        value: lhs.clone().sub(rhs), // (1x1)
+        diff: (mat?: Matrix) => {
+          if (this.rows === 3 && !mat) mat = Matrix.eye(3, 3);
+          else if (!mat) throw new Error('rowsが3以外では、matが必要');
+          this.diff(mat); // (1x3)
+          if (!isConstant(other)) other.diff(mat.clone().mul(-1)); // (1x3)
+        }
+      };
+    }, this.rows);
+  }
 }

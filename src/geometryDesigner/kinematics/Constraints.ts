@@ -5,6 +5,10 @@ import {Matrix} from 'ml-matrix';
 import {Vector3} from 'three';
 import {isObject} from '@utils/helpers';
 import {Constraint, ConstraintsOptions} from '@gd/kinematics/IConstraint';
+import {IComputationNode} from '@computationGraph/IComputationNode';
+import {VariableVector3} from '@computationGraph/VariableVector3';
+import {ConstantVector3} from '@computationGraph/ConstantVector3';
+import {VariableQuaternion} from '@computationGraph/VariableQuaternion';
 import {
   getStableOrthogonalVector,
   skew,
@@ -80,6 +84,16 @@ export class Sphere implements Constraint {
 
   swaped: boolean;
 
+  constraint: IComputationNode;
+
+  pLhs: VariableVector3;
+
+  qLhs: VariableQuaternion;
+
+  pRhs: VariableVector3;
+
+  qRhs: VariableQuaternion;
+
   setVlhs(vlhs: Vector3, checkSwap: boolean = true): void {
     if (this.swaped && checkSwap) {
       this.setVrhs(vlhs, false);
@@ -137,6 +151,22 @@ export class Sphere implements Constraint {
         .clone()
         .add(this.rLocalVec.applyQuaternion(this.rhs.quaternion));
     }
+
+    this.pLhs = new VariableVector3(3);
+    this.qLhs = new VariableQuaternion(3);
+    this.pRhs = new VariableVector3(3);
+    this.qRhs = new VariableQuaternion(3);
+
+    const ALhs = this.qLhs.getRotationMatrix();
+    const ARhs = this.qRhs.getRotationMatrix();
+
+    const lLocalVec = new ConstantVector3(this.lLocalVec, 3);
+    const rLocalVec = new ConstantVector3(this.lLocalVec, 3);
+
+    const sLhs = ALhs.vmul(lLocalVec);
+    const sRhs = ARhs.vmul(rLocalVec);
+
+    this.constraint = this.pLhs.add(sLhs).sub(this.pRhs).sub(sRhs);
   }
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
@@ -160,6 +190,15 @@ export class Sphere implements Constraint {
         .add(sLhs)
         .sub(rhs.position)
         .sub(sRhs);
+
+      this.pLhs.setValue(this.lhs.position);
+      this.pRhs.setValue(this.rhs.position);
+      this.qLhs.setValue(this.lhs.quaternion);
+      this.qRhs.setValue(this.rhs.quaternion);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const error = this.constraint.value;
+      this.constraint.diff();
+
       phi[row + X] = constraint.x;
       phi[row + Y] = constraint.y;
       phi[row + Z] = constraint.z;
