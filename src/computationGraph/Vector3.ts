@@ -30,8 +30,8 @@ export class Vector3 implements IVector3 {
     return value;
   }
 
-  diff(mat?: Matrix): void {
-    this._diff(mat);
+  diff(fromLhs?: Matrix): void {
+    this._diff(fromLhs);
   }
 
   mul(other: IScalar | number) {

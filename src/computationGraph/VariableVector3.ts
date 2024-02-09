@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import {Matrix} from 'ml-matrix';
 import {isNumber} from '@utils/helpers';
 import {IVector3} from './IVector3';
@@ -6,8 +7,9 @@ import {IScalar} from './IScalar';
 import {isConstant} from './IConstant';
 import {Vector3} from './Vector3';
 import {skew, getVVector, Vector3Like} from './Functions';
+import {IVariable} from './IVariable';
 
-export class VariableVector3 implements IVector3 {
+export class VariableVector3 implements IVector3, IVariable {
   readonly isVector3 = true;
 
   _value: Matrix;
@@ -31,8 +33,12 @@ export class VariableVector3 implements IVector3 {
     return this._value;
   }
 
-  diff(mat: Matrix): void {
-    this._diff.add(mat);
+  diff(fromLhs: Matrix): void {
+    this._diff.add(fromLhs);
+  }
+
+  setJacobian(phi_q: Matrix, row: number, col: number) {
+    phi_q.subMatrixAdd(this._diff, row, col);
   }
 
   mul(other: IScalar | number) {

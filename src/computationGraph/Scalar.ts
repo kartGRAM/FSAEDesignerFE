@@ -30,8 +30,8 @@ export class Scalar implements IScalar {
     return this.value.get(0, 0);
   }
 
-  diff(mat?: Matrix): void {
-    this._diff(mat);
+  diff(fromLhs?: Matrix): void {
+    this._diff(fromLhs);
   }
 
   mul(other: Scalar | number) {
