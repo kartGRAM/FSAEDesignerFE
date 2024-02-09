@@ -429,7 +429,7 @@ export class SkidpadSolver implements ISolver {
             omega,
             pfsPointNodeIDs: pNodeIDs,
             isSpring: isSpringDumper(element),
-            k: 26217 // N/m : 150lbs/in
+            k: 26217 / 2 // N/m : 75lbs/in
           });
           constraints.push(balance);
           return;
@@ -1030,7 +1030,7 @@ export class SkidpadSolver implements ISolver {
     this.running = true;
     try {
       const start = performance.now();
-      const maxCnt = params?.maxCnt ?? 15; // 200;
+      const maxCnt = params?.maxCnt ?? 100; // 200;
       const postProcess = params?.postProcess ?? true;
       const constraintsOptions = params?.constraintsOptions ?? {};
       const logOutput = params?.logOutput ?? false;
@@ -1077,7 +1077,7 @@ export class SkidpadSolver implements ISolver {
             .solve(matPhi)
             .mul(1);
 
-          const row = constraintsOptions.disableForce ? 0 : 92;
+          /* const row = constraintsOptions.disableForce ? 0 : 92;
           const iPhi_q = inverse(phi_q, true);
           const {data: iData} = iPhi_q as any;
           const id = iData[row];
@@ -1086,7 +1086,7 @@ export class SkidpadSolver implements ISolver {
           const dot = dotOrg.map((x, i) => x * large[i]);
 
           const {data} = phi_q as any;
-          const d = data.map((d: any) => d[row]);
+          const d = data.map((d: any) => d[row]); */
 
           // 差分を反映
           components.forEach((component) => component.applyDq(dq));
@@ -1118,7 +1118,7 @@ export class SkidpadSolver implements ISolver {
             console.log(`norm_phi=   ${norm_phi.toFixed(4)}`);
             console.log(``);
           }
-          eq = norm_dq < 1e-4 && norm_phi < 1e-4;
+          eq = norm_dq < 1e-4 && norm_phi < 1e-2;
           if (constraintsOptions.disableTireFriction) {
             eq = norm_dq < 2e-1 && norm_phi < 2e-1;
           }

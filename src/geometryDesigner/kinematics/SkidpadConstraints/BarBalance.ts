@@ -350,18 +350,18 @@ export class BarBalance implements Constraint, Balance {
       );
       const dfl_dAxis = dFDotAx_dAxis.reduce((prev, dfDotAx_dAxis, i) => {
         const tmp = dfDotAx_dAxis.clone().mul(-f2[i] / fdotAx[i] ** 2);
-        tmp.mul(-i * 0.5);
+        tmp.mul((1 - i * 2) * 0.5);
         return prev.add(tmp);
       }, new Matrix(1, 3));
       const dfl_dfi = dfl_df.map((dfl_df, i) =>
-        dfl_df.mmul(df_dfi[i]).mul(-i * 0.5)
+        dfl_df.mmul(df_dfi[i]).mul((1 - i * 2) * 0.5)
       );
       const dfl_dP = dAxis_dP.map((dAxis_dP) => dfl_dAxis.mmul(dAxis_dP));
       const dfl_dTheta = dAxis_dTheta.map((dAxis_dTheta) =>
         dAxis_dTheta ? dfl_dAxis.mmul(dAxis_dTheta) : undefined
       );
-
-      phi[row + 6] = (fl[0] - fl[1]) / 2 - ideal;
+      const b = (fl[0] - fl[1]) / 2 - ideal;
+      phi[row + 6] = b;
       // 力のつり合い
       this.pfs.forEach((pf, i) => {
         phi_q.subMatrixAdd(dfl_dfi[i], row + 6, pf.col);
