@@ -1,19 +1,18 @@
 import {Matrix} from 'ml-matrix';
-import {IComputationNode} from './IComputationNode';
+import {IConstant} from './IConstant';
 
-export class Constant implements IComputationNode {
+export class Constant implements IConstant {
   readonly isConstant = true;
 
   readonly value: Matrix;
 
+  readonly rows;
+
   // eslint-disable-next-line class-methods-use-this
   diff(): void {}
 
-  constructor(value: Matrix) {
+  constructor(value: Matrix, rows: number) {
+    this.rows = rows;
     this.value = value;
   }
-}
-
-export function isConstant(node: IComputationNode): node is Constant {
-  return 'isConstant' in node;
 }

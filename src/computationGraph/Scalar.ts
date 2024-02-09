@@ -10,9 +10,12 @@ export class Scalar implements IScalar {
 
   _diff: (mat?: Matrix) => void;
 
-  constructor(value: () => RetType) {
+  readonly rows: number;
+
+  constructor(value: () => RetType, rows: number) {
     this._value = value;
     this._diff = () => {};
+    this.rows = rows;
   }
 
   get value() {
@@ -43,6 +46,6 @@ export class Scalar implements IScalar {
           if (!isNumber(other)) other.diff(mat.mmul(lhs));
         }
       };
-    });
+    }, this.rows);
   }
 }

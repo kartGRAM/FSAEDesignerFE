@@ -1,11 +1,10 @@
 import {Matrix} from 'ml-matrix';
 import {isNumber} from '@utils/helpers';
-import {IComputationNode, RetType} from './IComputationNode';
+import {RetType} from './IComputationNode';
 import {IScalar} from './IScalar';
+import {Scalar} from './Scalar';
 import {IVector3} from './IVector3';
-import {isConstant} from './Constant';
-import {ConstantVector3} from './ConstantVector3';
-import {VariableVector3} from './VariableVector3';
+import {isConstant} from './IConstant';
 import {skew} from './Functions';
 
 export class Vector3 implements IVector3 {
@@ -15,9 +14,12 @@ export class Vector3 implements IVector3 {
 
   _diff: (mat?: Matrix) => void;
 
-  constructor(value: () => RetType) {
+  readonly rows: number;
+
+  constructor(value: () => RetType, rows: number) {
     this._value = value;
     this._diff = () => {};
+    this.rows = rows;
   }
 
   get value() {
@@ -44,11 +46,11 @@ export class Vector3 implements IVector3 {
           if (!isNumber(other)) other.diff(mat.mmul(lhs)); // (3x1)
         }
       };
-    });
+    }, this.rows);
   }
 
-  dot(other: Vector3 | ConstantVector3 | VariableVector3) {
-    return new Vector3(() => {
+  dot(other: IVector3) {
+    return new Scalar(() => {
       const lhs = this.value; // (3x1)
       const rhs = other.value; // (3x1)
       const lhsT = lhs.transpose(); // (1x3)
@@ -61,10 +63,10 @@ export class Vector3 implements IVector3 {
           if (!isConstant(other)) other.diff(mat.mmul(lhsT)); // (1x3)
         }
       };
-    });
+    }, this.rows);
   }
 
-  cross(other: Vector3 | ConstantVector3 | VariableVector3) {
+  cross(other: IVector3) {
     return new Vector3(() => {
       const lhs = this.value; // (3x1)
       const rhs = other.value; // (3x1)
@@ -78,10 +80,6 @@ export class Vector3 implements IVector3 {
           if (!isConstant(other)) other.diff(mat.mmul(lSkew)); // (1x3)
         }
       };
-    });
+    }, this.rows);
   }
-}
-
-export function isVector3(node: IComputationNode): node is Vector3 {
-  return 'isVector3' in node;
 }

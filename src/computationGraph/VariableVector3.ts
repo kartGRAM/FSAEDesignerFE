@@ -1,13 +1,13 @@
 import {Matrix} from 'ml-matrix';
 import {isNumber} from '@utils/helpers';
-import {IComputationNode} from './IComputationNode';
+import {IVector3} from './IVector3';
 import {Scalar} from './Scalar';
-import {isConstant} from './Constant';
-import {ConstantVector3} from './ConstantVector3';
+import {IScalar} from './IScalar';
+import {isConstant} from './IConstant';
 import {Vector3} from './Vector3';
 import {skew, getVVector, Vector3Like} from './Functions';
 
-export class VariableVector3 implements IComputationNode {
+export class VariableVector3 implements IVector3 {
   readonly isVector3 = true;
 
   _value: Matrix;
@@ -35,7 +35,7 @@ export class VariableVector3 implements IComputationNode {
     this._diff.add(mat);
   }
 
-  mul(other: Scalar | number) {
+  mul(other: IScalar | number) {
     return new Vector3(() => {
       const lhs = this.value; // (3x1)
       const rhs = isNumber(other) ? Matrix.eye(1, 1).mul(other) : other.value; // (1x1)
@@ -48,11 +48,11 @@ export class VariableVector3 implements IComputationNode {
           if (!isNumber(other)) other.diff(mat.mmul(lhs)); // (3x1)
         }
       };
-    });
+    }, this.rows);
   }
 
-  dot(other: Vector3 | ConstantVector3 | VariableVector3) {
-    return new Vector3(() => {
+  dot(other: IVector3) {
+    return new Scalar(() => {
       const lhs = this.value; // (3x1)
       const rhs = other.value; // (3x1)
       const lhsT = lhs.transpose(); // (1x3)
@@ -65,10 +65,10 @@ export class VariableVector3 implements IComputationNode {
           if (!isConstant(other)) other.diff(mat.mmul(lhsT)); // (1x3)
         }
       };
-    });
+    }, this.rows);
   }
 
-  cross(other: Vector3 | ConstantVector3 | VariableVector3) {
+  cross(other: IVector3) {
     return new Vector3(() => {
       const lhs = this.value; // (3x1)
       const rhs = other.value; // (3x1)
@@ -82,10 +82,6 @@ export class VariableVector3 implements IComputationNode {
           if (!isConstant(other)) other.diff(mat.mmul(lSkew)); // (1x3)
         }
       };
-    });
+    }, this.rows);
   }
-}
-
-export function isVector3(node: IComputationNode): node is Vector3 {
-  return 'isVector3' in node;
 }
