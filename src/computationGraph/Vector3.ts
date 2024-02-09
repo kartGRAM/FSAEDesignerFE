@@ -4,6 +4,7 @@ import {IComputationNode, RetType} from './IComputationNode';
 import {Scalar} from './Scalar';
 import {isConstant} from './Constant';
 import {ConstantVector3} from './ConstantVector3';
+import {skew} from './Functions';
 
 export class Vector3 implements IComputationNode {
   readonly isVector3 = true;
@@ -56,6 +57,23 @@ export class Vector3 implements IComputationNode {
           if (!mat) mat = Matrix.eye(1, 1);
           this.diff(mat.mmul(rhsT)); // (1x3)
           if (!isConstant(other)) other.diff(mat.mmul(lhsT)); // (1x3)
+        }
+      };
+    });
+  }
+
+  cross(other: Vector3 | ConstantVector3) {
+    return new Vector3(() => {
+      const lhs = this.value; // (3x1)
+      const rhs = other.value; // (3x1)
+      const lSkew = skew(lhs); // (3x3)
+      const rSkew = skew(rhs); // (3x3)
+      return {
+        value: lSkew.mmul(rhs), // (1x1)
+        diff: (mat?: Matrix) => {
+          if (!mat) mat = Matrix.eye(3, 3);
+          this.diff(mat.mmul(rSkew).mul(-1)); // (1x3)
+          if (!isConstant(other)) other.diff(mat.mmul(lSkew)); // (1x3)
         }
       };
     });
