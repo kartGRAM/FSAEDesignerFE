@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable camelcase */
 /* eslint-disable class-methods-use-this */
@@ -7,6 +8,7 @@ import {Vector3} from 'three';
 import {isObject} from '@utils/helpers';
 import {Constraint, ConstraintsOptions} from '@gd/kinematics/IConstraint';
 import {IVector3} from '@computationGraph/IVector3';
+import {IScalar} from '@computationGraph/IScalar';
 import {getVVector} from '@computationGraph/Functions';
 import {VariableVector3} from '@computationGraph/VariableVector3';
 import {ConstantVector3} from '@computationGraph/ConstantVector3';
@@ -73,10 +75,6 @@ export class Sphere implements Constraint {
 
   name: string;
 
-  isFixed: boolean = false;
-
-  swaped: boolean;
-
   constraint: IVector3;
 
   pLhs: VariableVector3;
@@ -91,19 +89,11 @@ export class Sphere implements Constraint {
 
   rLocalVec: ConstantVector3;
 
-  setVlhs(vlhs: Vector3, checkSwap: boolean = true): void {
-    if (this.swaped && checkSwap) {
-      this.setVrhs(vlhs, false);
-      return;
-    }
+  setVlhs(vlhs: Vector3): void {
     this.lLocalVec.value = getVVector(vlhs);
   }
 
-  setVrhs(vrhs: Vector3, checkSwap: boolean = true): void {
-    if (this.swaped && checkSwap) {
-      this.setVlhs(vrhs, false);
-      return;
-    }
+  setVrhs(vrhs: Vector3): void {
     this.rLocalVec.value = getVVector(vrhs);
   }
 
@@ -115,20 +105,8 @@ export class Sphere implements Constraint {
     vrhs?: Vector3
   ) {
     this.name = name;
-    if (clhs.isFixed) {
-      if (crhs.isFixed) throw new Error('拘束式の両端が固定されている');
-      this.swaped = true;
-      // 固定側はrhsにする
-      this.lhs = crhs;
-      this.rhs = clhs;
-      const tmp = vlhs;
-      vlhs = vrhs;
-      vrhs = tmp;
-    } else {
-      this.swaped = false;
-      this.lhs = clhs;
-      this.rhs = crhs;
-    }
+    this.lhs = clhs;
+    this.rhs = crhs;
     this.relevantVariables = [this.lhs, this.rhs];
 
     const lLocalVec = vlhs?.clone().multiplyScalar(clhs.scale) ?? new Vector3();
@@ -162,30 +140,21 @@ export class Sphere implements Constraint {
     this.qRhs.setValue(this.rhs.quaternion);
     const error = this.constraint.vector3Value;
     this.constraint.diff(Matrix.eye(3, 3));
+    phi[row + X] = error.x;
+    phi[row + Y] = error.y;
+    phi[row + Z] = error.z;
 
     // 始点位置拘束
-    if (!this.isFixed) {
-      phi[row + X] = error.x;
-      phi[row + Y] = error.y;
-      phi[row + Z] = error.z;
-      // diff of positions are 1
+    if (!lhs.isFixed) {
       this.pLhs.setJacobian(phi_q, row + X, cLhs + X);
-      this.pRhs.setJacobian(phi_q, row + X, cRhs + X);
-
       if (isFullDegreesComponent(lhs)) {
         this.qLhs.setJacobian(phi_q, row + X, cLhs + Q0);
       }
+    }
+    if (!rhs.isFixed) {
+      this.pRhs.setJacobian(phi_q, row + X, cRhs + X);
       if (isFullDegreesComponent(rhs)) {
         this.qRhs.setJacobian(phi_q, row + X, cRhs + Q0);
-      }
-    } else {
-      phi[row + X] = error.x;
-      phi[row + Y] = error.y;
-      phi[row + Z] = error.z;
-      // diff of positions are 1
-      this.pLhs.setJacobian(phi_q, row + X, cLhs + X);
-      if (isFullDegreesComponent(lhs)) {
-        this.qLhs.setJacobian(phi_q, row + X, cLhs + Q0);
       }
     }
   }
@@ -221,28 +190,19 @@ export class Hinge implements Constraint {
 
   rhs: IComponent;
 
-  lLocalVec: Vector3;
-
-  lLocalSkew: Matrix;
-
-  // 軸に垂直なベクトル
-  lOrthogonalVec: [Vector3, Vector3];
-
-  lOrthogonalSkew: [Matrix, Matrix];
-
-  rLocalVec: Vector3;
-
-  rLocalSkew: Matrix;
-
-  rAxisVec: Vector3;
-
-  rAxisSkew: Matrix;
-
-  target: Vector3 = new Vector3();
-
   name: string;
 
-  isFixed: boolean = false;
+  pLhs: VariableVector3;
+
+  qLhs: VariableQuaternion;
+
+  pRhs: VariableVector3;
+
+  qRhs: VariableQuaternion;
+
+  positionError: IVector3;
+
+  directionError: IScalar[];
 
   constructor(
     name: string,
@@ -252,127 +212,96 @@ export class Hinge implements Constraint {
     vrhs: [Vector3, Vector3]
   ) {
     this.name = name;
-    if (crhs.isFixed) {
-      if (clhs.isFixed) throw new Error('拘束式の両端が固定されている');
-      // 固定側はlhsにする
-      this.lhs = crhs;
-      this.rhs = clhs;
-      const tmp = vlhs;
-      vlhs = vrhs;
-      vrhs = tmp;
-    } else {
-      this.lhs = clhs;
-      this.rhs = crhs;
-    }
-
+    this.lhs = clhs;
+    this.rhs = crhs;
     this.relevantVariables = [this.lhs, this.rhs];
-    this.lLocalVec = vlhs[0].clone().multiplyScalar(clhs.scale);
-    this.lLocalSkew = skew(this.lLocalVec).mul(-2);
-    this.rLocalVec = vrhs[0].clone().multiplyScalar(crhs.scale);
-    this.rLocalSkew = skew(this.rLocalVec).mul(2);
-    this.rAxisVec = vrhs[1]
-      .clone()
-      .multiplyScalar(crhs.scale)
-      .sub(this.rLocalVec);
-    this.rAxisSkew = skew(this.rAxisVec).mul(-2);
-    const lAxisVec = vlhs[1]
-      .clone()
-      .multiplyScalar(clhs.scale)
-      .sub(this.lLocalVec);
+
+    const {scale} = clhs;
+    this.pLhs = new VariableVector3();
+    this.qLhs = new VariableQuaternion();
+    this.pRhs = new VariableVector3();
+    this.qRhs = new VariableQuaternion();
+    const ALhs = this.qLhs.getRotationMatrix();
+    const ARhs = this.qRhs.getRotationMatrix();
+
+    const lLocalVec = vlhs.map(
+      (vlhs) => new ConstantVector3(vlhs.clone().multiplyScalar(scale))
+    );
+    const rLocalVec = vrhs.map(
+      (vrhs) => new ConstantVector3(vrhs.clone().multiplyScalar(scale))
+    );
+
+    const sLhs = ALhs.vmul(lLocalVec[0]);
+    const sRhs = ARhs.vmul(rLocalVec[0]);
+
+    this.positionError = this.pLhs.add(sLhs).sub(this.pRhs).sub(sRhs);
+
+    const lAxisVec = lLocalVec[1].sub(lLocalVec[0]);
+    const rAxisVec = rLocalVec[1].sub(rLocalVec[0]);
+    const lAxisVecValue = lAxisVec.vector3Value;
     if (
-      this.rAxisVec.lengthSq() < Number.EPSILON ||
-      lAxisVec.lengthSq() < Number.EPSILON
+      rAxisVec.vector3Value.lengthSq() < Number.EPSILON ||
+      lAxisVecValue.lengthSq() < Number.EPSILON
     ) {
       throw new Error('ヒンジを構成する2点が近すぎます');
     }
-    const oVec1 = getStableOrthogonalVector(lAxisVec);
-    const oVec2 = lAxisVec.cross(oVec1).normalize();
-    if (this.lhs.isFixed) {
-      this.isFixed = true;
-      this.target = this.lhs.position
-        .clone()
-        .add(this.lLocalVec.applyQuaternion(this.lhs.quaternion));
-      oVec1.applyQuaternion(this.lhs.quaternion);
-      oVec2.applyQuaternion(this.lhs.quaternion);
-    }
-    this.lOrthogonalVec = [oVec1, oVec2];
-    this.lOrthogonalSkew = [
-      skew(this.lOrthogonalVec[0]).mul(-2),
-      skew(this.lOrthogonalVec[1]).mul(-2)
+    const oVec1 = getStableOrthogonalVector(lAxisVecValue);
+    const oVec2 = lAxisVecValue.cross(oVec1).normalize();
+
+    const lOrthogonalVec = [
+      ALhs.vmul(new ConstantVector3(oVec1)),
+      ALhs.vmul(new ConstantVector3(oVec2))
     ];
+
+    this.directionError = lOrthogonalVec.map((orthoVec) => {
+      const axis = ARhs.vmul(rAxisVec);
+      return orthoVec.dot(axis);
+    });
   }
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
     const cRhs = this.rhs.col;
     const cLhs = this.lhs.col;
-    const {
-      row,
-      rhs,
-      rLocalVec,
-      rLocalSkew,
-      rAxisVec,
-      rAxisSkew,
-      lhs,
-      lLocalVec,
-      lLocalSkew
-    } = this;
-    const qRhs = rhs.quaternion;
-    const ARhs = rotationMatrix(qRhs);
-    const GRhs = decompositionMatrixG(qRhs);
-    const sRhs = rLocalVec.clone().applyQuaternion(qRhs);
-    const qLhs = lhs.quaternion;
-    const ALhs = rotationMatrix(qLhs);
-    const GLhs = decompositionMatrixG(qLhs);
+    const {row, rhs, lhs} = this;
+
+    this.pLhs.setValue(this.lhs.position);
+    this.pRhs.setValue(this.rhs.position);
+    this.qLhs.setValue(this.lhs.quaternion);
+    this.qRhs.setValue(this.rhs.quaternion);
 
     // 始点位置拘束
-    if (!this.isFixed) {
-      const sLhs = lLocalVec.clone().applyQuaternion(qLhs);
-      const constraint = lhs.position
-        .clone()
-        .add(sLhs)
-        .sub(rhs.position)
-        .sub(sRhs);
-      phi[row + X] = constraint.x;
-      phi[row + Y] = constraint.y;
-      phi[row + Z] = constraint.z;
-      // diff of positions are 1
-      phi_q.set(row + X, cLhs + X, 1);
-      phi_q.set(row + Y, cLhs + Y, 1);
-      phi_q.set(row + Z, cLhs + Z, 1);
-      phi_q.set(row + X, cRhs + X, -1);
-      phi_q.set(row + Y, cRhs + Y, -1);
-      phi_q.set(row + Z, cRhs + Z, -1);
-      phi_q.setSubMatrix(ALhs.mmul(lLocalSkew).mmul(GLhs), row + X, cLhs + Q0);
-      phi_q.setSubMatrix(ARhs.mmul(rLocalSkew).mmul(GRhs), row + X, cRhs + Q0);
-    } else {
-      const constraint = this.target.clone().sub(rhs.position).sub(sRhs);
-      phi[row + X] = constraint.x;
-      phi[row + Y] = constraint.y;
-      phi[row + Z] = constraint.z;
-      // diff of positions are 1
-      phi_q.set(row + X, cRhs + X, -1);
-      phi_q.set(row + Y, cRhs + Y, -1);
-      phi_q.set(row + Z, cRhs + Z, -1);
-      phi_q.setSubMatrix(ARhs.mmul(rLocalSkew).mmul(GRhs), row + X, cRhs + Q0);
+    const error = this.positionError.vector3Value;
+    this.positionError.diff(Matrix.eye(3, 3));
+
+    phi[row + X] = error.x;
+    phi[row + Y] = error.y;
+    phi[row + Z] = error.z;
+    if (!lhs.isFixed) {
+      this.pLhs.setJacobian(phi_q, row + X, cLhs + X);
+      this.qLhs.setJacobian(phi_q, row + X, cLhs + Q0);
+    }
+    if (!rhs.isFixed) {
+      this.pRhs.setJacobian(phi_q, row + X, cRhs + X);
+      this.qRhs.setJacobian(phi_q, row + X, cRhs + Q0);
     }
 
     // 並行拘束
-    const axis = rAxisVec.clone().applyQuaternion(qRhs);
-    const axisT = new Matrix([[axis.x, axis.y, axis.z]]); // (1x3)
-    const axisDelta = ARhs.mmul(rAxisSkew).mmul(GRhs); // (3x4)
-    for (let r = 0; r < 2; ++r) {
-      let orthoVec = this.lOrthogonalVec[r];
-      if (!this.isFixed) {
-        orthoVec = orthoVec.clone().applyQuaternion(qLhs);
-        const orthoDelta = ALhs.mmul(this.lOrthogonalSkew[r]).mmul(GLhs); // (3x4)
-        const dLhs = axisT.mmul(orthoDelta); // (1x3) x (3x4) = (1x4)
-        phi_q.setSubMatrix(dLhs, row + 3 + r, cLhs + Q0);
+    this.directionError.forEach((directionError, i) => {
+      // pは登場しない
+      this.qLhs.resetDiff();
+      this.qRhs.resetDiff();
+      const error = directionError.scalarValue;
+      directionError.diff(Matrix.eye(1, 1));
+
+      phi[row + 3 + i] = error;
+
+      if (!lhs.isFixed) {
+        this.qLhs.setJacobian(phi_q, row + 3 + i, cLhs + Q0);
       }
-      const orthoT = new Matrix([[orthoVec.x, orthoVec.y, orthoVec.z]]); // (1x3)
-      phi[r + row + 3] = orthoVec.dot(axis);
-      const dRhs = orthoT.mmul(axisDelta); // (1x3) x (3x4) = (1x4)
-      phi_q.setSubMatrix(dRhs, row + 3 + r, cRhs + Q0);
-    }
+      if (!rhs.isFixed) {
+        this.qRhs.setJacobian(phi_q, row + 3 + i, cRhs + Q0);
+      }
+    });
   }
 
   setJacobianAndConstraintsInequal() {}
@@ -1050,9 +979,11 @@ export class PointToPlane implements Constraint, deltaL {
     this.component = component;
     this.relevantVariables = [component];
     this.localVec = localVec;
-    this.normal = normal?.clone().normalize() ?? new Vector3(0, 0, 1);
-    this.distance =
+    const n = normal?.clone().normalize() ?? new Vector3(0, 0, 1);
+    this.normal = n;
+    const distance =
       origin?.clone().multiplyScalar(component.scale).dot(normal) ?? 0;
+    this.distance = distance;
     this.elementID = elementID;
     if (dlMin !== undefined) this.dlMin = dlMin * component.scale;
     if (dlMax !== undefined) this.dlMax = dlMax * component.scale;

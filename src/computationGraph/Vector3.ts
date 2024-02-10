@@ -1,5 +1,6 @@
 /* eslint-disable max-classes-per-file */
 import {Matrix} from 'ml-matrix';
+import * as Three from 'three';
 import {isNumber} from '@utils/helpers';
 import {RetType} from './IComputationNode';
 import {IVector3} from './IVector3';
@@ -17,11 +18,7 @@ export abstract class Vector3Base {
 
   get vector3Value() {
     const {value} = this;
-    return {
-      x: value.get(0, 0),
-      y: value.get(1, 0),
-      z: value.get(2, 0)
-    };
+    return new Three.Vector3(value.get(0, 0), value.get(1, 0), value.get(2, 0));
   }
 
   mul(other: IScalar | number) {

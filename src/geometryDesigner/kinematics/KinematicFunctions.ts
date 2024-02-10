@@ -292,7 +292,11 @@ export function equal(
 }
 
 // あるベクトルに垂直なベクトルを1つ取得
-export function getStableOrthogonalVector(v: Vector3): Vector3 {
+export function getStableOrthogonalVector(v: {
+  x: number;
+  y: number;
+  z: number;
+}): Vector3 {
   const {x, y, z} = v;
   const a2 = [x ** 2, y ** 2, z ** 2];
   if (a2[0] + a2[1] + a2[2] <= Number.EPSILON) {
