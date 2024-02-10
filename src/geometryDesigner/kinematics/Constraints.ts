@@ -1,5 +1,4 @@
 /* eslint-disable no-underscore-dangle */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable camelcase */
 /* eslint-disable class-methods-use-this */
 /* eslint-disable max-classes-per-file */
@@ -14,12 +13,7 @@ import {VariableVector3} from '@computationGraph/VariableVector3';
 import {ConstantVector3} from '@computationGraph/Vector3';
 import {ConstantScalar} from '@computationGraph/ConstantScalar';
 import {VariableQuaternion} from '@computationGraph/VariableQuaternion';
-import {
-  getStableOrthogonalVector,
-  skew,
-  rotationMatrix,
-  decompositionMatrixG
-} from './KinematicFunctions';
+import {getStableOrthogonalVector} from './KinematicFunctions';
 import {
   IComponent,
   FullDegreesComponent,
@@ -868,17 +862,19 @@ export class PointToPlane implements Constraint, deltaL {
 
   component: IComponent;
 
+  p: VariableVector3;
+
+  q: VariableQuaternion;
+
+  distance: ConstantScalar;
+
+  _distance: number;
+
+  error: IScalar;
+
   relevantVariables: IComponent[];
 
-  localVec: (normal: Vector3, distance: number) => {r: Vector3; dr_dQ: Matrix};
-
-  distance: number;
-
-  normal: Vector3;
-
   name: string;
-
-  target: Vector3 = new Vector3();
 
   dlMin: number = Number.MIN_SAFE_INTEGER;
 
@@ -911,9 +907,10 @@ export class PointToPlane implements Constraint, deltaL {
     name: string,
     component: IComponent,
     localVec: (
-      normal: Vector3,
-      distance: number
-    ) => {r: Vector3; dr_dQ: Matrix},
+      normal: IVector3,
+      distance: IScalar,
+      q: VariableQuaternion
+    ) => IVector3,
     origin: Vector3,
     normal: Vector3,
     elementID: string,
@@ -924,38 +921,40 @@ export class PointToPlane implements Constraint, deltaL {
     this.name = name;
     this.controledBy = controledBy;
     this.component = component;
+    this.p = new VariableVector3();
+    this.q = new VariableQuaternion();
+    const A = this.q.getRotationMatrix();
     this.relevantVariables = [component];
-    this.localVec = localVec;
-    const n = normal?.clone().normalize() ?? new Vector3(0, 0, 1);
-    this.normal = n;
-    const distance =
+    const n = new ConstantVector3(
+      normal?.clone().normalize() ?? new Vector3(0, 0, 1)
+    );
+    this._distance =
       origin?.clone().multiplyScalar(component.scale).dot(normal) ?? 0;
-    this.distance = distance;
+    this.distance = new ConstantScalar(this._distance);
+
+    const r = localVec(n, this.distance, this.q);
+    const s = A.vmul(r).add(this.p);
+    this.error = n.dot(s).sub(this.distance);
+
     this.elementID = elementID;
     if (dlMin !== undefined) this.dlMin = dlMin * component.scale;
     if (dlMax !== undefined) this.dlMax = dlMax * component.scale;
   }
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
-    const {row, component, localVec, normal, distance, _dl} = this;
+    const {row, component, _distance, _dl} = this;
     const {col, position, quaternion: q} = component;
-    const A = rotationMatrix(q);
-    const G = decompositionMatrixG(q);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {r, dr_dQ} = localVec(normal, distance);
-    const s = r.clone().applyQuaternion(q).add(position);
-    const nT = new Matrix([[normal.x, normal.y, normal.z]]); // (1x3)
+    this.p.setValue(position);
+    this.q.setValue(q);
+    this.distance.setValue(_distance + _dl);
 
     // 平面拘束
-    phi[row] = normal.dot(s) - distance - _dl;
+    phi[row] = this.error.scalarValue;
+    this.error.diff(Matrix.eye(1, 1));
     // 平面拘束方程式の変分
-    phi_q.setSubMatrix(nT, row, col + X);
+    this.p.setJacobian(phi_q, row, col + X);
     if (isFullDegreesComponent(component)) {
-      const localSkew = skew(r).mul(-2);
-      const dQ = nT.mmul(A).mmul(localSkew).mmul(G);
-      dQ.add(nT.mmul(A).mmul(dr_dQ));
-      // (1x3) * (3x3) * (3x3) * (3x4) → (1x4)
-      phi_q.setSubMatrix(dQ, row, col + Q0);
+      this.q.setJacobian(phi_q, row, col + Q0);
     }
   }
 

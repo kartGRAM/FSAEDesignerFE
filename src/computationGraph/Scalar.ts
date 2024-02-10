@@ -20,7 +20,7 @@ export abstract class ScalarBase {
     this._reset = reset;
   }
 
-  mul(other: Scalar | number) {
+  mul(other: IScalar | number) {
     return new Scalar(
       () => {
         const lhs = this.value; // (1x1)
@@ -42,7 +42,7 @@ export abstract class ScalarBase {
     );
   }
 
-  add(other: Scalar | number) {
+  add(other: IScalar | number) {
     return new Scalar(
       () => {
         const lhs = this.value; // (1x1)
@@ -63,7 +63,7 @@ export abstract class ScalarBase {
     );
   }
 
-  sub(other: Scalar | number) {
+  sub(other: IScalar | number) {
     return new Scalar(
       () => {
         const lhs = this.value; // (1x1)
