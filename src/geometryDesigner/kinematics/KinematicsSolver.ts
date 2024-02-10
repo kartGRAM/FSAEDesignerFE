@@ -813,6 +813,7 @@ export class KinematicsSolver implements ISolver {
         let minNorm = Number.MAX_SAFE_INTEGER;
         let eq = false;
         while (!eq && ++i < maxCnt) {
+          phi_q.mul(0);
           constraints.forEach((constraint) => {
             constraint.setJacobianAndConstraints(
               phi_q,

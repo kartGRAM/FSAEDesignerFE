@@ -2,7 +2,7 @@ import {Matrix} from 'ml-matrix';
 import {IConstant} from './IConstant';
 import {IVector3} from './IVector3';
 import {Vector3Like, getVVector} from './Functions';
-import {Vector3Base} from './Vector3Base';
+import {Vector3Base} from './Vector3';
 
 export class ConstantVector3
   extends Vector3Base
@@ -12,7 +12,7 @@ export class ConstantVector3
 
   readonly isConstant = true;
 
-  readonly value: Matrix;
+  value: Matrix;
 
   // eslint-disable-next-line class-methods-use-this
   diff(): void {}

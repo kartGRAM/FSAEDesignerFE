@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable camelcase */
 /* eslint-disable class-methods-use-this */
 /* eslint-disable max-classes-per-file */
@@ -5,7 +6,8 @@ import {Matrix} from 'ml-matrix';
 import {Vector3} from 'three';
 import {isObject} from '@utils/helpers';
 import {Constraint, ConstraintsOptions} from '@gd/kinematics/IConstraint';
-import {IComputationNode} from '@computationGraph/IComputationNode';
+import {IVector3} from '@computationGraph/IVector3';
+import {getVVector} from '@computationGraph/Functions';
 import {VariableVector3} from '@computationGraph/VariableVector3';
 import {ConstantVector3} from '@computationGraph/ConstantVector3';
 import {VariableQuaternion} from '@computationGraph/VariableQuaternion';
@@ -15,6 +17,7 @@ import {
   rotationMatrix,
   decompositionMatrixG
 } from './KinematicFunctions';
+
 import {
   IComponent,
   FullDegreesComponent,
@@ -68,23 +71,13 @@ export class Sphere implements Constraint {
 
   rhs: IComponent;
 
-  lLocalVec: Vector3;
-
-  lLocalSkew: Matrix;
-
-  rLocalVec: Vector3;
-
-  rLocalSkew: Matrix;
-
-  target: Vector3 = new Vector3();
-
   name: string;
 
   isFixed: boolean = false;
 
   swaped: boolean;
 
-  constraint: IComputationNode;
+  constraint: IVector3;
 
   pLhs: VariableVector3;
 
@@ -94,13 +87,16 @@ export class Sphere implements Constraint {
 
   qRhs: VariableQuaternion;
 
+  lLocalVec: ConstantVector3;
+
+  rLocalVec: ConstantVector3;
+
   setVlhs(vlhs: Vector3, checkSwap: boolean = true): void {
     if (this.swaped && checkSwap) {
       this.setVrhs(vlhs, false);
       return;
     }
-    this.lLocalVec = vlhs.clone();
-    this.lLocalSkew = skew(this.lLocalVec).mul(-2);
+    this.lLocalVec.value = getVVector(vlhs);
   }
 
   setVrhs(vrhs: Vector3, checkSwap: boolean = true): void {
@@ -108,13 +104,7 @@ export class Sphere implements Constraint {
       this.setVlhs(vrhs, false);
       return;
     }
-    this.rLocalVec = vrhs.clone();
-    this.rLocalSkew = skew(this.rLocalVec).mul(2);
-    if (this.rhs.isFixed) {
-      this.target = this.rhs.position
-        .clone()
-        .add(this.rLocalVec.applyQuaternion(this.rhs.quaternion));
-    }
+    this.rLocalVec.value = getVVector(vrhs);
   }
 
   constructor(
@@ -141,16 +131,8 @@ export class Sphere implements Constraint {
     }
     this.relevantVariables = [this.lhs, this.rhs];
 
-    this.lLocalVec = vlhs?.clone().multiplyScalar(clhs.scale) ?? new Vector3();
-    this.lLocalSkew = skew(this.lLocalVec).mul(-2);
-    this.rLocalVec = vrhs?.clone().multiplyScalar(crhs.scale) ?? new Vector3();
-    this.rLocalSkew = skew(this.rLocalVec).mul(2);
-    if (this.rhs.isFixed) {
-      this.isFixed = true;
-      this.target = this.rhs.position
-        .clone()
-        .add(this.rLocalVec.applyQuaternion(this.rhs.quaternion));
-    }
+    const lLocalVec = vlhs?.clone().multiplyScalar(clhs.scale) ?? new Vector3();
+    const rLocalVec = vrhs?.clone().multiplyScalar(crhs.scale) ?? new Vector3();
 
     this.pLhs = new VariableVector3();
     this.qLhs = new VariableQuaternion();
@@ -160,84 +142,50 @@ export class Sphere implements Constraint {
     const ALhs = this.qLhs.getRotationMatrix();
     const ARhs = this.qRhs.getRotationMatrix();
 
-    const lLocalVec = new ConstantVector3(this.lLocalVec);
-    const rLocalVec = new ConstantVector3(this.rLocalVec);
+    this.lLocalVec = new ConstantVector3(lLocalVec);
+    this.rLocalVec = new ConstantVector3(rLocalVec);
 
-    const sLhs = ALhs.vmul(lLocalVec);
-    const sRhs = ARhs.vmul(rLocalVec);
+    const sLhs = ALhs.vmul(this.lLocalVec);
+    const sRhs = ARhs.vmul(this.rLocalVec);
 
     this.constraint = this.pLhs.add(sLhs).sub(this.pRhs).sub(sRhs);
   }
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
-    const cLhs = this.lhs.col;
-    const {row, lhs, lLocalVec, lLocalSkew} = this;
-    const qLhs = lhs.quaternion;
-    const ALhs = rotationMatrix(qLhs);
-    const GLhs = decompositionMatrixG(qLhs);
-    const sLhs = lLocalVec.clone().applyQuaternion(qLhs);
+    const {row, lhs, rhs} = this;
+    const cLhs = lhs.col;
+    const cRhs = rhs.col;
+
+    this.pLhs.setValue(this.lhs.position);
+    this.pRhs.setValue(this.rhs.position);
+    this.qLhs.setValue(this.lhs.quaternion);
+    this.qRhs.setValue(this.rhs.quaternion);
+    const error = this.constraint.vector3Value;
+    this.constraint.diff(Matrix.eye(3, 3));
 
     // 始点位置拘束
     if (!this.isFixed) {
-      const {rhs, rLocalVec, rLocalSkew} = this;
-      const cRhs = this.rhs.col;
-      const qRhs = rhs.quaternion;
-      const ARhs = rotationMatrix(qRhs);
-      const GRhs = decompositionMatrixG(qRhs);
-      const sRhs = rLocalVec.clone().applyQuaternion(qRhs);
-      const constraint = lhs.position
-        .clone()
-        .add(sLhs)
-        .sub(rhs.position)
-        .sub(sRhs);
-
-      this.pLhs.setValue(this.lhs.position);
-      this.pRhs.setValue(this.rhs.position);
-      this.qLhs.setValue(this.lhs.quaternion);
-      this.qRhs.setValue(this.rhs.quaternion);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const error = this.constraint.value;
-      this.constraint.diff(Matrix.eye(3, 3));
-
-      phi[row + X] = constraint.x;
-      phi[row + Y] = constraint.y;
-      phi[row + Z] = constraint.z;
+      phi[row + X] = error.x;
+      phi[row + Y] = error.y;
+      phi[row + Z] = error.z;
       // diff of positions are 1
-      phi_q.set(row + X, cLhs + X, 1);
-      phi_q.set(row + Y, cLhs + Y, 1);
-      phi_q.set(row + Z, cLhs + Z, 1);
-      phi_q.set(row + X, cRhs + X, -1);
-      phi_q.set(row + Y, cRhs + Y, -1);
-      phi_q.set(row + Z, cRhs + Z, -1);
+      this.pLhs.setJacobian(phi_q, row + X, cLhs + X);
+      this.pRhs.setJacobian(phi_q, row + X, cRhs + X);
+
       if (isFullDegreesComponent(lhs)) {
-        phi_q.setSubMatrix(
-          ALhs.mmul(lLocalSkew).mmul(GLhs),
-          row + X,
-          cLhs + Q0
-        );
+        this.qLhs.setJacobian(phi_q, row + X, cLhs + Q0);
       }
       if (isFullDegreesComponent(rhs)) {
-        phi_q.setSubMatrix(
-          ARhs.mmul(rLocalSkew).mmul(GRhs),
-          row + X,
-          cRhs + Q0
-        );
+        this.qRhs.setJacobian(phi_q, row + X, cRhs + Q0);
       }
     } else {
-      const constraint = lhs.position.clone().add(sLhs).sub(this.target);
-      phi[row + X] = constraint.x;
-      phi[row + Y] = constraint.y;
-      phi[row + Z] = constraint.z;
+      phi[row + X] = error.x;
+      phi[row + Y] = error.y;
+      phi[row + Z] = error.z;
       // diff of positions are 1
-      phi_q.set(row + X, cLhs + X, 1);
-      phi_q.set(row + Y, cLhs + Y, 1);
-      phi_q.set(row + Z, cLhs + Z, 1);
+      this.pLhs.setJacobian(phi_q, row + X, cLhs + X);
       if (isFullDegreesComponent(lhs)) {
-        phi_q.setSubMatrix(
-          ALhs.mmul(lLocalSkew).mmul(GLhs),
-          row + X,
-          cLhs + Q0
-        );
+        this.qLhs.setJacobian(phi_q, row + X, cLhs + Q0);
       }
     }
   }
@@ -818,11 +766,12 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
       this.res,
       this.center
         .clone()
+        .multiplyScalar(1 / cFixed.scale)
         .add(
           this.fixedAxisVec
             .clone()
             .normalize()
-            .multiplyScalar(this.initialLength)
+            .multiplyScalar(this.initialLength / cFixed.scale)
         ),
       vRE
     );

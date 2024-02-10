@@ -3,7 +3,7 @@ import {Matrix} from 'ml-matrix';
 import {IVector3} from './IVector3';
 import {getVVector, Vector3Like} from './Functions';
 import {IVariable} from './IVariable';
-import {Vector3Base} from './Vector3Base';
+import {Vector3Base} from './Vector3';
 
 export class VariableVector3
   extends Vector3Base
