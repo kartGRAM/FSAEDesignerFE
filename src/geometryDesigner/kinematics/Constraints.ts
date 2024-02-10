@@ -402,6 +402,16 @@ export class BarAndSpheres implements Constraint, deltaL {
 
   dlMax: number = Number.MAX_SAFE_INTEGER;
 
+  pLhs: VariableVector3;
+
+  qLhs: VariableQuaternion;
+
+  pRhs: VariableVector3;
+
+  qRhs: VariableQuaternion;
+
+  error: IScalar[];
+
   constructor(
     name: string,
     clhs: IComponent,
@@ -446,6 +456,24 @@ export class BarAndSpheres implements Constraint, deltaL {
     }
     const ls = l * clhs.scale;
     this.l2 = ls * ls;
+
+    const {scale} = clhs;
+    this.pLhs = new VariableVector3();
+    this.qLhs = new VariableQuaternion();
+    this.pRhs = new VariableVector3();
+    this.qRhs = new VariableQuaternion();
+    const ALhs = this.qLhs.getRotationMatrix();
+    const ARhs = this.qRhs.getRotationMatrix();
+
+    const lLocalVec = new ConstantVector3(this.lLocalVec);
+    const rLocalVec = new ConstantVector3(this.rLocalVec);
+
+    const sLhs = ALhs.vmul(lLocalVec);
+    const sRhs = ARhs.vmul(rLocalVec);
+
+    const d = this.pLhs.add(sLhs).sub(this.pRhs).sub(sRhs);
+    const l2 =
+    this.error = d.dot(d).sub(
   }
 
   setJacobianAndConstraints(
