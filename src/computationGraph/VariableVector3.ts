@@ -19,7 +19,12 @@ export class VariableVector3 implements IVector3, IVariable {
   rows: number;
 
   setValue(value: Vector3Like) {
+    this.resetDiff();
     this._value = getVVector(value);
+  }
+
+  resetDiff() {
+    this._diff = new Matrix(this.rows, 3);
   }
 
   constructor(rows: number) {
@@ -29,7 +34,6 @@ export class VariableVector3 implements IVector3, IVariable {
   }
 
   get value() {
-    this._diff = new Matrix(this.rows, 3);
     return this._value;
   }
 

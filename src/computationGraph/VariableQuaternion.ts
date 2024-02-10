@@ -23,7 +23,12 @@ export class VariableQuaternion implements IQuaternion, IVariable {
   rows: number;
 
   setValue(value: QuaternionLike) {
+    this.resetDiff();
     this._value = value;
+  }
+
+  resetDiff() {
+    this._diff = new Matrix(this.rows, 4);
   }
 
   constructor(rows: number) {
@@ -33,7 +38,6 @@ export class VariableQuaternion implements IQuaternion, IVariable {
   }
 
   get value() {
-    this._diff = new Matrix(this.rows, 4);
     return getVQuaternion(this._value);
   }
 
