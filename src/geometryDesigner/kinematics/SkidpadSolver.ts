@@ -1169,6 +1169,7 @@ export class SkidpadSolver implements ISolver {
     this.solve({
       constraintsOptions: {
         disableSpringElasticity: true,
+        fixLinearBushing: true,
         disableTireFriction: true,
         disableForce: true
       },
@@ -1180,6 +1181,7 @@ export class SkidpadSolver implements ISolver {
     this.solve({
       constraintsOptions: {
         disableSpringElasticity: true,
+        fixLinearBushing: true,
         disableTireFriction: true
       },
       postProcess: true,
@@ -1202,7 +1204,10 @@ export class SkidpadSolver implements ISolver {
     console.log('');
     console.log('calculating with tire frictions............');
     this.solve({
-      constraintsOptions: {disableSpringElasticity: true},
+      constraintsOptions: {
+        disableSpringElasticity: true,
+        fixLinearBushing: true
+      },
       postProcess: true,
       logOutput: true
     });
@@ -1210,7 +1215,10 @@ export class SkidpadSolver implements ISolver {
     console.log('');
     console.log('calculating with spring force............');
     this.solve({
-      constraintsOptions: {disableSpringElasticity: false},
+      constraintsOptions: {
+        disableSpringElasticity: false,
+        fixLinearBushing: true
+      },
       postProcess: true,
       logOutput: true
     });

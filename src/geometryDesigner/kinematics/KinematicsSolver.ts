@@ -761,7 +761,10 @@ export class KinematicsSolver implements ISolver {
     // 上記4ステップでプリプロセッサ完了
     if (solve)
       this.solve({
-        constraintsOptions: {disableSpringElasticity: true},
+        constraintsOptions: {
+          disableSpringElasticity: true,
+          fixLinearBushing: true
+        },
         postProcess: true,
         logOutput: true
       });

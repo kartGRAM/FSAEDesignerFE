@@ -560,9 +560,9 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
 
   // 自由度を2減らす
   constraints(options: ConstraintsOptions) {
-    const {disableSpringElasticity} = options;
+    const {fixLinearBushing} = options;
     // 組み立て時は固定する
-    if (disableSpringElasticity) return 3;
+    if (fixLinearBushing) return 3;
     if (this.controled) return 3;
     return 2;
   }
@@ -591,14 +591,6 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
 
   relevantVariables: IComponent[];
 
-  resLocalVec: Vector3;
-
-  resLocalSkew: Matrix;
-
-  fixedLocalVec: [Vector3, Vector3];
-
-  fixedLocalSkew: [Matrix, Matrix];
-
   initialLength: number;
 
   hasDl = true as const;
@@ -618,24 +610,27 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
 
   elementID: string;
 
-  fixedAxisVec: Vector3;
-
-  center: Vector3;
-
-  // 軸に垂直なベクトル
-  fixedOrthogonalVec: [Vector3, Vector3];
-
-  fixedOrthogonalSkew: [Matrix, Matrix];
-
   name: string;
-
-  isFixed: boolean = false;
 
   dlMin: number = Number.MIN_SAFE_INTEGER;
 
   dlMax: number = Number.MAX_SAFE_INTEGER;
 
   sphere: Sphere;
+
+  pFixed: VariableVector3;
+
+  qFixed: VariableQuaternion;
+
+  pRes: VariableVector3;
+
+  qRes: VariableQuaternion;
+
+  error: IScalar[];
+
+  centerValue: Vector3;
+
+  fixedAxisVecValue: Vector3;
 
   constructor(
     name: string,
@@ -656,39 +651,18 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
     this.res = cRodEndSide;
 
     this.relevantVariables = [cFixed, cRodEndSide];
-    this.fixedLocalVec = [
-      vFixed[0].clone().multiplyScalar(cFixed.scale),
-      vFixed[1].clone().multiplyScalar(cFixed.scale)
+    const fixedLocalVec = [
+      new ConstantVector3(vFixed[0].clone().multiplyScalar(cFixed.scale)),
+      new ConstantVector3(vFixed[1].clone().multiplyScalar(cFixed.scale))
     ];
-    this.center = this.fixedLocalVec[1]
-      .clone()
-      .add(this.fixedLocalVec[0])
-      .multiplyScalar(0.5);
-
-    const fixedAxisVec = this.fixedLocalVec[1]
-      .clone()
-      .sub(this.fixedLocalVec[0]);
-    this.fixedAxisVec = fixedAxisVec.clone();
-    if (fixedAxisVec.lengthSq() < Number.EPSILON) {
+    const center = fixedLocalVec[1].add(fixedLocalVec[0]).mul(0.5);
+    this.centerValue = center.vector3Value;
+    const fixedAxisVec = fixedLocalVec[1].sub(fixedLocalVec[0]);
+    this.fixedAxisVecValue = fixedAxisVec.vector3Value;
+    if (this.fixedAxisVecValue.lengthSq() < Number.EPSILON) {
       throw new Error('リニアブッシュを保持するする2点が近すぎます');
     }
     const vRE = vRodEndSide?.clone().multiplyScalar(cRodEndSide.scale);
-
-    this.sphere = new Sphere(
-      name,
-      this.fixed,
-      this.res,
-      this.center
-        .clone()
-        .multiplyScalar(1 / cFixed.scale)
-        .add(
-          this.fixedAxisVec
-            .clone()
-            .normalize()
-            .multiplyScalar(this.initialLength / cFixed.scale)
-        ),
-      vRE
-    );
 
     this.name = name;
     if (dlMin) this.dlMin = dlMin * cFixed.scale;
@@ -697,30 +671,47 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
       throw new Error('RodEnd側が固定されている');
     }
 
-    this.resLocalVec = vRE?.clone() ?? new Vector3();
-    this.resLocalSkew = skew(this.resLocalVec).mul(2);
+    const resLocalVec = new ConstantVector3(vRE?.clone() ?? new Vector3());
 
-    if (this.fixed.isFixed) {
-      this.isFixed = true;
-      this.fixedLocalVec[0]
-        .applyQuaternion(this.fixed.quaternion)
-        .add(this.fixed.position);
-      this.fixedLocalVec[1]
-        .applyQuaternion(this.fixed.quaternion)
-        .add(this.fixed.position);
-    }
-    this.fixedLocalSkew = [
-      skew(this.fixedLocalVec[0]).mul(2),
-      skew(this.fixedLocalVec[1]).mul(2)
+    const oVec1 = getStableOrthogonalVector(this.fixedAxisVecValue);
+    const oVec2 = this.fixedAxisVecValue.clone().cross(oVec1).normalize();
+    const fixedOrthogonalVec = [
+      new ConstantVector3(oVec1),
+      new ConstantVector3(oVec2)
     ];
 
-    const oVec1 = getStableOrthogonalVector(fixedAxisVec);
-    const oVec2 = fixedAxisVec.cross(oVec1).normalize();
-    this.fixedOrthogonalVec = [oVec1, oVec2];
-    this.fixedOrthogonalSkew = [
-      skew(this.fixedOrthogonalVec[0]).mul(2),
-      skew(this.fixedOrthogonalVec[1]).mul(2)
-    ];
+    this.pFixed = new VariableVector3();
+    this.qFixed = new VariableQuaternion();
+    this.pRes = new VariableVector3();
+    this.qRes = new VariableQuaternion();
+    const AFixed = this.qFixed.getRotationMatrix();
+    const ARes = this.qRes.getRotationMatrix();
+    const sFixed = fixedLocalVec.map((localVec) => AFixed.vmul(localVec));
+
+    const axis = this.pRes
+      .add(ARes.vmul(resLocalVec))
+      .sub(sFixed[0].add(this.pFixed));
+
+    this.error = fixedOrthogonalVec.map((v) => {
+      const orthoVec = AFixed.vmul(v);
+      return orthoVec.dot(axis);
+    });
+
+    this.sphere = new Sphere(
+      name,
+      this.fixed,
+      this.res,
+      this.centerValue
+        .clone()
+        .multiplyScalar(1 / cFixed.scale)
+        .add(
+          fixedAxisVec.vector3Value
+            .clone()
+            .normalize()
+            .multiplyScalar(this.initialLength / cFixed.scale)
+        ),
+      vRE
+    );
   }
 
   setJacobianAndConstraints(
@@ -732,8 +723,8 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
     if (this.controled) {
       this.sphere.row = this.row;
       this.sphere.setVlhs(
-        this.center.clone().add(
-          this.fixedAxisVec
+        this.centerValue.clone().add(
+          this.fixedAxisVecValue
             .clone()
             .normalize()
             .multiplyScalar(this.initialLength + this._dl)
@@ -745,10 +736,10 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
     if (disableSpringElasticity) {
       this.sphere.row = this.row;
       this.sphere.setVlhs(
-        this.center
+        this.centerValue
           .clone()
           .add(
-            this.fixedAxisVec
+            this.fixedAxisVecValue
               .clone()
               .normalize()
               .multiplyScalar(this.initialLength)
@@ -758,60 +749,31 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
       return;
     }
 
-    const cRes = this.res.col;
-    const cFixed = this.fixed.col;
-    const {
-      row,
-      fixed,
-      fixedLocalVec,
-      fixedLocalSkew,
-      res,
-      resLocalVec,
-      resLocalSkew
-    } = this;
-    const pFixed = fixed.position;
-    const qFixed = fixed.quaternion;
-    const AFixed = rotationMatrix(qFixed);
-    const GFixed = decompositionMatrixG(qFixed);
-    const sFixed = fixedLocalVec.map((v) => v.clone());
-    if (!this.isFixed) sFixed.forEach((p) => p.applyQuaternion(qFixed));
+    const {row, res, fixed} = this;
+    const cRes = res.col;
+    const cFixed = fixed.col;
 
-    const pRes = res.position.clone();
-    const qRes = res.quaternion;
-    const ARes = rotationMatrix(qRes);
-    const GRes = decompositionMatrixG(qRes);
+    this.pFixed.setValue(this.fixed.position);
+    this.pRes.setValue(this.res.position);
+    this.qFixed.setValue(this.fixed.quaternion);
+    this.qRes.setValue(this.res.quaternion);
 
-    // 軸を作成
-    const axis = resLocalVec.clone().applyQuaternion(qRes).add(pRes);
-    if (!this.isFixed) {
-      axis.sub(sFixed[0].clone().add(pFixed));
-    } else {
-      axis.sub(sFixed[0]);
-    }
-    // 並行拘束
-    const axisT = Matrix.rowVector([axis.x, axis.y, axis.z]); // (1x3)
-    const axisDeltaQ = ARes.mmul(resLocalSkew).mmul(GRes); // (3x4)
-    const dFixedDeltaQ = AFixed.mmul(fixedLocalSkew[0]).mmul(GFixed);
-    for (let r = 0; r < 2; ++r) {
-      let orthoVec = this.fixedOrthogonalVec[r];
-      const orthoVecT = Matrix.rowVector([orthoVec.x, orthoVec.y, orthoVec.z]); // (1x3)
-      if (!this.isFixed) {
-        orthoVec = orthoVec.clone().applyQuaternion(qFixed);
-        const orthoDelta = AFixed.mmul(this.fixedOrthogonalSkew[r]).mmul(
-          GFixed
-        ); // (3x4)
-        const dFixed = axisT.mmul(orthoDelta); // (1x3) x (3x4) = (1x4)
-        dFixed.sub(orthoVecT.mmul(dFixedDeltaQ)); // (1x3) x (3x4) = (1x4)
-        phi_q.setSubMatrix(orthoVecT.clone().mul(-1), row + r, cFixed + X);
-        phi_q.setSubMatrix(dFixed, row + r, cFixed + Q0);
+    this.error.forEach((error, i) => {
+      phi[row + i] = error.scalarValue;
+      error.diff(Matrix.eye(1, 1));
+      if (!fixed.isFixed) {
+        this.pFixed.setJacobian(phi_q, row + i, cFixed + X);
+        if (isFullDegreesComponent(fixed)) {
+          this.qFixed.setJacobian(phi_q, row + i, cFixed + Q0);
+        }
       }
-      phi_q.setSubMatrix(orthoVecT, row + r, cRes + X);
-      phi[r + row] = orthoVec.dot(axis);
-      const dRes = orthoVecT.mmul(axisDeltaQ); // (1x3) x (3x4) = (1x4)
-      if (isFullDegreesComponent(res)) {
-        phi_q.setSubMatrix(dRes, row + 3 + r, cRes + Q0);
+      if (!res.isFixed) {
+        this.pRes.setJacobian(phi_q, row + i, cRes + X);
+        if (isFullDegreesComponent(res)) {
+          this.qRes.setJacobian(phi_q, row + i, cRes + Q0);
+        }
       }
-    }
+    });
   }
 
   setJacobianAndConstraintsInequal() {}
