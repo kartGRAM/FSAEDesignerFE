@@ -11,7 +11,7 @@ export function skew(v: {x: number; y: number; z: number} | Matrix) {
       [-v.y, v.x, 0]
     ]);
   }
-  if (v.rows !== 3 || v.columns !== 3) throw new Error('Vector3でない');
+  if (v.rows !== 3 || v.columns !== 1) throw new Error('Vector3でない');
   const x = v.get(0, 0);
   const y = v.get(1, 0);
   const z = v.get(2, 0);

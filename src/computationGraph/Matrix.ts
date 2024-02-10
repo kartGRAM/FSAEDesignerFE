@@ -11,14 +11,11 @@ export class Matrix implements IMatrix {
 
   _value: () => RetType;
 
-  _diff: (fromLhs?: MLMatrix, fromRhs?: MLMatrix) => void;
+  _diff: (fromLhs: MLMatrix, fromRhs?: MLMatrix) => void;
 
-  readonly rows: number;
-
-  constructor(value: () => RetType, rows: number) {
+  constructor(value: () => RetType) {
     this._value = value;
     this._diff = () => {};
-    this.rows = rows;
   }
 
   get value() {
@@ -27,7 +24,7 @@ export class Matrix implements IMatrix {
     return value;
   }
 
-  diff(fromLhs?: MLMatrix, fromRhs?: MLMatrix): void {
+  diff(fromLhs: MLMatrix, fromRhs?: MLMatrix): void {
     this._diff(fromLhs, fromRhs);
   }
 
@@ -37,28 +34,18 @@ export class Matrix implements IMatrix {
       const rhs = isNumber(other) ? other : other.scalarValue; // (1x1)
       return {
         value: lhs.clone().mul(rhs), // (nxm)
-        diff: (fromLhs?: MLMatrix, fromRhs?: MLMatrix) => {
-          if (fromLhs) {
-            this.diff(fromLhs.clone().mul(rhs), fromRhs);
-          } else if (fromRhs) {
-            this.diff(fromLhs, fromRhs.clone().mul(rhs));
-          } else {
-            throw new Error('どちらかは存在する必要あり');
-          }
+        diff: (fromLhs: MLMatrix, fromRhs?: MLMatrix) => {
+          this.diff(fromLhs.clone().mul(rhs), fromRhs);
           if (!isNumber(other)) {
-            if (fromLhs) {
-              if (fromRhs) {
-                other.diff(fromLhs.mmul(lhs).mmul(fromRhs));
-              } else {
-                other.diff(fromLhs.mmul(lhs));
-              }
-            } else if (fromRhs) {
-              other.diff(lhs.mmul(fromRhs));
+            if (fromRhs) {
+              other.diff(fromLhs.mmul(lhs).mmul(fromRhs));
+            } else {
+              other.diff(fromLhs.mmul(lhs));
             }
           }
         }
       };
-    }, this.rows);
+    });
   }
 
   mmul(other: IMatrix) {
@@ -67,12 +54,12 @@ export class Matrix implements IMatrix {
       const rhs = other.value; // (nxk)
       return {
         value: lhs.mmul(rhs), // (mxk)
-        diff: (fromLhs?: MLMatrix, fromRhs?: MLMatrix) => {
+        diff: (fromLhs: MLMatrix, fromRhs?: MLMatrix) => {
           this.diff(fromLhs, fromRhs ? rhs.mmul(fromRhs) : rhs);
-          other.diff(fromLhs ? fromLhs.mmul(lhs) : lhs, fromRhs);
+          other.diff(fromLhs.mmul(lhs));
         }
       };
-    }, this.rows);
+    });
   }
 
   vmul(other: IVector3) {
@@ -81,11 +68,11 @@ export class Matrix implements IMatrix {
       const rhs = other.value; // (3x1)
       return {
         value: lhs.mmul(rhs), // (3x1)
-        diff: (fromLhs?: MLMatrix) => {
+        diff: (fromLhs: MLMatrix) => {
           this.diff(fromLhs, rhs);
-          other.diff(fromLhs ? fromLhs.mmul(lhs) : lhs);
+          other.diff(fromLhs.mmul(lhs));
         }
       };
-    }, this.rows);
+    });
   }
 }

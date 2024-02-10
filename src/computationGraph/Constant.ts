@@ -6,13 +6,10 @@ export class Constant implements IConstant {
 
   readonly value: Matrix;
 
-  readonly rows;
-
   // eslint-disable-next-line class-methods-use-this
   diff(): void {}
 
-  constructor(value: Matrix, rows: number) {
-    this.rows = rows;
+  constructor(value: Matrix) {
     this.value = value;
   }
 }

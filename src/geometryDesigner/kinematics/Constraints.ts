@@ -152,16 +152,16 @@ export class Sphere implements Constraint {
         .add(this.rLocalVec.applyQuaternion(this.rhs.quaternion));
     }
 
-    this.pLhs = new VariableVector3(3);
-    this.qLhs = new VariableQuaternion(3);
-    this.pRhs = new VariableVector3(3);
-    this.qRhs = new VariableQuaternion(3);
+    this.pLhs = new VariableVector3();
+    this.qLhs = new VariableQuaternion();
+    this.pRhs = new VariableVector3();
+    this.qRhs = new VariableQuaternion();
 
     const ALhs = this.qLhs.getRotationMatrix();
     const ARhs = this.qRhs.getRotationMatrix();
 
-    const lLocalVec = new ConstantVector3(this.lLocalVec, 3);
-    const rLocalVec = new ConstantVector3(this.lLocalVec, 3);
+    const lLocalVec = new ConstantVector3(this.lLocalVec);
+    const rLocalVec = new ConstantVector3(this.rLocalVec);
 
     const sLhs = ALhs.vmul(lLocalVec);
     const sRhs = ARhs.vmul(rLocalVec);
@@ -197,7 +197,7 @@ export class Sphere implements Constraint {
       this.qRhs.setValue(this.rhs.quaternion);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const error = this.constraint.value;
-      this.constraint.diff();
+      this.constraint.diff(Matrix.eye(3, 3));
 
       phi[row + X] = constraint.x;
       phi[row + Y] = constraint.y;

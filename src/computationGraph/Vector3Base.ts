@@ -10,8 +10,6 @@ import {skew} from './Functions';
 export abstract class Vector3Base {
   readonly isVector3 = true;
 
-  abstract readonly rows: number;
-
   abstract get value(): Matrix;
 
   abstract diff(fromLhs?: Matrix): void;
@@ -28,7 +26,7 @@ export abstract class Vector3Base {
             other.diff(fromLhs.mmul(lhs)); // (3x1)
         }
       };
-    }, this.rows);
+    });
   }
 
   dot(other: IVector3) {
@@ -44,7 +42,7 @@ export abstract class Vector3Base {
           if (!isConstant(other)) other.diff(mat.mmul(lhsT)); // (1x3)
         }
       };
-    }, this.rows);
+    });
   }
 
   cross(other: IVector3) {
@@ -60,7 +58,7 @@ export abstract class Vector3Base {
           if (!isConstant(other)) other.diff(mat.mmul(lSkew)); // (1x3)
         }
       };
-    }, this.rows);
+    });
   }
 
   add(other: IVector3): IVector3 {
@@ -74,7 +72,7 @@ export abstract class Vector3Base {
           if (!isConstant(other)) other.diff(mat); // (1x3)
         }
       };
-    }, this.rows);
+    });
   }
 
   sub(other: IVector3): IVector3 {
@@ -88,6 +86,6 @@ export abstract class Vector3Base {
           if (!isConstant(other)) other.diff(mat.clone().mul(-1)); // (1x3)
         }
       };
-    }, this.rows);
+    });
   }
 }

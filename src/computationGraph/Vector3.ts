@@ -1,25 +1,17 @@
 import {Matrix} from 'ml-matrix';
-import {isNumber} from '@utils/helpers';
 import {RetType} from './IComputationNode';
-import {IScalar} from './IScalar';
-import {Scalar} from './Scalar';
 import {IVector3} from './IVector3';
-import {isConstant} from './IConstant';
-import {skew} from './Functions';
+import {Vector3Base} from './Vector3Base';
 
-export class Vector3 implements IVector3 {
-  readonly isVector3 = true;
-
+export class Vector3 extends Vector3Base implements IVector3 {
   _value: () => RetType;
 
-  _diff: (mat?: Matrix) => void;
+  _diff: (mat: Matrix) => void;
 
-  readonly rows: number;
-
-  constructor(value: () => RetType, rows: number) {
+  constructor(value: () => RetType) {
+    super();
     this._value = value;
     this._diff = () => {};
-    this.rows = rows;
   }
 
   get value() {
@@ -30,90 +22,7 @@ export class Vector3 implements IVector3 {
     return value;
   }
 
-  diff(fromLhs?: Matrix): void {
+  diff(fromLhs: Matrix): void {
     this._diff(fromLhs);
-  }
-
-  mul(other: IScalar | number) {
-    return new Vector3(() => {
-      const lhs = this.value; // (3x1)
-      const rhs = isNumber(other) ? Matrix.eye(1, 1).mul(other) : other.value; // (1x1)
-      return {
-        value: lhs.clone().mul(rhs), // (3x1)
-        diff: (mat?: Matrix) => {
-          if (this.rows === 3 && !mat) mat = Matrix.eye(3, 3);
-          else if (!mat) throw new Error('rowsが3以外では、matが必要');
-          this.diff(mat.clone().mul(rhs)); // (3x3)
-          if (!isNumber(other)) other.diff(mat.mmul(lhs)); // (3x1)
-        }
-      };
-    }, this.rows);
-  }
-
-  dot(other: IVector3) {
-    return new Scalar(() => {
-      const lhs = this.value; // (3x1)
-      const rhs = other.value; // (3x1)
-      const lhsT = lhs.transpose(); // (1x3)
-      const rhsT = rhs.transpose(); // (1x3)
-      return {
-        value: lhs.transpose().mmul(rhs), // (1x1)
-        diff: (mat?: Matrix) => {
-          if (!mat) mat = Matrix.eye(1, 1);
-          this.diff(mat.mmul(rhsT)); // (1x3)
-          if (!isConstant(other)) other.diff(mat.mmul(lhsT)); // (1x3)
-        }
-      };
-    }, this.rows);
-  }
-
-  cross(other: IVector3) {
-    return new Vector3(() => {
-      const lhs = this.value; // (3x1)
-      const rhs = other.value; // (3x1)
-      const lSkew = skew(lhs); // (3x3)
-      const rSkew = skew(rhs); // (3x3)
-      return {
-        value: lSkew.mmul(rhs), // (1x1)
-        diff: (mat?: Matrix) => {
-          if (this.rows === 3 && !mat) mat = Matrix.eye(3, 3);
-          else if (!mat) throw new Error('rowsが3以外では、matが必要');
-          this.diff(mat.mmul(rSkew).mul(-1)); // (1x3)
-          if (!isConstant(other)) other.diff(mat.mmul(lSkew)); // (1x3)
-        }
-      };
-    }, this.rows);
-  }
-
-  add(other: IVector3): IVector3 {
-    return new Vector3(() => {
-      const lhs = this.value; // (3x1)
-      const rhs = other.value; // (3x1)
-      return {
-        value: lhs.clone().add(rhs), // (1x1)
-        diff: (mat?: Matrix) => {
-          if (this.rows === 3 && !mat) mat = Matrix.eye(3, 3);
-          else if (!mat) throw new Error('rowsが3以外では、matが必要');
-          this.diff(mat); // (1x3)
-          if (!isConstant(other)) other.diff(mat); // (1x3)
-        }
-      };
-    }, this.rows);
-  }
-
-  sub(other: IVector3): IVector3 {
-    return new Vector3(() => {
-      const lhs = this.value; // (3x1)
-      const rhs = other.value; // (3x1)
-      return {
-        value: lhs.clone().sub(rhs), // (1x1)
-        diff: (mat?: Matrix) => {
-          if (this.rows === 3 && !mat) mat = Matrix.eye(3, 3);
-          else if (!mat) throw new Error('rowsが3以外では、matが必要');
-          this.diff(mat); // (1x3)
-          if (!isConstant(other)) other.diff(mat.clone().mul(-1)); // (1x3)
-        }
-      };
-    }, this.rows);
   }
 }

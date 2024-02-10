@@ -8,14 +8,11 @@ export class Scalar implements IScalar {
 
   _value: () => RetType;
 
-  _diff: (mat?: Matrix) => void;
+  _diff: (mat: Matrix) => void;
 
-  readonly rows: number;
-
-  constructor(value: () => RetType, rows: number) {
+  constructor(value: () => RetType) {
     this._value = value;
     this._diff = () => {};
-    this.rows = rows;
   }
 
   get value() {
@@ -30,7 +27,7 @@ export class Scalar implements IScalar {
     return this.value.get(0, 0);
   }
 
-  diff(fromLhs?: Matrix): void {
+  diff(fromLhs: Matrix): void {
     this._diff(fromLhs);
   }
 
@@ -46,6 +43,6 @@ export class Scalar implements IScalar {
           if (!isNumber(other)) other.diff(mat.mmul(lhs));
         }
       };
-    }, this.rows);
+    });
   }
 }
