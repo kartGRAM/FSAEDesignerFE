@@ -11,7 +11,7 @@ import {IVector3} from '@computationGraph/IVector3';
 import {IScalar} from '@computationGraph/IScalar';
 import {getVVector} from '@computationGraph/Functions';
 import {VariableVector3} from '@computationGraph/VariableVector3';
-import {ConstantVector3} from '@computationGraph/ConstantVector3';
+import {ConstantVector3} from '@computationGraph/Vector3';
 import {ConstantScalar} from '@computationGraph/ConstantScalar';
 import {VariableQuaternion} from '@computationGraph/VariableQuaternion';
 import {
@@ -288,8 +288,6 @@ export class Hinge implements Constraint {
     // 並行拘束
     this.directionError.forEach((directionError, i) => {
       // pは登場しない
-      this.qLhs.resetDiff();
-      this.qRhs.resetDiff();
       const error = directionError.scalarValue;
       directionError.diff(Matrix.eye(1, 1));
 

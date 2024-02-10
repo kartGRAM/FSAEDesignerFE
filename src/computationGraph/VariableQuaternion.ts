@@ -21,11 +21,11 @@ export class VariableQuaternion implements IQuaternion, IVariable {
   _diff: Matrix | undefined;
 
   setValue(value: QuaternionLike) {
-    this.resetDiff();
+    this.reset();
     this._value = value;
   }
 
-  resetDiff() {
+  reset() {
     this._diff = undefined;
   }
 
@@ -49,20 +49,23 @@ export class VariableQuaternion implements IQuaternion, IVariable {
   }
 
   getRotationMatrix(): IMatrix {
-    return new CMatrix(() => {
-      const G = decompositionMatrixG(this._value);
-      const A = rotationMatrix(this._value);
-      return {
-        value: A,
-        diff: (fromLhs: Matrix, fromRhs?: Matrix) => {
-          if (!fromRhs) throw new Error('ベクトルが必要');
-          if (fromRhs.rows !== 3 || fromRhs.columns !== 1)
-            throw new Error('Vector3じゃない');
-          const rSkew = skew(fromRhs);
-          const AsG = A.mmul(rSkew).mmul(G).mul(-2);
-          this.diff(fromLhs.mmul(AsG));
-        }
-      };
-    });
+    return new CMatrix(
+      () => {
+        const G = decompositionMatrixG(this._value);
+        const A = rotationMatrix(this._value);
+        return {
+          value: A,
+          diff: (fromLhs: Matrix, fromRhs?: Matrix) => {
+            if (!fromRhs) throw new Error('ベクトルが必要');
+            if (fromRhs.rows !== 3 || fromRhs.columns !== 1)
+              throw new Error('Vector3じゃない');
+            const rSkew = skew(fromRhs);
+            const AsG = A.mmul(rSkew).mmul(G).mul(-2);
+            this.diff(fromLhs.mmul(AsG));
+          }
+        };
+      },
+      () => this.reset()
+    );
   }
 }

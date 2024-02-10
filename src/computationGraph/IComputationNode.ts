@@ -7,6 +7,6 @@ export type RetType = {
 
 export interface IComputationNode {
   readonly value: Matrix;
-
+  reset(): void;
   diff(fromLhs: Matrix, fromRhs?: Matrix): void;
 }

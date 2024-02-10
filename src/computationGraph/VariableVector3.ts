@@ -16,16 +16,16 @@ export class VariableVector3
   _diff: Matrix | undefined;
 
   setValue(value: Vector3Like) {
-    this.resetDiff();
+    this.reset();
     this._value = getVVector(value);
   }
 
-  resetDiff() {
+  reset() {
     this._diff = undefined;
   }
 
   constructor() {
-    super();
+    super(() => this.reset());
     this._value = new Matrix(3, 1);
     this._diff = undefined;
   }

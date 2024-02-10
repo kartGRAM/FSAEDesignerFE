@@ -9,6 +9,9 @@ export class Constant implements IConstant {
   // eslint-disable-next-line class-methods-use-this
   diff(): void {}
 
+  // eslint-disable-next-line class-methods-use-this
+  reset(): void {}
+
   constructor(value: Matrix) {
     this.value = value;
   }
