@@ -16,7 +16,7 @@ export class Matrix implements IMatrix {
 
   _reset: () => void;
 
-  storedValue: Matrix | undefined;
+  storedValue: MLMatrix | undefined;
 
   constructor(value: () => RetType, reset: () => void) {
     this._value = value;
@@ -25,7 +25,9 @@ export class Matrix implements IMatrix {
   }
 
   get value() {
+    if (this.storedValue) return this.storedValue;
     const {value, diff} = this._value();
+    this.storedValue = value;
     this._diff = diff;
     return value;
   }

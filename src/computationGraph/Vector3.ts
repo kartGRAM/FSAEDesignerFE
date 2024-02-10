@@ -81,7 +81,7 @@ export abstract class Vector3Base {
       },
       () => {
         this.reset();
-        if (isConstant(other)) other.reset();
+        if (!isConstant(other)) other.reset();
       }
     );
   }
@@ -108,7 +108,7 @@ export abstract class Vector3Base {
       },
       () => {
         this.reset();
-        if (isConstant(other)) other.reset();
+        if (!isConstant(other)) other.reset();
       }
     );
   }
@@ -133,7 +133,7 @@ export abstract class Vector3Base {
       },
       () => {
         this.reset();
-        if (isConstant(other)) other.reset();
+        if (!isConstant(other)) other.reset();
       }
     );
   }
@@ -158,7 +158,7 @@ export abstract class Vector3Base {
       },
       () => {
         this.reset();
-        if (isConstant(other)) other.reset();
+        if (!isConstant(other)) other.reset();
       }
     );
   }
