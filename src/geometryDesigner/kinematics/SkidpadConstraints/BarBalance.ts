@@ -196,7 +196,7 @@ export class BarBalance implements Constraint, Balance {
       const maN = ma.normalize();
 
       // 軸方向の力
-      const fAxis = this.f.map((f) => f.sub(maN.mul(f.dot(ma))));
+      const fAxis = this.f.map((f) => f.sub(maN.mul(f.dot(maN))));
 
       // 現在の軸方向の力の大きさ (|f| / cos(Θ) ) = |f|^2 / f・ax
       const fdotAx = fAxis.map((f) => f.dot(axis));
@@ -204,7 +204,6 @@ export class BarBalance implements Constraint, Balance {
       const fl = f2.map((f2, i) => f2.div(fdotAx[i]));
       const flMean = fl[0].sub(fl[1]).div(2);
       this.springForceError = flMean.sub(ideal);
-      ma.reset();
 
       this._setPreload = () => {
         l.reset();
