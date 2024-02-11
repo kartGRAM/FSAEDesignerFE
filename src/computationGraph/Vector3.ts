@@ -8,7 +8,13 @@ import {IScalar} from './IScalar';
 import {Scalar} from './Scalar';
 import {isConstant, IConstant} from './IConstant';
 import {ConstantScalar} from './ConstantScalar';
-import {skew, Vector3Like, getVVector} from './Functions';
+import {
+  skew,
+  Vector3Like,
+  getVVector,
+  normalizedVectorDiff,
+  normVectorDiff
+} from './Functions';
 
 export abstract class Vector3Base {
   readonly isVector3 = true;
@@ -26,7 +32,6 @@ export abstract class Vector3Base {
   }
 
   get vector3Value() {
-    this.reset();
     const {value} = this;
     return new Three.Vector3(value.get(0, 0), value.get(1, 0), value.get(2, 0));
   }
@@ -41,7 +46,7 @@ export abstract class Vector3Base {
     return new Vector3(
       () => {
         const lhs = this.value; // (3x1)
-        const rhs = isNumber(other) ? Matrix.eye(1, 1).mul(other) : other.value; // (1x1)
+        const rhs = isNumber(other) ? other : other.scalarValue; // (1x1)
         return {
           value: lhs.clone().mul(rhs), // (3x1)
           diff: (fromLhs: Matrix) => {
@@ -159,6 +164,48 @@ export abstract class Vector3Base {
       () => {
         this.reset();
         if (!isConstant(other)) other.reset();
+      }
+    );
+  }
+
+  length() {
+    if (isConstant(this)) {
+      const lhs = this.vector3Value; // (3x1)
+      return new ConstantScalar(lhs.length());
+    }
+    return new Scalar(
+      () => {
+        const lhs = this.vector3Value; // (3x1)
+        return {
+          value: Matrix.eye(1, 1).mul(lhs.length()), // (1x1)
+          diff: (mat: Matrix) => {
+            this.diff(mat.mmul(normVectorDiff(lhs))); // (1x3)
+          }
+        };
+      },
+      () => {
+        this.reset();
+      }
+    );
+  }
+
+  normalize() {
+    if (isConstant(this)) {
+      const lhs = this.vector3Value.clone().normalize(); // (3x1)
+      return new ConstantVector3(lhs);
+    }
+    return new Vector3(
+      () => {
+        const lhs = this.vector3Value; // (3x1)
+        return {
+          value: getVVector(lhs.clone().normalize()), // (1x1)
+          diff: (mat: Matrix) => {
+            this.diff(mat.mmul(normalizedVectorDiff(lhs))); // (1x3)
+          }
+        };
+      },
+      () => {
+        this.reset();
       }
     );
   }

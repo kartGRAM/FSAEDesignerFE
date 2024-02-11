@@ -115,7 +115,6 @@ export class Scalar extends ScalarBase implements IScalar {
   }
 
   get scalarValue() {
-    this.reset();
     return this.value.get(0, 0);
   }
 

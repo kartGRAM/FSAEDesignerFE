@@ -22,6 +22,10 @@ import {
 } from '@gd/kinematics/KinematicComponents';
 import {TireRestorer} from '@gd/kinematics/Restorer';
 import {ITireData} from '@tire/ITireData';
+import {IScalar} from '@computationGraph/IScalar';
+import {IVector3} from '@computationGraph/IVector3';
+import {ConstantVector3} from '@computationGraph/Vector3';
+import {VariableQuaternion} from '@computationGraph/VariableQuaternion';
 
 const I = Matrix.eye(3, 3);
 
@@ -491,6 +495,106 @@ export function getSimplifiedTireConstrainsParams(
 ): {
   pComponent: FullDegreesComponent;
   pComponentNodeID: string;
+  groundLocalVec: (
+    normal: IVector3,
+    distance: IScalar,
+    q: VariableQuaternion
+  ) => IVector3;
+} {
+  const pOuter = getJointPartner(
+    jointDict[element.outerBearing.nodeID][0],
+    element.outerBearing.nodeID
+  ).value;
+  const pInner = getJointPartner(
+    jointDict[element.innerBearing.nodeID][0],
+    element.innerBearing.nodeID
+  );
+  const outer = element.toOuterBearing.value;
+  const inner = element.toInnerBearing.value;
+
+  const parent = pInner.parent as IElement;
+  const pComponent = tempComponents[parent.nodeID];
+  const {scale} = pComponent;
+
+  if (pID === 'nearestNeighbor') {
+    // 親コンポーネントのローカル空間上での回転軸
+    const localAxis = new ConstantVector3(
+      pOuter
+        .clone()
+        .sub(pInner.value)
+        .multiplyScalar(outer - inner)
+        .normalize()
+    );
+    // pOuter基準でのtireCenter
+    const localTireCenter = new ConstantVector3(pOuter)
+      .sub(localAxis.mul(outer))
+      .mul(scale);
+
+    const radius = element.radius * scale;
+
+    const func = (
+      normal: IVector3,
+      distance: IScalar,
+      q: VariableQuaternion
+    ) => {
+      const AT = q.getInvRotationMatrix();
+
+      // 法線ベクトルを、部品座標系へ回転させる
+      const n = AT.vmul(normal);
+
+      // 地面に平行で前を向いたベクトルpara
+      const para = localAxis.cross(n);
+
+      // paraを正規化
+      const k = para.normalize();
+
+      // 地面方向を得る（長さは1なので正規化不要）
+      const i = localAxis.cross(k);
+
+      // タイヤ中心から地面までの変位
+      const l = i.mul(radius);
+
+      return localTireCenter.add(l);
+    };
+
+    return {
+      pComponent,
+      groundLocalVec: func,
+      pComponentNodeID: parent.nodeID
+    };
+  }
+
+  // タイヤの親コンポーネントとの相対座標及び回転を取得
+  const pl = element.outerBearing.value;
+  const pr = element.innerBearing.value;
+  const {position: dp, rotation: dq} = TireRestorer.getTireLocalPosition(
+    pl,
+    pr,
+    pOuter,
+    pInner.value
+  );
+  dp.multiplyScalar(scale);
+  const points = element.getMeasurablePoints();
+  const point = points.find((point) => point.nodeID === pID);
+  if (!point) throw new Error('pointが見つからない');
+  const pLocal = point.value.multiplyScalar(scale).applyQuaternion(dq).add(dp);
+  return {
+    pComponent,
+    groundLocalVec: () => new ConstantVector3(pLocal),
+    pComponentNodeID: parent.nodeID
+  };
+}
+
+// 簡素化されたタイヤの親コンポーネントと、
+// 最近傍点の親コンポーネント基準の位置ベクトルを得る
+export function getSimplifiedTireConstrainsParamsOld(
+  element: ITire,
+  jointDict: JointDict,
+  tempComponents: {[index: string]: FullDegreesComponent},
+  pID: string
+): {
+  pComponent: FullDegreesComponent;
+  pComponentNodeID: string;
   groundLocalVec: (normal: Vector3) => {r: Vector3; dr_dQ: Matrix};
 } {
   const pOuter = getJointPartner(
@@ -585,7 +689,7 @@ export function getSimplifiedTireConstrainsParams(
   };
 }
 
-export function getSimplifiedTireConstrainsParamsOld(
+export function getSimplifiedTireConstrainsParamsOld2(
   element: ITire,
   jointDict: JointDict,
   tempComponents: {[index: string]: FullDegreesComponent},

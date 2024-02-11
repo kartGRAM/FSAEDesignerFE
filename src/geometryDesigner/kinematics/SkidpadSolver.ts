@@ -31,6 +31,7 @@ import {ISnapshot} from '@gd/analysis/ISnapshot';
 import {Twin} from '@utils/atLeast';
 import {getTire} from '@tire/listTireData';
 import {Constraint, ConstraintsOptions} from '@gd/kinematics/IConstraint';
+import {ConstantVector3} from '@computationGraph/Vector3';
 import {
   getJointDictionary,
   canSimplifyAArm,
@@ -40,6 +41,7 @@ import {
   getJointsToOtherComponents,
   getNamedVector3FromJoint,
   getSimplifiedTireConstrainsParams,
+  getSimplifiedTireConstrainsParamsOld,
   elementIsComponent,
   saDiff,
   iaDiff,
@@ -473,7 +475,7 @@ export class SkidpadSolver implements ISolver {
               pComponent: component,
               groundLocalVec,
               pComponentNodeID: componentID
-            } = getSimplifiedTireConstrainsParams(
+            } = getSimplifiedTireConstrainsParamsOld(
               element,
               jointDict,
               tempComponents,
@@ -825,15 +827,13 @@ export class SkidpadSolver implements ISolver {
                   const constraint = new PointToPlane(
                     `Two-dimentional Constraint of nearest neighbor of ${element.name.value}`,
                     component,
-                    (normal, distance) => {
-                      return {
-                        r: element.getNearestNeighborToPlane(
-                          normal,
-                          distance / component.scale
-                        ),
-                        dr_dQ: new Matrix(3, 4)
-                      };
-                    },
+                    (normal, distance) =>
+                      new ConstantVector3(
+                        element.getNearestNeighborToPlane(
+                          normal.vector3Value,
+                          distance.scalarValue / component.scale
+                        )
+                      ),
                     control.origin.value,
                     control.normal.value,
                     element.nodeID,
@@ -850,7 +850,7 @@ export class SkidpadSolver implements ISolver {
                     const constraint = new PointToPlane(
                       `Two-dimentional Constraint of ${point.name} of ${element.name.value}`,
                       component,
-                      () => ({r: p, dr_dQ: new Matrix(3, 4)}),
+                      () => new ConstantVector3(p),
                       control.origin.value,
                       control.normal.value,
                       element.nodeID,
@@ -960,7 +960,7 @@ export class SkidpadSolver implements ISolver {
         new PointToPlane(
           `Two-dimentional Constraint of ${frame.centerOfGravity.name} of ${frame.name.value}`,
           component,
-          () => ({r: p, dr_dQ: new Matrix(3, 4)}),
+          () => new ConstantVector3(p),
           new Vector3(),
           new Vector3(1, 0, 0),
           frame.nodeID,
@@ -973,7 +973,7 @@ export class SkidpadSolver implements ISolver {
         new PointToPlane(
           `Two-dimentional Constraint of ${frame.centerOfGravity.name} of ${frame.name.value}`,
           component,
-          () => ({r: p, dr_dQ: new Matrix(3, 4)}),
+          () => new ConstantVector3(p),
           new Vector3(),
           new Vector3(0, 1, 0),
           frame.nodeID,

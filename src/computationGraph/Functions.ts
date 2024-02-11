@@ -82,3 +82,24 @@ export function decompositionMatrixE(q: QuaternionLike) {
     [-e3, -e2, e1, e0]
   ]);
 }
+
+// k=U/|U| として、δk=XδU のXを返す。
+const I = Matrix.eye(3, 3);
+export function normalizedVectorDiff(u: Vector3Like): Matrix {
+  const abs = Math.sqrt(u.x * u.x + u.y * u.y + u.z * u.z);
+  const u3 = abs ** 3;
+  const u2 = abs ** 2;
+  const U = getVVector(u);
+  const UUt = U.mmul(U.clone().transpose());
+  const u2I = I.clone().mul(u2);
+  const temp = u2I.sub(UUt);
+  const d = temp.mul(1 / u3);
+  return d;
+}
+
+// k=|u| として、δk=Xδu のXを返す。
+export function normVectorDiff(u: Vector3Like): Matrix {
+  const abs = Math.sqrt(u.x * u.x + u.y * u.y + u.z * u.z);
+  const uT = getVVector(u).transpose();
+  return uT.mul(1 / abs);
+}

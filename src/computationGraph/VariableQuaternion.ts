@@ -9,7 +9,8 @@ import {
   getVQuaternion,
   QuaternionLike,
   rotationMatrix,
-  decompositionMatrixG
+  decompositionMatrixG,
+  decompositionMatrixE
 } from './Functions';
 import {IVariable} from './IVariable';
 
@@ -62,6 +63,27 @@ export class VariableQuaternion implements IQuaternion, IVariable {
             const rSkew = skew(fromRhs);
             const AsG = A.mmul(rSkew).mmul(G).mul(-2);
             this.diff(fromLhs.mmul(AsG));
+          }
+        };
+      },
+      () => this.reset()
+    );
+  }
+
+  getInvRotationMatrix(): IMatrix {
+    return new CMatrix(
+      () => {
+        const E = decompositionMatrixE(this._value);
+        const AT = rotationMatrix(this._value).transpose();
+        return {
+          value: AT,
+          diff: (fromLhs: Matrix, fromRhs?: Matrix) => {
+            if (!fromRhs) throw new Error('ベクトルが必要');
+            if (fromRhs.rows !== 3 || fromRhs.columns !== 1)
+              throw new Error('Vector3じゃない');
+            const rSkew = skew(fromRhs);
+            const ATsE = AT.mmul(rSkew).mmul(E).mul(2);
+            this.diff(fromLhs.mmul(ATsE));
           }
         };
       },
