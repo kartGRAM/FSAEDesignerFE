@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable camelcase */
 /* eslint-disable class-methods-use-this */
 import {Matrix} from 'ml-matrix';
@@ -6,6 +5,19 @@ import {Vector3} from 'three';
 import {Twin} from '@utils/atLeast';
 import {IBar} from '@gd/IElements/IBar';
 import {Constraint, ConstraintsOptions} from '@gd/kinematics/IConstraint';
+import {VariableVector3} from '@computationGraph/VariableVector3';
+import {VariableScalar} from '@computationGraph/VariableScalar';
+import {ConstantVector3} from '@computationGraph/Vector3';
+import {ConstantScalar} from '@computationGraph/ConstantScalar';
+import {VariableQuaternion} from '@computationGraph/VariableQuaternion';
+import {Balance} from '../SkidpadConstraints';
+import {
+  IComponent,
+  IVariable,
+  isFullDegreesComponent,
+  PointForce,
+  GeneralVariable
+} from '../KinematicComponents';
 import {
   skew,
   rotationMatrix,
@@ -15,14 +27,6 @@ import {
   normalizedVectorDiff,
   getVVector
 } from '../KinematicFunctions';
-import {
-  IComponent,
-  IVariable,
-  isFullDegreesComponent,
-  PointForce,
-  GeneralVariable
-} from '../KinematicComponents';
-import {Balance} from '../SkidpadConstraints';
 
 const X = 0;
 const Q0 = 3;
@@ -42,9 +46,17 @@ export class BarBalance implements Constraint, Balance {
 
   isSpring: boolean = false;
 
-  freeLength: number = 0;
+  freeLength: ConstantScalar;
 
-  k: number = 0; // N/m
+  k: ConstantScalar; // N/m
+
+  p: Twin<VariableVector3>;
+
+  q: Twin<VariableQuaternion>;
+
+  f: Twin<VariableVector3>;
+
+  omega: VariableScalar;
 
   // 並進運動+回転
   constraints(options: ConstraintsOptions) {
@@ -104,9 +116,11 @@ export class BarBalance implements Constraint, Balance {
     isSpring?: boolean;
     k?: number;
   }) {
+    this.k = new ConstantScalar(0);
+    this.freeLength = new ConstantScalar(0);
     if (params.isSpring && params.k && params.k > 0) {
       this.isSpring = true;
-      this.k = params.k;
+      this.k.setValue(params.k);
     }
     this.element = params.element;
     this.name = params.name;
@@ -164,9 +178,9 @@ export class BarBalance implements Constraint, Balance {
   }
 
   setPreload() {
-    const {pts, ma} = this.getCentrifugalForce();
+    const {pts} = this.getCentrifugalForce();
     const u = pts[1].clone().sub(pts[0]);
-    const {pfs, pfCoefs, k, t} = this;
+    const {pfs, k} = this;
     const length = u.length();
     const axis = u.normalize();
     // 地面に垂直でない成分は、完全に釣り合っているはず。
@@ -174,8 +188,8 @@ export class BarBalance implements Constraint, Balance {
     const fxy = pfs.map((pf, i) => pf.force.clone().sub(fn[i]));
     const fl = fxy.map((f) => f.dot(f) / f.dot(axis));
 
-    const dl = (fl[0] - fl[1]) / (2 * k);
-    this.freeLength = length + dl;
+    const dl = (fl[0] - fl[1]) / (2 * k.scalarValue);
+    this.freeLength.setValue(length + dl);
   }
 
   setJacobianAndConstraints(

@@ -10,6 +10,10 @@ export abstract class ScalarBase {
 
   abstract get value(): Matrix;
 
+  get scalarValue() {
+    return this.value.get(0, 0);
+  }
+
   abstract diff(fromLhs: Matrix): void;
 
   abstract reset(): void;
@@ -112,10 +116,6 @@ export class Scalar extends ScalarBase implements IScalar {
     if (value.rows !== 1 && value.columns !== 1)
       throw new Error('スカラーじゃない');
     return value;
-  }
-
-  get scalarValue() {
-    return this.value.get(0, 0);
   }
 
   diff(fromLhs: Matrix): void {
