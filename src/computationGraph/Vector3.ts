@@ -7,7 +7,6 @@ import {IVector3} from './IVector3';
 import {IScalar} from './IScalar';
 import {Scalar} from './Scalar';
 import {isConstant, IConstant} from './IConstant';
-import {ConstantScalar} from './ConstantScalar';
 import {
   skew,
   Vector3Like,
@@ -37,12 +36,6 @@ export abstract class Vector3Base {
   }
 
   mul(other: IScalar | number) {
-    if (isConstant(this) && (isNumber(other) || isConstant(other))) {
-      const lhs = this.vector3Value; // (3x1)
-      const rhs = isNumber(other) ? other : other.scalarValue; // (1x1)
-      return new ConstantVector3(lhs.multiplyScalar(rhs));
-    }
-
     return new Vector3(
       () => {
         const lhs = this.value; // (3x1)
@@ -58,18 +51,12 @@ export abstract class Vector3Base {
       },
       () => {
         this.reset();
-        if (!isNumber(other) && isConstant(other)) other.reset();
+        if (!isNumber(other) && !isConstant(other)) other.reset();
       }
     );
   }
 
   dot(other: IVector3) {
-    if (isConstant(this) && isConstant(other)) {
-      const lhs = this.vector3Value; // (3x1)
-      const rhs = other.vector3Value; // (3x1)
-      return new ConstantScalar(lhs.dot(rhs));
-    }
-
     return new Scalar(
       () => {
         const lhs = this.value; // (3x1)
@@ -92,11 +79,6 @@ export abstract class Vector3Base {
   }
 
   cross(other: IVector3) {
-    if (isConstant(this) && isConstant(other)) {
-      const lhs = this.vector3Value; // (3x1)
-      const rhs = other.vector3Value; // (3x1)
-      return new ConstantVector3(lhs.cross(rhs));
-    }
     return new Vector3(
       () => {
         const lhs = this.value; // (3x1)
@@ -119,11 +101,6 @@ export abstract class Vector3Base {
   }
 
   add(other: IVector3): IVector3 {
-    if (isConstant(this) && isConstant(other)) {
-      const lhs = this.vector3Value; // (3x1)
-      const rhs = other.vector3Value; // (3x1)
-      return new ConstantVector3(lhs.add(rhs));
-    }
     return new Vector3(
       () => {
         const lhs = this.value; // (3x1)
@@ -144,11 +121,6 @@ export abstract class Vector3Base {
   }
 
   sub(other: IVector3): IVector3 {
-    if (isConstant(this) && isConstant(other)) {
-      const lhs = this.vector3Value; // (3x1)
-      const rhs = other.vector3Value; // (3x1)
-      return new ConstantVector3(lhs.sub(rhs));
-    }
     return new Vector3(
       () => {
         const lhs = this.value; // (3x1)
@@ -169,10 +141,6 @@ export abstract class Vector3Base {
   }
 
   length() {
-    if (isConstant(this)) {
-      const lhs = this.vector3Value; // (3x1)
-      return new ConstantScalar(lhs.length());
-    }
     return new Scalar(
       () => {
         const lhs = this.vector3Value; // (3x1)
@@ -190,10 +158,6 @@ export abstract class Vector3Base {
   }
 
   normalize() {
-    if (isConstant(this)) {
-      const lhs = this.vector3Value.clone().normalize(); // (3x1)
-      return new ConstantVector3(lhs);
-    }
     return new Vector3(
       () => {
         const lhs = this.vector3Value; // (3x1)
@@ -260,9 +224,20 @@ export class ConstantVector3
   // eslint-disable-next-line class-methods-use-this
   reset() {}
 
-  constructor(value: Matrix | Vector3Like) {
-    super(() => {});
+  setValue(value: Vector3Like | Matrix) {
     if ('x' in value) {
+      this.value = getVVector(value);
+    } else {
+      if (value.rows !== 3 || value.columns !== 3)
+        throw new Error('Vector3じゃない');
+      this.value = value;
+    }
+  }
+
+  constructor(value?: Matrix | Vector3Like) {
+    super(() => {});
+    if (!value) this.value = getVVector(new Three.Vector3());
+    else if ('x' in value) {
       this.value = getVVector(value);
     } else {
       if (value.rows !== 3 || value.columns !== 3)

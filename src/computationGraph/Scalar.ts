@@ -28,14 +28,35 @@ export abstract class ScalarBase {
     return new Scalar(
       () => {
         const lhs = this.value; // (1x1)
-        const rhs = isNumber(other) ? Matrix.eye(1, 1).mul(other) : other.value; // (1x1)
+        const rhs = isNumber(other) ? other : other.scalarValue; // (1x1)
         return {
-          value: lhs.mmul(rhs),
-          diff: (mat?: Matrix) => {
-            if (!mat) mat = Matrix.eye(1, 1);
-            if (!isConstant(this)) this.diff(mat.mmul(rhs));
+          value: lhs.clone().mul(rhs),
+          diff: (mat: Matrix) => {
+            if (!isConstant(this)) this.diff(mat.clone().mul(rhs));
             if (!isNumber(other) && !isConstant(other))
               other.diff(mat.mmul(lhs));
+          }
+        };
+      },
+      () => {
+        this.reset();
+        if (!isNumber(other) && !isConstant(other)) other.reset();
+      }
+    );
+  }
+
+  div(other: IScalar | number) {
+    return new Scalar(
+      () => {
+        const lhs = this.value; // (1x1)
+        const rhs = isNumber(other) ? other : other.scalarValue; // (1x1)
+        const rhs2 = rhs ** 2;
+        return {
+          value: lhs.clone().mul(1 / rhs),
+          diff: (mat: Matrix) => {
+            if (!isConstant(this)) this.diff(mat.clone().mul(1 / rhs));
+            if (!isNumber(other) && !isConstant(other))
+              other.diff(mat.mmul(lhs).mul(-1 / rhs2));
           }
         };
       },
@@ -53,8 +74,7 @@ export abstract class ScalarBase {
         const rhs = isNumber(other) ? Matrix.eye(1, 1).mul(other) : other.value; // (1x1)
         return {
           value: lhs.add(rhs),
-          diff: (mat?: Matrix) => {
-            if (!mat) mat = Matrix.eye(1, 1);
+          diff: (mat: Matrix) => {
             if (!isConstant(this)) this.diff(mat);
             if (!isNumber(other) && !isConstant(other)) other.diff(mat);
           }
@@ -74,8 +94,7 @@ export abstract class ScalarBase {
         const rhs = isNumber(other) ? Matrix.eye(1, 1).mul(other) : other.value; // (1x1)
         return {
           value: lhs.sub(rhs),
-          diff: (mat?: Matrix) => {
-            if (!mat) mat = Matrix.eye(1, 1);
+          diff: (mat: Matrix) => {
             if (!isConstant(this)) this.diff(mat);
             if (!isNumber(other) && !isConstant(other))
               other.diff(mat.clone().mul(-1));

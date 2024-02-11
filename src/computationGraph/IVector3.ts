@@ -11,6 +11,9 @@ export interface IVector3 extends IComputationNode {
 
   add(other: IVector3): IVector3;
   sub(other: IVector3): IVector3;
+
+  length(): IScalar;
+  normalize(): IVector3;
 }
 
 export function isVector3(node: IComputationNode): node is IVector3 {
