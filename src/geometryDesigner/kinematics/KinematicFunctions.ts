@@ -14,7 +14,7 @@ import {isLinearBushing} from '@gd/IElements/ILinearBushing';
 import {isTorsionSpring} from '@gd/IElements/ITorsionSpring';
 import {INamedVector3RO} from '@gd/INamedValues';
 import {Matrix} from 'ml-matrix';
-import {Quaternion, Vector3} from 'three';
+import {Vector3} from 'three';
 import {getDgd} from '@store/getDgd';
 import {
   FullDegreesComponent,
@@ -24,85 +24,107 @@ import {TireRestorer} from '@gd/kinematics/Restorer';
 import {ITireData} from '@tire/ITireData';
 import {IScalar} from '@computationGraph/IScalar';
 import {IVector3} from '@computationGraph/IVector3';
-import {ConstantVector3} from '@computationGraph/Vector3';
+import {ConstantVector3, Vector3 as CVector3} from '@computationGraph/Vector3';
+import {IMatrix} from '@computationGraph/IMatrix';
+import {Matrix as CMatrix} from '@computationGraph/Matrix';
 import {VariableQuaternion} from '@computationGraph/VariableQuaternion';
 
-const I = Matrix.eye(3, 3);
-
-// チルダマトリックスを取得
-export function skew(v: {x: number; y: number; z: number} | Matrix) {
-  if ('x' in v) {
-    return new Matrix([
-      [0, -v.z, v.y],
-      [v.z, 0, -v.x],
-      [-v.y, v.x, 0]
-    ]);
-  }
-  const x = v.get(0, 0);
-  const y = v.get(1, 0);
-  const z = v.get(2, 0);
-  return new Matrix([
-    [0, -z, y],
-    [z, 0, -x],
-    [-y, x, 0]
-  ]);
-}
-
-export function saDiff(
+export function getFriction(
   data: ITireData,
-  params: {sa: number; sl: number; ia: number; fz: number}
-) {
-  const diff = data.saDiff(params);
-  return getVVector({x: diff.fx, y: diff.fy, z: 0});
-}
+  sa: IScalar,
+  sl: IScalar,
+  ia: IScalar,
+  fz: IScalar
+): {friction: IVector3; mz: IVector3} {
+  const reset = () => {
+    sa.reset();
+    ia.reset();
+    fz.reset();
+    sl.reset();
+  };
+  const friction = new CVector3(() => {
+    const saV = sa.scalarValue;
+    const iaV = ia.scalarValue;
+    const fzV = fz.scalarValue;
+    const slV = sl.scalarValue;
+    const params = {sa: saV, ia: iaV, fz: fzV, sl: slV};
+    const friction = data.friction(params);
+    return {
+      value: getVVector(friction), // (1x1)
+      diff: (fromLhs: Matrix) => {
+        sa.diff(fromLhs.clone().mmul(getVVector(data.dF_dSa(params))));
+        sl.diff(fromLhs.clone().mmul(getVVector(data.dF_dSl(params))));
+        ia.diff(fromLhs.clone().mmul(getVVector(data.dF_dIa(params))));
+        fz.diff(fromLhs.clone().mmul(getVVector(data.dF_dFz(params))));
+      }
+    };
+  }, reset);
 
-export function iaDiff(
-  data: ITireData,
-  params: {sa: number; sl: number; ia: number; fz: number}
-) {
-  const diff = data.iaDiff(params);
-  return getVVector({x: diff.fx, y: diff.fy, z: 0});
-}
+  const mz = new CVector3(() => {
+    const saV = sa.scalarValue;
+    const iaV = ia.scalarValue;
+    const fzV = fz.scalarValue;
+    const slV = sl.scalarValue;
+    const params = {sa: saV, ia: iaV, fz: fzV, sl: slV};
+    const mz = data.mz(params);
+    return {
+      value: getVVector(new Vector3(0, 0, mz)), // (1x1)
+      diff: (fromLhs: Matrix) => {
+        sa.diff(fromLhs.clone().mul(data.dMz_dSa(params)));
+        sl.diff(fromLhs.clone().mul(data.dMz_dSl(params)));
+        ia.diff(fromLhs.clone().mul(data.dMz_dIa(params)));
+        fz.diff(fromLhs.clone().mul(data.dMz_dFz(params)));
+      }
+    };
+  }, reset);
 
-export function fzDiff(
-  data: ITireData,
-  params: {sa: number; sl: number; ia: number; fz: number}
-) {
-  const diff = data.fzDiff(params);
-  return getVVector({x: diff.fx, y: diff.fy, z: 0});
-}
-
-// k=U/|U| として、δk=XδU のXを返す。
-export function normalizedVectorDiff(u: Vector3): Matrix {
-  const abs = u.length();
-  const u3 = abs ** 3;
-  const u2 = abs ** 2;
-  const U = getVVector(u);
-  const UUt = U.mmul(U.clone().transpose());
-  const u2I = I.clone().mul(u2);
-  const temp = u2I.sub(UUt);
-  const d = temp.mul(1 / u3);
-  return d;
-}
-
-// k=|u| として、δk=Xδu のXを返す。
-export function normVectorDiff(u: Vector3): Matrix {
-  const abs = u.length();
-  const uT = getVVector(u).transpose();
-  return uT.mul(1 / abs);
+  return {friction, mz};
 }
 
 // タイヤの軸に垂直で、地面に平行な前方向ベクトルkから、回転行列を作成
-export function getFrictionRotation(normalizedFrontVector: Vector3): Matrix {
-  const k = normalizedFrontVector;
-  // const q = new Quaternion().setFromUnitVectors(new Vector3(1, 0, 0), k);
-  return new Matrix([
-    [k.x, -k.y, 0],
-    [k.y, k.x, 0],
+export function getFrictionRotation(normalizedParallel: IVector3): IMatrix {
+  const dPhi_dkx = new Matrix([
+    [1, 0, 0],
+    [0, 1, 0],
     [0, 0, 0]
   ]);
+
+  const dPhi_dky = new Matrix([
+    [0, -1, 0],
+    [1, 0, 0],
+    [0, 0, 0]
+  ]);
+
+  const x = new Matrix([[1, 0, 0]]);
+  const y = new Matrix([[0, 1, 0]]);
+
+  return new CMatrix(
+    () => {
+      const k = normalizedParallel.vector3Value;
+      return {
+        value: new Matrix([
+          [k.x, -k.y, 0],
+          [k.y, k.x, 0],
+          [0, 0, 0]
+        ]),
+        diff: (fromLhs: Matrix, fromRhs?: Matrix) => {
+          if (!fromRhs) throw new Error('ベクトルが必要');
+          if (fromRhs.rows !== 3 || fromRhs.columns !== 1)
+            throw new Error('Vector3じゃない');
+          const lhs = fromLhs.mmul(dPhi_dkx).mmul(fromRhs).mmul(x); // (3x3)
+          const rhs = fromLhs.mmul(dPhi_dky).mmul(fromRhs).mmul(y); // (3x3)
+          const dPhi_dk = lhs.clone().add(rhs);
+          normalizedParallel.diff(dPhi_dk);
+        }
+      };
+    },
+    () => {
+      normalizedParallel.reset();
+    }
+  );
 }
 
+/*
 // FrictionRotationMatrix φ に対して、δφ F
 // φはkベクトルの関数とする
 export function frictionRotationDiff(
@@ -133,12 +155,12 @@ export function frictionRotationDiff(
   const rhs = dPhi_dkyF.mmul(dky); // (3xn)
 
   return lhs.add(rhs);
-}
+} */
 
-export function asinDiff(sin: number): number {
+/* export function asinDiff(sin: number): number {
   return 180 / (Math.sqrt(1 - sin ** 2) * Math.PI);
   // return Math.PI / (Math.sqrt(1 - sin ** 2) * 180);
-}
+} */
 
 declare module 'ml-matrix' {
   // matrixにsubmatrixAddを追加
@@ -192,7 +214,7 @@ Matrix.prototype.subMatrixSub = function (
   );
 };
 
-export function getDeltaOmega(
+/* export function getDeltaOmega(
   v: Vector3,
   omega: Vector3,
   omegaSkew: Matrix,
@@ -204,7 +226,7 @@ export function getDeltaOmega(
   const lhs = skew(v.clone().add(v2));
   const rhs = omegaSkew.mmul(cogVehicleSkew);
   return rhs.add(lhs).mul(mass);
-}
+} */
 
 // 縦ベクトルを得る
 export function getVVector(v: {x: number; y: number; z: number}) {
@@ -219,6 +241,7 @@ export function getVector3(v: Matrix) {
   return new Vector3(x, y, z);
 }
 
+/*
 // 回転行列を取得
 export function rotationMatrix(q: Quaternion) {
   const e0 = q.w;
@@ -268,10 +291,10 @@ export function decompositionMatrixE(q: Quaternion) {
     [-e2, e3, e0, -e1],
     [-e3, -e2, e1, e0]
   ]);
-}
+} */
 
 // 回転行列をQで偏微分したものを求める。
-export function getPartialDiffOfRotationMatrix(
+/* export function getPartialDiffOfRotationMatrix(
   q: Quaternion,
   v: Vector3
 ): Matrix {
@@ -280,7 +303,7 @@ export function getPartialDiffOfRotationMatrix(
   const G = decompositionMatrixG(q);
 
   return A.mul(-2).mmul(s).mmul(G);
-}
+} */
 
 // 二つのマトリックスを比較
 export function equal(
@@ -587,7 +610,7 @@ export function getSimplifiedTireConstrainsParams(
 
 // 簡素化されたタイヤの親コンポーネントと、
 // 最近傍点の親コンポーネント基準の位置ベクトルを得る
-export function getSimplifiedTireConstrainsParamsOld(
+/* export function getSimplifiedTireConstrainsParamsOld(
   element: ITire,
   jointDict: JointDict,
   tempComponents: {[index: string]: FullDegreesComponent},
@@ -742,7 +765,7 @@ export function getSimplifiedTireConstrainsParamsOld2(
   const pLocal = point.value.multiplyScalar(scale).applyQuaternion(dq).add(dp);
   const func = () => ({r: pLocal, dr_dQ: new Matrix(3, 4)});
   return {pComponent, groundLocalVec: func, pComponentNodeID: parent.nodeID};
-}
+} */
 
 // Jointから一つPFComponentを得る
 export function getPFComponent(

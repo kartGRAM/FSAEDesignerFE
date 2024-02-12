@@ -1,4 +1,7 @@
 import {Matrix} from 'ml-matrix';
+import {IScalar} from './IScalar';
+import {Scalar} from './Scalar';
+import {isConstant} from './IConstant';
 
 export type Vector3Like = {x: number; y: number; z: number};
 export type QuaternionLike = {w: number; x: number; y: number; z: number};
@@ -102,4 +105,22 @@ export function normVectorDiff(u: Vector3Like): Matrix {
   const abs = Math.sqrt(u.x * u.x + u.y * u.y + u.z * u.z);
   const uT = getVVector(u).transpose();
   return uT.mul(1 / abs);
+}
+
+export function asin( value: IScalar ){
+    return new Scalar(
+      () => {
+        const lhs = value.scalarValue; // (1x1)
+        const coef = 1 / (Math.sqrt(1 - lhs ** 2));
+        return {
+          value: Matrix.eye(1,1).mul(Math.asin(lhs)),
+          diff: (mat: Matrix) => {
+            if (!isConstant(value)) value.diff(mat.clone().mul(coef));
+          }
+        };
+      },
+      () => {
+        value.reset();
+      }
+    );
 }

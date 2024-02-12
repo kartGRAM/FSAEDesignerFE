@@ -9,7 +9,7 @@ export class VariableVector3
   extends Vector3Base
   implements IVector3, IVariable
 {
-  readonly isVector3 = true;
+  readonly isCVector3 = true;
 
   _value: Matrix;
 

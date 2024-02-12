@@ -2,6 +2,7 @@
 import {Matrix} from 'ml-matrix';
 import * as Three from 'three';
 import {isNumber} from '@utils/helpers';
+import {isVector3 as isThreeVector3} from '@utils/three';
 import {RetType} from './IComputationNode';
 import {IVector3} from './IVector3';
 import {IScalar} from './IScalar';
@@ -16,7 +17,7 @@ import {
 } from './Functions';
 
 export abstract class Vector3Base {
-  readonly isVector3 = true;
+  readonly isCVector3 = true;
 
   abstract get value(): Matrix;
 
@@ -56,24 +57,25 @@ export abstract class Vector3Base {
     );
   }
 
-  dot(other: IVector3) {
+  dot(other: IVector3 | Three.Vector3) {
     return new Scalar(
       () => {
         const lhs = this.value; // (3x1)
-        const rhs = other.value; // (3x1)
+        const rhs = isThreeVector3(other) ? getVVector(other) : other.value; // (3x1)
         const lhsT = lhs.transpose(); // (1x3)
         const rhsT = rhs.transpose(); // (1x3)
         return {
           value: lhs.transpose().mmul(rhs), // (1x1)
           diff: (mat: Matrix) => {
             if (!isConstant(this)) this.diff(mat.mmul(rhsT)); // (1x3)
-            if (!isConstant(other)) other.diff(mat.mmul(lhsT)); // (1x3)
+            if (!isThreeVector3(other) && !isConstant(other))
+              other.diff(mat.mmul(lhsT)); // (1x3)
           }
         };
       },
       () => {
         this.reset();
-        if (!isConstant(other)) other.reset();
+        if (!isThreeVector3(other) && !isConstant(other)) other.reset();
       }
     );
   }
