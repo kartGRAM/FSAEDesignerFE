@@ -5,6 +5,22 @@ import {Matrix} from 'ml-matrix';
 import {Vector3, Quaternion} from 'three';
 import {IElement} from '@gd/IElements';
 import {Constraint, ConstraintsOptions} from '@gd/kinematics/IConstraint';
+import {IScalar} from '@computationGraph/IScalar';
+import {IVector3} from '@computationGraph/IVector3';
+import {VariableVector3} from '@computationGraph/VariableVector3';
+import {VariableScalar} from '@computationGraph/VariableScalar';
+import {ConstantVector3} from '@computationGraph/Vector3';
+import {VariableQuaternion} from '@computationGraph/VariableQuaternion';
+import {ConstantScalar} from '@computationGraph/ConstantScalar';
+import {TireBalance} from './TireBalance';
+import {Balance} from '../SkidpadConstraints';
+import {
+  IComponent,
+  IVariable,
+  FullDegreesComponent,
+  PointForce,
+  GeneralVariable
+} from '../KinematicComponents';
 import {
   skew,
   rotationMatrix,
@@ -13,23 +29,13 @@ import {
   // deltaXcross,
   getVVector
 } from '../KinematicFunctions';
-import {
-  IComponent,
-  IVariable,
-  FullDegreesComponent,
-  PointForce,
-  GeneralVariable
-} from '../KinematicComponents';
-import {Balance} from '../SkidpadConstraints';
-import {TireBalance} from './TireBalance';
 
 const X = 0;
 const Y = 1;
 const Z = 2;
 const Q0 = 3;
 
-const unitZ = getVVector(new Vector3(0, 0, 1));
-const unitZT = unitZ.transpose();
+const normal = new ConstantVector3(new Vector3(0, 0, 1));
 
 export class FDComponentBalance implements Constraint, Balance {
   readonly className = 'FDComponentBalance';
@@ -61,21 +67,27 @@ export class FDComponentBalance implements Constraint, Balance {
 
   pfs: PointForce[];
 
-  cogLocalVec: Vector3;
+  omegaComponent: GeneralVariable;
 
-  cogLocalSkew: Matrix;
+  vO: ConstantVector3; // m/s
 
-  pointLocalVec: Vector3[];
+  p: VariableVector3;
 
-  pointLocalSkew: Matrix[];
+  q: VariableQuaternion;
+
+  f: VariableVector3[];
+
+  omega: VariableScalar;
+
+  forceError: IVector3;
+
+  momentError: IVector3;
 
   g: Vector3;
 
-  mass: number;
+  getVO: () => Vector3;
 
-  vO: () => Vector3;
-
-  omega: GeneralVariable;
+  c: IVector3;
 
   pfCoefs: number[]; // ジョイント部分のローカルベクトルのノードID 作用反作用で定義
 
@@ -97,160 +109,108 @@ export class FDComponentBalance implements Constraint, Balance {
     this.name = params.name;
     this.element = params.element;
     this.component = params.component;
-    this.mass = params.mass;
-    this.vO = params.vO;
-    this.omega = params.omega;
-    this.g = new Vector3(0, 0, -9810 * this.component.scale);
+    this.omegaComponent = params.omega;
+    this.getVO = params.vO;
     this.pfs = [...params.pointForceComponents];
     this.pfCoefs = this.pfs.map((pf, i) => pf.sign(params.pfsPointNodeIDs[i]));
-
     this.conectedTireBalance = params.connectedTireBalance;
+    this.relevantVariables = [this.component, this.omegaComponent, ...this.pfs];
 
-    this.relevantVariables = [this.component, this.omega, ...this.pfs];
+    // 変数宣言
+    this.p = new VariableVector3();
+    this.q = new VariableQuaternion();
+    this.f = this.pfs.map(() => new VariableVector3());
+    this.omega = new VariableScalar();
+    this.vO = new ConstantVector3(this.getVO());
 
-    this.cogLocalVec = params.cog.clone().multiplyScalar(this.component.scale);
-    this.cogLocalSkew = skew(this.cogLocalVec).mul(-2);
+    // 計算グラフ構築
+    const {scale} = this.component;
+    this.pfCoefs = this.pfs.map((pf, i) => pf.sign(params.pfsPointNodeIDs[i]));
+    const {mass} = params;
 
-    this.pointLocalVec = params.points.map((p) =>
-      p.clone().multiplyScalar(this.component.scale)
+    const localVec = params.points.map(
+      (p) => new ConstantVector3(p.clone().multiplyScalar(scale))
     );
-    this.pointLocalSkew = this.pointLocalVec.map((p) => skew(p).mul(-2));
+
+    const A = this.q.getRotationMatrix();
+    const ptsQ = localVec.map((s, i) => A.vmul(s));
+
+    // 重心を求める
+    const cog = new ConstantVector3(params.cog.clone().multiplyScalar(scale));
+    const cogQ = A.vmul(cog);
+    const pCog = cogQ.add(this.p);
+    const omega = normal.mul(this.omega);
+
+    // 重力
+    this.g = new Vector3(0, 0, -9810 * scale).multiplyScalar(mass);
+    const g = new ConstantVector3(this.g);
+    // 原点の遠心力
+    const cO = omega.cross(this.vO).mul(-1);
+    // 重心にかかる遠心力
+    this.c = omega.cross(omega.cross(pCog)).mul(-1).add(cO).mul(mass);
+
+    // 慣性力
+    const ma = g.add(this.c);
+
+    // 力のつり合い
+    this.forceError = this.f
+      .reduce((prev: IVector3, current, i) => {
+        const f = current.mul(this.pfCoefs[i]);
+        return prev.add(f);
+      }, new ConstantVector3())
+      .add(ma);
+
+    // モーメントのつり合い
+    this.momentError = this.f
+      .reduce((prev: IVector3, current, i) => {
+        const f = current.mul(this.pfCoefs[i]);
+        const s = ptsQ[i];
+        return prev.add(f.cross(s));
+      }, new ConstantVector3())
+      .add(ma.cross(cogQ));
   }
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
-    const {
-      row,
-      component,
-      pfs,
-      pfCoefs,
-      cogLocalVec,
-      cogLocalSkew,
-      pointLocalVec,
-      pointLocalSkew,
-      g
-    } = this;
+    const {row, component: c, pfs, g} = this;
 
-    // 車両座標系そのものの角速度と速度と遠心力
-    const omega = new Vector3(0, 0, this.omega.value); // 角速度
-    const omegaSkew = skew(omega); // 角速度のSkewMatrix
-    const omegaSkew2 = omegaSkew.mmul(omegaSkew); // 角速度のSkewMatrix
-    const vO = this.vO(); // 車速
-    const cO = omega.clone().cross(vO).multiplyScalar(-1); // 車両座標系にかかる原点の遠心力
-    const q = component.quaternion; // 注目している部品の姿勢
-
-    const pQ = pointLocalVec.map((p) => p.clone().applyQuaternion(q));
-    const pSkewQ = pQ.map((p) => skew(p));
-
-    // 部品の部品座標系での重心
-    const cogQ = cogLocalVec.clone().applyQuaternion(q);
-    const pCog = cogQ.clone().add(component.position);
-    const cogSkewQ = skew(cogQ);
-    const cogSkewP = skew(pCog);
-    // 部品にかかる遠心力
-    const c = omega
-      .clone()
-      .cross(omega.clone().cross(pCog))
-      .multiplyScalar(-1)
-      .add(cO);
-    const ma = g.clone().add(c).multiplyScalar(this.mass); // 遠心力＋重力
-    const maSkew = skew(ma);
-
-    // タイヤが接続されていればその駆動力の反モーメントを受け取る
-    /* const driveMomentAndDiffs = this.conectedTireBalance.map((tb) =>
-      tb.getDriveMoment()
-    ); */
+    // 値の設定
+    this.vO.setValue(this.getVO());
+    this.p.setValue(c.position);
+    this.q.setValue(c.quaternion);
+    this.pfs.forEach((pf, i) => {
+      this.f[i].setValue(pf.force);
+    });
+    this.omega.setValue(this.omegaComponent.value);
 
     // 力のつり合い
-    const translation = pfs
-      .reduce((prev, current, i) => {
-        const f = current.force.clone().multiplyScalar(pfCoefs[i]);
-        prev.add(f);
-        return prev;
-      }, new Vector3())
-      .add(ma);
-
-    // モーメントつり合い
-    // 変分の方程式がわかりやすくなるようにあえて、力x距離にする
-    const rotation = pfs
-      .reduce((prev, current, i) => {
-        const f = current.force.clone().multiplyScalar(pfCoefs[i]).cross(pQ[i]);
-        prev.add(f);
-        return prev;
-      }, new Vector3())
-      .add(ma.clone().cross(cogQ));
-    /* driveMomentAndDiffs.forEach((dm) => {
-      rotation.sub(dm.mX);
-    }); */
-
-    // 方程式のつり合い
-    phi[row + X] = translation.x;
-    phi[row + Y] = translation.y;
-    phi[row + Z] = translation.z;
-    phi[row + X + 3] = rotation.x;
-    phi[row + Y + 3] = rotation.y;
-    phi[row + Z + 3] = rotation.z;
-
-    const {col} = component;
-
-    // ヤコビアンの導出
-    const A = rotationMatrix(q);
-    const G = decompositionMatrixG(q);
-    const colOmega = this.omega.col;
-    // 力のつり合いのヤコビアン
-
-    // df
-    const df = Matrix.eye(3, 3);
-    pfs.forEach((pf, i) => {
-      phi_q.subMatrixAdd(df.clone().mul(pfCoefs[i]), row + X, pf.col + X);
+    this.forceError.reset();
+    const translation = this.forceError.vector3Value;
+    phi[row + 0] = translation.x;
+    phi[row + 1] = translation.y;
+    phi[row + 2] = translation.z;
+    // ヤコビアン設定
+    this.forceError.diff(Matrix.eye(3, 3));
+    this.p.setJacobian(phi_q, row, c.col + X);
+    this.q.setJacobian(phi_q, row, c.col + Q0);
+    this.pfs.forEach((pf, i) => {
+      this.f[i].setJacobian(phi_q, row, pf.col + X);
     });
+    this.omega.setJacobian(phi_q, row, this.omegaComponent.col);
 
-    // dP
-    const dP1 = omegaSkew2.clone().mul(-this.mass);
-    phi_q.subMatrixAdd(dP1, row, col + X);
-
-    // dQ
-    const dTheta1 = omegaSkew2.mmul(A).mmul(cogLocalSkew).mul(-this.mass);
-    phi_q.subMatrixAdd(dTheta1.mmul(G), row, col + Q0);
-
-    // dω
-    const dOmega1 = getDeltaOmega(
-      vO,
-      omega,
-      omegaSkew,
-      pCog,
-      cogSkewP,
-      this.mass
-    ).mmul(unitZ); // (3x1)
-    phi_q.subMatrixAdd(dOmega1, row, colOmega);
-
-    // モーメントの部分のヤコビアン
-    // dF
-    pfs.forEach((pf, i) => {
-      const df = pSkewQ[i].clone().mul(-pfCoefs[i]);
-      phi_q.subMatrixAdd(df, row + 3, pf.col + X);
+    // モーメントのつり合い
+    this.momentError.reset();
+    const rotation = this.momentError.vector3Value;
+    phi[row + 3] = rotation.x;
+    phi[row + 4] = rotation.y;
+    phi[row + 5] = rotation.z;
+    // ヤコビアン設定
+    this.momentError.diff(Matrix.eye(3, 3));
+    this.p.setJacobian(phi_q, row + 3, c.col + X);
+    this.q.setJacobian(phi_q, row + 3, c.col + Q0);
+    this.pfs.forEach((pf, i) => {
+      this.f[i].setJacobian(phi_q, row + 3, pf.col + X);
     });
-
-    // dP
-    const dP2 = cogSkewQ.mmul(dP1).mul(-1);
-    phi_q.subMatrixAdd(dP2, row + 3, col + X);
-
-    // dQ
-    const dTheta2 = new Matrix(3, 3);
-    pfs.forEach((pf, i) => {
-      // theta部分の微分
-      const dThetabyF = skew(pf.force)
-        .mmul(A)
-        .mmul(pointLocalSkew[i])
-        .mul(pfCoefs[i]);
-      dTheta2.add(dThetabyF);
-    });
-    dTheta2.add(maSkew.mmul(A).mmul(cogLocalSkew));
-    dTheta2.add(cogSkewQ.mmul(dTheta1).mul(-1));
-    phi_q.subMatrixAdd(dTheta2.mmul(G), row + 3, col + Q0);
-
-    // dω
-    const dOmega2 = cogSkewQ.mmul(dOmega1).mul(-1);
-    phi_q.subMatrixAdd(dOmega2, row + 3, colOmega);
+    this.omega.setJacobian(phi_q, row + 3, this.omegaComponent.col);
 
     /* driveMomentAndDiffs.forEach((dm) => {
       const {
