@@ -13,8 +13,7 @@ import {
 import {JointAsVector3} from '@gd/IElements/IAssembly';
 import {isAArm} from '@gd/IElements/IAArm';
 import {isBar} from '@gd/IElements/IBar';
-import {IBody, isBody} from '@gd/IElements/IBody';
-
+import {IBody} from '@gd/IElements/IBody';
 import {isTire} from '@gd/IElements/ITire';
 import {isSpringDumper} from '@gd/IElements/ISpringDumper';
 import {isLinearBushing} from '@gd/IElements/ILinearBushing';
@@ -32,6 +31,7 @@ import {Twin} from '@utils/atLeast';
 import {getTire} from '@tire/listTireData';
 import {Constraint, ConstraintsOptions} from '@gd/kinematics/IConstraint';
 import {ConstantVector3} from '@computationGraph/Vector3';
+import {ConstantScalar} from '@computationGraph/ConstantScalar';
 import {
   getJointDictionary,
   canSimplifyAArm,
@@ -41,11 +41,8 @@ import {
   getJointsToOtherComponents,
   getNamedVector3FromJoint,
   getSimplifiedTireConstrainsParams,
-  getSimplifiedTireConstrainsParamsOld,
   elementIsComponent,
-  saDiff,
-  iaDiff,
-  fzDiff,
+  getTireFriction,
   getPFComponent
 } from './KinematicFunctions';
 import {
@@ -475,13 +472,13 @@ export class SkidpadSolver implements ISolver {
               pComponent: component,
               groundLocalVec,
               pComponentNodeID: componentID
-            } = getSimplifiedTireConstrainsParamsOld(
+            } = getSimplifiedTireConstrainsParams(
               element,
               jointDict,
               tempComponents,
               'nearestNeighbor'
             );
-            const normal = new Vector3(0, 0, 1);
+            const normal = new ConstantVector3(new Vector3(0, 0, 1));
             const tire = getTire(config.tireData[element.nodeID] ?? '');
 
             const tireBalance = new TireBalance({
@@ -502,21 +499,13 @@ export class SkidpadSolver implements ISolver {
               torqueRatio:
                 config.tireTorqueRatio[element.nodeID] / torqueRatioSum,
               getFriction: (sa, ia, fz) => {
+                const sl = new ConstantScalar(0);
                 // 要修正
-                const {fx, fy} = tire.get({sa, sl: 0, fz, ia});
-                return new Vector3(fx, fy, 0);
-              },
-              getFrictionDiff: (sa, ia, fz) => {
-                // 要修正
-                const params = {sa, sl: 0, fz, ia};
-                return {
-                  saDiff: saDiff(tire, params),
-                  iaDiff: iaDiff(tire, params),
-                  fzDiff: fzDiff(tire, params)
-                };
+                const {friction} = getTireFriction(tire, sa, sl, ia, fz);
+                return friction;
               },
               error,
-              ground: () => groundLocalVec(normal)
+              getGround: (q) => groundLocalVec(normal, new ConstantScalar(0), q)
             });
 
             if (!tireBalances[componentID]) tireBalances[componentID] = [];

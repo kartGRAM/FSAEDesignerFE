@@ -14,7 +14,7 @@ import {isLinearBushing} from '@gd/IElements/ILinearBushing';
 import {isTorsionSpring} from '@gd/IElements/ITorsionSpring';
 import {INamedVector3RO} from '@gd/INamedValues';
 import {Matrix} from 'ml-matrix';
-import {Vector3} from 'three';
+import {Vector3, Quaternion} from 'three';
 import {getDgd} from '@store/getDgd';
 import {
   FullDegreesComponent,
@@ -29,7 +29,7 @@ import {IMatrix} from '@computationGraph/IMatrix';
 import {Matrix as CMatrix} from '@computationGraph/Matrix';
 import {VariableQuaternion} from '@computationGraph/VariableQuaternion';
 
-export function getFriction(
+export function getTireFriction(
   data: ITireData,
   sa: IScalar,
   sl: IScalar,
@@ -214,7 +214,7 @@ Matrix.prototype.subMatrixSub = function (
   );
 };
 
-/* export function getDeltaOmega(
+export function getDeltaOmega(
   v: Vector3,
   omega: Vector3,
   omegaSkew: Matrix,
@@ -226,7 +226,7 @@ Matrix.prototype.subMatrixSub = function (
   const lhs = skew(v.clone().add(v2));
   const rhs = omegaSkew.mmul(cogVehicleSkew);
   return rhs.add(lhs).mul(mass);
-} */
+}
 
 // 縦ベクトルを得る
 export function getVVector(v: {x: number; y: number; z: number}) {
@@ -241,7 +241,6 @@ export function getVector3(v: Matrix) {
   return new Vector3(x, y, z);
 }
 
-/*
 // 回転行列を取得
 export function rotationMatrix(q: Quaternion) {
   const e0 = q.w;
@@ -291,10 +290,29 @@ export function decompositionMatrixE(q: Quaternion) {
     [-e2, e3, e0, -e1],
     [-e3, -e2, e1, e0]
   ]);
-} */
+}
+
+// チルダマトリックスを取得
+export function skew(v: {x: number; y: number; z: number} | Matrix) {
+  if ('x' in v) {
+    return new Matrix([
+      [0, -v.z, v.y],
+      [v.z, 0, -v.x],
+      [-v.y, v.x, 0]
+    ]);
+  }
+  const x = v.get(0, 0);
+  const y = v.get(1, 0);
+  const z = v.get(2, 0);
+  return new Matrix([
+    [0, -z, y],
+    [z, 0, -x],
+    [-y, x, 0]
+  ]);
+}
 
 // 回転行列をQで偏微分したものを求める。
-/* export function getPartialDiffOfRotationMatrix(
+export function getPartialDiffOfRotationMatrix(
   q: Quaternion,
   v: Vector3
 ): Matrix {
@@ -303,7 +321,7 @@ export function decompositionMatrixE(q: Quaternion) {
   const G = decompositionMatrixG(q);
 
   return A.mul(-2).mmul(s).mmul(G);
-} */
+}
 
 // 二つのマトリックスを比較
 export function equal(

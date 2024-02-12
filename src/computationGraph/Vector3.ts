@@ -214,8 +214,6 @@ export class ConstantVector3
   extends Vector3Base
   implements IVector3, IConstant
 {
-  readonly isVector3 = true;
-
   readonly isConstant = true;
 
   value: Matrix;

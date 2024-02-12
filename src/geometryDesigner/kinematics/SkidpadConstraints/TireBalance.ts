@@ -283,6 +283,11 @@ export class TireBalance implements Constraint, Balance {
     this.omega.setValue(this.omegaComponent.value);
     this.error.setValue(this.errorComponent.value);
 
+    this.fz.reset();
+    if (this.fz.vector3Value.z < 0) {
+      throw new Error('Fzが負:インリフトした');
+    }
+
     // 力のつり合い
     this.forceError.reset();
     const translation = this.forceError.vector3Value;
@@ -301,7 +306,7 @@ export class TireBalance implements Constraint, Balance {
     // モーメントのつり合い
     this.momentError.reset();
     const rotation = this.momentError.vector3Value;
-    this.momentError.diff(Matrix.eye(2, 3));
+    this.momentError.diff(Matrix.eye(3, 3));
     phi[row + 2 + X] = rotation.x;
     phi[row + 2 + Y] = rotation.y;
     phi[row + 2 + Z] = rotation.z;
