@@ -1,19 +1,18 @@
-type longitudinalForce = number; // Fx
-type lateralForce = number; // Fy
-type torque = number;
-
-export type TireRes = {
-  fx: longitudinalForce;
-  fy: lateralForce;
-  mz: torque;
-};
+import {Vector3} from 'three';
 
 export interface ITireData {
   readonly nodeID: string;
   name: string;
   description: string;
-  get(params: {sa: number; sl: number; ia: number; fz: number}): TireRes;
-  saDiff(params: {sa: number; sl: number; ia: number; fz: number}): TireRes;
-  fzDiff(params: {sa: number; sl: number; ia: number; fz: number}): TireRes;
-  iaDiff(params: {sa: number; sl: number; ia: number; fz: number}): TireRes;
+  friction(params: {sa: number; sl: number; ia: number; fz: number}): Vector3;
+  dF_dSa(params: {sa: number; sl: number; ia: number; fz: number}): Vector3;
+  dF_dSl(params: {sa: number; sl: number; ia: number; fz: number}): Vector3;
+  dF_dIa(params: {sa: number; sl: number; ia: number; fz: number}): Vector3;
+  dF_dFz(params: {sa: number; sl: number; ia: number; fz: number}): Vector3;
+
+  mz(params: {sa: number; sl: number; ia: number; fz: number}): number;
+  dMz_dSa(params: {sa: number; sl: number; ia: number; fz: number}): number;
+  dMz_dSl(params: {sa: number; sl: number; ia: number; fz: number}): number;
+  dMz_dIa(params: {sa: number; sl: number; ia: number; fz: number}): number;
+  dMz_dFz(params: {sa: number; sl: number; ia: number; fz: number}): number;
 }

@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable class-methods-use-this */
-import {ITireData, TireRes} from '@tire/ITireData';
+import {ITireData} from '@tire/ITireData';
+import {Vector3} from 'three';
 
 export const defaultSlickTireNodeID = 'defaultSlickTire' as const;
 export class DefaultSlickTire implements ITireData {
@@ -9,24 +11,49 @@ export class DefaultSlickTire implements ITireData {
 
   description = 'デフォルトのスリックタイヤ';
 
-  // 0.36
-  get(params: {sa: number; sl: number; ia: number; fz: number}) {
+  friction(params: {sa: number; sl: number; ia: number; fz: number}) {
     const {sa, sl, ia, fz} = params;
-    return {fx: sl * fz * 0.4, fy: -sa * fz * 0.36, mz: 0 * ia};
+    return new Vector3(sl * fz * 0.4, -sa * fz * 0.36, 0);
   }
 
-  saDiff(params: {sa: number; sl: number; ia: number; fz: number}): TireRes {
-    const {fz} = params;
-    return {fx: 0, fy: -fz * 0.36, mz: 0};
+  dF_dSa(params: {sa: number; sl: number; ia: number; fz: number}) {
+    const {sa, sl, ia, fz} = params;
+    return new Vector3(0, -fz * 0.36, 0);
   }
 
-  fzDiff(params: {sa: number; sl: number; ia: number; fz: number}): TireRes {
-    const {sa, sl} = params;
-    return {fx: sl * 0.4, fy: -sa * 0.36, mz: 0};
+  dF_dSl(params: {sa: number; sl: number; ia: number; fz: number}) {
+    const {sa, sl, ia, fz} = params;
+    return new Vector3(fz * 0.4, 0, 0);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  iaDiff(params: {sa: number; sl: number; ia: number; fz: number}): TireRes {
-    return {fx: 0, fy: 0, mz: 0};
+  dF_dIa(params: {sa: number; sl: number; ia: number; fz: number}) {
+    const {sa, sl, ia, fz} = params;
+    return new Vector3(0, 0, 0);
+  }
+
+  dF_dFz(params: {sa: number; sl: number; ia: number; fz: number}) {
+    const {sa, sl, ia, fz} = params;
+    return new Vector3(sl * 0.4, -sa * 0.36, 0);
+  }
+
+  mz(params: {sa: number; sl: number; ia: number; fz: number}) {
+    const {sa, sl, ia, fz} = params;
+    return 0;
+  }
+
+  dMz_dSa(params: {sa: number; sl: number; ia: number; fz: number}): number {
+    return 0;
+  }
+
+  dMz_dSl(params: {sa: number; sl: number; ia: number; fz: number}): number {
+    return 0;
+  }
+
+  dMz_dIa(params: {sa: number; sl: number; ia: number; fz: number}): number {
+    return 0;
+  }
+
+  dMz_dFz(params: {sa: number; sl: number; ia: number; fz: number}): number {
+    return 0;
   }
 }

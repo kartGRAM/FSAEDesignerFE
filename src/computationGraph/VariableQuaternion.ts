@@ -9,7 +9,8 @@ import {
   getVQuaternion,
   QuaternionLike,
   rotationMatrix,
-  decompositionMatrixG
+  decompositionMatrixG,
+  decompositionMatrixE
 } from './Functions';
 import {IVariable} from './IVariable';
 
@@ -18,48 +19,75 @@ export class VariableQuaternion implements IQuaternion, IVariable {
 
   _value: QuaternionLike;
 
-  _diff: Matrix;
-
-  rows: number;
+  _diff: Matrix | undefined;
 
   setValue(value: QuaternionLike) {
+    this.reset();
     this._value = value;
   }
 
-  constructor(rows: number) {
+  reset() {
+    this._diff = undefined;
+  }
+
+  constructor() {
     this._value = new Quaternion();
-    this.rows = rows;
-    this._diff = new Matrix(rows, 4);
+    this._diff = undefined;
   }
 
   get value() {
-    this._diff = new Matrix(this.rows, 4);
     return getVQuaternion(this._value);
   }
 
   diff(fromLhs: Matrix): void {
-    this._diff.add(fromLhs);
+    if (!this._diff) this._diff = fromLhs.clone();
+    else this._diff.add(fromLhs);
   }
 
   setJacobian(phi_q: Matrix, row: number, col: number) {
+    if (!this._diff) throw new Error('diffが未計算');
     phi_q.subMatrixAdd(this._diff, row, col);
   }
 
   getRotationMatrix(): IMatrix {
-    return new CMatrix(() => {
-      const G = decompositionMatrixG(this._value);
-      const A = rotationMatrix(this._value);
-      return {
-        value: A,
-        diff: (fromLhs?: Matrix, fromRhs?: Matrix) => {
-          if (!fromRhs) throw new Error('ベクトルが必要');
-          if (fromRhs.rows !== 3 || fromRhs.columns !== 1)
-            throw new Error('Vector3じゃない');
-          const rSkew = skew(fromRhs);
-          const AsG = A.mmul(rSkew).mmul(G).mul(-2);
-          this.diff(fromLhs ? fromLhs.mmul(AsG) : AsG);
-        }
-      };
-    }, this.rows);
+    return new CMatrix(
+      () => {
+        const G = decompositionMatrixG(this._value);
+        const A = rotationMatrix(this._value);
+        return {
+          value: A,
+          diff: (fromLhs: Matrix, fromRhs?: Matrix) => {
+            if (!fromRhs) throw new Error('ベクトルが必要');
+            if (fromRhs.rows !== 3 || fromRhs.columns !== 1)
+              throw new Error('Vector3じゃない');
+            const rSkew = skew(fromRhs);
+            const AsG = A.mmul(rSkew).mmul(G).mul(-2);
+            this.diff(fromLhs.mmul(AsG));
+          }
+        };
+      },
+      () => this.reset()
+    );
+  }
+
+  getInvRotationMatrix(): IMatrix {
+    return new CMatrix(
+      () => {
+        const E = decompositionMatrixE(this._value);
+        const AT = rotationMatrix(this._value).transpose();
+        return {
+          value: AT,
+          diff: (fromLhs: Matrix, fromRhs?: Matrix) => {
+            if (!fromRhs) throw new Error('ベクトルが必要');
+            if (fromRhs.rows !== 3 || fromRhs.columns !== 1)
+              throw new Error('Vector3じゃない');
+            const rSkew = skew(fromRhs);
+            const ATsE = AT.mmul(rSkew).mmul(E).mul(2);
+            this.diff(fromLhs.mmul(ATsE));
+          }
+        };
+      },
+      () => this.reset()
+    );
   }
 }

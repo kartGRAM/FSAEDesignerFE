@@ -5,6 +5,7 @@ export interface ConstraintsOptions {
   disableForce?: boolean;
   disableTireFriction?: boolean;
   disableSpringElasticity?: boolean;
+  fixLinearBushing?: boolean;
   fixSpringDumpersAtCurrentPositions?: boolean;
 }
 

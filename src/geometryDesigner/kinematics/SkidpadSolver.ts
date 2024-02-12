@@ -13,8 +13,7 @@ import {
 import {JointAsVector3} from '@gd/IElements/IAssembly';
 import {isAArm} from '@gd/IElements/IAArm';
 import {isBar} from '@gd/IElements/IBar';
-import {IBody, isBody} from '@gd/IElements/IBody';
-
+import {IBody} from '@gd/IElements/IBody';
 import {isTire} from '@gd/IElements/ITire';
 import {isSpringDumper} from '@gd/IElements/ISpringDumper';
 import {isLinearBushing} from '@gd/IElements/ILinearBushing';
@@ -31,6 +30,8 @@ import {ISnapshot} from '@gd/analysis/ISnapshot';
 import {Twin} from '@utils/atLeast';
 import {getTire} from '@tire/listTireData';
 import {Constraint, ConstraintsOptions} from '@gd/kinematics/IConstraint';
+import {ConstantVector3} from '@computationGraph/Vector3';
+import {ConstantScalar} from '@computationGraph/ConstantScalar';
 import {
   getJointDictionary,
   canSimplifyAArm,
@@ -41,9 +42,7 @@ import {
   getNamedVector3FromJoint,
   getSimplifiedTireConstrainsParams,
   elementIsComponent,
-  saDiff,
-  iaDiff,
-  fzDiff,
+  getTireFriction,
   getPFComponent
 } from './KinematicFunctions';
 import {
@@ -479,7 +478,7 @@ export class SkidpadSolver implements ISolver {
               tempComponents,
               'nearestNeighbor'
             );
-            const normal = new Vector3(0, 0, 1);
+            const normal = new ConstantVector3(new Vector3(0, 0, 1));
             const tire = getTire(config.tireData[element.nodeID] ?? '');
 
             const tireBalance = new TireBalance({
@@ -500,21 +499,13 @@ export class SkidpadSolver implements ISolver {
               torqueRatio:
                 config.tireTorqueRatio[element.nodeID] / torqueRatioSum,
               getFriction: (sa, ia, fz) => {
+                const sl = new ConstantScalar(0);
                 // 要修正
-                const {fx, fy} = tire.get({sa, sl: 0, fz, ia});
-                return new Vector3(fx, fy, 0);
-              },
-              getFrictionDiff: (sa, ia, fz) => {
-                // 要修正
-                const params = {sa, sl: 0, fz, ia};
-                return {
-                  saDiff: saDiff(tire, params),
-                  iaDiff: iaDiff(tire, params),
-                  fzDiff: fzDiff(tire, params)
-                };
+                const {friction} = getTireFriction(tire, sa, sl, ia, fz);
+                return friction;
               },
               error,
-              ground: () => groundLocalVec(normal)
+              getGround: (q) => groundLocalVec(normal, new ConstantScalar(0), q)
             });
 
             if (!tireBalances[componentID]) tireBalances[componentID] = [];
@@ -825,15 +816,13 @@ export class SkidpadSolver implements ISolver {
                   const constraint = new PointToPlane(
                     `Two-dimentional Constraint of nearest neighbor of ${element.name.value}`,
                     component,
-                    (normal, distance) => {
-                      return {
-                        r: element.getNearestNeighborToPlane(
-                          normal,
-                          distance / component.scale
-                        ),
-                        dr_dQ: new Matrix(3, 4)
-                      };
-                    },
+                    (normal, distance) =>
+                      new ConstantVector3(
+                        element.getNearestNeighborToPlane(
+                          normal.vector3Value,
+                          distance.scalarValue / component.scale
+                        )
+                      ),
                     control.origin.value,
                     control.normal.value,
                     element.nodeID,
@@ -850,7 +839,7 @@ export class SkidpadSolver implements ISolver {
                     const constraint = new PointToPlane(
                       `Two-dimentional Constraint of ${point.name} of ${element.name.value}`,
                       component,
-                      () => ({r: p, dr_dQ: new Matrix(3, 4)}),
+                      () => new ConstantVector3(p),
                       control.origin.value,
                       control.normal.value,
                       element.nodeID,
@@ -960,7 +949,7 @@ export class SkidpadSolver implements ISolver {
         new PointToPlane(
           `Two-dimentional Constraint of ${frame.centerOfGravity.name} of ${frame.name.value}`,
           component,
-          () => ({r: p, dr_dQ: new Matrix(3, 4)}),
+          () => new ConstantVector3(p),
           new Vector3(),
           new Vector3(1, 0, 0),
           frame.nodeID,
@@ -973,7 +962,7 @@ export class SkidpadSolver implements ISolver {
         new PointToPlane(
           `Two-dimentional Constraint of ${frame.centerOfGravity.name} of ${frame.name.value}`,
           component,
-          () => ({r: p, dr_dQ: new Matrix(3, 4)}),
+          () => new ConstantVector3(p),
           new Vector3(),
           new Vector3(0, 1, 0),
           frame.nodeID,
@@ -1169,6 +1158,7 @@ export class SkidpadSolver implements ISolver {
     this.solve({
       constraintsOptions: {
         disableSpringElasticity: true,
+        fixLinearBushing: true,
         disableTireFriction: true,
         disableForce: true
       },
@@ -1180,6 +1170,7 @@ export class SkidpadSolver implements ISolver {
     this.solve({
       constraintsOptions: {
         disableSpringElasticity: true,
+        fixLinearBushing: true,
         disableTireFriction: true
       },
       postProcess: true,
@@ -1202,7 +1193,10 @@ export class SkidpadSolver implements ISolver {
     console.log('');
     console.log('calculating with tire frictions............');
     this.solve({
-      constraintsOptions: {disableSpringElasticity: true},
+      constraintsOptions: {
+        disableSpringElasticity: true,
+        fixLinearBushing: true
+      },
       postProcess: true,
       logOutput: true
     });
@@ -1210,7 +1204,10 @@ export class SkidpadSolver implements ISolver {
     console.log('');
     console.log('calculating with spring force............');
     this.solve({
-      constraintsOptions: {disableSpringElasticity: false},
+      constraintsOptions: {
+        disableSpringElasticity: false,
+        fixLinearBushing: true
+      },
       postProcess: true,
       logOutput: true
     });

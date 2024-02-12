@@ -1,23 +1,19 @@
 /* eslint-disable camelcase */
 import {Matrix} from 'ml-matrix';
-import {IVector3} from './IVector3';
-import {getVVector, Vector3Like} from './Functions';
+import {IScalar} from './IScalar';
 import {IVariable} from './IVariable';
-import {Vector3Base} from './Vector3';
+import {ScalarBase} from './Scalar';
 
-export class VariableVector3
-  extends Vector3Base
-  implements IVector3, IVariable
-{
-  readonly isCVector3 = true;
+export class VariableScalar extends ScalarBase implements IScalar, IVariable {
+  readonly isScalar = true;
 
   _value: Matrix;
 
   _diff: Matrix | undefined;
 
-  setValue(value: Vector3Like) {
+  setValue(value: number) {
     this.reset();
-    this._value = getVVector(value);
+    this._value = Matrix.eye(1, 1).mul(value);
   }
 
   reset() {
@@ -26,7 +22,7 @@ export class VariableVector3
 
   constructor() {
     super(() => this.reset());
-    this._value = new Matrix(3, 1);
+    this._value = new Matrix(1, 1);
     this._diff = undefined;
   }
 

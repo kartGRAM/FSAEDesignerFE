@@ -19,6 +19,7 @@ import {
 import {hasNearestNeighborToPlane} from '@gd/SpecialPoints';
 import {sleep} from '@utils/helpers';
 import {Constraint, ConstraintsOptions} from '@gd/kinematics/IConstraint';
+import {ConstantVector3} from '@computationGraph/Vector3';
 import {
   getJointDictionary,
   canSimplifyAArm,
@@ -570,15 +571,13 @@ export class KinematicsSolver implements ISolver {
                   const constraint = new PointToPlane(
                     `Two-dimentional Constraint of nearest neighbor of ${element.name.value}`,
                     component,
-                    (normal, distance) => {
-                      return {
-                        r: element.getNearestNeighborToPlane(
-                          normal,
-                          distance / component.scale
-                        ),
-                        dr_dQ: new Matrix(3, 4)
-                      };
-                    },
+                    (normal, distance) =>
+                      new ConstantVector3(
+                        element.getNearestNeighborToPlane(
+                          normal.vector3Value,
+                          distance.scalarValue / component.scale
+                        )
+                      ),
                     control.origin.value,
                     control.normal.value,
                     element.nodeID,
@@ -595,7 +594,7 @@ export class KinematicsSolver implements ISolver {
                     const constraint = new PointToPlane(
                       `Two-dimentional Constraint of ${point.name} of ${element.name.value}`,
                       component,
-                      () => ({r: p, dr_dQ: new Matrix(3, 4)}),
+                      () => new ConstantVector3(p),
                       control.origin.value,
                       control.normal.value,
                       element.nodeID,
@@ -673,7 +672,7 @@ export class KinematicsSolver implements ISolver {
             new PointToPlane(
               `Two-dimentional Constraint of ${frame.centerOfGravity.name} of ${frame.name.value}`,
               component,
-              () => ({r: p.clone(), dr_dQ: new Matrix(3, 4)}),
+              () => new ConstantVector3(p),
               new Vector3(),
               new Vector3(1, 0, 0),
               frame.nodeID,
@@ -686,7 +685,7 @@ export class KinematicsSolver implements ISolver {
             new PointToPlane(
               `Two-dimentional Constraint of ${frame.centerOfGravity.name} of ${frame.name.value}`,
               component,
-              () => ({r: p.clone(), dr_dQ: new Matrix(3, 4)}),
+              () => new ConstantVector3(p),
               new Vector3(),
               new Vector3(0, 1, 0),
               frame.nodeID,
@@ -703,7 +702,7 @@ export class KinematicsSolver implements ISolver {
               new PointToPlane(
                 `Two-dimentional Constraint of front direction of ${frame.name.value}`,
                 component,
-                () => ({r: p2.clone(), dr_dQ: new Matrix(3, 4)}),
+                () => new ConstantVector3(p2),
                 new Vector3(),
                 new Vector3(0, 1, 0),
                 frame.nodeID,
@@ -761,7 +760,10 @@ export class KinematicsSolver implements ISolver {
     // 上記4ステップでプリプロセッサ完了
     if (solve)
       this.solve({
-        constraintsOptions: {disableSpringElasticity: true},
+        constraintsOptions: {
+          disableSpringElasticity: true,
+          fixLinearBushing: true
+        },
         postProcess: true,
         logOutput: true
       });
@@ -813,6 +815,7 @@ export class KinematicsSolver implements ISolver {
         let minNorm = Number.MAX_SAFE_INTEGER;
         let eq = false;
         while (!eq && ++i < maxCnt) {
+          phi_q.mul(0);
           constraints.forEach((constraint) => {
             constraint.setJacobianAndConstraints(
               phi_q,
