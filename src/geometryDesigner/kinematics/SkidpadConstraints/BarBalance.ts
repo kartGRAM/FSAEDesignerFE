@@ -196,7 +196,9 @@ export class BarBalance implements Constraint, Balance {
       const maN = ma.normalize();
 
       // 軸方向の力
-      const fAxis = this.f.map((f) => f.sub(maN.mul(f.dot(maN))));
+      const fAxis = this.f.map((f, i) =>
+        f.add(maN.mul(f.dot(maN))).mul(this.pfCoefs[i])
+      );
 
       // 現在の軸方向の力の大きさ (|f| / cos(Θ) ) = |f|^2 / f・ax
       const fdotAx = fAxis.map((f) => f.dot(axis));
