@@ -1,17 +1,14 @@
 /* eslint-disable camelcase */
 /* eslint-disable class-methods-use-this */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {Matrix} from 'ml-matrix';
-import {Vector3, Quaternion} from 'three';
+import {Vector3} from 'three';
 import {IElement} from '@gd/IElements';
 import {Constraint, ConstraintsOptions} from '@gd/kinematics/IConstraint';
-import {IScalar} from '@computationGraph/IScalar';
 import {IVector3} from '@computationGraph/IVector3';
 import {VariableVector3} from '@computationGraph/VariableVector3';
 import {VariableScalar} from '@computationGraph/VariableScalar';
 import {ConstantVector3} from '@computationGraph/Vector3';
 import {VariableQuaternion} from '@computationGraph/VariableQuaternion';
-import {ConstantScalar} from '@computationGraph/ConstantScalar';
 import {TireBalance} from './TireBalance';
 import {Balance} from '../SkidpadConstraints';
 import {
@@ -21,18 +18,8 @@ import {
   PointForce,
   GeneralVariable
 } from '../KinematicComponents';
-import {
-  skew,
-  rotationMatrix,
-  decompositionMatrixG,
-  getDeltaOmega,
-  // deltaXcross,
-  getVVector
-} from '../KinematicFunctions';
 
 const X = 0;
-const Y = 1;
-const Z = 2;
 const Q0 = 3;
 
 const normal = new ConstantVector3(new Vector3(0, 0, 1));
@@ -133,7 +120,7 @@ export class FDComponentBalance implements Constraint, Balance {
     );
 
     const A = this.q.getRotationMatrix();
-    const ptsQ = localVec.map((s, i) => A.vmul(s));
+    const ptsQ = localVec.map((s) => A.vmul(s));
 
     // 重心を求める
     const cog = new ConstantVector3(params.cog.clone().multiplyScalar(scale));
@@ -171,7 +158,7 @@ export class FDComponentBalance implements Constraint, Balance {
   }
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
-    const {row, component: c, pfs, g} = this;
+    const {row, component: c} = this;
 
     // 値の設定
     this.vO.setValue(this.getVO());
