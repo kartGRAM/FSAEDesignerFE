@@ -1,6 +1,7 @@
 /* eslint-disable camelcase */
 /* eslint-disable class-methods-use-this */
 import {Vector3} from 'three';
+import {SingularValueDecomposition} from 'ml-matrix';
 import {Twin} from '@utils/atLeast';
 import {ITire} from '@gd/IElements/ITire';
 import {ConstraintsOptions} from '@gd/kinematics/IConstraint';
@@ -13,7 +14,12 @@ import {ConstantScalar} from '@computationGraph/ConstantScalar';
 import {VariableQuaternion} from '@computationGraph/VariableQuaternion';
 import {asin} from '@computationGraph/Functions';
 import {IComponent, FullDegreesComponent} from '../KinematicComponents';
-import {getFrictionRotation} from '../KinematicFunctions';
+import {
+  getFrictionRotation,
+  skew,
+  getVVector,
+  getVector3
+} from '../KinematicFunctions';
 
 const normal = new ConstantVector3(new Vector3(0, 0, 1));
 
@@ -43,8 +49,6 @@ export class TireBalance {
 
   component: IComponent;
 
-  localCog: IVector3;
-
   fz: IVector3 = new ConstantVector3();
 
   mX: IVector3 = new ConstantVector3();
@@ -68,6 +72,12 @@ export class TireBalance {
   k: IVector3 = new ConstantVector3();
 
   localAxis: IVector3;
+
+  localVec: IVector3[];
+
+  localCog: IVector3;
+
+  ground: IVector3 = new ConstantVector3();
 
   ferror: IVector3 = new ConstantVector3();
 
@@ -107,9 +117,11 @@ export class TireBalance {
     // 計算グラフ構築
     const {scale} = this.component;
     this.g = new Vector3(0, 0, -9810 * scale).multiplyScalar(this.mass);
+
     const localVec = points.map(
       (p) => new ConstantVector3(p.clone().multiplyScalar(scale))
     );
+    this.localVec = localVec;
 
     // 重心を求める
     const cog2 = 1 - cog;
@@ -161,8 +173,8 @@ export class TireBalance {
     this.k = para.normalize();
 
     // 接地点
-    const ground = this.getGround(q);
-    const groundQ = A.vmul(ground);
+    this.ground = this.getGround(q);
+    const groundQ = A.vmul(this.ground);
     const pGround = groundQ.add(p);
 
     // 接地点の速度
@@ -234,16 +246,33 @@ export class TireBalance {
     element.fx = fx.applyQuaternion(q);
     element.fy = fy.applyQuaternion(q);
     element.fz = fz.applyQuaternion(q);
-    /* element.outerBearingForce = this.pfs[0].force
-      .clone()
-      .multiplyScalar(this.pfCoefs[0])
-      .applyQuaternion(q);
-    element.innerBearingForce = this.pfs[1].force
-      .clone()
-      .multiplyScalar(this.pfCoefs[1])
-      .applyQuaternion(q); */
     element.centrifugalForce = this.c.vector3Value.applyQuaternion(q);
     element.gravity = this.g.clone().applyQuaternion(q);
+
+    this.mX.reset({});
+    const mX = this.mX.vector3Value;
+    const tireGroundForce = element.fx.clone().add(element.fy).add(element.fz);
+    const ground = skew(this.ground.vector3Value);
+    const ma = element.centrifugalForce.clone().add(element.gravity);
+    const cog = skew(this.localCog.vector3Value);
+    const localVec = this.localVec.map((v) => skew(v.vector3Value));
+
+    const sumF = getVVector(tireGroundForce.clone().add(ma).multiplyScalar(-1));
+
+    const SgFg = ground.mmul(getVVector(tireGroundForce));
+    const ScMa = cog.mmul(getVVector(ma));
+    const sumM = SgFg.clone().add(ScMa).add(getVVector(mX)).mul(-1);
+
+    const S2SumF = localVec[1].mmul(sumF);
+    sumM.sub(S2SumF);
+    const F1Coef = localVec[0].sub(localVec[1]);
+    const F1 = new SingularValueDecomposition(F1Coef, {
+      autoTranspose: true
+    }).solve(sumM);
+    const F2 = sumF.clone().sub(F1);
+
+    element.outerBearingForce = getVector3(F1);
+    element.innerBearingForce = getVector3(F2);
   }
 
   setJacobianAndConstraintsInequal() {}
