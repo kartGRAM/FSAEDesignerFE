@@ -21,7 +21,7 @@ import {
   PointForce,
   GeneralVariable
 } from './KinematicComponents';
-import {TireBalance, isTireBalance} from './SkidpadConstraints/TireBalance';
+import {TireBalance} from './SkidpadConstraints/TireBalance';
 import {FDComponentBalance} from './SkidpadConstraints/FDComponentBalance';
 import {BarBalance, isBarBalance} from './SkidpadConstraints/BarBalance';
 
@@ -502,6 +502,6 @@ export class LinearBushingBalance implements Constraint {
   }
 }
 
-export {TireBalance, isTireBalance};
+export {TireBalance};
 export {FDComponentBalance};
 export {BarBalance, isBarBalance};

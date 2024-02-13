@@ -20,6 +20,8 @@ import {
 } from '../KinematicComponents';
 
 const X = 0;
+const Y = 1;
+const Z = 2;
 const Q0 = 3;
 
 const normal = new ConstantVector3(new Vector3(0, 0, 1));
@@ -31,6 +33,7 @@ export class FDComponentBalance implements Constraint, Balance {
 
   // 並進運動+回転
   constraints() {
+    if (this.conectedTireBalance) return 5;
     return 6;
   }
 
@@ -56,6 +59,8 @@ export class FDComponentBalance implements Constraint, Balance {
 
   omegaComponent: GeneralVariable;
 
+  errorComponent: GeneralVariable;
+
   vO: ConstantVector3; // m/s
 
   p: VariableVector3;
@@ -65,6 +70,8 @@ export class FDComponentBalance implements Constraint, Balance {
   f: VariableVector3[];
 
   omega: VariableScalar;
+
+  error: VariableScalar;
 
   forceError: IVector3;
 
@@ -78,7 +85,7 @@ export class FDComponentBalance implements Constraint, Balance {
 
   pfCoefs: number[]; // ジョイント部分のローカルベクトルのノードID 作用反作用で定義
 
-  conectedTireBalance: TireBalance[];
+  conectedTireBalance?: TireBalance;
 
   constructor(params: {
     name: string;
@@ -91,12 +98,14 @@ export class FDComponentBalance implements Constraint, Balance {
     pfsPointNodeIDs: string[]; // ジョイント部分のローカルベクトルのノードID 作用反作用どちらで使うかを判定する
     vO: () => Vector3; // 座標原点の速度
     omega: GeneralVariable;
-    connectedTireBalance: TireBalance[];
+    error: GeneralVariable;
+    connectedTireBalance?: TireBalance;
   }) {
     this.name = params.name;
     this.element = params.element;
     this.component = params.component;
     this.omegaComponent = params.omega;
+    this.errorComponent = params.error;
     this.getVO = params.vO;
     this.pfs = [...params.pointForceComponents];
     this.pfCoefs = this.pfs.map((pf, i) => pf.sign(params.pfsPointNodeIDs[i]));
@@ -108,6 +117,7 @@ export class FDComponentBalance implements Constraint, Balance {
     this.q = new VariableQuaternion();
     this.f = this.pfs.map(() => new VariableVector3());
     this.omega = new VariableScalar();
+    this.error = new VariableScalar();
     this.vO = new ConstantVector3(this.getVO());
 
     // 計算グラフ構築
@@ -139,22 +149,54 @@ export class FDComponentBalance implements Constraint, Balance {
     // 慣性力
     const ma = g.add(this.c);
 
-    // 力のつり合い
-    this.forceError = this.f
-      .reduce((prev: IVector3, current, i) => {
-        const f = current.mul(this.pfCoefs[i]);
-        return prev.add(f);
-      }, new ConstantVector3())
-      .add(ma);
+    if (this.conectedTireBalance) {
+      const tireVars = this.conectedTireBalance.getTireVariables(
+        this.p,
+        this.q,
+        this.omega,
+        this.error,
+        this.f,
+        ma,
+        this.vO
+      );
+      // 力のつり合い
+      this.forceError = this.f
+        .reduce((prev: IVector3, current, i) => {
+          const f = current.mul(this.pfCoefs[i]);
+          return prev.add(f);
+        }, new ConstantVector3())
+        .add(ma)
+        .add(tireVars.tireGroundForce)
+        .add(tireVars.ma);
 
-    // モーメントのつり合い
-    this.momentError = this.f
-      .reduce((prev: IVector3, current, i) => {
-        const f = current.mul(this.pfCoefs[i]);
-        const s = ptsQ[i];
-        return prev.add(f.cross(s));
-      }, new ConstantVector3())
-      .add(ma.cross(cogQ));
+      // モーメントのつり合い
+      this.momentError = this.f
+        .reduce((prev: IVector3, current, i) => {
+          const f = current.mul(this.pfCoefs[i]);
+          const s = ptsQ[i];
+          return prev.add(f.cross(s));
+        }, new ConstantVector3())
+        .add(ma.cross(cogQ))
+        .add(tireVars.tireGroundForce.cross(tireVars.groundQ))
+        .add(tireVars.ma.cross(tireVars.cogQ));
+    } else {
+      // 力のつり合い
+      this.forceError = this.f
+        .reduce((prev: IVector3, current, i) => {
+          const f = current.mul(this.pfCoefs[i]);
+          return prev.add(f);
+        }, new ConstantVector3())
+        .add(ma);
+
+      // モーメントのつり合い
+      this.momentError = this.f
+        .reduce((prev: IVector3, current, i) => {
+          const f = current.mul(this.pfCoefs[i]);
+          const s = ptsQ[i];
+          return prev.add(f.cross(s));
+        }, new ConstantVector3())
+        .add(ma.cross(cogQ));
+    }
   }
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
@@ -168,36 +210,43 @@ export class FDComponentBalance implements Constraint, Balance {
       this.f[i].setValue(pf.force);
     });
     this.omega.setValue(this.omegaComponent.value);
+    this.error.setValue(this.errorComponent.value);
 
     // 力のつり合い
     this.forceError.reset();
     const translation = this.forceError.vector3Value;
-    phi[row + 0] = translation.x;
-    phi[row + 1] = translation.y;
-    phi[row + 2] = translation.z;
+    phi[row + X] = translation.x;
+    phi[row + Y] = translation.y;
+    if (!this.conectedTireBalance) phi[row + Z] = translation.z;
     // ヤコビアン設定
-    this.forceError.diff(Matrix.eye(3, 3));
+    const ofs = this.conectedTireBalance ? 2 : 3;
+    const I = Matrix.eye(ofs, 3);
+    this.forceError.diff(I);
     this.p.setJacobian(phi_q, row, c.col + X);
     this.q.setJacobian(phi_q, row, c.col + Q0);
     this.pfs.forEach((pf, i) => {
-      this.f[i].setJacobian(phi_q, row, pf.col + X);
+      this.f[i].setJacobian(phi_q, row, pf.col);
     });
     this.omega.setJacobian(phi_q, row, this.omegaComponent.col);
+    if (this.conectedTireBalance)
+      this.error.setJacobian(phi_q, row, this.errorComponent.col);
 
     // モーメントのつり合い
     this.momentError.reset();
     const rotation = this.momentError.vector3Value;
-    phi[row + 3] = rotation.x;
-    phi[row + 4] = rotation.y;
-    phi[row + 5] = rotation.z;
+    phi[row + ofs + X] = rotation.x;
+    phi[row + ofs + Y] = rotation.y;
+    phi[row + ofs + Z] = rotation.z;
     // ヤコビアン設定
     this.momentError.diff(Matrix.eye(3, 3));
-    this.p.setJacobian(phi_q, row + 3, c.col + X);
-    this.q.setJacobian(phi_q, row + 3, c.col + Q0);
+    this.p.setJacobian(phi_q, row + ofs, c.col + X);
+    this.q.setJacobian(phi_q, row + ofs, c.col + Q0);
     this.pfs.forEach((pf, i) => {
-      this.f[i].setJacobian(phi_q, row + 3, pf.col + X);
+      this.f[i].setJacobian(phi_q, row + ofs, pf.col);
     });
-    this.omega.setJacobian(phi_q, row + 3, this.omegaComponent.col);
+    this.omega.setJacobian(phi_q, row + ofs, this.omegaComponent.col);
+    if (this.conectedTireBalance)
+      this.error.setJacobian(phi_q, row + ofs, this.errorComponent.col);
 
     /* driveMomentAndDiffs.forEach((dm) => {
       const {
