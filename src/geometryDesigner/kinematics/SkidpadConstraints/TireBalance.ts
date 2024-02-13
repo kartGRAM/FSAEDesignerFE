@@ -124,6 +124,13 @@ export class TireBalance {
     }
   }
 
+  checkFz() {
+    this.fz.reset();
+    if (this.fz.vector3Value.z < 0) {
+      throw new Error('fzが負になった');
+    }
+  }
+
   getTireVariables(
     p: VariableVector3,
     q: VariableQuaternion,
@@ -134,7 +141,7 @@ export class TireBalance {
     vO: IVector3
   ) {
     // 変数宣言
-    const A = q.getInvRotationMatrix();
+    const A = q.getRotationMatrix();
     const cogQ = A.vmul(this.localCog);
     const pCog = cogQ.add(p);
     const omega = normal.mul(omegaScalar);

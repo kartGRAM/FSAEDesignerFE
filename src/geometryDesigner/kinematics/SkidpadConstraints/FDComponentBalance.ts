@@ -212,6 +212,8 @@ export class FDComponentBalance implements Constraint, Balance {
     });
     this.omega.setValue(this.omegaComponent.value);
     this.error.setValue(this.errorComponent.value);
+    // 輪荷重が正か調べる
+    if (this.conectedTireBalance) this.conectedTireBalance.checkFz();
 
     // 力のつり合い
     this.forceError.reset();
