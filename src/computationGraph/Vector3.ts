@@ -3,7 +3,7 @@ import {Matrix} from 'ml-matrix';
 import * as Three from 'three';
 import {isNumber} from '@utils/helpers';
 import {isVector3 as isThreeVector3} from '@utils/three';
-import {RetType} from './IComputationNode';
+import {RetType, ResetOptions} from './IComputationNode';
 import {IVector3} from './IVector3';
 import {IScalar} from './IScalar';
 import {Scalar} from './Scalar';
@@ -23,11 +23,11 @@ export abstract class Vector3Base {
 
   abstract diff(fromLhs?: Matrix): void;
 
-  abstract reset(): void;
+  abstract reset(options: ResetOptions): void;
 
-  _reset: () => void;
+  _reset: (options: ResetOptions) => void;
 
-  constructor(reset: () => void) {
+  constructor(reset: (options: ResetOptions) => void) {
     this._reset = reset;
   }
 
@@ -50,9 +50,9 @@ export abstract class Vector3Base {
           }
         };
       },
-      () => {
-        this.reset();
-        if (!isNumber(other) && !isConstant(other)) other.reset();
+      (options) => {
+        this.reset(options);
+        if (!isNumber(other) && !isConstant(other)) other.reset(options);
       }
     );
   }
@@ -73,9 +73,9 @@ export abstract class Vector3Base {
           }
         };
       },
-      () => {
-        this.reset();
-        if (!isThreeVector3(other) && !isConstant(other)) other.reset();
+      (options) => {
+        this.reset(options);
+        if (!isThreeVector3(other) && !isConstant(other)) other.reset(options);
       }
     );
   }
@@ -95,9 +95,9 @@ export abstract class Vector3Base {
           }
         };
       },
-      () => {
-        this.reset();
-        if (!isConstant(other)) other.reset();
+      (options) => {
+        this.reset(options);
+        if (!isConstant(other)) other.reset(options);
       }
     );
   }
@@ -115,9 +115,9 @@ export abstract class Vector3Base {
           }
         };
       },
-      () => {
-        this.reset();
-        if (!isConstant(other)) other.reset();
+      (options) => {
+        this.reset(options);
+        if (!isConstant(other)) other.reset(options);
       }
     );
   }
@@ -135,9 +135,9 @@ export abstract class Vector3Base {
           }
         };
       },
-      () => {
-        this.reset();
-        if (!isConstant(other)) other.reset();
+      (options) => {
+        this.reset(options);
+        if (!isConstant(other)) other.reset(options);
       }
     );
   }
@@ -153,8 +153,8 @@ export abstract class Vector3Base {
           }
         };
       },
-      () => {
-        this.reset();
+      (options) => {
+        this.reset(options);
       }
     );
   }
@@ -170,8 +170,8 @@ export abstract class Vector3Base {
           }
         };
       },
-      () => {
-        this.reset();
+      (options) => {
+        this.reset(options);
       }
     );
   }
@@ -184,7 +184,7 @@ export class Vector3 extends Vector3Base implements IVector3 {
 
   storedValue: Matrix | undefined;
 
-  constructor(value: () => RetType, reset: () => void) {
+  constructor(value: () => RetType, reset: (options: ResetOptions) => void) {
     super(reset);
     this._value = value;
     this._diff = () => {};
@@ -200,9 +200,9 @@ export class Vector3 extends Vector3Base implements IVector3 {
     return value;
   }
 
-  reset() {
-    this.storedValue = undefined;
-    this._reset();
+  reset(options: ResetOptions) {
+    if (!options.variablesOnly) this.storedValue = undefined;
+    this._reset(options);
   }
 
   diff(fromLhs: Matrix): void {

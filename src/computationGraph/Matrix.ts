@@ -1,6 +1,6 @@
 import {Matrix as MLMatrix} from 'ml-matrix';
 import {isNumber} from '@utils/helpers';
-import {RetType} from './IComputationNode';
+import {RetType, ResetOptions} from './IComputationNode';
 import {IScalar} from './IScalar';
 import {IVector3} from './IVector3';
 import {Vector3} from './Vector3';
@@ -14,11 +14,11 @@ export class Matrix implements IMatrix {
 
   _diff: (fromLhs: MLMatrix, fromRhs?: MLMatrix) => void;
 
-  _reset: () => void;
+  _reset: (options: ResetOptions) => void;
 
   storedValue: MLMatrix | undefined;
 
-  constructor(value: () => RetType, reset: () => void) {
+  constructor(value: () => RetType, reset: (options: ResetOptions) => void) {
     this._value = value;
     this._diff = () => {};
     this._reset = reset;
@@ -32,9 +32,9 @@ export class Matrix implements IMatrix {
     return value;
   }
 
-  reset() {
-    this.storedValue = undefined;
-    this._reset();
+  reset(options: ResetOptions) {
+    if (!options.variablesOnly) this.storedValue = undefined;
+    this._reset(options);
   }
 
   diff(fromLhs: MLMatrix, fromRhs?: MLMatrix): void {
@@ -60,9 +60,9 @@ export class Matrix implements IMatrix {
           }
         };
       },
-      () => {
-        this.reset();
-        if (!isNumber(other) && !isConstant(other)) other.reset();
+      (options) => {
+        this.reset(options);
+        if (!isNumber(other) && !isConstant(other)) other.reset(options);
       }
     );
   }
@@ -80,9 +80,9 @@ export class Matrix implements IMatrix {
           }
         };
       },
-      () => {
-        this.reset();
-        if (!isConstant(other)) other.reset();
+      (options) => {
+        this.reset(options);
+        if (!isConstant(other)) other.reset(options);
       }
     );
   }
@@ -100,9 +100,9 @@ export class Matrix implements IMatrix {
           }
         };
       },
-      () => {
-        this.reset();
-        if (!isConstant(other)) other.reset();
+      (options) => {
+        this.reset(options);
+        if (!isConstant(other)) other.reset(options);
       }
     );
   }

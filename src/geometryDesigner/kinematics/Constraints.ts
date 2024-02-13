@@ -132,7 +132,7 @@ export class Sphere implements Constraint {
     this.pRhs.setValue(this.rhs.position);
     this.qLhs.setValue(this.lhs.quaternion);
     this.qRhs.setValue(this.rhs.quaternion);
-    this.constraint.reset();
+    this.constraint.reset({});
     const error = this.constraint.vector3Value;
     this.constraint.diff(Matrix.eye(3, 3));
     phi[row + X] = error.x;
@@ -265,7 +265,7 @@ export class Hinge implements Constraint {
     this.qRhs.setValue(this.rhs.quaternion);
 
     // 始点位置拘束
-    this.positionError.reset();
+    this.positionError.reset({});
     const error = this.positionError.vector3Value;
     this.positionError.diff(Matrix.eye(3, 3));
 
@@ -284,7 +284,7 @@ export class Hinge implements Constraint {
     // 並行拘束
     this.directionError.forEach((directionError, i) => {
       // pは登場しない
-      directionError.reset();
+      directionError.reset({variablesOnly: false});
       const error = directionError.scalarValue;
       directionError.diff(Matrix.eye(1, 1));
 
@@ -526,7 +526,7 @@ export class BarAndSpheres implements Constraint, deltaL {
     this.qRhs.setValue(this.rhs.quaternion);
     this.l2.setValue(l2);
 
-    this.error.reset();
+    this.error.reset({});
     const error = this.error.scalarValue;
     this.error.diff(Matrix.eye(1, 1));
     phi[row + X] = error;
@@ -757,7 +757,7 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
     this.qRes.setValue(this.res.quaternion);
 
     this.error.forEach((error, i) => {
-      error.reset();
+      error.reset({});
       phi[row + i] = error.scalarValue;
       error.diff(Matrix.eye(1, 1));
       if (!fixed.isFixed) {
@@ -954,7 +954,7 @@ export class PointToPlane implements Constraint, deltaL {
     this.distance.setValue(_distance + _dl);
 
     // 平面拘束
-    this.error.reset();
+    this.error.reset({});
     phi[row] = this.error.scalarValue;
     this.error.diff(Matrix.eye(1, 1));
     // 平面拘束方程式の変分

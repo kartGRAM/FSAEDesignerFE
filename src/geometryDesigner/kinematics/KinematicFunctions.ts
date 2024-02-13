@@ -24,6 +24,7 @@ import {TireRestorer} from '@gd/kinematics/Restorer';
 import {ITireData} from '@tire/ITireData';
 import {IScalar} from '@computationGraph/IScalar';
 import {IVector3} from '@computationGraph/IVector3';
+import {ResetOptions} from '@computationGraph/IComputationNode';
 import {ConstantVector3, Vector3 as CVector3} from '@computationGraph/Vector3';
 import {IMatrix} from '@computationGraph/IMatrix';
 import {Matrix as CMatrix} from '@computationGraph/Matrix';
@@ -36,11 +37,11 @@ export function getTireFriction(
   ia: IScalar,
   fz: IScalar
 ): {friction: IVector3; mz: IVector3} {
-  const reset = () => {
-    sa.reset();
-    ia.reset();
-    fz.reset();
-    sl.reset();
+  const reset = (options: ResetOptions) => {
+    sa.reset(options);
+    ia.reset(options);
+    fz.reset(options);
+    sl.reset(options);
   };
   const friction = new CVector3(() => {
     const saV = sa.scalarValue;
@@ -118,8 +119,8 @@ export function getFrictionRotation(normalizedParallel: IVector3): IMatrix {
         }
       };
     },
-    () => {
-      normalizedParallel.reset();
+    (options) => {
+      normalizedParallel.reset(options);
     }
   );
 }
