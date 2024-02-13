@@ -5,8 +5,12 @@ export type RetType = {
   diff: (fromLhs: Matrix, fromRhs?: Matrix) => void;
 };
 
+export interface ResetOptions {
+  variablesOnly?: boolean;
+}
+
 export interface IComputationNode {
   readonly value: Matrix;
-  reset(): void;
+  reset(options: ResetOptions): void;
   diff(fromLhs: Matrix, fromRhs?: Matrix): void;
 }

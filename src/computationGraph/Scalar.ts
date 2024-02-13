@@ -1,7 +1,7 @@
 /* eslint-disable max-classes-per-file */
 import {Matrix} from 'ml-matrix';
 import {isNumber} from '@utils/helpers';
-import {RetType} from './IComputationNode';
+import {RetType, ResetOptions} from './IComputationNode';
 import {IScalar} from './IScalar';
 import {isConstant} from './IConstant';
 
@@ -16,11 +16,11 @@ export abstract class ScalarBase {
 
   abstract diff(fromLhs: Matrix): void;
 
-  abstract reset(): void;
+  abstract reset(options: ResetOptions): void;
 
-  _reset: () => void;
+  _reset: (options: ResetOptions) => void;
 
-  constructor(reset: () => void) {
+  constructor(reset: (options: ResetOptions) => void) {
     this._reset = reset;
   }
 
@@ -38,9 +38,9 @@ export abstract class ScalarBase {
           }
         };
       },
-      () => {
-        this.reset();
-        if (!isNumber(other) && !isConstant(other)) other.reset();
+      (options) => {
+        this.reset(options);
+        if (!isNumber(other) && !isConstant(other)) other.reset(options);
       }
     );
   }
@@ -60,9 +60,9 @@ export abstract class ScalarBase {
           }
         };
       },
-      () => {
-        this.reset();
-        if (!isNumber(other) && !isConstant(other)) other.reset();
+      (options) => {
+        this.reset(options);
+        if (!isNumber(other) && !isConstant(other)) other.reset(options);
       }
     );
   }
@@ -80,9 +80,9 @@ export abstract class ScalarBase {
           }
         };
       },
-      () => {
-        this.reset();
-        if (!isNumber(other) && !isConstant(other)) other.reset();
+      (options) => {
+        this.reset(options);
+        if (!isNumber(other) && !isConstant(other)) other.reset(options);
       }
     );
   }
@@ -101,9 +101,9 @@ export abstract class ScalarBase {
           }
         };
       },
-      () => {
-        this.reset();
-        if (!isNumber(other) && !isConstant(other)) other.reset();
+      (options) => {
+        this.reset(options);
+        if (!isNumber(other) && !isConstant(other)) other.reset(options);
       }
     );
   }
@@ -116,15 +116,15 @@ export class Scalar extends ScalarBase implements IScalar {
 
   storedValue: Matrix | undefined;
 
-  constructor(value: () => RetType, reset: () => void) {
+  constructor(value: () => RetType, reset: (options: ResetOptions) => void) {
     super(reset);
     this._value = value;
     this._diff = () => {};
   }
 
-  reset() {
-    this.storedValue = undefined;
-    this._reset();
+  reset(options: ResetOptions) {
+    if (!options.variablesOnly) this.storedValue = undefined;
+    this._reset(options);
   }
 
   get value() {

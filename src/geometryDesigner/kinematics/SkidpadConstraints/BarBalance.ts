@@ -208,8 +208,8 @@ export class BarBalance implements Constraint, Balance {
       this.springForceError = flMean.sub(ideal);
 
       this._setPreload = () => {
-        l.reset();
-        flMean.reset();
+        l.reset({});
+        flMean.reset({});
         const length = l.scalarValue;
         const dl = flMean.scalarValue / this.k.scalarValue;
         this.freeLength.setValue(length + dl);
@@ -241,7 +241,7 @@ export class BarBalance implements Constraint, Balance {
     this.omega.setValue(this.omegaComponent.value);
 
     // 力のつり合い
-    this.forceError.reset();
+    this.forceError.reset({});
     const translation = this.forceError.vector3Value;
     phi[row + 0] = translation.x;
     phi[row + 1] = translation.y;
@@ -260,7 +260,7 @@ export class BarBalance implements Constraint, Balance {
     this.omega.setJacobian(phi_q, row, this.omegaComponent.col);
 
     // モーメントのつり合い
-    this.momentError.reset();
+    this.momentError.reset({variablesOnly: false});
     const rotation = this.momentError.vector3Value;
     phi[row + 3] = rotation.x;
     phi[row + 4] = rotation.y;
@@ -279,7 +279,7 @@ export class BarBalance implements Constraint, Balance {
 
     if (this.isSpring && !options.disableSpringElasticity) {
       // ばね反力の誤差
-      this.springForceError.reset();
+      this.springForceError.reset({variablesOnly: false});
       const error = this.springForceError.scalarValue;
       phi[row + 6] = error;
       // ヤコビアン設定

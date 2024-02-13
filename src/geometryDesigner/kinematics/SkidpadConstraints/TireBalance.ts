@@ -125,7 +125,7 @@ export class TireBalance {
   }
 
   checkFz() {
-    this.fz.reset();
+    this.fz.reset({});
     if (this.fz.vector3Value.z < 0) {
       throw new Error('fzが負になった');
     }
