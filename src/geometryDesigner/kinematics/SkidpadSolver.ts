@@ -68,9 +68,9 @@ import {
   isBarBalance,
   AArmBalance,
   TireBalance,
-  isTireBalance,
   LinearBushingBalance,
   isBalance,
+  isFDComponentBalance,
   FDComponentBalance
 } from './SkidpadConstraints';
 import {
@@ -436,23 +436,8 @@ export class SkidpadSolver implements ISolver {
         // Tireはコンポーネント扱いしない
         if (isTire(element)) {
           if (canSimplifyTire(element, jointDict)) {
-            const pfs: PointForce[] = [];
             const jointl = jointDict[element.outerBearing.nodeID][0];
             const jointr = jointDict[element.innerBearing.nodeID][0];
-            const [pfl, isNewl] = getPFComponent(
-              pointForceComponents,
-              jointl,
-              forceScale
-            );
-            pfs.push(pfl);
-            if (isNewl) components.push(pfl);
-            const [pfr, isNewr] = getPFComponent(
-              pointForceComponents,
-              jointr,
-              forceScale
-            );
-            pfs.push(pfr);
-            if (isNewr) components.push(pfr);
             jointsDone.add(jointl);
             jointsDone.add(jointr);
             const points = [
@@ -487,15 +472,8 @@ export class SkidpadSolver implements ISolver {
               element,
               tireRadius: element.radius,
               points: [points[0].value, points[1].value],
-              pfsPointNodeIDs: [
-                element.outerBearing.nodeID,
-                element.innerBearing.nodeID
-              ],
               mass: element.mass.value,
               cog: 0.5, // 要修正
-              pfs: pfs as Twin<PointForce>,
-              vO,
-              omega,
               torqueRatio:
                 config.tireTorqueRatio[element.nodeID] / torqueRatioSum,
               getFriction: (sa, ia, fz) => {
@@ -504,14 +482,11 @@ export class SkidpadSolver implements ISolver {
                 const {friction} = getTireFriction(tire, sa, sl, ia, fz);
                 return friction;
               },
-              error,
               getGround: (q) => groundLocalVec(normal, new ConstantScalar(0), q)
             });
 
             if (!tireBalances[componentID]) tireBalances[componentID] = [];
             tireBalances[componentID].push(tireBalance);
-
-            constraints.push(tireBalance);
           } else {
             throw new Error('Tireは同じコンポーネントに接続される必要がある');
             // 2023.06.17 二つ以上のコンポーネントにまたがるタイヤは、
@@ -873,6 +848,10 @@ export class SkidpadSolver implements ISolver {
         const points: Vector3[] = [];
         const pNodeIDs: string[] = [];
         joints.forEach((joint) => {
+          const pID =
+            getJointPartner(joint, element.nodeID).parent?.nodeID ?? '';
+          const pElement = children.find((c) => c.nodeID === pID);
+          if (!pElement || isTire(pElement)) return;
           const [pf, isNew] = getPFComponent(
             pointForceComponents,
             joint,
@@ -923,6 +902,14 @@ export class SkidpadSolver implements ISolver {
           constraints.push(constraint);
         });
         // if (!isBody(element) || isBodyOfFrame(element)) return;
+        if (
+          tireBalances[element.nodeID] &&
+          tireBalances[element.nodeID].length > 1
+        ) {
+          throw new Error(
+            'Bodyに接続されるtireBalanceの数は1つである必要がある'
+          );
+        }
 
         // FDComponentBalance
         constraints.push(
@@ -930,14 +917,17 @@ export class SkidpadSolver implements ISolver {
             name: `FDComponentBalance of${element.name.value}`,
             element,
             component,
-            connectedTireBalance: tireBalances[element.nodeID] ?? [],
+            connectedTireBalance: tireBalances[element.nodeID]
+              ? tireBalances[element.nodeID][0]
+              : undefined,
             mass: element.mass.value,
             cog: element.centerOfGravity.value,
             points,
             pointForceComponents: pfs,
             pfsPointNodeIDs: pNodeIDs,
             vO,
-            omega
+            omega,
+            error
           })
         );
       });
@@ -1031,8 +1021,9 @@ export class SkidpadSolver implements ISolver {
           .getGroupedConstraints()
           .filter((constraint) => constraint.active(constraintsOptions));
         constraints.forEach((c) => {
-          if (isTireBalance(c))
-            c.disableTireFriction = !!constraintsOptions.disableTireFriction;
+          if (isFDComponentBalance(c) && c.conectedTireBalance)
+            c.conectedTireBalance.disableTireFriction =
+              !!constraintsOptions.disableTireFriction;
         });
 
         const equations = constraints.reduce((prev, current) => {

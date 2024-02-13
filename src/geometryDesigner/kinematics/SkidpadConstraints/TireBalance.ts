@@ -12,11 +12,7 @@ import {ConstantVector3} from '@computationGraph/Vector3';
 import {ConstantScalar} from '@computationGraph/ConstantScalar';
 import {VariableQuaternion} from '@computationGraph/VariableQuaternion';
 import {asin} from '@computationGraph/Functions';
-import {
-  IComponent,
-  FullDegreesComponent,
-  GeneralVariable
-} from '../KinematicComponents';
+import {IComponent, FullDegreesComponent} from '../KinematicComponents';
 import {getFrictionRotation} from '../KinematicFunctions';
 
 const normal = new ConstantVector3(new Vector3(0, 0, 1));
@@ -46,8 +42,6 @@ export class TireBalance {
   name: string;
 
   component: IComponent;
-
-  errorComponent: GeneralVariable;
 
   localCog: IVector3;
 
@@ -90,7 +84,6 @@ export class TireBalance {
     cog: number;
     torqueRatio: number;
     getFriction: (sa: IScalar, ia: IScalar, fz: IScalar) => IVector3; // タイヤの発生する力
-    error: GeneralVariable;
     getGround: (q: VariableQuaternion) => IVector3; // コンポーネント座標系における接地点
     tireRadius: number; // タイヤ半径
   }) {
@@ -105,7 +98,6 @@ export class TireBalance {
     this.name = name;
     this.component = component;
     this.element = element;
-    this.errorComponent = params.error;
     this.getGround = params.getGround;
     this.getFriction = params.getFriction;
     this.mass = params.mass;
@@ -187,7 +179,7 @@ export class TireBalance {
     // normal方向成分を求める
     const maz = normal.mul(ma.dot(normal).mul(-1));
     const uprightMaz = normal.mul(uprightMa.dot(normal).mul(-1));
-    const fz = f.map((f) => normal.mul(f.dot(normal)));
+    const fz = f.map((f) => normal.mul(f.dot(normal).mul(-1)));
     this.fz = fz
       .reduce((prev: IVector3, fz) => {
         return prev.add(fz);

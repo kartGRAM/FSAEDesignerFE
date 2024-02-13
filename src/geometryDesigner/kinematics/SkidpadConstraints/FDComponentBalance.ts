@@ -27,7 +27,9 @@ const Q0 = 3;
 const normal = new ConstantVector3(new Vector3(0, 0, 1));
 
 export class FDComponentBalance implements Constraint, Balance {
-  readonly className = 'FDComponentBalance';
+  static className = 'FDComponentBalance' as const;
+
+  readonly className = FDComponentBalance.className;
 
   isBalance: true = true;
 
@@ -149,20 +151,22 @@ export class FDComponentBalance implements Constraint, Balance {
     // 慣性力
     const ma = g.add(this.c);
 
+    // 作用反作用を考慮した力ベクトル
+    const f = this.f.map((f, i) => f.mul(this.pfCoefs[i]));
+
     if (this.conectedTireBalance) {
       const tireVars = this.conectedTireBalance.getTireVariables(
         this.p,
         this.q,
         this.omega,
         this.error,
-        this.f,
+        f,
         ma,
         this.vO
       );
       // 力のつり合い
-      this.forceError = this.f
-        .reduce((prev: IVector3, current, i) => {
-          const f = current.mul(this.pfCoefs[i]);
+      this.forceError = f
+        .reduce((prev: IVector3, f) => {
           return prev.add(f);
         }, new ConstantVector3())
         .add(ma)
@@ -170,9 +174,8 @@ export class FDComponentBalance implements Constraint, Balance {
         .add(tireVars.ma);
 
       // モーメントのつり合い
-      this.momentError = this.f
-        .reduce((prev: IVector3, current, i) => {
-          const f = current.mul(this.pfCoefs[i]);
+      this.momentError = f
+        .reduce((prev: IVector3, f, i) => {
           const s = ptsQ[i];
           return prev.add(f.cross(s));
         }, new ConstantVector3())
@@ -181,17 +184,15 @@ export class FDComponentBalance implements Constraint, Balance {
         .add(tireVars.ma.cross(tireVars.cogQ));
     } else {
       // 力のつり合い
-      this.forceError = this.f
-        .reduce((prev: IVector3, current, i) => {
-          const f = current.mul(this.pfCoefs[i]);
+      this.forceError = f
+        .reduce((prev: IVector3, f) => {
           return prev.add(f);
         }, new ConstantVector3())
         .add(ma);
 
       // モーメントのつり合い
-      this.momentError = this.f
-        .reduce((prev: IVector3, current, i) => {
-          const f = current.mul(this.pfCoefs[i]);
+      this.momentError = f
+        .reduce((prev: IVector3, f, i) => {
           const s = ptsQ[i];
           return prev.add(f.cross(s));
         }, new ConstantVector3())
@@ -269,11 +270,19 @@ export class FDComponentBalance implements Constraint, Balance {
     }); */
   }
 
-  applytoElement() {}
+  applytoElement() {
+    if (this.conectedTireBalance) {
+      this.conectedTireBalance.applytoElement();
+    }
+  }
 
   setJacobianAndConstraintsInequal() {}
 
   checkInequalityConstraint(): [boolean, any] {
     return [false, null];
   }
+}
+
+export function isFDComponentBalance(c: Constraint): c is FDComponentBalance {
+  return c.className === FDComponentBalance.className;
 }

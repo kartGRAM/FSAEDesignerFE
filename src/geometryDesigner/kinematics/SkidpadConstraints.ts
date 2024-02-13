@@ -22,7 +22,10 @@ import {
   GeneralVariable
 } from './KinematicComponents';
 import {TireBalance} from './SkidpadConstraints/TireBalance';
-import {FDComponentBalance} from './SkidpadConstraints/FDComponentBalance';
+import {
+  FDComponentBalance,
+  isFDComponentBalance
+} from './SkidpadConstraints/FDComponentBalance';
 import {BarBalance, isBarBalance} from './SkidpadConstraints/BarBalance';
 
 const X = 0;
@@ -503,5 +506,5 @@ export class LinearBushingBalance implements Constraint {
 }
 
 export {TireBalance};
-export {FDComponentBalance};
+export {FDComponentBalance, isFDComponentBalance};
 export {BarBalance, isBarBalance};
