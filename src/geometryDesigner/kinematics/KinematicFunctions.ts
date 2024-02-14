@@ -48,64 +48,82 @@ export function getTireFriction(
   };
 
   const zero = getVVector(new Vector3());
-  const friction = new CVector3(() => {
-    const saV = sa.scalarValue;
-    const iaV = ia.scalarValue;
-    const fzV = fz.scalarValue;
-    const slV = sl.scalarValue;
-    const params = {sa: saV, ia: iaV, fz: fzV, sl: slV};
-    const friction = data.friction(params);
-    return {
-      value: () => {
-        const returnZero = disabled();
-        if (returnZero) {
-          return zero.clone();
+  const friction = new CVector3(
+    () => {
+      const saV = sa.scalarValue;
+      const iaV = ia.scalarValue;
+      const fzV = fz.scalarValue;
+      const slV = sl.scalarValue;
+      const params = {sa: saV, ia: iaV, fz: fzV, sl: slV};
+      const friction = data.friction(params);
+      return {
+        value: () => {
+          const returnZero = disabled();
+          if (returnZero) {
+            return zero.clone();
+          }
+          return getVVector(friction); // (3x1)
+        },
+        diff: (fromLhs: Matrix) => {
+          if (disabled()) {
+            sa.diff(fromLhs.clone().mmul(zero));
+            sl.diff(fromLhs.clone().mmul(zero));
+            ia.diff(fromLhs.clone().mmul(zero));
+            fz.diff(fromLhs.clone().mmul(zero));
+            return;
+          }
+          sa.diff(fromLhs.clone().mmul(getVVector(data.dF_dSa(params))));
+          sl.diff(fromLhs.clone().mmul(getVVector(data.dF_dSl(params))));
+          ia.diff(fromLhs.clone().mmul(getVVector(data.dF_dIa(params))));
+          fz.diff(fromLhs.clone().mmul(getVVector(data.dF_dFz(params))));
         }
-        return getVVector(friction); // (3x1)
-      },
-      diff: (fromLhs: Matrix) => {
-        if (disabled()) {
-          sa.diff(fromLhs.clone().mmul(zero));
-          sl.diff(fromLhs.clone().mmul(zero));
-          ia.diff(fromLhs.clone().mmul(zero));
-          fz.diff(fromLhs.clone().mmul(zero));
-          return;
-        }
-        sa.diff(fromLhs.clone().mmul(getVVector(data.dF_dSa(params))));
-        sl.diff(fromLhs.clone().mmul(getVVector(data.dF_dSl(params))));
-        ia.diff(fromLhs.clone().mmul(getVVector(data.dF_dIa(params))));
-        fz.diff(fromLhs.clone().mmul(getVVector(data.dF_dFz(params))));
-      }
-    };
-  }, reset);
+      };
+    },
+    reset,
+    (phi_q, row) => {
+      sa.setJacobian(phi_q, row);
+      sl.setJacobian(phi_q, row);
+      ia.setJacobian(phi_q, row);
+      fz.setJacobian(phi_q, row);
+    }
+  );
 
-  const mz = new CVector3(() => {
-    const saV = sa.scalarValue;
-    const iaV = ia.scalarValue;
-    const fzV = fz.scalarValue;
-    const slV = sl.scalarValue;
-    const params = {sa: saV, ia: iaV, fz: fzV, sl: slV};
-    const mz = data.mz(params);
-    return {
-      value: () => {
-        if (disabled()) return zero.clone();
-        return getVVector(new Vector3(0, 0, mz)); // (1x1)
-      },
-      diff: (fromLhs: Matrix) => {
-        if (disabled()) {
-          sa.diff(fromLhs.clone().mmul(zero));
-          sl.diff(fromLhs.clone().mmul(zero));
-          ia.diff(fromLhs.clone().mmul(zero));
-          fz.diff(fromLhs.clone().mmul(zero));
-          return;
+  const mz = new CVector3(
+    () => {
+      const saV = sa.scalarValue;
+      const iaV = ia.scalarValue;
+      const fzV = fz.scalarValue;
+      const slV = sl.scalarValue;
+      const params = {sa: saV, ia: iaV, fz: fzV, sl: slV};
+      const mz = data.mz(params);
+      return {
+        value: () => {
+          if (disabled()) return zero.clone();
+          return getVVector(new Vector3(0, 0, mz)); // (1x1)
+        },
+        diff: (fromLhs: Matrix) => {
+          if (disabled()) {
+            sa.diff(fromLhs.clone().mmul(zero));
+            sl.diff(fromLhs.clone().mmul(zero));
+            ia.diff(fromLhs.clone().mmul(zero));
+            fz.diff(fromLhs.clone().mmul(zero));
+            return;
+          }
+          sa.diff(fromLhs.clone().mul(data.dMz_dSa(params)));
+          sl.diff(fromLhs.clone().mul(data.dMz_dSl(params)));
+          ia.diff(fromLhs.clone().mul(data.dMz_dIa(params)));
+          fz.diff(fromLhs.clone().mul(data.dMz_dFz(params)));
         }
-        sa.diff(fromLhs.clone().mul(data.dMz_dSa(params)));
-        sl.diff(fromLhs.clone().mul(data.dMz_dSl(params)));
-        ia.diff(fromLhs.clone().mul(data.dMz_dIa(params)));
-        fz.diff(fromLhs.clone().mul(data.dMz_dFz(params)));
-      }
-    };
-  }, reset);
+      };
+    },
+    reset,
+    (phi_q, row) => {
+      sa.setJacobian(phi_q, row);
+      sl.setJacobian(phi_q, row);
+      ia.setJacobian(phi_q, row);
+      fz.setJacobian(phi_q, row);
+    }
+  );
 
   return {friction, mz};
 }
@@ -150,6 +168,9 @@ export function getFrictionRotation(normalizedParallel: IVector3): IMatrix {
     },
     (options) => {
       normalizedParallel.reset(options);
+    },
+    (phi_q, row) => {
+      normalizedParallel.setJacobian(phi_q, row);
     }
   );
 }
