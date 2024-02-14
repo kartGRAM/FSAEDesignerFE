@@ -24,6 +24,11 @@ export interface ILinearBushing extends IElement, IMovingElement {
   readonly supportDistance: number;
   readonly currentPoints: Vector3[];
   readonly isLimited: boolean;
+
+  centrifugalForce: Vector3;
+  gravity: Vector3;
+  fixedPointForce: Vector3[];
+  pointForce: Vector3[];
 }
 
 export interface IDataLinearBushing extends IDataElement {

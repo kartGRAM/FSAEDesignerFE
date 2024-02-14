@@ -630,6 +630,7 @@ export class SkidpadSolver implements ISolver {
           constraints.push(
             new LinearBushingBalance({
               name: `LinearBushingBalance of${element.name.value}`,
+              element,
               frameComponent,
               framePoints: [fixedPoints[0].value, fixedPoints[1].value],
               rodEndComponents: rodEndComponents as OneOrTwo<IComponent>,

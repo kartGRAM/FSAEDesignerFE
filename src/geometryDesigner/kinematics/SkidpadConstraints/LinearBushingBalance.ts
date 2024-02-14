@@ -4,6 +4,7 @@ import {Matrix} from 'ml-matrix';
 import {Vector3} from 'three';
 import {Twin, OneOrTwo} from '@utils/atLeast';
 import {Constraint} from '@gd/kinematics/IConstraint';
+import {ILinearBushing} from '@gd/IElements/ILinearBushing';
 import {IVector3} from '@computationGraph/IVector3';
 import {VariableVector3} from '@computationGraph/VariableVector3';
 import {VariableScalar} from '@computationGraph/VariableScalar';
@@ -44,6 +45,8 @@ export class LinearBushingBalance implements Constraint, Balance {
   row: number = -1;
 
   name: string;
+
+  element: ILinearBushing;
 
   pfsRodEnd: OneOrTwo<PointForce>;
 
@@ -89,6 +92,7 @@ export class LinearBushingBalance implements Constraint, Balance {
 
   constructor(params: {
     name: string;
+    element: ILinearBushing;
     frameComponent: FullDegreesComponent;
     framePoints: Twin<Vector3>;
     rodEndComponents: OneOrTwo<IComponent>;
@@ -103,6 +107,7 @@ export class LinearBushingBalance implements Constraint, Balance {
     omega: GeneralVariable; // 座標原点の角速度
   }) {
     this.name = params.name;
+    this.element = params.element;
     this.pfsFrame = [...params.pfsFrame];
     this.pfsRodEnd = [...params.pfsRodEnd];
     this.frameComponent = params.frameComponent;
@@ -197,7 +202,20 @@ export class LinearBushingBalance implements Constraint, Balance {
       .add(ma.cross(cogQ));
   }
 
-  applytoElement(): void {}
+  applytoElement(): void {
+    const q = this.element.rotation.value.invert();
+    const {element} = this;
+
+    element.fixedPointForce = this.ffc.map((f) =>
+      f.vector3Value.applyQuaternion(q)
+    );
+
+    element.fixedPointForce = this.rfc.map((f) =>
+      f.vector3Value.applyQuaternion(q)
+    );
+    element.centrifugalForce = this.c.vector3Value.applyQuaternion(q);
+    element.gravity = this.g.clone().applyQuaternion(q);
+  }
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
     const {row} = this;

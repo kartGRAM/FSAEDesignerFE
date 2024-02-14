@@ -11,6 +11,7 @@ import {getMatrix3} from '@gd/NamedValues';
 import {Line2} from 'three-stdlib';
 import NodeSphere from './NodeSphere';
 import MeasurablePoint from './MeasurablePointSphere';
+import ForceArrow from './ForceArrow';
 
 const LinearBushing = (props: {element: ILinearBushing}) => {
   const {element} = props;
@@ -100,6 +101,9 @@ const LinearBushing = (props: {element: ILinearBushing}) => {
         ))}
         {measurablePoints.map((p) => (
           <MeasurablePoint node={p} key={p.nodeID} />
+        ))}
+        {element.getForceResults().map((res, i) => (
+          <ForceArrow element={element} index={i} key={res.nodeID} />
         ))}
       </group>
     </group>

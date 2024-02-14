@@ -78,18 +78,12 @@ export class AArm extends Element implements IAArm {
         nodeID: `${this.centerOfGravity.nodeID}g`,
         force: this.gravity ?? new Vector3()
       },
-      {
-        name: 'force1',
-        point: this.fixedPoints[0].value,
-        nodeID: this.fixedPoints[0].nodeID,
-        force: this.fixedPointForce[0] ?? new Vector3()
-      },
-      {
-        name: 'force2',
-        point: this.fixedPoints[1].value,
-        nodeID: this.fixedPoints[1].nodeID,
-        force: this.fixedPointForce[1] ?? new Vector3()
-      },
+      ...this.fixedPoints.map((p, i) => ({
+        name: `force${i + 1}`,
+        point: p.value,
+        nodeID: p.nodeID,
+        force: this.fixedPointForce[i] ?? new Vector3()
+      })),
       ...this.points.map((p, i) => ({
         name: `force${i + 3}`,
         point: p.value,
@@ -103,9 +97,9 @@ export class AArm extends Element implements IAArm {
 
   gravity: Vector3 = new Vector3();
 
-  fixedPointForce: Vector3[] = [new Vector3(), new Vector3()];
+  fixedPointForce: Vector3[] = [];
 
-  pointForce: Vector3[] = [new Vector3()];
+  pointForce: Vector3[] = [];
 
   setCenterOfGravityAuto() {
     const points = [...this.fixedPoints, this.points[0]];

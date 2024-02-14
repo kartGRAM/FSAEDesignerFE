@@ -717,7 +717,7 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
     phi: number[],
     options: ConstraintsOptions
   ) {
-    const {disableSpringElasticity} = options;
+    const {fixLinearBushing} = options;
     if (this.controled) {
       this.sphere.row = this.row;
       this.sphere.setVlhs(
@@ -731,7 +731,7 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
       this.sphere.setJacobianAndConstraints(phi_q, phi);
       return;
     }
-    if (disableSpringElasticity) {
+    if (fixLinearBushing) {
       this.sphere.row = this.row;
       this.sphere.setVlhs(
         this.centerValue
