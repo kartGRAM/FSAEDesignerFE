@@ -30,7 +30,7 @@ export abstract class ScalarBase {
         const lhs = this.value; // (1x1)
         const rhs = isNumber(other) ? other : other.scalarValue; // (1x1)
         return {
-          value: lhs.clone().mul(rhs),
+          value: () => lhs.clone().mul(rhs),
           diff: (mat: Matrix) => {
             if (!isConstant(this)) this.diff(mat.clone().mul(rhs));
             if (!isNumber(other) && !isConstant(other))
@@ -52,7 +52,7 @@ export abstract class ScalarBase {
         const rhs = isNumber(other) ? other : other.scalarValue; // (1x1)
         const rhs2 = rhs ** 2;
         return {
-          value: lhs.clone().mul(1 / rhs),
+          value: () => lhs.clone().mul(1 / rhs),
           diff: (mat: Matrix) => {
             if (!isConstant(this)) this.diff(mat.clone().mul(1 / rhs));
             if (!isNumber(other) && !isConstant(other))
@@ -73,7 +73,7 @@ export abstract class ScalarBase {
         const lhs = this.value; // (1x1)
         const rhs = isNumber(other) ? Matrix.eye(1, 1).mul(other) : other.value; // (1x1)
         return {
-          value: lhs.add(rhs),
+          value: () => lhs.add(rhs),
           diff: (mat: Matrix) => {
             if (!isConstant(this)) this.diff(mat);
             if (!isNumber(other) && !isConstant(other)) other.diff(mat);
@@ -93,7 +93,7 @@ export abstract class ScalarBase {
         const lhs = this.value; // (1x1)
         const rhs = isNumber(other) ? Matrix.eye(1, 1).mul(other) : other.value; // (1x1)
         return {
-          value: lhs.sub(rhs),
+          value: () => lhs.sub(rhs),
           diff: (mat: Matrix) => {
             if (!isConstant(this)) this.diff(mat);
             if (!isNumber(other) && !isConstant(other))
@@ -131,10 +131,10 @@ export class Scalar extends ScalarBase implements IScalar {
     if (this.storedValue) return this.storedValue;
     const {value, diff} = this._value();
     this._diff = diff;
-    this.storedValue = value;
-    if (value.rows !== 1 && value.columns !== 1)
+    this.storedValue = value();
+    if (this.storedValue.rows !== 1 && this.storedValue.columns !== 1)
       throw new Error('スカラーじゃない');
-    return value;
+    return this.storedValue;
   }
 
   diff(fromLhs: Matrix): void {

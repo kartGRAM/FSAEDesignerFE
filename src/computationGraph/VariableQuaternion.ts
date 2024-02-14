@@ -55,7 +55,7 @@ export class VariableQuaternion implements IQuaternion, IVariable {
         const G = decompositionMatrixG(this._value);
         const A = rotationMatrix(this._value);
         return {
-          value: A,
+          value: () => A,
           diff: (fromLhs: Matrix, fromRhs?: Matrix) => {
             if (!fromRhs) throw new Error('ベクトルが必要');
             if (fromRhs.rows !== 3 || fromRhs.columns !== 1)
@@ -76,7 +76,7 @@ export class VariableQuaternion implements IQuaternion, IVariable {
         const E = decompositionMatrixE(this._value);
         const AT = rotationMatrix(this._value).transpose();
         return {
-          value: AT,
+          value: () => AT,
           diff: (fromLhs: Matrix, fromRhs?: Matrix) => {
             if (!fromRhs) throw new Error('ベクトルが必要');
             if (fromRhs.rows !== 3 || fromRhs.columns !== 1)

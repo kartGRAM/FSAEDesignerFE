@@ -113,7 +113,7 @@ export function asin(value: IScalar) {
       const lhs = value.scalarValue; // (1x1)
       const coef = 1 / Math.sqrt(1 - lhs ** 2);
       return {
-        value: Matrix.eye(1, 1).mul(Math.asin(lhs)),
+        value: () => Matrix.eye(1, 1).mul(Math.asin(lhs)),
         diff: (mat: Matrix) => {
           if (!isConstant(value)) value.diff(mat.clone().mul(coef));
         }

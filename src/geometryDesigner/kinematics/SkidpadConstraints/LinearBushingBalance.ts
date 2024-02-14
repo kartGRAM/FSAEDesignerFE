@@ -234,7 +234,7 @@ export class LinearBushingBalance implements Constraint, Balance {
     this.fp.setJacobian(phi_q, row, this.frameComponent.col + X);
     this.fq.setJacobian(phi_q, row, this.frameComponent.col + Q0);
     this.rodEndComponents.forEach((c, i) => {
-      this.rp[i].setJacobian(phi_q, row, c.col + X);
+      // this.rp[i].setJacobian(phi_q, row, c.col + X);
       if (isFullDegreesComponent(c))
         this.rq[i].setJacobian(phi_q, row, c.col + Q0);
     });
@@ -257,7 +257,7 @@ export class LinearBushingBalance implements Constraint, Balance {
     this.fp.setJacobian(phi_q, row + 3, this.frameComponent.col + X);
     this.fq.setJacobian(phi_q, row + 3, this.frameComponent.col + Q0);
     this.rodEndComponents.forEach((c, i) => {
-      this.rp[i].setJacobian(phi_q, row + 3, c.col + X);
+      // this.rp[i].setJacobian(phi_q, row + 3, c.col + X);
       if (isFullDegreesComponent(c))
         this.rq[i].setJacobian(phi_q, row + 3, c.col + Q0);
     });

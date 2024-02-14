@@ -27,7 +27,7 @@ import {hasNearestNeighborToPlane} from '@gd/SpecialPoints';
 import {sleep} from '@utils/helpers';
 import {ISteadySkidpadParams} from '@gd/analysis/ITest';
 import {ISnapshot} from '@gd/analysis/ISnapshot';
-import {Twin, Triple} from '@utils/atLeast';
+import {Twin, Triple, OneOrTwo} from '@utils/atLeast';
 import {getTire} from '@tire/listTireData';
 import {Constraint, ConstraintsOptions} from '@gd/kinematics/IConstraint';
 import {ConstantVector3} from '@computationGraph/Vector3';
@@ -307,7 +307,7 @@ export class SkidpadSolver implements ISolver {
               pUpright.value,
               false
             );
-            // constraints.push(constraint);
+            constraints.push(constraint);
           });
           // AArmBalance
           constraints.push(
@@ -486,7 +486,9 @@ export class SkidpadSolver implements ISolver {
               getFriction: (sa, ia, fz) => {
                 const sl = new ConstantScalar(0);
                 // 要修正
-                const {friction} = getTireFriction(tire, sa, sl, ia, fz);
+                const {friction} = getTireFriction(tire, sa, sl, ia, fz, () => {
+                  return tireBalance.disableTireFriction;
+                });
                 return friction;
               },
               getGround: (q) => groundLocalVec(normal, new ConstantScalar(0), q)
@@ -517,6 +519,8 @@ export class SkidpadSolver implements ISolver {
         if (isLinearBushing(element)) {
           const pfsFrame: PointForce[] = [];
           const pfsRodEnd: PointForce[] = [];
+          const pfsFramePointNodeIDs: string[] = [];
+          const pfsRodEndPointNodeIDs: string[] = [];
           const jointf0 = jointDict[element.fixedPoints[0].nodeID][0];
           const jointf1 = jointDict[element.fixedPoints[1].nodeID][0];
           const fixedPoints = [
@@ -528,14 +532,18 @@ export class SkidpadSolver implements ISolver {
             jointf0,
             forceScale
           );
+          const [pf0c] = getNamedVector3FromJoint(jointf0, element.nodeID);
           pfsFrame.push(pf0);
+          pfsFramePointNodeIDs.push(pf0c.nodeID);
           if (isNew0) components.push(pf0);
           const [pf1, isNew1] = getPFComponent(
             pointForceComponents,
             jointf1,
             forceScale
           );
+          const [pf1c] = getNamedVector3FromJoint(jointf1, element.nodeID);
           pfsFrame.push(pf1);
+          pfsFramePointNodeIDs.push(pf1c.nodeID);
           if (isNew1) components.push(pf1);
           jointsDone.add(jointf0);
           jointsDone.add(jointf1);
@@ -553,7 +561,9 @@ export class SkidpadSolver implements ISolver {
               jointp,
               forceScale
             );
+            const [pfc] = getNamedVector3FromJoint(jointp, element.nodeID);
             pfsRodEnd.push(pf);
+            pfsRodEndPointNodeIDs.push(pfc.nodeID);
             if (isNew) components.push(pf);
             jointsDone.add(jointp);
             const points = [
@@ -627,7 +637,6 @@ export class SkidpadSolver implements ISolver {
                 constraints.push(constraint);
               }
             }
-
             const constraint = new LinearBushingSingleEnd(
               `Linear bushing object of ${element.name.value}`,
               tempComponents[elements[0].nodeID],
@@ -643,7 +652,6 @@ export class SkidpadSolver implements ISolver {
             constraints.push(constraint);
           });
           // LinearBushingBalance
-          /*
           constraints.push(
             new LinearBushingBalance({
               name: `LinearBushingBalance of${element.name.value}`,
@@ -656,11 +664,13 @@ export class SkidpadSolver implements ISolver {
                 .multiplyScalar(0.5), // 要修正
               pfsFrame: pfsFrame as Twin<PointForce>,
               pfsRodEnd: pfsRodEnd as OneOrTwo<PointForce>,
+              pfsFramePointNodeIDs,
+              pfsRodEndPointNodeIDs,
               mass: element.mass.value,
-              vO,
+              getVO: vO,
               omega
             })
-          ); */
+          );
         }
         // TorsionSpringはComponent扱いしない
         if (isTorsionSpring(element)) {
@@ -1028,9 +1038,10 @@ export class SkidpadSolver implements ISolver {
           .getGroupedConstraints()
           .filter((constraint) => constraint.active(constraintsOptions));
         constraints.forEach((c) => {
-          if (isFDComponentBalance(c) && c.conectedTireBalance)
+          if (isFDComponentBalance(c) && c.conectedTireBalance) {
             c.conectedTireBalance.disableTireFriction =
               !!constraintsOptions.disableTireFriction;
+          }
         });
 
         const equations = constraints.reduce((prev, current) => {

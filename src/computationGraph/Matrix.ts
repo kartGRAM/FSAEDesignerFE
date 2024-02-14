@@ -27,9 +27,9 @@ export class Matrix implements IMatrix {
   get value() {
     if (this.storedValue) return this.storedValue;
     const {value, diff} = this._value();
-    this.storedValue = value;
+    this.storedValue = value();
     this._diff = diff;
-    return value;
+    return this.storedValue;
   }
 
   reset(options: ResetOptions) {
@@ -47,7 +47,7 @@ export class Matrix implements IMatrix {
         const lhs = this.value; // (nxm)
         const rhs = isNumber(other) ? other : other.scalarValue; // (1x1)
         return {
-          value: lhs.clone().mul(rhs), // (nxm)
+          value: () => lhs.clone().mul(rhs), // (nxm)
           diff: (fromLhs: MLMatrix, fromRhs?: MLMatrix) => {
             this.diff(fromLhs.clone().mul(rhs), fromRhs);
             if (!isNumber(other) && !isConstant(other)) {
@@ -73,7 +73,7 @@ export class Matrix implements IMatrix {
         const lhs = this.value; // (mxn)
         const rhs = other.value; // (nxk)
         return {
-          value: lhs.mmul(rhs), // (mxk)
+          value: () => lhs.mmul(rhs), // (mxk)
           diff: (fromLhs: MLMatrix, fromRhs?: MLMatrix) => {
             this.diff(fromLhs, fromRhs ? rhs.mmul(fromRhs) : rhs);
             if (!isConstant(other)) other.diff(fromLhs.mmul(lhs));
@@ -93,7 +93,7 @@ export class Matrix implements IMatrix {
         const lhs = this.value; // (mx3)
         const rhs = other.value; // (3x1)
         return {
-          value: lhs.mmul(rhs), // (3x1)
+          value: () => lhs.mmul(rhs), // (3x1)
           diff: (fromLhs: MLMatrix) => {
             this.diff(fromLhs, rhs);
             if (!isConstant(other)) other.diff(fromLhs.mmul(lhs));

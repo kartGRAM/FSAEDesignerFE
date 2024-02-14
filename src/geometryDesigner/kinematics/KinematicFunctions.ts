@@ -35,7 +35,8 @@ export function getTireFriction(
   sa: IScalar,
   sl: IScalar,
   ia: IScalar,
-  fz: IScalar
+  fz: IScalar,
+  disabled: () => boolean
 ): {friction: IVector3; mz: IVector3} {
   const reset = (options: ResetOptions) => {
     sa.reset(options);
@@ -43,6 +44,8 @@ export function getTireFriction(
     fz.reset(options);
     sl.reset(options);
   };
+
+  const zero = getVVector(new Vector3());
   const friction = new CVector3(() => {
     const saV = sa.scalarValue;
     const iaV = ia.scalarValue;
@@ -51,8 +54,18 @@ export function getTireFriction(
     const params = {sa: saV, ia: iaV, fz: fzV, sl: slV};
     const friction = data.friction(params);
     return {
-      value: getVVector(friction), // (1x1)
+      value: () => {
+        if (disabled()) return zero.clone();
+        return getVVector(friction); // (3x1)
+      },
       diff: (fromLhs: Matrix) => {
+        if (disabled()) {
+          sa.diff(fromLhs.clone().mmul(zero));
+          sl.diff(fromLhs.clone().mmul(zero));
+          ia.diff(fromLhs.clone().mmul(zero));
+          fz.diff(fromLhs.clone().mmul(zero));
+          return;
+        }
         sa.diff(fromLhs.clone().mmul(getVVector(data.dF_dSa(params))));
         sl.diff(fromLhs.clone().mmul(getVVector(data.dF_dSl(params))));
         ia.diff(fromLhs.clone().mmul(getVVector(data.dF_dIa(params))));
@@ -69,8 +82,18 @@ export function getTireFriction(
     const params = {sa: saV, ia: iaV, fz: fzV, sl: slV};
     const mz = data.mz(params);
     return {
-      value: getVVector(new Vector3(0, 0, mz)), // (1x1)
+      value: () => {
+        if (disabled()) return zero.clone();
+        return getVVector(new Vector3(0, 0, mz)); // (1x1)
+      },
       diff: (fromLhs: Matrix) => {
+        if (disabled()) {
+          sa.diff(fromLhs.clone().mmul(zero));
+          sl.diff(fromLhs.clone().mmul(zero));
+          ia.diff(fromLhs.clone().mmul(zero));
+          fz.diff(fromLhs.clone().mmul(zero));
+          return;
+        }
         sa.diff(fromLhs.clone().mul(data.dMz_dSa(params)));
         sl.diff(fromLhs.clone().mul(data.dMz_dSl(params)));
         ia.diff(fromLhs.clone().mul(data.dMz_dIa(params)));
@@ -103,11 +126,12 @@ export function getFrictionRotation(normalizedParallel: IVector3): IMatrix {
     () => {
       const k = normalizedParallel.vector3Value;
       return {
-        value: new Matrix([
-          [k.x, -k.y, 0],
-          [k.y, k.x, 0],
-          [0, 0, 0]
-        ]),
+        value: () =>
+          new Matrix([
+            [k.x, -k.y, 0],
+            [k.y, k.x, 0],
+            [0, 0, 0]
+          ]),
         diff: (fromLhs: Matrix, fromRhs?: Matrix) => {
           if (!fromRhs) throw new Error('ベクトルが必要');
           if (fromRhs.rows !== 3 || fromRhs.columns !== 1)

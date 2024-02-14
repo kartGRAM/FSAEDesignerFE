@@ -42,7 +42,7 @@ export abstract class Vector3Base {
         const lhs = this.value; // (3x1)
         const rhs = isNumber(other) ? other : other.scalarValue; // (1x1)
         return {
-          value: lhs.clone().mul(rhs), // (3x1)
+          value: () => lhs.clone().mul(rhs), // (3x1)
           diff: (fromLhs: Matrix) => {
             if (!isConstant(this)) this.diff(fromLhs.clone().mul(rhs)); // (3x3)
             if (!isNumber(other) && !isConstant(other))
@@ -65,7 +65,7 @@ export abstract class Vector3Base {
         const lhsT = lhs.transpose(); // (1x3)
         const rhsT = rhs.transpose(); // (1x3)
         return {
-          value: lhs.transpose().mmul(rhs), // (1x1)
+          value: () => lhs.transpose().mmul(rhs), // (1x1)
           diff: (mat: Matrix) => {
             if (!isConstant(this)) this.diff(mat.mmul(rhsT)); // (1x3)
             if (!isThreeVector3(other) && !isConstant(other))
@@ -88,7 +88,7 @@ export abstract class Vector3Base {
         const lSkew = skew(lhs); // (3x3)
         const rSkew = skew(rhs); // (3x3)
         return {
-          value: lSkew.mmul(rhs), // (1x1)
+          value: () => lSkew.mmul(rhs), // (1x1)
           diff: (mat: Matrix) => {
             if (!isConstant(this)) this.diff(mat.mmul(rSkew).mul(-1)); // (1x3)
             if (!isConstant(other)) other.diff(mat.mmul(lSkew)); // (1x3)
@@ -108,7 +108,7 @@ export abstract class Vector3Base {
         const lhs = this.value; // (3x1)
         const rhs = other.value; // (3x1)
         return {
-          value: lhs.clone().add(rhs), // (1x1)
+          value: () => lhs.clone().add(rhs), // (1x1)
           diff: (mat: Matrix) => {
             if (!isConstant(this)) this.diff(mat); // (1x3)
             if (!isConstant(other)) other.diff(mat); // (1x3)
@@ -128,7 +128,7 @@ export abstract class Vector3Base {
         const lhs = this.value; // (3x1)
         const rhs = other.value; // (3x1)
         return {
-          value: lhs.clone().sub(rhs), // (1x1)
+          value: () => lhs.clone().sub(rhs), // (1x1)
           diff: (mat: Matrix) => {
             this.diff(mat); // (1x3)
             if (!isConstant(other)) other.diff(mat.clone().mul(-1)); // (1x3)
@@ -147,7 +147,7 @@ export abstract class Vector3Base {
       () => {
         const lhs = this.vector3Value; // (3x1)
         return {
-          value: Matrix.eye(1, 1).mul(lhs.length()), // (1x1)
+          value: () => Matrix.eye(1, 1).mul(lhs.length()), // (1x1)
           diff: (mat: Matrix) => {
             this.diff(mat.mmul(normVectorDiff(lhs))); // (1x3)
           }
@@ -164,7 +164,7 @@ export abstract class Vector3Base {
       () => {
         const lhs = this.vector3Value; // (3x1)
         return {
-          value: getVVector(lhs.clone().normalize()), // (1x1)
+          value: () => getVVector(lhs.clone().normalize()), // (1x1)
           diff: (mat: Matrix) => {
             this.diff(mat.mmul(normalizedVectorDiff(lhs))); // (1x3)
           }
@@ -194,10 +194,10 @@ export class Vector3 extends Vector3Base implements IVector3 {
     if (this.storedValue) return this.storedValue;
     const {value, diff} = this._value();
     this._diff = diff;
-    this.storedValue = value;
-    if (value.rows !== 3 && value.columns !== 1)
+    this.storedValue = value();
+    if (this.storedValue.rows !== 3 && this.storedValue.columns !== 1)
       throw new Error('3次元ベクトルじゃない');
-    return value;
+    return this.storedValue;
   }
 
   reset(options: ResetOptions) {
