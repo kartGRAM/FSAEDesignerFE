@@ -408,8 +408,6 @@ export class PointComponent extends ComponentBase {
   // eslint-disable-next-line no-empty-function
   set quaternion(value: Quaternion) {}
 
-  _isFixed: boolean = false;
-
   get isFixed(): boolean {
     return false;
   }
@@ -456,7 +454,7 @@ export class PointComponent extends ComponentBase {
   }
 
   get positionVariable(): VariableVector3 {
-    return new VariableVector3(!this.isFixed ? this.col + X : -1);
+    return new VariableVector3(this.col + X);
   }
 
   get quaternionVariable(): VariableQuaternion {
