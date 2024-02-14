@@ -210,9 +210,7 @@ export class LinearBushingBalance implements Constraint, Balance {
       f.vector3Value.applyQuaternion(q)
     );
 
-    element.fixedPointForce = this.rfc.map((f) =>
-      f.vector3Value.applyQuaternion(q)
-    );
+    element.pointForce = this.rfc.map((f) => f.vector3Value.applyQuaternion(q));
     element.centrifugalForce = this.c.vector3Value.applyQuaternion(q);
     element.gravity = this.g.clone().applyQuaternion(q);
   }

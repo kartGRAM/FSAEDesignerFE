@@ -11,6 +11,7 @@ import {getMatrix3} from '@gd/NamedValues';
 import {Line2} from 'three-stdlib';
 import NodeSphere from './NodeSphere';
 import MeasurablePoint from './MeasurablePointSphere';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import ForceArrow from './ForceArrow';
 
 const Bar = (props: {element: IBar}) => {
@@ -64,9 +65,9 @@ const Bar = (props: {element: IBar}) => {
       {measurablePoints.map((p) => (
         <MeasurablePoint node={p} key={`${p.nodeID}m`} />
       ))}
-      {element.getForceResults().map((res, i) => (
+      {/* element.getForceResults().map((res, i) => (
         <ForceArrow element={element} index={i} key={res.nodeID} />
-      ))}
+      )) */}
     </group>
   );
 };
