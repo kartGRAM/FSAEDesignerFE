@@ -41,6 +41,6 @@ export class VariableVector3
 
   setJacobian(phi_q: Matrix, row: number, col: number) {
     if (!this._diff) throw new Error('diffが未計算');
-    phi_q.subMatrixAdd(this._diff, row, col);
+    phi_q.setSubMatrix(this._diff, row, col);
   }
 }

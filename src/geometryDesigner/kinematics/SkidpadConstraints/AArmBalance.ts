@@ -6,12 +6,10 @@ import {Vector3} from 'three';
 import {Triple} from '@utils/atLeast';
 import {IAArm} from '@gd/IElements/IAArm';
 import {Constraint, ConstraintsOptions} from '@gd/kinematics/IConstraint';
-import {IScalar} from '@computationGraph/IScalar';
 import {IVector3} from '@computationGraph/IVector3';
 import {VariableVector3} from '@computationGraph/VariableVector3';
 import {VariableScalar} from '@computationGraph/VariableScalar';
 import {ConstantVector3} from '@computationGraph/Vector3';
-import {ConstantScalar} from '@computationGraph/ConstantScalar';
 import {VariableQuaternion} from '@computationGraph/VariableQuaternion';
 import {Balance} from '../SkidpadConstraints';
 import {
@@ -34,27 +32,19 @@ export class AArmBalance implements Constraint, Balance {
 
   isBalance: true = true;
 
-  isSpring: boolean = false;
-
-  freeLength: ConstantScalar;
-
-  k: ConstantScalar; // N/m
-
-  vO: ConstantVector3; // m/s
-
   p: Triple<VariableVector3>;
 
   q: Triple<VariableQuaternion>;
 
   f: Triple<VariableVector3>;
 
+  vO: ConstantVector3; // m/s
+
   omega: VariableScalar;
 
   forceError: IVector3;
 
   momentError: IVector3;
-
-  springForceError: IScalar = new ConstantScalar(0);
 
   c: IVector3;
 
@@ -63,8 +53,7 @@ export class AArmBalance implements Constraint, Balance {
   pfCoefs: Triple<number>;
 
   // 並進運動+回転
-  constraints(options: ConstraintsOptions) {
-    if (this.isSpring && !options.disableSpringElasticity) return 7;
+  constraints() {
     return 6;
   }
 
@@ -103,8 +92,6 @@ export class AArmBalance implements Constraint, Balance {
     pfsPointNodeIDs: string[]; // ジョイント部分のローカルベクトルのノードID 作用反作用どちらで使うかを判定する
     vO: () => Vector3; // 座標原点の速度
     omega: GeneralVariable; // 座標原点の角速度
-    isSpring?: boolean;
-    k?: number;
   }) {
     this.element = params.element;
     this.name = params.name;
@@ -131,12 +118,6 @@ export class AArmBalance implements Constraint, Balance {
     this.q = this.components.map((c) => pqMap.get(c)![1]) as any;
     this.f = this.pfs.map(() => new VariableVector3()) as any;
     this.omega = new VariableScalar();
-    this.k = new ConstantScalar(0);
-    this.freeLength = new ConstantScalar(0);
-    if (params.isSpring && params.k && params.k > 0) {
-      this.isSpring = true;
-      this.k.setValue(params.k);
-    }
     this.vO = new ConstantVector3(this.getVO());
 
     // 計算グラフ構築
