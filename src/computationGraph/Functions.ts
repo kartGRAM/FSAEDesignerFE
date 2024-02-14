@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import {Matrix} from 'ml-matrix';
 import {IScalar} from './IScalar';
 import {Scalar} from './Scalar';
@@ -121,6 +122,9 @@ export function asin(value: IScalar) {
     },
     (options) => {
       value.reset(options);
+    },
+    (phi_q, row) => {
+      value.setJacobian(phi_q, row);
     }
   );
 }
