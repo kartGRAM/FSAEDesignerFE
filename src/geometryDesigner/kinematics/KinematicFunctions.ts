@@ -55,7 +55,10 @@ export function getTireFriction(
     const friction = data.friction(params);
     return {
       value: () => {
-        if (disabled()) return zero.clone();
+        const returnZero = disabled();
+        if (returnZero) {
+          return zero.clone();
+        }
         return getVVector(friction); // (3x1)
       },
       diff: (fromLhs: Matrix) => {

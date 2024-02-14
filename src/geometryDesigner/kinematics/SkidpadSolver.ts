@@ -1186,6 +1186,7 @@ export class SkidpadSolver implements ISolver {
       logOutput: true
     });
     console.log('');
+    if (true) return;
     console.log('calculating spring preloads...........');
     this.components.forEach((components) => {
       const root = components[0];
