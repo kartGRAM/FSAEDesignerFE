@@ -43,6 +43,7 @@ import {
   getSimplifiedTireConstrainsParams,
   elementIsComponent,
   getTireFriction,
+  getPointComponent,
   getPFComponent
 } from './KinematicFunctions';
 import {
@@ -254,29 +255,29 @@ export class SkidpadSolver implements ISolver {
           const pNodeIDs: string[] = [];
           const joints = element.fixedPoints.map((p) => {
             const joint = jointDict[p.nodeID][0];
-            const [pf, isNew] = getPFComponent(
+            const pf = getPFComponent(
               pointForceComponents,
+              components,
               joint,
               forceScale
             );
             pfs.push(pf);
             const [pfv] = getNamedVector3FromJoint(joint, element.nodeID);
             pNodeIDs.push(pfv.nodeID);
-            if (isNew) components.push(pf);
             jointsDone.add(joint);
             return joint;
           });
           const jointu = jointDict[element.points[0].nodeID][0];
           // 力コンポーネント
-          const [pf, isNew] = getPFComponent(
+          const pf = getPFComponent(
             pointForceComponents,
+            components,
             jointu,
             forceScale
           );
           pfs.push(pf);
           const [pfv] = getNamedVector3FromJoint(jointu, element.nodeID);
           pNodeIDs.push(pfv.nodeID);
-          if (isNew) components.push(pf);
           jointsDone.add(jointu);
           const ptsBody = joints.map((joint, i) =>
             getJointPartner(joint, element.fixedPoints[i].nodeID)
@@ -336,24 +337,24 @@ export class SkidpadSolver implements ISolver {
           const jointf = jointDict[element.fixedPoint.nodeID][0];
           const jointp = jointDict[element.point.nodeID][0];
           const pNodeIDs: string[] = [];
-          const [pff, isNewf] = getPFComponent(
+          const pff = getPFComponent(
             pointForceComponents,
+            components,
             jointf,
             forceScale
           );
           const [pf] = getNamedVector3FromJoint(jointf, element.nodeID);
           pNodeIDs.push(pf.nodeID);
           pfs.push(pff);
-          if (isNewf) components.push(pff);
-          const [pfp, isNewp] = getPFComponent(
+          const pfp = getPFComponent(
             pointForceComponents,
+            components,
             jointp,
             forceScale
           );
           const [pp] = getNamedVector3FromJoint(jointp, element.nodeID);
           pNodeIDs.push(pp.nodeID);
           pfs.push(pfp);
-          if (isNewp) components.push(pfp);
           jointsDone.add(jointf);
           jointsDone.add(jointp);
           const points = [
@@ -373,34 +374,22 @@ export class SkidpadSolver implements ISolver {
           let lhs: IComponent = tempComponents[elements[0].nodeID];
           let rhs: IComponent = tempComponents[elements[1].nodeID];
           if (!lhs) {
-            if (!(points[0].nodeID in pointComponents)) {
-              pointComponents[element.fixedPoint.nodeID] = new PointComponent(
-                element.fixedPoint,
-                points[0],
-                scale
-              );
-              lhs = pointComponents[element.fixedPoint.nodeID];
-              components.push(lhs);
-            } else {
-              // eslint-disable-next-line no-multi-assign
-              lhs = pointComponents[element.fixedPoint.nodeID] =
-                pointComponents[points[0].nodeID];
-            }
+            lhs = getPointComponent(
+              pointComponents,
+              components,
+              points[0],
+              element.fixedPoint,
+              scale
+            );
           }
           if (!rhs) {
-            if (!(points[1].nodeID in pointComponents)) {
-              pointComponents[element.point.nodeID] = new PointComponent(
-                element.point,
-                points[1],
-                scale
-              );
-              rhs = pointComponents[element.point.nodeID];
-              components.push(rhs);
-            } else {
-              // eslint-disable-next-line no-multi-assign
-              rhs = pointComponents[element.fixedPoint.nodeID] =
-                pointComponents[points[1].nodeID];
-            }
+            rhs = getPointComponent(
+              pointComponents,
+              components,
+              points[1],
+              element.point,
+              scale
+            );
           }
           const controledBy =
             controls[element.nodeID]?.map((control) => control.nodeID) ?? [];
@@ -521,32 +510,24 @@ export class SkidpadSolver implements ISolver {
           const pfsRodEnd: PointForce[] = [];
           const pfsFramePointNodeIDs: string[] = [];
           const pfsRodEndPointNodeIDs: string[] = [];
-          const jointf0 = jointDict[element.fixedPoints[0].nodeID][0];
-          const jointf1 = jointDict[element.fixedPoints[1].nodeID][0];
-          const fixedPoints = [
-            getJointPartner(jointf0, element.fixedPoints[0].nodeID),
-            getJointPartner(jointf1, element.fixedPoints[1].nodeID)
-          ];
-          const [pf0, isNew0] = getPFComponent(
-            pointForceComponents,
-            jointf0,
-            forceScale
+          const jointf = element.fixedPoints.map(
+            (fp) => jointDict[fp.nodeID][0]
           );
-          const [pf0c] = getNamedVector3FromJoint(jointf0, element.nodeID);
-          pfsFrame.push(pf0);
-          pfsFramePointNodeIDs.push(pf0c.nodeID);
-          if (isNew0) components.push(pf0);
-          const [pf1, isNew1] = getPFComponent(
-            pointForceComponents,
-            jointf1,
-            forceScale
+          const fixedPoints = jointf.map((joint, i) =>
+            getJointPartner(joint, element.fixedPoints[i].nodeID)
           );
-          const [pf1c] = getNamedVector3FromJoint(jointf1, element.nodeID);
-          pfsFrame.push(pf1);
-          pfsFramePointNodeIDs.push(pf1c.nodeID);
-          if (isNew1) components.push(pf1);
-          jointsDone.add(jointf0);
-          jointsDone.add(jointf1);
+          jointf.forEach((joint) => {
+            const pf = getPFComponent(
+              pointForceComponents,
+              components,
+              joint,
+              forceScale
+            );
+            pfsFrame.push(pf);
+            const [pfc] = getNamedVector3FromJoint(joint, element.nodeID);
+            pfsFramePointNodeIDs.push(pfc.nodeID);
+            jointsDone.add(joint);
+          });
           const node0: (Vector3 | undefined)[] = [];
           const component0: IComponent[] = [];
           const rodEndComponents: IComponent[] = [];
@@ -555,37 +536,31 @@ export class SkidpadSolver implements ISolver {
             tempComponents[fixedPoints[0].parent?.nodeID ?? ''];
           if (!frameComponent) throw new Error('frameComponentが見つからない');
           element.points.forEach((point, i) => {
-            const jointp = jointDict[point.nodeID][0];
-            const [pf, isNew] = getPFComponent(
+            const jointRodEnd = jointDict[point.nodeID][0];
+            const pf = getPFComponent(
               pointForceComponents,
-              jointp,
+              components,
+              jointRodEnd,
               forceScale
             );
-            const [pfc] = getNamedVector3FromJoint(jointp, element.nodeID);
+            const [pfc] = getNamedVector3FromJoint(jointRodEnd, element.nodeID);
             pfsRodEnd.push(pf);
             pfsRodEndPointNodeIDs.push(pfc.nodeID);
-            if (isNew) components.push(pf);
-            jointsDone.add(jointp);
+            jointsDone.add(jointRodEnd);
             const points = [
               ...fixedPoints,
-              getJointPartner(jointp, point.nodeID)
+              getJointPartner(jointRodEnd, point.nodeID)
             ];
             const elements = points.map((p) => p.parent as IElement);
             let rhs: IComponent = tempComponents[elements[2].nodeID];
             if (!rhs) {
-              if (!(points[2].nodeID in pointComponents)) {
-                pointComponents[point.nodeID] = new PointComponent(
-                  point,
-                  points[2],
-                  scale
-                );
-                rhs = pointComponents[point.nodeID];
-                components.push(rhs);
-              } else {
-                // eslint-disable-next-line no-multi-assign
-                rhs = pointComponents[point.nodeID] =
-                  pointComponents[points[2].nodeID];
-              }
+              rhs = getPointComponent(
+                pointComponents,
+                components,
+                points[2],
+                point,
+                scale
+              );
             }
             // 最初のみリストアに登録
             if (i === 0) {
@@ -639,7 +614,7 @@ export class SkidpadSolver implements ISolver {
             }
             const constraint = new LinearBushingSingleEnd(
               `Linear bushing object of ${element.name.value}`,
-              tempComponents[elements[0].nodeID],
+              frameComponent,
               rhs,
               [points[0].value, points[1].value],
               element.toPoints[i].value,
@@ -660,6 +635,7 @@ export class SkidpadSolver implements ISolver {
               rodEndComponents: rodEndComponents as OneOrTwo<IComponent>,
               rodEndPoints: rodEndPoints as OneOrTwo<Vector3>,
               cog: fixedPoints[0].value
+                .clone()
                 .add(fixedPoints[1].value)
                 .multiplyScalar(0.5), // 要修正
               pfsFrame: pfsFrame as Twin<PointForce>,
@@ -694,19 +670,13 @@ export class SkidpadSolver implements ISolver {
             const elements = points.map((p) => p.parent as IElement);
             let rhs: IComponent = tempComponents[elements[2].nodeID];
             if (!rhs) {
-              if (!(points[2].nodeID in pointComponents)) {
-                pointComponents[ep.nodeID] = new PointComponent(
-                  ep,
-                  points[2],
-                  scale
-                );
-                rhs = pointComponents[ep.nodeID];
-                // components.push(rhs);
-              } else {
-                // eslint-disable-next-line no-multi-assign
-                rhs = pointComponents[ep.nodeID] =
-                  pointComponents[points[2].nodeID];
-              }
+              rhs = getPointComponent(
+                pointComponents,
+                components,
+                points[2],
+                ep,
+                scale
+              );
             }
             rhss.push(rhs);
             // あまりないと思うが、すべての点が同じコンポーネントに接続されている場合無視する
@@ -869,13 +839,13 @@ export class SkidpadSolver implements ISolver {
             getJointPartner(joint, element.nodeID).parent?.nodeID ?? '';
           const pElement = children.find((c) => c.nodeID === pID);
           if (!pElement || isTire(pElement)) return;
-          const [pf, isNew] = getPFComponent(
+          const pf = getPFComponent(
             pointForceComponents,
+            components,
             joint,
             forceScale
           );
           pfs.push(pf);
-          if (isNew) components.push(pf);
           const [pThis] = getNamedVector3FromJoint(joint, element.nodeID);
           points.push(pThis.value);
           pNodeIDs.push(pThis.nodeID);
@@ -1186,7 +1156,7 @@ export class SkidpadSolver implements ISolver {
       logOutput: true
     });
     console.log('');
-    if (true) return;
+    // if (true) return;
     console.log('calculating spring preloads...........');
     this.components.forEach((components) => {
       const root = components[0];

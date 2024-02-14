@@ -250,7 +250,6 @@ export class BarBalance implements Constraint, Balance {
     this.forceError.diff(Matrix.eye(3, 3));
     this.components.forEach((c, i) => {
       this.p[i].setJacobian(phi_q, row, c.col + X);
-
       if (isFullDegreesComponent(c))
         this.q[i].setJacobian(phi_q, row, c.col + Q0);
     });

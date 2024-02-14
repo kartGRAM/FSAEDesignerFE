@@ -59,8 +59,6 @@ export class LinearBushingBalance implements Constraint, Balance {
 
   omegaComponent: GeneralVariable;
 
-  rp: OneOrTwo<VariableVector3>;
-
   rq: OneOrTwo<VariableQuaternion>;
 
   rf: OneOrTwo<VariableVector3>;
@@ -110,8 +108,6 @@ export class LinearBushingBalance implements Constraint, Balance {
     this.frameComponent = params.frameComponent;
     const {scale} = this.frameComponent;
     this.rodEndComponents = [...params.rodEndComponents];
-    if (this.rodEndComponents[0] === this.rodEndComponents[1])
-      throw new Error('RodEndの両端は別のコンポーネントと接続する必要あり');
     this.getVO = params.getVO;
     this.omegaComponent = params.omega;
     this.relevantVariables = [
@@ -127,7 +123,6 @@ export class LinearBushingBalance implements Constraint, Balance {
     this.rodEndComponents.forEach((c) => {
       pqMap.set(c, [new VariableVector3(), new VariableQuaternion()]);
     });
-    this.rp = this.rodEndComponents.map((c) => pqMap.get(c)![0]) as any;
     this.rq = this.rodEndComponents.map((c) => pqMap.get(c)![1]) as any;
     this.rf = this.pfsRodEnd.map(() => new VariableVector3()) as any;
     this.fp = new VariableVector3();
@@ -212,7 +207,6 @@ export class LinearBushingBalance implements Constraint, Balance {
     this.fp.setValue(this.frameComponent.position);
     this.fq.setValue(this.frameComponent.quaternion);
     this.rodEndComponents.forEach((c, i) => {
-      this.rp[i].setValue(c.position);
       this.rq[i].setValue(c.quaternion);
     });
     this.pfsFrame.forEach((pf, i) => {
@@ -233,11 +227,7 @@ export class LinearBushingBalance implements Constraint, Balance {
     this.forceError.diff(Matrix.eye(3, 3));
     this.fp.setJacobian(phi_q, row, this.frameComponent.col + X);
     this.fq.setJacobian(phi_q, row, this.frameComponent.col + Q0);
-    this.rodEndComponents.forEach((c, i) => {
-      // this.rp[i].setJacobian(phi_q, row, c.col + X);
-      if (isFullDegreesComponent(c))
-        this.rq[i].setJacobian(phi_q, row, c.col + Q0);
-    });
+
     this.pfsFrame.forEach((pf, i) => {
       this.ff[i].setJacobian(phi_q, row, pf.col + X);
     });

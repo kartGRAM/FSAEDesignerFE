@@ -17,7 +17,9 @@ import {Matrix} from 'ml-matrix';
 import {Vector3, Quaternion} from 'three';
 import {getDgd} from '@store/getDgd';
 import {
+  IVariable,
   FullDegreesComponent,
+  PointComponent,
   PointForce
 } from '@gd/kinematics/KinematicComponents';
 import {TireRestorer} from '@gd/kinematics/Restorer';
@@ -816,14 +818,38 @@ export function getSimplifiedTireConstrainsParamsOld2(
 // Jointから一つPFComponentを得る
 export function getPFComponent(
   pointForceComponents: {[index: string]: PointForce},
+  components: IVariable[],
   joint: JointAsVector3,
   scale: number
-): [PointForce, boolean] {
+): PointForce {
   const id = `${joint.lhs.nodeID}&${joint.rhs.nodeID}`;
   if (!pointForceComponents[id]) {
     const pf = new PointForce(joint.lhs, joint.rhs, scale);
     pointForceComponents[id] = pf;
-    return [pf, true];
+    components.push(pf);
+    return pf;
   }
-  return [pointForceComponents[id], false];
+  return pointForceComponents[id];
+}
+
+export function getPointComponent(
+  pointComponents: {[index: string]: PointComponent},
+  components: IVariable[],
+  searched: INamedVector3RO,
+  newAssign: INamedVector3RO,
+  scale: number
+) {
+  if (!(searched.nodeID in pointComponents)) {
+    pointComponents[newAssign.nodeID] = new PointComponent(
+      newAssign,
+      searched,
+      scale
+    );
+    const component = pointComponents[newAssign.nodeID];
+    components.push(component);
+    return component;
+  }
+  const component = pointComponents[searched.nodeID];
+  pointComponents[newAssign.nodeID] = component;
+  return component;
 }

@@ -283,7 +283,7 @@ export class KinematicsSolver implements ISolver {
               components.push(rhs);
             } else {
               // eslint-disable-next-line no-multi-assign
-              rhs = pointComponents[element.fixedPoint.nodeID] =
+              rhs = pointComponents[element.point.nodeID] =
                 pointComponents[points[1].nodeID];
             }
           }
