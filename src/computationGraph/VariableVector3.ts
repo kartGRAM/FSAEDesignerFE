@@ -11,6 +11,8 @@ export class VariableVector3
 {
   readonly isCVector3 = true;
 
+  readonly col;
+
   _value: Matrix;
 
   _diff: Matrix | undefined;
@@ -24,8 +26,9 @@ export class VariableVector3
     this._diff = undefined;
   }
 
-  constructor() {
+  constructor(col: number) {
     super(() => this.reset());
+    this.col = col;
     this._value = new Matrix(3, 1);
     this._diff = undefined;
   }
@@ -39,8 +42,9 @@ export class VariableVector3
     else this._diff.add(fromLhs);
   }
 
-  setJacobian(phi_q: Matrix, row: number, col: number) {
+  setJacobian(phi_q: Matrix, row: number) {
+    if (this.col < 0) return;
     if (!this._diff) throw new Error('diffが未計算');
-    phi_q.setSubMatrix(this._diff, row, col);
+    phi_q.setSubMatrix(this._diff, row, this.col);
   }
 }

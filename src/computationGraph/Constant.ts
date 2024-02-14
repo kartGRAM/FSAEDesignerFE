@@ -12,6 +12,9 @@ export class Constant implements IConstant {
   // eslint-disable-next-line class-methods-use-this
   reset(): void {}
 
+  // eslint-disable-next-line class-methods-use-this
+  setJacobian() {}
+
   constructor(value: Matrix) {
     this.value = value;
   }

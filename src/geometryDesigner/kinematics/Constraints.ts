@@ -106,10 +106,14 @@ export class Sphere implements Constraint {
     const lLocalVec = vlhs?.clone().multiplyScalar(clhs.scale) ?? new Vector3();
     const rLocalVec = vrhs?.clone().multiplyScalar(crhs.scale) ?? new Vector3();
 
-    this.pLhs = new VariableVector3();
-    this.qLhs = new VariableQuaternion();
-    this.pRhs = new VariableVector3();
-    this.qRhs = new VariableQuaternion();
+    this.pLhs = new VariableVector3(!clhs.isFixed ? clhs.col + X : -1);
+    this.qLhs = new VariableQuaternion(
+      !clhs.isFixed && isFullDegreesComponent(clhs) ? clhs.col + Q0 : -1
+    );
+    this.pRhs = new VariableVector3(!crhs.isFixed ? crhs.col + X : -1);
+    this.qRhs = new VariableQuaternion(
+      !crhs.isFixed && isFullDegreesComponent(crhs) ? crhs.col + Q0 : -1
+    );
 
     const ALhs = this.qLhs.getRotationMatrix();
     const ARhs = this.qRhs.getRotationMatrix();
@@ -124,9 +128,7 @@ export class Sphere implements Constraint {
   }
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
-    const {row, lhs, rhs} = this;
-    const cLhs = lhs.col;
-    const cRhs = rhs.col;
+    const {row} = this;
 
     this.pLhs.setValue(this.lhs.position);
     this.pRhs.setValue(this.rhs.position);
@@ -138,20 +140,7 @@ export class Sphere implements Constraint {
     phi[row + X] = error.x;
     phi[row + Y] = error.y;
     phi[row + Z] = error.z;
-
-    // 始点位置拘束
-    if (!lhs.isFixed) {
-      this.pLhs.setJacobian(phi_q, row + X, cLhs + X);
-      if (isFullDegreesComponent(lhs)) {
-        this.qLhs.setJacobian(phi_q, row + X, cLhs + Q0);
-      }
-    }
-    if (!rhs.isFixed) {
-      this.pRhs.setJacobian(phi_q, row + X, cRhs + X);
-      if (isFullDegreesComponent(rhs)) {
-        this.qRhs.setJacobian(phi_q, row + X, cRhs + Q0);
-      }
-    }
+    this.constraint.setJacobian(phi_q, row + X);
   }
 
   setJacobianAndConstraintsInequal() {}
@@ -212,10 +201,10 @@ export class Hinge implements Constraint {
     this.relevantVariables = [this.lhs, this.rhs];
 
     const {scale} = clhs;
-    this.pLhs = new VariableVector3();
-    this.qLhs = new VariableQuaternion();
-    this.pRhs = new VariableVector3();
-    this.qRhs = new VariableQuaternion();
+    this.pLhs = new VariableVector3(!clhs.isFixed ? clhs.col + X : -1);
+    this.qLhs = new VariableQuaternion(!clhs.isFixed ? clhs.col + Q0 : -1);
+    this.pRhs = new VariableVector3(!crhs.isFixed ? crhs.col + X : -1);
+    this.qRhs = new VariableQuaternion(!crhs.isFixed ? crhs.col + Q0 : -1);
     const ALhs = this.qLhs.getRotationMatrix();
     const ARhs = this.qRhs.getRotationMatrix();
 
@@ -255,9 +244,7 @@ export class Hinge implements Constraint {
   }
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
-    const cRhs = this.rhs.col;
-    const cLhs = this.lhs.col;
-    const {row, rhs, lhs} = this;
+    const {row} = this;
 
     this.pLhs.setValue(this.lhs.position);
     this.pRhs.setValue(this.rhs.position);
@@ -272,14 +259,7 @@ export class Hinge implements Constraint {
     phi[row + X] = error.x;
     phi[row + Y] = error.y;
     phi[row + Z] = error.z;
-    if (!lhs.isFixed) {
-      this.pLhs.setJacobian(phi_q, row + X, cLhs + X);
-      this.qLhs.setJacobian(phi_q, row + X, cLhs + Q0);
-    }
-    if (!rhs.isFixed) {
-      this.pRhs.setJacobian(phi_q, row + X, cRhs + X);
-      this.qRhs.setJacobian(phi_q, row + X, cRhs + Q0);
-    }
+    this.positionError.setJacobian(phi_q, row);
 
     // 並行拘束
     this.directionError.forEach((directionError, i) => {
@@ -289,13 +269,7 @@ export class Hinge implements Constraint {
       directionError.diff(Matrix.eye(1, 1));
 
       phi[row + 3 + i] = error;
-
-      if (!lhs.isFixed) {
-        this.qLhs.setJacobian(phi_q, row + 3 + i, cLhs + Q0);
-      }
-      if (!rhs.isFixed) {
-        this.qRhs.setJacobian(phi_q, row + 3 + i, cRhs + Q0);
-      }
+      directionError.setJacobian(phi_q, row + 3 + i);
     });
   }
 
@@ -430,10 +404,14 @@ export class BarAndSpheres implements Constraint, deltaL {
     this.lLocalVec = vlhs?.clone().multiplyScalar(clhs.scale) ?? new Vector3();
     this.rLocalVec = vrhs?.clone().multiplyScalar(crhs.scale) ?? new Vector3();
 
-    this.pLhs = new VariableVector3();
-    this.qLhs = new VariableQuaternion();
-    this.pRhs = new VariableVector3();
-    this.qRhs = new VariableQuaternion();
+    this.pLhs = new VariableVector3(!clhs.isFixed ? clhs.col + X : -1);
+    this.qLhs = new VariableQuaternion(
+      !clhs.isFixed && isFullDegreesComponent(clhs) ? clhs.col + Q0 : -1
+    );
+    this.pRhs = new VariableVector3(!crhs.isFixed ? crhs.col + X : -1);
+    this.qRhs = new VariableQuaternion(
+      !crhs.isFixed && isFullDegreesComponent(crhs) ? crhs.col + Q0 : -1
+    );
     const ALhs = this.qLhs.getRotationMatrix();
     const ARhs = this.qRhs.getRotationMatrix();
 
@@ -516,9 +494,7 @@ export class BarAndSpheres implements Constraint, deltaL {
   }
 
   setJacobianAndConstraintsImpl(l2: number, phi_q: Matrix, phi: number[]) {
-    const {row, lhs, rhs} = this;
-    const cLhs = lhs.col;
-    const cRhs = rhs.col;
+    const {row} = this;
 
     this.pLhs.setValue(this.lhs.position);
     this.pRhs.setValue(this.rhs.position);
@@ -530,20 +506,7 @@ export class BarAndSpheres implements Constraint, deltaL {
     const error = this.error.scalarValue;
     this.error.diff(Matrix.eye(1, 1));
     phi[row + X] = error;
-
-    // 始点位置拘束
-    if (!lhs.isFixed) {
-      this.pLhs.setJacobian(phi_q, row + X, cLhs + X);
-      if (isFullDegreesComponent(lhs)) {
-        this.qLhs.setJacobian(phi_q, row + X, cLhs + Q0);
-      }
-    }
-    if (!rhs.isFixed) {
-      this.pRhs.setJacobian(phi_q, row + X, cRhs + X);
-      if (isFullDegreesComponent(rhs)) {
-        this.qRhs.setJacobian(phi_q, row + X, cRhs + Q0);
-      }
-    }
+    this.error.setJacobian(phi_q, row);
   }
 }
 
@@ -678,10 +641,18 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
       new ConstantVector3(oVec2)
     ];
 
-    this.pFixed = new VariableVector3();
-    this.qFixed = new VariableQuaternion();
-    this.pRes = new VariableVector3();
-    this.qRes = new VariableQuaternion();
+    this.pFixed = new VariableVector3(!cFixed.isFixed ? cFixed.col + X : -1);
+    this.qFixed = new VariableQuaternion(
+      !cFixed.isFixed ? cFixed.col + Q0 : -1
+    );
+    this.pRes = new VariableVector3(
+      !cRodEndSide.isFixed ? cRodEndSide.col + X : -1
+    );
+    this.qRes = new VariableQuaternion(
+      !cRodEndSide.isFixed && isFullDegreesComponent(cRodEndSide)
+        ? cRodEndSide.col + Q0
+        : -1
+    );
     const AFixed = this.qFixed.getRotationMatrix();
     const ARes = this.qRes.getRotationMatrix();
     const sFixed = fixedLocalVec.map((localVec) => AFixed.vmul(localVec));
@@ -747,9 +718,7 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
       return;
     }
 
-    const {row, res, fixed} = this;
-    const cRes = res.col;
-    const cFixed = fixed.col;
+    const {row} = this;
 
     this.pFixed.setValue(this.fixed.position);
     this.pRes.setValue(this.res.position);
@@ -760,18 +729,7 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
       error.reset({});
       phi[row + i] = error.scalarValue;
       error.diff(Matrix.eye(1, 1));
-      if (!fixed.isFixed) {
-        this.pFixed.setJacobian(phi_q, row + i, cFixed + X);
-        if (isFullDegreesComponent(fixed)) {
-          this.qFixed.setJacobian(phi_q, row + i, cFixed + Q0);
-        }
-      }
-      if (!res.isFixed) {
-        this.pRes.setJacobian(phi_q, row + i, cRes + X);
-        if (isFullDegreesComponent(res)) {
-          this.qRes.setJacobian(phi_q, row + i, cRes + Q0);
-        }
-      }
+      error.setJacobian(phi_q, row + i);
     });
   }
 
@@ -926,8 +884,10 @@ export class PointToPlane implements Constraint, deltaL {
     this.name = name;
     this.controledBy = controledBy;
     this.component = component;
-    this.p = new VariableVector3();
-    this.q = new VariableQuaternion();
+    this.p = new VariableVector3(component.col + X);
+    this.q = new VariableQuaternion(
+      isFullDegreesComponent(component) ? component.col + Q0 : -1
+    );
     const A = this.q.getRotationMatrix();
     this.relevantVariables = [component];
     const n = new ConstantVector3(
@@ -948,7 +908,7 @@ export class PointToPlane implements Constraint, deltaL {
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
     const {row, component, _distance, _dl} = this;
-    const {col, position, quaternion: q} = component;
+    const {position, quaternion: q} = component;
     this.p.setValue(position);
     this.q.setValue(q);
     this.distance.setValue(_distance + _dl);
@@ -957,11 +917,7 @@ export class PointToPlane implements Constraint, deltaL {
     this.error.reset({});
     phi[row] = this.error.scalarValue;
     this.error.diff(Matrix.eye(1, 1));
-    // 平面拘束方程式の変分
-    this.p.setJacobian(phi_q, row, col + X);
-    if (isFullDegreesComponent(component)) {
-      this.q.setJacobian(phi_q, row, col + Q0);
-    }
+    this.error.setJacobian(phi_q, row);
   }
 
   setJacobianAndConstraintsInequal() {

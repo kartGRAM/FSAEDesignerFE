@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 /* eslint-disable max-classes-per-file */
 import {Matrix} from 'ml-matrix';
 import * as Three from 'three';
@@ -22,6 +23,8 @@ export abstract class Vector3Base {
   abstract get value(): Matrix;
 
   abstract diff(fromLhs?: Matrix): void;
+
+  abstract setJacobian(phi_q: Matrix, row: number): void;
 
   abstract reset(options: ResetOptions): void;
 
@@ -53,6 +56,11 @@ export abstract class Vector3Base {
       (options) => {
         this.reset(options);
         if (!isNumber(other) && !isConstant(other)) other.reset(options);
+      },
+      (phi_q, row) => {
+        this.setJacobian(phi_q, row);
+        if (!isNumber(other) && !isConstant(other))
+          other.setJacobian(phi_q, row);
       }
     );
   }
@@ -76,6 +84,11 @@ export abstract class Vector3Base {
       (options) => {
         this.reset(options);
         if (!isThreeVector3(other) && !isConstant(other)) other.reset(options);
+      },
+      (phi_q, row) => {
+        this.setJacobian(phi_q, row);
+        if (!isThreeVector3(other) && !isConstant(other))
+          other.setJacobian(phi_q, row);
       }
     );
   }
@@ -98,6 +111,10 @@ export abstract class Vector3Base {
       (options) => {
         this.reset(options);
         if (!isConstant(other)) other.reset(options);
+      },
+      (phi_q, row) => {
+        this.setJacobian(phi_q, row);
+        if (!isConstant(other)) other.setJacobian(phi_q, row);
       }
     );
   }
@@ -118,6 +135,10 @@ export abstract class Vector3Base {
       (options) => {
         this.reset(options);
         if (!isConstant(other)) other.reset(options);
+      },
+      (phi_q, row) => {
+        this.setJacobian(phi_q, row);
+        if (!isConstant(other)) other.setJacobian(phi_q, row);
       }
     );
   }
@@ -138,6 +159,10 @@ export abstract class Vector3Base {
       (options) => {
         this.reset(options);
         if (!isConstant(other)) other.reset(options);
+      },
+      (phi_q, row) => {
+        this.setJacobian(phi_q, row);
+        if (!isConstant(other)) other.setJacobian(phi_q, row);
       }
     );
   }
@@ -155,6 +180,9 @@ export abstract class Vector3Base {
       },
       (options) => {
         this.reset(options);
+      },
+      (phi_q, row) => {
+        this.setJacobian(phi_q, row);
       }
     );
   }
@@ -172,6 +200,9 @@ export abstract class Vector3Base {
       },
       (options) => {
         this.reset(options);
+      },
+      (phi_q, row) => {
+        this.setJacobian(phi_q, row);
       }
     );
   }
@@ -182,10 +213,17 @@ export class Vector3 extends Vector3Base implements IVector3 {
 
   _diff: (mat: Matrix) => void;
 
+  _setJacobian: (phi_q: Matrix, row: number) => void;
+
   storedValue: Matrix | undefined;
 
-  constructor(value: () => RetType, reset: (options: ResetOptions) => void) {
+  constructor(
+    value: () => RetType,
+    reset: (options: ResetOptions) => void,
+    setJacobian: (phi_q: Matrix, row: number) => void
+  ) {
     super(reset);
+    this._setJacobian = setJacobian;
     this._value = value;
     this._diff = () => {};
   }
@@ -208,6 +246,10 @@ export class Vector3 extends Vector3Base implements IVector3 {
   diff(fromLhs: Matrix): void {
     this._diff(fromLhs);
   }
+
+  setJacobian(phi_q: Matrix, row: number): void {
+    this._setJacobian(phi_q, row);
+  }
 }
 
 export class ConstantVector3
@@ -223,6 +265,9 @@ export class ConstantVector3
 
   // eslint-disable-next-line class-methods-use-this
   reset() {}
+
+  // eslint-disable-next-line class-methods-use-this
+  setJacobian() {}
 
   setValue(value: Vector3Like | Matrix) {
     if ('x' in value) {

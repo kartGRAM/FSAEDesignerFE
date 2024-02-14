@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import {Matrix as MLMatrix} from 'ml-matrix';
 import {isNumber} from '@utils/helpers';
 import {RetType, ResetOptions} from './IComputationNode';
@@ -16,10 +17,17 @@ export class Matrix implements IMatrix {
 
   _reset: (options: ResetOptions) => void;
 
+  _setJacobian: (phi_q: MLMatrix, row: number) => void;
+
   storedValue: MLMatrix | undefined;
 
-  constructor(value: () => RetType, reset: (options: ResetOptions) => void) {
+  constructor(
+    value: () => RetType,
+    reset: (options: ResetOptions) => void,
+    setJacobian: (phi_q: MLMatrix, row: number) => void
+  ) {
     this._value = value;
+    this._setJacobian = setJacobian;
     this._diff = () => {};
     this._reset = reset;
   }
@@ -39,6 +47,10 @@ export class Matrix implements IMatrix {
 
   diff(fromLhs: MLMatrix, fromRhs?: MLMatrix): void {
     this._diff(fromLhs, fromRhs);
+  }
+
+  setJacobian(phi_q: MLMatrix, row: number): void {
+    this._setJacobian(phi_q, row);
   }
 
   mul(other: IScalar | number) {
@@ -63,6 +75,11 @@ export class Matrix implements IMatrix {
       (options) => {
         this.reset(options);
         if (!isNumber(other) && !isConstant(other)) other.reset(options);
+      },
+      (phi_q, row) => {
+        this.setJacobian(phi_q, row);
+        if (!isNumber(other) && !isConstant(other))
+          other.setJacobian(phi_q, row);
       }
     );
   }
@@ -83,6 +100,10 @@ export class Matrix implements IMatrix {
       (options) => {
         this.reset(options);
         if (!isConstant(other)) other.reset(options);
+      },
+      (phi_q, row) => {
+        this.setJacobian(phi_q, row);
+        if (!isConstant(other)) other.setJacobian(phi_q, row);
       }
     );
   }
@@ -103,6 +124,10 @@ export class Matrix implements IMatrix {
       (options) => {
         this.reset(options);
         if (!isConstant(other)) other.reset(options);
+      },
+      (phi_q, row) => {
+        this.setJacobian(phi_q, row);
+        if (!isConstant(other)) other.setJacobian(phi_q, row);
       }
     );
   }

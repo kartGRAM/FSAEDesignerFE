@@ -7,6 +7,8 @@ import {ScalarBase} from './Scalar';
 export class VariableScalar extends ScalarBase implements IScalar, IVariable {
   readonly isScalar = true;
 
+  readonly col;
+
   _value: Matrix;
 
   _diff: Matrix | undefined;
@@ -20,8 +22,9 @@ export class VariableScalar extends ScalarBase implements IScalar, IVariable {
     this._diff = undefined;
   }
 
-  constructor() {
+  constructor(col: number) {
     super(() => this.reset());
+    this.col = col;
     this._value = new Matrix(1, 1);
     this._diff = undefined;
   }
@@ -35,8 +38,9 @@ export class VariableScalar extends ScalarBase implements IScalar, IVariable {
     else this._diff.add(fromLhs);
   }
 
-  setJacobian(phi_q: Matrix, row: number, col: number) {
+  setJacobian(phi_q: Matrix, row: number) {
+    if (this.col < 0) return;
     if (!this._diff) throw new Error('diffが未計算');
-    phi_q.subMatrixAdd(this._diff, row, col);
+    phi_q.subMatrixAdd(this._diff, row, this.col);
   }
 }

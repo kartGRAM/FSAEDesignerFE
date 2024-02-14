@@ -138,6 +138,7 @@ export class TireBalance {
 
   checkFz() {
     this.fz.reset({});
+    // eslint-disable-next-line no-unreachable
     if (this.fz.vector3Value.z < 0) {
       throw new Error('fzが負になった');
     }

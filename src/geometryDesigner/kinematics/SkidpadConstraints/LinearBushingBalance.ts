@@ -6,9 +6,11 @@ import {Twin, OneOrTwo} from '@utils/atLeast';
 import {Constraint} from '@gd/kinematics/IConstraint';
 import {ILinearBushing} from '@gd/IElements/ILinearBushing';
 import {IVector3} from '@computationGraph/IVector3';
+import {IScalar} from '@computationGraph/IScalar';
 import {VariableVector3} from '@computationGraph/VariableVector3';
 import {VariableScalar} from '@computationGraph/VariableScalar';
 import {ConstantVector3} from '@computationGraph/Vector3';
+import {ConstantScalar} from '@computationGraph/ConstantScalar';
 import {VariableQuaternion} from '@computationGraph/VariableQuaternion';
 import {Balance} from '../SkidpadConstraints';
 import {
@@ -31,7 +33,7 @@ export class LinearBushingBalance implements Constraint, Balance {
 
   // 並進運動+回転
   constraints() {
-    return 6;
+    return 7;
   }
 
   active() {
@@ -83,6 +85,8 @@ export class LinearBushingBalance implements Constraint, Balance {
   forceError: IVector3;
 
   momentError: IVector3;
+
+  fixedForceError: IScalar;
 
   c: IVector3;
 
@@ -160,12 +164,15 @@ export class LinearBushingBalance implements Constraint, Balance {
       (p) => new ConstantVector3(p.clone().multiplyScalar(scale))
     );
 
+    const localAxisVec = frameLocalVec[1].sub(frameLocalVec[0]);
+
     const fA = this.fq.getRotationMatrix();
     const rA = this.rq.map((q) => q.getRotationMatrix());
     const cogQ = fA.vmul(cogLocalVec);
     const pCog = this.fp.add(cogQ);
     const pFrameQ = frameLocalVec.map((s) => fA.vmul(s));
     const pRodEndQ = rodEndLocalVec.map((s, i) => rA[i].vmul(s));
+    const axis = fA.vmul(localAxisVec).normalize();
 
     const omega = normal.mul(this.omega);
 
@@ -200,6 +207,11 @@ export class LinearBushingBalance implements Constraint, Balance {
         }, new ConstantVector3())
       )
       .add(ma.cross(cogQ));
+
+    this.fixedForceError = this.ffc.reduce(
+      (prev: IScalar, f) => prev.add(f.dot(axis)),
+      new ConstantScalar(0)
+    );
   }
 
   applytoElement(): void {
@@ -274,6 +286,17 @@ export class LinearBushingBalance implements Constraint, Balance {
       this.rf[i].setJacobian(phi_q, row + 3, pf.col + X);
     });
     this.omega.setJacobian(phi_q, row + 3, this.omegaComponent.col);
+
+    // フレーム側の制約
+    this.fixedForceError.reset({});
+    const e = this.fixedForceError.scalarValue;
+    this.fixedForceError.diff(Matrix.eye(1, 1));
+    phi[row + 6] = e;
+
+    this.fq.setJacobian(phi_q, row + 6, this.frameComponent.col + Q0);
+    this.pfsFrame.forEach((pf, i) => {
+      this.ff[i].setJacobian(phi_q, row + 6, pf.col + X);
+    });
   }
 
   setJacobianAndConstraintsInequal() {}

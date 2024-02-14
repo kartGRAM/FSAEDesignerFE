@@ -13,4 +13,5 @@ export interface IComputationNode {
   readonly value: Matrix;
   reset(options: ResetOptions): void;
   diff(fromLhs: Matrix, fromRhs?: Matrix): void;
+  setJacobian(phi_q: Matrix, row: number): void;
 }

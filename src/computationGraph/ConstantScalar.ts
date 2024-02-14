@@ -26,6 +26,9 @@ export class ConstantScalar extends ScalarBase implements IScalar, IConstant {
   // eslint-disable-next-line class-methods-use-this
   reset(): void {}
 
+  // eslint-disable-next-line class-methods-use-this
+  setJacobian() {}
+
   constructor(value: number) {
     super(() => {});
     this._value = value;

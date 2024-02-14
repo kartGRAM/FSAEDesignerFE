@@ -17,6 +17,8 @@ import {IVariable} from './IVariable';
 export class VariableQuaternion implements IQuaternion, IVariable {
   readonly isQuaternion = true;
 
+  readonly col;
+
   _value: QuaternionLike;
 
   _diff: Matrix | undefined;
@@ -30,7 +32,8 @@ export class VariableQuaternion implements IQuaternion, IVariable {
     this._diff = undefined;
   }
 
-  constructor() {
+  constructor(col: number) {
+    this.col = col;
     this._value = new Quaternion();
     this._diff = undefined;
   }
@@ -44,9 +47,10 @@ export class VariableQuaternion implements IQuaternion, IVariable {
     else this._diff.add(fromLhs);
   }
 
-  setJacobian(phi_q: Matrix, row: number, col: number) {
+  setJacobian(phi_q: Matrix, row: number) {
+    if (this.col < 0) return;
     if (!this._diff) throw new Error('diffが未計算');
-    phi_q.subMatrixAdd(this._diff, row, col);
+    phi_q.subMatrixAdd(this._diff, row, this.col);
   }
 
   getRotationMatrix(): IMatrix {
@@ -66,7 +70,8 @@ export class VariableQuaternion implements IQuaternion, IVariable {
           }
         };
       },
-      () => this.reset()
+      () => this.reset(),
+      (phi_q, row) => this.setJacobian(phi_q, row)
     );
   }
 
@@ -87,7 +92,8 @@ export class VariableQuaternion implements IQuaternion, IVariable {
           }
         };
       },
-      () => this.reset()
+      () => this.reset(),
+      (phi_q, row) => this.setJacobian(phi_q, row)
     );
   }
 }
