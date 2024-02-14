@@ -27,7 +27,7 @@ import {hasNearestNeighborToPlane} from '@gd/SpecialPoints';
 import {sleep} from '@utils/helpers';
 import {ISteadySkidpadParams} from '@gd/analysis/ITest';
 import {ISnapshot} from '@gd/analysis/ISnapshot';
-import {Twin} from '@utils/atLeast';
+import {Twin, Triple} from '@utils/atLeast';
 import {getTire} from '@tire/listTireData';
 import {Constraint, ConstraintsOptions} from '@gd/kinematics/IConstraint';
 import {ConstantVector3} from '@computationGraph/Vector3';
@@ -251,6 +251,7 @@ export class SkidpadSolver implements ISolver {
         // AArmが単独で使われている場合は、BarAndSpheres2つに変更する。
         if (isAArm(element) && canSimplifyAArm(element, jointDict)) {
           const pfs: PointForce[] = [];
+          const pNodeIDs: string[] = [];
           const joints = element.fixedPoints.map((p) => {
             const joint = jointDict[p.nodeID][0];
             const [pf, isNew] = getPFComponent(
@@ -259,6 +260,8 @@ export class SkidpadSolver implements ISolver {
               forceScale
             );
             pfs.push(pf);
+            const [pfv] = getNamedVector3FromJoint(joint, element.nodeID);
+            pNodeIDs.push(pfv.nodeID);
             if (isNew) components.push(pf);
             jointsDone.add(joint);
             return joint;
@@ -271,6 +274,8 @@ export class SkidpadSolver implements ISolver {
             forceScale
           );
           pfs.push(pf);
+          const [pfv] = getNamedVector3FromJoint(jointu, element.nodeID);
+          pNodeIDs.push(pfv.nodeID);
           if (isNew) components.push(pf);
           jointsDone.add(jointu);
           const ptsBody = joints.map((joint, i) =>
@@ -305,7 +310,7 @@ export class SkidpadSolver implements ISolver {
             // constraints.push(constraint);
           });
           // AArmBalance
-          /* constraints.push(
+          constraints.push(
             new AArmBalance({
               name: `AArmBalance of${element.name.value}`,
               components: [
@@ -317,10 +322,12 @@ export class SkidpadSolver implements ISolver {
               mass: element.mass.value,
               cog: element.centerOfGravity.value,
               pfs: pfs as Triple<PointForce>,
+              pfsPointNodeIDs: pNodeIDs,
               vO,
-              omega
+              omega,
+              element
             })
-          ); */
+          );
           return;
         }
         // BarはComponent扱いしない

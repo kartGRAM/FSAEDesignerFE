@@ -13,6 +13,7 @@ import {MovePointTo} from '@gd/kinematics/Driver';
 import {setMovingMode} from '@store/reducers/uiTempGeometryDesigner';
 import useUpdateEffect from '@app/hooks/useUpdateEffect';
 import NodeSphere from './NodeSphere';
+import ForceArrow from './ForceArrow';
 import MeasurablePoint from './MeasurablePointSphere';
 import {PivotControls} from './PivotControls/PivotControls';
 
@@ -151,6 +152,9 @@ const AArm = (props: {element: IAArm}) => {
         ))}
         {measurablePoints.map((p) => (
           <MeasurablePoint node={p} key={`${p.nodeID}m`} />
+        ))}
+        {element.getForceResults().map((res, i) => (
+          <ForceArrow element={element} index={i} key={res.nodeID} />
         ))}
       </group>
       {moveThisComponent ? (

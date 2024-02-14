@@ -1,4 +1,5 @@
 import {AtLeast1} from '@app/utils/atLeast';
+import {Vector3} from 'three';
 import {IDataVector3, INamedVector3} from '@gd/INamedValues';
 import {IElement, IDataElement} from '../IElements';
 import {IBody} from './IBody';
@@ -8,6 +9,11 @@ export const className = 'AArm' as const;
 export interface IAArm extends IBody {
   readonly fixedPoints: [INamedVector3, INamedVector3];
   readonly points: AtLeast1<INamedVector3>;
+
+  centrifugalForce: Vector3;
+  gravity: Vector3;
+  fixedPointForce: Vector3[];
+  pointForce: Vector3[];
 }
 
 export interface IDataAArm extends IDataElement {

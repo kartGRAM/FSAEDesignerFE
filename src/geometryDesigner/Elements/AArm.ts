@@ -65,8 +65,47 @@ export class AArm extends Element implements IAArm {
     force: Vector3;
     nodeID: string;
   }[] {
-    return [];
+    return [
+      {
+        name: 'centrifugal force',
+        point: this.centerOfGravity.value,
+        nodeID: `${this.centerOfGravity.nodeID}c`,
+        force: this.centrifugalForce ?? new Vector3()
+      },
+      {
+        name: 'gravity',
+        point: this.centerOfGravity.value,
+        nodeID: `${this.centerOfGravity.nodeID}g`,
+        force: this.gravity ?? new Vector3()
+      },
+      {
+        name: 'force1',
+        point: this.fixedPoints[0].value,
+        nodeID: this.fixedPoints[0].nodeID,
+        force: this.fixedPointForce[0] ?? new Vector3()
+      },
+      {
+        name: 'force2',
+        point: this.fixedPoints[1].value,
+        nodeID: this.fixedPoints[1].nodeID,
+        force: this.fixedPointForce[1] ?? new Vector3()
+      },
+      ...this.points.map((p, i) => ({
+        name: `force${i + 3}`,
+        point: p.value,
+        nodeID: p.nodeID,
+        force: this.pointForce[i] ?? new Vector3()
+      }))
+    ];
   }
+
+  centrifugalForce: Vector3 = new Vector3();
+
+  gravity: Vector3 = new Vector3();
+
+  fixedPointForce: Vector3[] = [new Vector3(), new Vector3()];
+
+  pointForce: Vector3[] = [new Vector3()];
 
   setCenterOfGravityAuto() {
     const points = [...this.fixedPoints, this.points[0]];
