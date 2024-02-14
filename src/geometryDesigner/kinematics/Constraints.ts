@@ -14,11 +14,7 @@ import {ConstantVector3} from '@computationGraph/Vector3';
 import {ConstantScalar} from '@computationGraph/ConstantScalar';
 import {VariableQuaternion} from '@computationGraph/VariableQuaternion';
 import {getStableOrthogonalVector} from './KinematicFunctions';
-import {
-  IComponent,
-  FullDegreesComponent,
-  isFullDegreesComponent
-} from './KinematicComponents';
+import {IComponent, FullDegreesComponent} from './KinematicComponents';
 
 const X = 0;
 const Y = 1;
@@ -106,15 +102,10 @@ export class Sphere implements Constraint {
     const lLocalVec = vlhs?.clone().multiplyScalar(clhs.scale) ?? new Vector3();
     const rLocalVec = vrhs?.clone().multiplyScalar(crhs.scale) ?? new Vector3();
 
-    this.pLhs = new VariableVector3(!clhs.isFixed ? clhs.col + X : -1);
-    this.qLhs = new VariableQuaternion(
-      !clhs.isFixed && isFullDegreesComponent(clhs) ? clhs.col + Q0 : -1
-    );
-    this.pRhs = new VariableVector3(!crhs.isFixed ? crhs.col + X : -1);
-    this.qRhs = new VariableQuaternion(
-      !crhs.isFixed && isFullDegreesComponent(crhs) ? crhs.col + Q0 : -1
-    );
-
+    this.pLhs = clhs.positionVariable;
+    this.qLhs = clhs.quaternionVariable;
+    this.pRhs = crhs.positionVariable;
+    this.qRhs = crhs.quaternionVariable;
     const ALhs = this.qLhs.getRotationMatrix();
     const ARhs = this.qRhs.getRotationMatrix();
 
@@ -201,10 +192,10 @@ export class Hinge implements Constraint {
     this.relevantVariables = [this.lhs, this.rhs];
 
     const {scale} = clhs;
-    this.pLhs = new VariableVector3(!clhs.isFixed ? clhs.col + X : -1);
-    this.qLhs = new VariableQuaternion(!clhs.isFixed ? clhs.col + Q0 : -1);
-    this.pRhs = new VariableVector3(!crhs.isFixed ? crhs.col + X : -1);
-    this.qRhs = new VariableQuaternion(!crhs.isFixed ? crhs.col + Q0 : -1);
+    this.pLhs = clhs.positionVariable;
+    this.qLhs = clhs.quaternionVariable;
+    this.pRhs = crhs.positionVariable;
+    this.qRhs = crhs.quaternionVariable;
     const ALhs = this.qLhs.getRotationMatrix();
     const ARhs = this.qRhs.getRotationMatrix();
 
@@ -404,14 +395,10 @@ export class BarAndSpheres implements Constraint, deltaL {
     this.lLocalVec = vlhs?.clone().multiplyScalar(clhs.scale) ?? new Vector3();
     this.rLocalVec = vrhs?.clone().multiplyScalar(crhs.scale) ?? new Vector3();
 
-    this.pLhs = new VariableVector3(!clhs.isFixed ? clhs.col + X : -1);
-    this.qLhs = new VariableQuaternion(
-      !clhs.isFixed && isFullDegreesComponent(clhs) ? clhs.col + Q0 : -1
-    );
-    this.pRhs = new VariableVector3(!crhs.isFixed ? crhs.col + X : -1);
-    this.qRhs = new VariableQuaternion(
-      !crhs.isFixed && isFullDegreesComponent(crhs) ? crhs.col + Q0 : -1
-    );
+    this.pLhs = clhs.positionVariable;
+    this.qLhs = clhs.quaternionVariable;
+    this.pRhs = crhs.positionVariable;
+    this.qRhs = crhs.quaternionVariable;
     const ALhs = this.qLhs.getRotationMatrix();
     const ARhs = this.qRhs.getRotationMatrix();
 
@@ -641,18 +628,10 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
       new ConstantVector3(oVec2)
     ];
 
-    this.pFixed = new VariableVector3(!cFixed.isFixed ? cFixed.col + X : -1);
-    this.qFixed = new VariableQuaternion(
-      !cFixed.isFixed ? cFixed.col + Q0 : -1
-    );
-    this.pRes = new VariableVector3(
-      !cRodEndSide.isFixed ? cRodEndSide.col + X : -1
-    );
-    this.qRes = new VariableQuaternion(
-      !cRodEndSide.isFixed && isFullDegreesComponent(cRodEndSide)
-        ? cRodEndSide.col + Q0
-        : -1
-    );
+    this.pFixed = cFixed.positionVariable;
+    this.qFixed = cFixed.quaternionVariable;
+    this.pRes = cRodEndSide.positionVariable;
+    this.qRes = cRodEndSide.quaternionVariable;
     const AFixed = this.qFixed.getRotationMatrix();
     const ARes = this.qRes.getRotationMatrix();
     const sFixed = fixedLocalVec.map((localVec) => AFixed.vmul(localVec));
@@ -884,10 +863,8 @@ export class PointToPlane implements Constraint, deltaL {
     this.name = name;
     this.controledBy = controledBy;
     this.component = component;
-    this.p = new VariableVector3(component.col + X);
-    this.q = new VariableQuaternion(
-      isFullDegreesComponent(component) ? component.col + Q0 : -1
-    );
+    this.p = component.positionVariable;
+    this.q = component.quaternionVariable;
     const A = this.q.getRotationMatrix();
     this.relevantVariables = [component];
     const n = new ConstantVector3(

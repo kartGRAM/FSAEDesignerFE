@@ -5,6 +5,8 @@ import {IElement} from '@gd/IElements';
 import {INamedVector3RO} from '@gd/INamedValues';
 import {Vector3, Quaternion} from 'three';
 import {Constraint} from '@gd/kinematics/IConstraint';
+import {VariableVector3} from '@computationGraph/VariableVector3';
+import {VariableQuaternion} from '@computationGraph/VariableQuaternion';
 import {isFixedElement} from './KinematicFunctions';
 import {QuaternionConstraint} from './Constraints';
 
@@ -44,6 +46,9 @@ export interface IComponent extends IVariable {
   readonly position: Vector3;
   readonly quaternion: Quaternion;
   readonly isFixed: boolean;
+
+  readonly positionVariable: VariableVector3;
+  readonly quaternionVariable: VariableQuaternion;
 }
 
 export abstract class VariableBase implements IVariable {
@@ -123,6 +128,10 @@ export abstract class ComponentBase extends VariableBase implements IComponent {
   abstract get quaternion(): Quaternion;
 
   abstract get isFixed(): boolean;
+
+  abstract get positionVariable(): VariableVector3;
+
+  abstract get quaternionVariable(): VariableQuaternion;
 }
 
 // 7自由度のコンポーネント
@@ -299,6 +308,14 @@ export class FullDegreesComponent extends ComponentBase {
     const q = this.quaternion;
     [p.x, p.y, p.z, q.w, q.x, q.y, q.z] = state;
   }
+
+  get positionVariable(): VariableVector3 {
+    return new VariableVector3(!this.isFixed ? this.col + X : -1);
+  }
+
+  get quaternionVariable(): VariableQuaternion {
+    return new VariableQuaternion(!this.isFixed ? this.col + Q0 : -1);
+  }
 }
 
 export function isFullDegreesComponent(
@@ -436,6 +453,14 @@ export class PointComponent extends ComponentBase {
   restoreState(state: number[]): void {
     const p = this.position;
     [p.x, p.y, p.z] = state;
+  }
+
+  get positionVariable(): VariableVector3 {
+    return new VariableVector3(!this.isFixed ? this.col + X : -1);
+  }
+
+  get quaternionVariable(): VariableQuaternion {
+    return new VariableQuaternion(-1);
   }
 }
 
