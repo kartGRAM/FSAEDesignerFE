@@ -22,7 +22,6 @@ import {
 const X = 0;
 const Y = 1;
 const Z = 2;
-const Q0 = 3;
 
 const normal = new ConstantVector3(new Vector3(0, 0, 1));
 
@@ -115,11 +114,11 @@ export class FDComponentBalance implements Constraint, Balance {
     this.relevantVariables = [this.component, this.omegaComponent, ...this.pfs];
 
     // 変数宣言
-    this.p = new VariableVector3();
-    this.q = new VariableQuaternion();
-    this.f = this.pfs.map(() => new VariableVector3());
-    this.omega = new VariableScalar();
-    this.error = new VariableScalar();
+    this.p = this.component.positionVariable;
+    this.q = this.component.quaternionVariable;
+    this.f = this.pfs.map((pf) => new VariableVector3(pf.col));
+    this.omega = new VariableScalar(this.omegaComponent.col);
+    this.error = new VariableScalar(this.errorComponent.col);
     this.vO = new ConstantVector3(this.getVO());
 
     // 計算グラフ構築
@@ -225,14 +224,7 @@ export class FDComponentBalance implements Constraint, Balance {
     const ofs = this.conectedTireBalance ? 2 : 3;
     const I = Matrix.eye(ofs, 3);
     this.forceError.diff(I);
-    this.p.setJacobian(phi_q, row, c.col + X);
-    this.q.setJacobian(phi_q, row, c.col + Q0);
-    this.pfs.forEach((pf, i) => {
-      this.f[i].setJacobian(phi_q, row, pf.col);
-    });
-    this.omega.setJacobian(phi_q, row, this.omegaComponent.col);
-    if (this.conectedTireBalance)
-      this.error.setJacobian(phi_q, row, this.errorComponent.col);
+    this.forceError.setJacobian(phi_q, row);
 
     // モーメントのつり合い
     this.momentError.reset({variablesOnly: false});
@@ -242,34 +234,7 @@ export class FDComponentBalance implements Constraint, Balance {
     phi[row + ofs + Z] = rotation.z;
     // ヤコビアン設定
     this.momentError.diff(Matrix.eye(3, 3));
-    this.p.setJacobian(phi_q, row + ofs, c.col + X);
-    this.q.setJacobian(phi_q, row + ofs, c.col + Q0);
-    this.pfs.forEach((pf, i) => {
-      this.f[i].setJacobian(phi_q, row + ofs, pf.col);
-    });
-    this.omega.setJacobian(phi_q, row + ofs, this.omegaComponent.col);
-    if (this.conectedTireBalance)
-      this.error.setJacobian(phi_q, row + ofs, this.errorComponent.col);
-
-    /* driveMomentAndDiffs.forEach((dm) => {
-      const {
-        dMX_dOmega,
-        dMX_de,
-        dMX_df,
-        dMX_dP,
-        dMX_dQ,
-        pfsCols,
-        targetComponentCol,
-        targetErrorCol
-      } = dm;
-      pfsCols.forEach((col, i) => {
-        phi_q.subMatrixSub(dMX_df[i], row + 3, col + X);
-      });
-      phi_q.subMatrixSub(dMX_dP, row + 3, targetComponentCol + X);
-      phi_q.subMatrixSub(dMX_dQ, row + 3, targetComponentCol + Q0);
-      phi_q.subMatrixSub(dMX_de, row + 3, targetErrorCol);
-      phi_q.subMatrixSub(dMX_dOmega, row + 3, this.omega.col);
-    }); */
+    this.momentError.setJacobian(phi_q, row + ofs);
   }
 
   applytoElement() {

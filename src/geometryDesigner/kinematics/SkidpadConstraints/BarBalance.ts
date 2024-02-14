@@ -16,13 +16,9 @@ import {Balance} from '../SkidpadConstraints';
 import {
   IComponent,
   IVariable,
-  isFullDegreesComponent,
   PointForce,
   GeneralVariable
 } from '../KinematicComponents';
-
-const X = 0;
-const Q0 = 3;
 
 const normal = new ConstantVector3(new Vector3(0, 0, 1));
 
@@ -123,10 +119,10 @@ export class BarBalance implements Constraint, Balance {
     this.getVO = params.vO;
 
     // 変数宣言
-    this.p = this.components.map(() => new VariableVector3()) as any;
-    this.q = this.components.map(() => new VariableQuaternion()) as any;
-    this.f = this.pfs.map(() => new VariableVector3()) as any;
-    this.omega = new VariableScalar();
+    this.p = this.components.map((c) => c.positionVariable) as any;
+    this.q = this.components.map((c) => c.quaternionVariable) as any;
+    this.f = this.pfs.map((pf) => new VariableVector3(pf.col)) as any;
+    this.omega = new VariableScalar(this.omegaComponent.col);
     this.k = new ConstantScalar(0);
     this.freeLength = new ConstantScalar(0);
     if (params.isSpring && params.k && params.k > 0) {
@@ -248,15 +244,7 @@ export class BarBalance implements Constraint, Balance {
     phi[row + 2] = translation.z;
     // ヤコビアン設定
     this.forceError.diff(Matrix.eye(3, 3));
-    this.components.forEach((c, i) => {
-      this.p[i].setJacobian(phi_q, row, c.col + X);
-      if (isFullDegreesComponent(c))
-        this.q[i].setJacobian(phi_q, row, c.col + Q0);
-    });
-    this.pfs.forEach((pf, i) => {
-      this.f[i].setJacobian(phi_q, row, pf.col + X);
-    });
-    this.omega.setJacobian(phi_q, row, this.omegaComponent.col);
+    this.forceError.setJacobian(phi_q, row);
 
     // モーメントのつり合い
     this.momentError.reset({variablesOnly: false});
@@ -266,15 +254,7 @@ export class BarBalance implements Constraint, Balance {
     phi[row + 5] = rotation.z;
     // ヤコビアン設定
     this.momentError.diff(Matrix.eye(3, 3));
-    this.components.forEach((c, i) => {
-      this.p[i].setJacobian(phi_q, row + 3, c.col + X);
-      if (isFullDegreesComponent(c))
-        this.q[i].setJacobian(phi_q, row + 3, c.col + Q0);
-    });
-    this.pfs.forEach((pf, i) => {
-      this.f[i].setJacobian(phi_q, row + 3, pf.col + X);
-    });
-    this.omega.setJacobian(phi_q, row + 3, this.omegaComponent.col);
+    this.momentError.setJacobian(phi_q, row + 3);
 
     if (this.isSpring && !options.disableSpringElasticity) {
       // ばね反力の誤差
@@ -283,15 +263,7 @@ export class BarBalance implements Constraint, Balance {
       phi[row + 6] = error;
       // ヤコビアン設定
       this.springForceError.diff(Matrix.eye(1, 1));
-      this.components.forEach((c, i) => {
-        this.p[i].setJacobian(phi_q, row + 6, c.col + X);
-        if (isFullDegreesComponent(c))
-          this.q[i].setJacobian(phi_q, row + 6, c.col + Q0);
-      });
-      this.pfs.forEach((pf, i) => {
-        this.f[i].setJacobian(phi_q, row + 6, pf.col + X);
-      });
-      this.omega.setJacobian(phi_q, row + 6, this.omegaComponent.col);
+      this.springForceError.setJacobian(phi_q, row + 6);
     }
   }
 

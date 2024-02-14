@@ -17,13 +17,10 @@ import {
   IComponent,
   IVariable,
   FullDegreesComponent,
-  isFullDegreesComponent,
   PointForce,
   GeneralVariable
 } from '../KinematicComponents';
 
-const X = 0;
-const Q0 = 3;
 const normal = new ConstantVector3(new Vector3(0, 0, 1));
 
 export class LinearBushingBalance implements Constraint, Balance {
@@ -130,14 +127,14 @@ export class LinearBushingBalance implements Constraint, Balance {
     // 変数宣言
     const pqMap = new Map<IComponent, [VariableVector3, VariableQuaternion]>();
     this.rodEndComponents.forEach((c) => {
-      pqMap.set(c, [new VariableVector3(), new VariableQuaternion()]);
+      pqMap.set(c, [c.positionVariable, c.quaternionVariable]);
     });
     this.rq = this.rodEndComponents.map((c) => pqMap.get(c)![1]) as any;
-    this.rf = this.pfsRodEnd.map(() => new VariableVector3()) as any;
-    this.fp = new VariableVector3();
-    this.fq = new VariableQuaternion();
-    this.ff = this.pfsFrame.map(() => new VariableVector3()) as any;
-    this.omega = new VariableScalar();
+    this.rf = this.pfsRodEnd.map((pf) => new VariableVector3(pf.col)) as any;
+    this.fp = this.frameComponent.positionVariable;
+    this.fq = this.frameComponent.quaternionVariable;
+    this.ff = this.pfsFrame.map((pf) => new VariableVector3(pf.col)) as any;
+    this.omega = new VariableScalar(this.omegaComponent.col);
     this.vO = new ConstantVector3(this.getVO());
 
     // 計算グラフ構築
@@ -253,16 +250,7 @@ export class LinearBushingBalance implements Constraint, Balance {
     phi[row + 2] = translation.z;
     // ヤコビアン設定
     this.forceError.diff(Matrix.eye(3, 3));
-    this.fp.setJacobian(phi_q, row, this.frameComponent.col + X);
-    this.fq.setJacobian(phi_q, row, this.frameComponent.col + Q0);
-
-    this.pfsFrame.forEach((pf, i) => {
-      this.ff[i].setJacobian(phi_q, row, pf.col + X);
-    });
-    this.pfsRodEnd.forEach((pf, i) => {
-      this.rf[i].setJacobian(phi_q, row, pf.col + X);
-    });
-    this.omega.setJacobian(phi_q, row, this.omegaComponent.col);
+    this.forceError.setJacobian(phi_q, row);
 
     // モーメントのつり合い
     this.momentError.reset({variablesOnly: false});
@@ -272,31 +260,15 @@ export class LinearBushingBalance implements Constraint, Balance {
     phi[row + 5] = rotation.z;
     // ヤコビアン設定
     this.momentError.diff(Matrix.eye(3, 3));
-    this.fp.setJacobian(phi_q, row + 3, this.frameComponent.col + X);
-    this.fq.setJacobian(phi_q, row + 3, this.frameComponent.col + Q0);
-    this.rodEndComponents.forEach((c, i) => {
-      // this.rp[i].setJacobian(phi_q, row + 3, c.col + X);
-      if (isFullDegreesComponent(c))
-        this.rq[i].setJacobian(phi_q, row + 3, c.col + Q0);
-    });
-    this.pfsFrame.forEach((pf, i) => {
-      this.ff[i].setJacobian(phi_q, row + 3, pf.col + X);
-    });
-    this.pfsRodEnd.forEach((pf, i) => {
-      this.rf[i].setJacobian(phi_q, row + 3, pf.col + X);
-    });
-    this.omega.setJacobian(phi_q, row + 3, this.omegaComponent.col);
+    this.momentError.setJacobian(phi_q, row + 3);
 
     // フレーム側の制約
-    this.fixedForceError.reset({});
+    this.fixedForceError.reset({variablesOnly: false});
     const e = this.fixedForceError.scalarValue;
-    this.fixedForceError.diff(Matrix.eye(1, 1));
     phi[row + 6] = e;
-
-    this.fq.setJacobian(phi_q, row + 6, this.frameComponent.col + Q0);
-    this.pfsFrame.forEach((pf, i) => {
-      this.ff[i].setJacobian(phi_q, row + 6, pf.col + X);
-    });
+    // ヤコビアン設定
+    this.fixedForceError.diff(Matrix.eye(1, 1));
+    this.fixedForceError.setJacobian(phi_q, row + 6);
   }
 
   setJacobianAndConstraintsInequal() {}

@@ -111,13 +111,13 @@ export class AArmBalance implements Constraint, Balance {
     // 変数宣言
     const pqMap = new Map<IComponent, [VariableVector3, VariableQuaternion]>();
     this.components.forEach((c) => {
-      pqMap.set(c, [new VariableVector3(), new VariableQuaternion()]);
+      pqMap.set(c, [c.positionVariable, c.quaternionVariable]);
     });
 
     this.p = this.components.map((c) => pqMap.get(c)![0]) as any;
     this.q = this.components.map((c) => pqMap.get(c)![1]) as any;
-    this.f = this.pfs.map(() => new VariableVector3()) as any;
-    this.omega = new VariableScalar();
+    this.f = this.pfs.map((pf) => new VariableVector3(pf.col)) as any;
+    this.omega = new VariableScalar(this.omegaComponent.col);
     this.vO = new ConstantVector3(this.getVO());
 
     // 計算グラフ構築
@@ -194,16 +194,7 @@ export class AArmBalance implements Constraint, Balance {
     phi[row + 2] = translation.z;
     // ヤコビアン設定
     this.forceError.diff(Matrix.eye(3, 3));
-    this.components.forEach((c, i) => {
-      this.p[i].setJacobian(phi_q, row, c.col + X);
-
-      if (isFullDegreesComponent(c))
-        this.q[i].setJacobian(phi_q, row, c.col + Q0);
-    });
-    this.pfs.forEach((pf, i) => {
-      this.f[i].setJacobian(phi_q, row, pf.col + X);
-    });
-    this.omega.setJacobian(phi_q, row, this.omegaComponent.col);
+    this.forceError.setJacobian(phi_q, row);
 
     // モーメントのつり合い
     this.momentError.reset({variablesOnly: false});
@@ -213,15 +204,7 @@ export class AArmBalance implements Constraint, Balance {
     phi[row + 5] = rotation.z;
     // ヤコビアン設定
     this.momentError.diff(Matrix.eye(3, 3));
-    this.components.forEach((c, i) => {
-      this.p[i].setJacobian(phi_q, row + 3, c.col + X);
-      if (isFullDegreesComponent(c))
-        this.q[i].setJacobian(phi_q, row + 3, c.col + Q0);
-    });
-    this.pfs.forEach((pf, i) => {
-      this.f[i].setJacobian(phi_q, row + 3, pf.col + X);
-    });
-    this.omega.setJacobian(phi_q, row + 3, this.omegaComponent.col);
+    this.momentError.setJacobian(phi_q, row + 3);
   }
 
   setJacobianAndConstraintsInequal() {}
