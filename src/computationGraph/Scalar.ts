@@ -5,8 +5,9 @@ import {isNumber} from '@utils/helpers';
 import {RetType, ResetOptions} from './IComputationNode';
 import {IScalar} from './IScalar';
 import {isConstant} from './IConstant';
+import {ComputationNodeBase} from './ComputationNodeBase';
 
-export abstract class ScalarBase {
+export abstract class ScalarBase extends ComputationNodeBase {
   readonly isScalar = true;
 
   abstract get value(): Matrix;
@@ -17,13 +18,10 @@ export abstract class ScalarBase {
 
   abstract diff(fromLhs: Matrix): void;
 
-  abstract reset(options: ResetOptions): number;
-
   abstract setJacobian(phi_q: Matrix, row: number): void;
 
-  _reset: (options: ResetOptions) => void;
-
   constructor(reset: (options: ResetOptions) => void) {
+    super();
     this._reset = reset;
   }
 
@@ -139,10 +137,6 @@ export class Scalar extends ScalarBase implements IScalar {
 
   _setJacobian: (phi_q: Matrix, row: number) => void;
 
-  storedValue: Matrix | undefined;
-
-  resetKey: number = 0;
-
   constructor(
     value: () => RetType,
     reset: (options: ResetOptions) => void,
@@ -152,24 +146,6 @@ export class Scalar extends ScalarBase implements IScalar {
     this._setJacobian = setJacobian;
     this._value = value;
     this._diff = () => {};
-  }
-
-  reset(options: ResetOptions) {
-    if (options.variablesOnly && !options.resetKey) throw new Error('idが必要');
-    if (!options.variablesOnly || !options.resetKey) {
-      this.storedValue = undefined;
-      if (!options.resetKey || options.resetKey === -1) {
-        this.resetKey += 1 % 10000;
-        options.resetKey = this.resetKey;
-      } else {
-        this.resetKey = options.resetKey;
-      }
-    } else if (options.resetKey && this.resetKey !== options.resetKey) {
-      this.storedValue = undefined;
-      this.resetKey = options.resetKey;
-    }
-    this._reset(options);
-    return this.resetKey;
   }
 
   get value() {

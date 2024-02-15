@@ -15,8 +15,9 @@ import {
   normalizedVectorDiff,
   normVectorDiff
 } from './Functions';
+import {ComputationNodeBase} from './ComputationNodeBase';
 
-export abstract class Vector3Base {
+export abstract class Vector3Base extends ComputationNodeBase {
   readonly isCVector3 = true;
 
   abstract get value(): Matrix;
@@ -25,11 +26,8 @@ export abstract class Vector3Base {
 
   abstract setJacobian(phi_q: Matrix, row: number): void;
 
-  abstract reset(options: ResetOptions): number;
-
-  _reset: (options: ResetOptions) => void;
-
   constructor(reset: (options: ResetOptions) => void) {
+    super();
     this._reset = reset;
   }
 
@@ -214,10 +212,6 @@ export class Vector3 extends Vector3Base implements IVector3 {
 
   _setJacobian: (phi_q: Matrix, row: number) => void;
 
-  storedValue: Matrix | undefined;
-
-  resetKey = 0;
-
   constructor(
     value: () => RetType,
     reset: (options: ResetOptions) => void,
@@ -237,24 +231,6 @@ export class Vector3 extends Vector3Base implements IVector3 {
     if (this.storedValue.rows !== 3 && this.storedValue.columns !== 1)
       throw new Error('3次元ベクトルじゃない');
     return this.storedValue;
-  }
-
-  reset(options: ResetOptions) {
-    if (options.variablesOnly && !options.resetKey) throw new Error('idが必要');
-    if (!options.variablesOnly || !options.resetKey) {
-      this.storedValue = undefined;
-      if (!options.resetKey || options.resetKey === -1) {
-        this.resetKey += 1 % 10000;
-        options.resetKey = this.resetKey;
-      } else {
-        this.resetKey = options.resetKey;
-      }
-    } else if (options.resetKey && this.resetKey !== options.resetKey) {
-      this.storedValue = undefined;
-      this.resetKey = options.resetKey;
-    }
-    this._reset(options);
-    return this.resetKey;
   }
 
   diff(fromLhs: Matrix): void {

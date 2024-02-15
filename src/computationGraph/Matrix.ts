@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 /* eslint-disable camelcase */
 import {Matrix as MLMatrix} from 'ml-matrix';
 import {isNumber} from '@utils/helpers';
@@ -7,65 +8,20 @@ import {IVector3} from './IVector3';
 import {Vector3} from './Vector3';
 import {IMatrix} from './IMatrix';
 import {isConstant} from './IConstant';
+import {ComputationNodeBase} from './ComputationNodeBase';
 
-export class Matrix implements IMatrix {
+export abstract class MatrixBase extends ComputationNodeBase {
   readonly isMatrix = true;
 
-  _value: () => RetType;
+  abstract get value(): MLMatrix;
 
-  _diff: (fromLhs: MLMatrix, fromRhs?: MLMatrix) => void;
+  abstract diff(fromLhs: MLMatrix, fromRhs?: MLMatrix): void;
 
-  _reset: (options: ResetOptions) => void;
+  abstract setJacobian(phi_q: MLMatrix, row: number): void;
 
-  _setJacobian: (phi_q: MLMatrix, row: number) => void;
-
-  storedValue: MLMatrix | undefined;
-
-  resetKey = 0;
-
-  constructor(
-    value: () => RetType,
-    reset: (options: ResetOptions) => void,
-    setJacobian: (phi_q: MLMatrix, row: number) => void
-  ) {
-    this._value = value;
-    this._setJacobian = setJacobian;
-    this._diff = () => {};
+  constructor(reset: (options: ResetOptions) => void) {
+    super();
     this._reset = reset;
-  }
-
-  get value() {
-    if (this.storedValue) return this.storedValue;
-    const {value, diff} = this._value();
-    this.storedValue = value();
-    this._diff = diff;
-    return this.storedValue;
-  }
-
-  reset(options: ResetOptions) {
-    if (options.variablesOnly && !options.resetKey) throw new Error('idが必要');
-    if (!options.variablesOnly || !options.resetKey) {
-      this.storedValue = undefined;
-      if (!options.resetKey || options.resetKey === -1) {
-        this.resetKey += 1 % 10000;
-        options.resetKey = this.resetKey;
-      } else {
-        this.resetKey = options.resetKey;
-      }
-    } else if (options.resetKey && this.resetKey !== options.resetKey) {
-      this.storedValue = undefined;
-      this.resetKey = options.resetKey;
-    }
-    this._reset(options);
-    return this.resetKey;
-  }
-
-  diff(fromLhs: MLMatrix, fromRhs?: MLMatrix): void {
-    this._diff(fromLhs, fromRhs);
-  }
-
-  setJacobian(phi_q: MLMatrix, row: number): void {
-    this._setJacobian(phi_q, row);
   }
 
   mul(other: IScalar | number) {
@@ -145,5 +101,40 @@ export class Matrix implements IMatrix {
         if (!isConstant(other)) other.setJacobian(phi_q, row);
       }
     );
+  }
+}
+
+export class Matrix extends MatrixBase implements IMatrix {
+  _value: () => RetType;
+
+  _diff: (fromLhs: MLMatrix, fromRhs?: MLMatrix) => void;
+
+  _setJacobian: (phi_q: MLMatrix, row: number) => void;
+
+  constructor(
+    value: () => RetType,
+    reset: (options: ResetOptions) => void,
+    setJacobian: (phi_q: MLMatrix, row: number) => void
+  ) {
+    super(reset);
+    this._value = value;
+    this._setJacobian = setJacobian;
+    this._diff = () => {};
+  }
+
+  get value() {
+    if (this.storedValue) return this.storedValue;
+    const {value, diff} = this._value();
+    this.storedValue = value();
+    this._diff = diff;
+    return this.storedValue;
+  }
+
+  diff(fromLhs: MLMatrix, fromRhs?: MLMatrix): void {
+    this._diff(fromLhs, fromRhs);
+  }
+
+  setJacobian(phi_q: MLMatrix, row: number): void {
+    this._setJacobian(phi_q, row);
   }
 }
