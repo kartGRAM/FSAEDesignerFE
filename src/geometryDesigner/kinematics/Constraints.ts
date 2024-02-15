@@ -243,7 +243,7 @@ export class Hinge implements Constraint {
     this.qRhs.setValue(this.rhs.quaternion);
 
     // 始点位置拘束
-    this.positionError.reset({});
+    let resetKey = this.positionError.reset({});
     const error = this.positionError.vector3Value;
     this.positionError.diff(Matrix.eye(3, 3));
 
@@ -253,7 +253,6 @@ export class Hinge implements Constraint {
     this.positionError.setJacobian(phi_q, row);
 
     // 並行拘束
-    let resetKey = -1;
     this.directionError.forEach((directionError, i) => {
       resetKey = directionError.reset({variablesOnly: false, resetKey});
       const error = directionError.scalarValue;
