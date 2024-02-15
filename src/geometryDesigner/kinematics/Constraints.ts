@@ -10,7 +10,7 @@ import {IVector3} from '@computationGraph/IVector3';
 import {IScalar} from '@computationGraph/IScalar';
 import {getVVector} from '@computationGraph/Functions';
 import {VariableVector3} from '@computationGraph/VariableVector3';
-import {ConstantVector3} from '@computationGraph/Vector3';
+import {ConstantVector3} from '@computationGraph/ConstantVector3';
 import {ConstantScalar} from '@computationGraph/ConstantScalar';
 import {VariableQuaternion} from '@computationGraph/VariableQuaternion';
 import {getStableOrthogonalVector} from './KinematicFunctions';

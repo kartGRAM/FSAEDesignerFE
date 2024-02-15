@@ -19,7 +19,7 @@ import {
 import {hasNearestNeighborToPlane} from '@gd/SpecialPoints';
 import {sleep} from '@utils/helpers';
 import {Constraint, ConstraintsOptions} from '@gd/kinematics/IConstraint';
-import {ConstantVector3} from '@computationGraph/Vector3';
+import {ConstantVector3} from '@computationGraph/ConstantVector3';
 import {
   getJointDictionary,
   canSimplifyAArm,

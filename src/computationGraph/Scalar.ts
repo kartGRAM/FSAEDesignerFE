@@ -17,7 +17,7 @@ export abstract class ScalarBase {
 
   abstract diff(fromLhs: Matrix): void;
 
-  abstract reset(options: ResetOptions): void;
+  abstract reset(options: ResetOptions): number;
 
   abstract setJacobian(phi_q: Matrix, row: number): void;
 
@@ -141,6 +141,8 @@ export class Scalar extends ScalarBase implements IScalar {
 
   storedValue: Matrix | undefined;
 
+  resetKey: number = 0;
+
   constructor(
     value: () => RetType,
     reset: (options: ResetOptions) => void,
@@ -153,8 +155,21 @@ export class Scalar extends ScalarBase implements IScalar {
   }
 
   reset(options: ResetOptions) {
-    if (!options.variablesOnly) this.storedValue = undefined;
+    if (options.variablesOnly && !options.id) throw new Error('idが必要');
+    if (!options.variablesOnly || !options.id) {
+      this.storedValue = undefined;
+      if (!options.id) {
+        this.resetKey = options.id ?? (this.resetKey + 1) % 10000;
+        options.id = this.resetKey;
+      } else {
+        this.resetKey = options.id;
+      }
+    } else if (options.id && this.resetKey !== options.id) {
+      this.storedValue = undefined;
+      this.resetKey = options.id;
+    }
     this._reset(options);
+    return this.resetKey;
   }
 
   get value() {

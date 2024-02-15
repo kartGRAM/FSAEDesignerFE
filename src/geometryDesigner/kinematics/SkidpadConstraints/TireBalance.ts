@@ -9,7 +9,7 @@ import {IVector3} from '@computationGraph/IVector3';
 import {IScalar} from '@computationGraph/IScalar';
 import {VariableVector3} from '@computationGraph/VariableVector3';
 import {VariableScalar} from '@computationGraph/VariableScalar';
-import {ConstantVector3} from '@computationGraph/Vector3';
+import {ConstantVector3} from '@computationGraph/ConstantVector3';
 import {ConstantScalar} from '@computationGraph/ConstantScalar';
 import {VariableQuaternion} from '@computationGraph/VariableQuaternion';
 import {asin} from '@computationGraph/Functions';

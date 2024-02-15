@@ -10,7 +10,9 @@ export class Constant implements IConstant {
   diff(): void {}
 
   // eslint-disable-next-line class-methods-use-this
-  reset(): void {}
+  reset(): number {
+    return -1;
+  }
 
   // eslint-disable-next-line class-methods-use-this
   setJacobian() {}

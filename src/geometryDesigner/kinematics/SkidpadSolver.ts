@@ -30,7 +30,7 @@ import {ISnapshot} from '@gd/analysis/ISnapshot';
 import {Twin, Triple, OneOrTwo} from '@utils/atLeast';
 import {getTire} from '@tire/listTireData';
 import {Constraint, ConstraintsOptions} from '@gd/kinematics/IConstraint';
-import {ConstantVector3} from '@computationGraph/Vector3';
+import {ConstantVector3} from '@computationGraph/ConstantVector3';
 import {ConstantScalar} from '@computationGraph/ConstantScalar';
 import {
   getJointDictionary,
