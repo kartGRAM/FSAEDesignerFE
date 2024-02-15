@@ -227,7 +227,7 @@ export class FDComponentBalance implements Constraint, Balance {
     this.forceError.setJacobian(phi_q, row);
 
     // モーメントのつり合い
-    this.momentError.reset({variablesOnly: true, resetKey});
+    this.momentError.reset({variablesOnly: false, resetKey});
     const rotation = this.momentError.vector3Value;
     phi[row + ofs + X] = rotation.x;
     phi[row + ofs + Y] = rotation.y;

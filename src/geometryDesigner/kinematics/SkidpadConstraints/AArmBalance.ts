@@ -15,7 +15,6 @@ import {Balance} from '../SkidpadConstraints';
 import {
   IComponent,
   IVariable,
-  isFullDegreesComponent,
   PointForce,
   GeneralVariable
 } from '../KinematicComponents';
@@ -197,7 +196,7 @@ export class AArmBalance implements Constraint, Balance {
     this.forceError.setJacobian(phi_q, row);
 
     // モーメントのつり合い
-    this.momentError.reset({variablesOnly: true, resetKey});
+    this.momentError.reset({variablesOnly: false, resetKey});
     const rotation = this.momentError.vector3Value;
     phi[row + 3] = rotation.x;
     phi[row + 4] = rotation.y;

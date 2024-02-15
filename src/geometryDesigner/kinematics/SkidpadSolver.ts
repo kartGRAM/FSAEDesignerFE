@@ -1087,7 +1087,8 @@ export class SkidpadSolver implements ISolver {
             console.log(`norm_phi=   ${norm_phi.toFixed(4)}`);
             console.log(``);
           }
-          eq = norm_dq < 1e-4 && norm_phi < 1e-2;
+          eq = norm_dq < 1e-2 && norm_phi < 1e-3;
+          // eq = norm_phi < 1e-3;
           if (constraintsOptions.disableTireFriction) {
             eq = norm_dq < 2e-1 && norm_phi < 2e-1;
           }

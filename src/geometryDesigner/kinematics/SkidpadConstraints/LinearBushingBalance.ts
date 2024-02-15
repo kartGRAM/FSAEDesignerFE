@@ -3,7 +3,7 @@
 import {Matrix} from 'ml-matrix';
 import {Vector3} from 'three';
 import {Twin, OneOrTwo} from '@utils/atLeast';
-import {Constraint} from '@gd/kinematics/IConstraint';
+import {Constraint, ConstraintsOptions} from '@gd/kinematics/IConstraint';
 import {ILinearBushing} from '@gd/IElements/ILinearBushing';
 import {IVector3} from '@computationGraph/IVector3';
 import {IScalar} from '@computationGraph/IScalar';
@@ -30,11 +30,11 @@ export class LinearBushingBalance implements Constraint, Balance {
 
   // 並進運動+回転
   constraints() {
-    return 7;
+    return 6;
   }
 
-  active() {
-    return true;
+  active(options: ConstraintsOptions) {
+    return !options.disableForce;
   }
 
   resetStates(): void {}
@@ -60,6 +60,8 @@ export class LinearBushingBalance implements Constraint, Balance {
   getVO: () => Vector3;
 
   omegaComponent: GeneralVariable;
+
+  rp: OneOrTwo<VariableVector3>;
 
   rq: OneOrTwo<VariableQuaternion>;
 
@@ -125,15 +127,18 @@ export class LinearBushingBalance implements Constraint, Balance {
     ];
 
     // 変数宣言
+    this.fp = this.frameComponent.positionVariable;
+    this.fq = this.frameComponent.quaternionVariable;
+    this.ff = this.pfsFrame.map((pf) => pf.forceVariable) as any;
+
     const pqMap = new Map<IComponent, [VariableVector3, VariableQuaternion]>();
     this.rodEndComponents.forEach((c) => {
       pqMap.set(c, [c.positionVariable, c.quaternionVariable]);
     });
+    this.rp = this.rodEndComponents.map((c) => pqMap.get(c)![0]) as any;
     this.rq = this.rodEndComponents.map((c) => pqMap.get(c)![1]) as any;
     this.rf = this.pfsRodEnd.map((pf) => pf.forceVariable) as any;
-    this.fp = this.frameComponent.positionVariable;
-    this.fq = this.frameComponent.quaternionVariable;
-    this.ff = this.pfsFrame.map((pf) => pf.forceVariable) as any;
+
     this.omega = this.omegaComponent.cgVariable;
     this.vO = new ConstantVector3(this.getVO());
 
@@ -165,10 +170,11 @@ export class LinearBushingBalance implements Constraint, Balance {
 
     const fA = this.fq.getRotationMatrix();
     const rA = this.rq.map((q) => q.getRotationMatrix());
-    const cogQ = fA.vmul(cogLocalVec);
-    const pCog = this.fp.add(cogQ);
-    const pFrameQ = frameLocalVec.map((s) => fA.vmul(s));
-    const pRodEndQ = rodEndLocalVec.map((s, i) => rA[i].vmul(s));
+    const pCog = fA.vmul(cogLocalVec).add(this.fp);
+    const ptsFrame = frameLocalVec.map((s) => fA.vmul(s).add(this.fp));
+    const ptsRodEnd = rodEndLocalVec.map((s, i) =>
+      rA[i].vmul(s).add(this.rp[i])
+    );
     const axis = fA.vmul(localAxisVec).normalize();
 
     const omega = normal.mul(this.omega);
@@ -196,14 +202,14 @@ export class LinearBushingBalance implements Constraint, Balance {
     // モーメントのつり合い
     this.momentError = this.ffc
       .reduce((prev: IVector3, f, i) => {
-        return prev.add(f.cross(pFrameQ[i]));
+        return prev.add(f.cross(ptsFrame[i]));
       }, new ConstantVector3())
       .add(
         this.rfc.reduce((prev: IVector3, f, i) => {
-          return prev.add(f.cross(pRodEndQ[i]));
+          return prev.add(f.cross(ptsRodEnd[i]));
         }, new ConstantVector3())
       )
-      .add(ma.cross(cogQ));
+      .add(ma.cross(pCog));
 
     this.fixedForceError = this.ffc.reduce(
       (prev: IScalar, f) => prev.add(f.dot(axis)),
@@ -232,6 +238,7 @@ export class LinearBushingBalance implements Constraint, Balance {
     this.fp.setValue(this.frameComponent.position);
     this.fq.setValue(this.frameComponent.quaternion);
     this.rodEndComponents.forEach((c, i) => {
+      this.rp[i].setValue(c.position);
       this.rq[i].setValue(c.quaternion);
     });
     this.pfsFrame.forEach((pf, i) => {
@@ -243,7 +250,7 @@ export class LinearBushingBalance implements Constraint, Balance {
     this.omega.setValue(this.omegaComponent.value);
 
     // 力のつり合い
-    let resetKey = this.forceError.reset({});
+    const resetKey = this.forceError.reset({});
     const translation = this.forceError.vector3Value;
     phi[row + 0] = translation.x;
     phi[row + 1] = translation.y;
@@ -253,7 +260,7 @@ export class LinearBushingBalance implements Constraint, Balance {
     this.forceError.setJacobian(phi_q, row);
 
     // モーメントのつり合い
-    resetKey = this.momentError.reset({variablesOnly: true, resetKey});
+    this.momentError.reset({variablesOnly: false, resetKey});
     const rotation = this.momentError.vector3Value;
     phi[row + 3] = rotation.x;
     phi[row + 4] = rotation.y;
@@ -263,12 +270,12 @@ export class LinearBushingBalance implements Constraint, Balance {
     this.momentError.setJacobian(phi_q, row + 3);
 
     // フレーム側の制約
-    this.fixedForceError.reset({variablesOnly: true, resetKey});
+    /* this.fixedForceError.reset({variablesOnly: false, resetKey});
     const e = this.fixedForceError.scalarValue;
     phi[row + 6] = e;
     // ヤコビアン設定
     this.fixedForceError.diff(Matrix.eye(1, 1));
-    this.fixedForceError.setJacobian(phi_q, row + 6);
+    this.fixedForceError.setJacobian(phi_q, row + 6); */
   }
 
   setJacobianAndConstraintsInequal() {}

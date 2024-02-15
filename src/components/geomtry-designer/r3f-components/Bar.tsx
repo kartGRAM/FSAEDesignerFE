@@ -65,9 +65,9 @@ const Bar = (props: {element: IBar}) => {
       {measurablePoints.map((p) => (
         <MeasurablePoint node={p} key={`${p.nodeID}m`} />
       ))}
-      {/* element.getForceResults().map((res, i) => (
+      {element.getForceResults().map((res, i) => (
         <ForceArrow element={element} index={i} key={res.nodeID} />
-      )) */}
+      ))}
     </group>
   );
 };
