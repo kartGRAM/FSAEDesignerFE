@@ -424,7 +424,7 @@ export class SkidpadSolver implements ISolver {
             omega,
             pfsPointNodeIDs: pNodeIDs,
             isSpring: isSpringDumper(element) && controledBy.length === 0,
-            k: 26217 / 2 // N/m : 75lbs/in
+            k: 26217 // N/m : 150lbs/in
           });
           constraints.push(balance);
           return;
@@ -1087,7 +1087,7 @@ export class SkidpadSolver implements ISolver {
             console.log(`norm_phi=   ${norm_phi.toFixed(4)}`);
             console.log(``);
           }
-          eq = norm_dq < 1e-2 && norm_phi < 1e-3;
+          eq = norm_dq < 1e-2 && norm_phi < 1e-2;
           // eq = norm_phi < 1e-3;
           if (constraintsOptions.disableTireFriction) {
             eq = norm_dq < 2e-1 && norm_phi < 2e-1;

@@ -10,7 +10,6 @@ import {IScalar} from '@computationGraph/IScalar';
 import {VariableVector3} from '@computationGraph/VariableVector3';
 import {VariableScalar} from '@computationGraph/VariableScalar';
 import {ConstantVector3} from '@computationGraph/ConstantVector3';
-import {ConstantScalar} from '@computationGraph/ConstantScalar';
 import {VariableQuaternion} from '@computationGraph/VariableQuaternion';
 import {Balance} from '../SkidpadConstraints';
 import {
@@ -30,7 +29,7 @@ export class LinearBushingBalance implements Constraint, Balance {
 
   // 並進運動+回転
   constraints() {
-    return 6;
+    return 7;
   }
 
   active(options: ConstraintsOptions) {
@@ -211,10 +210,7 @@ export class LinearBushingBalance implements Constraint, Balance {
       )
       .add(ma.cross(pCog));
 
-    this.fixedForceError = this.ffc.reduce(
-      (prev: IScalar, f) => prev.add(f.dot(axis)),
-      new ConstantScalar(0)
-    );
+    this.fixedForceError = this.ffc[1].dot(axis).sub(this.ffc[0].dot(axis));
   }
 
   applytoElement(): void {
@@ -270,12 +266,12 @@ export class LinearBushingBalance implements Constraint, Balance {
     this.momentError.setJacobian(phi_q, row + 3);
 
     // フレーム側の制約
-    /* this.fixedForceError.reset({variablesOnly: false, resetKey});
+    this.fixedForceError.reset({variablesOnly: false, resetKey});
     const e = this.fixedForceError.scalarValue;
     phi[row + 6] = e;
     // ヤコビアン設定
     this.fixedForceError.diff(Matrix.eye(1, 1));
-    this.fixedForceError.setJacobian(phi_q, row + 6); */
+    this.fixedForceError.setJacobian(phi_q, row + 6);
   }
 
   setJacobianAndConstraintsInequal() {}
