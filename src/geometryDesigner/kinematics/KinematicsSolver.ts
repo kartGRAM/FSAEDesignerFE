@@ -49,7 +49,7 @@ import {
   PointToPlane,
   hasDl,
   controled
-} from './Constraints';
+} from './KinematicConstraints';
 import {
   IComponent,
   FullDegreesComponent,

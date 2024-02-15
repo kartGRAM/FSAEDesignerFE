@@ -9,7 +9,7 @@ import {VariableScalar} from '@computationGraph/VariableScalar';
 import {VariableVector3} from '@computationGraph/VariableVector3';
 import {VariableQuaternion} from '@computationGraph/VariableQuaternion';
 import {isFixedElement} from './KinematicFunctions';
-import {QuaternionConstraint} from './Constraints';
+import {QuaternionConstraint} from './KinematicConstraints';
 
 const X = 0;
 const Y = 1;

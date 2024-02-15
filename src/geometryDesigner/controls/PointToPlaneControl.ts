@@ -5,7 +5,10 @@ import {
   IDataNumber,
   INamedNumber
 } from '@gd/INamedValues';
-import {PointToPlane, isPointToPlane} from '@gd/kinematics/Constraints';
+import {
+  PointToPlane,
+  isPointToPlane
+} from '@gd/kinematics/KinematicConstraints';
 import {ISolver} from '@gd/kinematics/ISolver';
 import {NamedVector3, NamedNumber} from '@gd/NamedValues';
 import {getDataElementByID} from '@gd/IElements';

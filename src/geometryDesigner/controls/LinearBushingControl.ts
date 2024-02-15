@@ -1,7 +1,7 @@
 import {
   LinearBushingSingleEnd,
   isLinearBushingSingleEnd
-} from '@gd/kinematics/Constraints';
+} from '@gd/kinematics/KinematicConstraints';
 import {ISolver} from '@gd/kinematics/ISolver';
 import {getDataElementByID} from '@gd/IElements';
 import {getDgd} from '@store/getDgd';

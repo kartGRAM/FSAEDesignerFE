@@ -1,5 +1,8 @@
 import {getDgd} from '@store/getDgd';
-import {BarAndSpheres, isBarAndSpheres} from '@gd/kinematics/Constraints';
+import {
+  BarAndSpheres,
+  isBarAndSpheres
+} from '@gd/kinematics/KinematicConstraints';
 import {ISolver} from '@gd/kinematics/ISolver';
 import {getDataElementByID} from '@gd/IElements';
 import {getElement} from '@gd/Elements';
