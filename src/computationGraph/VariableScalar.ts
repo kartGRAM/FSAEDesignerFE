@@ -41,6 +41,6 @@ export class VariableScalar extends ScalarBase implements IScalar, IVariable {
   setJacobian(phi_q: Matrix, row: number) {
     if (this.col() < 0) return;
     if (!this._diff) throw new Error('diffが未計算');
-    phi_q.subMatrixAdd(this._diff, row, this.col());
+    phi_q.setSubMatrix(this._diff, row, this.col());
   }
 }
