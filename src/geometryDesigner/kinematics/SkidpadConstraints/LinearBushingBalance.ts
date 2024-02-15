@@ -243,7 +243,7 @@ export class LinearBushingBalance implements Constraint, Balance {
     this.omega.setValue(this.omegaComponent.value);
 
     // 力のつり合い
-    this.forceError.reset({});
+    let resetKey = this.forceError.reset({});
     const translation = this.forceError.vector3Value;
     phi[row + 0] = translation.x;
     phi[row + 1] = translation.y;
@@ -253,7 +253,7 @@ export class LinearBushingBalance implements Constraint, Balance {
     this.forceError.setJacobian(phi_q, row);
 
     // モーメントのつり合い
-    this.momentError.reset({variablesOnly: false});
+    resetKey = this.momentError.reset({variablesOnly: true, resetKey});
     const rotation = this.momentError.vector3Value;
     phi[row + 3] = rotation.x;
     phi[row + 4] = rotation.y;
@@ -263,7 +263,7 @@ export class LinearBushingBalance implements Constraint, Balance {
     this.momentError.setJacobian(phi_q, row + 3);
 
     // フレーム側の制約
-    this.fixedForceError.reset({variablesOnly: false});
+    this.fixedForceError.reset({variablesOnly: true, resetKey});
     const e = this.fixedForceError.scalarValue;
     phi[row + 6] = e;
     // ヤコビアン設定

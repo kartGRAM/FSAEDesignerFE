@@ -187,7 +187,7 @@ export class AArmBalance implements Constraint, Balance {
     this.omega.setValue(this.omegaComponent.value);
 
     // 力のつり合い
-    this.forceError.reset({});
+    const resetKey = this.forceError.reset({});
     const translation = this.forceError.vector3Value;
     phi[row + 0] = translation.x;
     phi[row + 1] = translation.y;
@@ -197,7 +197,7 @@ export class AArmBalance implements Constraint, Balance {
     this.forceError.setJacobian(phi_q, row);
 
     // モーメントのつり合い
-    this.momentError.reset({variablesOnly: false});
+    this.momentError.reset({variablesOnly: true, resetKey});
     const rotation = this.momentError.vector3Value;
     phi[row + 3] = rotation.x;
     phi[row + 4] = rotation.y;

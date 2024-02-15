@@ -215,7 +215,7 @@ export class FDComponentBalance implements Constraint, Balance {
     if (this.conectedTireBalance) this.conectedTireBalance.checkFz();
 
     // 力のつり合い
-    this.forceError.reset({});
+    const resetKey = this.forceError.reset({});
     const translation = this.forceError.vector3Value;
     phi[row + X] = translation.x;
     phi[row + Y] = translation.y;
@@ -227,7 +227,7 @@ export class FDComponentBalance implements Constraint, Balance {
     this.forceError.setJacobian(phi_q, row);
 
     // モーメントのつり合い
-    this.momentError.reset({variablesOnly: false});
+    this.momentError.reset({variablesOnly: true, resetKey});
     const rotation = this.momentError.vector3Value;
     phi[row + ofs + X] = rotation.x;
     phi[row + ofs + Y] = rotation.y;

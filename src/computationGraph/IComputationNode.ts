@@ -7,7 +7,7 @@ export type RetType = {
 
 export interface ResetOptions {
   variablesOnly?: boolean;
-  id?: number;
+  resetKey?: number;
 }
 
 export interface IComputationNode {

@@ -155,18 +155,18 @@ export class Scalar extends ScalarBase implements IScalar {
   }
 
   reset(options: ResetOptions) {
-    if (options.variablesOnly && !options.id) throw new Error('idが必要');
-    if (!options.variablesOnly || !options.id) {
+    if (options.variablesOnly && !options.resetKey) throw new Error('idが必要');
+    if (!options.variablesOnly || !options.resetKey) {
       this.storedValue = undefined;
-      if (!options.id) {
-        this.resetKey = options.id ?? (this.resetKey + 1) % 10000;
-        options.id = this.resetKey;
+      if (!options.resetKey || options.resetKey === -1) {
+        this.resetKey += 1 % 10000;
+        options.resetKey = this.resetKey;
       } else {
-        this.resetKey = options.id;
+        this.resetKey = options.resetKey;
       }
-    } else if (options.id && this.resetKey !== options.id) {
+    } else if (options.resetKey && this.resetKey !== options.resetKey) {
       this.storedValue = undefined;
-      this.resetKey = options.id;
+      this.resetKey = options.resetKey;
     }
     this._reset(options);
     return this.resetKey;

@@ -253,9 +253,9 @@ export class Hinge implements Constraint {
     this.positionError.setJacobian(phi_q, row);
 
     // 並行拘束
+    let resetKey = -1;
     this.directionError.forEach((directionError, i) => {
-      // pは登場しない
-      directionError.reset({variablesOnly: false});
+      resetKey = directionError.reset({variablesOnly: true, resetKey});
       const error = directionError.scalarValue;
       directionError.diff(Matrix.eye(1, 1));
 
@@ -704,8 +704,9 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
     this.qFixed.setValue(this.fixed.quaternion);
     this.qRes.setValue(this.res.quaternion);
 
+    let resetKey = -1;
     this.error.forEach((error, i) => {
-      error.reset({});
+      resetKey = error.reset({variablesOnly: true, resetKey});
       phi[row + i] = error.scalarValue;
       error.diff(Matrix.eye(1, 1));
       error.setJacobian(phi_q, row + i);
