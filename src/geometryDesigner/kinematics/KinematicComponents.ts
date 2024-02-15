@@ -5,6 +5,7 @@ import {IElement} from '@gd/IElements';
 import {INamedVector3RO} from '@gd/INamedValues';
 import {Vector3, Quaternion} from 'three';
 import {Constraint} from '@gd/kinematics/IConstraint';
+import {VariableScalar} from '@computationGraph/VariableScalar';
 import {VariableVector3} from '@computationGraph/VariableVector3';
 import {VariableQuaternion} from '@computationGraph/VariableQuaternion';
 import {isFixedElement} from './KinematicFunctions';
@@ -245,6 +246,14 @@ export class FullDegreesComponent extends ComponentBase {
     return this._quaternion;
   }
 
+  get positionVariable(): VariableVector3 {
+    return new VariableVector3(() => (!this.isFixed ? this.col + X : -1));
+  }
+
+  get quaternionVariable(): VariableQuaternion {
+    return new VariableQuaternion(() => (!this.isFixed ? this.col + Q0 : -1));
+  }
+
   _isFixed: boolean = false;
 
   get isFixed(): boolean {
@@ -307,14 +316,6 @@ export class FullDegreesComponent extends ComponentBase {
     const p = this.position;
     const q = this.quaternion;
     [p.x, p.y, p.z, q.w, q.x, q.y, q.z] = state;
-  }
-
-  get positionVariable(): VariableVector3 {
-    return new VariableVector3(!this.isFixed ? this.col + X : -1);
-  }
-
-  get quaternionVariable(): VariableQuaternion {
-    return new VariableQuaternion(!this.isFixed ? this.col + Q0 : -1);
   }
 }
 
@@ -408,6 +409,14 @@ export class PointComponent extends ComponentBase {
   // eslint-disable-next-line no-empty-function
   set quaternion(value: Quaternion) {}
 
+  get positionVariable(): VariableVector3 {
+    return new VariableVector3(() => this.col + X);
+  }
+
+  get quaternionVariable(): VariableQuaternion {
+    return new VariableQuaternion(() => -1);
+  }
+
   get isFixed(): boolean {
     return false;
   }
@@ -451,14 +460,6 @@ export class PointComponent extends ComponentBase {
   restoreState(state: number[]): void {
     const p = this.position;
     [p.x, p.y, p.z] = state;
-  }
-
-  get positionVariable(): VariableVector3 {
-    return new VariableVector3(this.col + X);
-  }
-
-  get quaternionVariable(): VariableQuaternion {
-    return new VariableQuaternion(-1);
   }
 }
 
@@ -526,6 +527,10 @@ export class PointForce extends VariableBase {
   applyResultToApplication() {}
 
   force: Vector3;
+
+  get forceVariable(): VariableVector3 {
+    return new VariableVector3(() => this.col + X);
+  }
 
   sign(localVectorNodeID: string): number {
     if (localVectorNodeID === this.lhs) {
@@ -622,6 +627,10 @@ export class GeneralVariable extends VariableBase {
   applyResultToApplication() {}
 
   value: number;
+
+  get cgVariable(): VariableScalar {
+    return new VariableScalar(() => this.col);
+  }
 
   constructor(name: string, scale: number) {
     super(scale);

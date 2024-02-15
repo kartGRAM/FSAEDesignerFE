@@ -26,7 +26,7 @@ export class VariableVector3
     this._diff = undefined;
   }
 
-  constructor(col: number) {
+  constructor(col: () => number) {
     super(() => this.reset());
     this.col = col;
     this._value = new Matrix(3, 1);
@@ -43,8 +43,8 @@ export class VariableVector3
   }
 
   setJacobian(phi_q: Matrix, row: number) {
-    if (this.col < 0) return;
+    if (this.col() < 0) return;
     if (!this._diff) throw new Error('diffが未計算');
-    phi_q.setSubMatrix(this._diff, row, this.col);
+    phi_q.setSubMatrix(this._diff, row, this.col());
   }
 }

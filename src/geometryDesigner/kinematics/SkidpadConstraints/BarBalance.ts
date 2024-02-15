@@ -121,8 +121,8 @@ export class BarBalance implements Constraint, Balance {
     // 変数宣言
     this.p = this.components.map((c) => c.positionVariable) as any;
     this.q = this.components.map((c) => c.quaternionVariable) as any;
-    this.f = this.pfs.map((pf) => new VariableVector3(pf.col)) as any;
-    this.omega = new VariableScalar(this.omegaComponent.col);
+    this.f = this.pfs.map((pf) => pf.forceVariable) as any;
+    this.omega = this.omegaComponent.cgVariable;
     this.k = new ConstantScalar(0);
     this.freeLength = new ConstantScalar(0);
     if (params.isSpring && params.k && params.k > 0) {

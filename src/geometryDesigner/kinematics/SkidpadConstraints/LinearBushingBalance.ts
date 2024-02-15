@@ -130,11 +130,11 @@ export class LinearBushingBalance implements Constraint, Balance {
       pqMap.set(c, [c.positionVariable, c.quaternionVariable]);
     });
     this.rq = this.rodEndComponents.map((c) => pqMap.get(c)![1]) as any;
-    this.rf = this.pfsRodEnd.map((pf) => new VariableVector3(pf.col)) as any;
+    this.rf = this.pfsRodEnd.map((pf) => pf.forceVariable) as any;
     this.fp = this.frameComponent.positionVariable;
     this.fq = this.frameComponent.quaternionVariable;
-    this.ff = this.pfsFrame.map((pf) => new VariableVector3(pf.col)) as any;
-    this.omega = new VariableScalar(this.omegaComponent.col);
+    this.ff = this.pfsFrame.map((pf) => pf.forceVariable) as any;
+    this.omega = this.omegaComponent.cgVariable;
     this.vO = new ConstantVector3(this.getVO());
 
     // 計算グラフ構築

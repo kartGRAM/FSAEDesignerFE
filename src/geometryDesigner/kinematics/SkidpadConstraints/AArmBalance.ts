@@ -116,8 +116,8 @@ export class AArmBalance implements Constraint, Balance {
 
     this.p = this.components.map((c) => pqMap.get(c)![0]) as any;
     this.q = this.components.map((c) => pqMap.get(c)![1]) as any;
-    this.f = this.pfs.map((pf) => new VariableVector3(pf.col)) as any;
-    this.omega = new VariableScalar(this.omegaComponent.col);
+    this.f = this.pfs.map((pf) => pf.forceVariable) as any;
+    this.omega = this.omegaComponent.cgVariable;
     this.vO = new ConstantVector3(this.getVO());
 
     // 計算グラフ構築

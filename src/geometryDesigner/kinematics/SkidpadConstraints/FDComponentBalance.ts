@@ -116,9 +116,9 @@ export class FDComponentBalance implements Constraint, Balance {
     // 変数宣言
     this.p = this.component.positionVariable;
     this.q = this.component.quaternionVariable;
-    this.f = this.pfs.map((pf) => new VariableVector3(pf.col));
-    this.omega = new VariableScalar(this.omegaComponent.col);
-    this.error = new VariableScalar(this.errorComponent.col);
+    this.f = this.pfs.map((pf) => pf.forceVariable);
+    this.omega = this.omegaComponent.cgVariable;
+    this.error = this.errorComponent.cgVariable;
     this.vO = new ConstantVector3(this.getVO());
 
     // 計算グラフ構築
