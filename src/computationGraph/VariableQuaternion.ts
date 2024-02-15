@@ -30,6 +30,7 @@ export class VariableQuaternion implements IQuaternion, IVariable {
 
   reset() {
     this._diff = undefined;
+    return -1;
   }
 
   constructor(col: () => number) {

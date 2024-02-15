@@ -24,6 +24,7 @@ export class VariableVector3
 
   reset() {
     this._diff = undefined;
+    return -1;
   }
 
   constructor(col: () => number) {

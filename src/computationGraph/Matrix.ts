@@ -21,6 +21,8 @@ export class Matrix implements IMatrix {
 
   storedValue: MLMatrix | undefined;
 
+  resetKey = 0;
+
   constructor(
     value: () => RetType,
     reset: (options: ResetOptions) => void,
@@ -41,8 +43,21 @@ export class Matrix implements IMatrix {
   }
 
   reset(options: ResetOptions) {
-    if (!options.variablesOnly) this.storedValue = undefined;
+    if (options.variablesOnly && !options.id) throw new Error('idが必要');
+    if (!options.variablesOnly || !options.id) {
+      this.storedValue = undefined;
+      if (!options.id) {
+        this.resetKey = options.id ?? (this.resetKey + 1) % 10000;
+        options.id = this.resetKey;
+      } else {
+        this.resetKey = options.id;
+      }
+    } else if (options.id && this.resetKey !== options.id) {
+      this.storedValue = undefined;
+      this.resetKey = options.id;
+    }
     this._reset(options);
+    return this.resetKey;
   }
 
   diff(fromLhs: MLMatrix, fromRhs?: MLMatrix): void {

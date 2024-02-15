@@ -20,6 +20,7 @@ export class VariableScalar extends ScalarBase implements IScalar, IVariable {
 
   reset() {
     this._diff = undefined;
+    return -1;
   }
 
   constructor(col: () => number) {
