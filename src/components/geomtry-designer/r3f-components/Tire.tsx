@@ -22,7 +22,7 @@ const Tire = (props: {element: ITire}) => {
 
   const handleOnDoubleClick = React.useCallback(
     (e: ThreeEvent<MouseEvent>) => {
-      if (!meshRef.current.visible) return;
+      if (!tireRef.current.visible) return;
       if (store.getState().uitgd.uiDisabled) return;
       e.stopPropagation();
       dispatch(selectElement({absPath: element.absPath}));
@@ -35,13 +35,15 @@ const Tire = (props: {element: ITire}) => {
     return !!selectedPath && element.absPath.includes(selectedPath);
   });
 
-  useFrame(() => {
+  let time = 0;
+  useFrame((_, delta) => {
     let color: string | number = '';
     if (isSelected) {
       color = 0xffa500;
       materialRef.current.color.set(color);
     }
-    meshRef.current.visible = element.visible.value ?? false;
+    tireRef.current.visible = element.visible.value ?? false;
+    markerRef.current.visible = element.angularVelocity !== 0;
 
     groupRef.current.position.copy(
       element.position.value.applyMatrix3(coMatrix)
@@ -49,6 +51,16 @@ const Tire = (props: {element: ITire}) => {
     groupRef.current.quaternion.copy(
       transQuaternion(element.rotation.value, coMatrix)
     );
+
+    time += delta;
+    const q = transQuaternion(
+      new THREE.Quaternion().setFromAxisAngle(
+        element.tireAxis.value.normalize(),
+        (time * element.angularVelocity) % (2 * Math.PI)
+      ),
+      coMatrix
+    );
+    tireRef.current.quaternion.copy(q.multiply(rotationQ));
   });
 
   const nodes = element.getPoints();
@@ -56,7 +68,8 @@ const Tire = (props: {element: ITire}) => {
   const center = element.tireCenter.value.applyMatrix3(coMatrix);
   const radius = center.y;
   const groupRef = React.useRef<THREE.Group>(null!);
-  const meshRef = React.useRef<THREE.Mesh>(null!);
+  const tireRef = React.useRef<THREE.Group>(null!);
+  const markerRef = React.useRef<THREE.Mesh>(null!);
   const materialRef = React.useRef<THREE.MeshBasicMaterial>(null!);
   const rotationQ = transQuaternion(
     new THREE.Quaternion().setFromUnitVectors(
@@ -68,23 +81,26 @@ const Tire = (props: {element: ITire}) => {
 
   return (
     <group onDoubleClick={handleOnDoubleClick} ref={groupRef}>
-      <Circle
-        args={[radius, 64]}
-        position={center}
-        ref={meshRef}
-        quaternion={rotationQ}
-        // rotation={new THREE.Euler(0, Math.PI / 2, 0, 'XYZ')}
-      >
-        {isSelected ? (
-          <meshBasicMaterial
-            wireframe
-            wireframeLinewidth={3}
-            ref={materialRef}
-          />
-        ) : (
-          <meshNormalMaterial wireframe wireframeLinewidth={3} />
-        )}
-      </Circle>
+      <group quaternion={rotationQ} ref={tireRef} position={center}>
+        <Circle args={[radius, 48]}>
+          {isSelected ? (
+            <meshBasicMaterial
+              wireframe
+              wireframeLinewidth={3}
+              ref={materialRef}
+            />
+          ) : (
+            <meshNormalMaterial wireframe wireframeLinewidth={3} />
+          )}
+        </Circle>
+        <Circle
+          ref={markerRef}
+          args={[radius * 0.05, 24]}
+          position={new THREE.Vector3().setY(-center.y * 0.95)}
+        >
+          <meshBasicMaterial color="red" side={THREE.DoubleSide} />
+        </Circle>
+      </group>
       {nodes.map((node) => (
         <NodeSphere node={node} key={node.nodeID} />
       ))}

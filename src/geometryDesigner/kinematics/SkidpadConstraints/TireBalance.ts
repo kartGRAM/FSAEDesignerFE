@@ -278,8 +278,12 @@ export class TireBalance {
     element.outerBearingForce = getVector3(F1);
     element.innerBearingForce = getVector3(F2);
 
+    this.groundVelocity.reset({});
     const v = this.groundVelocity.scalarValue;
     element.angularVelocity = v / this.tireRadius; // rad/s
+    if (element.tireAxis.value.dot(this.localAxis.vector3Value) < 0) {
+      element.angularVelocity *= -1;
+    }
   }
 
   setJacobianAndConstraintsInequal() {}
