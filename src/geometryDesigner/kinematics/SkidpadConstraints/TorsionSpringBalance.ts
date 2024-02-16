@@ -25,10 +25,10 @@ import {
 
 const normal = new ConstantVector3(new Vector3(0, 0, 1));
 
-export class TorsionBarBalance implements Constraint, Balance {
+export class TorsionSpringBalance implements Constraint, Balance {
   static readonly className = 'LinearBushingBalance' as const;
 
-  readonly className = TorsionBarBalance.className;
+  readonly className = TorsionSpringBalance.className;
 
   // 並進運動+回転
   constraints() {
@@ -111,7 +111,7 @@ export class TorsionBarBalance implements Constraint, Balance {
     pfsFrame: Twin<PointForce>;
     pfsEffort: Twin<PointForce>;
     pfsFramePointNodeIDs: string[]; // ジョイント部分のローカルベクトルのノードID 作用反作用どちらで使うかを判定する
-    pfseffortPointNodeIDs: string[]; // ジョイント部分のローカルベクトルのノードID 作用反作用どちらで使うかを判定する
+    pfsEffortPointNodeIDs: string[]; // ジョイント部分のローカルベクトルのノードID 作用反作用どちらで使うかを判定する
     getVO: () => Vector3; // 座標原点の速度
     omega: GeneralVariable; // 座標原点の角速度
     k: () => number; // N-m / deg
@@ -163,7 +163,7 @@ export class TorsionBarBalance implements Constraint, Balance {
       pf.sign(params.pfsFramePointNodeIDs[i])
     );
     const pfCoefsEffort = this.pfsEffort.map((pf, i) =>
-      pf.sign(params.pfseffortPointNodeIDs[i])
+      pf.sign(params.pfsEffortPointNodeIDs[i])
     );
     this.ffc = this.ff.map((f, i) => f.mul(pfCoefsFrame[i]));
     this.efc = this.ef.map((f, i) => f.mul(pfCoefsEffort[i]));
@@ -311,6 +311,8 @@ export class TorsionBarBalance implements Constraint, Balance {
   }
 }
 
-export function isTorsionBarBalance(c: Constraint): c is TorsionBarBalance {
-  return c.className === TorsionBarBalance.className;
+export function isTorsionSpringBalance(
+  c: Constraint
+): c is TorsionSpringBalance {
+  return c.className === TorsionSpringBalance.className;
 }

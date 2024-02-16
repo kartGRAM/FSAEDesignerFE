@@ -69,6 +69,7 @@ import {
   isBarBalance,
   AArmBalance,
   TireBalance,
+  TorsionSpringBalance,
   LinearBushingBalance,
   isBalance,
   isFDComponentBalance,
@@ -651,21 +652,47 @@ export class SkidpadSolver implements ISolver {
         }
         // TorsionSpringはComponent扱いしない
         if (isTorsionSpring(element)) {
-          const jointf0 = jointDict[element.fixedPoints[0].nodeID][0];
-          const jointf1 = jointDict[element.fixedPoints[1].nodeID][0];
-          jointsDone.add(jointf0);
-          jointsDone.add(jointf1);
-          // 固定点の相手先を見つける
-          const fixedPoints = [
-            getJointPartner(jointf0, element.fixedPoints[0].nodeID),
-            getJointPartner(jointf1, element.fixedPoints[1].nodeID)
-          ];
+          const pfsFrame: PointForce[] = [];
+          const pfsEffort: PointForce[] = [];
+          const pfsFramePointNodeIDs: string[] = [];
+          const pfsEffortPointNodeIDs: string[] = [];
+          const jointf = element.fixedPoints.map(
+            (fp) => jointDict[fp.nodeID][0]
+          );
+          const fixedPoints = jointf.map((joint, i) =>
+            getJointPartner(joint, element.fixedPoints[i].nodeID)
+          );
+          jointf.forEach((joint) => {
+            const pf = getPFComponent(
+              pointForceComponents,
+              components,
+              joint,
+              forceScale
+            );
+            pfsFrame.push(pf);
+            const [pfc] = getNamedVector3FromJoint(joint, element.nodeID);
+            pfsFramePointNodeIDs.push(pfc.nodeID);
+            jointsDone.add(joint);
+          });
+          const frameComponent =
+            tempComponents[fixedPoints[0].parent?.nodeID ?? ''];
+          if (!frameComponent) throw new Error('frameComponentが見つからない');
           const effortPoints: typeof fixedPoints = [];
-          const rhss: IComponent[] = [];
+          const effortComponents: IComponent[] = [];
           element.effortPoints.forEach((ep) => {
-            const jointp = jointDict[ep.nodeID][0];
-            jointsDone.add(jointp);
-            const epp = getJointPartner(jointp, ep.nodeID);
+            const jointEffort = jointDict[ep.nodeID][0];
+            const pf = getPFComponent(
+              pointForceComponents,
+              components,
+              jointEffort,
+              forceScale
+            );
+            const [pfc] = getNamedVector3FromJoint(jointEffort, element.nodeID);
+            pfsEffort.push(pf);
+            pfsEffortPointNodeIDs.push(pfc.nodeID);
+            jointsDone.add(jointEffort);
+
+            const epp = getJointPartner(jointEffort, ep.nodeID);
             effortPoints.push(epp);
             const points = [...fixedPoints, epp];
             const elements = points.map((p) => p.parent as IElement);
@@ -679,13 +706,15 @@ export class SkidpadSolver implements ISolver {
                 scale
               );
             }
-            rhss.push(rhs);
+            effortComponents.push(rhs);
             // あまりないと思うが、すべての点が同じコンポーネントに接続されている場合無視する
             if (
               elements[0].nodeID === elements[2].nodeID ||
               (isFixedElement(elements[0]) && isFixedElement(elements[2]))
             ) {
-              return;
+              throw new Error(
+                'TorsionSpringのロッドエンド2番はフレームと異なるコンポーネントに接続する必要あり'
+              );
             }
             element.fixedPoints.forEach((fp, i) => {
               const lhs: IComponent = tempComponents[elements[i].nodeID];
@@ -704,17 +733,43 @@ export class SkidpadSolver implements ISolver {
           });
           const constraint = new BarAndSpheres(
             `spring bar object of aarm ${element.name.value}`,
-            rhss[0],
-            rhss[1],
+            effortComponents[0],
+            effortComponents[1],
             element.effortPoints[0].value
               .sub(element.effortPoints[1].value)
               .length(),
             [],
-            isFullDegreesComponent(rhss[0]) ? effortPoints[0].value : undefined,
-            isFullDegreesComponent(rhss[1]) ? effortPoints[1].value : undefined,
+            isFullDegreesComponent(effortComponents[0])
+              ? effortPoints[0].value
+              : undefined,
+            isFullDegreesComponent(effortComponents[1])
+              ? effortPoints[1].value
+              : undefined,
             true
           );
           constraints.push(constraint);
+          const balance = new TorsionSpringBalance({
+            name: `TorsionSpringBalance of${element.name.value}`,
+            element,
+            frameComponent,
+            framePoints: [fixedPoints[0].value, fixedPoints[1].value],
+            effortComponents: effortComponents as Twin<IComponent>,
+            effortPoints: effortPoints.map((p) => p.value) as Twin<Vector3>,
+            cog: fixedPoints[0].value
+              .clone()
+              .add(fixedPoints[1].value)
+              .multiplyScalar(0.5), // 要修正
+            pfsFrame: pfsFrame as Twin<PointForce>,
+            pfsEffort: pfsEffort as Twin<PointForce>,
+            pfsFramePointNodeIDs,
+            pfsEffortPointNodeIDs,
+            mass: element.mass.value,
+            getVO: vO,
+            omega,
+            k: () => 0
+          });
+          constraints.push(constraint);
+
           this.restorers.push(
             new TorsionSpringRestorer(
               element,
