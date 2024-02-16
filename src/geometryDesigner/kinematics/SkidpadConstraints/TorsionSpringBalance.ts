@@ -213,7 +213,7 @@ export class TorsionSpringBalance implements Constraint, Balance {
     // 本来発生するトルク(N-m)
     const tIdeal = theta.mul(this.k);
     // 実際に発生している力
-    const tActual = armVec[0].cross(this.efc[0]).dot(axis);
+    const tActual = this.efc[0].cross(armVec[0]).dot(axis);
     this.torqueError = tIdeal.sub(tActual);
 
     // 力のつり合い

@@ -768,7 +768,7 @@ export class SkidpadSolver implements ISolver {
             omega,
             k: () => 0
           });
-          constraints.push(constraint);
+          constraints.push(balance);
 
           this.restorers.push(
             new TorsionSpringRestorer(
