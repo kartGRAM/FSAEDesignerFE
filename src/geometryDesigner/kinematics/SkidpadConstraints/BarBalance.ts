@@ -35,6 +35,8 @@ export class BarBalance implements Constraint, Balance {
 
   k: ConstantScalar; // N/m
 
+  getK?: () => number; // N/m
+
   vO: ConstantVector3; // m/s
 
   p: Twin<VariableVector3>;
@@ -101,7 +103,7 @@ export class BarBalance implements Constraint, Balance {
     vO: () => Vector3; // 座標原点の速度
     omega: GeneralVariable; // 座標原点の角速度
     isSpring?: boolean;
-    k?: number;
+    k?: () => number;
   }) {
     this.element = params.element;
     this.name = params.name;
@@ -117,6 +119,7 @@ export class BarBalance implements Constraint, Balance {
       ...this.pfs
     ];
     this.getVO = params.vO;
+    this.getK = params.k;
 
     // 変数宣言
     this.p = this.components.map((c) => c.positionVariable) as any;
@@ -125,9 +128,9 @@ export class BarBalance implements Constraint, Balance {
     this.omega = this.omegaComponent.cgVariable;
     this.k = new ConstantScalar(0);
     this.freeLength = new ConstantScalar(0);
-    if (params.isSpring && params.k && params.k > 0) {
+    if (params.isSpring && this.getK && this.getK() > 0) {
       this.isSpring = true;
-      this.k.setValue(params.k);
+      this.k.setValue(this.getK());
     }
     this.vO = new ConstantVector3(this.getVO());
 
@@ -207,7 +210,8 @@ export class BarBalance implements Constraint, Balance {
         l.reset({});
         flMean.reset({});
         const length = l.scalarValue;
-        const dl = flMean.scalarValue / this.k.scalarValue;
+        const k = this.getK ? this.getK() : 1;
+        const dl = flMean.scalarValue / k;
         this.freeLength.setValue(length + dl);
       };
     }

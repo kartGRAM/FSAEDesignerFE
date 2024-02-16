@@ -1,16 +1,19 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable camelcase */
 /* eslint-disable class-methods-use-this */
 import {Matrix} from 'ml-matrix';
 import {Vector3} from 'three';
 import {Twin, OneOrTwo} from '@utils/atLeast';
 import {Constraint, ConstraintsOptions} from '@gd/kinematics/IConstraint';
-import {ILinearBushing} from '@gd/IElements/ILinearBushing';
+import {ITorsionSpring} from '@gd/IElements/ITorsionSpring';
 import {IVector3} from '@computationGraph/IVector3';
 import {IScalar} from '@computationGraph/IScalar';
 import {VariableVector3} from '@computationGraph/VariableVector3';
 import {VariableScalar} from '@computationGraph/VariableScalar';
 import {ConstantVector3} from '@computationGraph/ConstantVector3';
+import {ConstantScalar} from '@computationGraph/ConstantScalar';
 import {VariableQuaternion} from '@computationGraph/VariableQuaternion';
+import {asin} from '@computationGraph/Functions';
 import {Balance} from '../SkidpadConstraints';
 import {
   IComponent,
@@ -44,29 +47,31 @@ export class TorsionBarBalance implements Constraint, Balance {
 
   name: string;
 
-  element: ILinearBushing;
-
-  pfsRodEnd: OneOrTwo<PointForce>;
-
-  pfsFrame: Twin<PointForce>;
+  element: ITorsionSpring;
 
   frameComponent: FullDegreesComponent;
 
-  rodEndComponents: OneOrTwo<IComponent>;
+  effortComponents: OneOrTwo<IComponent>;
+
+  pfsFrame: Twin<PointForce>;
+
+  pfsEffort: OneOrTwo<PointForce>;
 
   relevantVariables: IVariable[];
 
   getVO: () => Vector3;
 
+  getK: () => number;
+
   omegaComponent: GeneralVariable;
 
-  rp: OneOrTwo<VariableVector3>;
+  ep: OneOrTwo<VariableVector3>;
 
-  rq: OneOrTwo<VariableQuaternion>;
+  eq: OneOrTwo<VariableQuaternion>;
 
-  rf: OneOrTwo<VariableVector3>;
+  ef: OneOrTwo<VariableVector3>;
 
-  rfc: IVector3[];
+  efc: IVector3[];
 
   fp: VariableVector3;
 
@@ -84,7 +89,9 @@ export class TorsionBarBalance implements Constraint, Balance {
 
   momentError: IVector3;
 
-  fixedForceError: IScalar;
+  torqueError: IScalar;
+
+  k: ConstantScalar;
 
   c: IVector3;
 
@@ -94,62 +101,72 @@ export class TorsionBarBalance implements Constraint, Balance {
 
   constructor(params: {
     name: string;
-    element: ILinearBushing;
+    element: ITorsionSpring;
     frameComponent: FullDegreesComponent;
     framePoints: Twin<Vector3>;
-    rodEndComponents: OneOrTwo<IComponent>;
-    rodEndPoints: OneOrTwo<Vector3>;
+    effortComponents: Twin<IComponent>;
+    effortPoints: Twin<Vector3>;
     mass: number;
     cog: Vector3; // FrameComponent基準
     pfsFrame: Twin<PointForce>;
-    pfsRodEnd: OneOrTwo<PointForce>;
+    pfsEffort: Twin<PointForce>;
     pfsFramePointNodeIDs: string[]; // ジョイント部分のローカルベクトルのノードID 作用反作用どちらで使うかを判定する
-    pfsRodEndPointNodeIDs: string[]; // ジョイント部分のローカルベクトルのノードID 作用反作用どちらで使うかを判定する
+    pfseffortPointNodeIDs: string[]; // ジョイント部分のローカルベクトルのノードID 作用反作用どちらで使うかを判定する
     getVO: () => Vector3; // 座標原点の速度
     omega: GeneralVariable; // 座標原点の角速度
+    k: () => number; // N-m / deg
   }) {
     this.name = params.name;
     this.element = params.element;
     this.pfsFrame = [...params.pfsFrame];
-    this.pfsRodEnd = [...params.pfsRodEnd];
+    this.pfsEffort = [...params.pfsEffort];
     this.frameComponent = params.frameComponent;
     const {scale} = this.frameComponent;
-    this.rodEndComponents = [...params.rodEndComponents];
+    this.effortComponents = [...params.effortComponents];
     this.getVO = params.getVO;
+    this.getK = params.k;
     this.omegaComponent = params.omega;
     this.relevantVariables = [
       this.frameComponent,
-      ...this.rodEndComponents,
+      ...this.effortComponents,
       this.omegaComponent,
       ...this.pfsFrame,
-      ...this.pfsRodEnd
+      ...this.pfsEffort
     ];
 
     // 変数宣言
-    this.fp = this.frameComponent.positionVariable;
-    this.fq = this.frameComponent.quaternionVariable;
-    this.ff = this.pfsFrame.map((pf) => pf.forceVariable) as any;
-
     const pqMap = new Map<IComponent, [VariableVector3, VariableQuaternion]>();
-    this.rodEndComponents.forEach((c) => {
+    this.effortComponents.forEach((c) => {
       pqMap.set(c, [c.positionVariable, c.quaternionVariable]);
     });
-    this.rp = this.rodEndComponents.map((c) => pqMap.get(c)![0]) as any;
-    this.rq = this.rodEndComponents.map((c) => pqMap.get(c)![1]) as any;
-    this.rf = this.pfsRodEnd.map((pf) => pf.forceVariable) as any;
+    pqMap.set(this.frameComponent, [
+      this.frameComponent.positionVariable,
+      this.frameComponent.quaternionVariable
+    ]);
+
+    // eslint-disable-next-line prefer-destructuring
+    this.fp = pqMap.get(this.frameComponent)![0];
+    // eslint-disable-next-line prefer-destructuring
+    this.fq = pqMap.get(this.frameComponent)![1];
+    this.ff = this.pfsFrame.map((pf) => pf.forceVariable) as any;
+
+    this.ep = this.effortComponents.map((c) => pqMap.get(c)![0]) as any;
+    this.eq = this.effortComponents.map((c) => pqMap.get(c)![1]) as any;
+    this.ef = this.pfsEffort.map((pf) => pf.forceVariable) as any;
 
     this.omega = this.omegaComponent.cgVariable;
     this.vO = new ConstantVector3(this.getVO());
+    this.k = new ConstantScalar(this.getK());
 
     // 計算グラフ構築
     const pfCoefsFrame = this.pfsFrame.map((pf, i) =>
       pf.sign(params.pfsFramePointNodeIDs[i])
     );
-    const pfCoefsRodEnd = this.pfsRodEnd.map((pf, i) =>
-      pf.sign(params.pfsRodEndPointNodeIDs[i])
+    const pfCoefsEffort = this.pfsEffort.map((pf, i) =>
+      pf.sign(params.pfseffortPointNodeIDs[i])
     );
     this.ffc = this.ff.map((f, i) => f.mul(pfCoefsFrame[i]));
-    this.rfc = this.rf.map((f, i) => f.mul(pfCoefsRodEnd[i]));
+    this.efc = this.ef.map((f, i) => f.mul(pfCoefsEffort[i]));
 
     const {mass} = params;
     this.g = new Vector3(0, 0, -9810 * scale).multiplyScalar(mass);
@@ -161,21 +178,17 @@ export class TorsionBarBalance implements Constraint, Balance {
     const frameLocalVec = params.framePoints.map(
       (p) => new ConstantVector3(p.clone().multiplyScalar(scale))
     );
-    const rodEndLocalVec = params.rodEndPoints.map(
+    const effortLocalVec = params.effortPoints.map(
       (p) => new ConstantVector3(p.clone().multiplyScalar(scale))
     );
 
-    const localAxisVec = frameLocalVec[1].sub(frameLocalVec[0]);
-
     const fA = this.fq.getRotationMatrix();
-    const rA = this.rq.map((q) => q.getRotationMatrix());
+    const eA = this.eq.map((q) => q.getRotationMatrix());
     const pCog = fA.vmul(cogLocalVec).add(this.fp);
     const ptsFrame = frameLocalVec.map((s) => fA.vmul(s).add(this.fp));
-    const ptsRodEnd = rodEndLocalVec.map((s, i) =>
-      rA[i].vmul(s).add(this.rp[i])
+    const ptsEffort = effortLocalVec.map((s, i) =>
+      eA[i].vmul(s).add(this.ep[i])
     );
-    const axis = fA.vmul(localAxisVec).normalize();
-
     const omega = normal.mul(this.omega);
 
     // 原点の遠心力
@@ -186,13 +199,30 @@ export class TorsionBarBalance implements Constraint, Balance {
     // 慣性力
     const ma = g.add(this.c);
 
+    // ばね
+    const localAxisVec = new ConstantVector3(
+      frameLocalVec[1].sub(frameLocalVec[0]).normalize().vector3Value
+    );
+    const axis = fA.vmul(localAxisVec);
+    const temp = ptsEffort.map((p) => p.sub(ptsFrame[0]));
+    const armVec = temp.map((v) => v.sub(axis.mul(axis.dot(v))));
+    const armVecN = armVec.map((v) => v.normalize());
+    // 2つのアームのなす角
+    const sinTheta = armVecN[0].cross(armVecN[1]).dot(axis);
+    const theta = asin(sinTheta).mul(180 / Math.PI);
+    // 本来発生するトルク(N-m)
+    const tIdeal = theta.mul(this.k);
+    // 実際に発生している力
+    const tActual = armVec[0].cross(this.efc[0]).dot(axis);
+    this.torqueError = tIdeal.sub(tActual);
+
     // 力のつり合い
     this.forceError = this.ffc
       .reduce((prev: IVector3, f) => {
         return prev.add(f);
       }, new ConstantVector3())
       .add(
-        this.rfc.reduce((prev: IVector3, f) => {
+        this.efc.reduce((prev: IVector3, f) => {
           return prev.add(f);
         }, new ConstantVector3())
       )
@@ -204,26 +234,25 @@ export class TorsionBarBalance implements Constraint, Balance {
         return prev.add(f.cross(ptsFrame[i]));
       }, new ConstantVector3())
       .add(
-        this.rfc.reduce((prev: IVector3, f, i) => {
-          return prev.add(f.cross(ptsRodEnd[i]));
+        this.efc.reduce((prev: IVector3, f, i) => {
+          return prev.add(f.cross(ptsEffort[i]));
         }, new ConstantVector3())
       )
       .add(ma.cross(pCog));
-
-    this.fixedForceError = this.ffc[1].dot(axis).sub(this.ffc[0].dot(axis));
   }
 
   applytoElement(): void {
     const q = this.element.rotation.value.invert();
     const {element} = this;
 
+    /*
     element.fixedPointForce = this.ffc.map((f) =>
       f.vector3Value.applyQuaternion(q)
     );
 
-    element.pointForce = this.rfc.map((f) => f.vector3Value.applyQuaternion(q));
+    element.pointForce = this.efc.map((f) => f.vector3Value.applyQuaternion(q));
     element.centrifugalForce = this.c.vector3Value.applyQuaternion(q);
-    element.gravity = this.g.clone().applyQuaternion(q);
+    element.gravity = this.g.clone().applyQuaternion(q); */
   }
 
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
@@ -231,17 +260,18 @@ export class TorsionBarBalance implements Constraint, Balance {
 
     // 値の設定
     this.vO.setValue(this.getVO());
+    this.k.setValue(this.getK());
     this.fp.setValue(this.frameComponent.position);
     this.fq.setValue(this.frameComponent.quaternion);
-    this.rodEndComponents.forEach((c, i) => {
-      this.rp[i].setValue(c.position);
-      this.rq[i].setValue(c.quaternion);
+    this.effortComponents.forEach((c, i) => {
+      this.ep[i].setValue(c.position);
+      this.eq[i].setValue(c.quaternion);
     });
     this.pfsFrame.forEach((pf, i) => {
       this.ff[i].setValue(pf.force);
     });
-    this.pfsRodEnd.forEach((pf, i) => {
-      this.rf[i].setValue(pf.force);
+    this.pfsEffort.forEach((pf, i) => {
+      this.ef[i].setValue(pf.force);
     });
     this.omega.setValue(this.omegaComponent.value);
 
@@ -266,12 +296,12 @@ export class TorsionBarBalance implements Constraint, Balance {
     this.momentError.setJacobian(phi_q, row + 3);
 
     // フレーム側の制約
-    this.fixedForceError.reset({variablesOnly: false, resetKey});
-    const e = this.fixedForceError.scalarValue;
+    this.torqueError.reset({variablesOnly: false, resetKey});
+    const e = this.torqueError.scalarValue;
     phi[row + 6] = e;
     // ヤコビアン設定
-    this.fixedForceError.diff(Matrix.eye(1, 1));
-    this.fixedForceError.setJacobian(phi_q, row + 6);
+    this.torqueError.diff(Matrix.eye(1, 1));
+    this.torqueError.setJacobian(phi_q, row + 6);
   }
 
   setJacobianAndConstraintsInequal() {}
