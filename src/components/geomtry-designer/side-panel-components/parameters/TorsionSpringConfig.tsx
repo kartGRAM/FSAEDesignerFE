@@ -15,6 +15,7 @@ import {
   dynamicParamsDefaultExpandedChange
 } from '@store/reducers/uiGeometryDesigner';
 import Vector from '@gdComponents/Vector';
+import Scalar from '@gdComponents/Scalar';
 import {setSelectedPoint} from '@store/reducers/uiTempGeometryDesigner';
 import {MassAndCOG} from '@gdComponents/side-panel-components/parameters/MassAndCOG';
 import ElementName from './ElementName';
@@ -89,6 +90,7 @@ export default function TorsionSpringConfig(params: Params) {
           <Typography>Dynamic Parameters</Typography>
         </AccordionSummary>
         <AccordionDetails>
+          <Scalar value={element.k} unit="N・m/deg" disabled={isMirror} />
           <MassAndCOG element={element} />
         </AccordionDetails>
       </Accordion>

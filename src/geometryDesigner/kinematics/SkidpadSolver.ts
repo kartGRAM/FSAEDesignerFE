@@ -424,7 +424,7 @@ export class SkidpadSolver implements ISolver {
             omega,
             pfsPointNodeIDs: pNodeIDs,
             isSpring: isSpringDumper(element) && controledBy.length === 0,
-            k: () => 26217 // N/m : 150lbs/in
+            k: () => (isSpringDumper(element) ? element.k.value : 1) // N/mm : 150lbs/in
           });
           constraints.push(balance);
           return;
@@ -765,7 +765,7 @@ export class SkidpadSolver implements ISolver {
             mass: element.mass.value,
             getVO: vO,
             omega,
-            k: () => 0
+            k: () => element.k.value // N・m/deg
           });
           constraints.push(balance);
 

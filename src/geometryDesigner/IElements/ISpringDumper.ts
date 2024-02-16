@@ -15,6 +15,7 @@ export interface ISpringDumper extends IElement, IMovingElement {
   readonly point: INamedVector3;
   readonly dlMin: INamedNumber;
   readonly dlMax: INamedNumber;
+  readonly k: INamedNumber; // N/mm
   readonly length: number;
   readonly currentPoint: Vector3;
   readonly isLimited: boolean;
@@ -31,6 +32,7 @@ export interface IDataSpringDumper extends IDataElement {
   point: IDataVector3;
   dlMin: IDataNumber;
   dlMax: IDataNumber;
+  k: IDataNumber;
 }
 
 export const isSpringDumper = (element: IElement): element is ISpringDumper =>

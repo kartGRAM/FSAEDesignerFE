@@ -48,6 +48,8 @@ export class TorsionSpring extends Element implements ITorsionSpring {
 
   centerOfGravity: NamedVector3;
 
+  k: NamedNumber; // N・m/deg
+
   initialPosition: NamedVector3;
 
   position: NamedVector3LW;
@@ -201,6 +203,7 @@ export class TorsionSpring extends Element implements ITorsionSpring {
           mass?: number;
           centerOfGravity?: FunctionVector3 | IDataVector3 | INamedVector3;
           autoCalculateCenterOfGravity?: boolean;
+          k?: number;
         }
       | IDataTorsionSpring
   ) {
@@ -260,6 +263,11 @@ export class TorsionSpring extends Element implements ITorsionSpring {
       value: centerOfGravity ?? new Vector3(),
       nodeID: `${this.nodeID}cog`
     });
+    this.k = new NamedNumber({
+      name: 'springRate',
+      parent: this,
+      value: params.k ?? 5
+    });
     this.position = new NamedVector3LW({
       name: 'position',
       parent: this,
@@ -288,6 +296,7 @@ export class TorsionSpring extends Element implements ITorsionSpring {
           this.fixedPoints[1].setValue(mirrorVec(mir.fixedPoints[1])).getData()
         ],
         effortPoints: this.effortPoints.map((to) => to.getData()),
+        k: mir.k.getData(),
         dlCurrentNodeID
       };
     }
@@ -295,6 +304,7 @@ export class TorsionSpring extends Element implements ITorsionSpring {
       ...baseData,
       fixedPoints: this.fixedPoints.map((point) => point.getData()),
       effortPoints: this.effortPoints.map((to) => to.getData()),
+      k: this.k.getData(),
       dlCurrentNodeID
     };
   }

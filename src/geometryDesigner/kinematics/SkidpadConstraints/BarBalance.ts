@@ -91,6 +91,8 @@ export class BarBalance implements Constraint, Balance {
 
   _setPreload: () => void = () => {};
 
+  scale: number;
+
   constructor(params: {
     name: string;
     components: Twin<IComponent>;
@@ -122,6 +124,8 @@ export class BarBalance implements Constraint, Balance {
     this.getK = params.k;
 
     // 変数宣言
+    const {scale} = this.components[0];
+    this.scale = scale;
     this.p = this.components.map((c) => c.positionVariable) as any;
     this.q = this.components.map((c) => c.quaternionVariable) as any;
     this.f = this.pfs.map((pf) => pf.forceVariable) as any;
@@ -130,12 +134,11 @@ export class BarBalance implements Constraint, Balance {
     this.freeLength = new ConstantScalar(0);
     if (params.isSpring && this.getK && this.getK() > 0) {
       this.isSpring = true;
-      this.k.setValue(this.getK());
+      this.k.setValue(this.getK() / this.scale);
     }
     this.vO = new ConstantVector3(this.getVO());
 
     // 計算グラフ構築
-    const {scale} = this.components[0];
     this.pfCoefs = this.pfs.map((pf, i) =>
       pf.sign(params.pfsPointNodeIDs[i])
     ) as any;
@@ -210,7 +213,7 @@ export class BarBalance implements Constraint, Balance {
         l.reset({});
         flMean.reset({});
         const length = l.scalarValue;
-        const k = this.getK ? this.getK() : 1;
+        const k = (this.getK ? this.getK() : 1) / this.scale;
         const dl = flMean.scalarValue / k;
         this.freeLength.setValue(length + dl);
       };

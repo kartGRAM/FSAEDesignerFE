@@ -78,6 +78,7 @@ export default function SpringDumperConfig(params: Params) {
           <Typography>Dynamic Parameters</Typography>
         </AccordionSummary>
         <AccordionDetails>
+          <Scalar value={element.k} unit="N/mm" disabled={isMirror} />
           <MassAndCOG element={element} />
         </AccordionDetails>
       </Accordion>

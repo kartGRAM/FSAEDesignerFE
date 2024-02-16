@@ -6,7 +6,6 @@ import {
   INamedVector3,
   FunctionVector3
 } from '@gd/INamedValues';
-
 import {v4 as uuidv4} from 'uuid';
 import {
   MirrorError,
@@ -15,7 +14,6 @@ import {
   assignMeta,
   isMirror
 } from '../IElements';
-
 import {
   ISpringDumper,
   IDataSpringDumper,
@@ -97,6 +95,8 @@ export class SpringDumper extends Bar implements ISpringDumper {
 
   dlCurrent: number = 0;
 
+  k: NamedNumber; // N/mm
+
   get currentPoint() {
     const fp = this.fixedPoint.value;
     const p = this.point.value;
@@ -139,6 +139,7 @@ export class SpringDumper extends Bar implements ISpringDumper {
           point: FunctionVector3 | IDataVector3 | INamedVector3;
           dlMin: number;
           dlMax: number;
+          k?: number;
           dlCurrentNodeID?: NodeID;
           initialPosition?: FunctionVector3 | IDataVector3 | INamedVector3;
           mass?: number;
@@ -159,6 +160,11 @@ export class SpringDumper extends Bar implements ISpringDumper {
       parent: this,
       value: params.dlMax
     });
+    this.k = new NamedNumber({
+      name: 'springRate',
+      parent: this,
+      value: params.k ?? 26.2 // 150lbs/in
+    });
   }
 
   getDataElement(): IDataSpringDumper {
@@ -168,6 +174,7 @@ export class SpringDumper extends Bar implements ISpringDumper {
       ...baseData,
       dlMin: this.dlMin.getData(),
       dlMax: this.dlMax.getData(),
+      k: this.k.getData(),
       dlCurrentNodeID
     };
     return data;
