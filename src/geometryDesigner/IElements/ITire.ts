@@ -22,6 +22,7 @@ export interface ITire extends IElement, INearestNeighborToPlane {
   readonly radius: number;
   readonly bearingDistance: number;
 
+  angularVelocity: number;
   centrifugalForce: Vector3;
   gravity: Vector3;
   fy: Vector3;

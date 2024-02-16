@@ -179,6 +179,8 @@ export class Tire extends Element implements ITire {
 
   outerBearingForce = new Vector3();
 
+  angularVelocity = 0;
+
   setCenterOfGravityAuto() {
     this.centerOfGravity.value = this.tireCenter.value;
   }

@@ -11,6 +11,7 @@ export interface IDataControl {
   readonly inputButton: string;
   readonly reverse: boolean;
   readonly speed: number; // mm/s or rad/s
+  readonly disabledWhileDynamicSolverIsActive: boolean;
   configuration?: Options['assemblyMode'];
 }
 
@@ -24,7 +25,8 @@ export const createDummyDataControl = (): IDataControl => {
     inputButton: '',
     reverse: false,
     speed: 0, // mm/s or rad/s
-    configuration: 'FixedFrame'
+    configuration: 'FixedFrame',
+    disabledWhileDynamicSolverIsActive: false
   };
 };
 
@@ -57,6 +59,8 @@ export abstract class Control {
 
   reverse: boolean;
 
+  disabledWhileDynamicSolverIsActive: boolean;
+
   configuration: Options['assemblyMode'];
 
   constructor(
@@ -71,6 +75,7 @@ export abstract class Control {
           reverse?: boolean;
           nodeID?: string;
           configuration?: Options['assemblyMode'];
+          disabledWhileDynamicSolverIsActive?: boolean;
         }
   ) {
     this._name = control.name;
@@ -81,6 +86,8 @@ export abstract class Control {
     this.speed = control.speed ?? 10;
     this.reverse = control.reverse ?? false;
     this.configuration = control.configuration ?? 'FixedFrame';
+    this.disabledWhileDynamicSolverIsActive =
+      control.disabledWhileDynamicSolverIsActive ?? false;
   }
 
   getDataControlBase(): IDataControl {
@@ -92,7 +99,9 @@ export abstract class Control {
       targetElements: this.targetElements,
       inputButton: this.inputButton,
       speed: this.speed,
-      reverse: this.reverse
+      reverse: this.reverse,
+      disabledWhileDynamicSolverIsActive:
+        this.disabledWhileDynamicSolverIsActive
     };
   }
 

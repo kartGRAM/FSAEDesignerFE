@@ -130,16 +130,15 @@ export class SkidpadSolver implements ISolver {
     this.assembly = assembly;
     const {children} = assembly;
 
-    /* const controls = Object.keys(controlsAll).reduce((dict, key) => {
+    const controls = Object.keys(controlsAll).reduce((dict, key) => {
       const cls = controlsAll[key].filter(
-        (f) => f.nodeID === config.stearing.target
+        (c) => !c.disabledWhileDynamicSolverIsActive
       );
       if (cls.length > 0) {
         dict[key] = cls;
       }
       return dict;
-    }, {} as {[index: string]: Control[]}); */
-    const controls = controlsAll;
+    }, {} as {[index: string]: Control[]});
     const joints = assembly.getJointsAsVector3();
     const jointDict = getJointDictionary(children, joints);
     const constraints: Constraint[] = [];

@@ -37,6 +37,8 @@ import usePrevious from '@app/hooks/usePrevious';
 import EditableTypography from '@gdComponents/EditableTypography';
 import * as Yup from 'yup';
 import {Typography} from '@mui/material';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
 import {LinearBushingControlSettings} from './LinearBushingControl';
 import {DistanceControlSettings} from './DistanceControl';
 import {PointToPlaneControlSettings} from './PointToPlaneControl';
@@ -54,6 +56,9 @@ export interface ControlDefinitionProps {
 export function ControlDefinition(props: ControlDefinitionProps) {
   const {control, disabled, setStaged, inputButton, assemblyMode} = props;
   const controlInstance = control ? getControl(control) : undefined;
+  const [disabledWDSIA, setDisabledWDSIA] = React.useState<boolean>(
+    !!controlInstance?.disabledWhileDynamicSolverIsActive
+  );
   const [name, setName] = React.useState<string>(controlInstance?.name ?? '');
 
   const {uitgd} = store.getState();
@@ -206,7 +211,7 @@ export function ControlDefinition(props: ControlDefinitionProps) {
         component="div"
         sx={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}
       >
-        <FormControl sx={{m: 3, minWidth: 320}}>
+        <FormControl sx={{m: 3, mb: 1, minWidth: 320}}>
           <InputLabel
             htmlFor="component-select"
             sx={{
@@ -280,6 +285,24 @@ export function ControlDefinition(props: ControlDefinitionProps) {
                 sx: {color: '#000'}
               }
             }}
+          />
+        ) : null}
+      </Box>
+      <Box component="div" sx={{ml: 3}}>
+        {controlInstance &&
+        controlInstance.configuration === 'AllTiresGrounded' ? (
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={disabledWDSIA}
+                onChange={(e, checked) => {
+                  controlInstance.disabledWhileDynamicSolverIsActive = checked;
+                  setStaged(controlInstance.getDataControl());
+                  setDisabledWDSIA(checked);
+                }}
+              />
+            }
+            label="Disabled while dynamic solver is active."
           />
         ) : null}
       </Box>

@@ -79,6 +79,8 @@ export class TireBalance {
 
   ground: IVector3 = new ConstantVector3();
 
+  groundVelocity: IScalar = new ConstantScalar(0);
+
   ferror: IVector3 = new ConstantVector3();
 
   element: ITire;
@@ -182,6 +184,7 @@ export class TireBalance {
     const vOmega = omega.cross(pGround);
     const vGround = vO.add(vOmega);
     const vGn = vGround.normalize();
+    this.groundVelocity = vGround.dot(this.k);
 
     // sin(sa) の取得
     const sinSa = normal.dot(this.k.cross(vGn));
@@ -274,6 +277,9 @@ export class TireBalance {
 
     element.outerBearingForce = getVector3(F1);
     element.innerBearingForce = getVector3(F2);
+
+    const v = this.groundVelocity.scalarValue;
+    element.angularVelocity = v / this.tireRadius; // rad/s
   }
 
   setJacobianAndConstraintsInequal() {}
