@@ -245,7 +245,7 @@ export function ControlDefinition(props: ControlDefinitionProps) {
             <ListSubheader key="GeometricConstraints">
               Geometric constraints
             </ListSubheader>
-            <MenuItem value={SkidpadSolverControl.className}>
+            <MenuItem value={PointToPlaneControl.className}>
               Two-Dimensional Constraint
             </MenuItem>
             <MenuItem value={ExistingConstraintControl.className}>
