@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react';
 import {
   TableContainer,
@@ -11,7 +10,6 @@ import {
 } from '@mui/material';
 import {PlotMarker, ScatterLine, ScatterMarkerLine} from 'plotly.js';
 import {IPlotData, axesSet} from '@gd/charts/ICharts';
-import {deepCopy} from '@utils/helpers';
 import {
   plotTypes,
   modes,
@@ -35,7 +33,6 @@ import {
 import {Mode} from './ChartSelector';
 import {
   CheckBoxRow,
-  ColorPickerRow,
   NullableColorPickerRow,
   SelectorRow,
   NoNullSelectorRow,

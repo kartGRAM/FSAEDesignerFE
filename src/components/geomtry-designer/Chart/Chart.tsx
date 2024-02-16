@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react';
 import natsort from 'natsort';
-import {PlotData, PlotType, LayoutAxis, AxisName} from 'plotly.js';
+import {PlotType, LayoutAxis} from 'plotly.js';
 import {
   IChartLayout,
   SubPlot,
@@ -54,10 +53,6 @@ export function Chart(props: ChartProps): React.ReactElement {
   const {layout, data, setData, dataSelector, setLayout, type, setPlotTypeAll} =
     props;
   const {mode, setMode, targetDataIdx, setTargetDataIdx} = props;
-  const [mode2, setMode2] = React.useState<Mode>('DataSelect');
-  const [targetDataIdx2, setTargetDataIdx2] = React.useState<
-    number | undefined
-  >(undefined);
   const pLayout = deepCopy(layout);
   const update = useUpdate();
   const revision = React.useRef(0);

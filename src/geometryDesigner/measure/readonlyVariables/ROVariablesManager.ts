@@ -20,7 +20,6 @@ export class ROVariablesManager implements IROVariablesManager {
     measureToolsManager: IMeasureToolsManager;
     data?: IDataReadonlyVariable[];
   }) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const {assembly, measureToolsManager, data} = params;
     this.children = [];
     if (data) {

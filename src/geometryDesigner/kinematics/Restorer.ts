@@ -1,7 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable class-methods-use-this */
 /* eslint-disable max-classes-per-file */
 import {IElement} from '@gd/IElements';
-import {JointAsVector3} from '@gd/IElements/IAssembly';
 import {IAArm} from '@gd/IElements/IAArm';
 import {IBar} from '@gd/IElements/IBar';
 import {ITire} from '@gd/IElements/ITire';
@@ -83,7 +83,6 @@ export class AArmRestorer implements Restorer {
   restore(unresolvedPoints: {[key: string]: Vector3}) {
     const points = this.element.getPoints().map((fp) => fp.value);
     const fps = points.slice(0, 2);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const p = points[2];
 
     const fpTo = this.fixedPoints.map((p) => {
@@ -95,7 +94,6 @@ export class AArmRestorer implements Restorer {
     });
 
     const pParent = this.point.parent as IElement;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const pTo =
       unresolvedPoints[this.point.nodeID] ??
       this.point.value
@@ -196,12 +194,7 @@ export class RelativeConstraintRestorer implements Restorer {
 
   deltaQuaternion: Quaternion;
 
-  constructor(
-    constrained: IElement,
-    componentElement: IElement,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    joints: JointAsVector3[]
-  ) {
+  constructor(constrained: IElement, componentElement: IElement) {
     this.constrained = constrained;
     this.componentElement = componentElement;
     this.deltaPosition = new Vector3();
@@ -221,9 +214,7 @@ export class LinearBushingRestorer implements Restorer {
 
   constructor(
     element: ILinearBushing,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     fixedPoints: [INamedVector3RO, INamedVector3RO],
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     point: INamedVector3RO
   ) {
     this.element = element;
@@ -288,7 +279,6 @@ export class TorsionSpringRestorer implements Restorer {
     this.effortPoints = effortPoint;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   restore(unresolvedPoints: {[key: string]: Vector3}) {
     const points = this.element.getPoints().map((p) => p.value);
     const fps = points.slice(0, 2);

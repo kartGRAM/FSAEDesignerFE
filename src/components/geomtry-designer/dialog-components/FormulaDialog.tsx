@@ -13,8 +13,7 @@ import TableBody from '@mui/material/TableBody';
 import TableContainer from '@mui/material/TableContainer';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import {evaluate, validate} from '@gd/Formula';
+import {evaluate} from '@gd/Formula';
 import {
   validateAll,
   getAllEvaluatedValue,
@@ -24,7 +23,6 @@ import {
 } from '@gd/IFormula';
 import {toFixedNoZero} from '@app/utils/helpers';
 
-// import TablePagination from '@mui/material/TablePagination';
 import {
   Order,
   TableCell,
@@ -426,7 +424,6 @@ export default function OnDeleteDialog(props: OnDeleteDialogProps) {
     validationSchema: yup.object({
       newValue: yup.number().required()
     }),
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onSubmit: (values) => {
       onClose({ret: 'ok', newValue: values.newValue});
     }

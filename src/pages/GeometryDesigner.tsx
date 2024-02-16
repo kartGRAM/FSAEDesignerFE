@@ -5,7 +5,6 @@ import {useDispatch, useSelector} from 'react-redux';
 import {toggleFullScreen} from '@app/store/reducers/uiTempGeometryDesigner';
 import {RootState} from '@store/store';
 // import {render} from '@app/geometryDesigner/ElementsRenderer';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import ElementsTreeView from '@app/components/geomtry-designer/ElementsTreeView';
 import GDAppBar from '@app/components/geomtry-designer/GDAppBar';
 import MiniDrawer from '@app/components/geomtry-designer/SideBar';
@@ -33,7 +32,6 @@ const GeometryDesigner = () => {
   );
 
   React.useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     window.addEventListener('keydown', shortCutKeys, false);
     return () => {
       window.removeEventListener('keydown', shortCutKeys, false);

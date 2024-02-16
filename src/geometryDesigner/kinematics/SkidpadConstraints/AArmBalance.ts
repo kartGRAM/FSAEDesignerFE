@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable class-methods-use-this */
 /* eslint-disable camelcase */
 import {Matrix} from 'ml-matrix';
@@ -18,9 +17,6 @@ import {
   PointForce,
   GeneralVariable
 } from '../KinematicComponents';
-
-const X = 0;
-const Q0 = 3;
 
 const normal = new ConstantVector3(new Vector3(0, 0, 1));
 

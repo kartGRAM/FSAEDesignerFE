@@ -34,7 +34,6 @@ import {
   IMetaNamedVector3
   // isNamedVector3
 } from '@gd/INamedValues';
-import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {capitalize} from '@app/utils/helpers';
 import {isObject} from '@utils/helpers';
 
@@ -185,7 +184,6 @@ export class NamedPrimitive<T> extends NamedValue {
     this._value = isNamedData(value) ? value.value : value;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   getData(): IData<T> {
     return {
       ...super.getDataBase(),
@@ -259,8 +257,7 @@ export class NamedNumber extends NamedValue implements INamedNumber {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getData(state?: GDState): IDataNumber {
+  getData(): IDataNumber {
     return {
       ...super.getDataBase(),
       value: this.formula.getData()
@@ -293,7 +290,6 @@ export class NamedNumberLW extends NamedValue implements INamedNumberLW {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   getData(): IDataNumberLW {
     return {
       ...super.getDataBase(),
@@ -629,7 +625,6 @@ export class NamedMatrix3 extends NamedValue implements INamedMatrix3 {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   getData(): IDataMatrix3 {
     const e = this.value.elements;
     return {
@@ -689,7 +684,6 @@ export class NamedQuaternion extends NamedValue implements INamedQuaternion {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   getData(): IDataQuaternion {
     return {
       ...super.getDataBase(),

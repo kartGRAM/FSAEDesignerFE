@@ -35,7 +35,6 @@ export function PointOffsetToolDialog(props: PointOffsetToolDialogProps) {
   const {open, setOpen, tool, vector, indexOfTool} = props;
   const [type, setType] = React.useState(tool.className);
   const [isValid, setIsValid] = React.useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleOK = {
     callback: () => {}
   };

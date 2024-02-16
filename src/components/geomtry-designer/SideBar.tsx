@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import * as React from 'react';
 import List from '@mui/material/List';
 import Divider from '@mui/material/Divider';

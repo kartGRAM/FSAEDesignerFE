@@ -217,7 +217,6 @@ class OrbitControls extends EventDispatcher {
       return function update(args?: {fixY: boolean; fixZ: boolean}): boolean {
         if (!scope.enabled) return false;
         const {position} = scope.object;
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const {fixY, fixZ} = args ?? {fixY: false, fixz: false};
 
         offset.copy(position).sub(scope.target);

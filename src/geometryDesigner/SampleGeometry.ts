@@ -18,68 +18,6 @@ import {
   LinearBushing
 } from './Elements';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const getUprightAssy = (): Assembly => {
-  const tireCenter = new Vector3(0, 607.5, 220);
-
-  const tire = new Tire({
-    name: 'leftTire',
-    tireCenter: {...tireCenter, y: 'baseTread/2'},
-    toOuterBearing: -30,
-    toInnerBearing: -60
-  });
-
-  tire.tireCenter.pointOffsetTools.push(
-    new DeltaXYZ({
-      value: {
-        name: 'wheelOffset',
-        dx: 0,
-        dy: 'wheelOffset',
-        dz: 0
-      },
-      parent: tire.tireCenter
-    })
-  );
-
-  const upright = new Body({
-    name: 'upright',
-    // UpperArm & LowwerArm
-    fixedPoints: [
-      new Vector3(-19.12, 521.93, 310),
-      new Vector3(-4.25, 545.82, 140)
-    ],
-    // StearingPoint & TireSupportBearingPosition
-    points: [
-      new Vector3(-65, 530, 175),
-      tireCenter.clone().add(new Vector3(0, -30, 0)),
-      tireCenter.clone().add(new Vector3(0, -60, 0))
-    ]
-  });
-
-  const uprightSubAssy = new Assembly({
-    name: 'uprightSubAssy',
-    children: [tire, upright],
-    joints: [
-      {
-        lhs: tire.outerBearing.nodeID,
-        rhs: upright.points[1].nodeID
-      },
-      {
-        lhs: tire.innerBearing.nodeID,
-        rhs: upright.points[2].nodeID
-      }
-    ]
-  });
-
-  const frontSuspensionSubAssy = new Assembly({
-    name: 'frontSuspentionSubAssy',
-    children: [uprightSubAssy, uprightSubAssy.getMirror()],
-    joints: [],
-    initialPosition: {x: 'frontSusCenter', y: 0, z: 0}
-  });
-  return frontSuspensionSubAssy;
-};
-
 const getFrontLeftSuspension = (): Assembly => {
   const tireCenter = new Vector3(0, 607.5, 220);
 
@@ -365,7 +303,6 @@ const getRearSuspension = (): Assembly => {
   return rearSuspensionSubAssy;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getKZRR11Assy = (): Assembly => {
   const frontSuspension = getFrontSuspension();
   const rearSuspension = getRearSuspension();

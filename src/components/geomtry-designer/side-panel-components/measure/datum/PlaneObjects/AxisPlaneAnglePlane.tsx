@@ -139,7 +139,6 @@ export function AxisPlaneAnglePlane(props: {
 
   useUpdateEffect(() => {
     if (otherPlane !== '' && line !== '') {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const obj: IAxisPlaneAnglePlane = new AxisPlaneAnglePlaneObject({
         name: `datum plane`,
         line,

@@ -1,8 +1,6 @@
 import * as React from 'react';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import DialogContentText from '@mui/material/DialogContentText';
 import Dialog, {DialogProps} from '@mui/material/Dialog';
 import {useSelector, useDispatch} from 'react-redux';
 import {RootState} from '@store/store';
@@ -26,8 +24,6 @@ import useAxios from 'axios-hooks';
 import CircularProgress from '@mui/material/CircularProgress';
 import {DateTime} from 'luxon';
 import Box from '@mui/material/Box';
-
-// import ButtonBase from '@mui/material/ButtonBase';
 import Typography from '@mui/material/Typography';
 import {instance} from '@app/utils/axios';
 // import usePrevious from '@app/hooks/usePrevious';
@@ -40,8 +36,7 @@ const Item = styled(Paper)(({theme}) => ({
   color: theme.palette.text.secondary
 }));
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const ImageSelectable = styled(Box)(({theme}) => ({
+const ImageSelectable = styled(Box)(() => ({
   '& .MuiImageListItem-root': {
     opacity: 0.7
   },
@@ -65,7 +60,6 @@ export function OpenDialog(props: OpenDialogProps) {
   );
   // const openPrev = usePrevious(open, false);
   const dispatch = useDispatch();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [{data, loading, error}, updateData] = useAxios(
     {
       url: '/api/gd/get_all_user_files/',
@@ -97,7 +91,6 @@ export function OpenDialog(props: OpenDialogProps) {
   const dialogZIndex =
     useSelector((state: RootState) => state.uitgd.dialogZIndex) + zindex;
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleInfoClick = async (params: SavedData) => {
     await new Promise<string>((resolve) => {
       dispatch(
@@ -136,7 +129,6 @@ note: ${params.note}`}
     });
     dispatch(setConfirmDialogProps(undefined));
   };
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleDeleteClick = async (params: SavedData) => {
     const ret = await new Promise<string>((resolve) => {
       dispatch(

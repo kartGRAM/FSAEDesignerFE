@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable camelcase */
 /* eslint-disable class-methods-use-this */
 import {Matrix} from 'ml-matrix';
@@ -242,10 +241,10 @@ export class TorsionSpringBalance implements Constraint, Balance {
   }
 
   applytoElement(): void {
+    /*
     const q = this.element.rotation.value.invert();
     const {element} = this;
 
-    /*
     element.fixedPointForce = this.ffc.map((f) =>
       f.vector3Value.applyQuaternion(q)
     );

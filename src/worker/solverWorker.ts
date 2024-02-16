@@ -37,7 +37,6 @@ ctx.onmessage = async (e: MessageEvent<FromParent>) => {
     log(`worker start...target task is ${message.testID}.`);
     log(`action from ${message.nodeFrom ?? 'start'}.`);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const test = new Test(dataTest);
     const getSnapshot = (solver: KinematicsSolver): Required<ISnapshot> => {
       solver.postProcess();

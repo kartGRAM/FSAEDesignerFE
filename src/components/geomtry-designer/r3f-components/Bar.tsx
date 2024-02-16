@@ -11,7 +11,6 @@ import {getMatrix3} from '@gd/NamedValues';
 import {Line2} from 'three-stdlib';
 import NodeSphere from './NodeSphere';
 import MeasurablePoint from './MeasurablePointSphere';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import ForceArrow from './ForceArrow';
 
 const Bar = (props: {element: IBar}) => {

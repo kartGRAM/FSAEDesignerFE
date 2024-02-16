@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {Vector3, Quaternion, Spherical} from 'three';
 import * as THREE from 'three';
 

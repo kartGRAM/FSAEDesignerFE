@@ -22,14 +22,11 @@ import {
   setChanged
 } from '@app/store/reducers/dataGeometryDesigner';
 import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import usePrevious from '@app/hooks/usePrevious';
 import {
   treeViewDragExpanded,
   setDraggingElementAbsPath,
   setConfirmDialogProps,
   resetDragState,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   setVisibility
 } from '@store/reducers/uiTempGeometryDesigner';
 import {v4 as uuidv4} from 'uuid';
@@ -133,8 +130,7 @@ const ElementsTreeView = () => {
   const handleKeyDown = async (e: React.KeyboardEvent<HTMLUListElement>) => {
     if (e.key === 'F2') {
       e.preventDefault();
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const ret = await new Promise<string>((resolve) => {
+      await new Promise<string>((resolve) => {
         setRenameDialogProps({
           onClose: resolve,
           absPath: nodeID
@@ -433,11 +429,11 @@ const MyLabel = React.memo(
     isAssembly: boolean;
     label: string;
     absPath: string;
+    // eslint-disable-next-line react/no-unused-prop-types
     isMirror: boolean;
     isBodyOfFrame: boolean;
   }) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {label, absPath, isAssembly, isMirror, isBodyOfFrame} = props;
+    const {label, absPath, isAssembly, isBodyOfFrame} = props;
     const dispatch = useDispatch();
 
     const handleDragStart = React.useCallback(

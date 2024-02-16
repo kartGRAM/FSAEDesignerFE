@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 type Append<Elm, T extends unknown[]> = ((
   arg: Elm,
   ...rest: T

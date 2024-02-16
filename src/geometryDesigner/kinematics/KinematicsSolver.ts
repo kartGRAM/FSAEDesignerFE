@@ -141,8 +141,7 @@ export class KinematicsSolver implements ISolver {
             // 相対固定拘束を計算
             const restorer = new RelativeConstraintRestorer(
               element,
-              otherElement,
-              joints
+              otherElement
             );
             this.restorers.push(restorer);
             component.parent = otherComponent;

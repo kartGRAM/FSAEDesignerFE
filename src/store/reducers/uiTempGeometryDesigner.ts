@@ -556,7 +556,6 @@ export const uitGeometryDesignerSlice = createSlice({
     ) => {
       state.gdSceneState.movingElementSelected = action.payload;
     },
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setVisibility: (state: GDState) => {
       state.forceCallSelector = !state.forceCallSelector;
     },

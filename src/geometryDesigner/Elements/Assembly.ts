@@ -491,7 +491,6 @@ export class Assembly extends Element implements IAssembly {
         {} as {[name: string]: IElement}
       );
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       let pointsNodeIDs: string[] = [];
       const children = mir.children
         .map((child) => {

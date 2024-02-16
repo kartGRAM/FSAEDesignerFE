@@ -25,7 +25,6 @@ interface Params {
 export default function TireConfig(params: Params) {
   const {element} = params;
   const isMirror = isMirrorElement(element);
-  // eslint-disable-next-line no-unused-vars
 
   const dispatch = useDispatch();
   const kinematicParamsDefaultExpanded = useSelector(

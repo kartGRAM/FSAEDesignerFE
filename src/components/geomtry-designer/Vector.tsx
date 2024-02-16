@@ -68,7 +68,6 @@ const Vector = React.memo(
     } = props;
     const unit = props.unit ?? 'mm';
     const dispatch = useDispatch();
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const point = (
       useSelector(
         (state: RootState) => state.uitgd.gdSceneState.selectedPoint
@@ -520,7 +519,6 @@ const PointOffsetList = React.memo(
     vector: INamedVector3;
     disabled?: boolean;
   }) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const {vector, selected, setSelected, disabled} = props;
     const {pointOffsetTools} = vector;
     const enabledColorLight: number = useSelector(
