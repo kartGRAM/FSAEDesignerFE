@@ -90,6 +90,9 @@ export default function GDScene() {
       <GDSceneToolBar />
       <KeyboardControls map={map}>
         <Canvas
+          onCreated={(state) => {
+            state.gl.localClippingEnabled = true;
+          }}
           linear
           flat
           ref={canvas}

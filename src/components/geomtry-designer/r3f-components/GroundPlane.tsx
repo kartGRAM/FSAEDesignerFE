@@ -1,3 +1,4 @@
+/* eslint-disable no-unreachable */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react';
 import {useFrame, extend, Object3DNode, MaterialNode} from '@react-three/fiber';
@@ -7,7 +8,8 @@ import {Line, CatmullRomLine} from '@react-three/drei';
 import {RootState} from '@store/store';
 import {isSkidpadSolver} from '@gd/kinematics/SkidpadSolver';
 import {getMatrix3} from '@gd/NamedValues';
-import {LineDashedMaterial, Vector3, Matrix3, Quaternion} from 'three';
+import {Vector3, Matrix3, Quaternion} from 'three';
+import * as THREE from 'three';
 import {range} from '@utils/helpers';
 
 const length = 5000;
@@ -44,6 +46,7 @@ const SkidpadRing = () => {
   let rotation = 0;
   useFrame((_, delta) => {
     if (!centerLineRef.current || !solver || !isSkidpadSolver(solver)) return;
+    const a = 0;
 
     // センターライン
     const g = centerLineRef.current.geometry.attributes;
@@ -71,6 +74,25 @@ const SkidpadRing = () => {
     centerLineRef.current.position.copy(center);
   });
 
+  const clipPlanes = [
+    new THREE.Plane(
+      new THREE.Vector3(1, 0, 0).applyMatrix3(coMatrix),
+      length / 2
+    ),
+    new THREE.Plane(
+      new THREE.Vector3(-1, 0, 0).applyMatrix3(coMatrix),
+      length / 2
+    ),
+    new THREE.Plane(
+      new THREE.Vector3(0, -1, 0).applyMatrix3(coMatrix),
+      length / 2
+    ),
+    new THREE.Plane(
+      new THREE.Vector3(0, 1, 0).applyMatrix3(coMatrix),
+      length / 2
+    )
+  ];
+
   if (!solver || !isSkidpadSolver(solver)) return null;
   const radius = Math.max(-8000, Math.min(solver.r, 8000));
   const center = new Vector3(0, radius * 1000, 0).applyMatrix3(coMatrix);
@@ -85,6 +107,7 @@ const SkidpadRing = () => {
       dashed
       dashSize={dashSize}
       gapSize={dashSize}
+      clippingPlanes={clipPlanes}
     />
   );
 };
