@@ -2,7 +2,7 @@ export function deepCopy<T>(data: T) {
   return JSON.parse(JSON.stringify(data)) as T;
 }
 export const range = (start: number, end: number) =>
-  [...Array(end + 1).keys()].slice(start);
+  [...Array(end).keys()].slice(start);
 
 function listFontFamilies(): void {
   if (inWorker()) return;

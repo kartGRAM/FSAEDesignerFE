@@ -111,6 +111,8 @@ export class SkidpadSolver implements ISolver {
 
   v: number; // m/s
 
+  omega: number;
+
   config: ISteadySkidpadParams;
 
   r: number;
@@ -126,6 +128,7 @@ export class SkidpadSolver implements ISolver {
   ) {
     this.config = config;
     this.v = config.velocity.value;
+    this.omega = 0;
     this.r = Number.MAX_VALUE;
     const vO = () => new Vector3(this.v, 0, 0).multiplyScalar(scale * 1000);
     this.assembly = assembly;
@@ -1118,6 +1121,7 @@ export class SkidpadSolver implements ISolver {
           const norm_phi = matPhi.norm('frobenius');
           const omega = (components[0] as GeneralVariable).value;
           this.r = this.v / omega;
+          this.omega = omega;
           this.lapTime = Math.abs((Math.PI * 2) / omega);
           const phiMax = Math.max(...phi);
           const phiMaxIdx = phi.indexOf(phiMax);

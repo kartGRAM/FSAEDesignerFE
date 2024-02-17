@@ -59,6 +59,7 @@
     "jqueryui": "^1.11.1",
     "luxon": "^2.5.2",
     "mathjs": "~11",
+    "meshline": "^3.2.0",
     "ml-matrix": "^6.10.2",
     "mui-color-input": "^2.0.0",
     "natsort": "^2.0.3",
