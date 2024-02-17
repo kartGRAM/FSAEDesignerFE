@@ -113,7 +113,7 @@ export class SkidpadSolver implements ISolver {
 
   config: ISteadySkidpadParams;
 
-  r: number | undefined;
+  r: number;
 
   lapTime: number | undefined;
 
@@ -126,6 +126,7 @@ export class SkidpadSolver implements ISolver {
   ) {
     this.config = config;
     this.v = config.velocity.value;
+    this.r = Number.MAX_VALUE;
     const vO = () => new Vector3(this.v, 0, 0).multiplyScalar(scale * 1000);
     this.assembly = assembly;
     const {children} = assembly;
