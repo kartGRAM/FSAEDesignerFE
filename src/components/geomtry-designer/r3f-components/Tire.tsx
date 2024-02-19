@@ -11,6 +11,7 @@ import {getMatrix3} from '@gd/NamedValues';
 import NodeSphere from './NodeSphere';
 import ForceArrow from './ForceArrow';
 import MeasurablePoint from './MeasurablePointSphere';
+import {OBB} from './OBB';
 
 const Tire = (props: {element: ITire}) => {
   const {element} = props;
@@ -105,6 +106,7 @@ const Tire = (props: {element: ITire}) => {
           <meshBasicMaterial color="red" side={THREE.DoubleSide} />
         </Circle>
       </group>
+      <OBB obb={element.obb} />
       {nodes.map((node) => (
         <NodeSphere node={node} key={node.nodeID} />
       ))}

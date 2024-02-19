@@ -15,6 +15,9 @@ import {
   FunctionVector3
 } from '@gd/INamedValues';
 // import {minus} from '@app/utils/helpers';
+import {OBB} from '@gd/OBB';
+import {IOBB} from '@gd/IOBB';
+import {range} from '@utils/helpers';
 import {
   isDataElement,
   MirrorError,
@@ -183,6 +186,37 @@ export class Tire extends Element implements ITire {
 
   angularVelocity = 0;
 
+  obb: IOBB;
+
+  getOBB() {
+    const center = this.tireCenter.value;
+    const points = [...this.getPoints().map((p) => p.value), center];
+
+    const normal = new Vector3(0, 0, 1).applyQuaternion(this.rotation.value);
+    const gPoint = this.getNearestNeighborToPlane(normal);
+    const tread = this.tread.value;
+    const axis = this.tireAxis.value.normalize();
+    const p1 = gPoint
+      .clone()
+      .sub(center)
+      .add(axis.clone().multiplyScalar(tread / 2));
+    const p2 = gPoint
+      .clone()
+      .sub(center)
+      .sub(axis.clone().multiplyScalar(tread / 2));
+
+    const segments = 16;
+    const q = new Quaternion().setFromAxisAngle(axis, (2 * Math.PI) / segments);
+    range(0, segments).forEach(() => {
+      points.push(center.clone().add(p1));
+      points.push(center.clone().add(p2));
+      p1.applyQuaternion(q);
+      p2.applyQuaternion(q);
+    });
+
+    return new OBB().setFromVertices(points);
+  }
+
   setCenterOfGravityAuto() {
     this.centerOfGravity.value = this.tireCenter.value;
   }
@@ -338,6 +372,7 @@ export class Tire extends Element implements ITire {
       parent: this,
       value: isDataElement(params) ? params.rotation : new Quaternion()
     });
+    this.obb = this.getOBB();
   }
 
   getDataElement(): IDataTire {

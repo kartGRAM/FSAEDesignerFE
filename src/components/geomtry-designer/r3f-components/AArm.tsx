@@ -16,6 +16,7 @@ import NodeSphere from './NodeSphere';
 import ForceArrow from './ForceArrow';
 import MeasurablePoint from './MeasurablePointSphere';
 import {PivotControls} from './PivotControls/PivotControls';
+import {OBB} from './OBB';
 
 const AArm = (props: {element: IAArm}) => {
   const {element} = props;
@@ -147,6 +148,7 @@ const AArm = (props: {element: IAArm}) => {
             key={(i + 1).toString()}
           />
         ))}
+        <OBB obb={element.obb} />
         {nodes.map((node) => (
           <NodeSphere node={node} key={node.nodeID} />
         ))}

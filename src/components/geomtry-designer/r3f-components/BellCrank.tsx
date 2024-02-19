@@ -15,6 +15,7 @@ import useUpdateEffect from '@app/hooks/useUpdateEffect';
 import NodeSphere from './NodeSphere';
 import {PivotControls} from './PivotControls/PivotControls';
 import MeasurablePoint from './MeasurablePointSphere';
+import {OBB} from './OBB';
 
 const BellCrank = (props: {element: IBellCrank}) => {
   const {element} = props;
@@ -158,6 +159,7 @@ const BellCrank = (props: {element: IBellCrank}) => {
             key={`attachement${i}`}
           />
         ))}
+        <OBB obb={element.obb} />
         {nodes.map((node) => (
           <NodeSphere node={node} key={node.nodeID} />
         ))}

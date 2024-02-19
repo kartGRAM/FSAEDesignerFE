@@ -16,6 +16,8 @@ import {
   INamedVector3RO,
   FunctionVector3
 } from '@gd/INamedValues';
+import {OBB} from '@gd/OBB';
+import {IOBB} from '@gd/IOBB';
 
 import {AtLeast1} from '@app/utils/atLeast';
 import {v4 as uuidv4} from 'uuid';
@@ -69,6 +71,16 @@ export class LinearBushing extends Element implements ILinearBushing {
   dlCurrent: number = 0;
 
   dlCurrentNodeID: NodeID;
+
+  obb: IOBB;
+
+  getOBB() {
+    return new OBB().setFromVertices(
+      this.getPoints()
+        .filter((n) => !n.meta.isFreeNode)
+        .map((n) => n.value)
+    );
+  }
 
   get currentPoints() {
     const fp = this.fixedPoints.map((p) => p.value);
@@ -365,6 +377,7 @@ export class LinearBushing extends Element implements ILinearBushing {
       parent: this,
       value: isDataElement(params) ? params.rotation : new Quaternion()
     });
+    this.obb = this.getOBB();
   }
 
   getDataElement(): IDataLinearBushing {

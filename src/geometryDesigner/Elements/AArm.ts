@@ -10,6 +10,8 @@ import {
 } from '@gd/NamedValues';
 import {IDataVector3, INamedVector3, FunctionVector3} from '@gd/INamedValues';
 import {AtLeast1} from '@app/utils/atLeast';
+import {OBB} from '@gd/OBB';
+import {IOBB} from '@gd/IOBB';
 import {
   isDataElement,
   MirrorError,
@@ -41,6 +43,16 @@ export class AArm extends Element implements IAArm {
   fixedPoints: [NamedVector3, NamedVector3];
 
   points: AtLeast1<NamedVector3>;
+
+  obb: IOBB;
+
+  getOBB() {
+    return new OBB().setFromVertices(
+      this.getPoints()
+        .filter((n) => !n.meta.isFreeNode)
+        .map((n) => n.value)
+    );
+  }
 
   get centerOfPoints() {
     const {fixedPoints, points} = this;
@@ -239,6 +251,8 @@ export class AArm extends Element implements IAArm {
       parent: this,
       value: isDataElement(params) ? params.rotation : new Quaternion()
     });
+
+    this.obb = this.getOBB();
   }
 
   getDataElement(): IDataAArm {

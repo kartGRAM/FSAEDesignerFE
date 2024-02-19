@@ -12,6 +12,7 @@ import {Line2} from 'three-stdlib';
 import NodeSphere from './NodeSphere';
 import MeasurablePoint from './MeasurablePointSphere';
 import ForceArrow from './ForceArrow';
+import {OBB} from './OBB';
 
 const SpringDumper = (props: {element: ISpringDumper}) => {
   const {element} = props;
@@ -70,6 +71,7 @@ const SpringDumper = (props: {element: ISpringDumper}) => {
   return (
     <group onDoubleClick={handleOnDoubleClick} ref={groupRef}>
       <Line points={pts} color="pink" lineWidth={4} ref={meshRef} />
+      <OBB obb={element.obb} />
       {nodes.map((node) => (
         <NodeSphere node={node} key={node.nodeID} />
       ))}

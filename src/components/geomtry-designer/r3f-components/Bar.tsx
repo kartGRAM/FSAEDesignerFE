@@ -12,6 +12,7 @@ import {Line2} from 'three-stdlib';
 import NodeSphere from './NodeSphere';
 import MeasurablePoint from './MeasurablePointSphere';
 import ForceArrow from './ForceArrow';
+import {OBB} from './OBB';
 
 const Bar = (props: {element: IBar}) => {
   const {element} = props;
@@ -58,6 +59,7 @@ const Bar = (props: {element: IBar}) => {
   return (
     <group onDoubleClick={handleOnDoubleClick} ref={groupRef}>
       <Line points={pts} color="pink" lineWidth={4} ref={meshRef} />
+      <OBB obb={element.obb} />
       {nodes.map((node) => (
         <NodeSphere node={node} key={node.nodeID} />
       ))}

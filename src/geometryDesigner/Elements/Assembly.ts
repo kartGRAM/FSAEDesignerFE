@@ -1,4 +1,5 @@
 import {Vector3} from 'three';
+import {OBB} from '@gd/OBB';
 import {
   NamedVector3,
   NamedVector3LW,
@@ -43,6 +44,8 @@ export class Assembly extends Element implements IAssembly {
   get className(): Elements {
     return className;
   }
+
+  obb = new OBB();
 
   _children: IElement[];
 

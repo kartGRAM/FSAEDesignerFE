@@ -13,6 +13,8 @@ import {
   INamedVector3RO,
   FunctionVector3
 } from '@gd/INamedValues';
+import {OBB} from '@gd/OBB';
+import {IOBB} from '@gd/IOBB';
 import {
   isDataElement,
   MirrorError,
@@ -44,6 +46,16 @@ export class Bar extends Element implements IBar {
   position: NamedVector3LW;
 
   rotation: NamedQuaternion;
+
+  obb: IOBB;
+
+  getOBB() {
+    return new OBB().setFromVertices(
+      this.getPoints()
+        .filter((n) => !n.meta.isFreeNode)
+        .map((n) => n.value)
+    );
+  }
 
   get length(): number {
     return this.fixedPoint.value.sub(this.point.value).length();
@@ -202,6 +214,8 @@ export class Bar extends Element implements IBar {
       parent: this,
       value: isDataElement(params) ? params.rotation : new Quaternion()
     });
+
+    this.obb = this.getOBB();
   }
 
   getDataElement(): IDataBar {

@@ -12,6 +12,7 @@ import {getMatrix3} from '@gd/NamedValues';
 import {Line2} from 'three-stdlib';
 import NodeSphere from './NodeSphere';
 import MeasurablePoint from './MeasurablePointSphere';
+import {OBB} from './OBB';
 
 const TorsionSpring = (props: {element: ITorsionSpring}) => {
   const {element} = props;
@@ -118,6 +119,7 @@ const TorsionSpring = (props: {element: ITorsionSpring}) => {
           ref={meshRefs[2]}
         />
       ) : null}
+      <OBB obb={element.obb} />
       {points.map((node, i) =>
         i !== 2 ? <NodeSphere node={node} key={node.nodeID} /> : null
       )}

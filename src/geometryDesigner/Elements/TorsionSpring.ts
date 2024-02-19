@@ -1,4 +1,6 @@
 import {Vector3, Quaternion} from 'three';
+import {OBB} from '@gd/OBB';
+import {IOBB} from '@gd/IOBB';
 import {
   NamedVector3,
   NamedVector3LW,
@@ -63,6 +65,16 @@ export class TorsionSpring extends Element implements ITorsionSpring {
   dlCurrent: number = 0;
 
   dlCurrentNodeID: NodeID;
+
+  obb: IOBB;
+
+  getOBB() {
+    return new OBB().setFromVertices(
+      this.getPoints()
+        .filter((n) => !n.meta.isFreeNode)
+        .map((n) => n.value)
+    );
+  }
 
   get currentEffortPoints() {
     const fp = this.fixedPoints.map((p) => p.value);
@@ -280,6 +292,7 @@ export class TorsionSpring extends Element implements ITorsionSpring {
       parent: this,
       value: isDataElement(params) ? params.rotation : new Quaternion()
     });
+    this.obb = this.getOBB();
   }
 
   getDataElement(): IDataTorsionSpring {

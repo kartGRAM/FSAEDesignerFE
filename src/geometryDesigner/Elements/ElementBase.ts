@@ -19,6 +19,7 @@ import {
   INamedMatrix3,
   IPointOffsetTool
 } from '@gd/INamedValues';
+import {IOBB} from '@gd/IOBB';
 
 import {v4 as uuidv4} from 'uuid';
 import {minus} from '@app/utils/helpers';
@@ -43,6 +44,8 @@ export abstract class Element implements IElement {
   isElement = true as const;
 
   _nodeID: string;
+
+  abstract get obb(): IOBB;
 
   getName(): string {
     return this.name.value;

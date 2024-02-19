@@ -9,6 +9,8 @@ import {
 } from '@gd/NamedValues';
 import {IDataVector3, INamedVector3, FunctionVector3} from '@gd/INamedValues';
 import {AtLeast2} from '@app/utils/atLeast';
+import {OBB} from '@gd/OBB';
+import {IOBB} from '@gd/IOBB';
 import {
   isDataElement,
   MirrorError,
@@ -45,6 +47,16 @@ export class BellCrank extends Element implements IBellCrank {
   position: NamedVector3LW;
 
   rotation: NamedQuaternion;
+
+  obb: IOBB;
+
+  getOBB() {
+    return new OBB().setFromVertices(
+      this.getPoints()
+        .filter((n) => !n.meta.isFreeNode)
+        .map((n) => n.value)
+    );
+  }
 
   getPoints(): INamedVector3[] {
     return [...this.fixedPoints, ...this.points];
@@ -218,6 +230,7 @@ export class BellCrank extends Element implements IBellCrank {
       parent: this,
       value: isDataElement(params) ? params.rotation : new Quaternion()
     });
+    this.obb = this.getOBB();
   }
 
   getDataElement(): IDataBellCrank {
