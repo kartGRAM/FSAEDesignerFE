@@ -16,6 +16,7 @@ export interface ITire extends IElement, INearestNeighborToPlane {
   readonly tireAxis: INamedVector3;
   readonly toInnerBearing: INamedNumber;
   readonly toOuterBearing: INamedNumber;
+  readonly tread: INamedNumber;
   readonly innerBearing: INamedVector3LW;
   readonly outerBearing: INamedVector3LW;
   readonly diameter: number;
@@ -37,6 +38,7 @@ export interface IDataTire extends IDataElement {
   tireAxis?: IDataVector3;
   toLeftBearing: IDataNumber;
   toRightBearing: IDataNumber;
+  tread?: IDataNumber;
 }
 
 export const isTire = (element: IElement): element is ITire =>

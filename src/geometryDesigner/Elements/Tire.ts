@@ -67,6 +67,8 @@ export class Tire extends Element implements ITire {
 
   initialPosition: NamedVector3;
 
+  tread: NamedNumber;
+
   position: NamedVector3LW;
 
   get radius(): number {
@@ -219,6 +221,7 @@ export class Tire extends Element implements ITire {
     const ret = new Tire({
       name: `mirror_${this.name.value}`,
       tireCenter: center,
+      tread: this.tread.getStringValue(),
       tireAxis: mirrorVec(this.tireAxis),
       toOuterBearing: this.toOuterBearing.getStringValue(),
       toInnerBearing: this.toInnerBearing.getStringValue(),
@@ -249,6 +252,7 @@ export class Tire extends Element implements ITire {
       | {
           name: string;
           tireCenter: FunctionVector3 | IDataVector3 | INamedVector3;
+          tread?: number | string;
           tireAxis?: FunctionVector3 | IDataVector3 | INamedVector3;
           toOuterBearing: number | string;
           toInnerBearing: number | string;
@@ -260,13 +264,24 @@ export class Tire extends Element implements ITire {
       | IDataTire
   ) {
     super(params);
-    const {tireCenter, tireAxis, initialPosition, mass, centerOfGravity} =
-      params;
+    const {
+      tireCenter,
+      tireAxis,
+      initialPosition,
+      mass,
+      centerOfGravity,
+      tread
+    } = params;
 
     this.tireCenter = new NamedVector3({
       name: 'tireCenter',
       parent: this,
       value: tireCenter ?? new Vector3()
+    });
+    this.tread = new NamedNumber({
+      name: 'tread',
+      parent: this,
+      value: tread ?? 175
     });
 
     this.tireAxis = new NamedVector3({
@@ -336,6 +351,7 @@ export class Tire extends Element implements ITire {
         tireCenter: this.tireCenter
           .setValue(mirrorVec(mir.tireCenter))
           .getData(),
+        tread: this.tread.setValue(mir.tread.getStringValue()).getData(),
         tireAxis: this.tireAxis.setValue(mirrorVec(mir.tireAxis)).getData(),
         toLeftBearing: this.toOuterBearing
           .setValue(mir.toOuterBearing.getStringValue())
@@ -348,6 +364,7 @@ export class Tire extends Element implements ITire {
     return {
       ...baseData,
       tireCenter: this.tireCenter.getData(),
+      tread: this.tread.getData(),
       tireAxis: this.tireAxis.getData(),
       toLeftBearing: this.toOuterBearing.getData(),
       toRightBearing: this.toInnerBearing.getData()
