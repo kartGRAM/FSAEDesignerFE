@@ -146,14 +146,14 @@ const Body = (props: {element: IBody}) => {
 
   return (
     <>
-      <Box
-        args={[halfSize.x * 2, halfSize.y * 2, halfSize.z * 2]}
-        position={center}
-        quaternion={rotation}
-        material-color="hotpink"
-        material-wireframe
-      />
       <group onDoubleClick={handleOnDoubleClick} ref={groupRef}>
+        <Box
+          args={[halfSize.x * 2, halfSize.y * 2, halfSize.z * 2]}
+          position={center}
+          quaternion={rotation}
+          material-color="hotpink"
+          material-wireframe
+        />
         <mesh args={[geometry]} ref={meshRef}>
           <meshBasicMaterial
             args={[{color: 0x00ffff}]}

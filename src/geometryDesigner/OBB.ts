@@ -49,25 +49,18 @@ export class OBB implements IOBB {
     );
 
     // 固有ベクトルをもとに回転行列を作成
-    const vec1 = new Vector3(eigenVecs[0].x, eigenVecs[0].y, eigenVecs[0].z);
-    const vec2 = new Vector3(eigenVecs[1].x, eigenVecs[1].y, eigenVecs[1].z);
-    const vec3 = vec1.clone().cross(vec2);
-    const rotationMatrix = new Matrix3()
-      .set(
-        // eslint-disable-next-line prettier/prettier
-      vec1.x, vec1.y, vec1.z,
-        // eslint-disable-next-line prettier/prettier
-      vec2.x, vec2.y, vec2.z,
-        // eslint-disable-next-line prettier/prettier
-      vec3.x, vec3.y, vec3.z,
-      )
-      .transpose();
+    eigenVecs[2] = eigenVecs[0].clone().cross(eigenVecs[1]);
+    const rotationMatrix = new Matrix3().set(
+      // eslint-disable-next-line prettier/prettier
+      eigenVecs[0].x, eigenVecs[1].x, eigenVecs[2].x,
+      // eslint-disable-next-line prettier/prettier
+      eigenVecs[0].y, eigenVecs[1].y, eigenVecs[2].y,
+      // eslint-disable-next-line prettier/prettier
+      eigenVecs[0].z, eigenVecs[1].z, eigenVecs[2].z
+    );
     this.rotation = new Quaternion().setFromRotationMatrix(
       new Matrix4().setFromMatrix3(rotationMatrix)
     );
-    const x = new Vector3(1, 0, 0).applyQuaternion(this.rotation);
-    const y = new Vector3(0, 1, 0).applyQuaternion(this.rotation);
-    const z = new Vector3(0, 0, 1).applyQuaternion(this.rotation);
 
     // 固有ベクトル方向へ射影
     const minMax = eigenVecs.map((v) => {
@@ -78,7 +71,7 @@ export class OBB implements IOBB {
           if (minMax[1] < l) minMax[1] = l;
           return minMax;
         },
-        [Number.MAX_VALUE, Number.MIN_VALUE] as [number, number]
+        [Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER] as [number, number]
       );
       return minMax;
     });
