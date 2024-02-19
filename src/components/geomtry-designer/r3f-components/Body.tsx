@@ -1,5 +1,6 @@
 import * as React from 'react';
 import * as THREE from 'three';
+import {Box} from '@react-three/drei';
 import {ThreeEvent, useFrame} from '@react-three/fiber';
 import {useSelector, useDispatch} from 'react-redux';
 import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
@@ -11,6 +12,7 @@ import {ConvexGeometry} from 'three/examples/jsm/geometries/ConvexGeometry';
 import {MovePointTo} from '@gd/kinematics/Driver';
 import {setMovingMode} from '@store/reducers/uiTempGeometryDesigner';
 import useUpdateEffect from '@app/hooks/useUpdateEffect';
+import {OBB} from '@gd/OBB';
 import NodeSphere from './NodeSphere';
 import {PivotControls} from './PivotControls/PivotControls';
 import MeasurablePoint from './MeasurablePointSphere';
@@ -135,8 +137,22 @@ const Body = (props: {element: IBody}) => {
     store.getState().uitgd.gdSceneState.resetPositions
   );
 
+  const obb = new OBB().setFromVertices(
+    nodes.filter((n) => !n.meta.isFreeNode).map((n) => n.value)
+  );
+  const center = obb.center.clone().applyMatrix3(coMatrix);
+  const halfSize = obb.halfSize.clone().applyMatrix3(coMatrix);
+  const rotation = transQuaternion(obb.rotation, coMatrix);
+
   return (
     <>
+      <Box
+        args={[halfSize.x * 2, halfSize.y * 2, halfSize.z * 2]}
+        position={center}
+        quaternion={rotation}
+        material-color="hotpink"
+        material-wireframe
+      />
       <group onDoubleClick={handleOnDoubleClick} ref={groupRef}>
         <mesh args={[geometry]} ref={meshRef}>
           <meshBasicMaterial

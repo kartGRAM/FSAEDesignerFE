@@ -12,7 +12,7 @@ export interface IOBB {
   readonly center: Vector3;
   readonly halfSize: Vector3;
   readonly rotation: Quaternion;
-  fromVertices(vertices: Vector3[]): void;
+  setFromVertices(vertices: Vector3[]): IOBB;
   getNearestNeighborToLine(direction: Vector3, distance: number): void;
   getData(): IDataOBB;
 }

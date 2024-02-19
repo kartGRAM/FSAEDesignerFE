@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {Vector3, Quaternion, Matrix3, Matrix4} from 'three';
 import {IOBB, IDataOBB} from '@gd/IOBB';
 import {Matrix, EigenvalueDecomposition} from 'ml-matrix';
@@ -19,7 +20,7 @@ export class OBB implements IOBB {
     this.rotation = new Quaternion();
   }
 
-  fromVertices(vertices: Vector3[]) {
+  setFromVertices(vertices: Vector3[]) {
     if (vertices.length < 2) throw new Error('2点以上必要');
     // 頂点の平均を導出
     const avg = vertices
@@ -48,17 +49,25 @@ export class OBB implements IOBB {
     );
 
     // 固有ベクトルをもとに回転行列を作成
-    const rotationMatrix = new Matrix3(
-      // eslint-disable-next-line prettier/prettier
-      eigenVecs[0].x, eigenVecs[0].y, eigenVecs[0].z,
-      // eslint-disable-next-line prettier/prettier
-      eigenVecs[1].x, eigenVecs[1].y, eigenVecs[1].z,
-      // eslint-disable-next-line prettier/prettier
-      eigenVecs[2].x, eigenVecs[2].y, eigenVecs[2].z
-    );
+    const vec1 = new Vector3(eigenVecs[0].x, eigenVecs[0].y, eigenVecs[0].z);
+    const vec2 = new Vector3(eigenVecs[1].x, eigenVecs[1].y, eigenVecs[1].z);
+    const vec3 = vec1.clone().cross(vec2);
+    const rotationMatrix = new Matrix3()
+      .set(
+        // eslint-disable-next-line prettier/prettier
+      vec1.x, vec1.y, vec1.z,
+        // eslint-disable-next-line prettier/prettier
+      vec2.x, vec2.y, vec2.z,
+        // eslint-disable-next-line prettier/prettier
+      vec3.x, vec3.y, vec3.z,
+      )
+      .transpose();
     this.rotation = new Quaternion().setFromRotationMatrix(
       new Matrix4().setFromMatrix3(rotationMatrix)
     );
+    const x = new Vector3(1, 0, 0).applyQuaternion(this.rotation);
+    const y = new Vector3(0, 1, 0).applyQuaternion(this.rotation);
+    const z = new Vector3(0, 0, 1).applyQuaternion(this.rotation);
 
     // 固有ベクトル方向へ射影
     const minMax = eigenVecs.map((v) => {
@@ -82,8 +91,10 @@ export class OBB implements IOBB {
     const invQ = this.rotation.clone().invert();
 
     this.center = new Vector3(center[0], center[1], center[2]).applyQuaternion(
-      invQ
+      this.rotation
     );
+
+    return this;
   }
 
   // eslint-disable-next-line class-methods-use-this
