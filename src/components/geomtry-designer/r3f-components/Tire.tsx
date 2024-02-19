@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as THREE from 'three';
 import {ThreeEvent, useFrame} from '@react-three/fiber';
-import {Circle} from '@react-three/drei';
+import {Cylinder, Circle} from '@react-three/drei';
 import {useSelector, useDispatch} from 'react-redux';
 import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
 import store, {RootState} from '@store/store';
@@ -67,6 +67,7 @@ const Tire = (props: {element: ITire}) => {
   const measurablePoints = element.getMeasurablePoints();
   const center = element.tireCenter.value.applyMatrix3(coMatrix);
   const radius = center.y;
+  const tread = element.tread.value;
   const groupRef = React.useRef<THREE.Group>(null!);
   const tireRef = React.useRef<THREE.Group>(null!);
   const markerRef = React.useRef<THREE.Mesh>(null!);
@@ -82,7 +83,10 @@ const Tire = (props: {element: ITire}) => {
   return (
     <group onDoubleClick={handleOnDoubleClick} ref={groupRef}>
       <group quaternion={rotationQ} ref={tireRef} position={center}>
-        <Circle args={[radius, 48]}>
+        <Cylinder
+          args={[radius, radius, tread, 48]}
+          rotation={new THREE.Euler(Math.PI / 2, 0, 0)}
+        >
           {isSelected ? (
             <meshBasicMaterial
               wireframe
@@ -92,11 +96,11 @@ const Tire = (props: {element: ITire}) => {
           ) : (
             <meshNormalMaterial wireframe wireframeLinewidth={3} />
           )}
-        </Circle>
+        </Cylinder>
         <Circle
           ref={markerRef}
           args={[radius * 0.05, 24]}
-          position={new THREE.Vector3().setY(-center.y * 0.95)}
+          position={new THREE.Vector3().setY(-center.y * 0.95).setZ(tread / 2)}
         >
           <meshBasicMaterial color="red" side={THREE.DoubleSide} />
         </Circle>

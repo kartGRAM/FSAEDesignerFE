@@ -101,6 +101,7 @@ export default function TireConfig(params: Params) {
             unit="mm"
             disabled={isMirror}
           />
+          <Scalar value={element.tread} unit="mm" disabled={isMirror} />
         </AccordionDetails>
       </Accordion>
       <Accordion
