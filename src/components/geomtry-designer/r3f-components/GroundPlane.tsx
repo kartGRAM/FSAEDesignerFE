@@ -1,10 +1,8 @@
-/* eslint-disable no-unreachable */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react';
-import {useFrame, extend, Object3DNode, MaterialNode} from '@react-three/fiber';
-import {Line2, LineGeometry, LineMaterial} from 'three-stdlib';
+import {useFrame} from '@react-three/fiber';
+import {Line2} from 'three-stdlib';
 import {useSelector} from 'react-redux';
-import {Line, CatmullRomLine} from '@react-three/drei';
+import {Line} from '@react-three/drei';
 import {RootState} from '@store/store';
 import {isSkidpadSolver} from '@gd/kinematics/SkidpadSolver';
 import {getMatrix3} from '@gd/NamedValues';
@@ -26,13 +24,13 @@ const GroundPlane = () => {
   return (
     <>
       <gridHelper args={[length, segments, 0x999999, 0x999999]} />
-      <SkidpadRing />
+      <SkidpadRingCenter />
     </>
   );
 };
 export default GroundPlane;
 
-const SkidpadRing = () => {
+const SkidpadRingCenter = () => {
   const dashSize = 1500;
   const solver = useSelector(
     (state: RootState) => state.uitgd.KinematicsSolver
@@ -46,7 +44,6 @@ const SkidpadRing = () => {
   let rotation = 0;
   useFrame((_, delta) => {
     if (!centerLineRef.current || !solver || !isSkidpadSolver(solver)) return;
-    const a = 0;
 
     // センターライン
     const g = centerLineRef.current.geometry.attributes;
@@ -102,7 +99,7 @@ const SkidpadRing = () => {
       ref={centerLineRef}
       points={vtx} // Array of Points
       lineWidth={2}
-      color="white"
+      color="#ddd"
       position={center}
       dashed
       dashSize={dashSize}
@@ -144,11 +141,3 @@ const getDistance = (radius: number) => {
     .flat();
   return distances.slice(1, distances.length - 1);
 };
-
-extend({Line2, LineMaterial});
-declare module '@react-three/fiber' {
-  interface ThreeElements {
-    line2: Object3DNode<Line2, typeof Line2>;
-    lineMaterial: MaterialNode<LineMaterial, typeof LineMaterial>;
-  }
-}
