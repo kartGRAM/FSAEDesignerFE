@@ -8,6 +8,8 @@ import {
   NamedBooleanOrUndefined
 } from '@gd/NamedValues';
 import {IDataVector3, INamedVector3, FunctionVector3} from '@gd/INamedValues';
+import {OBB} from '@gd/OBB';
+import {IOBB} from '@gd/IOBB';
 import {
   isDataElement,
   isBodyOfFrame,
@@ -40,6 +42,16 @@ export class Body extends Element implements IBody {
   position: NamedVector3LW;
 
   rotation: NamedQuaternion;
+
+  obb: IOBB;
+
+  getOBB() {
+    return new OBB().setFromVertices(
+      this.getPoints()
+        .filter((n) => !n.meta.isFreeNode)
+        .map((n) => n.value)
+    );
+  }
 
   getPoints(): INamedVector3[] {
     return [...this.fixedPoints, ...this.points];
@@ -185,6 +197,7 @@ export class Body extends Element implements IBody {
       parent: this,
       value: isDataElement(params) ? params.rotation : new Quaternion()
     });
+    this.obb = this.getOBB();
   }
 
   getDataElement(): IDataBody {

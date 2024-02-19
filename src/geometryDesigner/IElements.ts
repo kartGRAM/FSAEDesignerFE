@@ -18,6 +18,7 @@ import {
   INamedBoolean
 } from '@gd/INamedValues';
 import {isObject} from '@utils/helpers';
+import {IOBB} from '@gd/IOBB';
 import {INode, IBidirectionalNode, getRootNode} from './INode';
 import {isBar, IBar} from './IElements/IBar';
 import {isSpringDumper, ISpringDumper} from './IElements/ISpringDumper';
@@ -149,6 +150,7 @@ export interface IElement extends IBidirectionalNode {
   readonly controllable?: boolean;
   readonly nodeID: string;
   readonly absPath: string;
+  readonly obb: IOBB;
   setCenterOfGravityAuto(): void;
   getPoints(): INamedVector3RO[];
   getForceResults(): {

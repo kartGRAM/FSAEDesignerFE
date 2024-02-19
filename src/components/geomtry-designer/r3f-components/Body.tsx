@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as THREE from 'three';
-import {Box} from '@react-three/drei';
 import {ThreeEvent, useFrame} from '@react-three/fiber';
 import {useSelector, useDispatch} from 'react-redux';
 import {selectElement} from '@app/store/reducers/uiTempGeometryDesigner';
@@ -12,10 +11,10 @@ import {ConvexGeometry} from 'three/examples/jsm/geometries/ConvexGeometry';
 import {MovePointTo} from '@gd/kinematics/Driver';
 import {setMovingMode} from '@store/reducers/uiTempGeometryDesigner';
 import useUpdateEffect from '@app/hooks/useUpdateEffect';
-import {OBB} from '@gd/OBB';
 import NodeSphere from './NodeSphere';
 import {PivotControls} from './PivotControls/PivotControls';
 import MeasurablePoint from './MeasurablePointSphere';
+import {OBB} from './OBB';
 
 const Body = (props: {element: IBody}) => {
   const {element} = props;
@@ -137,23 +136,9 @@ const Body = (props: {element: IBody}) => {
     store.getState().uitgd.gdSceneState.resetPositions
   );
 
-  const obb = new OBB().setFromVertices(
-    nodes.filter((n) => !n.meta.isFreeNode).map((n) => n.value)
-  );
-  const center = obb.center.clone().applyMatrix3(coMatrix);
-  const halfSize = obb.halfSize.clone().applyMatrix3(coMatrix);
-  const rotation = transQuaternion(obb.rotation, coMatrix);
-
   return (
     <>
       <group onDoubleClick={handleOnDoubleClick} ref={groupRef}>
-        <Box
-          args={[halfSize.x * 2, halfSize.y * 2, halfSize.z * 2]}
-          position={center}
-          quaternion={rotation}
-          material-color="hotpink"
-          material-wireframe
-        />
         <mesh args={[geometry]} ref={meshRef}>
           <meshBasicMaterial
             args={[{color: 0x00ffff}]}
@@ -162,6 +147,7 @@ const Body = (props: {element: IBody}) => {
             ref={materialRef}
           />
         </mesh>
+        <OBB obb={element.obb} />
         {nodes.map((node) => (
           <NodeSphere node={node} key={node.nodeID} />
         ))}
