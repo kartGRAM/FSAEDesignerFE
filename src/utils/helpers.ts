@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 export function deepCopy<T>(data: T) {
   return JSON.parse(JSON.stringify(data)) as T;
 }
@@ -213,6 +215,17 @@ export const hexToRgb = (hex: string): color | null => {
     return {r: rc, g: gc, b: bc}; // return 23,14,45 -> reformat if needed
   }
   return null;
+};
+
+export const hexToThreeColor = (hex: string): THREE.Color => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (result) {
+    const rc = parseInt(result[1], 16);
+    const gc = parseInt(result[2], 16);
+    const bc = parseInt(result[3], 16);
+    return new THREE.Color(rc / 255, gc / 255, bc / 255); // return 23,14,45 -> reformat if needed
+  }
+  return new THREE.Color(0, 0, 0);
 };
 
 export function getReversal(color: string): string | null {

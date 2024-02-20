@@ -20,14 +20,18 @@ export function Cone(props: {
   const {nodes, materials} = useGLTF(
     '/static/React/assets/3DModel/cone.glb'
   ) as unknown as GLTFResult;
-  if (color) materials.body.color.set(color);
+  let clonedMaterials = materials.body;
+  if (color) {
+    clonedMaterials = materials.body.clone();
+    clonedMaterials.color.set(color);
+  }
   return (
     <group {...groupProps} dispose={null}>
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.Body.geometry}
-        material={materials.body}
+        material={clonedMaterials}
         rotation={[Math.PI / 2, 0, 0]}
         scale={3}
       />
