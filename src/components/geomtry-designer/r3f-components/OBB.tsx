@@ -39,7 +39,7 @@ export const OBB = (props: {obb: IOBB; element?: IElement}) => {
   return (
     <>
       {element ? (
-        <Sphere args={[10]} ref={sphereRef} material-color="hopink" />
+        <Sphere args={[10]} ref={sphereRef} material-color="hotpink" />
       ) : null}
       <Box
         args={[halfSize.x * 2, halfSize.y * 2, halfSize.z * 2]}

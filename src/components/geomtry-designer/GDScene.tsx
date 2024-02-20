@@ -111,6 +111,12 @@ export default function GDScene() {
             // <pointLight position={[10, 10, 10]} />
           }
           <Provider store={store}>
+            <ambientLight intensity={0.4} />
+            <directionalLight
+              position={[3.3, 1.0, 4.4]}
+              castShadow
+              intensity={0.4}
+            />
             <DatumObjectsRenderer />
             <MeasureToolsRenderer />
             <ROVariablesUpdate />

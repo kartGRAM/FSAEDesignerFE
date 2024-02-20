@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import * as React from 'react';
 import {useFrame} from '@react-three/fiber';
 import {Line2} from 'three-stdlib';
@@ -9,6 +10,7 @@ import {getMatrix3} from '@gd/NamedValues';
 import {Vector3, Matrix3, Quaternion} from 'three';
 import * as THREE from 'three';
 import {range} from '@utils/helpers';
+import {Cone} from '@gdComponents/r3f-components/3DModels/Cone';
 
 const length = 5000;
 const segmentLength = 200;
@@ -16,8 +18,6 @@ const GroundPlane = () => {
   const grid = useSelector(
     (state: RootState) => state.uigd.present.gdSceneState.showGroundPlaneGrid
   );
-
-  useFrame(() => {});
   const segments = Math.floor(length / segmentLength);
 
   if (!grid) return null;
@@ -26,10 +26,12 @@ const GroundPlane = () => {
       <gridHelper args={[length, segments, 0x999999, 0x999999]} />
       <SkidpadRingCenter />
       <SkidpadRingInner />
+      <Cone />
     </>
   );
 };
 export default GroundPlane;
+
 
 const SkidpadRingCenter = () => {
   const dashSize = 1500;

@@ -3,6 +3,7 @@
     "esModuleInterop": true,
 
     "paths": {
+      "@assets/*": ["assets/*"],
       "@gdComponents/*": ["src/components/geomtry-designer/*"],
       "@worker/*": ["src/worker/*"],
       "@computationGraph/*": ["src/computationGraph/*"],
