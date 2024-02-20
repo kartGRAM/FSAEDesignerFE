@@ -13,6 +13,11 @@ export interface IOBB {
   readonly halfSize: Vector3;
   readonly rotation: Quaternion;
   setFromVertices(vertices: Vector3[]): IOBB;
-  getNearestNeighborToLine(direction: Vector3, distance: number): void;
+  getNearestNeighborToLine(
+    p: Vector3,
+    v: Vector3,
+    parentP?: Vector3,
+    parentQ?: Quaternion
+  ): {closest: Vector3; distance: number};
   getData(): IDataOBB;
 }

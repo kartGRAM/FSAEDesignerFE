@@ -148,7 +148,7 @@ const AArm = (props: {element: IAArm}) => {
             key={(i + 1).toString()}
           />
         ))}
-        <OBB obb={element.obb} />
+        <OBB obb={element.obb} element={element} />
         {nodes.map((node) => (
           <NodeSphere node={node} key={node.nodeID} />
         ))}

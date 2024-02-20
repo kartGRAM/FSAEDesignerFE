@@ -106,7 +106,7 @@ const Tire = (props: {element: ITire}) => {
           <meshBasicMaterial color="red" side={THREE.DoubleSide} />
         </Circle>
       </group>
-      <OBB obb={element.obb} />
+      <OBB obb={element.obb} element={element} />
       {nodes.map((node) => (
         <NodeSphere node={node} key={node.nodeID} />
       ))}

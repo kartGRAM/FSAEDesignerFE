@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {Vector3, Quaternion, Matrix3, Matrix4} from 'three';
 import {IOBB, IDataOBB} from '@gd/IOBB';
 import {Matrix, EigenvalueDecomposition} from 'ml-matrix';
@@ -81,7 +80,6 @@ export class OBB implements IOBB {
 
     // 中心座標
     const center = minMax.map((minMax) => (minMax[1] + minMax[0]) / 2);
-    const invQ = this.rotation.clone().invert();
 
     this.center = new Vector3(center[0], center[1], center[2]).applyQuaternion(
       this.rotation
@@ -90,9 +88,70 @@ export class OBB implements IOBB {
     return this;
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  getNearestNeighborToLine() {
-    return new Vector3();
+  getNearestNeighborToLine(
+    p: Vector3,
+    v: Vector3,
+    parentP?: Vector3,
+    parentQ?: Quaternion
+  ): {closest: Vector3; distance: number} {
+    p = p.clone();
+    v = v.clone().normalize();
+    if (parentP) p.sub(parentP);
+    if (parentQ) {
+      const invParentQ = parentQ.clone().invert();
+      p.applyQuaternion(invParentQ);
+      v.applyQuaternion(invParentQ);
+    }
+    p.sub(this.center);
+    const invQ = this.rotation.clone().invert();
+    p.applyQuaternion(invQ);
+    v.applyQuaternion(invQ);
+    // AABBと直線の最近傍点
+    const sgn = [-1, 1];
+    const XYZ = [0, 1, 2];
+    let closest = Number.MAX_SAFE_INTEGER;
+    const closestPoint = new Vector3();
+    // 12辺の総当たりにて最近傍点探索
+    XYZ.forEach((i) => {
+      const l = this.halfSize.getComponent(i);
+      const others = XYZ.filter((j) => j !== i);
+      sgn.forEach((sgn1) => {
+        const l1 = this.halfSize.getComponent(others[0]) * sgn1;
+        sgn.forEach((sgn2) => {
+          const l2 = this.halfSize.getComponent(others[1]) * sgn2;
+          const offset = new Vector3()
+            .setComponent(others[0], l1)
+            .setComponent(others[1], l2);
+          const p1 = p.clone().sub(offset);
+          const D1 = -p1.dot(v);
+          const D2 = -p1.getComponent(i);
+          const Dv = v.getComponent(i);
+          const Dv2 = Dv * Dv;
+          const t2 =
+            Dv2 === 1
+              ? 0
+              : Math.max(-l, Math.min((D2 - D1 * Dv) / (Dv2 - 1), l));
+          const tempClosestPoint = new Vector3().setComponent(i, t2);
+          p1.sub(tempClosestPoint);
+          const distance = p1.sub(v.clone().multiplyScalar(p1.dot(v))).length();
+          if (distance < closest) {
+            closest = distance;
+            closestPoint.copy(tempClosestPoint.add(offset));
+          }
+        });
+      });
+    });
+    // closestPointに最近傍点が入っているので、返す。
+    closestPoint.applyQuaternion(this.rotation);
+    closestPoint.add(this.center);
+    if (parentQ) {
+      closestPoint.applyQuaternion(parentQ);
+    }
+    if (parentP) closestPoint.add(parentP);
+    return {
+      closest: closestPoint,
+      distance: closest
+    };
   }
 
   getData(): IDataOBB {

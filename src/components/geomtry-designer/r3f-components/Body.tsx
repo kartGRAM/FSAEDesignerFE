@@ -147,7 +147,7 @@ const Body = (props: {element: IBody}) => {
             ref={materialRef}
           />
         </mesh>
-        <OBB obb={element.obb} />
+        <OBB obb={element.obb} element={element} />
         {nodes.map((node) => (
           <NodeSphere node={node} key={node.nodeID} />
         ))}
