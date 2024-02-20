@@ -12,7 +12,7 @@ import * as THREE from 'three';
 import {range} from '@utils/helpers';
 import {Cone} from '@gdComponents/r3f-components/3DModels/Cone';
 
-const length = 5000;
+const length = 10000;
 const segmentLength = 200;
 const GroundPlane = () => {
   const grid = useSelector(

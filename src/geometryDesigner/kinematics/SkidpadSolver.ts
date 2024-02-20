@@ -1372,6 +1372,7 @@ export class SkidpadSolver implements ISolver {
       if (distance < minDistance) minDistance = distance;
     });
     this.rMin = (minDistance * (this.r > 0 ? 1 : -1)) / 1000;
+    console.log(`true radius=     ${this.rMin.toFixed(4)} m`);
   }
 }
 
