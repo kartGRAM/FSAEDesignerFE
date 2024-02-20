@@ -26,7 +26,7 @@ const GroundPlane = () => {
       <gridHelper args={[length, segments, 0x999999, 0x999999]} />
       <SkidpadRingCenter />
       <SkidpadRingInner />
-      <Cone />
+      <Cone color={new THREE.Color(0,0.86,0)}/>
     </>
   );
 };

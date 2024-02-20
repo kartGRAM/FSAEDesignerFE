@@ -1,6 +1,7 @@
 import React from 'react';
 import {useGLTF} from '@react-three/drei';
 import {GLTF} from 'three-stdlib';
+import {Color} from 'three';
 
 type GLTFResult = GLTF & {
   nodes: {
@@ -11,12 +12,17 @@ type GLTFResult = GLTF & {
   };
 };
 
-export function Cone(props: JSX.IntrinsicElements['group']) {
+export function Cone(props: {
+  color?: Color;
+  groupProps?: JSX.IntrinsicElements['group'];
+}) {
+  const {color, groupProps} = props;
   const {nodes, materials} = useGLTF(
     '/static/React/assets/3DModel/cone.glb'
   ) as unknown as GLTFResult;
+  if (color) materials.body.color.set(color);
   return (
-    <group {...props} dispose={null}>
+    <group {...groupProps} dispose={null}>
       <mesh
         castShadow
         receiveShadow
