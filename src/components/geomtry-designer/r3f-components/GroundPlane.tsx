@@ -25,6 +25,7 @@ const GroundPlane = () => {
     <>
       <gridHelper args={[length, segments, 0x999999, 0x999999]} />
       <SkidpadRingCenter />
+      <SkidpadRingInner />
     </>
   );
 };
@@ -104,6 +105,77 @@ const SkidpadRingCenter = () => {
       dashed
       dashSize={dashSize}
       gapSize={dashSize}
+      clippingPlanes={clipPlanes}
+    />
+  );
+};
+
+const SkidpadRingInner = () => {
+  const solver = useSelector(
+    (state: RootState) => state.uitgd.KinematicsSolver
+  );
+
+  const coMatrix = getMatrix3(
+    useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
+  );
+
+  const centerLineRef = React.useRef<Line2>(null);
+  useFrame(() => {
+    if (!centerLineRef.current || !solver || !isSkidpadSolver(solver)) return;
+
+    // センターライン
+    const g = centerLineRef.current.geometry.attributes;
+    const offset = Math.abs(solver.rMin - solver.r);
+    const radius = Math.max(
+      -8000 - offset,
+      Math.min(solver.rMin, 8000 + offset)
+    );
+    const pts = flatten(getVertices(radius, coMatrix));
+    const instanceStart = g.instanceStart.array as Float32Array;
+    instanceStart.set(pts, 0);
+    g.instanceStart.needsUpdate = true;
+    // 間隔
+    const distance = getDistance(radius);
+    const distanceStart = g.instanceDistanceStart.array as Float32Array;
+    distanceStart.set(distance, 0);
+    g.instanceDistanceStart.needsUpdate = true;
+
+    const radiusC = Math.max(-8000, Math.min(solver.r, 8000));
+    const center = new Vector3(0, radiusC * 1000, 0).applyMatrix3(coMatrix);
+    centerLineRef.current.position.copy(center);
+  });
+
+  const clipPlanes = [
+    new THREE.Plane(
+      new THREE.Vector3(1, 0, 0).applyMatrix3(coMatrix),
+      length / 2
+    ),
+    new THREE.Plane(
+      new THREE.Vector3(-1, 0, 0).applyMatrix3(coMatrix),
+      length / 2
+    ),
+    new THREE.Plane(
+      new THREE.Vector3(0, -1, 0).applyMatrix3(coMatrix),
+      length / 2
+    ),
+    new THREE.Plane(
+      new THREE.Vector3(0, 1, 0).applyMatrix3(coMatrix),
+      length / 2
+    )
+  ];
+
+  if (!solver || !isSkidpadSolver(solver)) return null;
+  const radius = Math.max(-8000, Math.min(solver.rMin, 8000));
+  const radiusC = Math.max(-8000, Math.min(solver.r, 8000));
+  const center = new Vector3(0, radiusC * 1000, 0).applyMatrix3(coMatrix);
+  const vtx = getVertices(radius, coMatrix);
+  return (
+    <Line
+      ref={centerLineRef}
+      points={vtx} // Array of Points
+      lineWidth={2}
+      color="hotpink"
+      position={center}
       clippingPlanes={clipPlanes}
     />
   );

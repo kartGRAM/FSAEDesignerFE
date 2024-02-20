@@ -117,6 +117,8 @@ export class SkidpadSolver implements ISolver {
 
   r: number;
 
+  rMin: number;
+
   lapTime: number | undefined;
 
   constructor(
@@ -130,6 +132,7 @@ export class SkidpadSolver implements ISolver {
     this.v = config.velocity.value;
     this.omega = 0;
     this.r = Number.MAX_VALUE;
+    this.rMin = Number.MAX_VALUE;
     const vO = () => new Vector3(this.v, 0, 0).multiplyScalar(scale * 1000);
     this.assembly = assembly;
     const {children} = assembly;
@@ -1354,6 +1357,21 @@ export class SkidpadSolver implements ISolver {
         }
       });
     });
+
+    const elements = this.assembly.children;
+    let minDistance = Number.MAX_SAFE_INTEGER;
+    const center = new Vector3(0, this.r * 1000, 0);
+    const normal = new Vector3(0, 0, 1);
+    elements.forEach((element) => {
+      const {distance} = element.obb.getNearestNeighborToLine(
+        center,
+        normal,
+        element.position.value,
+        element.rotation.value
+      );
+      if (distance < minDistance) minDistance = distance;
+    });
+    this.rMin = (minDistance * (this.r > 0 ? 1 : -1)) / 1000;
   }
 }
 

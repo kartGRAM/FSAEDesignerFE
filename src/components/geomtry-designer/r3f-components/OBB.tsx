@@ -27,7 +27,7 @@ export const OBB = (props: {obb: IOBB; element?: IElement}) => {
     const invQ = q.clone().invert();
     const p = element.position.value;
     const {closest} = obb.getNearestNeighborToLine(
-      new THREE.Vector3(),
+      new THREE.Vector3(0, 15000, 0),
       new THREE.Vector3(0, 0, 1),
       p,
       q
