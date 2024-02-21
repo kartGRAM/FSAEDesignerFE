@@ -15,16 +15,17 @@ type GLTFResult = GLTF & {
 export function Cone(props: {
   color?: Color;
   groupProps?: JSX.IntrinsicElements['group'];
+  clippingPlanes?: THREE.Plane[];
 }) {
-  const {color, groupProps} = props;
+  const {color, groupProps, clippingPlanes} = props;
   const {nodes, materials} = useGLTF(
     '/static/React/assets/3DModel/cone.glb'
   ) as unknown as GLTFResult;
-  let clonedMaterials = materials.body;
+  const clonedMaterials = materials.body.clone();
   if (color) {
-    clonedMaterials = materials.body.clone();
     clonedMaterials.color.set(color);
   }
+  if (clippingPlanes) clonedMaterials.clippingPlanes = clippingPlanes;
   return (
     <group {...groupProps} dispose={null}>
       <mesh

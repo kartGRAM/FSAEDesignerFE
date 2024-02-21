@@ -88,6 +88,18 @@ export interface GDSceneState {
   showGroundPlaneGrid: boolean;
   projectionMode: 'Perspective' | 'Orthographic';
   componentVisualizationMode: 'ShowAllNodes' | 'WireFrameOnly';
+  gridSize?: number;
+  segmentLength?: number;
+  showOBB?: boolean;
+  steadySkidpadViewerState?: SteadySkidpadViewerState;
+}
+
+export interface SteadySkidpadViewerState {
+  showCenterLine: boolean;
+  showInnerLine: boolean;
+  showOuterLine: boolean;
+  showInnerCones: boolean;
+  roadWidth: number;
 }
 
 export interface GDState {

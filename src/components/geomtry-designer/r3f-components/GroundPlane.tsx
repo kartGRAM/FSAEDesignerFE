@@ -12,30 +12,77 @@ import {range, hexToThreeColor} from '@utils/helpers';
 import {Cone} from '@gdComponents/r3f-components/3DModels/Cone';
 import {transQuaternion} from '@gd/IElements';
 
-const length = 10000;
-const segmentLength = 200;
+const initialGridSize = 5000;
 const maximumRadius = 8000;
 const roadWidth = 2;
 
 const GroundPlane = () => {
-  const grid = useSelector(
-    (state: RootState) => state.uigd.present.gdSceneState.showGroundPlaneGrid
-  );
-  const segments = Math.floor(length / segmentLength);
-
-  if (!grid) return null;
   return (
     <>
-      <gridHelper args={[length, segments, 0x999999, 0x999999]} />
-      <SkidpadRingCenter />
-      <SkidpadRingInner />
-      <Cones />
+      <Grid />
+      <SkidpadObjects />
     </>
   );
 };
 export default GroundPlane;
 
-const Cones = () => {
+const Grid = () => {
+  const grid = useSelector(
+    (state: RootState) => state.uigd.present.gdSceneState.showGroundPlaneGrid
+  );
+  const gridSize = useSelector(
+    (state: RootState) =>
+      state.uigd.present.gdSceneState.gridSize ?? initialGridSize
+  );
+  const segmentLength = useSelector(
+    (state: RootState) => state.uigd.present.gdSceneState.segmentLength ?? 200
+  );
+
+  const segments = Math.floor(gridSize / segmentLength);
+
+  if (!grid) return null;
+  return <gridHelper args={[gridSize, segments, 0x999999, 0x999999]} />;
+};
+
+const SkidpadObjects = () => {
+  const coMatrix = getMatrix3(
+    useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
+  );
+
+  const gridSize = useSelector(
+    (state: RootState) =>
+      state.uigd.present.gdSceneState.gridSize ?? initialGridSize
+  );
+
+  const clipPlanes = [
+    new THREE.Plane(
+      new THREE.Vector3(1, 0, 0).applyMatrix3(coMatrix),
+      gridSize / 2
+    ),
+    new THREE.Plane(
+      new THREE.Vector3(-1, 0, 0).applyMatrix3(coMatrix),
+      gridSize / 2
+    ),
+    new THREE.Plane(
+      new THREE.Vector3(0, -1, 0).applyMatrix3(coMatrix),
+      gridSize / 2
+    ),
+    new THREE.Plane(
+      new THREE.Vector3(0, 1, 0).applyMatrix3(coMatrix),
+      gridSize / 2
+    )
+  ];
+  return (
+    <group>
+      <SkidpadRingCenter clipPlanes={clipPlanes} />
+      <SkidpadRingInner clipPlanes={clipPlanes} />
+      <Cones clipPlanes={clipPlanes} />
+    </group>
+  );
+};
+
+const Cones = (props: {clipPlanes: THREE.Plane[]}) => {
+  const {clipPlanes} = props;
   const coneInterval = 3;
   const maxCones = 500;
   const coneSize = 0.075;
@@ -101,6 +148,7 @@ const Cones = () => {
             color={
               i !== 0 ? new THREE.Color(0, 0.86, 0) : hexToThreeColor('#FF69B4')
             }
+            clippingPlanes={clipPlanes}
             groupProps={{
               position,
               quaternion
@@ -112,7 +160,8 @@ const Cones = () => {
   );
 };
 
-const SkidpadRingCenter = () => {
+const SkidpadRingCenter = (props: {clipPlanes: THREE.Plane[]}) => {
+  const {clipPlanes} = props;
   const dashSize = 1500;
   const solver = useSelector(
     (state: RootState) => state.uitgd.KinematicsSolver
@@ -153,25 +202,6 @@ const SkidpadRingCenter = () => {
     centerLineRef.current.position.copy(center);
   });
 
-  const clipPlanes = [
-    new THREE.Plane(
-      new THREE.Vector3(1, 0, 0).applyMatrix3(coMatrix),
-      length / 2
-    ),
-    new THREE.Plane(
-      new THREE.Vector3(-1, 0, 0).applyMatrix3(coMatrix),
-      length / 2
-    ),
-    new THREE.Plane(
-      new THREE.Vector3(0, -1, 0).applyMatrix3(coMatrix),
-      length / 2
-    ),
-    new THREE.Plane(
-      new THREE.Vector3(0, 1, 0).applyMatrix3(coMatrix),
-      length / 2
-    )
-  ];
-
   if (!solver || !isSkidpadSolver(solver)) return null;
   const radius = Math.max(-maximumRadius, Math.min(solver.r, maximumRadius));
   const center = new Vector3(0, radius * 1000, 0).applyMatrix3(coMatrix);
@@ -191,7 +221,8 @@ const SkidpadRingCenter = () => {
   );
 };
 
-const SkidpadRingInner = () => {
+const SkidpadRingInner = (props: {clipPlanes: THREE.Plane[]}) => {
+  const {clipPlanes} = props;
   const solver = useSelector(
     (state: RootState) => state.uitgd.KinematicsSolver
   );
@@ -244,25 +275,6 @@ const SkidpadRingInner = () => {
     innerLineRef.current.position.copy(center);
     outerLineRef.current.position.copy(center);
   });
-
-  const clipPlanes = [
-    new THREE.Plane(
-      new THREE.Vector3(1, 0, 0).applyMatrix3(coMatrix),
-      length / 2
-    ),
-    new THREE.Plane(
-      new THREE.Vector3(-1, 0, 0).applyMatrix3(coMatrix),
-      length / 2
-    ),
-    new THREE.Plane(
-      new THREE.Vector3(0, -1, 0).applyMatrix3(coMatrix),
-      length / 2
-    ),
-    new THREE.Plane(
-      new THREE.Vector3(0, 1, 0).applyMatrix3(coMatrix),
-      length / 2
-    )
-  ];
 
   if (!solver || !isSkidpadSolver(solver)) return null;
   const radiusC = Math.max(-maximumRadius, Math.min(solver.r, maximumRadius));
