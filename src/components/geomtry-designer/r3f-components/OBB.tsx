@@ -19,9 +19,7 @@ export const OBB = (props: {obb: IOBB; element?: IElement}) => {
   const halfSize = obb.halfSize.clone().applyMatrix3(coMatrix);
   const rotation = transQuaternion(obb.rotation, coMatrix);
 
-  const sphereRef = React.useRef<THREE.Mesh>(null!);
-
-  useFrame(() => {
+  /* useFrame(() => {
     if (!element) return;
     const q = element.rotation.value;
     const invQ = q.clone().invert();
@@ -34,13 +32,13 @@ export const OBB = (props: {obb: IOBB; element?: IElement}) => {
     );
     closest.sub(p).applyQuaternion(invQ).applyMatrix3(coMatrix);
     sphereRef.current.position.copy(closest);
-  });
+  }); */
 
   return (
     <>
-      {element ? (
+      {/* element ? (
         <Sphere args={[10]} ref={sphereRef} material-color="hotpink" />
-      ) : null}
+      ) : null */}
       <Box
         args={[halfSize.x * 2, halfSize.y * 2, halfSize.z * 2]}
         position={center}

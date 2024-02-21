@@ -15,6 +15,7 @@ import {transQuaternion} from '@gd/IElements';
 const length = 10000;
 const segmentLength = 200;
 const maximumRadius = 8000;
+const roadWidth = 2;
 
 const GroundPlane = () => {
   const grid = useSelector(
@@ -199,11 +200,18 @@ const SkidpadRingInner = () => {
     useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
   );
 
-  const centerLineRef = React.useRef<Line2>(null);
+  const innerLineRef = React.useRef<Line2>(null);
+  const outerLineRef = React.useRef<Line2>(null);
   useFrame(() => {
-    if (!centerLineRef.current || !solver || !isSkidpadSolver(solver)) return;
+    if (
+      !innerLineRef.current ||
+      !outerLineRef.current ||
+      !solver ||
+      !isSkidpadSolver(solver)
+    )
+      return;
 
-    const g = centerLineRef.current.geometry.attributes;
+    const g = innerLineRef.current.geometry.attributes;
     const offset = Math.abs(solver.rMin - solver.r);
     const radius = Math.max(
       -maximumRadius - offset,
@@ -219,9 +227,22 @@ const SkidpadRingInner = () => {
     distanceStart.set(distance, 0);
     g.instanceDistanceStart.needsUpdate = true;
 
+    const sgn = radius > 0 ? 1 : -1;
+    const g2 = outerLineRef.current.geometry.attributes;
+    const ptsOuter = flatten(getVertices(radius + sgn * roadWidth, coMatrix));
+    const instanceStartOuter = g2.instanceStart.array as Float32Array;
+    instanceStartOuter.set(ptsOuter, 0);
+    g2.instanceStart.needsUpdate = true;
+
+    const distanceOuter = getDistance(radius + sgn * roadWidth);
+    const distanceStartOuter = g2.instanceDistanceStart.array as Float32Array;
+    distanceStartOuter.set(distanceOuter, 0);
+    g2.instanceDistanceStart.needsUpdate = true;
+
     const radiusC = Math.max(-maximumRadius, Math.min(solver.r, maximumRadius));
     const center = new Vector3(0, radiusC * 1000, 0).applyMatrix3(coMatrix);
-    centerLineRef.current.position.copy(center);
+    innerLineRef.current.position.copy(center);
+    outerLineRef.current.position.copy(center);
   });
 
   const clipPlanes = [
@@ -246,16 +267,28 @@ const SkidpadRingInner = () => {
   if (!solver || !isSkidpadSolver(solver)) return null;
   const radiusC = Math.max(-maximumRadius, Math.min(solver.r, maximumRadius));
   const center = new Vector3(0, radiusC * 1000, 0).applyMatrix3(coMatrix);
-  const vtx = getVertices(radiusC, coMatrix);
+  const vtxIn = getVertices(radiusC, coMatrix);
+  const sgn = radiusC > 0 ? 1 : -1;
+  const vtxOut = getVertices(radiusC + sgn * roadWidth, coMatrix);
   return (
-    <Line
-      ref={centerLineRef}
-      points={vtx} // Array of Points
-      lineWidth={2}
-      color="hotpink"
-      position={center}
-      clippingPlanes={clipPlanes}
-    />
+    <group>
+      <Line
+        ref={innerLineRef}
+        points={vtxIn} // Array of Points
+        lineWidth={2}
+        color="hotpink"
+        position={center}
+        clippingPlanes={clipPlanes}
+      />
+      <Line
+        ref={outerLineRef}
+        points={vtxOut} // Array of Points
+        lineWidth={2}
+        color="hotpink"
+        position={center}
+        clippingPlanes={clipPlanes}
+      />
+    </group>
   );
 };
 
