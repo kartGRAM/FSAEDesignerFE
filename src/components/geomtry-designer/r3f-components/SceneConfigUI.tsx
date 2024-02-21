@@ -7,7 +7,6 @@ import {
   setGDSceneGridSize,
   setGDSceneShowOBBs,
   setGDSceneSkidpadViewerState,
-  initialSteadySkidpadViewerState,
   setGDSceneGridSegmentLength
 } from '@store/reducers/uiGeometryDesigner';
 import {isSkidpadSolver} from '@gd/kinematics/SkidpadSolver';
@@ -81,71 +80,102 @@ const SkidpadConfigUI = () => {
 
   const config = useSelector(
     (state: RootState) =>
-      state.uigd.present.gdSceneState.steadySkidpadViewerState ??
-      initialSteadySkidpadViewerState
+      state.uigd.present.gdSceneState.steadySkidpadViewerState
   );
+  const configRef = React.useRef(config);
+  configRef.current = config;
 
   useControls('Skidpad View', () => ({
     'Show lap time': {
       value: config.showLapTime,
       onChange: (c: boolean) => {
-        dispatch(setGDSceneSkidpadViewerState({...config, showLapTime: c}));
+        dispatch(
+          setGDSceneSkidpadViewerState({...configRef.current, showLapTime: c})
+        );
       }
     },
     'Show velocity': {
       value: config.showVelocity,
       onChange: (c: boolean) => {
-        dispatch(setGDSceneSkidpadViewerState({...config, showVelocity: c}));
+        dispatch(
+          setGDSceneSkidpadViewerState({...configRef.current, showVelocity: c})
+        );
       }
     },
     'Show omega': {
       value: config.showOmega,
       onChange: (c: boolean) => {
-        dispatch(setGDSceneSkidpadViewerState({...config, showOmega: c}));
+        dispatch(
+          setGDSceneSkidpadViewerState({...configRef.current, showOmega: c})
+        );
       }
     },
     'Show center radius': {
       value: config.showCenterRadius,
       onChange: (c: boolean) => {
         dispatch(
-          setGDSceneSkidpadViewerState({...config, showCenterRadius: c})
+          setGDSceneSkidpadViewerState({
+            ...configRef.current,
+            showCenterRadius: c
+          })
         );
       }
     },
     'Show inner radius': {
       value: config.showInnerRadius,
       onChange: (c: boolean) => {
-        dispatch(setGDSceneSkidpadViewerState({...config, showInnerRadius: c}));
+        dispatch(
+          setGDSceneSkidpadViewerState({
+            ...configRef.current,
+            showInnerRadius: c
+          })
+        );
       }
     },
     'Show start line': {
       value: config.showStartLine,
       onChange: (c: boolean) => {
-        dispatch(setGDSceneSkidpadViewerState({...config, showStartLine: c}));
+        dispatch(
+          setGDSceneSkidpadViewerState({...configRef.current, showStartLine: c})
+        );
       }
     },
     'Show center line': {
       value: config.showCenterLine,
       onChange: (c: boolean) => {
-        dispatch(setGDSceneSkidpadViewerState({...config, showCenterLine: c}));
+        dispatch(
+          setGDSceneSkidpadViewerState({
+            ...configRef.current,
+            showCenterLine: c
+          })
+        );
       }
     },
     'Show inner line': {
       value: config.showInnerLine,
       onChange: (c: boolean) => {
-        dispatch(setGDSceneSkidpadViewerState({...config, showInnerLine: c}));
+        dispatch(
+          setGDSceneSkidpadViewerState({...configRef.current, showInnerLine: c})
+        );
       }
     },
     'Show outer line': {
       value: config.showOuterLine,
       onChange: (c: boolean) => {
-        dispatch(setGDSceneSkidpadViewerState({...config, showOuterLine: c}));
+        dispatch(
+          setGDSceneSkidpadViewerState({...configRef.current, showOuterLine: c})
+        );
       }
     },
     'Show inner cones': {
       value: config.showInnerCones,
       onChange: (c: boolean) => {
-        dispatch(setGDSceneSkidpadViewerState({...config, showInnerCones: c}));
+        dispatch(
+          setGDSceneSkidpadViewerState({
+            ...configRef.current,
+            showInnerCones: c
+          })
+        );
       }
     },
     'Cone Interval': {
@@ -154,7 +184,9 @@ const SkidpadConfigUI = () => {
       max: 20,
       step: 0.5,
       onChange: (c: number) => {
-        dispatch(setGDSceneSkidpadViewerState({...config, coneInterval: c}));
+        dispatch(
+          setGDSceneSkidpadViewerState({...configRef.current, coneInterval: c})
+        );
       }
     },
     'Road Width': {
@@ -163,7 +195,9 @@ const SkidpadConfigUI = () => {
       max: 30,
       step: 0.5,
       onChange: (c: number) => {
-        dispatch(setGDSceneSkidpadViewerState({...config, roadWidth: c}));
+        dispatch(
+          setGDSceneSkidpadViewerState({...configRef.current, roadWidth: c})
+        );
       }
     }
   }));
