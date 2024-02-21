@@ -3,7 +3,7 @@ import {useFrame} from '@react-three/fiber';
 import {Line2} from 'three-stdlib';
 import {useSelector} from 'react-redux';
 import {Line} from '@react-three/drei';
-import {RootState} from '@store/store';
+import store, {RootState} from '@store/store';
 import {isSkidpadSolver} from '@gd/kinematics/SkidpadSolver';
 import {getMatrix3} from '@gd/NamedValues';
 import {Vector3, Matrix3, Quaternion, Group} from 'three';
@@ -12,9 +12,9 @@ import {range, hexToThreeColor} from '@utils/helpers';
 import {Cone} from '@gdComponents/r3f-components/3DModels/Cone';
 import {transQuaternion} from '@gd/IElements';
 
+const initialConeInterval = 3;
 const initialGridSize = 5000;
 const maximumRadius = 8000;
-const roadWidth = 2;
 
 const GroundPlane = () => {
   return (
@@ -83,7 +83,6 @@ const SkidpadObjects = () => {
 
 const Cones = (props: {clipPlanes: THREE.Plane[]}) => {
   const {clipPlanes} = props;
-  const coneInterval = 3;
   const maxCones = 500;
   const coneSize = 0.075;
   const solver = useSelector(
@@ -92,6 +91,12 @@ const Cones = (props: {clipPlanes: THREE.Plane[]}) => {
 
   const coMatrix = getMatrix3(
     useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
+  );
+
+  const coneInterval = useSelector(
+    (state: RootState) =>
+      state.uigd.present.gdSceneState.steadySkidpadViewerState?.coneInterval ??
+      initialConeInterval
   );
 
   const [numCones, setNumCones] = React.useState(16);
@@ -260,6 +265,11 @@ const SkidpadRingInner = (props: {clipPlanes: THREE.Plane[]}) => {
 
     const sgn = radius > 0 ? 1 : -1;
     const g2 = outerLineRef.current.geometry.attributes;
+
+    const roadWidth =
+      store.getState().uigd.present.gdSceneState.steadySkidpadViewerState
+        ?.roadWidth ?? 2;
+
     const ptsOuter = flatten(getVertices(radius + sgn * roadWidth, coMatrix));
     const instanceStartOuter = g2.instanceStart.array as Float32Array;
     instanceStartOuter.set(ptsOuter, 0);
@@ -279,14 +289,12 @@ const SkidpadRingInner = (props: {clipPlanes: THREE.Plane[]}) => {
   if (!solver || !isSkidpadSolver(solver)) return null;
   const radiusC = Math.max(-maximumRadius, Math.min(solver.r, maximumRadius));
   const center = new Vector3(0, radiusC * 1000, 0).applyMatrix3(coMatrix);
-  const vtxIn = getVertices(radiusC, coMatrix);
-  const sgn = radiusC > 0 ? 1 : -1;
-  const vtxOut = getVertices(radiusC + sgn * roadWidth, coMatrix);
+  const vtx = getVertices(radiusC, coMatrix);
   return (
     <group>
       <Line
         ref={innerLineRef}
-        points={vtxIn} // Array of Points
+        points={vtx} // Array of Points
         lineWidth={2}
         color="hotpink"
         position={center}
@@ -294,7 +302,7 @@ const SkidpadRingInner = (props: {clipPlanes: THREE.Plane[]}) => {
       />
       <Line
         ref={outerLineRef}
-        points={vtxOut} // Array of Points
+        points={vtx} // Array of Points
         lineWidth={2}
         color="hotpink"
         position={center}

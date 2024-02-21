@@ -99,6 +99,7 @@ export interface SteadySkidpadViewerState {
   showInnerLine: boolean;
   showOuterLine: boolean;
   showInnerCones: boolean;
+  coneInterval: number;
   roadWidth: number;
 }
 
