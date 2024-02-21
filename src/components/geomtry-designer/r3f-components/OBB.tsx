@@ -15,6 +15,10 @@ export const OBB = (props: {obb: IOBB; element?: IElement}) => {
     useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
   );
 
+  const showOBB = useSelector(
+    (state: RootState) => state.uigd.present.gdSceneState.showOBB
+  );
+
   const center = obb.center.clone().applyMatrix3(coMatrix);
   const halfSize = obb.halfSize.clone().applyMatrix3(coMatrix);
   const rotation = transQuaternion(obb.rotation, coMatrix);
@@ -33,6 +37,8 @@ export const OBB = (props: {obb: IOBB; element?: IElement}) => {
     closest.sub(p).applyQuaternion(invQ).applyMatrix3(coMatrix);
     sphereRef.current.position.copy(closest);
   }); */
+
+  if (!showOBB) return null;
 
   return (
     <>

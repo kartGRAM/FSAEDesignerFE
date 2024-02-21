@@ -21,6 +21,7 @@ import {OrbitControls} from './r3f-components/OrbitControls';
 import SelectedPoints from './r3f-components/SelectedPoints';
 import GroundPlane from './r3f-components/GroundPlane';
 import {KeyboardControls as MyKeyboardControls} from './r3f-components/KeyboardControls';
+import {SceneConfigUI} from './r3f-components/SceneConfigUI';
 
 let canvas: React.RefObject<HTMLCanvasElement>;
 
@@ -88,6 +89,7 @@ export default function GDScene() {
     align-items-start"
     >
       <GDSceneToolBar />
+      <SceneConfigUI />
       <KeyboardControls map={map}>
         <Canvas
           onCreated={(state) => {

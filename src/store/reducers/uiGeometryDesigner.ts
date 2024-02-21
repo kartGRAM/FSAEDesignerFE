@@ -89,7 +89,7 @@ export interface GDSceneState {
   projectionMode: 'Perspective' | 'Orthographic';
   componentVisualizationMode: 'ShowAllNodes' | 'WireFrameOnly';
   gridSize?: number;
-  segmentLength?: number;
+  gridSegmentLength?: number;
   showOBB?: boolean;
   steadySkidpadViewerState?: SteadySkidpadViewerState;
 }
@@ -299,9 +299,6 @@ export const uiGeometryDesignerSlice = createSlice({
     ) => {
       state.gdSceneState.projectionMode = action.payload;
     },
-    setGroundPlaneShow: (state: GDState, action: PayloadAction<boolean>) => {
-      state.gdSceneState.showGroundPlaneGrid = action.payload;
-    },
     setComponentVisualizationMode: (
       state: GDState,
       action: PayloadAction<'ShowAllNodes' | 'WireFrameOnly'>
@@ -325,6 +322,22 @@ export const uiGeometryDesignerSlice = createSlice({
       action: PayloadAction<boolean>
     ) => {
       state.chartState.settingPanelDefaultOpen = action.payload;
+    },
+    // GDSceneState
+    setGroundGridShow: (state: GDState, action: PayloadAction<boolean>) => {
+      state.gdSceneState.showGroundPlaneGrid = action.payload;
+    },
+    setGDSceneGridSize: (state: GDState, action: PayloadAction<number>) => {
+      state.gdSceneState.gridSize = action.payload;
+    },
+    setGDSceneGridSegmentLength: (
+      state: GDState,
+      action: PayloadAction<number>
+    ) => {
+      state.gdSceneState.gridSegmentLength = action.payload;
+    },
+    setGDSceneShowOBBs: (state: GDState, action: PayloadAction<boolean>) => {
+      state.gdSceneState.showOBB = action.payload;
     }
   }
 });
@@ -342,14 +355,17 @@ export const {
   setMoveDialogPosition,
   setCaseResultDialogPosition,
   setProjectionMode,
-  setGroundPlaneShow,
+  setGroundGridShow,
   setComponentVisualizationMode,
   datumObjectAccordionDefaultExpandedChange,
   measureToolsAccordionDefaultExpandedChange,
   roVariablesAccordionDefaultExpandedChange,
   setFlowCanvasBackgroundVariant,
   setChartSettingPanelWidth,
-  setChartSettingPanelDefaultOpen
+  setChartSettingPanelDefaultOpen,
+  setGDSceneGridSize,
+  setGDSceneShowOBBs,
+  setGDSceneGridSegmentLength
 } = uiGeometryDesignerSlice.actions;
 
 export default uiGeometryDesignerSlice.reducer;

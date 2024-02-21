@@ -35,7 +35,8 @@ const Grid = () => {
       state.uigd.present.gdSceneState.gridSize ?? initialGridSize
   );
   const segmentLength = useSelector(
-    (state: RootState) => state.uigd.present.gdSceneState.segmentLength ?? 200
+    (state: RootState) =>
+      state.uigd.present.gdSceneState.gridSegmentLength ?? 200
   );
 
   const segments = Math.floor(gridSize / segmentLength);

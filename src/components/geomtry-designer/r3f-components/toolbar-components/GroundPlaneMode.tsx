@@ -3,7 +3,7 @@ import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import SvgIcon from '@mui/material/SvgIcon';
 import {useSelector, useDispatch} from 'react-redux';
-import {setGroundPlaneShow} from '@store/reducers/uiGeometryDesigner';
+import {setGroundGridShow} from '@store/reducers/uiGeometryDesigner';
 import store, {RootState} from '@store/store';
 
 export default function GroundPlaneMode() {
@@ -13,7 +13,7 @@ export default function GroundPlaneMode() {
   const dispatch = useDispatch();
 
   const handleOnClick = () => {
-    dispatch(setGroundPlaneShow(!showGrid));
+    dispatch(setGroundGridShow(!showGrid));
   };
 
   const {uitgd} = store.getState();
