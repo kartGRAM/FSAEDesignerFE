@@ -12,7 +12,6 @@ import {range, hexToThreeColor} from '@utils/helpers';
 import {Cone} from '@gdComponents/r3f-components/3DModels/Cone';
 import {transQuaternion} from '@gd/IElements';
 
-const initialConeInterval = 3;
 const initialGridSize = 5000;
 const maximumRadius = 8000;
 
@@ -94,12 +93,6 @@ const Cones = (props: {clipPlanes: THREE.Plane[]}) => {
     useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
   );
 
-  const coneInterval = useSelector(
-    (state: RootState) =>
-      state.uigd.present.gdSceneState.steadySkidpadViewerState?.coneInterval ??
-      initialConeInterval
-  );
-
   const [numCones, setNumCones] = React.useState(16);
   const groupRef = React.useRef<Group>(null!);
 
@@ -114,6 +107,8 @@ const Cones = (props: {clipPlanes: THREE.Plane[]}) => {
     );
     const radiusC = Math.max(-maximumRadius, Math.min(solver.r, maximumRadius));
     const center = new Vector3(0, radiusC * 1000, 0).applyMatrix3(coMatrix);
+    const {coneInterval} =
+      store.getState().uigd.present.gdSceneState.steadySkidpadViewerState;
     const newNumCones = Math.min(
       Math.round((2 * Math.PI * Math.abs(radius)) / coneInterval),
       maxCones
@@ -132,8 +127,13 @@ const Cones = (props: {clipPlanes: THREE.Plane[]}) => {
   });
 
   if (!solver || !isSkidpadSolver(solver)) return null;
+
+  const offset = Math.abs(solver.rMin - solver.r);
   const radius = Math.abs(
-    Math.max(-maximumRadius, Math.min(solver.rMin, maximumRadius))
+    Math.max(
+      -maximumRadius - offset,
+      Math.min(solver.rMin, maximumRadius + offset)
+    )
   );
   const radiusC = Math.max(-maximumRadius, Math.min(solver.r, maximumRadius));
   const center = new Vector3(0, radiusC * 1000, 0).applyMatrix3(coMatrix);
@@ -151,6 +151,7 @@ const Cones = (props: {clipPlanes: THREE.Plane[]}) => {
         );
         return (
           <Cone
+            key={i}
             color={
               i !== 0 ? new THREE.Color(0, 0.86, 0) : hexToThreeColor('#FF69B4')
             }

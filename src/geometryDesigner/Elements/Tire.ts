@@ -245,6 +245,14 @@ export class Tire extends Element implements ITire {
     const pp = parentPosition ?? new Vector3();
     this.position.value = this.initialPosition.value.clone().add(pp);
     this.rotation.value = new Quaternion();
+    this.angularVelocity = 0;
+    this.centrifugalForce = new Vector3();
+    this.gravity = new Vector3();
+    this.fy = new Vector3();
+    this.fx = new Vector3();
+    this.fz = new Vector3();
+    this.innerBearingForce = new Vector3();
+    this.outerBearingForce = new Vector3();
   }
 
   getMirror(): Tire {

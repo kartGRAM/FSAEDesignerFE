@@ -88,19 +88,39 @@ export interface GDSceneState {
   showGroundPlaneGrid: boolean;
   projectionMode: 'Perspective' | 'Orthographic';
   componentVisualizationMode: 'ShowAllNodes' | 'WireFrameOnly';
-  gridSize?: number;
-  gridSegmentLength?: number;
-  showOBB?: boolean;
-  steadySkidpadViewerState?: SteadySkidpadViewerState;
+  gridSize: number;
+  gridSegmentLength: number;
+  showOBB: boolean;
+  steadySkidpadViewerState: SteadySkidpadViewerState;
 }
 
 export interface SteadySkidpadViewerState {
+  showLapTime: boolean;
+  showVelocity: boolean;
+  showOmega: boolean;
+  showCenterRadius: boolean;
+  showInnerRadius: boolean;
+
+  showStartLine: boolean;
   showCenterLine: boolean;
   showInnerLine: boolean;
   showOuterLine: boolean;
   showInnerCones: boolean;
-  coneInterval: number;
-  roadWidth: number;
+  coneInterval: number; // m
+  roadWidth: number; // m
+}
+
+export interface ForceViewerState {
+  showInertiaForce: boolean;
+  showBearingForce: boolean;
+  showTireFriction: boolean;
+  showBarForce: boolean;
+  showSpringForce: boolean;
+  showAArmForce: boolean;
+  showBellCrankForce: boolean;
+  showBodyForce: boolean;
+  showLinearBushingForce: boolean;
+  showTorsionSpringForce: boolean;
 }
 
 export interface GDState {
@@ -118,6 +138,21 @@ export interface GDState {
   dialogState: DialogState;
   gdSceneState: GDSceneState;
 }
+
+export const initialSteadySkidpadViewerState: SteadySkidpadViewerState = {
+  showLapTime: true,
+  showVelocity: true,
+  showOmega: true,
+  showStartLine: true,
+  showCenterRadius: true,
+  showInnerRadius: true,
+  showCenterLine: true,
+  showInnerLine: true,
+  showOuterLine: true,
+  showInnerCones: true,
+  coneInterval: 3,
+  roadWidth: 2
+};
 
 const initialState: GDState = {
   backgroundColor: 0x222222,
@@ -195,7 +230,11 @@ const initialState: GDState = {
   gdSceneState: {
     showGroundPlaneGrid: false,
     componentVisualizationMode: 'ShowAllNodes',
-    projectionMode: 'Perspective'
+    projectionMode: 'Perspective',
+    gridSize: 5000,
+    gridSegmentLength: 290,
+    showOBB: false,
+    steadySkidpadViewerState: initialSteadySkidpadViewerState
   },
   chartState: {
     settingPanelWidth: '30%',
@@ -338,6 +377,13 @@ export const uiGeometryDesignerSlice = createSlice({
     },
     setGDSceneShowOBBs: (state: GDState, action: PayloadAction<boolean>) => {
       state.gdSceneState.showOBB = action.payload;
+    },
+    // SkidpadViewerState
+    setGDSceneSkidpadViewerState: (
+      state: GDState,
+      action: PayloadAction<SteadySkidpadViewerState>
+    ) => {
+      state.gdSceneState.steadySkidpadViewerState = action.payload;
     }
   }
 });
@@ -365,7 +411,8 @@ export const {
   setChartSettingPanelDefaultOpen,
   setGDSceneGridSize,
   setGDSceneShowOBBs,
-  setGDSceneGridSegmentLength
+  setGDSceneGridSegmentLength,
+  setGDSceneSkidpadViewerState
 } = uiGeometryDesignerSlice.actions;
 
 export default uiGeometryDesignerSlice.reducer;
