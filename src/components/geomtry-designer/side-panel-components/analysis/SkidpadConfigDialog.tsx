@@ -25,14 +25,12 @@ import {initialSteadySkidpadParams} from '@gd/analysis/Test';
 import useTestUpdate from '@hooks/useTestUpdate';
 import Scalar from '@gdComponents/Scalar';
 import {ParameterSetter} from '@gd/analysis/ParameterSetter';
-import {NamedNumber, NamedVector3} from '@gd/NamedValues';
 import {createDummyDataControl} from '@gd/controls/IControls';
 import {getControl} from '@gd/controls/Controls';
 import yup from '@app/utils/Yup';
 import {isTire, ITire} from '@gd/IElements/ITire';
 import {listTireData} from '@tire/listTireData';
 import TextField from '@mui/material/TextField';
-import {Vector3} from 'three';
 
 export const SkidpadConfigDialog = React.memo(
   (props: {
