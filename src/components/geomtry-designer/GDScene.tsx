@@ -10,10 +10,8 @@ import {
 } from '@react-three/drei';
 import CollectedAssembly from '@gdComponents/r3f-components/CollectedAssembly';
 import {numberToRgb} from '@app/utils/helpers';
-
 import GDSceneToolBar from '@gdComponents/r3f-components/toolbar-components/GDSceneToolBar';
 import {setGDSceneGetThree} from '@store/reducers/uiTempGeometryDesigner';
-
 import DatumObjectsRenderer from '@gdComponents/r3f-components/DatumObjects/DatumObjectsRenderer';
 import MeasureToolsRenderer from '@gdComponents/r3f-components/MeasureTools/MeasureToolsRenderer';
 import ROVariablesUpdate from '@gdComponents/r3f-components/ReadonlyVariables/ReadonlyVariablesUpdate';
@@ -22,6 +20,7 @@ import SelectedPoints from './r3f-components/SelectedPoints';
 import GroundPlane from './r3f-components/GroundPlane';
 import {KeyboardControls as MyKeyboardControls} from './r3f-components/KeyboardControls';
 import {SceneConfigUI} from './r3f-components/SceneConfigUI';
+import {SkidpadLogOutputs} from './r3f-components/SkidpadLogOutputs/SkidpadLogOutputs';
 
 let canvas: React.RefObject<HTMLCanvasElement>;
 
@@ -90,6 +89,7 @@ export default function GDScene() {
     >
       <GDSceneToolBar />
       <SceneConfigUI />
+      <SkidpadLogOutputs />
       <KeyboardControls map={map}>
         <Canvas
           onCreated={(state) => {
