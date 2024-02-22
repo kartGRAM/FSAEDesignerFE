@@ -6,7 +6,7 @@ type IConstrainsState = number[];
 export interface ISnapshot {
   dofState: {[index: string]: IDOFState};
   constraintsState: {[index: string]: IConstrainsState};
-  solverParameters?: unknown;
+  solverState?: unknown;
   measureTools?: MeasureSnapshot;
   readonlyVariables?: ROVariablesSnapshot;
   globals?: IDataFormula[];

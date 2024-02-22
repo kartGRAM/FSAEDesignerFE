@@ -29,7 +29,7 @@ const ForceArrow = (props: {
 
   useFrame(() => {
     if (!isSkidpadSolver(solver)) return;
-    const std = solver.stdForce;
+    const std = solver.state.stdForce;
     const force = element.getForceResults()[index];
     const magnitude = force.force.length();
     const size = (stdLength * magnitude) / std;
