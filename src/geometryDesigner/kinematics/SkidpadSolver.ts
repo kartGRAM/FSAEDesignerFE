@@ -141,9 +141,9 @@ export class SkidpadSolver implements IForceSolver {
       stdForce: 1000,
       v: config.velocity.value,
       omega: 0,
-      r: Number.MAX_VALUE,
-      rMin: Number.MAX_VALUE,
-      lapTime: Number.MAX_VALUE
+      r: Number.MAX_SAFE_INTEGER,
+      rMin: Number.MAX_SAFE_INTEGER,
+      lapTime: Number.MAX_SAFE_INTEGER
     };
     const vO = () =>
       new Vector3(this.state.v, 0, 0).multiplyScalar(scale * 1000);
@@ -1136,7 +1136,8 @@ export class SkidpadSolver implements IForceSolver {
           const norm_dq = dq.norm('frobenius');
           const norm_phi = matPhi.norm('frobenius');
           const omega = (components[0] as GeneralVariable).value;
-          this.state.r = this.state.v / omega;
+          const maxR = 100000000000;
+          this.state.r = Math.max(-maxR, Math.min(this.state.v / omega, maxR));
           this.state.omega = omega;
           this.state.lapTime = Math.abs((Math.PI * 2) / omega);
           const phiMax = Math.max(...phi);

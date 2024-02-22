@@ -196,23 +196,22 @@ export class Tire extends Element implements ITire {
     const gPoint = this.getNearestNeighborToPlane(normal);
     const tread = this.tread.value;
     const axis = this.tireAxis.value.normalize();
-    const p1 = gPoint
-      .clone()
-      .sub(center)
-      .add(axis.clone().multiplyScalar(tread / 2));
-    const p2 = gPoint
-      .clone()
-      .sub(center)
-      .sub(axis.clone().multiplyScalar(tread / 2));
+    const halfTread = axis.clone().multiplyScalar(tread / 2);
+    const p = gPoint.clone().sub(center);
 
     const segments = 16;
     const q = new Quaternion().setFromAxisAngle(axis, (2 * Math.PI) / segments);
     range(0, segments).forEach(() => {
-      points.push(center.clone().add(p1));
-      points.push(center.clone().add(p2));
-      p1.applyQuaternion(q);
-      p2.applyQuaternion(q);
+      points.push(center.clone().add(p).add(halfTread));
+      points.push(center.clone().add(p).sub(halfTread));
+      p.applyQuaternion(q);
     });
+    const q2 = new Quaternion().setFromAxisAngle(axis, (2 * Math.PI) / 4);
+    const p2 = p.clone().applyQuaternion(q2);
+    points.push(center.clone().add(p).add(p2));
+    points.push(center.clone().add(p).sub(p2));
+    points.push(center.clone().sub(p).add(p2));
+    points.push(center.clone().sub(p).sub(p2));
 
     return new OBB().setFromVertices(points);
   }
