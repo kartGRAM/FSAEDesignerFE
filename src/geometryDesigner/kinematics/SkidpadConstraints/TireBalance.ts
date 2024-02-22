@@ -138,6 +138,12 @@ export class TireBalance {
     }
   }
 
+  saveState(): number[] {
+    return [];
+  }
+
+  restoreState(): void {}
+
   checkFz() {
     this.fz.reset({});
     // eslint-disable-next-line no-unreachable

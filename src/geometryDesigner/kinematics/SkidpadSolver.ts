@@ -60,9 +60,7 @@ import {
   Hinge,
   BarAndSpheres,
   LinearBushingSingleEnd,
-  PointToPlane,
-  hasDl,
-  controled
+  PointToPlane
 } from './KinematicConstraints';
 import {
   BarBalance,
@@ -106,7 +104,11 @@ export class SkidpadSolver implements IForceSolver {
 
   running: boolean = false;
 
-  firstSolved = false;
+  get firstSolved() {
+    return !!this.firstSnapshot;
+  }
+
+  firstSnapshot: ISnapshot | undefined;
 
   // 表示する際の基準となる力の大きさ
   stdForce: number = 1000;
@@ -1177,12 +1179,6 @@ export class SkidpadSolver implements IForceSolver {
         // eslint-disable-next-line no-console
         console.log(`solver converged...\ntime = ${(end - start).toFixed(1)}`);
       }
-      if (!this.firstSolved) {
-        this.components.forEach((components) => {
-          components.forEach((component) => component.saveInitialQ());
-        });
-      }
-      this.firstSolved = true;
 
       if (postProcess) {
         this.postProcess();
@@ -1267,6 +1263,10 @@ export class SkidpadSolver implements IForceSolver {
       });
     });
     this.stdForce = maxForce * 2;
+
+    if (!this.firstSolved) {
+      this.firstSnapshot = this.getSnapshot();
+    }
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -1279,22 +1279,11 @@ export class SkidpadSolver implements IForceSolver {
 
   restoreInitialQ() {
     try {
-      if (!this.firstSolved) {
-        this.firstSolve();
+      if (!this.firstSnapshot) {
+        this.solve();
         return;
       }
-      this.v = this.config.velocity.value;
-      this.components.forEach((components) => {
-        components[0].getGroupedConstraints().forEach((c) => c.resetStates());
-        components.forEach((component) => component.restoreInitialQ());
-      });
-
-      const roots = this.components.map((c) => c[0]);
-      roots.forEach((root) => {
-        root.getGroupedConstraints().forEach((c) => {
-          if (hasDl(c)) c.dl = 0;
-        });
-      });
+      this.restoreState(this.firstSnapshot);
       this.postProcess();
     } catch (e) {
       // eslint-disable-next-line no-console
@@ -1310,24 +1299,25 @@ export class SkidpadSolver implements IForceSolver {
         });
         return prev;
       }, {} as {[index: string]: number[]}),
-      constrainsState: this.components.reduce((prev, components, i) => {
+      constraintsState: this.components.reduce((prev, components, i) => {
         components[0].getGroupedConstraints().forEach((c, j) => {
-          if (controled(c)) prev[`${j}@${i}`] = c.dl;
+          prev[`${j}@${i}`] = c.saveState();
         });
         return prev;
-      }, {} as {[index: string]: number})
+      }, {} as {[index: string]: number[]})
     };
   }
 
   restoreState(snapshot: ISnapshot): void {
-    const {dofState, constrainsState} = snapshot;
+    const {dofState, constraintsState} = snapshot;
     this.components.forEach((components, i) => {
       components.forEach((component, j) => {
         component.restoreState(dofState[`${j}@${i}`]);
       });
       components[0].getGroupedConstraints().forEach(
         // eslint-disable-next-line no-return-assign
-        (c, j) => controled(c) && (c.dl = constrainsState[`${j}@${i}`])
+        (constraint, j) =>
+          constraint.restoreState(constraintsState[`${j}@${i}`])
       );
     });
   }

@@ -199,6 +199,12 @@ export class FDComponentBalance implements Constraint, Balance {
     }
   }
 
+  saveState(): number[] {
+    return [];
+  }
+
+  restoreState(): void {}
+
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
     const {row, component: c} = this;
 

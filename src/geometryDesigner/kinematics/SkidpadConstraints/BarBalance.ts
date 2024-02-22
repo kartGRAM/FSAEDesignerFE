@@ -220,6 +220,14 @@ export class BarBalance implements Constraint, Balance {
     }
   }
 
+  saveState(): number[] {
+    return [this.freeLength.scalarValue];
+  }
+
+  restoreState(state: number[]): void {
+    this.freeLength.setValue(state[0]);
+  }
+
   setPreload() {
     if (!this.isSpring) return;
     this._setPreload();

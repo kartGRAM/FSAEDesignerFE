@@ -240,6 +240,12 @@ export class TorsionSpringBalance implements Constraint, Balance {
       .add(ma.cross(pCog));
   }
 
+  saveState(): number[] {
+    return [];
+  }
+
+  restoreState(): void {}
+
   applytoElement(): void {
     /*
     const q = this.element.rotation.value.invert();

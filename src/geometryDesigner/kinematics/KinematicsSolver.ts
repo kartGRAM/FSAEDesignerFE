@@ -46,9 +46,7 @@ import {
   Hinge,
   BarAndSpheres,
   LinearBushingSingleEnd,
-  PointToPlane,
-  hasDl,
-  controled
+  PointToPlane
 } from './KinematicConstraints';
 import {
   IComponent,
@@ -76,7 +74,11 @@ export class KinematicsSolver implements ISolver {
 
   running: boolean = false;
 
-  firstSolved = false;
+  get firstSolved() {
+    return !!this.firstSnapshot;
+  }
+
+  firstSnapshot: ISnapshot | undefined;
 
   constructor(
     assembly: IAssembly,
@@ -858,11 +860,8 @@ export class KinematicsSolver implements ISolver {
         console.log(`solver converged...\ntime = ${(end - start).toFixed(1)}`);
       }
       if (!this.firstSolved) {
-        this.components.forEach((components) => {
-          components.forEach((component) => component.saveInitialQ());
-        });
+        this.firstSnapshot = this.getSnapshot();
       }
-      this.firstSolved = true;
 
       if (postProcess) {
         this.postProcess();
@@ -900,7 +899,11 @@ export class KinematicsSolver implements ISolver {
       return prev + current.degreeOfFreedom;
     }, 0);
     const qCurrent = new Array<number>(degreeOfFreedom);
-    components.forEach((c) => c.saveQ(qCurrent));
+    components.forEach((c) => {
+      if (c.col === -1) return;
+      const state = c.saveState();
+      qCurrent.splice(c.col, state.length, ...state);
+    });
     try {
       const start = performance.now();
       const maxCnt = params?.maxCnt ?? 1000;
@@ -935,7 +938,10 @@ export class KinematicsSolver implements ISolver {
           if (inequalityConstraint && icBound) {
             inequalityConstraint.row = equations;
             ++equations;
-            components.forEach((c) => c.loadQ(qCurrent));
+            components.forEach((c) => {
+              if (c.col === -1) return;
+              c.restoreState(qCurrent.slice(c.col));
+            });
           }
           const H = Matrix.eye(degreeOfFreedom, degreeOfFreedom); // ヘッセ行列
           // いつも同じところが更新されるので、毎回newしなくてもよい
@@ -1092,7 +1098,10 @@ export class KinematicsSolver implements ISolver {
         this.postProcess();
       }
     } catch (e) {
-      components.forEach((c) => c.loadQ(qCurrent));
+      components.forEach((c) => {
+        if (c.col === -1) return;
+        c.restoreState(qCurrent.slice(c.col));
+      });
       this.running = false;
       throw e;
     }
@@ -1101,21 +1110,11 @@ export class KinematicsSolver implements ISolver {
 
   restoreInitialQ() {
     try {
-      if (!this.firstSolved) {
+      if (!this.firstSnapshot) {
         this.solve();
         return;
       }
-      this.components.forEach((components) => {
-        components[0].getGroupedConstraints().forEach((c) => c.resetStates());
-        components.forEach((component) => component.restoreInitialQ());
-      });
-
-      const roots = this.components.map((c) => c[0]);
-      roots.forEach((root) => {
-        root.getGroupedConstraints().forEach((c) => {
-          if (hasDl(c)) c.dl = 0;
-        });
-      });
+      this.restoreState(this.firstSnapshot);
       this.postProcess();
     } catch (e) {
       // eslint-disable-next-line no-console
@@ -1131,24 +1130,25 @@ export class KinematicsSolver implements ISolver {
         });
         return prev;
       }, {} as {[index: string]: number[]}),
-      constrainsState: this.components.reduce((prev, components, i) => {
+      constraintsState: this.components.reduce((prev, components, i) => {
         components[0].getGroupedConstraints().forEach((c, j) => {
-          if (controled(c)) prev[`${j}@${i}`] = c.dl;
+          prev[`${j}@${i}`] = c.saveState();
         });
         return prev;
-      }, {} as {[index: string]: number})
+      }, {} as {[index: string]: number[]})
     };
   }
 
   restoreState(snapshot: ISnapshot): void {
-    const {dofState, constrainsState} = snapshot;
+    const {dofState, constraintsState} = snapshot;
     this.components.forEach((components, i) => {
       components.forEach((component, j) => {
         component.restoreState(dofState[`${j}@${i}`]);
       });
       components[0].getGroupedConstraints().forEach(
         // eslint-disable-next-line no-return-assign
-        (c, j) => controled(c) && (c.dl = constrainsState[`${j}@${i}`])
+        (constraint, j) =>
+          constraint.restoreState(constraintsState[`${j}@${i}`])
       );
     });
   }

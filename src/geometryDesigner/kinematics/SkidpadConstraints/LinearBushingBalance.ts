@@ -213,6 +213,12 @@ export class LinearBushingBalance implements Constraint, Balance {
     this.fixedForceError = this.ffc[1].dot(axis).sub(this.ffc[0].dot(axis));
   }
 
+  saveState(): number[] {
+    return [];
+  }
+
+  restoreState(): void {}
+
   applytoElement(): void {
     const q = this.element.rotation.value.invert();
     const {element} = this;

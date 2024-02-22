@@ -159,6 +159,14 @@ export class BarAndSpheres implements Constraint, deltaL {
     this.error = d.dot(d).sub(this.l2);
   }
 
+  saveState(): number[] {
+    return [this._dl];
+  }
+
+  restoreState(state: number[]): void {
+    [this._dl] = state;
+  }
+
   setJacobianAndConstraints(
     phi_q: Matrix,
     phi: number[],

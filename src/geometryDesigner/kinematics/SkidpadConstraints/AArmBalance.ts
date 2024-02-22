@@ -167,6 +167,12 @@ export class AArmBalance implements Constraint, Balance {
       .add(ma.cross(pCog));
   }
 
+  saveState(): number[] {
+    return [];
+  }
+
+  restoreState(): void {}
+
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
     const {row} = this;
 

@@ -22,12 +22,13 @@ export interface Constraint {
     phi: number[],
     options: ConstraintsOptions
   ): void;
-
   setJacobianAndConstraintsInequal(
     phi_q: Matrix,
     phi: number[],
     hint: any
   ): any;
   checkInequalityConstraint(): [boolean, any];
+  saveState(): number[];
+  restoreState(state: number[]): void;
   resetStates(): void;
 }

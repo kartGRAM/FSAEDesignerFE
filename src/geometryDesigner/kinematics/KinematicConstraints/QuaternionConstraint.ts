@@ -41,6 +41,12 @@ export class QuaternionConstraint implements Constraint {
     this.relevantVariables = [component];
   }
 
+  saveState(): number[] {
+    return [];
+  }
+
+  restoreState(): void {}
+
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
     const {row, IComponent} = this;
     const {col} = IComponent;
