@@ -1,11 +1,12 @@
 import {IDataFormula} from '@gd/IFormula';
 
 type IDOFState = number[];
+type IConstrainsState = number[];
 
 export interface ISnapshot {
   dofState: {[index: string]: IDOFState};
-  constrainsState: {[index: string]: number};
-  solverParameters?: unknown;
+  constraintsState: {[index: string]: IConstrainsState};
+  solverState?: unknown;
   measureTools?: MeasureSnapshot;
   readonlyVariables?: ROVariablesSnapshot;
   globals?: IDataFormula[];

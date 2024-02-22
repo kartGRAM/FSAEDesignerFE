@@ -109,6 +109,12 @@ export class Hinge implements Constraint {
     });
   }
 
+  saveState(): number[] {
+    return [];
+  }
+
+  restoreState(): void {}
+
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
     const {row} = this;
 

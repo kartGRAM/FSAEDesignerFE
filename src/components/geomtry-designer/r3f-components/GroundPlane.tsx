@@ -102,12 +102,15 @@ const Cones = (props: {clipPlanes: THREE.Plane[]}) => {
 
     groupRef.current.visible =
       store.getState().uigd.present.gdSceneState.steadySkidpadViewerState.showInnerCones;
-    const offset = Math.abs(solver.rMin - solver.r);
+    const offset = Math.abs(solver.state.rMin - solver.state.r);
     const radius = Math.max(
       -maximumRadius + offset,
-      Math.min(solver.rMin, maximumRadius - offset)
+      Math.min(solver.state.rMin, maximumRadius - offset)
     );
-    const radiusC = Math.max(-maximumRadius, Math.min(solver.r, maximumRadius));
+    const radiusC = Math.max(
+      -maximumRadius,
+      Math.min(solver.state.r, maximumRadius)
+    );
     const center = new Vector3(0, radiusC * 1000, 0).applyMatrix3(coMatrix);
     const {coneInterval} =
       store.getState().uigd.present.gdSceneState.steadySkidpadViewerState;
@@ -122,7 +125,7 @@ const Cones = (props: {clipPlanes: THREE.Plane[]}) => {
       setNumCones(newNumCones);
 
     // 回転
-    const omega = -solver.v / radius;
+    const omega = -solver.state.v / radius;
     rotation += (delta * omega) % (2 * Math.PI);
     const rot = new Quaternion().setFromAxisAngle(
       new Vector3(0, 0, 1).applyMatrix3(coMatrix),
@@ -134,14 +137,17 @@ const Cones = (props: {clipPlanes: THREE.Plane[]}) => {
 
   if (!solver || !isSkidpadSolver(solver)) return null;
 
-  const offset = Math.abs(solver.rMin - solver.r);
+  const offset = Math.abs(solver.state.rMin - solver.state.r);
   const radius = Math.abs(
     Math.max(
       -maximumRadius + offset,
-      Math.min(solver.rMin, maximumRadius - offset)
+      Math.min(solver.state.rMin, maximumRadius - offset)
     )
   );
-  const radiusC = Math.max(-maximumRadius, Math.min(solver.r, maximumRadius));
+  const radiusC = Math.max(
+    -maximumRadius,
+    Math.min(solver.state.r, maximumRadius)
+  );
   const center = new Vector3(0, radiusC * 1000, 0).applyMatrix3(coMatrix);
 
   return (
@@ -193,7 +199,10 @@ const SkidpadRingCenter = (props: {clipPlanes: THREE.Plane[]}) => {
     centerLineRef.current.visible =
       store.getState().uigd.present.gdSceneState.steadySkidpadViewerState.showCenterLine;
     const g = centerLineRef.current.geometry.attributes;
-    const radius = Math.max(-maximumRadius, Math.min(solver.r, maximumRadius));
+    const radius = Math.max(
+      -maximumRadius,
+      Math.min(solver.state.r, maximumRadius)
+    );
     const center = new Vector3(0, radius * 1000, 0).applyMatrix3(coMatrix);
     const pts = flatten(getVertices(radius, coMatrix));
     const instanceStart = g.instanceStart.array as Float32Array;
@@ -206,7 +215,7 @@ const SkidpadRingCenter = (props: {clipPlanes: THREE.Plane[]}) => {
     g.instanceDistanceStart.needsUpdate = true;
 
     // 回転
-    const omega = -solver.v / radius;
+    const omega = -solver.state.v / radius;
     rotation += (delta * omega) % (2 * Math.PI);
     const rot = new Quaternion().setFromAxisAngle(
       new Vector3(0, 0, 1).applyMatrix3(coMatrix),
@@ -218,7 +227,10 @@ const SkidpadRingCenter = (props: {clipPlanes: THREE.Plane[]}) => {
   });
 
   if (!solver || !isSkidpadSolver(solver)) return null;
-  const radius = Math.max(-maximumRadius, Math.min(solver.r, maximumRadius));
+  const radius = Math.max(
+    -maximumRadius,
+    Math.min(solver.state.r, maximumRadius)
+  );
   const center = new Vector3(0, radius * 1000, 0).applyMatrix3(coMatrix);
   const vtx = getVertices(radius, coMatrix);
   return (
@@ -255,10 +267,10 @@ const SkidpadRingInner = (props: {clipPlanes: THREE.Plane[]}) => {
       store.getState().uigd.present.gdSceneState.steadySkidpadViewerState.showInnerLine;
 
     const g = innerLineRef.current.geometry.attributes;
-    const offset = Math.abs(solver.rMin - solver.r);
+    const offset = Math.abs(solver.state.rMin - solver.state.r);
     const radius = Math.max(
       -maximumRadius + offset,
-      Math.min(solver.rMin, maximumRadius - offset)
+      Math.min(solver.state.rMin, maximumRadius - offset)
     );
     const pts = flatten(getVertices(radius, coMatrix));
     const instanceStart = g.instanceStart.array as Float32Array;
@@ -270,7 +282,10 @@ const SkidpadRingInner = (props: {clipPlanes: THREE.Plane[]}) => {
     distanceStart.set(distance, 0);
     g.instanceDistanceStart.needsUpdate = true;
 
-    const radiusC = Math.max(-maximumRadius, Math.min(solver.r, maximumRadius));
+    const radiusC = Math.max(
+      -maximumRadius,
+      Math.min(solver.state.r, maximumRadius)
+    );
     const center = new Vector3(0, radiusC * 1000, 0).applyMatrix3(coMatrix);
     innerLineRef.current.position.copy(center);
   });
@@ -281,10 +296,10 @@ const SkidpadRingInner = (props: {clipPlanes: THREE.Plane[]}) => {
     outerLineRef.current.visible =
       store.getState().uigd.present.gdSceneState.steadySkidpadViewerState.showOuterLine;
 
-    const offset = Math.abs(solver.rMin - solver.r);
+    const offset = Math.abs(solver.state.rMin - solver.state.r);
     const radius = Math.max(
       -maximumRadius + offset,
-      Math.min(solver.rMin, maximumRadius - offset)
+      Math.min(solver.state.rMin, maximumRadius - offset)
     );
     const sgn = radius > 0 ? 1 : -1;
     const g2 = outerLineRef.current.geometry.attributes;
@@ -303,13 +318,19 @@ const SkidpadRingInner = (props: {clipPlanes: THREE.Plane[]}) => {
     distanceStartOuter.set(distanceOuter, 0);
     g2.instanceDistanceStart.needsUpdate = true;
 
-    const radiusC = Math.max(-maximumRadius, Math.min(solver.r, maximumRadius));
+    const radiusC = Math.max(
+      -maximumRadius,
+      Math.min(solver.state.r, maximumRadius)
+    );
     const center = new Vector3(0, radiusC * 1000, 0).applyMatrix3(coMatrix);
     outerLineRef.current.position.copy(center);
   });
 
   if (!solver || !isSkidpadSolver(solver)) return null;
-  const radiusC = Math.max(-maximumRadius, Math.min(solver.r, maximumRadius));
+  const radiusC = Math.max(
+    -maximumRadius,
+    Math.min(solver.state.r, maximumRadius)
+  );
   const center = new Vector3(0, radiusC * 1000, 0).applyMatrix3(coMatrix);
   const vtx = getVertices(radiusC, coMatrix);
   return (

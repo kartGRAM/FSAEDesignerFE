@@ -61,16 +61,16 @@ export class SkidpadSolverControl extends Control {
     if (!isSkidpadSolver(solver)) {
       throw new Error('solverが異なる');
     }
-    const reserved = solver.v;
+    const reserved = solver.state.v;
     const deltaDl = dt * this.speed * (this.reverse ? -1 : 1);
     const max = this.maxV.value;
     const min = this.minV.value;
     if (value || value === 0) {
-      solver.v = value;
+      solver.state.v = value;
     } else {
-      solver.v += deltaDl;
+      solver.state.v += deltaDl;
     }
-    solver.v = Math.max(min, Math.min(solver.v, max));
+    solver.state.v = Math.max(min, Math.min(solver.state.v, max));
     return reserved;
   }
 
@@ -79,7 +79,7 @@ export class SkidpadSolverControl extends Control {
     if (!isSkidpadSolver(solver)) {
       throw new Error('solverが異なる');
     }
-    solver.v = value;
+    solver.state.v = value;
   }
 
   getDataControl(): IDataSkidpadSolverControl {

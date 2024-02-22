@@ -93,6 +93,12 @@ export class Sphere implements Constraint {
     this.constraint = this.pLhs.add(sLhs).sub(this.pRhs).sub(sRhs);
   }
 
+  saveState(): number[] {
+    return [];
+  }
+
+  restoreState(): void {}
+
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
     const {row} = this;
 

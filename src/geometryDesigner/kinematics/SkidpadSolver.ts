@@ -60,9 +60,7 @@ import {
   Hinge,
   BarAndSpheres,
   LinearBushingSingleEnd,
-  PointToPlane,
-  hasDl,
-  controled
+  PointToPlane
 } from './KinematicConstraints';
 import {
   BarBalance,
@@ -87,6 +85,21 @@ import {
 } from './KinematicComponents';
 import {ISolver, IForceSolver} from './ISolver';
 
+interface ISolverState {
+  // 表示する際の基準となる力の大きさ
+  stdForce: number;
+
+  v: number; // m/s
+
+  omega: number;
+
+  r: number;
+
+  rMin: number;
+
+  lapTime: number;
+}
+
 export class SkidpadSolver implements IForceSolver {
   static className = 'SkidpadSolver' as const;
 
@@ -106,22 +119,15 @@ export class SkidpadSolver implements IForceSolver {
 
   running: boolean = false;
 
-  firstSolved = false;
+  get firstSolved() {
+    return !!this.firstSnapshot;
+  }
 
-  // 表示する際の基準となる力の大きさ
-  stdForce: number = 1000;
-
-  v: number; // m/s
-
-  omega: number;
+  firstSnapshot: ISnapshot | undefined;
 
   config: ISteadySkidpadParams;
 
-  r: number;
-
-  rMin: number;
-
-  lapTime: number | undefined;
+  state: ISolverState;
 
   constructor(
     assembly: IAssembly,
@@ -131,11 +137,16 @@ export class SkidpadSolver implements IForceSolver {
     forceScale: number
   ) {
     this.config = config;
-    this.v = config.velocity.value;
-    this.omega = 0;
-    this.r = Number.MAX_VALUE;
-    this.rMin = Number.MAX_VALUE;
-    const vO = () => new Vector3(this.v, 0, 0).multiplyScalar(scale * 1000);
+    this.state = {
+      stdForce: 1000,
+      v: config.velocity.value,
+      omega: 0,
+      r: Number.MAX_SAFE_INTEGER,
+      rMin: Number.MAX_SAFE_INTEGER,
+      lapTime: Number.MAX_SAFE_INTEGER
+    };
+    const vO = () =>
+      new Vector3(this.state.v, 0, 0).multiplyScalar(scale * 1000);
     this.assembly = assembly;
     const {children} = assembly;
 
@@ -1125,9 +1136,10 @@ export class SkidpadSolver implements IForceSolver {
           const norm_dq = dq.norm('frobenius');
           const norm_phi = matPhi.norm('frobenius');
           const omega = (components[0] as GeneralVariable).value;
-          this.r = this.v / omega;
-          this.omega = omega;
-          this.lapTime = Math.abs((Math.PI * 2) / omega);
+          const maxR = 100000000000;
+          this.state.r = Math.max(-maxR, Math.min(this.state.v / omega, maxR));
+          this.state.omega = omega;
+          this.state.lapTime = Math.abs((Math.PI * 2) / omega);
           const phiMax = Math.max(...phi);
           const phiMaxIdx = phi.indexOf(phiMax);
           const dqData = (dq as any).data.map((d: any) => d[0]);
@@ -1143,9 +1155,9 @@ export class SkidpadSolver implements IForceSolver {
             console.log(`dq_min   = ${dqMin.toFixed(4)}`);
             console.log(`dq_maxIdx= ${dqMaxIdx}`);
             console.log(`dq_minIdx= ${dqMinIdx}`);
-            console.log(`velocity=   ${this.v.toFixed(4)} m/s`);
-            console.log(`radius=     ${this.r.toFixed(4)} m`);
-            console.log(`lap time=   ${this.lapTime.toFixed(4)} s`);
+            console.log(`velocity=   ${this.state.v.toFixed(4)} m/s`);
+            console.log(`radius=     ${this.state.r.toFixed(4)} m`);
+            console.log(`lap time=   ${this.state.lapTime.toFixed(4)} s`);
             console.log(`norm_dq=    ${norm_dq.toFixed(4)}`);
             console.log(`norm_phi=   ${norm_phi.toFixed(4)}`);
             console.log(``);
@@ -1177,12 +1189,6 @@ export class SkidpadSolver implements IForceSolver {
         // eslint-disable-next-line no-console
         console.log(`solver converged...\ntime = ${(end - start).toFixed(1)}`);
       }
-      if (!this.firstSolved) {
-        this.components.forEach((components) => {
-          components.forEach((component) => component.saveInitialQ());
-        });
-      }
-      this.firstSolved = true;
 
       if (postProcess) {
         this.postProcess();
@@ -1266,7 +1272,11 @@ export class SkidpadSolver implements IForceSolver {
         }
       });
     });
-    this.stdForce = maxForce * 2;
+    this.state.stdForce = maxForce * 2;
+
+    if (!this.firstSolved) {
+      this.firstSnapshot = this.getSnapshot();
+    }
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -1279,22 +1289,11 @@ export class SkidpadSolver implements IForceSolver {
 
   restoreInitialQ() {
     try {
-      if (!this.firstSolved) {
-        this.firstSolve();
+      if (!this.firstSnapshot) {
+        this.solve();
         return;
       }
-      this.v = this.config.velocity.value;
-      this.components.forEach((components) => {
-        components[0].getGroupedConstraints().forEach((c) => c.resetStates());
-        components.forEach((component) => component.restoreInitialQ());
-      });
-
-      const roots = this.components.map((c) => c[0]);
-      roots.forEach((root) => {
-        root.getGroupedConstraints().forEach((c) => {
-          if (hasDl(c)) c.dl = 0;
-        });
-      });
+      this.restoreState(this.firstSnapshot);
       this.postProcess();
     } catch (e) {
       // eslint-disable-next-line no-console
@@ -1310,26 +1309,29 @@ export class SkidpadSolver implements IForceSolver {
         });
         return prev;
       }, {} as {[index: string]: number[]}),
-      constrainsState: this.components.reduce((prev, components, i) => {
+      constraintsState: this.components.reduce((prev, components, i) => {
         components[0].getGroupedConstraints().forEach((c, j) => {
-          if (controled(c)) prev[`${j}@${i}`] = c.dl;
+          prev[`${j}@${i}`] = c.saveState();
         });
         return prev;
-      }, {} as {[index: string]: number})
+      }, {} as {[index: string]: number[]}),
+      solverState: {...this.state}
     };
   }
 
   restoreState(snapshot: ISnapshot): void {
-    const {dofState, constrainsState} = snapshot;
+    const {dofState, constraintsState} = snapshot;
     this.components.forEach((components, i) => {
       components.forEach((component, j) => {
         component.restoreState(dofState[`${j}@${i}`]);
       });
       components[0].getGroupedConstraints().forEach(
         // eslint-disable-next-line no-return-assign
-        (c, j) => controled(c) && (c.dl = constrainsState[`${j}@${i}`])
+        (constraint, j) =>
+          constraint.restoreState(constraintsState[`${j}@${i}`])
       );
     });
+    this.state = {...(snapshot.solverState as ISolverState)};
   }
 
   // ポストプロセス： 要素への位置の反映と、Restorerの適用
@@ -1362,7 +1364,7 @@ export class SkidpadSolver implements IForceSolver {
 
     const elements = this.assembly.children;
     let minDistance = Number.MAX_SAFE_INTEGER;
-    const center = new Vector3(0, this.r * 1000, 0);
+    const center = new Vector3(0, this.state.r * 1000, 0);
     const normal = new Vector3(0, 0, 1);
     elements.forEach((element) => {
       const {distance} = element.obb.getNearestNeighborToLine(
@@ -1373,8 +1375,8 @@ export class SkidpadSolver implements IForceSolver {
       );
       if (distance < minDistance) minDistance = distance;
     });
-    this.rMin = (minDistance * (this.r > 0 ? 1 : -1)) / 1000;
-    console.log(`true radius=     ${this.rMin.toFixed(4)} m`);
+    this.state.rMin = (minDistance * (this.state.r > 0 ? 1 : -1)) / 1000;
+    console.log(`true radius=     ${this.state.rMin.toFixed(4)} m`);
   }
 }
 

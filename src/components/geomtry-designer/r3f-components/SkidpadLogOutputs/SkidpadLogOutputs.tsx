@@ -43,15 +43,15 @@ export function SkidpadLogOutputs() {
   useAnimationFrame(() => {
     if (!solver || !isSkidpadSolver(solver)) return;
     if (lapTimeRef.current)
-      lapTimeRef.current.innerText = `${solver.lapTime?.toFixed(3)} s`;
+      lapTimeRef.current.innerText = `${solver.state.lapTime?.toFixed(3)} s`;
     if (innerRadiusRef.current)
-      innerRadiusRef.current.innerText = `${solver.rMin?.toFixed(3)} m`;
+      innerRadiusRef.current.innerText = `${solver.state.rMin?.toFixed(3)} m`;
     if (centerRadiusRef.current)
-      centerRadiusRef.current.innerText = `${solver.r?.toFixed(3)} m`;
+      centerRadiusRef.current.innerText = `${solver.state.r?.toFixed(3)} m`;
     if (velocityRef.current)
-      velocityRef.current.innerText = `${solver.v?.toFixed(3)} m/s`;
+      velocityRef.current.innerText = `${solver.state.v?.toFixed(3)} m/s`;
     if (omegaRef.current)
-      omegaRef.current.innerText = `${solver.omega?.toFixed(3)} rad/s`;
+      omegaRef.current.innerText = `${solver.state.omega?.toFixed(3)} rad/s`;
   });
   if (!solver || !isSkidpadSolver(solver)) return null;
 

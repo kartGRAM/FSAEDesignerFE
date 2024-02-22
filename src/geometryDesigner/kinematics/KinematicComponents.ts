@@ -27,8 +27,6 @@ export interface IVariable {
   readonly degreeOfFreedom: number;
   readonly scale: number; // 長さのスケール（できるだけ長さを-3~3にそろえる）
   applyDq(dq: Matrix): void;
-  loadQ(q: number[]): void;
-  saveQ(q: number[]): void;
   applyResultToApplication(): void;
   getGroupedConstraints(): Constraint[];
   get root(): IVariable;
@@ -37,8 +35,6 @@ export interface IVariable {
   unionFindTreeConstraints: Constraint[];
   unite(other: IVariable): void;
   reset(): void;
-  saveInitialQ(): void;
-  restoreInitialQ(): void;
   saveState(): number[];
   restoreState(state: number[]): void;
 }
@@ -67,10 +63,6 @@ export abstract class VariableBase implements IVariable {
   readonly scale: number;
 
   abstract applyDq(dq: Matrix): void;
-
-  abstract loadQ(q: number[]): void;
-
-  abstract saveQ(q: number[]): void;
 
   abstract applyResultToApplication(): void;
 
@@ -111,10 +103,6 @@ export abstract class VariableBase implements IVariable {
   }
 
   abstract reset(): void;
-
-  abstract saveInitialQ(): void;
-
-  abstract restoreInitialQ(): void;
 
   abstract saveState(): number[];
 
@@ -190,36 +178,6 @@ export class FullDegreesComponent extends ComponentBase {
     }
   }
 
-  loadQ(q: number[]) {
-    if (this._col === -1) return;
-    const {col} = this;
-    if (this.degreeOfFreedom === 7) {
-      this.position.x = q[col + X];
-      this.position.y = q[col + Y];
-      this.position.z = q[col + Z];
-      this.quaternion.w = q[col + Q0];
-      this.quaternion.x = q[col + Q1];
-      this.quaternion.y = q[col + Q2];
-      this.quaternion.z = q[col + Q3];
-      this._quaternion.normalize();
-    }
-  }
-
-  saveQ(q: number[]) {
-    if (this._col === -1) return;
-    const {col} = this;
-    if (this.degreeOfFreedom === 7) {
-      q[col + X] = this.position.x;
-      q[col + Y] = this.position.y;
-      q[col + Z] = this.position.z;
-      q[col + Q0] = this.quaternion.w;
-      q[col + Q1] = this.quaternion.x;
-      q[col + Q2] = this.quaternion.y;
-      q[col + Q3] = this.quaternion.z;
-      this._quaternion.normalize();
-    }
-  }
-
   element: IElement;
 
   applyResultToApplication() {
@@ -290,22 +248,6 @@ export class FullDegreesComponent extends ComponentBase {
     this._isFixed = isFixedElement(element); // fixedElementになった場合、ソルバに評価されない
   }
 
-  _initialPosition: Vector3 = new Vector3();
-
-  _initialQuaternion: Quaternion = new Quaternion();
-
-  saveInitialQ() {
-    this._initialPosition = this.position.clone();
-    this._initialQuaternion = this.quaternion.clone();
-  }
-
-  restoreInitialQ() {
-    if (!this.isRelativeFixed) {
-      this._position = this._initialPosition.clone();
-      this._quaternion = this._initialQuaternion.clone();
-    }
-  }
-
   saveState(): number[] {
     const p = this.position;
     const q = this.quaternion;
@@ -316,6 +258,7 @@ export class FullDegreesComponent extends ComponentBase {
     const p = this.position;
     const q = this.quaternion;
     [p.x, p.y, p.z, q.w, q.x, q.y, q.z] = state;
+    this._quaternion.normalize();
   }
 }
 
@@ -360,22 +303,6 @@ export class PointComponent extends ComponentBase {
     this._position.x -= dx;
     this._position.y -= dy;
     this._position.z -= dz;
-  }
-
-  loadQ(q: number[]) {
-    if (this._col === -1) return;
-    const {col} = this;
-    this.position.x = q[col + X];
-    this.position.y = q[col + Y];
-    this.position.z = q[col + Z];
-  }
-
-  saveQ(q: number[]) {
-    if (this._col === -1) return;
-    const {col} = this;
-    q[col + X] = this.position.x;
-    q[col + Y] = this.position.y;
-    q[col + Z] = this.position.z;
   }
 
   lhs: INamedVector3RO;
@@ -442,16 +369,6 @@ export class PointComponent extends ComponentBase {
       .multiplyScalar(this.scale);
   }
 
-  _initialPosition: Vector3 = new Vector3();
-
-  saveInitialQ() {
-    this._initialPosition = this.position.clone();
-  }
-
-  restoreInitialQ() {
-    this._position = this._initialPosition.clone();
-  }
-
   saveState(): number[] {
     const p = this.position;
     return [p.x, p.y, p.z];
@@ -504,22 +421,6 @@ export class PointForce extends VariableBase {
     this.force.z -= dz;
   }
 
-  loadQ(q: number[]) {
-    if (this._col === -1) return;
-    const {col} = this;
-    this.force.x = q[col + X];
-    this.force.y = q[col + Y];
-    this.force.z = q[col + Z];
-  }
-
-  saveQ(q: number[]) {
-    if (this._col === -1) return;
-    const {col} = this;
-    q[col + X] = this.force.x;
-    q[col + Y] = this.force.y;
-    q[col + Z] = this.force.z;
-  }
-
   lhs: string;
 
   rhs: string;
@@ -552,16 +453,6 @@ export class PointForce extends VariableBase {
 
   reset() {
     this.force = new Vector3(0, 0, 0);
-  }
-
-  _initialForce: Vector3 = new Vector3();
-
-  saveInitialQ() {
-    this._initialForce = this.force.clone();
-  }
-
-  restoreInitialQ() {
-    this.force = this._initialForce.clone();
   }
 
   saveState(): number[] {
@@ -612,18 +503,6 @@ export class GeneralVariable extends VariableBase {
     // this.value = 0;
   }
 
-  loadQ(q: number[]) {
-    if (this._col === -1) return;
-    const {col} = this;
-    this.value = q[col + X];
-  }
-
-  saveQ(q: number[]) {
-    if (this._col === -1) return;
-    const {col} = this;
-    q[col + X] = this.value;
-  }
-
   applyResultToApplication() {}
 
   value: number;
@@ -640,16 +519,6 @@ export class GeneralVariable extends VariableBase {
 
   reset() {
     this.value = 0;
-  }
-
-  _initialForce = 0;
-
-  saveInitialQ() {
-    this._initialForce = this.value;
-  }
-
-  restoreInitialQ() {
-    this.value = this._initialForce;
   }
 
   saveState(): number[] {

@@ -21,17 +21,16 @@ import store, {RootState} from '@store/store';
 import {setConfirmDialogProps} from '@store/reducers/uiTempGeometryDesigner';
 import {PaperProps} from '@mui/material/Paper';
 import {ITest, ISteadySkidpadParams} from '@gd/analysis/ITest';
+import {initialSteadySkidpadParams} from '@gd/analysis/Test';
 import useTestUpdate from '@hooks/useTestUpdate';
 import Scalar from '@gdComponents/Scalar';
 import {ParameterSetter} from '@gd/analysis/ParameterSetter';
-import {NamedNumber, NamedVector3} from '@gd/NamedValues';
 import {createDummyDataControl} from '@gd/controls/IControls';
 import {getControl} from '@gd/controls/Controls';
 import yup from '@app/utils/Yup';
 import {isTire, ITire} from '@gd/IElements/ITire';
 import {listTireData} from '@tire/listTireData';
 import TextField from '@mui/material/TextField';
-import {Vector3} from 'three';
 
 export const SkidpadConfigDialog = React.memo(
   (props: {
@@ -161,27 +160,8 @@ const Content = React.memo((props: {test: ITest}) => {
     (state: RootState) => state.uitgd.collectedAssembly?.children ?? []
   );
   const tireElements = elements.filter((e) => isTire(e)) as ITire[];
-  const config: ISteadySkidpadParams = test.steadySkidpadParams ?? {
-    tireData: {},
-    tireTorqueRatio: {},
-    stearing: new ParameterSetter({
-      type: 'Control',
-      target: createDummyDataControl(),
-      valueFormula: '0'
-    }),
-    velocity: new NamedNumber({name: 'velocity', value: 10}),
-    radius: new NamedNumber({name: 'radius', value: 7.625}),
-    globalCd: new NamedNumber({name: 'global cd', value: 0}),
-    globalCl: new NamedNumber({name: 'global cl', value: 0}),
-    searchMode: 'binary',
-    velocityStepSize: new NamedNumber({name: 'velocityStepSize', value: 1}),
-    radiusStepSize: new NamedNumber({name: 'radiusStepSize', value: -0.5}),
-    storeIntermidiateResults: false,
-    gravity: new NamedVector3({
-      name: 'accOfGravity',
-      value: new Vector3(0, 0, -9.8)
-    })
-  };
+  const config: ISteadySkidpadParams =
+    test.steadySkidpadParams ?? initialSteadySkidpadParams();
   const apply = <E, V>(func?: (e?: E, v?: V) => void) => {
     return (e?: E, v?: V) => {
       if (func) func(e, v);

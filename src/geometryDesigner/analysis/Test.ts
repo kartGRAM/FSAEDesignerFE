@@ -5,6 +5,7 @@ import {setTests} from '@store/reducers/dataGeometryDesigner';
 import {testUpdateNotify} from '@store/reducers/uiTempGeometryDesigner';
 import {NamedNumber, NamedVector3} from '@gd/NamedValues';
 import {Vector3} from 'three';
+import {createDummyDataControl} from '@gd/controls/IControls';
 import {IFlowNode, IDataEdge} from './FlowNode';
 import {StartNode, isStartNode, IStartNode} from './StartNode';
 import {EndNode, isEndNode, IEndNode} from './EndNode';
@@ -69,6 +70,28 @@ export const saveSteadySkidpadParams = (
     storeIntermidiateResults: params.storeIntermidiateResults
   };
 };
+
+export const initialSteadySkidpadParams: () => ISteadySkidpadParams = () => ({
+  tireData: {},
+  tireTorqueRatio: {},
+  stearing: new ParameterSetter({
+    type: 'Control',
+    target: createDummyDataControl(),
+    valueFormula: '0'
+  }),
+  velocity: new NamedNumber({name: 'velocity', value: 10}),
+  radius: new NamedNumber({name: 'radius', value: 7.625}),
+  globalCd: new NamedNumber({name: 'global cd', value: 0}),
+  globalCl: new NamedNumber({name: 'global cl', value: 0}),
+  searchMode: 'binary',
+  velocityStepSize: new NamedNumber({name: 'velocityStepSize', value: 1}),
+  radiusStepSize: new NamedNumber({name: 'radiusStepSize', value: -0.5}),
+  storeIntermidiateResults: false,
+  gravity: new NamedVector3({
+    name: 'accOfGravity',
+    value: new Vector3(0, 0, -9.8)
+  })
+});
 
 export class Test implements ITest {
   name: string;

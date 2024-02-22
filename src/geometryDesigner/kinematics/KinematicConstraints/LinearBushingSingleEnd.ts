@@ -172,6 +172,14 @@ export class LinearBushingSingleEnd implements Constraint, deltaL {
     );
   }
 
+  saveState(): number[] {
+    return [this._dl];
+  }
+
+  restoreState(state: number[]): void {
+    [this._dl] = state;
+  }
+
   setJacobianAndConstraints(
     phi_q: Matrix,
     phi: number[],

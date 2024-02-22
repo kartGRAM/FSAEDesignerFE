@@ -63,6 +63,8 @@ export const KeyboardControls = () => {
           logOutput: true
         });
       } catch (e: any) {
+        // eslint-disable-next-line no-console
+        console.log(e);
         try {
           solver.restoreState(snapshot);
           rollbackParams.forEach(({control, value}) =>

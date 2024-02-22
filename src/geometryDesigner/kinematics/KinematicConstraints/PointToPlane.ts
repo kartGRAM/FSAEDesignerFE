@@ -116,6 +116,14 @@ export class PointToPlane implements Constraint, deltaL {
     if (dlMax !== undefined) this.dlMax = dlMax * component.scale;
   }
 
+  saveState(): number[] {
+    return [this._dl];
+  }
+
+  restoreState(state: number[]): void {
+    [this._dl] = state;
+  }
+
   setJacobianAndConstraints(phi_q: Matrix, phi: number[]) {
     const {row, component, _distance, _dl} = this;
     const {position, quaternion: q} = component;
