@@ -5,6 +5,7 @@ type IDOFState = number[];
 export interface ISnapshot {
   dofState: {[index: string]: IDOFState};
   constrainsState: {[index: string]: number};
+  solverParameters?: unknown;
   measureTools?: MeasureSnapshot;
   readonlyVariables?: ROVariablesSnapshot;
   globals?: IDataFormula[];

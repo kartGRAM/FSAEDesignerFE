@@ -35,3 +35,10 @@ export interface ISolver {
 
   postProcess(): void;
 }
+
+export interface IForceSolver extends ISolver {
+  isForceSolver: true;
+}
+export function isForceSolver(solver: ISolver): solver is IForceSolver {
+  return 'isForceSolver' in solver;
+}

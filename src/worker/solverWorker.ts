@@ -47,6 +47,7 @@ ctx.onmessage = async (e: MessageEvent<FromParent>) => {
       // const assemblyData = assembly.getDataElement(state);
       // if (!assemblyData) throw new Error('assembly Dataが得られない');
       return {
+        solverParameters: {},
         ...solver.getSnapshot(),
         /* assemblyData, */
         measureTools: measureToolsManager.getValuesAll(),

@@ -85,12 +85,14 @@ import {
   GeneralVariable,
   isPointForce
 } from './KinematicComponents';
-import {ISolver} from './ISolver';
+import {ISolver, IForceSolver} from './ISolver';
 
-export class SkidpadSolver implements ISolver {
+export class SkidpadSolver implements IForceSolver {
   static className = 'SkidpadSolver' as const;
 
   readonly className = SkidpadSolver.className;
+
+  isForceSolver = true as const;
 
   assembly: IAssembly;
 
