@@ -80,7 +80,7 @@ export const SceneConfigUI = () => {
 
   return (
     <>
-      <Leva />
+      <Leva fill />
       {solver && isSkidpadSolver(solver) ? <SkidpadConfigUI /> : null}
       {solver && isForceSolver(solver) ? <ForceConfigUI /> : null}
     </>

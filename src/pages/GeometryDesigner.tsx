@@ -16,6 +16,7 @@ import {numberToRgb} from '@app/utils/helpers';
 import Box from '@mui/material/Box';
 import shortCutKeys from '@gd/ShortCutKeys';
 import CssBaseLine from '@mui/material/CssBaseline';
+import {SceneConfigUI} from '@gdComponents/r3f-components/SceneConfigUI';
 
 const GeometryDesigner = () => {
   const isFullScreen = useSelector(
@@ -91,6 +92,12 @@ const GeometryDesigner = () => {
                   <AssemblyCreactor />
                 </Box>
               </div>
+            </Box>
+            <Box
+              component="div"
+              sx={{position: 'fixed', bottom: 300, left: 60}}
+            >
+              <SceneConfigUI />
             </Box>
           </div>
         </section>
