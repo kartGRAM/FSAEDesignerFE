@@ -5,11 +5,17 @@ type ColorLegendProps = {
   height: number;
   width: number;
   colorScale: d3.ScaleLinear<string, string, never>;
+  legendSurfix?: string;
 };
 
-const COLOR_LEGEND_MARGIN = {top: 38, right: 0, bottom: 38, left: 0};
+const COLOR_LEGEND_MARGIN = {top: 20, right: 30, bottom: 10, left: 8};
 
-export const ColorLegend = ({height, colorScale, width}: ColorLegendProps) => {
+export const ColorLegend = ({
+  height,
+  colorScale,
+  width,
+  legendSurfix
+}: ColorLegendProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const boundsWidth =
@@ -19,26 +25,28 @@ export const ColorLegend = ({height, colorScale, width}: ColorLegendProps) => {
 
   const domain = colorScale.domain();
   const max = domain[domain.length - 1];
-  const xScale = d3.scaleLinear().range([0, boundsWidth]).domain([0, max]);
+  const yScale = d3.scaleLinear().range([0, boundsHeight]).domain([0, max]);
 
-  const allTicks = xScale.ticks(4).map((tick) => {
+  const allTicks = yScale.ticks(6).map((tick) => {
     return (
       <>
         <line
-          x1={xScale(tick)}
-          x2={xScale(tick)}
-          y1={0}
-          y2={boundsHeight + 10}
+          x1={-10}
+          x2={boundsWidth}
+          y1={yScale(tick)}
+          y2={yScale(tick)}
           stroke="#ccc"
         />
         <text
-          x={xScale(tick)}
-          y={boundsHeight + 20}
-          fontSize={9}
-          textAnchor="middle"
+          x={-15}
+          y={yScale(tick)}
+          fontSize={12}
+          textAnchor="end"
+          fontFamily='"Roboto","Helvetica","Arial",sans-serif'
           stroke="#ccc"
         >
-          {tick}
+          {max - tick}
+          {legendSurfix || null}
         </text>
       </>
     );
@@ -52,9 +60,9 @@ export const ColorLegend = ({height, colorScale, width}: ColorLegendProps) => {
       return;
     }
 
-    for (let i = 0; i < boundsWidth; ++i) {
-      context.fillStyle = colorScale((max * i) / boundsWidth);
-      context.fillRect(i, 0, 1, boundsHeight);
+    for (let i = 0; i < boundsHeight; ++i) {
+      context.fillStyle = colorScale((max * i) / boundsHeight);
+      context.fillRect(0, boundsHeight - i - 1, boundsWidth, 1);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [width, height, colorScale]);

@@ -197,6 +197,10 @@ export const numberToRgb = (code: number) => {
   let rgb = code.toString(16);
 
   if (rgb.length === 5) rgb = `0${rgb}`;
+  if (rgb.length === 4) rgb = `00${rgb}`;
+  if (rgb.length === 3) rgb = `000${rgb}`;
+  if (rgb.length === 2) rgb = `0000${rgb}`;
+  if (rgb.length === 1) rgb = `00000${rgb}`;
 
   return `#${rgb}`;
 };

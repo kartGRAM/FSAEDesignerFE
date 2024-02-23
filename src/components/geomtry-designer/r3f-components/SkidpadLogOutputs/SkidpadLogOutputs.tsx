@@ -6,6 +6,8 @@ import {alpha} from '@mui/material/styles';
 import {useAnimationFrame} from '@hooks/useAnimationFrame';
 import {isSkidpadSolver} from '@gd/kinematics/SkidpadSolver';
 import * as d3 from 'd3';
+import useUpdate from '@hooks/useUpdate';
+import {range, jetMap, numberToRgb} from '@utils/helpers';
 import {ColorLegend} from './ColorLegend';
 
 export function SkidpadLogOutputs() {
@@ -42,6 +44,9 @@ export function SkidpadLogOutputs() {
   );
   const omegaRef = React.useRef<HTMLHeadingElement>(null);
 
+  const stdRef = React.useRef(0);
+  const update = useUpdate();
+
   useAnimationFrame(() => {
     if (!solver || !isSkidpadSolver(solver)) return;
     if (lapTimeRef.current)
@@ -54,12 +59,21 @@ export function SkidpadLogOutputs() {
       velocityRef.current.innerText = `${solver.state.v?.toFixed(3)} m/s`;
     if (omegaRef.current)
       omegaRef.current.innerText = `${solver.state.omega?.toFixed(3)} rad/s`;
+    if (solver.state.stdForce !== stdRef.current) update();
   });
+
   if (!solver || !isSkidpadSolver(solver)) return null;
+  stdRef.current = solver.state.stdForce;
+  const division = 30;
   const colorScale = d3
     .scaleLinear<string>()
-    .domain([0, 100])
-    .range(['#69b3a2', 'purple']);
+    .domain(range(0, division + 1).map((i) => (i / division) * stdRef.current))
+    .range(
+      range(0, division + 1).map((i) => {
+        const c = jetMap((i / division) * stdRef.current, 0, stdRef.current);
+        return numberToRgb(c.r * 256 * 256 + c.g * 256 + c.b);
+      })
+    );
 
   return (
     <Box
@@ -147,7 +161,17 @@ export function SkidpadLogOutputs() {
           ) : null}
         </Box>
       </Box>
-      <ColorLegend width={400} height={100} colorScale={colorScale} />
+      <Box
+        component="div"
+        sx={{display: 'flex', justifyContent: 'end', flexDirection: 'row'}}
+      >
+        <ColorLegend
+          width={60}
+          height={300}
+          colorScale={colorScale}
+          legendSurfix=" N"
+        />
+      </Box>
     </Box>
   );
 }
