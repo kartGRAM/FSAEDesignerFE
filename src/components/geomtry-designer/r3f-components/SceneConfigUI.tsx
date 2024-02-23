@@ -12,7 +12,7 @@ import {
   initialForceViewerState
 } from '@store/reducers/uiGeometryDesigner';
 import {isSkidpadSolver} from '@gd/kinematics/SkidpadSolver';
-import {isForceSolver} from '@gd/kinematics/ISolver';
+import {isForceSolver, IForceSolver} from '@gd/kinematics/ISolver';
 
 export const SceneConfigUI = () => {
   const dispatch = useDispatch();
@@ -249,9 +249,33 @@ const ForceConfigUI = () => {
   const configRef = React.useRef(config);
   configRef.current = config;
 
+  const solver = useSelector(
+    (state: RootState) => state.uitgd.KinematicsSolver
+  ) as IForceSolver;
+
   useControls(
     'Force View',
     () => ({
+      'Show colorbar': {
+        value: !!config.showColorBar,
+        onChange: (c: boolean) => {
+          const s = {
+            ...configRef.current,
+            showColorBar: c
+          };
+          setGDSceneForceViewerState(s);
+        }
+      },
+      'Colorbar value max': {
+        value: solver.stdForce,
+        min: 0,
+        max: 100000,
+        step: 1,
+        onChange: (c: number) => {
+          solver.stdForce = c;
+        }
+      },
+
       'Show parent name': {
         value: !!config.showParentName,
         onChange: (c: boolean) => {
@@ -408,7 +432,8 @@ const ForceConfigUI = () => {
         }
       }
     }),
-    {collapsed: true}
+    {collapsed: true},
+    [solver.stdForce]
   );
   return null;
 };

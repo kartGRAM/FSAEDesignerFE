@@ -112,6 +112,7 @@ export interface SteadySkidpadViewerState {
 }
 
 export interface ForceViewerState {
+  showColorBar: boolean;
   showParentName: boolean;
   showMagnitude: boolean;
   showLocalXYZ: boolean;
@@ -161,6 +162,7 @@ export const initialSteadySkidpadViewerState: SteadySkidpadViewerState = {
 };
 
 export const initialForceViewerState: ForceViewerState = {
+  showColorBar: true,
   showInertiaForce: true,
   showBearingForce: true,
   showTireFriction: true,

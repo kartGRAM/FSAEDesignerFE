@@ -38,6 +38,7 @@ export interface ISolver {
 
 export interface IForceSolver extends ISolver {
   isForceSolver: true;
+  stdForce: number;
 }
 export function isForceSolver(solver: ISolver): solver is IForceSolver {
   return 'isForceSolver' in solver;

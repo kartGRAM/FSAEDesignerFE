@@ -44,6 +44,11 @@ export function SkidpadLogOutputs() {
   );
   const omegaRef = React.useRef<HTMLHeadingElement>(null);
 
+  const showColorBar = useSelector(
+    (state: RootState) =>
+      state.uigd.present.gdSceneState.forceViewerState.showColorBar
+  );
+
   const stdRef = React.useRef(0);
   const update = useUpdate();
 
@@ -161,17 +166,19 @@ export function SkidpadLogOutputs() {
           ) : null}
         </Box>
       </Box>
-      <Box
-        component="div"
-        sx={{display: 'flex', justifyContent: 'end', flexDirection: 'row'}}
-      >
-        <ColorLegend
-          width={60}
-          height={300}
-          colorScale={colorScale}
-          legendSurfix=" N"
-        />
-      </Box>
+      {showColorBar ? (
+        <Box
+          component="div"
+          sx={{display: 'flex', justifyContent: 'end', flexDirection: 'row'}}
+        >
+          <ColorLegend
+            width={60}
+            height={300}
+            colorScale={colorScale}
+            legendSurfix=" N"
+          />
+        </Box>
+      ) : null}
     </Box>
   );
 }

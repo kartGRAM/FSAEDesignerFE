@@ -36,6 +36,7 @@ export const ColorLegend = ({
           y1={yScale(tick)}
           y2={yScale(tick)}
           stroke="#ccc"
+          key={`${tick}line`}
         />
         <text
           x={-15}
@@ -44,6 +45,7 @@ export const ColorLegend = ({
           textAnchor="end"
           fontFamily='"Roboto","Helvetica","Arial",sans-serif'
           stroke="#ccc"
+          key={`${tick}text`}
         >
           {max - tick}
           {legendSurfix || null}

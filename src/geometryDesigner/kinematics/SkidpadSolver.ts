@@ -107,6 +107,14 @@ export class SkidpadSolver implements IForceSolver {
 
   isForceSolver = true as const;
 
+  get stdForce() {
+    return this.state.stdForce;
+  }
+
+  set stdForce(value: number) {
+    this.state.stdForce = value;
+  }
+
   assembly: IAssembly;
 
   components: IVariable[][];
