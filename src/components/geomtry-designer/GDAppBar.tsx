@@ -18,6 +18,7 @@ import Save from '@gdComponents/app-bar-components/Save';
 
 import Undo from '@gdComponents/app-bar-components/Undo';
 import Redo from '@gdComponents/app-bar-components/Redo';
+import DriversEyePoint from '@gdComponents/app-bar-components/DriversEyePoint';
 import Formula from '@gdComponents/app-bar-components/Formula';
 import Recording from '@gdComponents/app-bar-components/Recording';
 import CreateMirror from '@gdComponents/app-bar-components/CreateMirror';
@@ -121,7 +122,7 @@ export default function GDAppBar() {
           <ResetUISettings />
         </GDAppBarMenu>
         <GDAppBarMenu name="View">
-          <MenuItem>Parspective</MenuItem>
+          <DriversEyePoint />
         </GDAppBarMenu>
         <GDAppBarMenu name="Tools">
           <Formula disabled={nodata} />

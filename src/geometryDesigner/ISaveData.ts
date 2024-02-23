@@ -13,6 +13,7 @@ export interface Options {
   pinCenterOfGravityOfFrame: boolean;
   fixSpringDumperDuaringControl: boolean;
   assemblyMode: typeof assemblyModes[number];
+  driversEyeNodeID?: {elementID: string; pointID: string};
 }
 
 export interface SavedData {

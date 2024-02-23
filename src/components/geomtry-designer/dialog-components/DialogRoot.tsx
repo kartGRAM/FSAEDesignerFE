@@ -7,6 +7,7 @@ import {CopyFromExistingPointsDialog} from '@gdComponents/dialog-components/Copy
 import {MovePointDialog} from '@gdComponents/dialog-components/MovePointDialog';
 import {MoveComponentDialog} from '@gdComponents/dialog-components/MoveComponentDialog';
 import {RecordingDialog} from '@gdComponents/dialog-components/RecordingDialog';
+import {DriversEyeSettingDialog} from '@gdComponents/dialog-components/DriversEyeSettingDialog';
 import {useSelector} from 'react-redux';
 import store, {RootState} from '@store/store';
 
@@ -30,6 +31,7 @@ export default function DialogRoot() {
       />
       {saveAsDialogProps ? <SaveAsDialog {...saveAsDialogProps} /> : null}
       <ConfirmDialog />
+      <DriversEyeSettingDialog />
       <CopyFromExistingPointsDialog />
       <MovePointDialog />
       <MoveComponentDialog />

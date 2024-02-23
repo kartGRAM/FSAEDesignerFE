@@ -115,6 +115,7 @@ export interface GDDialogState {
   movePointOnMoved: ((delta: Vector3) => void) | null;
   formulaDialogOpen: boolean;
   RecordingDialogOpen: boolean;
+  driversEyeDialogOpen: boolean;
   openDialogOpen: boolean;
   saveAsDialogProps?: SaveAsDialogProps;
   confirmDialogProps?: ConfirmDialogProps;
@@ -168,6 +169,7 @@ const initialState: GDState = {
     movePointOnMoved: null, // そのうちけす
     formulaDialogOpen: false,
     RecordingDialogOpen: false,
+    driversEyeDialogOpen: false,
     openDialogOpen: false,
     saveAsDialogProps: undefined,
     confirmDialogProps: undefined
@@ -380,6 +382,14 @@ export const uitGeometryDesignerSlice = createSlice({
       }>
     ) => {
       state.gdDialogState.RecordingDialogOpen = action.payload.open;
+    },
+    setDriversEyeDialogOpen: (
+      state: GDState,
+      action: PayloadAction<{
+        open: boolean;
+      }>
+    ) => {
+      state.gdDialogState.driversEyeDialogOpen = action.payload.open;
     },
     setOpenDialogOpen: (
       state: GDState,
@@ -609,6 +619,7 @@ export const {
   setSelectedROVariable,
   setFormulaDialogOpen,
   setRecordingDialogOpen,
+  setDriversEyeDialogOpen,
   setOpenDialogOpen,
   setSaveAsDialogProps,
   setConfirmDialogProps,

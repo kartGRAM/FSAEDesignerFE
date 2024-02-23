@@ -9,8 +9,7 @@ export default function Redo() {
   const dispatch = useDispatch();
 
   const redoable = useSelector(
-    (state: RootState) =>
-      state.dgd.future.length + state.uigd.future.length !== 0
+    (state: RootState) => state.dgd.future.length !== 0
   );
   const handleOnClick = () => {
     dispatch(ActionCreators.redo());

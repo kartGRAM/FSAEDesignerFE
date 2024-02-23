@@ -7,7 +7,7 @@ import {RootState} from '@store/store';
 export default function Undo() {
   const dispatch = useDispatch();
   const undoable = useSelector(
-    (state: RootState) => state.dgd.past.length + state.uigd.past.length !== 0
+    (state: RootState) => state.dgd.past.length !== 0
   );
 
   const handleOnClick = () => {
