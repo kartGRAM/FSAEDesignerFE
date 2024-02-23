@@ -6,13 +6,14 @@ import {
 } from '@react-three/fiber';
 import * as React from 'react';
 import type {Camera, Event} from 'three';
-import {Vector3} from 'three';
+import {Vector3, Spherical} from 'three';
 import * as THREE from 'three';
 // import {Box} from '@react-three/drei';
 import {useSelector} from 'react-redux';
-import {RootState} from '@store/store';
+import store, {RootState} from '@store/store';
 import {isPerspectiveCamera, isOrthographicCamera} from '@utils/three';
 import {useKeyboardControls} from '@react-three/drei';
+import {NamedVector3, getMatrix3} from '@gd/NamedValues';
 import {OrbitControls as OrbitControlsImpl} from './OrbitControlsImpl';
 
 export type OrbitControlsProps = Omit<
@@ -63,6 +64,10 @@ export const OrbitControls = React.forwardRef<
       (state: RootState) => state.uitgd.gdSceneState.orbitControlsMode
     );
 
+    const coMatrix = getMatrix3(
+      useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
+    );
+
     restProps.enabled = enabled && mode !== 'Fixed';
     const invalidate = useThree((state) => state.invalidate);
     const defaultCamera = useThree((state) => state.camera);
@@ -82,6 +87,8 @@ export const OrbitControls = React.forwardRef<
       () => new OrbitControlsImpl(explCamera),
       [explCamera]
     );
+    controls.enablePan = mode === 'FullOrbit';
+    controls.enableZoom = mode === 'FullOrbit';
     // const boxRef = React.useRef<THREE.Mesh>(null!);
     const moveTo = React.useRef<THREE.Vector3 | null>(null);
     const zoomTo = React.useRef<number | null>(null);
@@ -133,20 +140,7 @@ export const OrbitControls = React.forwardRef<
         if (!assembly.children.length) return;
         controls.enabled = false;
         const box3 = new THREE.Box3().setFromObject(assembly);
-        // controls.panOffset = new Vector3();
         const corners = getCorners(box3);
-        /* const dimensions = new THREE.Vector3().subVectors(box3.max, box3.min);
-      const boxGeo = new THREE.BoxBufferGeometry(
-        dimensions.x,
-        dimensions.y,
-        dimensions.z
-      );
-      // move new mesh center so it's aligned with the original object
-      const matrix = new THREE.Matrix4().setPosition(
-        dimensions.addVectors(box3.min, box3.max).multiplyScalar(0.5)
-      );
-      boxGeo.applyMatrix4(matrix);
-      boxRef.current.geometry.copy(boxGeo); */
 
         if (isPerspectiveCamera(camera)) {
           const fov = ((camera.fov / 2) * Math.PI) / 180;
@@ -310,6 +304,35 @@ export const OrbitControls = React.forwardRef<
       },
       [controls, get]
     );
+
+    if (mode === 'DriversView') {
+      const {camera} = get();
+      const eyePoint = store.getState().dgd.present.options.driversEye;
+      const {collectedAssembly} = store.getState().uitgd;
+      if (eyePoint && collectedAssembly) {
+        const point = (
+          collectedAssembly.children
+            ?.find((child) => child.nodeID === eyePoint?.elementID)
+            ?.getMeasurablePoints()
+            ?.find((p) => p.nodeID === eyePoint?.pointID)?.value ??
+          new Vector3(0, 0, 0)
+        ).applyMatrix3(coMatrix);
+
+        camera.position.copy(point);
+        controls.target.copy(point);
+        const direction = new NamedVector3({
+          value: eyePoint.direction
+        }).value
+          .applyMatrix3(coMatrix)
+          .normalize()
+          .multiplyScalar(-1);
+        const spherical = new Spherical().setFromVector3(direction).makeSafe();
+        controls.spherical.copy(spherical);
+        controls.update();
+      }
+    } else {
+      controls.target.copy(new Vector3());
+    }
 
     useFrame(() => {
       const {camera} = get();

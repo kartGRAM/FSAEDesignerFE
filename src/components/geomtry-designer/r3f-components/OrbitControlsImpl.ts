@@ -93,6 +93,8 @@ class OrbitControls extends EventDispatcher {
 
   zoom0: number;
 
+  spherical = new Spherical();
+
   // the target DOM element for key events
   _domElementKeyEvents: any = null;
 
@@ -128,15 +130,15 @@ class OrbitControls extends EventDispatcher {
     this.zoom0 =
       this.object instanceof PerspectiveCamera ? this.object.zoom : 1;
 
-    this.getPolarAngle = (): number => spherical.phi;
+    this.getPolarAngle = (): number => scope.spherical.phi;
 
-    this.getAzimuthalAngle = (): number => spherical.theta;
+    this.getAzimuthalAngle = (): number => scope.spherical.theta;
 
     this.setPolarAngle = (value: number): void => {
       // use modulo wrapping to safeguard value
       let phi = moduloWrapAround(value, 2 * Math.PI);
 
-      let currentPhi = spherical.phi;
+      let currentPhi = scope.spherical.phi;
 
       // convert to the equivalent shortest angle
       if (currentPhi < 0) currentPhi += 2 * Math.PI;
@@ -156,7 +158,7 @@ class OrbitControls extends EventDispatcher {
     this.setAzimuthalAngle = (value: number): void => {
       // use modulo wrapping to safeguard value
       let theta = moduloWrapAround(value, 2 * Math.PI);
-      let currentTheta = spherical.theta;
+      let currentTheta = scope.spherical.theta;
 
       // convert to the equivalent shortest angle
       if (currentTheta < 0) currentTheta += 2 * Math.PI;
@@ -225,16 +227,17 @@ class OrbitControls extends EventDispatcher {
         offset.applyQuaternion(quat);
 
         // angle from z-axis around y-axis
-        spherical.setFromVector3(offset);
-
+        if (offset.length() > EPS) {
+          scope.spherical.setFromVector3(offset);
+        }
         if (scope.autoRotate && state === STATE.NONE) {
           rotateLeft(getAutoRotationAngle());
         }
         if (fixZ) sphericalDelta.phi = 0;
         if (fixY) sphericalDelta.theta = 0;
 
-        spherical.theta += sphericalDelta.theta;
-        spherical.phi += sphericalDelta.phi;
+        scope.spherical.theta += sphericalDelta.theta;
+        scope.spherical.phi += sphericalDelta.phi;
 
         // restrict theta to be between desired limits
 
@@ -249,34 +252,37 @@ class OrbitControls extends EventDispatcher {
           else if (max > Math.PI) max -= twoPI;
 
           if (min <= max) {
-            spherical.theta = Math.max(min, Math.min(max, spherical.theta));
+            scope.spherical.theta = Math.max(
+              min,
+              Math.min(max, scope.spherical.theta)
+            );
           } else {
-            spherical.theta =
-              spherical.theta > (min + max) / 2
-                ? Math.max(min, spherical.theta)
-                : Math.min(max, spherical.theta);
+            scope.spherical.theta =
+              scope.spherical.theta > (min + max) / 2
+                ? Math.max(min, scope.spherical.theta)
+                : Math.min(max, scope.spherical.theta);
           }
         }
 
         // restrict phi to be between desired limits
-        spherical.phi = Math.max(
+        scope.spherical.phi = Math.max(
           scope.minPolarAngle,
-          Math.min(scope.maxPolarAngle, spherical.phi)
+          Math.min(scope.maxPolarAngle, scope.spherical.phi)
         );
-        spherical.makeSafe();
-        spherical.radius *= scale;
+        scope.spherical.makeSafe();
+        scope.spherical.radius *= scale;
 
         // restrict radius to be between desired limits
-        spherical.radius = Math.max(
+        scope.spherical.radius = Math.max(
           scope.minDistance,
-          Math.min(scope.maxDistance, spherical.radius)
+          Math.min(scope.maxDistance, scope.spherical.radius)
         );
 
         // move target to panned location
 
         scope.target.add(panOffset);
 
-        offset.setFromSpherical(spherical);
+        offset.setFromSpherical(scope.spherical);
 
         // rotate offset back to "camera-up-vector-is-up" space
         offset.applyQuaternion(quatInverse);
@@ -373,7 +379,7 @@ class OrbitControls extends EventDispatcher {
     const EPS = 0.000001;
 
     // current position in spherical coordinates
-    const spherical = new Spherical();
+
     const sphericalDelta = new Spherical();
 
     let scale = 1;
