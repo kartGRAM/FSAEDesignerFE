@@ -89,6 +89,14 @@ const LinearBushing = (props: {element: ILinearBushing}) => {
   const dlRef = React.useRef<THREE.Group>(null!);
   const meshRef = React.useRef<Line2>(null!);
 
+  const showLinearBushingForce = useSelector(
+    (state: RootState) =>
+      state.uigd.present.gdSceneState.forceViewerState.showLinearBushingForce
+  );
+  const showInertiaForce = useSelector(
+    (state: RootState) =>
+      state.uigd.present.gdSceneState.forceViewerState.showInertiaForce
+  );
   return (
     <group onDoubleClick={handleOnDoubleClick} ref={groupRef}>
       <Line points={pts.slice(0, 2)} color="pink" lineWidth={4} ref={meshRef} />
@@ -102,9 +110,15 @@ const LinearBushing = (props: {element: ILinearBushing}) => {
         {measurablePoints.map((p) => (
           <MeasurablePoint node={p} key={p.nodeID} />
         ))}
-        {element.getForceResults().map((res, i) => (
-          <ForceArrow element={element} index={i} key={res.nodeID} />
-        ))}
+        {element.getForceResults().map((res, i) => {
+          if (!showLinearBushingForce) return null;
+          if (
+            !showInertiaForce &&
+            (res.name === 'centrifugal force' || res.name === 'gravity')
+          )
+            return null;
+          return <ForceArrow element={element} index={i} key={res.nodeID} />;
+        })}
       </group>
     </group>
   );

@@ -129,6 +129,15 @@ const AArm = (props: {element: IAArm}) => {
     if (!moveThisComponent) dispatch(setMovingMode(false));
   }, [moveThisComponent]);
 
+  const showAArmForce = useSelector(
+    (state: RootState) =>
+      state.uigd.present.gdSceneState.forceViewerState.showAArmForce
+  );
+  const showInertiaForce = useSelector(
+    (state: RootState) =>
+      state.uigd.present.gdSceneState.forceViewerState.showInertiaForce
+  );
+
   return (
     <>
       <group onDoubleClick={handleOnDoubleClick} ref={groupRef}>
@@ -155,9 +164,15 @@ const AArm = (props: {element: IAArm}) => {
         {measurablePoints.map((p) => (
           <MeasurablePoint node={p} key={`${p.nodeID}m`} />
         ))}
-        {element.getForceResults().map((res, i) => (
-          <ForceArrow element={element} index={i} key={res.nodeID} />
-        ))}
+        {element.getForceResults().map((res, i) => {
+          if (!showAArmForce) return null;
+          if (
+            !showInertiaForce &&
+            (res.name === 'centrifugal force' || res.name === 'gravity')
+          )
+            return null;
+          return <ForceArrow element={element} index={i} key={res.nodeID} />;
+        })}
       </group>
       {moveThisComponent ? (
         <PivotControls

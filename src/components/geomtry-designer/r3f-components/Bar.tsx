@@ -55,7 +55,14 @@ const Bar = (props: {element: IBar}) => {
   const pts = nodes.map((p) => p.value.applyMatrix3(coMatrix));
   const groupRef = React.useRef<THREE.Group>(null!);
   const meshRef = React.useRef<Line2>(null!);
-
+  const showBarForce = useSelector(
+    (state: RootState) =>
+      state.uigd.present.gdSceneState.forceViewerState.showBarForce
+  );
+  const showInertiaForce = useSelector(
+    (state: RootState) =>
+      state.uigd.present.gdSceneState.forceViewerState.showInertiaForce
+  );
   return (
     <group onDoubleClick={handleOnDoubleClick} ref={groupRef}>
       <Line points={pts} color="pink" lineWidth={4} ref={meshRef} />
@@ -66,9 +73,15 @@ const Bar = (props: {element: IBar}) => {
       {measurablePoints.map((p) => (
         <MeasurablePoint node={p} key={`${p.nodeID}m`} />
       ))}
-      {element.getForceResults().map((res, i) => (
-        <ForceArrow element={element} index={i} key={res.nodeID} />
-      ))}
+      {element.getForceResults().map((res, i) => {
+        if (!showBarForce) return null;
+        if (
+          !showInertiaForce &&
+          (res.name === 'centrifugal force' || res.name === 'gravity')
+        )
+          return null;
+        return <ForceArrow element={element} index={i} key={res.nodeID} />;
+      })}
     </group>
   );
 };

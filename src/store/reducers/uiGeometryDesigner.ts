@@ -92,6 +92,7 @@ export interface GDSceneState {
   gridSegmentLength: number;
   showOBB: boolean;
   steadySkidpadViewerState: SteadySkidpadViewerState;
+  forceViewerState: ForceViewerState;
 }
 
 export interface SteadySkidpadViewerState {
@@ -152,6 +153,19 @@ export const initialSteadySkidpadViewerState: SteadySkidpadViewerState = {
   showInnerCones: true,
   coneInterval: 3,
   roadWidth: 2
+};
+
+export const initialForceViewerState: ForceViewerState = {
+  showInertiaForce: true,
+  showBearingForce: true,
+  showTireFriction: true,
+  showBarForce: true,
+  showSpringForce: true,
+  showAArmForce: true,
+  showBellCrankForce: true,
+  showBodyForce: false,
+  showLinearBushingForce: true,
+  showTorsionSpringForce: true
 };
 
 const initialState: GDState = {
@@ -234,7 +248,8 @@ const initialState: GDState = {
     gridSize: 5000,
     gridSegmentLength: 290,
     showOBB: false,
-    steadySkidpadViewerState: initialSteadySkidpadViewerState
+    steadySkidpadViewerState: initialSteadySkidpadViewerState,
+    forceViewerState: initialForceViewerState
   },
   chartState: {
     settingPanelWidth: '30%',
@@ -384,6 +399,12 @@ export const uiGeometryDesignerSlice = createSlice({
       action: PayloadAction<SteadySkidpadViewerState>
     ) => {
       state.gdSceneState.steadySkidpadViewerState = action.payload;
+    },
+    setGDSceneForceViewerState: (
+      state: GDState,
+      action: PayloadAction<ForceViewerState>
+    ) => {
+      state.gdSceneState.forceViewerState = action.payload;
     }
   }
 });
@@ -412,7 +433,8 @@ export const {
   setGDSceneGridSize,
   setGDSceneShowOBBs,
   setGDSceneGridSegmentLength,
-  setGDSceneSkidpadViewerState
+  setGDSceneSkidpadViewerState,
+  setGDSceneForceViewerState
 } = uiGeometryDesignerSlice.actions;
 
 export default uiGeometryDesignerSlice.reducer;

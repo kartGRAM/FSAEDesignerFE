@@ -81,6 +81,19 @@ const Tire = (props: {element: ITire}) => {
     coMatrix
   );
 
+  const showTireFriction = useSelector(
+    (state: RootState) =>
+      state.uigd.present.gdSceneState.forceViewerState.showTireFriction
+  );
+  const showBearingForce = useSelector(
+    (state: RootState) =>
+      state.uigd.present.gdSceneState.forceViewerState.showBearingForce
+  );
+  const showInertiaForce = useSelector(
+    (state: RootState) =>
+      state.uigd.present.gdSceneState.forceViewerState.showInertiaForce
+  );
+
   return (
     <group onDoubleClick={handleOnDoubleClick} ref={groupRef}>
       <group quaternion={rotationQ} ref={tireRef} position={center}>
@@ -113,9 +126,27 @@ const Tire = (props: {element: ITire}) => {
       {measurablePoints.map((p) => (
         <MeasurablePoint node={p} key={`${p.nodeID}m`} />
       ))}
-      {element.getForceResults().map((res, i) => (
-        <ForceArrow element={element} index={i} key={res.nodeID} />
-      ))}
+      {element.getForceResults().map((res, i) => {
+        if (
+          !showBearingForce &&
+          (res.nodeID === element.innerBearing.nodeID ||
+            res.nodeID === element.outerBearing.nodeID)
+        )
+          return null;
+        if (
+          !showTireFriction &&
+          (res.nodeID === 'ground x' ||
+            res.nodeID === 'ground y' ||
+            res.nodeID === 'ground z')
+        )
+          return null;
+        if (
+          !showInertiaForce &&
+          (res.name === 'centrifugal force' || res.name === 'gravity')
+        )
+          return null;
+        return <ForceArrow element={element} index={i} key={res.nodeID} />;
+      })}
     </group>
   );
 };

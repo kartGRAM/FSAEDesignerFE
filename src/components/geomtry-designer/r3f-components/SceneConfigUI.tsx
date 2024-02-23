@@ -7,9 +7,12 @@ import {
   setGDSceneGridSize,
   setGDSceneShowOBBs,
   setGDSceneSkidpadViewerState,
-  setGDSceneGridSegmentLength
+  setGDSceneGridSegmentLength,
+  setGDSceneForceViewerState,
+  initialForceViewerState
 } from '@store/reducers/uiGeometryDesigner';
 import {isSkidpadSolver} from '@gd/kinematics/SkidpadSolver';
+import {isForceSolver} from '@gd/kinematics/ISolver';
 
 export const SceneConfigUI = () => {
   const dispatch = useDispatch();
@@ -79,6 +82,7 @@ export const SceneConfigUI = () => {
     <>
       <Leva />
       {solver && isSkidpadSolver(solver) ? <SkidpadConfigUI /> : null}
+      {solver && isForceSolver(solver) ? <ForceConfigUI /> : null}
     </>
   );
 };
@@ -97,7 +101,7 @@ const SkidpadConfigUI = () => {
     'Skidpad View',
     () => ({
       'Show lap time': {
-        value: config.showLapTime,
+        value: !!config.showLapTime,
         onChange: (c: boolean) => {
           dispatch(
             setGDSceneSkidpadViewerState({
@@ -108,7 +112,7 @@ const SkidpadConfigUI = () => {
         }
       },
       'Show velocity': {
-        value: config.showVelocity,
+        value: !!config.showVelocity,
         onChange: (c: boolean) => {
           dispatch(
             setGDSceneSkidpadViewerState({
@@ -119,7 +123,7 @@ const SkidpadConfigUI = () => {
         }
       },
       'Show omega': {
-        value: config.showOmega,
+        value: !!config.showOmega,
         onChange: (c: boolean) => {
           dispatch(
             setGDSceneSkidpadViewerState({...configRef.current, showOmega: c})
@@ -127,7 +131,7 @@ const SkidpadConfigUI = () => {
         }
       },
       'Show center radius': {
-        value: config.showCenterRadius,
+        value: !!config.showCenterRadius,
         onChange: (c: boolean) => {
           dispatch(
             setGDSceneSkidpadViewerState({
@@ -138,7 +142,7 @@ const SkidpadConfigUI = () => {
         }
       },
       'Show inner radius': {
-        value: config.showInnerRadius,
+        value: !!config.showInnerRadius,
         onChange: (c: boolean) => {
           dispatch(
             setGDSceneSkidpadViewerState({
@@ -149,7 +153,7 @@ const SkidpadConfigUI = () => {
         }
       },
       'Show start line': {
-        value: config.showStartLine,
+        value: !!config.showStartLine,
         onChange: (c: boolean) => {
           dispatch(
             setGDSceneSkidpadViewerState({
@@ -160,7 +164,7 @@ const SkidpadConfigUI = () => {
         }
       },
       'Show center line': {
-        value: config.showCenterLine,
+        value: !!config.showCenterLine,
         onChange: (c: boolean) => {
           dispatch(
             setGDSceneSkidpadViewerState({
@@ -171,7 +175,7 @@ const SkidpadConfigUI = () => {
         }
       },
       'Show inner line': {
-        value: config.showInnerLine,
+        value: !!config.showInnerLine,
         onChange: (c: boolean) => {
           dispatch(
             setGDSceneSkidpadViewerState({
@@ -182,7 +186,7 @@ const SkidpadConfigUI = () => {
         }
       },
       'Show outer line': {
-        value: config.showOuterLine,
+        value: !!config.showOuterLine,
         onChange: (c: boolean) => {
           dispatch(
             setGDSceneSkidpadViewerState({
@@ -193,7 +197,7 @@ const SkidpadConfigUI = () => {
         }
       },
       'Show inner cones': {
-        value: config.showInnerCones,
+        value: !!config.showInnerCones,
         onChange: (c: boolean) => {
           dispatch(
             setGDSceneSkidpadViewerState({
@@ -225,6 +229,137 @@ const SkidpadConfigUI = () => {
         onChange: (c: number) => {
           dispatch(
             setGDSceneSkidpadViewerState({...configRef.current, roadWidth: c})
+          );
+        }
+      }
+    }),
+    {collapsed: true}
+  );
+  return null;
+};
+
+const ForceConfigUI = () => {
+  const dispatch = useDispatch();
+
+  const config = useSelector(
+    (state: RootState) =>
+      state.uigd.present.gdSceneState.forceViewerState ??
+      initialForceViewerState
+  );
+  const configRef = React.useRef(config);
+  configRef.current = config;
+
+  useControls(
+    'Force View',
+    () => ({
+      'Show inertia force': {
+        value: !!config.showInertiaForce,
+        onChange: (c: boolean) => {
+          dispatch(
+            setGDSceneForceViewerState({
+              ...configRef.current,
+              showInertiaForce: c
+            })
+          );
+        }
+      },
+      'Show tire friction': {
+        value: !!config.showTireFriction,
+        onChange: (c: boolean) => {
+          dispatch(
+            setGDSceneForceViewerState({
+              ...configRef.current,
+              showTireFriction: c
+            })
+          );
+        }
+      },
+      'Show bearing force': {
+        value: !!config.showBearingForce,
+        onChange: (c: boolean) => {
+          dispatch(
+            setGDSceneForceViewerState({
+              ...configRef.current,
+              showBearingForce: c
+            })
+          );
+        }
+      },
+      'Show bar force': {
+        value: !!config.showBarForce,
+        onChange: (c: boolean) => {
+          dispatch(
+            setGDSceneForceViewerState({
+              ...configRef.current,
+              showBarForce: c
+            })
+          );
+        }
+      },
+      'Show spring force': {
+        value: !!config.showSpringForce,
+        onChange: (c: boolean) => {
+          dispatch(
+            setGDSceneForceViewerState({
+              ...configRef.current,
+              showSpringForce: c
+            })
+          );
+        }
+      },
+      'Show torsion spring force': {
+        value: !!config.showTorsionSpringForce,
+        onChange: (c: boolean) => {
+          dispatch(
+            setGDSceneForceViewerState({
+              ...configRef.current,
+              showTorsionSpringForce: c
+            })
+          );
+        }
+      },
+      'Show linear bushing force': {
+        value: !!config.showLinearBushingForce,
+        onChange: (c: boolean) => {
+          dispatch(
+            setGDSceneForceViewerState({
+              ...configRef.current,
+              showLinearBushingForce: c
+            })
+          );
+        }
+      },
+      'Show aarm force': {
+        value: !!config.showAArmForce,
+        onChange: (c: boolean) => {
+          dispatch(
+            setGDSceneForceViewerState({
+              ...configRef.current,
+              showAArmForce: c
+            })
+          );
+        }
+      },
+      'Show bellcrank force': {
+        value: !!config.showBellCrankForce,
+        onChange: (c: boolean) => {
+          dispatch(
+            setGDSceneForceViewerState({
+              ...configRef.current,
+              showBellCrankForce: c
+            })
+          );
+        }
+      },
+
+      'Show body force': {
+        value: !!config.showBodyForce,
+        onChange: (c: boolean) => {
+          dispatch(
+            setGDSceneForceViewerState({
+              ...configRef.current,
+              showBodyForce: c
+            })
           );
         }
       }
