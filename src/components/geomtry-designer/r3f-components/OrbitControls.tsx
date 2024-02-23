@@ -56,12 +56,14 @@ export const OrbitControls = React.forwardRef<
     const [, getKeys] = useKeyboardControls<string>();
 
     const enabled = useSelector(
-      (state: RootState) =>
-        state.uitgd.gdSceneState.orbitControlsEnabled &&
-        state.uitgd.gdSceneState.orbitControlsEnabledManual
+      (state: RootState) => state.uitgd.gdSceneState.orbitControlsEnabled
     );
 
-    restProps.enabled = enabled;
+    const mode = useSelector(
+      (state: RootState) => state.uitgd.gdSceneState.orbitControlsMode
+    );
+
+    restProps.enabled = enabled && mode !== 'Fixed';
     const invalidate = useThree((state) => state.invalidate);
     const defaultCamera = useThree((state) => state.camera);
     const gl = useThree((state) => state.gl);

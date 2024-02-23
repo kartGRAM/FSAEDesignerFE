@@ -80,6 +80,12 @@ export interface INamedVector3WithColor {
   noFocus?: boolean;
 }
 
+export const orbitControlsModes = [
+  'Fixed',
+  'FullOrbit',
+  'DriversView'
+] as const;
+
 export interface GDSceneState {
   movingMode: boolean;
   selectedPoint: INamedVector3WithColor[] | null;
@@ -88,7 +94,7 @@ export interface GDSceneState {
   selectedROVariable: string;
   viewDirection: Quaternion | undefined;
   orbitControlsEnabled: boolean;
-  orbitControlsEnabledManual: boolean;
+  orbitControlsMode: typeof orbitControlsModes[number];
   toggle: boolean;
   assembled: boolean;
   resetPositions: boolean;
@@ -138,7 +144,7 @@ const initialState: GDState = {
   gdSceneState: {
     movingMode: false,
     orbitControlsEnabled: true,
-    orbitControlsEnabledManual: true,
+    orbitControlsMode: 'FullOrbit',
     selectedPoint: null,
     selectedDatumObject: '',
     selectedMeasureTool: '',
@@ -461,11 +467,11 @@ export const uitGeometryDesignerSlice = createSlice({
     ) => {
       state.gdSceneState.orbitControlsEnabled = action.payload;
     },
-    setOrbitControlsEnabledManual: (
+    setOrbitControlsMode: (
       state: GDState,
-      action: PayloadAction<boolean>
+      action: PayloadAction<typeof state.gdSceneState.orbitControlsMode>
     ) => {
-      state.gdSceneState.orbitControlsEnabledManual = action.payload;
+      state.gdSceneState.orbitControlsMode = action.payload;
     },
     setMeasureElementPointMode: (
       state: GDState,
@@ -637,7 +643,7 @@ export const {
   setAssembled,
   resetPositions,
   setOrbitControlsEnabled,
-  setOrbitControlsEnabledManual,
+  setOrbitControlsMode,
   setViewDirection,
   setGDSceneGetThree,
   setMeasureElementPointMode,

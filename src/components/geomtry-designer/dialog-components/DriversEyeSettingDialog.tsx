@@ -1,22 +1,18 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react';
-import MenuItem from '@mui/material/MenuItem';
 import {useDispatch, useSelector} from 'react-redux';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import Dialog from '@mui/material/Dialog';
 import {SavedData} from '@gd/ISaveData';
 import {NamedVector3} from '@gd/NamedValues';
-
 import store, {RootState} from '@store/store';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import PaperComponentDraggable from '@gdComponents/PaperComponentDraggable';
-import {IMeasureTool} from '@gd/measure/measureTools/IMeasureTools';
 import FormControl from '@mui/material/FormControl';
 import Select, {SelectChangeEvent} from '@mui/material/Select';
-import OutlinedInput from '@mui/material/OutlinedInput';
-
+import Vector from '@gdComponents/Vector';
 import {
   setUIDisabled,
   setMeasureElementPointMode,
@@ -24,21 +20,16 @@ import {
   setDriversEyeDialogOpen
 } from '@store/reducers/uiTempGeometryDesigner';
 import Box from '@mui/material/Box';
-import Divider from '@mui/material/Divider';
 import {
   setMeasureToolDialogPosition,
   setComponentVisualizationMode
 } from '@store/reducers/uiGeometryDesigner';
-import EditableTypography from '@gdComponents/EditableTypography';
-import * as Yup from 'yup';
-import useUpdate from '@hooks/useUpdate';
-
 import InputLabel from '@mui/material/InputLabel';
 import useUpdateEffect from '@app/hooks/useUpdateEffect';
+import {setDriversEye} from '@store/reducers/dataGeometryDesigner';
 
 export function DriversEyeSettingDialog() {
   const dispatch = useDispatch();
-  const update = useUpdate();
 
   const {uitgd} = store.getState();
   const dialogZIndex = uitgd.fullScreenZIndex + uitgd.dialogZIndex;
@@ -63,7 +54,11 @@ export function DriversEyeSettingDialog() {
   const handleCancel = () => {
     close();
   };
-  const handleApply = () => {};
+  const handleApply = () => {
+    if (!applyReady) return;
+    dispatch(setDriversEye(applyReady));
+    setApplyReady(undefined);
+  };
 
   React.useEffect(() => {
     if (open) {
@@ -81,10 +76,12 @@ export function DriversEyeSettingDialog() {
     (state: RootState) => state.dgd.present.options.driversEye
   );
 
-  const [direction, setDirection] = React.useState(new NamedVector3({
-                  name: "drivers eye direction",
-                  value: eyePoint?.direction ?? {x:1,y:0,z:0}
-                }));
+  const [direction, setDirection] = React.useState(
+    new NamedVector3({
+      name: 'drivers eye direction',
+      value: eyePoint?.direction ?? {x: 1, y: 0, z: 0}
+    })
+  );
 
   const [visModeRestored, setVisModeRestored] = React.useState(
     store.getState().uigd.present.gdSceneState.componentVisualizationMode
@@ -104,18 +101,20 @@ export function DriversEyeSettingDialog() {
   const avoidFirstRerender = React.useRef<boolean>(!!eyePoint);
 
   React.useEffect(() => {
-    setVisModeRestored(
-      store.getState().uigd.present.gdSceneState.componentVisualizationMode
-    );
-    dispatch(setComponentVisualizationMode('WireFrameOnly'));
-    dispatch(setMeasureElementPointMode(true));
-    dispatch(setMeasureElementPointSelected(selectedPointDefault?.nodeID));
+    if (open) {
+      setVisModeRestored(
+        store.getState().uigd.present.gdSceneState.componentVisualizationMode
+      );
+      dispatch(setComponentVisualizationMode('WireFrameOnly'));
+      dispatch(setMeasureElementPointMode(true));
+      dispatch(setMeasureElementPointSelected(selectedPointDefault?.nodeID));
+    }
     return () => {
       dispatch(setComponentVisualizationMode(visModeRestored));
       dispatch(setMeasureElementPointMode(false));
       dispatch(setMeasureElementPointSelected(undefined));
     };
-  }, [dispatch, selectedPointDefault?.nodeID, visModeRestored]);
+  }, [dispatch, selectedPointDefault?.nodeID, visModeRestored, open]);
 
   useUpdateEffect(() => {
     if (avoidFirstRerender.current) {
@@ -126,12 +125,11 @@ export function DriversEyeSettingDialog() {
       for (const child of collectedAssembly?.children ?? []) {
         for (const p of child.getMeasurablePoints()) {
           if (p.nodeID === selectedPoint) {
-            const obj: SavedData['options']['driversEye'] =
-              {
-                elementID: p.parent!.nodeID,
-                pointID: p.nodeID,
-                direction: direction.getData()
-              };
+            const obj: SavedData['options']['driversEye'] = {
+              elementID: p.parent!.nodeID,
+              pointID: p.nodeID,
+              direction: direction.getData()
+            };
             setApplyReady(obj);
           }
         }
@@ -172,6 +170,7 @@ export function DriversEyeSettingDialog() {
           maxHeight: '70vh'
         }
       }}
+      TransitionProps={{unmountOnExit: true}}
     >
       <DialogTitle sx={{marginRight: 10}}>
         Driver&apos;s Eye Point Settings
@@ -199,6 +198,19 @@ export function DriversEyeSettingDialog() {
               ))}
             </Select>
           </FormControl>
+          <Vector
+            directionMode
+            vector={direction}
+            unit=""
+            onUpdate={() => {
+              setDirection(
+                new NamedVector3({
+                  name: direction.name,
+                  value: direction.getStringValue()
+                })
+              );
+            }}
+          />
         </Box>
       </DialogContent>
       <DialogActions>
