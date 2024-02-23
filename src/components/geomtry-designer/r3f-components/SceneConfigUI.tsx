@@ -252,6 +252,50 @@ const ForceConfigUI = () => {
   useControls(
     'Force View',
     () => ({
+      'Show parent name': {
+        value: !!config.showParentName,
+        onChange: (c: boolean) => {
+          dispatch(
+            setGDSceneForceViewerState({
+              ...configRef.current,
+              showParentName: c
+            })
+          );
+        }
+      },
+      'Show magnitude': {
+        value: !!config.showMagnitude,
+        onChange: (c: boolean) => {
+          dispatch(
+            setGDSceneForceViewerState({
+              ...configRef.current,
+              showMagnitude: c
+            })
+          );
+        }
+      },
+      'Show local xyz': {
+        value: !!config.showLocalXYZ,
+        onChange: (c: boolean) => {
+          dispatch(
+            setGDSceneForceViewerState({
+              ...configRef.current,
+              showLocalXYZ: c
+            })
+          );
+        }
+      },
+      'Show global xyz': {
+        value: !!config.showGlobalXYZ,
+        onChange: (c: boolean) => {
+          dispatch(
+            setGDSceneForceViewerState({
+              ...configRef.current,
+              showGlobalXYZ: c
+            })
+          );
+        }
+      },
       'Show inertia force': {
         value: !!config.showInertiaForce,
         onChange: (c: boolean) => {

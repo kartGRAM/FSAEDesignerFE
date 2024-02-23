@@ -112,6 +112,11 @@ export interface SteadySkidpadViewerState {
 }
 
 export interface ForceViewerState {
+  showParentName: boolean;
+  showMagnitude: boolean;
+  showLocalXYZ: boolean;
+  showGlobalXYZ: boolean;
+
   showInertiaForce: boolean;
   showBearingForce: boolean;
   showTireFriction: boolean;
@@ -165,7 +170,11 @@ export const initialForceViewerState: ForceViewerState = {
   showBellCrankForce: true,
   showBodyForce: false,
   showLinearBushingForce: true,
-  showTorsionSpringForce: true
+  showTorsionSpringForce: true,
+  showParentName: true,
+  showMagnitude: true,
+  showLocalXYZ: true,
+  showGlobalXYZ: true
 };
 
 const initialState: GDState = {

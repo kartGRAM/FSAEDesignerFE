@@ -8,8 +8,11 @@ import {useSelector} from 'react-redux';
 import {RootState} from '@store/store';
 import {getMatrix3} from '@gd/NamedValues';
 import {isSkidpadSolver} from '@gd/kinematics/SkidpadSolver';
-import {Paper, Typography, Box} from '@mui/material';
+import {Paper, Typography, Box, IconButton} from '@mui/material';
 import {jetMap} from '@utils/helpers';
+import {alpha} from '@mui/material/styles';
+import PushPinIcon from '@mui/icons-material/PushPin';
+import {Tooltip} from '@gdComponents/Tooltip';
 
 const ForceArrow = (props: {
   element: IElement;
@@ -24,11 +27,29 @@ const ForceArrow = (props: {
   );
 
   const [show, setShow] = React.useState(false);
+  const [pin, setPin] = React.useState(false);
 
   const solver = useSelector(
     (state: RootState) => state.uitgd.KinematicsSolver
   );
   const force = element.getForceResults()[index];
+
+  const showParentName = useSelector(
+    (state: RootState) =>
+      state.uigd.present.gdSceneState.forceViewerState.showParentName
+  );
+  const showMagnitude = useSelector(
+    (state: RootState) =>
+      state.uigd.present.gdSceneState.forceViewerState.showMagnitude
+  );
+  const showLocalXYZ = useSelector(
+    (state: RootState) =>
+      state.uigd.present.gdSceneState.forceViewerState.showLocalXYZ
+  );
+  const showGlobalXYZ = useSelector(
+    (state: RootState) =>
+      state.uigd.present.gdSceneState.forceViewerState.showGlobalXYZ
+  );
 
   useFrame(() => {
     if (!isSkidpadSolver(solver)) return;
@@ -70,15 +91,21 @@ const ForceArrow = (props: {
 
     // 表示
     if (textRef.current) {
-      textRef.current.innerText = `${magnitude.toFixed(1)}N\n\n`;
-      textRef.current.innerText += `${force.force.x.toFixed(1)}N\n`;
-      textRef.current.innerText += `${force.force.y.toFixed(1)}N\n`;
-      textRef.current.innerText += `${force.force.z.toFixed(1)}N\n\n`;
-      const qi = element.rotation.value;
-      const fg = force.force.clone().applyQuaternion(qi);
-      textRef.current.innerText += `${fg.x.toFixed(1)}N\n`;
-      textRef.current.innerText += `${fg.y.toFixed(1)}N\n`;
-      textRef.current.innerText += `${fg.z.toFixed(1)}N`;
+      textRef.current.innerText = '';
+      if (showMagnitude)
+        textRef.current.innerText += `${magnitude.toFixed(1)}N\n\n`;
+      if (showLocalXYZ) {
+        textRef.current.innerText += `${force.force.x.toFixed(1)}N\n`;
+        textRef.current.innerText += `${force.force.y.toFixed(1)}N\n`;
+        textRef.current.innerText += `${force.force.z.toFixed(1)}N\n\n`;
+      }
+      if (showGlobalXYZ) {
+        const qi = element.rotation.value;
+        const fg = force.force.clone().applyQuaternion(qi);
+        textRef.current.innerText += `${fg.x.toFixed(1)}N\n`;
+        textRef.current.innerText += `${fg.y.toFixed(1)}N\n`;
+        textRef.current.innerText += `${fg.z.toFixed(1)}N`;
+      }
     }
   });
 
@@ -97,6 +124,10 @@ const ForceArrow = (props: {
         if (coneMeshRef.current?.visible) setShow(true);
       }}
       onPointerLeave={() => setShow(false)} // see note 1
+      onClick={(e) => {
+        e.stopPropagation();
+        setPin((prev) => !prev);
+      }}
     >
       <Cone
         ref={coneMeshRef}
@@ -110,9 +141,12 @@ const ForceArrow = (props: {
       <Cylinder ref={cylinderMeshRef} args={[2, 2, stdLength]}>
         <meshBasicMaterial ref={cylinderMaterialRef} />
       </Cylinder>
-      {show ? (
+      {show || pin ? (
         <Html>
           <Paper
+            onClick={() => {
+              if (!pin) setPin(true);
+            }}
             elevation={3}
             sx={{
               userSelect: 'none',
@@ -128,21 +162,57 @@ const ForceArrow = (props: {
                 left: '-10px',
                 height: '1px',
                 width: '40px',
-                background: 'white'
+                background: alpha('#FFF', 0.6)
               }
             }}
           >
-            <Typography
-              variant="h6"
-              gutterBottom
+            <Box
+              component="div"
               sx={{
-                padding: 0,
-                margin: 0,
-                whiteSpace: 'nowrap'
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'baseline',
+                padding: 0
               }}
             >
-              &nbsp;{force.name}
-            </Typography>
+              <Typography
+                variant="body1"
+                gutterBottom
+                sx={{
+                  padding: 0,
+                  margin: 0,
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                &nbsp;{force.name}
+              </Typography>
+              <Tooltip title={pin ? 'close' : 'pin'}>
+                <IconButton onClick={() => setPin((prev) => !prev)}>
+                  <PushPinIcon
+                    fontSize="small"
+                    sx={{
+                      transform: !pin ? 'rotate(90deg)' : 'unset'
+                    }}
+                  />
+                </IconButton>
+              </Tooltip>
+            </Box>
+            {showParentName ? (
+              <Typography
+                variant="caption"
+                gutterBottom
+                sx={{
+                  position: 'relative',
+                  top: -10,
+                  textAlign: 'right',
+                  padding: 0,
+                  margin: 0,
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                @&nbsp;{element.name.value}
+              </Typography>
+            ) : null}
             <Box component="div" sx={{display: 'flex', flexDirection: 'row'}}>
               <Typography
                 variant="body2"
@@ -155,21 +225,33 @@ const ForceArrow = (props: {
                   whiteSpace: 'nowrap'
                 }}
               >
-                magnitude:
-                <br />
-                <br />
-                local x:
-                <br />
-                local y:
-                <br />
-                local z:
-                <br />
-                <br />
-                global x:
-                <br />
-                global y:
-                <br />
-                global z:
+                {showMagnitude ? (
+                  <>
+                    magnitude:
+                    <br />
+                    <br />
+                  </>
+                ) : null}
+                {showLocalXYZ ? (
+                  <>
+                    local x:
+                    <br />
+                    local y:
+                    <br />
+                    local z:
+                    <br />
+                    <br />
+                  </>
+                ) : null}
+                {showGlobalXYZ ? (
+                  <>
+                    global x:
+                    <br />
+                    global y:
+                    <br />
+                    global z:
+                  </>
+                ) : null}
               </Typography>
               <Typography
                 variant="body2"
