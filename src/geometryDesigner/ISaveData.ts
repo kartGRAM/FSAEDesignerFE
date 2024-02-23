@@ -4,6 +4,7 @@ import {IDataDatumGroup} from '@gd/measure/datum/IDatumObjects';
 import {IDataMeasureTool} from '@gd/measure/measureTools/IMeasureTools';
 import {IDataReadonlyVariable} from '@gd/measure/readonlyVariables/IReadonlyVariable';
 import {IDataTest} from '@gd/analysis/ITest';
+import {IDataVector3} from '@gd/INamedValues';
 import {IDataFormula} from '@gd/IFormula';
 import {getScreenShot} from '@gdComponents/GDScene';
 import {RootState} from '@store/store';
@@ -13,7 +14,11 @@ export interface Options {
   pinCenterOfGravityOfFrame: boolean;
   fixSpringDumperDuaringControl: boolean;
   assemblyMode: typeof assemblyModes[number];
-  driversEyeNodeID?: {elementID: string; pointID: string};
+  driversEye?: {
+    elementID: string;
+    pointID: string;
+    direction: IDataVector3;
+  };
 }
 
 export interface SavedData {

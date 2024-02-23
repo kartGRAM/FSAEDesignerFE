@@ -5,6 +5,8 @@ import {useDispatch, useSelector} from 'react-redux';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import Dialog from '@mui/material/Dialog';
+import {SavedData} from '@gd/ISaveData';
+import {NamedVector3} from '@gd/NamedValues';
 
 import store, {RootState} from '@store/store';
 import DialogActions from '@mui/material/DialogActions';
@@ -43,9 +45,8 @@ export function DriversEyeSettingDialog() {
   const menuZIndex =
     uitgd.fullScreenZIndex + uitgd.dialogZIndex + uitgd.menuZIndex;
 
-  const [applyReady, setApplyReady] = React.useState<IMeasureTool | undefined>(
-    undefined
-  );
+  const [applyReady, setApplyReady] =
+    React.useState<SavedData['options']['driversEye']>(undefined);
 
   const open = useSelector(
     (state: RootState) => state.uitgd.gdDialogState.driversEyeDialogOpen
@@ -77,8 +78,13 @@ export function DriversEyeSettingDialog() {
   );
 
   const eyePoint = useSelector(
-    (state: RootState) => state.dgd.present.options.driversEyeNodeID
+    (state: RootState) => state.dgd.present.options.driversEye
   );
+
+  const [direction, setDirection] = React.useState(new NamedVector3({
+                  name: "drivers eye direction",
+                  value: eyePoint?.direction ?? {x:1,y:0,z:0}
+                }));
 
   const [visModeRestored, setVisModeRestored] = React.useState(
     store.getState().uigd.present.gdSceneState.componentVisualizationMode
@@ -95,6 +101,8 @@ export function DriversEyeSettingDialog() {
       (state: RootState) => state.uitgd.gdSceneState.measureElementPointSelected
     ) ?? '';
 
+  const avoidFirstRerender = React.useRef<boolean>(!!eyePoint);
+
   React.useEffect(() => {
     setVisModeRestored(
       store.getState().uigd.present.gdSceneState.componentVisualizationMode
@@ -108,6 +116,30 @@ export function DriversEyeSettingDialog() {
       dispatch(setMeasureElementPointSelected(undefined));
     };
   }, [dispatch, selectedPointDefault?.nodeID, visModeRestored]);
+
+  useUpdateEffect(() => {
+    if (avoidFirstRerender.current) {
+      avoidFirstRerender.current = false;
+      return;
+    }
+    if (selectedPoint !== '') {
+      for (const child of collectedAssembly?.children ?? []) {
+        for (const p of child.getMeasurablePoints()) {
+          if (p.nodeID === selectedPoint) {
+            const obj: SavedData['options']['driversEye'] =
+              {
+                elementID: p.parent!.nodeID,
+                pointID: p.nodeID,
+                direction: direction.getData()
+              };
+            setApplyReady(obj);
+          }
+        }
+      }
+    } else {
+      setApplyReady(undefined);
+    }
+  }, [selectedPoint]);
 
   const elements = collectedAssembly?.children ?? [];
 

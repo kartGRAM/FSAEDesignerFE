@@ -192,11 +192,9 @@ export const dataGeometryDesignerSlice = createSlice({
     },
     setDriversEye: (
       state: GDState,
-      action: PayloadAction<
-        NonNullable<SavedData['options']['driversEyeNodeID']>
-      >
+      action: PayloadAction<NonNullable<SavedData['options']['driversEye']>>
     ) => {
-      state.options.driversEyeNodeID = action.payload;
+      state.options.driversEye = action.payload;
       state.changed = true;
     },
     setChanged: (state: GDState) => {
