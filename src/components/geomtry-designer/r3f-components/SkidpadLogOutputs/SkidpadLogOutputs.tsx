@@ -5,6 +5,8 @@ import {RootState} from '@store/store';
 import {alpha} from '@mui/material/styles';
 import {useAnimationFrame} from '@hooks/useAnimationFrame';
 import {isSkidpadSolver} from '@gd/kinematics/SkidpadSolver';
+import * as d3 from 'd3';
+import {ColorLegend} from './ColorLegend';
 
 export function SkidpadLogOutputs() {
   const solver = useSelector(
@@ -54,6 +56,10 @@ export function SkidpadLogOutputs() {
       omegaRef.current.innerText = `${solver.state.omega?.toFixed(3)} rad/s`;
   });
   if (!solver || !isSkidpadSolver(solver)) return null;
+  const colorScale = d3
+    .scaleLinear<string>()
+    .domain([0, 100])
+    .range(['#69b3a2', 'purple']);
 
   return (
     <Box
@@ -141,6 +147,7 @@ export function SkidpadLogOutputs() {
           ) : null}
         </Box>
       </Box>
+      <ColorLegend width={400} height={100} colorScale={colorScale} />
     </Box>
   );
 }

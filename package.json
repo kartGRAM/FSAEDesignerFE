@@ -52,6 +52,7 @@
     "axios": "0.27.2",
     "axios-hooks": "^3.1.4",
     "craco-alias": "3.0.1",
+    "d3": "^7.8.5",
     "formik": "2.2.9",
     "i18next": "21.8.11",
     "i18next-browser-languagedetector": "6.1.4",
