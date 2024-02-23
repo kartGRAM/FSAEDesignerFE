@@ -137,138 +137,138 @@ const ForceArrow = (props: {
         )}
       >
         <meshBasicMaterial ref={coneMaterialRef} />
+        {show || pin ? (
+          <Html>
+            <Paper
+              onClick={() => {
+                if (!pin) setPin(true);
+              }}
+              elevation={3}
+              sx={{
+                userSelect: 'none',
+                transform: 'translate3d(20px, -50%, 0)',
+                paddingTop: 0.7,
+                paddingBottom: 0.7,
+                paddingLeft: 1,
+                paddingRight: 1,
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: '50%',
+                  left: '-10px',
+                  height: '1px',
+                  width: '40px',
+                  background: alpha('#FFF', 0.6)
+                }
+              }}
+            >
+              <Box
+                component="div"
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'baseline',
+                  padding: 0
+                }}
+              >
+                <Typography
+                  variant="body1"
+                  gutterBottom
+                  sx={{
+                    padding: 0,
+                    margin: 0,
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  &nbsp;{force.name}
+                </Typography>
+                <Tooltip title={pin ? 'close' : 'pin'}>
+                  <IconButton onClick={() => setPin((prev) => !prev)}>
+                    <PushPinIcon
+                      fontSize="small"
+                      sx={{
+                        transform: !pin ? 'rotate(90deg)' : 'unset'
+                      }}
+                    />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+              {showParentName ? (
+                <Typography
+                  variant="caption"
+                  gutterBottom
+                  sx={{
+                    position: 'relative',
+                    top: -10,
+                    textAlign: 'right',
+                    padding: 0,
+                    margin: 0,
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  @&nbsp;{element.name.value}
+                </Typography>
+              ) : null}
+              <Box component="div" sx={{display: 'flex', flexDirection: 'row'}}>
+                <Typography
+                  variant="body2"
+                  display="block"
+                  gutterBottom
+                  sx={{
+                    textAlign: 'left',
+                    padding: 0,
+                    margin: 0,
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  {showMagnitude ? (
+                    <>
+                      magnitude:
+                      <br />
+                      <br />
+                    </>
+                  ) : null}
+                  {showLocalXYZ ? (
+                    <>
+                      local x:
+                      <br />
+                      local y:
+                      <br />
+                      local z:
+                      <br />
+                      <br />
+                    </>
+                  ) : null}
+                  {showGlobalXYZ ? (
+                    <>
+                      global x:
+                      <br />
+                      global y:
+                      <br />
+                      global z:
+                    </>
+                  ) : null}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  display="block"
+                  gutterBottom
+                  sx={{
+                    padding: 0,
+                    pl: 1,
+                    margin: 0,
+                    whiteSpace: 'nowrap'
+                  }}
+                  ref={textRef}
+                />
+              </Box>
+            </Paper>
+          </Html>
+        ) : null}
       </Cone>
       <Cylinder ref={cylinderMeshRef} args={[2, 2, stdLength]}>
         <meshBasicMaterial ref={cylinderMaterialRef} />
       </Cylinder>
-      {show || pin ? (
-        <Html>
-          <Paper
-            onClick={() => {
-              if (!pin) setPin(true);
-            }}
-            elevation={3}
-            sx={{
-              userSelect: 'none',
-              transform: 'translate3d(20px, -50%, 0)',
-              paddingTop: 0.7,
-              paddingBottom: 0.7,
-              paddingLeft: 1,
-              paddingRight: 1,
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                top: '50%',
-                left: '-10px',
-                height: '1px',
-                width: '40px',
-                background: alpha('#FFF', 0.6)
-              }
-            }}
-          >
-            <Box
-              component="div"
-              sx={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'baseline',
-                padding: 0
-              }}
-            >
-              <Typography
-                variant="body1"
-                gutterBottom
-                sx={{
-                  padding: 0,
-                  margin: 0,
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                &nbsp;{force.name}
-              </Typography>
-              <Tooltip title={pin ? 'close' : 'pin'}>
-                <IconButton onClick={() => setPin((prev) => !prev)}>
-                  <PushPinIcon
-                    fontSize="small"
-                    sx={{
-                      transform: !pin ? 'rotate(90deg)' : 'unset'
-                    }}
-                  />
-                </IconButton>
-              </Tooltip>
-            </Box>
-            {showParentName ? (
-              <Typography
-                variant="caption"
-                gutterBottom
-                sx={{
-                  position: 'relative',
-                  top: -10,
-                  textAlign: 'right',
-                  padding: 0,
-                  margin: 0,
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                @&nbsp;{element.name.value}
-              </Typography>
-            ) : null}
-            <Box component="div" sx={{display: 'flex', flexDirection: 'row'}}>
-              <Typography
-                variant="body2"
-                display="block"
-                gutterBottom
-                sx={{
-                  textAlign: 'left',
-                  padding: 0,
-                  margin: 0,
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                {showMagnitude ? (
-                  <>
-                    magnitude:
-                    <br />
-                    <br />
-                  </>
-                ) : null}
-                {showLocalXYZ ? (
-                  <>
-                    local x:
-                    <br />
-                    local y:
-                    <br />
-                    local z:
-                    <br />
-                    <br />
-                  </>
-                ) : null}
-                {showGlobalXYZ ? (
-                  <>
-                    global x:
-                    <br />
-                    global y:
-                    <br />
-                    global z:
-                  </>
-                ) : null}
-              </Typography>
-              <Typography
-                variant="body2"
-                display="block"
-                gutterBottom
-                sx={{
-                  padding: 0,
-                  pl: 1,
-                  margin: 0,
-                  whiteSpace: 'nowrap'
-                }}
-                ref={textRef}
-              />
-            </Box>
-          </Paper>
-        </Html>
-      ) : null}
     </group>
   );
 };
