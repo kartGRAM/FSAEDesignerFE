@@ -259,11 +259,12 @@ const ForceConfigUI = () => {
       'Show colorbar': {
         value: !!config.showColorBar,
         onChange: (c: boolean) => {
-          const s = {
-            ...configRef.current,
-            showColorBar: c
-          };
-          setGDSceneForceViewerState(s);
+          dispatch(
+            setGDSceneForceViewerState({
+              ...configRef.current,
+              showColorBar: c
+            })
+          );
         }
       },
       'Colorbar value max': {
@@ -275,7 +276,6 @@ const ForceConfigUI = () => {
           solver.stdForce = c;
         }
       },
-
       'Show parent name': {
         value: !!config.showParentName,
         onChange: (c: boolean) => {
