@@ -29,6 +29,7 @@ import {isNumber} from '@app/utils/helpers';
 import {InputBaseComponentProps} from '@mui/material/InputBase';
 import {ISnapshot} from '@gd/analysis/ISnapshot';
 import useUpdateEffect from '@hooks/useUpdateEffect';
+import {LocalInstances} from '@worker/getLocalInstances';
 
 export const CaseResultDialog = React.memo(
   (props: {open: boolean; exitReplayMode: () => void; test: ITest}) => {
@@ -49,6 +50,33 @@ export const CaseResultDialog = React.memo(
       }
     }, [open, dispatch]);
 
+    const firstTime = React.useRef<LocalInstances | null>(null);
+    if (!firstTime.current && open) {
+      const {uitgd} = store.getState();
+      firstTime.current = {
+        assembly: uitgd.assembly!,
+        collectedAssembly: uitgd.collectedAssembly!,
+        datumManager: uitgd.datumManager!,
+        measureToolsManager: uitgd.measureToolsManager!,
+        roVariablesManager: uitgd.roVariablesManager!,
+        solver: uitgd.solver!
+      };
+      const {localInstances} = test.solver;
+      if (!localInstances) return null;
+      dispatch(setAssemblyAndCollectedAssembly(localInstances));
+      dispatch(setSolver(localInstances.solver));
+    } else if (!open) {
+      const fn = async () => {
+        if (!firstTime.current) return;
+        const storedInstances = firstTime.current;
+        await dispatch(setAssemblyAndCollectedAssembly(storedInstances));
+        await dispatch(setSolver(storedInstances.solver));
+        storedInstances.assembly?.arrange();
+        firstTime.current = null;
+      };
+      fn();
+    }
+
     return (
       <Dialog
         open={open}
@@ -67,6 +95,7 @@ export const CaseResultDialog = React.memo(
           zIndex: `${zindex}!important`,
           pointerEvents: 'none'
         }}
+        TransitionProps={{unmountOnExit: true}}
       >
         <DialogTitle>Replay Mode</DialogTitle>
         <CaseResultContent test={test} />
@@ -131,32 +160,9 @@ const CaseResultContent = React.memo((props: {test: ITest}) => {
   }, []);
 
   React.useEffect(() => {
-    const {uitgd} = store.getState();
-    const storedInstances = {
-      assembly: uitgd.assembly!,
-      collectedAssembly: uitgd.collectedAssembly!,
-      datumManager: uitgd.datumManager!,
-      measureToolsManager: uitgd.measureToolsManager!,
-      roVariablesManager: uitgd.roVariablesManager!,
-      solver: uitgd.solver!
-    };
-    const fn = async () => {
-      const {localInstances} = solver;
-      if (!localInstances) return;
-      await dispatch(setAssemblyAndCollectedAssembly(localInstances));
-      await dispatch(setSolver(localInstances.solver));
-      if (caseID !== '' && results) {
-        setComponentsState(results[0]);
-      }
-    };
-    fn();
-    return () => {
-      const fn = async () => {
-        await dispatch(setAssemblyAndCollectedAssembly(storedInstances));
-        await dispatch(setSolver(storedInstances.solver));
-      };
-      fn();
-    };
+    if (caseID !== '' && results) {
+      setComponentsState(results[0]);
+    }
   }, [caseID, dispatch, results, setComponentsState, solver]);
 
   useUpdateEffect(() => {

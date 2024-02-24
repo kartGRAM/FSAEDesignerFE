@@ -1,7 +1,10 @@
 import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {DatumManager} from '@gd/measure/datum/DatumManager';
+import {IDatumManager} from '@gd/measure/datum/IDatumObjects';
 import {MeasureToolsManager} from '@gd/measure/measureTools/MeasureToolsManager';
+import {IMeasureToolsManager} from '@gd/measure/measureTools/IMeasureTools';
 import {ROVariablesManager} from '@gd/measure/readonlyVariables/ROVariablesManager';
+import {IROVariablesManager} from '@gd/measure/readonlyVariables/IReadonlyVariable';
 import {getAssembly} from '@gd/Elements';
 import {getControl} from '@gd/controls/Controls';
 import {Control} from '@gd/controls/IControls';
@@ -14,9 +17,9 @@ import {SkidpadSolver} from '@gd/kinematics/SkidpadSolver';
 export type LocalInstances = {
   assembly: IAssembly;
   collectedAssembly: IAssembly;
-  datumManager: DatumManager;
-  measureToolsManager: MeasureToolsManager;
-  roVariablesManager: ROVariablesManager;
+  datumManager: IDatumManager;
+  measureToolsManager: IMeasureToolsManager;
+  roVariablesManager: IROVariablesManager;
   solver: ISolver;
 };
 
