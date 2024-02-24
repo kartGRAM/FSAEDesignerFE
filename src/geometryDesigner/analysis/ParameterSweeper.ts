@@ -4,7 +4,7 @@ import {getControl} from '@gd/controls/Controls';
 import {getDgd} from '@store/getDgd';
 import {IFormula, IDataFormula} from '@gd/IFormula';
 import {Formula} from '@gd/Formula';
-import {KinematicsSolver} from '@gd/kinematics/KinematicsSolver';
+import {ISolver} from '@gd/kinematics/ISolver';
 
 export type SweeperType = 'GlobalVariable' | 'Control';
 
@@ -24,7 +24,7 @@ export interface IParameterSweeper {
   mode: Mode;
   getData(): IDataParameterSweeper;
   // endまで行っていたらtrueを返す
-  set(solver: KinematicsSolver, step: number): boolean;
+  set(solver: ISolver, step: number): boolean;
 }
 
 export interface IDataParameterSweeper {
@@ -48,7 +48,7 @@ export class ParameterSweeper implements IParameterSweeper {
 
   target: string;
 
-  set(solver: KinematicsSolver, step: number): boolean {
+  set(solver: ISolver, step: number): boolean {
     const eps = Number.EPSILON * 2 ** 8;
     const {startValue, stepValue, endValue} = this;
     let value = startValue + stepValue * step;

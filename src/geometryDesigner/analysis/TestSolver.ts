@@ -1,7 +1,7 @@
 import {inWorker} from '@utils/helpers';
 import {getDgd} from '@store/getDgd';
 import {testUpdateNotify} from '@store/reducers/uiTempGeometryDesigner';
-import {KinematicsSolver} from '@gd/kinematics/KinematicsSolver';
+import {ISolver} from '@gd/kinematics/ISolver';
 import {
   isWorkerMessage,
   FromParent,
@@ -152,7 +152,7 @@ export class TestSolver implements ITestSolver {
         setTimeout(() => {
           this.resetTestStatus(true);
           this.caseResults = data;
-          this.localInstances = getLocalInstances(getDgd());
+          this.localInstances = getLocalInstances(getDgd(), this.test);
           this.done = true;
           this.dgdID = getDgd().idWoTest;
           this.onTestDone(this);
@@ -244,8 +244,8 @@ export class TestSolver implements ITestSolver {
 
   async DFSNodes(
     node: IFlowNode,
-    solver: KinematicsSolver,
-    getSnapshot: (solver: KinematicsSolver) => Required<ISnapshot>,
+    solver: ISolver,
+    getSnapshot: (solver: ISolver) => Required<ISnapshot>,
     ret: CaseResults,
     currentCase: string | undefined
   ): Promise<CaseResults> {

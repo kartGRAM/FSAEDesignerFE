@@ -5,18 +5,21 @@ import {ROVariablesManager} from '@gd/measure/readonlyVariables/ROVariablesManag
 import {getAssembly} from '@gd/Elements';
 import {getControl} from '@gd/controls/Controls';
 import {Control} from '@gd/controls/IControls';
-import {KinematicsSolver} from '@gd/kinematics/KinematicsSolver';
+import {ISolver} from '@gd/kinematics/ISolver';
 import {IAssembly, isMovingElement} from '@gd/IElements';
+import {ITest} from '@gd/analysis/ITest';
+import {KinematicsSolver} from '@gd/kinematics/KinematicsSolver';
+import {SkidpadSolver} from '@gd/kinematics/SkidpadSolver';
 
 export type LocalInstances = {
   assembly: IAssembly;
   datumManager: DatumManager;
   measureToolsManager: MeasureToolsManager;
   roVariablesManager: ROVariablesManager;
-  solver: KinematicsSolver;
+  solver: ISolver;
 };
 
-export function getLocalInstances(state: GDState): LocalInstances {
+export function getLocalInstances(state: GDState, test: ITest): LocalInstances {
   if (!state.topAssembly) throw new Error('No topAssembly');
   const assembly = getAssembly(state.topAssembly);
   const {assemblyMode, pinCenterOfGravityOfFrame} = state.options;
@@ -47,15 +50,27 @@ export function getLocalInstances(state: GDState): LocalInstances {
       });
     return prev;
   }, {} as {[index: string]: Control[]});
-  const solver = new KinematicsSolver(
-    collectedAssembly,
-    assemblyMode,
-    pinCenterOfGravityOfFrame,
-    pinCenterOfGravityOfFrame,
-    controls,
-    0.001,
-    false
-  );
+
+  if (test.steadyStateDynamicsMode && !test.steadySkidpadParams)
+    throw new Error('Skidpadの設定を行っていない');
+
+  const solver: ISolver = !test.steadyStateDynamicsMode
+    ? new KinematicsSolver(
+        collectedAssembly,
+        assemblyMode,
+        pinCenterOfGravityOfFrame,
+        pinCenterOfGravityOfFrame,
+        controls,
+        0.001,
+        false
+      )
+    : new SkidpadSolver(
+        assembly,
+        test.steadySkidpadParams!,
+        controls,
+        0.001,
+        1
+      );
   return {
     assembly,
     datumManager,

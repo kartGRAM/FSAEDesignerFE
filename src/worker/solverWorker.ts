@@ -1,7 +1,7 @@
 import store from '@store/workerStore';
 import {getDgd} from '@store/getDgd';
 import {replaceState} from '@store/reducers/dataGeometryDesigner';
-import {KinematicsSolver} from '@gd/kinematics/KinematicsSolver';
+import {ISolver} from '@gd/kinematics/ISolver';
 import {Test} from '@gd/analysis/Test';
 import {ISnapshot} from '@gd/analysis/ISnapshot';
 import {FromParent, log, throwError} from './solverWorkerMessage';
@@ -21,8 +21,9 @@ ctx.onmessage = async (e: MessageEvent<FromParent>) => {
       (test) => test.nodeID === message.testID
     );
     if (!dataTest) throw new Error('test is not found');
+    const test = new Test(dataTest);
     const {datumManager, measureToolsManager, roVariablesManager, solver} =
-      getLocalInstances(state);
+      getLocalInstances(state, test);
 
     if (message.initialSnapshot) {
       solver.restoreState(message.initialSnapshot);
@@ -37,8 +38,7 @@ ctx.onmessage = async (e: MessageEvent<FromParent>) => {
     log(`worker start...target task is ${message.testID}.`);
     log(`action from ${message.nodeFrom ?? 'start'}.`);
 
-    const test = new Test(dataTest);
-    const getSnapshot = (solver: KinematicsSolver): Required<ISnapshot> => {
+    const getSnapshot = (solver: ISolver): Required<ISnapshot> => {
       solver.postProcess();
       datumManager.update();
       measureToolsManager.update();
