@@ -386,7 +386,7 @@ function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
   );
   const controls = useSelector(
     (state: RootState) => state.dgd.present.controls
-  );
+  ).filter((c) => (c.configuration ?? 'FixedFrame') === assemblyMode);
 
   const onFormulaValidated = (formula: string) => {
     setEvaluatedValue(new Formula(formula).evaluatedValue);

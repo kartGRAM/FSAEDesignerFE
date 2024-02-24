@@ -269,7 +269,7 @@ const ForceConfigUI = () => {
       },
       'Colorbar value max': {
         value: solver.stdForce,
-        min: 0,
+        min: 1,
         max: 100000,
         step: 1,
         onChange: (c: number) => {

@@ -154,7 +154,7 @@ const Content = React.memo((props: {test: ITest}) => {
   );
   const controls = useSelector(
     (state: RootState) => state.dgd.present.controls
-  );
+  ).filter((c) => (c.configuration ?? 'FixedFrame') === assemblyMode);
 
   const elements = useSelector(
     (state: RootState) => state.uitgd.collectedAssembly?.children ?? []
