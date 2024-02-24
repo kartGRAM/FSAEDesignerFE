@@ -58,7 +58,7 @@ export interface GDState {
   gdDialogState: GDDialogState;
   assembly: IAssembly | undefined;
   collectedAssembly: IAssembly | undefined;
-  KinematicsSolver: ISolver | undefined;
+  solver: ISolver | undefined;
   datumManager: IDatumManager | undefined;
   measureToolsManager: IMeasureToolsManager | undefined;
   roVariablesManager: IROVariablesManager | undefined;
@@ -186,7 +186,7 @@ const initialState: GDState = {
   tests: [],
   assembly: undefined,
   collectedAssembly: undefined,
-  KinematicsSolver: undefined,
+  solver: undefined,
   treeViewDragExpanded: [],
   draggingNewElement: null,
   draggingElementAbsPath: '',
@@ -226,7 +226,7 @@ export const uitGeometryDesignerSlice = createSlice({
         state.datumManager = undefined;
         state.measureToolsManager = undefined;
         state.roVariablesManager = undefined;
-        state.KinematicsSolver = undefined;
+        state.solver = undefined;
         state.gdSceneState.movingMode = false;
         state.selectedElementAbsPath = '';
         return;
@@ -278,11 +278,8 @@ export const uitGeometryDesignerSlice = createSlice({
       const test = action.payload;
       state.tests = [...state.tests.filter((t) => t.nodeID !== test.nodeID)];
     },
-    setKinematicsSolver: (
-      state: GDState,
-      action: PayloadAction<ISolver | undefined>
-    ) => {
-      state.KinematicsSolver = action.payload;
+    setSolver: (state: GDState, action: PayloadAction<ISolver | undefined>) => {
+      state.solver = action.payload;
     },
     setDraggingNewElement: (
       state: GDState,
@@ -613,7 +610,7 @@ export const {
   setROVariablesManager,
   setTest,
   removeTest,
-  setKinematicsSolver,
+  setSolver,
   setUIDisabled,
   setAllUIDisabled,
   toggleFullScreen,

@@ -85,9 +85,7 @@ const Cones = (props: {clipPlanes: THREE.Plane[]}) => {
   const {clipPlanes} = props;
   const maxCones = 500;
   const coneSize = 0.075;
-  const solver = useSelector(
-    (state: RootState) => state.uitgd.KinematicsSolver
-  );
+  const solver = useSelector((state: RootState) => state.uitgd.solver);
 
   const coMatrix = getMatrix3(
     useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
@@ -182,9 +180,7 @@ const Cones = (props: {clipPlanes: THREE.Plane[]}) => {
 const SkidpadRingCenter = (props: {clipPlanes: THREE.Plane[]}) => {
   const {clipPlanes} = props;
   const dashSize = 1500;
-  const solver = useSelector(
-    (state: RootState) => state.uitgd.KinematicsSolver
-  );
+  const solver = useSelector((state: RootState) => state.uitgd.solver);
 
   const coMatrix = getMatrix3(
     useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
@@ -250,9 +246,7 @@ const SkidpadRingCenter = (props: {clipPlanes: THREE.Plane[]}) => {
 
 const SkidpadRingInner = (props: {clipPlanes: THREE.Plane[]}) => {
   const {clipPlanes} = props;
-  const solver = useSelector(
-    (state: RootState) => state.uitgd.KinematicsSolver
-  );
+  const solver = useSelector((state: RootState) => state.uitgd.solver);
 
   const coMatrix = getMatrix3(
     useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)

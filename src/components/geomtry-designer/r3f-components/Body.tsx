@@ -87,7 +87,7 @@ const Body = (props: {element: IBody}) => {
     );
     if (dragRef.current) {
       dragRef.current = false;
-      const solver = store.getState().uitgd.KinematicsSolver;
+      const {solver} = store.getState().uitgd;
       if (solver && !solver.running) {
         const point = getInitialPosition();
         const delta = targetRef.current.clone().sub(trans(point)).lengthSq();

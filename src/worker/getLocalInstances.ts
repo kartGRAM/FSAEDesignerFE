@@ -13,6 +13,7 @@ import {SkidpadSolver} from '@gd/kinematics/SkidpadSolver';
 
 export type LocalInstances = {
   assembly: IAssembly;
+  collectedAssembly: IAssembly;
   datumManager: DatumManager;
   measureToolsManager: MeasureToolsManager;
   roVariablesManager: ROVariablesManager;
@@ -65,7 +66,7 @@ export function getLocalInstances(state: GDState, test: ITest): LocalInstances {
         false
       )
     : new SkidpadSolver(
-        assembly,
+        collectedAssembly,
         test.steadySkidpadParams!,
         controls,
         0.001,
@@ -73,6 +74,7 @@ export function getLocalInstances(state: GDState, test: ITest): LocalInstances {
       );
   return {
     assembly,
+    collectedAssembly,
     datumManager,
     measureToolsManager,
     roVariablesManager,

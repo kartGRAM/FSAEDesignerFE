@@ -11,7 +11,8 @@ import {useDispatch} from 'react-redux';
 import store, {RootState} from '@store/store';
 import {
   setUIDisabled,
-  setAssembled
+  setSolver,
+  setAssemblyAndCollectedAssembly
 } from '@store/reducers/uiTempGeometryDesigner';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
@@ -122,7 +123,7 @@ const CaseResultContent = React.memo((props: {test: ITest}) => {
 
   const setComponentsState = React.useCallback((ss?: ISnapshot) => {
     const {uitgd} = store.getState();
-    const solver = uitgd.KinematicsSolver;
+    const {solver} = uitgd;
     if (solver && ss) {
       solver.restoreState(ss);
       solver.postProcess();
@@ -130,17 +131,33 @@ const CaseResultContent = React.memo((props: {test: ITest}) => {
   }, []);
 
   React.useEffect(() => {
+    const {uitgd} = store.getState();
+    const storedInstances = {
+      assembly: uitgd.assembly!,
+      collectedAssembly: uitgd.collectedAssembly!,
+      datumManager: uitgd.datumManager!,
+      measureToolsManager: uitgd.measureToolsManager!,
+      roVariablesManager: uitgd.roVariablesManager!,
+      solver: uitgd.solver!
+    };
     const fn = async () => {
-      const {uitgd} = store.getState();
-      if (!uitgd.gdSceneState.assembled) {
-        await dispatch(setAssembled(true));
-      }
+      const {localInstances} = solver;
+      if (!localInstances) return;
+      await dispatch(setAssemblyAndCollectedAssembly(localInstances));
+      await dispatch(setSolver(localInstances.solver));
       if (caseID !== '' && results) {
         setComponentsState(results[0]);
       }
     };
     fn();
-  }, [caseID, dispatch, results, setComponentsState]);
+    return () => {
+      const fn = async () => {
+        await dispatch(setAssemblyAndCollectedAssembly(storedInstances));
+        await dispatch(setSolver(storedInstances.solver));
+      };
+      fn();
+    };
+  }, [caseID, dispatch, results, setComponentsState, solver]);
 
   useUpdateEffect(() => {
     if (caseID !== '' && results) {

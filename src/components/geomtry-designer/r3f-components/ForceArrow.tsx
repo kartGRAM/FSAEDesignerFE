@@ -29,9 +29,7 @@ const ForceArrow = (props: {
   const [show, setShow] = React.useState(false);
   const [pin, setPin] = React.useState(false);
 
-  const solver = useSelector(
-    (state: RootState) => state.uitgd.KinematicsSolver
-  );
+  const solver = useSelector((state: RootState) => state.uitgd.solver);
   const force = element.getForceResults()[index];
 
   const showParentName = useSelector(

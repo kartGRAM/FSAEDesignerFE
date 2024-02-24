@@ -13,7 +13,7 @@ export default function CResetPositions() {
   });
 
   const handleOnClick = () => {
-    const solver = store.getState().uitgd.KinematicsSolver;
+    const {solver} = store.getState().uitgd;
     if (solver && !solver.running) {
       solver.restoreInitialQ();
       dispatch(resetPositions());

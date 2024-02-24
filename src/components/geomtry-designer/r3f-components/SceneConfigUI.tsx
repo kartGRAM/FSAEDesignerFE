@@ -74,9 +74,7 @@ export const SceneConfigUI = () => {
     {collapsed: true}
   );
 
-  const solver = useSelector(
-    (state: RootState) => state.uitgd.KinematicsSolver
-  );
+  const solver = useSelector((state: RootState) => state.uitgd.solver);
 
   return (
     <>
@@ -250,7 +248,7 @@ const ForceConfigUI = () => {
   configRef.current = config;
 
   const solver = useSelector(
-    (state: RootState) => state.uitgd.KinematicsSolver
+    (state: RootState) => state.uitgd.solver
   ) as IForceSolver;
 
   useControls(

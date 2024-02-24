@@ -11,9 +11,7 @@ import {range, jetMap, numberToRgb} from '@utils/helpers';
 import {ColorLegend} from './ColorLegend';
 
 export function SkidpadLogOutputs() {
-  const solver = useSelector(
-    (state: RootState) => state.uitgd.KinematicsSolver
-  );
+  const solver = useSelector((state: RootState) => state.uitgd.solver);
   const showLapTime = useSelector(
     (state: RootState) =>
       state.uigd.present.gdSceneState.steadySkidpadViewerState.showLapTime

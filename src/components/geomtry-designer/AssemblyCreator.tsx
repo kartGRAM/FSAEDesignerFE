@@ -4,7 +4,7 @@ import {useSelector, useDispatch} from 'react-redux';
 import store, {RootState} from '@store/store';
 import {
   setAssemblyAndCollectedAssembly,
-  setKinematicsSolver,
+  setSolver,
   setAssembled,
   setDatumManager,
   setMeasureToolsManager,
@@ -229,7 +229,7 @@ export default function AssemblyCreactor() {
             0.001,
             true
           );
-          dispatch(setKinematicsSolver(solver));
+          dispatch(setSolver(solver));
           /* const params = state.uitgd.tests[2].steadySkidpadParams;
           if (params) {
             const solver = new SkidpadSolver(
@@ -251,7 +251,7 @@ export default function AssemblyCreactor() {
       }
       return;
     }
-    dispatch(setKinematicsSolver(undefined));
+    dispatch(setSolver(undefined));
 
     // else not assembled
     const {assembly} = store.getState().uitgd;
