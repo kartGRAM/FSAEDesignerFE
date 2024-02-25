@@ -3,7 +3,7 @@ import {useSelector} from 'react-redux';
 import {useKeyboardControls} from '@react-three/drei';
 import {getControl} from '@gd/controls/Controls';
 import {Control} from '@gd/controls/IControls';
-import {RootState} from '@store/store';
+import store, {RootState} from '@store/store';
 
 export const KeyboardControls = () => {
   const [, get] = useKeyboardControls<string>();
@@ -37,6 +37,7 @@ export const KeyboardControls = () => {
   useFrame((threeState, delta) => {
     if (!solver) return;
     if (solver.running) return;
+    if (store.getState().uitgd.uiDisabled) return;
     const state = get() as {[index: string]: boolean};
     const rollbackParams: {control: Control; value: unknown}[] = [];
     Object.keys(state).forEach((key) => {

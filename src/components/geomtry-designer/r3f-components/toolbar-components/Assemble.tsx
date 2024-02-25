@@ -1,10 +1,10 @@
 import React from 'react';
-import Tooltip from '@mui/material/Tooltip';
+import Tooltip from '@gdComponents/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import SvgIcon from '@mui/material/SvgIcon';
 import {useSelector, useDispatch} from 'react-redux';
 import {setAssembled} from '@store/reducers/uiTempGeometryDesigner';
-import store, {RootState} from '@store/store';
+import {RootState} from '@store/store';
 
 export default function Assemble() {
   const assembled = useSelector(
@@ -15,25 +15,20 @@ export default function Assemble() {
   const handleOnClick = () => {
     dispatch(setAssembled(!assembled));
   };
-
-  const {uitgd} = store.getState();
-  const zIndex = uitgd.fullScreenZIndex + uitgd.tooltipZIndex;
+  const disabled = useSelector((state: RootState) => state.uitgd.uiDisabled);
 
   return (
     <Tooltip
       title={
         assembled ? 'Disassemble & Reset Positions.' : 'Assemble Components.'
       }
-      componentsProps={{
-        popper: {
-          sx: {
-            zIndex
-          }
-        }
-      }}
     >
-      <IconButton sx={{padding: 0.5}} onClick={handleOnClick}>
-        <SvgIcon sx={{color: '#cccccc'}}>
+      <IconButton
+        sx={{padding: 0.5}}
+        onClick={handleOnClick}
+        disabled={disabled}
+      >
+        <SvgIcon sx={{color: disabled ? '#555555' : '#cccccc'}}>
           {assembled ? (
             // Disassembleアイコン
             <svg

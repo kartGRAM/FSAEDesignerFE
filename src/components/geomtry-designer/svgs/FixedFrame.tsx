@@ -40,7 +40,7 @@ export default function FixedFrame(props: {
           }}
           sx={sx}
         >
-          <SvgIcon sx={{color: '#ccc'}}>
+          <SvgIcon sx={{color: disabled ? '#555555' : '#cccccc'}}>
             <svg
               id="exportSVG"
               visibility="visible"

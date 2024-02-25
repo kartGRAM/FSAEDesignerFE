@@ -40,7 +40,7 @@ export default function FixedFrame(props: {
           }}
           sx={sx}
         >
-          <SvgIcon sx={{color: '#ccc'}}>
+          <SvgIcon sx={{color: disabled ? '#555555' : '#cccccc'}}>
             <svg
               id="exportSVG"
               visibility="visible"
@@ -543,7 +543,7 @@ export default function FixedFrame(props: {
                 />
                 <path
                   id="path9"
-                  stroke="#ccc"
+                  stroke={disabled ? '#555' : '#CCC'}
                   visibility="visible"
                   strokeWidth="20"
                   strokeOpacity="1"

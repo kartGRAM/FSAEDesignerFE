@@ -167,7 +167,7 @@ const CaseResultContent = React.memo((props: {test: ITest}) => {
 
   useUpdateEffect(() => {
     if (caseID !== '' && results) {
-      setComponentsState(results[frame]);
+      setComponentsState(results[frame - 1]);
     }
   }, [caseID, results, frame, setComponentsState]);
 

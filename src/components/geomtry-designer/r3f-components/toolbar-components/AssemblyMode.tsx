@@ -21,17 +21,21 @@ export default function AssemblyMode() {
     dispatch(setAssembled(false));
   };
 
+  const disabled = useSelector((state: RootState) => state.uitgd.uiDisabled);
+
   return assemblyMode === 'FixedFrame' ? (
     <FixedFrame
       sx={{padding: 0.5}}
       onClick={handleOnClick}
       title="Switch to tire grounding mode"
+      disabled={disabled}
     />
   ) : (
     <AllTiresGrounded
       sx={{padding: 0.5}}
       onClick={handleOnClick}
       title="Switch to fixed frame mode"
+      disabled={disabled}
     />
   );
 }
