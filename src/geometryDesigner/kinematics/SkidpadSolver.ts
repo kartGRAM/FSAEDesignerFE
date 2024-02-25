@@ -142,7 +142,8 @@ export class SkidpadSolver implements IForceSolver {
     config: ISteadySkidpadParams,
     controlsAll: {[index: string]: Control[]},
     scale: number,
-    forceScale: number
+    forceScale: number,
+    solve: boolean
   ) {
     this.config = config;
     this.state = {
@@ -1056,7 +1057,7 @@ export class SkidpadSolver implements IForceSolver {
       });
     }
     // 上記4ステップでプリプロセッサ完了
-    this.firstSolve();
+    if (solve) this.firstSolve();
   }
 
   getGroupItBelongsTo(component: IVariable): [IVariable, IVariable[]] {
@@ -1073,7 +1074,9 @@ export class SkidpadSolver implements IForceSolver {
     maxCnt?: number;
     postProcess?: boolean;
     logOutput?: boolean;
+    isFirstSolve?: boolean;
   }): void {
+    if (!this.firstSolved && !params?.isFirstSolve) this.firstSolve();
     if (this.running) return;
     this.running = true;
     try {
@@ -1221,7 +1224,8 @@ export class SkidpadSolver implements IForceSolver {
         disableForce: true
       },
       postProcess: true,
-      logOutput: true
+      logOutput: true,
+      isFirstSolve: true
     });
     console.log('');
     console.log('calculating initial forces...........');
@@ -1232,6 +1236,7 @@ export class SkidpadSolver implements IForceSolver {
         disableTireFriction: true
       },
       postProcess: true,
+      isFirstSolve: true,
       logOutput: true
     });
     console.log('');
@@ -1257,6 +1262,7 @@ export class SkidpadSolver implements IForceSolver {
         fixLinearBushing: true
       },
       postProcess: true,
+      isFirstSolve: true,
       logOutput: true
     });
 
@@ -1268,6 +1274,7 @@ export class SkidpadSolver implements IForceSolver {
         fixLinearBushing: true
       },
       postProcess: true,
+      isFirstSolve: true,
       logOutput: true
     });
 
@@ -1329,6 +1336,7 @@ export class SkidpadSolver implements IForceSolver {
 
   restoreState(snapshot: ISnapshot): void {
     const {dofState, constraintsState} = snapshot;
+    if (!this.firstSnapshot) this.firstSnapshot = snapshot;
     this.components.forEach((components, i) => {
       components.forEach((component, j) => {
         component.restoreState(dofState[`${j}@${i}`]);

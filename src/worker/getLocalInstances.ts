@@ -73,7 +73,8 @@ export function getLocalInstances(state: GDState, test: ITest): LocalInstances {
         test.steadySkidpadParams!,
         controls,
         0.001,
-        1
+        1,
+        false
       );
   return {
     assembly,

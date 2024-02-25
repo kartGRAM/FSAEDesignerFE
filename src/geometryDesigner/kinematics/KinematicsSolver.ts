@@ -1141,6 +1141,7 @@ export class KinematicsSolver implements ISolver {
 
   restoreState(snapshot: ISnapshot): void {
     const {dofState, constraintsState} = snapshot;
+    if (!this.firstSnapshot) this.firstSnapshot = snapshot;
     this.components.forEach((components, i) => {
       components.forEach((component, j) => {
         component.restoreState(dofState[`${j}@${i}`]);
