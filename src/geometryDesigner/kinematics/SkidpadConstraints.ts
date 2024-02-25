@@ -16,7 +16,7 @@ import {
 
 export interface Balance {
   isBalance: true;
-  applytoElement(): void;
+  applytoElement(updateValues?: boolean): void;
 }
 
 export function isBalance(constraint: any): constraint is Balance {

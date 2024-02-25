@@ -219,7 +219,24 @@ export class LinearBushingBalance implements Constraint, Balance {
 
   restoreState(): void {}
 
-  applytoElement(): void {
+  applytoElement(updateValues?: boolean): void {
+    if (updateValues) {
+      this.vO.setValue(this.getVO());
+      this.fp.setValue(this.frameComponent.position);
+      this.fq.setValue(this.frameComponent.quaternion);
+      this.rodEndComponents.forEach((c, i) => {
+        this.rp[i].setValue(c.position);
+        this.rq[i].setValue(c.quaternion);
+      });
+      this.pfsFrame.forEach((pf, i) => {
+        this.ff[i].setValue(pf.force);
+      });
+      this.pfsRodEnd.forEach((pf, i) => {
+        this.rf[i].setValue(pf.force);
+      });
+      this.omega.setValue(this.omegaComponent.value);
+      this.c.reset({});
+    }
     const q = this.element.rotation.value.invert();
     const {element} = this;
 

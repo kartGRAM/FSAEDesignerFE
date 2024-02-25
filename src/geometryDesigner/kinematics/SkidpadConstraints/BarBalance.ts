@@ -288,7 +288,19 @@ export class BarBalance implements Constraint, Balance {
     return [false, null];
   }
 
-  applytoElement() {
+  applytoElement(updateValues?: boolean) {
+    if (updateValues) {
+      this.vO.setValue(this.getVO());
+      this.components.forEach((c, i) => {
+        this.p[i].setValue(c.position);
+        this.q[i].setValue(c.quaternion);
+      });
+      this.pfs.forEach((pf, i) => {
+        this.f[i].setValue(pf.force);
+      });
+      this.omega.setValue(this.omegaComponent.value);
+      this.c.reset({});
+    }
     const q = this.element.rotation.value.invert();
     const {element} = this;
 

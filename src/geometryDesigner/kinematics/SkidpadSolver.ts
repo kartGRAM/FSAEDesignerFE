@@ -1351,7 +1351,7 @@ export class SkidpadSolver implements IForceSolver {
   }
 
   // ポストプロセス： 要素への位置の反映と、Restorerの適用
-  postProcess(): void {
+  postProcess(updateValues?: boolean): void {
     // Componentの位置、回転をElementに反映
     this.components.forEach((components) =>
       components.forEach((component) => component.applyResultToApplication())
@@ -1373,7 +1373,7 @@ export class SkidpadSolver implements IForceSolver {
       const constraints = components[0].unionFindTreeConstraints;
       constraints.forEach((constraint) => {
         if (isBalance(constraint)) {
-          constraint.applytoElement();
+          constraint.applytoElement(updateValues);
         }
       });
     });

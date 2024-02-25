@@ -242,17 +242,20 @@ export class TireBalance {
     };
   }
 
-  applytoElement() {
-    this.friction.reset({});
+  applytoElement(updateValues?: boolean) {
+    if (updateValues) {
+      this.friction.reset({});
+      this.ferror.reset({});
+      this.fz.reset({});
+    }
+
     const friction = this.friction.vector3Value;
-    this.ferror.reset({});
     const fe = this.ferror.vector3Value;
     const k = this.k.vector3Value;
     const fall = friction.clone().add(fe);
     const fx = k.clone().multiplyScalar(k.dot(fall));
     const fy = fall.clone().sub(fx);
 
-    this.fz.reset({});
     const fz = this.fz.vector3Value;
     const q = this.element.rotation.value.invert();
 

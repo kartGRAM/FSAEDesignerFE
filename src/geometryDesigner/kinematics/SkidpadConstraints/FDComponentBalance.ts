@@ -243,9 +243,20 @@ export class FDComponentBalance implements Constraint, Balance {
     this.momentError.setJacobian(phi_q, row + ofs);
   }
 
-  applytoElement() {
+  applytoElement(updateValues?: boolean) {
+    if (updateValues) {
+      const {component: c} = this;
+      this.vO.setValue(this.getVO());
+      this.p.setValue(c.position);
+      this.q.setValue(c.quaternion);
+      this.pfs.forEach((pf, i) => {
+        this.f[i].setValue(pf.force);
+      });
+      this.omega.setValue(this.omegaComponent.value);
+      this.error.setValue(this.errorComponent.value);
+    }
     if (this.conectedTireBalance) {
-      this.conectedTireBalance.applytoElement();
+      this.conectedTireBalance.applytoElement(updateValues);
     }
   }
 

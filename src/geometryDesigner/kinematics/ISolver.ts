@@ -33,7 +33,7 @@ export interface ISolver {
   getSnapshot(): ISnapshot;
   restoreState(snapshot: ISnapshot): void;
 
-  postProcess(): void;
+  postProcess(updateValues?: boolean): void;
 }
 
 export interface IForceSolver extends ISolver {

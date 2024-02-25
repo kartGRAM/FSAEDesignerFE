@@ -246,7 +246,26 @@ export class TorsionSpringBalance implements Constraint, Balance {
 
   restoreState(): void {}
 
-  applytoElement(): void {
+  applytoElement(updateValues?: boolean): void {
+    if (updateValues) {
+      this.vO.setValue(this.getVO());
+      this.k.setValue(this.getK());
+      this.fp.setValue(this.frameComponent.position);
+      this.fq.setValue(this.frameComponent.quaternion);
+      this.effortComponents.forEach((c, i) => {
+        this.ep[i].setValue(c.position);
+        this.eq[i].setValue(c.quaternion);
+      });
+      this.pfsFrame.forEach((pf, i) => {
+        this.ff[i].setValue(pf.force);
+      });
+      this.pfsEffort.forEach((pf, i) => {
+        this.ef[i].setValue(pf.force);
+      });
+      this.omega.setValue(this.omegaComponent.value);
+      this.c.reset({});
+    }
+
     /*
     const q = this.element.rotation.value.invert();
     const {element} = this;

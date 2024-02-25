@@ -155,7 +155,7 @@ const CaseResultContent = React.memo((props: {test: ITest}) => {
     const {solver} = uitgd;
     if (solver && ss) {
       solver.restoreState(ss);
-      solver.postProcess();
+      solver.postProcess(true);
     }
   }, []);
 
