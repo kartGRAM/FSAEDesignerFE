@@ -1350,24 +1350,32 @@ export class SkidpadSolver implements IForceSolver {
     this.state = {...(snapshot.solverState as ISolverState)};
   }
 
-  solveMaxV({maxCount}: {maxCount: number}) {
+  solveMaxV({
+    maxCount,
+    getSnapshot
+  }: {
+    maxCount: number;
+    getSnapshot: (solver: ISolver) => Required<ISnapshot>;
+  }) {
     let count = 0;
-    const maxV = Number.MAX_SAFE_INTEGER;
     let deltaV = this.config.velocityStepSize.value;
     if (deltaV < 0) throw new Error('deltaV must greater than 0');
     const eps = 0.001;
+    const ss: Required<ISnapshot>[] = [];
     while (count < maxCount) {
-      if (deltaV < eps) return;
-      const prevV = this.state.v;
+      if (deltaV < eps) break;
+      this.state.v += deltaV;
       try {
-        this.state.v += deltaV;
         this.solveTargetRadius({maxCount});
+        if (this.config.storeIntermidiateResults) ss.push(getSnapshot(this));
       } catch {
-        this.state.v = prevV;
+        this.state.v -= deltaV / 2;
         deltaV /= 2;
       }
       ++count;
     }
+    if (!this.config.storeIntermidiateResults) ss.push(getSnapshot(this));
+    return ss;
   }
 
   solveTargetRadius({maxCount}: {maxCount: number}) {
@@ -1380,7 +1388,7 @@ export class SkidpadSolver implements IForceSolver {
     let rMinMin = Number.MAX_SAFE_INTEGER;
     let firstSolved = false;
     while (count < maxCount) {
-      if (Math.abs(this.state.rMin - targetRadius) < eps) return;
+      if (Math.abs(this.state.rMin - targetRadius) < eps) break;
       if (Math.abs(deltaS) < eps) throw new Error('目的の半径に収束しなかった');
       steering.valueFormula.formula = `${steeringPos}`;
       steering.set(this);
@@ -1413,7 +1421,7 @@ export class SkidpadSolver implements IForceSolver {
         rMinMin = this.state.rMin;
         steeringPos += deltaS;
       } else {
-        steeringPos -= deltaS;
+        steeringPos -= deltaS / 2;
         deltaS /= 2;
         console.log(`deltaS修正: deltaS= ${deltaS}`);
       }
