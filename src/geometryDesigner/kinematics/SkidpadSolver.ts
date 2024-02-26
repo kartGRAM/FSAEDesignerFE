@@ -1363,13 +1363,17 @@ export class SkidpadSolver implements IForceSolver {
     const eps = 0.001;
     const ss: Required<ISnapshot>[] = [];
     let maxV = 0;
+    let maxVConverged = 0;
     while (count < maxCount) {
       if (deltaV < eps) break;
       try {
         console.log(`velocity= ${this.state.v} m/s`);
         this.solveTargetRadius({maxCount});
-        if (this.config.storeIntermidiateResults) ss.push(getSnapshot(this));
         const {v} = this.state;
+        if (v > maxVConverged && this.config.storeIntermidiateResults) {
+          ss.push(getSnapshot(this));
+          maxVConverged = v;
+        }
         this.restoreInitialQ();
         this.state.v = v + deltaV;
         if (Math.abs(this.state.v - maxV) < eps) {
@@ -1390,11 +1394,17 @@ export class SkidpadSolver implements IForceSolver {
     return ss;
   }
 
-  solveTargetRadius({maxCount}: {maxCount: number}) {
+  solveTargetRadius({
+    maxCount,
+    initialPos
+  }: {
+    maxCount: number;
+    initialPos?: number;
+  }) {
     let count = 0;
     const {steering} = this.config;
     let deltaS = this.config.steeringMaxStepSize.value;
-    let steeringPos = deltaS;
+    let steeringPos = initialPos || deltaS;
     const eps = 0.00001;
     const targetRadius = this.config.radius.value;
     let rMinMin = Number.MAX_SAFE_INTEGER;
@@ -1402,7 +1412,6 @@ export class SkidpadSolver implements IForceSolver {
     let firstSolved = false;
     let storedState: ISnapshot | undefined;
     while (count < maxCount) {
-      if (firstSolved && Math.abs(this.state.rMin - targetRadius) < eps) break;
       if (Math.abs(deltaS) < eps) throw new Error('目的の半径に収束しなかった');
       steering.valueFormula.formula = `${steeringPos}`;
       steering.set(this);
@@ -1414,8 +1423,12 @@ export class SkidpadSolver implements IForceSolver {
           console.log(
             '初回の計算で収束しなかったため、初期ポジションを修正する'
           );
-          steeringPos = deltaS / 2;
+          if (!initialPos) {
+            deltaS /= 2;
+          }
+          steeringPos -= deltaS;
           // eslint-disable-next-line no-continue
+          continue;
         } else {
           steeringMaxPos = steeringPos;
           steeringPos -= deltaS / 2;
@@ -1428,16 +1441,20 @@ export class SkidpadSolver implements IForceSolver {
           } else throw e;
         }
       }
+      if (firstSolved && Math.abs(this.state.rMin - targetRadius) < eps) break;
       if (rMinMin < this.state.rMin) {
-        console.log('警告：ステアを切っても半径が減らない');
         if (!firstSolved) {
           console.log(
             '初回の計算で半径が負になったため、初期ポジションを修正する'
           );
-          steeringPos = deltaS / 2;
+          if (!initialPos) {
+            deltaS /= 2;
+          }
+          steeringPos -= deltaS;
           // eslint-disable-next-line no-continue
           continue;
         }
+        console.log('警告：ステアを切っても半径が減らない');
       }
       firstSolved = true;
       if (this.state.rMin > targetRadius) {
@@ -1456,6 +1473,7 @@ export class SkidpadSolver implements IForceSolver {
       }
       ++count;
     }
+    return steeringPos;
   }
 
   // ポストプロセス： 要素への位置の反映と、Restorerの適用
