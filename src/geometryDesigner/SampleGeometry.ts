@@ -47,7 +47,7 @@ const getFrontLeftSuspension = (): Assembly => {
       new Vector3(-19.12, 521.93, 310),
       new Vector3(-4.25, 545.82, 140)
     ],
-    // StearingPoint & TireSupportBearingPosition
+    // steeringPoint & TireSupportBearingPosition
     points: [
       new Vector3(-65, 530, 175),
       tireCenter.clone().add(new Vector3(0, -30, 0)),

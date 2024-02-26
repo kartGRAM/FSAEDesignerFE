@@ -29,7 +29,16 @@ export const loadSteadySkidpadParams = (
   return {
     tireData: {...data.tireData},
     tireTorqueRatio: {...data.tireTorqueRatio},
-    stearing: new ParameterSetter(data.stearing),
+    steering: data.steering
+      ? new ParameterSetter(data.steering)
+      : new ParameterSetter({
+          type: 'Control',
+          target: createDummyDataControl(),
+          valueFormula: '0'
+        }),
+    steeringMaxStepSize: data.steeringMaxStepSize
+      ? new NamedNumber({value: data.steeringMaxStepSize})
+      : new NamedNumber({name: 'steeringMaxStepSize', value: 1}),
     velocity: new NamedNumber({value: data.velocity}),
     radius: new NamedNumber({value: data.radius}),
     globalCd: new NamedNumber({value: data.globalCd}),
@@ -55,7 +64,8 @@ export const saveSteadySkidpadParams = (
   return {
     tireData: {...params.tireData},
     tireTorqueRatio: {...params.tireTorqueRatio},
-    stearing: params.stearing.getData(),
+    steering: params.steering.getData(),
+    steeringMaxStepSize: params.steeringMaxStepSize.getData(),
     velocity: params.velocity.getData(),
     radius: params.radius.getData(),
     globalCd: params.globalCd.getData(),
@@ -74,10 +84,14 @@ export const saveSteadySkidpadParams = (
 export const initialSteadySkidpadParams: () => ISteadySkidpadParams = () => ({
   tireData: {},
   tireTorqueRatio: {},
-  stearing: new ParameterSetter({
+  steering: new ParameterSetter({
     type: 'Control',
     target: createDummyDataControl(),
     valueFormula: '0'
+  }),
+  steeringMaxStepSize: new NamedNumber({
+    name: 'steeringMaxStepSize',
+    value: 1
   }),
   velocity: new NamedNumber({name: 'velocity', value: 10}),
   radius: new NamedNumber({name: 'radius', value: 7.625}),

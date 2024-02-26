@@ -1350,6 +1350,14 @@ export class SkidpadSolver implements IForceSolver {
     this.state = {...(snapshot.solverState as ISolverState)};
   }
 
+  solveMaxV({maxCount}: {maxCount: number}) {
+    const count = 0;
+    const {steering} = this.config;
+    while (count < maxCount) {
+      steering.set(this);
+    }
+  }
+
   // ポストプロセス： 要素への位置の反映と、Restorerの適用
   postProcess(updateValues?: boolean): void {
     // Componentの位置、回転をElementに反映

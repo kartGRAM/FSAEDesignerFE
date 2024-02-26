@@ -288,10 +288,10 @@ const Content = React.memo((props: {test: ITest}) => {
           justifyContent: 'space-between'
         }}
       >
-        <Typography variant="subtitle1">stearing control</Typography>
+        <Typography variant="subtitle1">steering control</Typography>
         <NativeSelect
           variant="standard"
-          value={config.stearing.target}
+          value={config.steering.target}
           onChange={apply((e) => {
             let control = controls.find(
               (c) =>
@@ -299,7 +299,7 @@ const Content = React.memo((props: {test: ITest}) => {
                 (c.configuration ?? 'FixedFrame') === assemblyMode
             );
             if (!control) control = createDummyDataControl();
-            config.stearing = new ParameterSetter({
+            config.steering = new ParameterSetter({
               type: 'Control',
               target: control,
               valueFormula: '0'
@@ -312,6 +312,26 @@ const Content = React.memo((props: {test: ITest}) => {
             <option value={control.nodeID}>{getControl(control).name}</option>
           ))}
         </NativeSelect>
+      </Box>
+      <Box
+        component="div"
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'baseline',
+          justifyContent: 'space-between'
+        }}
+      >
+        <Typography variant="subtitle1">
+          steering max actuator step size
+        </Typography>
+        <Scalar
+          nameUnvisible
+          value={config.steeringMaxStepSize}
+          unit="-"
+          onUpdate={apply()}
+          valueFieldProps={{sx: fieldSX}}
+        />
       </Box>
       <Box
         component="div"

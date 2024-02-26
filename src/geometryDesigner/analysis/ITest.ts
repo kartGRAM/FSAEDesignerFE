@@ -22,7 +22,8 @@ export type TestResult =
 export interface ISteadySkidpadParams {
   tireData: {[key: string]: string | undefined};
   tireTorqueRatio: {[key: string]: number};
-  stearing: IParameterSetter;
+  steering: IParameterSetter;
+  steeringMaxStepSize: INamedNumber;
   velocity: INamedNumber;
   radius: INamedNumber;
   globalCd: INamedNumber;
@@ -37,7 +38,8 @@ export interface ISteadySkidpadParams {
 export interface IDataSteadySkidpadParams {
   tireData: {[key: string]: string | undefined};
   tireTorqueRatio: {[key: string]: number};
-  stearing: IDataParameterSetter;
+  steering: IDataParameterSetter;
+  steeringMaxStepSize: IDataNumber;
   velocity: IDataNumber;
   radius: IDataNumber;
   globalCd: IDataNumber;
