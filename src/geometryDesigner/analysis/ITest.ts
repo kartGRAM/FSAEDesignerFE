@@ -24,8 +24,12 @@ export interface ISteadySkidpadParams {
   tireTorqueRatio: {[key: string]: number};
   steering: IParameterSetter;
   steeringMaxStepSize: INamedNumber;
+  steeringEps: INamedNumber;
   velocity: INamedNumber;
+  velocityEps: INamedNumber;
   radius: INamedNumber;
+  radiusEps: INamedNumber;
+  lapTimeEps: INamedNumber;
   globalCd: INamedNumber;
   globalCl: INamedNumber;
   searchMode: 'binary' | 'step';
@@ -40,8 +44,12 @@ export interface IDataSteadySkidpadParams {
   tireTorqueRatio: {[key: string]: number};
   steering: IDataParameterSetter;
   steeringMaxStepSize: IDataNumber;
+  steeringEps: IDataNumber;
   velocity: IDataNumber;
+  velocityEps: IDataNumber;
   radius: IDataNumber;
+  radiusEps: IDataNumber;
+  lapTimeEps: IDataNumber;
   globalCd: IDataNumber;
   globalCl: IDataNumber;
   searchMode: 'binary' | 'step';

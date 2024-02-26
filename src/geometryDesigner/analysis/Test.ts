@@ -39,8 +39,20 @@ export const loadSteadySkidpadParams = (
     steeringMaxStepSize: data.steeringMaxStepSize
       ? new NamedNumber({value: data.steeringMaxStepSize})
       : new NamedNumber({name: 'steeringMaxStepSize', value: 1}),
+    steeringEps: data.steeringEps
+      ? new NamedNumber({value: data.steeringEps})
+      : new NamedNumber({name: 'steeringEps', value: 0.0001}),
     velocity: new NamedNumber({value: data.velocity}),
+    velocityEps: data.velocityEps
+      ? new NamedNumber({value: data.velocityEps})
+      : new NamedNumber({name: 'velocityEps', value: 0.001}),
     radius: new NamedNumber({value: data.radius}),
+    radiusEps: data.radiusEps
+      ? new NamedNumber({value: data.radiusEps})
+      : new NamedNumber({name: 'radiusEps', value: 0.001}),
+    lapTimeEps: data.radiusEps
+      ? new NamedNumber({value: data.lapTimeEps})
+      : new NamedNumber({name: 'lapTimeEps', value: 0.001}),
     globalCd: new NamedNumber({value: data.globalCd}),
     globalCl: new NamedNumber({value: data.globalCl}),
     searchMode: data.searchMode,
@@ -66,8 +78,12 @@ export const saveSteadySkidpadParams = (
     tireTorqueRatio: {...params.tireTorqueRatio},
     steering: params.steering.getData(),
     steeringMaxStepSize: params.steeringMaxStepSize.getData(),
+    steeringEps: params.steeringEps.getData(),
     velocity: params.velocity.getData(),
+    velocityEps: params.velocityEps.getData(),
     radius: params.radius.getData(),
+    radiusEps: params.radiusEps.getData(),
+    lapTimeEps: params.lapTimeEps.getData(),
     globalCd: params.globalCd.getData(),
     globalCl: params.globalCl.getData(),
     searchMode: params.searchMode,
@@ -93,8 +109,24 @@ export const initialSteadySkidpadParams: () => ISteadySkidpadParams = () => ({
     name: 'steeringMaxStepSize',
     value: 1
   }),
+  steeringEps: new NamedNumber({
+    name: 'steeringEps',
+    value: 0.00001
+  }),
   velocity: new NamedNumber({name: 'velocity', value: 10}),
+  velocityEps: new NamedNumber({
+    name: 'velocityEps',
+    value: 0.001
+  }),
   radius: new NamedNumber({name: 'radius', value: 7.625}),
+  radiusEps: new NamedNumber({
+    name: 'radiusEps',
+    value: 0.001
+  }),
+  lapTimeEps: new NamedNumber({
+    name: 'laptimeEps',
+    value: 0.001
+  }),
   globalCd: new NamedNumber({name: 'global cd', value: 0}),
   globalCl: new NamedNumber({name: 'global cl', value: 0}),
   searchMode: 'binary',

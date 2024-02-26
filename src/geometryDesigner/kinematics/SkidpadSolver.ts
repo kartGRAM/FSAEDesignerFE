@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable camelcase */
@@ -1360,24 +1361,35 @@ export class SkidpadSolver implements IForceSolver {
     let count = 0;
     let deltaV = this.config.velocityStepSize.value;
     if (deltaV < 0) throw new Error('deltaV must greater than 0');
-    const eps = 0.001;
+    const velocityEps = this.config.velocityEps.value;
+    const laptimeEps = this.config.lapTimeEps.value;
     const ss: Required<ISnapshot>[] = [];
     let maxV = 0;
     let maxVConverged = 0;
+    let minLaptimeConverged = Number.MAX_SAFE_INTEGER;
     let storedState: ISnapshot | undefined;
+    let steeringPosition = 0;
     while (count < maxCount) {
-      if (deltaV < eps) break;
+      if (deltaV < velocityEps) break;
       try {
         console.log(`velocity= ${this.state.v} m/s`);
-        this.solveTargetRadius({maxCount});
+        steeringPosition = this.solveTargetRadius({
+          maxCount,
+          initialPos: steeringPosition
+        });
+        if (Math.abs(this.state.lapTime - minLaptimeConverged) < laptimeEps)
+          break;
         const {v} = this.state;
         if (v > maxVConverged && this.config.storeIntermidiateResults) {
           ss.push(getSnapshot(this));
           maxVConverged = v;
         }
+        if (minLaptimeConverged > this.state.lapTime) {
+          minLaptimeConverged = this.state.lapTime;
+        }
         storedState = this.getSnapshot();
         this.state.v = v + deltaV;
-        if (Math.abs(this.state.v - maxV) < eps) {
+        if (Math.abs(this.state.v - maxV) < velocityEps) {
           deltaV /= 2;
           this.state.v = v - deltaV;
         }
@@ -1407,19 +1419,24 @@ export class SkidpadSolver implements IForceSolver {
     const {steering} = this.config;
     let deltaS = this.config.steeringMaxStepSize.value;
     let steeringPos = initialPos || deltaS;
-    const eps = 0.00001;
+    const steeringEps = this.config.steeringEps.value;
+    const radiusEps = this.config.radiusEps.value;
     const targetRadius = this.config.radius.value;
     let rMinMin = Number.MAX_SAFE_INTEGER;
     let steeringMaxPos = 0;
     let firstSolved = false;
     let storedState: ISnapshot | undefined;
+    if (initialPos) storedState = this.getSnapshot();
+    const interpolate3 = new Interpolate3Points();
     while (count < maxCount) {
-      if (Math.abs(deltaS) < eps) throw new Error('目的の半径に収束しなかった');
+      if (Math.abs(deltaS) < steeringEps)
+        throw new Error('目的の半径に収束しなかった');
       steering.valueFormula.formula = `${steeringPos}`;
       steering.set(this);
       try {
         this.solve({maxCnt: 10});
         if (this.state.rMin > targetRadius) storedState = this.getSnapshot();
+        interpolate3.addNewValue(steeringPos, this.state.rMin);
       } catch (e: unknown) {
         if (!firstSolved) {
           console.log(
@@ -1427,12 +1444,22 @@ export class SkidpadSolver implements IForceSolver {
           );
           if (!initialPos) {
             deltaS /= 2;
+            steeringPos -= deltaS;
+          } else {
+            if (storedState) this.restoreState(storedState);
+            steeringPos -= deltaS;
           }
-          steeringPos -= deltaS;
           // eslint-disable-next-line no-continue
           continue;
         } else {
-          steeringMaxPos = steeringPos;
+          // steeringMaxPos = steeringPos;
+          if (interpolate3.isValid) {
+            const rEst = interpolate3.getValue(steeringPos);
+            if (rEst > targetRadius + 0.01) {
+              console.log(`rEst = ${rEst}`);
+              throw new Error('目的の半径に収束しない見込みのため早期終了');
+            }
+          }
           steeringPos -= deltaS / 2;
           deltaS /= 2;
           console.log(`deltaS修正: deltaS= ${deltaS}`);
@@ -1443,7 +1470,8 @@ export class SkidpadSolver implements IForceSolver {
           } else throw e;
         }
       }
-      if (firstSolved && Math.abs(this.state.rMin - targetRadius) < eps) break;
+      if (firstSolved && Math.abs(this.state.rMin - targetRadius) < radiusEps)
+        break;
       if (rMinMin < this.state.rMin) {
         if (!firstSolved) {
           console.log(
@@ -1462,15 +1490,19 @@ export class SkidpadSolver implements IForceSolver {
       if (this.state.rMin > targetRadius) {
         rMinMin = this.state.rMin;
         steeringPos += deltaS;
-        if (Math.abs(steeringMaxPos - steeringPos) < eps) {
-          steeringPos -= deltaS / 2;
+        if (Math.abs(steeringMaxPos - steeringPos) < steeringEps) {
           deltaS /= 2;
+          steeringPos -= deltaS;
           console.log(`deltaS修正: deltaS= ${deltaS}`);
         }
       } else {
         steeringMaxPos = steeringPos;
-        steeringPos -= deltaS / 2;
+        if (storedState) {
+          console.log(`ロールバック実施`);
+          this.restoreState(storedState);
+        }
         deltaS /= 2;
+        steeringPos -= deltaS;
         console.log(`deltaS修正: deltaS= ${deltaS}`);
       }
       ++count;
@@ -1529,4 +1561,33 @@ export function isSkidpadSolver(
 ): solver is SkidpadSolver {
   if (!solver) return false;
   return solver.className === SkidpadSolver.className;
+}
+
+class Interpolate3Points {
+  last3X: number[] = [];
+
+  last3Y: number[] = [];
+
+  addNewValue(x: number, y: number) {
+    this.last3X.push(x);
+    this.last3Y.push(y);
+    if (this.last3X.length > 3) this.last3X.shift();
+    if (this.last3Y.length > 3) this.last3Y.shift();
+  }
+
+  get isValid() {
+    return this.last3X.length === 3 && this.last3Y.length === 3;
+  }
+
+  getValue(x: number) {
+    const X = this.last3X;
+    const Y = this.last3Y;
+    const a1 = (Y[0] - Y[1]) * (X[0] - X[2]) - (Y[0] - Y[2]) * (X[0] - X[1]);
+    const a2 = (X[0] - X[1]) * (X[0] - X[2]) * (X[1] - X[2]);
+    const a = a1 / a2;
+    const b = (Y[0] - Y[1]) / (X[0] - X[1]) - a * (X[0] + X[1]);
+    const c = Y[0] - a * X[0] * X[1] - b * X[0];
+
+    return a * x * x + b * x + c;
+  }
 }

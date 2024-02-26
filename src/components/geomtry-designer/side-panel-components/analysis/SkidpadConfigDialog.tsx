@@ -572,6 +572,84 @@ const Content = React.memo((props: {test: ITest}) => {
           </Box>
         )
       ) : null}
+      <Box
+        component="div"
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'baseline',
+          justifyContent: 'space-between'
+        }}
+      >
+        <Typography variant="subtitle1">
+          steering convergence criteria
+        </Typography>
+        <Scalar
+          nameUnvisible
+          value={config.steeringEps}
+          unit="-"
+          onUpdate={apply()}
+          valueFieldProps={{sx: fieldSX}}
+        />
+      </Box>
+      <Box
+        component="div"
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'baseline',
+          justifyContent: 'space-between'
+        }}
+      >
+        <Typography variant="subtitle1">
+          velocity convergence criteria
+        </Typography>
+        <Scalar
+          nameUnvisible
+          value={config.velocityEps}
+          unit="-"
+          onUpdate={apply()}
+          valueFieldProps={{sx: fieldSX}}
+        />
+      </Box>
+      <Box
+        component="div"
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'baseline',
+          justifyContent: 'space-between'
+        }}
+      >
+        <Typography variant="subtitle1">radius convergence criteria</Typography>
+        <Scalar
+          nameUnvisible
+          value={config.radiusEps}
+          unit="-"
+          onUpdate={apply()}
+          valueFieldProps={{sx: fieldSX}}
+        />
+      </Box>
+      <Box
+        component="div"
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'baseline',
+          justifyContent: 'space-between'
+        }}
+      >
+        <Typography variant="subtitle1">
+          laptime convergence criteria
+        </Typography>
+        <Scalar
+          nameUnvisible
+          value={config.lapTimeEps}
+          unit="-"
+          onUpdate={apply()}
+          valueFieldProps={{sx: fieldSX}}
+        />
+      </Box>
     </Box>
   );
 });
