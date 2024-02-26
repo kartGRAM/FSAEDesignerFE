@@ -1364,6 +1364,7 @@ export class SkidpadSolver implements IForceSolver {
     const ss: Required<ISnapshot>[] = [];
     let maxV = 0;
     let maxVConverged = 0;
+    let storedState: ISnapshot | undefined;
     while (count < maxCount) {
       if (deltaV < eps) break;
       try {
@@ -1374,7 +1375,7 @@ export class SkidpadSolver implements IForceSolver {
           ss.push(getSnapshot(this));
           maxVConverged = v;
         }
-        this.restoreInitialQ();
+        storedState = this.getSnapshot();
         this.state.v = v + deltaV;
         if (Math.abs(this.state.v - maxV) < eps) {
           deltaV /= 2;
@@ -1384,7 +1385,8 @@ export class SkidpadSolver implements IForceSolver {
         console.log(e);
         const {v} = this.state;
         maxV = v;
-        this.restoreInitialQ();
+        if (storedState) this.restoreState(storedState);
+        else this.restoreInitialQ();
         deltaV /= 2;
         this.state.v = v - deltaV;
       }
