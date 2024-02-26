@@ -2,6 +2,7 @@ import {ISnapshot} from '@gd/analysis/ISnapshot';
 import {v4 as uuidv4} from 'uuid';
 import {ISolver} from '@gd/kinematics/ISolver';
 import {getDgd} from '@store/getDgd';
+import {isSkidpadSolver} from '@gd/kinematics/SkidpadSolver';
 import {
   isStartNode,
   isAssemblyControlNode,
@@ -43,15 +44,21 @@ export class SetterNode extends ActionNode implements ISetterNode {
     const fsddc = state.options.fixSpringDumperDuaringControl;
     this.listSetters.forEach((setter) => setter.set(solver));
 
-    solver.solve({
-      postProcess: false,
-      constraintsOptions: {
-        fixSpringDumpersAtCurrentPositions: fsddc
+    if (isSkidpadSolver(solver)) {
+      solver.solveTargetRadius({maxCount: 100});
+      if (ss) {
+        ss.push(getSnapshot(solver));
       }
-    });
-
-    if (ss) {
-      ss.push(getSnapshot(solver));
+    } else {
+      solver.solve({
+        postProcess: false,
+        constraintsOptions: {
+          fixSpringDumpersAtCurrentPositions: fsddc
+        }
+      });
+      if (ss) {
+        ss.push(getSnapshot(solver));
+      }
     }
   }
 

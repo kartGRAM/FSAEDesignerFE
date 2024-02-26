@@ -1351,10 +1351,73 @@ export class SkidpadSolver implements IForceSolver {
   }
 
   solveMaxV({maxCount}: {maxCount: number}) {
-    const count = 0;
-    const {steering} = this.config;
+    let count = 0;
+    const maxV = Number.MAX_SAFE_INTEGER;
+    let deltaV = this.config.velocityStepSize.value;
+    if (deltaV < 0) throw new Error('deltaV must greater than 0');
+    const eps = 0.001;
     while (count < maxCount) {
+      if (deltaV < eps) return;
+      const prevV = this.state.v;
+      try {
+        this.state.v += deltaV;
+        this.solveTargetRadius({maxCount});
+      } catch {
+        this.state.v = prevV;
+        deltaV /= 2;
+      }
+      ++count;
+    }
+  }
+
+  solveTargetRadius({maxCount}: {maxCount: number}) {
+    let count = 0;
+    const {steering} = this.config;
+    let deltaS = this.config.steeringMaxStepSize.value;
+    let steeringPos = deltaS;
+    const eps = 0.001;
+    const targetRadius = this.config.radius.value;
+    let rMinMin = Number.MAX_SAFE_INTEGER;
+    let firstSolved = false;
+    while (count < maxCount) {
+      if (Math.abs(this.state.rMin - targetRadius) < eps) return;
+      if (Math.abs(deltaS) < eps) throw new Error('目的の半径に収束しなかった');
+      steering.valueFormula.formula = `${steeringPos}`;
       steering.set(this);
+      try {
+        this.solve();
+      } catch (e: unknown) {
+        if (!firstSolved) {
+          console.log(
+            '初回の計算で収束しなかったため、初期ポジションを修正する'
+          );
+          steeringPos = deltaS / 2;
+          // eslint-disable-next-line no-continue
+        } else {
+          throw e;
+        }
+      }
+      if (rMinMin < this.state.rMin) {
+        console.log('警告：ステアを切っても半径が減らない');
+        if (!firstSolved) {
+          console.log(
+            '初回の計算で半径が負になったため、初期ポジションを修正する'
+          );
+          steeringPos = deltaS / 2;
+          // eslint-disable-next-line no-continue
+          continue;
+        }
+      }
+      firstSolved = true;
+      if (this.state.rMin > targetRadius) {
+        rMinMin = this.state.rMin;
+        steeringPos += deltaS;
+      } else {
+        steeringPos -= deltaS;
+        deltaS /= 2;
+        console.log(`deltaS修正: deltaS= ${deltaS}`);
+      }
+      ++count;
     }
   }
 
