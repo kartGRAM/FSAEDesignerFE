@@ -1370,15 +1370,20 @@ export class SkidpadSolver implements IForceSolver {
     let storedState: ISnapshot | undefined;
     let steeringPosition = 0;
     while (count < maxCount) {
-      if (deltaV < velocityEps) break;
+      if (deltaV < velocityEps) {
+        console.log('velocity converged!');
+        break;
+      }
       try {
         console.log(`velocity= ${this.state.v} m/s`);
         steeringPosition = this.solveTargetRadius({
           maxCount,
           initialPos: steeringPosition
         });
-        if (Math.abs(this.state.lapTime - minLaptimeConverged) < laptimeEps)
+        if (Math.abs(this.state.lapTime - minLaptimeConverged) < laptimeEps) {
+          console.log('laptime converged!');
           break;
+        }
         const {v} = this.state;
         if (v > maxVConverged && this.config.storeIntermidiateResults) {
           ss.push(getSnapshot(this));
@@ -1475,7 +1480,7 @@ export class SkidpadSolver implements IForceSolver {
       if (rMinMin < this.state.rMin) {
         if (!firstSolved) {
           console.log(
-            '初回の計算で半径が負になったため、初期ポジションを修正する'
+            '初回の計算で半径が負になったため、初期のステアリングポジションを修正'
           );
           if (!initialPos) {
             deltaS /= 2;
@@ -1498,7 +1503,6 @@ export class SkidpadSolver implements IForceSolver {
       } else {
         steeringMaxPos = steeringPos;
         if (storedState) {
-          console.log(`ロールバック実施`);
           this.restoreState(storedState);
         }
         deltaS /= 2;
@@ -1507,6 +1511,7 @@ export class SkidpadSolver implements IForceSolver {
       }
       ++count;
     }
+    console.log('reached the radius goal');
     return steeringPos;
   }
 
