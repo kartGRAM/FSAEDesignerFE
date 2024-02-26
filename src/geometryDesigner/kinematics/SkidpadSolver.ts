@@ -1362,15 +1362,27 @@ export class SkidpadSolver implements IForceSolver {
     if (deltaV < 0) throw new Error('deltaV must greater than 0');
     const eps = 0.001;
     const ss: Required<ISnapshot>[] = [];
+    let maxV = 0;
     while (count < maxCount) {
       if (deltaV < eps) break;
-      this.state.v += deltaV;
       try {
+        console.log(`velocity= ${this.state.v} m/s`);
         this.solveTargetRadius({maxCount});
         if (this.config.storeIntermidiateResults) ss.push(getSnapshot(this));
-      } catch {
-        this.state.v -= deltaV / 2;
+        const {v} = this.state;
+        this.restoreInitialQ();
+        this.state.v = v + deltaV;
+        if (Math.abs(this.state.v - maxV) < eps) {
+          deltaV /= 2;
+          this.state.v = v - deltaV;
+        }
+      } catch (e) {
+        console.log(e);
+        const {v} = this.state;
+        maxV = v;
+        this.restoreInitialQ();
         deltaV /= 2;
+        this.state.v = v - deltaV;
       }
       ++count;
     }
@@ -1383,17 +1395,20 @@ export class SkidpadSolver implements IForceSolver {
     const {steering} = this.config;
     let deltaS = this.config.steeringMaxStepSize.value;
     let steeringPos = deltaS;
-    const eps = 0.001;
+    const eps = 0.00001;
     const targetRadius = this.config.radius.value;
     let rMinMin = Number.MAX_SAFE_INTEGER;
+    let steeringMaxPos = 0;
     let firstSolved = false;
+    let storedState: ISnapshot | undefined;
     while (count < maxCount) {
-      if (Math.abs(this.state.rMin - targetRadius) < eps) break;
+      if (firstSolved && Math.abs(this.state.rMin - targetRadius) < eps) break;
       if (Math.abs(deltaS) < eps) throw new Error('目的の半径に収束しなかった');
       steering.valueFormula.formula = `${steeringPos}`;
       steering.set(this);
       try {
-        this.solve();
+        this.solve({maxCnt: 10});
+        if (this.state.rMin > targetRadius) storedState = this.getSnapshot();
       } catch (e: unknown) {
         if (!firstSolved) {
           console.log(
@@ -1402,7 +1417,15 @@ export class SkidpadSolver implements IForceSolver {
           steeringPos = deltaS / 2;
           // eslint-disable-next-line no-continue
         } else {
-          throw e;
+          steeringMaxPos = steeringPos;
+          steeringPos -= deltaS / 2;
+          deltaS /= 2;
+          console.log(`deltaS修正: deltaS= ${deltaS}`);
+          if (storedState) {
+            this.restoreState(storedState);
+            // eslint-disable-next-line no-continue
+            continue;
+          } else throw e;
         }
       }
       if (rMinMin < this.state.rMin) {
@@ -1420,7 +1443,13 @@ export class SkidpadSolver implements IForceSolver {
       if (this.state.rMin > targetRadius) {
         rMinMin = this.state.rMin;
         steeringPos += deltaS;
+        if (Math.abs(steeringMaxPos - steeringPos) < eps) {
+          steeringPos -= deltaS / 2;
+          deltaS /= 2;
+          console.log(`deltaS修正: deltaS= ${deltaS}`);
+        }
       } else {
+        steeringMaxPos = steeringPos;
         steeringPos -= deltaS / 2;
         deltaS /= 2;
         console.log(`deltaS修正: deltaS= ${deltaS}`);
