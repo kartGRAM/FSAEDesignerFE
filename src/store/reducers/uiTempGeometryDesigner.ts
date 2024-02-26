@@ -215,12 +215,13 @@ export const uitGeometryDesignerSlice = createSlice({
             datumManager: IDatumManager;
             measureToolsManager: IMeasureToolsManager;
             roVariablesManager: IROVariablesManager;
+            keepAssembled?: boolean;
           }
         | undefined
       >
     ) => {
-      state.gdSceneState.assembled = false;
       if (!action.payload) {
+        state.gdSceneState.assembled = false;
         state.assembly = undefined;
         state.collectedAssembly = undefined;
         state.datumManager = undefined;
@@ -236,6 +237,7 @@ export const uitGeometryDesignerSlice = createSlice({
       state.datumManager = action.payload.datumManager;
       state.measureToolsManager = action.payload.measureToolsManager;
       state.roVariablesManager = action.payload.roVariablesManager;
+      if (!action.payload.keepAssembled) state.gdSceneState.assembled = false;
     },
     setDatumManager: (
       state: GDState,

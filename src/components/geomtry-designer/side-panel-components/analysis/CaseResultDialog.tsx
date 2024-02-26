@@ -63,15 +63,28 @@ export const CaseResultDialog = React.memo(
       };
       const {localInstances} = test.solver;
       if (!localInstances) return null;
-      dispatch(setAssemblyAndCollectedAssembly(localInstances));
+      dispatch(
+        setAssemblyAndCollectedAssembly({
+          ...localInstances,
+          keepAssembled: true
+        })
+      );
       dispatch(setSolver(localInstances.solver));
     } else if (!open) {
       const fn = async () => {
         if (!firstTime.current) return;
         const storedInstances = firstTime.current;
-        await dispatch(setAssemblyAndCollectedAssembly(storedInstances));
+        await dispatch(
+          setAssemblyAndCollectedAssembly({
+            ...storedInstances,
+            keepAssembled: true
+          })
+        );
         await dispatch(setSolver(storedInstances.solver));
         storedInstances.assembly?.arrange();
+        if (storedInstances.solver) {
+          storedInstances.solver.postProcess();
+        }
         firstTime.current = null;
       };
       fn();
