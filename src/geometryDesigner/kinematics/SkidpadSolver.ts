@@ -1358,6 +1358,7 @@ export class SkidpadSolver implements IForceSolver {
     maxCount: number;
     getSnapshot: (solver: ISolver) => Required<ISnapshot>;
   }) {
+    const start = performance.now();
     let count = 0;
     let deltaV = this.config.velocityStepSize.value;
     if (deltaV < 0) throw new Error('deltaV must greater than 0');
@@ -1369,6 +1370,8 @@ export class SkidpadSolver implements IForceSolver {
     let minLaptimeConverged = Number.MAX_SAFE_INTEGER;
     let storedState: ISnapshot | undefined;
     let steeringPosition = 0;
+    let lastSlope = Number.NaN;
+    let interpolate2: Interpolate2Points | undefined;
     while (count < maxCount) {
       if (deltaV < velocityEps) {
         console.log('velocity converged!');
@@ -1376,10 +1379,13 @@ export class SkidpadSolver implements IForceSolver {
       }
       try {
         console.log(`velocity= ${this.state.v} m/s`);
-        steeringPosition = this.solveTargetRadius({
+        [steeringPosition, interpolate2] = this.solveTargetRadius({
           maxCount,
-          initialPos: steeringPosition
+          initialPos: steeringPosition,
+          interpolate2
         });
+        lastSlope = interpolate2.slope;
+        interpolate2!.reset();
         if (Math.abs(this.state.lapTime - minLaptimeConverged) < laptimeEps) {
           console.log('laptime converged!');
           break;
@@ -1393,27 +1399,144 @@ export class SkidpadSolver implements IForceSolver {
           minLaptimeConverged = this.state.lapTime;
         }
         storedState = this.getSnapshot();
-        this.state.v = v + deltaV;
-        if (Math.abs(this.state.v - maxV) < velocityEps) {
+        if (Math.abs(v + deltaV - maxV) < velocityEps) {
           deltaV /= 2;
-          this.state.v = v - deltaV;
         }
+        this.state.v = v + deltaV;
       } catch (e) {
         console.log(e);
         const {v} = this.state;
         maxV = v;
         if (storedState) this.restoreState(storedState);
         else this.restoreInitialQ();
+
+        if (interpolate2) {
+          interpolate2.reset();
+          interpolate2.slope = lastSlope;
+        }
+
         deltaV /= 2;
         this.state.v = v - deltaV;
       }
       ++count;
     }
     if (!this.config.storeIntermidiateResults) ss.push(getSnapshot(this));
+
+    const end = performance.now();
+    // eslint-disable-next-line no-console
+    console.log(`V max solver end...\ntime = ${(end - start).toFixed(1)}`);
     return ss;
   }
 
   solveTargetRadius({
+    maxCount,
+    initialPos,
+    interpolate2
+  }: {
+    maxCount: number;
+    initialPos?: number;
+    interpolate2?: Interpolate2Points;
+  }): [number, Interpolate2Points] {
+    let count = 0;
+    const {steering} = this.config;
+    let deltaS = this.config.steeringMaxStepSize.value;
+    let steeringPos = initialPos || deltaS;
+    const steeringEps = this.config.steeringEps.value;
+    const radiusEps = this.config.radiusEps.value;
+    const targetRadius = this.config.radius.value;
+    const rMinMin = Number.MAX_SAFE_INTEGER;
+    let steeringMaxPos =
+      deltaS > 0 ? Number.MAX_SAFE_INTEGER : Number.MIN_SAFE_INTEGER;
+    let firstSolved = false;
+    let storedState: ISnapshot | undefined;
+    if (initialPos) storedState = this.getSnapshot();
+    const interpolate3 = new Interpolate3Points();
+    interpolate2 =
+      interpolate2 || new Interpolate2Points(targetRadius, () => deltaS);
+    let lastPos = Number.NaN;
+    while (count < maxCount) {
+      if (Math.abs(lastPos - steeringPos) < steeringEps)
+        throw new Error('目的の半径に収束しなかった');
+
+      steering.valueFormula.formula = `${steeringPos}`;
+      steering.set(this);
+      try {
+        console.log(`steeringPos= ${steeringPos.toFixed(5)}`);
+        this.solve({maxCnt: 10});
+        if (this.state.rMin > targetRadius) storedState = this.getSnapshot();
+        interpolate3.addNewValue(steeringPos, this.state.rMin);
+        interpolate2.addNewValue(steeringPos, this.state.rMin);
+        lastPos = steeringPos;
+      } catch (e: unknown) {
+        if (!firstSolved) {
+          console.log(
+            '初回の計算で収束しなかったため、初期ポジションを修正する'
+          );
+          if (!initialPos) {
+            deltaS /= 2;
+            steeringPos -= deltaS;
+          } else {
+            if (storedState) this.restoreState(storedState);
+            steeringPos -= deltaS;
+          }
+          // eslint-disable-next-line no-continue
+          continue;
+        } else {
+          steeringMaxPos = steeringPos;
+          console.log('収束しなかった');
+          if (interpolate3.isValid) {
+            const rEst = interpolate3.getValue(steeringPos);
+            console.log(`rEst = ${rEst}`);
+            if (rEst > targetRadius + 0.01) {
+              throw new Error('目的の半径に収束しない見込みのため早期終了');
+            }
+          }
+          if (storedState) {
+            this.restoreState(storedState);
+            steeringPos = (lastPos + steeringPos) / 2;
+            // eslint-disable-next-line no-continue
+            continue;
+          } else throw e;
+        }
+      }
+      if (rMinMin < this.state.rMin && !firstSolved) {
+        console.log(
+          '初回の計算で半径が負になったため、初期のステアリングポジションを修正'
+        );
+        if (!initialPos) {
+          deltaS /= 2;
+        }
+        steeringPos -= deltaS;
+        // eslint-disable-next-line no-continue
+        continue;
+      }
+      firstSolved = true;
+      if (firstSolved && Math.abs(this.state.rMin - targetRadius) < radiusEps)
+        break;
+      if (rMinMin < this.state.rMin && storedState) {
+        this.restoreState(storedState);
+      }
+      steeringPos = interpolate2.predict(steeringPos);
+      // 予測値が収束しないことが分かっていれば緩和
+      if (
+        (deltaS > 0 && steeringPos > steeringMaxPos) ||
+        (deltaS < 0 && steeringPos < steeringMaxPos)
+      ) {
+        const rEst = interpolate3.getValue(steeringMaxPos);
+        console.log(`rEst = ${rEst}`);
+        if (rEst > targetRadius + 0.01) {
+          throw new Error('目的の半径に収束しない見込みのため早期終了');
+        }
+        steeringPos = (lastPos + steeringMaxPos) / 2;
+      }
+
+      ++count;
+    }
+    console.log('reached the radius goal');
+    return [steeringPos, interpolate2];
+  }
+
+  solveTargetRadiusOld({
     maxCount,
     initialPos
   }: {
@@ -1460,8 +1583,8 @@ export class SkidpadSolver implements IForceSolver {
           // steeringMaxPos = steeringPos;
           if (interpolate3.isValid) {
             const rEst = interpolate3.getValue(steeringPos);
-            if (rEst > targetRadius + 0.01) {
-              console.log(`rEst = ${rEst}`);
+            console.log(`rEst = ${rEst}`);
+            if (rEst > targetRadius + radiusEps * 10) {
               throw new Error('目的の半径に収束しない見込みのため早期終了');
             }
           }
@@ -1566,6 +1689,131 @@ export function isSkidpadSolver(
 ): solver is SkidpadSolver {
   if (!solver) return false;
   return solver.className === SkidpadSolver.className;
+}
+
+class Interpolate2Points {
+  last2X: number[] = [];
+
+  last2Y: number[] = [];
+
+  targetY: number;
+
+  deltaXMax: () => number;
+
+  slope: number = Number.NaN;
+
+  constructor(targetY: number, deltaXMax: () => number) {
+    this.targetY = targetY;
+    this.deltaXMax = deltaXMax;
+  }
+
+  reset() {
+    this.last2X = [];
+    this.last2Y = [];
+  }
+
+  predict(current: number) {
+    const {abs} = Math;
+    if (!this.isValid) {
+      return current + this.deltaXMax();
+    }
+    const x = (this.targetY - this.last2Y[0]) / this.slope + this.last2X[0];
+    const deltaMax = this.deltaXMax();
+    if (
+      (deltaMax > 0 && current - x > deltaMax) ||
+      (deltaMax < 0 && current - x < deltaMax)
+    ) {
+      return current + deltaMax;
+    }
+    if (
+      (deltaMax > 0 && current - x < -deltaMax) ||
+      (deltaMax < 0 && current - x > -deltaMax)
+    ) {
+      return current - deltaMax;
+    }
+    if (this.last2Y[1] > this.targetY) {
+      if (
+        (deltaMax > 0 && current - x < deltaMax) ||
+        (deltaMax < 0 && current - x > deltaMax)
+      ) {
+        return current + deltaMax;
+      }
+    }
+    return x;
+  }
+
+  addNewValue(x: number, y: number) {
+    // targetY > 0
+    // last2Y[0] > last2Y[1]
+    const {targetY, last2X, last2Y} = this;
+    if (last2X.length < 2) {
+      last2X.push(x);
+      last2Y.push(y);
+      if (last2X.length === 2) {
+        if (last2Y[1] > last2Y[0]) {
+          this.last2X = [last2X[1], last2X[0]];
+          this.last2Y = [last2Y[1], last2Y[0]];
+        }
+
+        this.slope =
+          (this.last2Y[1] - this.last2Y[0]) / (this.last2X[1] - this.last2X[0]);
+        return;
+      }
+    }
+
+    const {abs, max} = Math;
+    if (y < targetY) {
+      // --,- or ++,- or +-,-
+      if (last2Y.every((y) => y - targetY < 0)) {
+        if (y > last2Y[0]) {
+          this.last2X = [x, last2X[0]];
+          this.last2Y = [y, last2Y[0]];
+        } else if (y > last2Y[1]) {
+          last2X[1] = x;
+          last2Y[1] = y;
+        }
+      } else if (last2Y.every((y) => y - targetY > 0)) {
+        this.last2X = [last2X[1], x];
+        this.last2Y = [last2Y[1], y];
+      } else {
+        // eslint-disable-next-line no-lonely-if
+        if (y > last2Y[1]) {
+          last2X[1] = x;
+          last2Y[1] = y;
+        }
+      }
+    } else {
+      // --,+ or ++,+ or +-,+
+      // eslint-disable-next-line no-lonely-if
+      if (last2Y.every((y) => y - targetY < 0)) {
+        this.last2X = [x, last2X[0]];
+        this.last2Y = [y, last2Y[0]];
+      } else if (last2Y.every((y) => y - targetY > 0)) {
+        if (y < last2Y[1]) {
+          this.last2X = [last2X[0], x];
+          this.last2Y = [last2Y[0], y];
+        } else if (y < last2Y[0]) {
+          last2X[0] = x;
+          last2Y[0] = y;
+        }
+      } else {
+        // eslint-disable-next-line no-lonely-if
+        if (y < last2Y[0]) {
+          last2X[0] = x;
+          last2Y[0] = y;
+        }
+      }
+    }
+
+    this.slope =
+      (this.last2Y[1] - this.last2Y[0]) / (this.last2X[1] - this.last2X[0]);
+  }
+
+  get isValid() {
+    const a = this.last2X.length === 2;
+    const b = this.last2X.length > 1 && !Number.isNaN(this.slope);
+    return a || b;
+  }
 }
 
 class Interpolate3Points {

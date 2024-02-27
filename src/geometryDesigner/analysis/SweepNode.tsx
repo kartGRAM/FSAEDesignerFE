@@ -3,6 +3,7 @@ import {v4 as uuidv4} from 'uuid';
 import {ISolver} from '@gd/kinematics/ISolver';
 import {getDgd} from '@store/getDgd';
 import {ISnapshot} from '@gd/analysis/ISnapshot';
+import {isSkidpadSolver} from '@gd/kinematics/SkidpadSolver';
 import {
   IParameterSweeper,
   IDataParameterSweeper,
@@ -43,22 +44,42 @@ export class SweepNode extends ActionNode implements ISweepNode {
     const state = getDgd();
     const fsddc = state.options.fixSpringDumperDuaringControl;
 
-    for (let step = 0; ; ++step) {
-      let done = true;
-      this.listSweepers.forEach((s) => {
-        done = done && s.set(solver, step);
-      });
+    if (isSkidpadSolver(solver)) {
+      for (let step = 0; ; ++step) {
+        let done = true;
+        this.listSweepers.forEach((s) => {
+          done = done && s.set(solver, step);
+        });
 
-      solver.solve({
-        postProcess: false,
-        constraintsOptions: {
-          fixSpringDumpersAtCurrentPositions: fsddc
+        solver.solve({
+          postProcess: false,
+          constraintsOptions: {
+            fixSpringDumpersAtCurrentPositions: fsddc
+          }
+        });
+        if (ss) {
+          ss.push(getSnapshot(solver));
         }
-      });
-      if (ss) {
-        ss.push(getSnapshot(solver));
+        if (done) break;
       }
-      if (done) break;
+    } else {
+      for (let step = 0; ; ++step) {
+        let done = true;
+        this.listSweepers.forEach((s) => {
+          done = done && s.set(solver, step);
+        });
+
+        solver.solve({
+          postProcess: false,
+          constraintsOptions: {
+            fixSpringDumpersAtCurrentPositions: fsddc
+          }
+        });
+        if (ss) {
+          ss.push(getSnapshot(solver));
+        }
+        if (done) break;
+      }
     }
   }
 
