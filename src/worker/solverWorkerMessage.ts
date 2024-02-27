@@ -1,12 +1,21 @@
 import {GDState} from '@store/reducers/dataGeometryDesigner';
 import {ISnapshot} from '@gd/analysis/ISnapshot';
 import {isObject} from '@utils/helpers';
+import {IDataParameterSetter} from '@gd/analysis/ParameterSetter';
 
 export interface FromParent {
   testID: string;
   nodeFrom: string;
   initialSnapshot?: ISnapshot;
   state: GDState;
+}
+
+export interface FromParentSweepWorker {
+  step: number;
+  testID: string;
+  initialSnapshot?: ISnapshot;
+  state: GDState;
+  setters: IDataParameterSetter[];
 }
 
 export type WorkerMessage = {
@@ -26,6 +35,12 @@ export type CaseResults = {
       results: Required<ISnapshot>[];
     };
   };
+};
+
+export type SweepResults = {
+  isSweepResults: true;
+  step: number;
+  results: Required<ISnapshot>[];
 };
 
 export function isCaseResults(object: any): object is CaseResults {
