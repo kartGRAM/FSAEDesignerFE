@@ -7,7 +7,7 @@ export interface IActionNode extends IFlowNode {
     solver: ISolver,
     getSnapshot: (solver: ISolver) => Required<ISnapshot>,
     ss?: Required<ISnapshot>[]
-  ): void;
+  ): Promise<void>;
 }
 
 export interface IDataActionNode extends IDataFlowNode {}
@@ -17,7 +17,7 @@ export abstract class ActionNode extends FlowNode implements IActionNode {
     solver: ISolver,
     getSnapshot: (solver: ISolver) => Required<ISnapshot>,
     ss?: Required<ISnapshot>[]
-  ): void;
+  ): Promise<void>;
 }
 
 export function isActionNode(node: IFlowNode): node is IActionNode {

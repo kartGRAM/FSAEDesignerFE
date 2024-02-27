@@ -193,7 +193,7 @@ export class Test implements ITest {
         return prev;
       }, {} as {[index: string]: IDataEdge});
       this.nodes = data.nodes.reduce((prev, current) => {
-        const node = getFlowNode(current);
+        const node = getFlowNode(current, this.nodeID);
         if (isStartNode(node)) this.startNode = node;
         if (isEndNode(node)) this.endNode = node;
         prev[current.nodeID] = node;
@@ -505,14 +505,20 @@ export class Test implements ITest {
     this.steadyStateDynamicsMode = 'SkidpadMaxV';
     this.steadySkidpadParams = undefined;
 
-    this.startNode = new StartNode({
-      name: 'assemble & test start',
-      position: {x: 0, y: 0}
-    });
-    this.endNode = new EndNode({
-      name: 'test end',
-      position: {x: 1000, y: 0}
-    });
+    this.startNode = new StartNode(
+      {
+        name: 'assemble & test start',
+        position: {x: 0, y: 0}
+      },
+      this.nodeID
+    );
+    this.endNode = new EndNode(
+      {
+        name: 'test end',
+        position: {x: 1000, y: 0}
+      },
+      this.nodeID
+    );
 
     this.nodes = [this.startNode, this.endNode].reduce((prev, current) => {
       prev[current.nodeID] = current;

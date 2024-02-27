@@ -21,8 +21,8 @@ export interface IDataEndNode extends IDataActionNode {
 }
 
 export class EndNode extends ActionNode implements IEndNode {
-  // eslint-disable-next-line class-methods-use-this
-  action(): void {}
+  // eslint-disable-next-line class-methods-use-this, no-empty-function
+  async action(): Promise<void> {}
 
   readonly className = className;
 
@@ -52,16 +52,20 @@ export class EndNode extends ActionNode implements IEndNode {
   }
 
   constructor(
-    params: {name: string; position: {x: number; y: number}} | IDataEndNode
+    params: {name: string; position: {x: number; y: number}} | IDataEndNode,
+    parentTestID: string
   ) {
-    super(params);
+    super(params, parentTestID);
     // eslint-disable-next-line no-empty
     if (isDataFlowNode(params) && isDataEndNode(params)) {
     }
   }
 
   clone(nodes: {[index: string]: IFlowNode | undefined}): IEndNode {
-    return new EndNode({...this.getData(nodes), nodeID: uuidv4()});
+    return new EndNode(
+      {...this.getData(nodes), nodeID: uuidv4()},
+      this.parentTestID
+    );
   }
 }
 

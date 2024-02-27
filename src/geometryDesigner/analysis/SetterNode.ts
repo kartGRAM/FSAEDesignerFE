@@ -35,11 +35,11 @@ export interface IDataSetterNode extends IDataActionNode {
 }
 
 export class SetterNode extends ActionNode implements ISetterNode {
-  action(
+  async action(
     solver: ISolver,
     getSnapshot: (solver: ISolver) => Required<ISnapshot>,
     ss?: Required<ISnapshot>[]
-  ): void {
+  ): Promise<void> {
     const state = getDgd();
     const fsddc = state.options.fixSpringDumperDuaringControl;
     this.listSetters.forEach((setter) => setter.set(solver));
@@ -171,9 +171,10 @@ export class SetterNode extends ActionNode implements ISetterNode {
           position: {x: number; y: number};
           nodeID?: string;
         }
-      | IDataSetterNode
+      | IDataSetterNode,
+    parentTestID: string
   ) {
-    super(params);
+    super(params, parentTestID);
     this.listSetters = [];
     this.isModRow = {};
     this._copyFrom = undefined;
@@ -188,7 +189,10 @@ export class SetterNode extends ActionNode implements ISetterNode {
   }
 
   clone(nodes: {[index: string]: IFlowNode | undefined}): ISetterNode {
-    const ret = new SetterNode({...this.getData(nodes), nodeID: uuidv4()});
+    const ret = new SetterNode(
+      {...this.getData(nodes), nodeID: uuidv4()},
+      this.parentTestID
+    );
     const org = nodes[ret.copyFrom ?? ''] ?? null;
     ret.setCopyFrom(org);
     return ret;

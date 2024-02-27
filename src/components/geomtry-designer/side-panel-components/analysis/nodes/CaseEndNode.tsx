@@ -33,11 +33,14 @@ export function getItem(): Item {
     className,
     icon: <CaseEnd title="Case End" />,
     text: 'Case end',
-    onDrop: (position: XYPosition, temporary: boolean) =>
-      new CaseEndNode({
-        name: 'Case end',
-        position,
-        nodeID: temporary ? 'temp' : undefined
-      })
+    onDrop: (position: XYPosition, temporary: boolean, testID: string) =>
+      new CaseEndNode(
+        {
+          name: 'Case end',
+          position,
+          nodeID: temporary ? 'temp' : undefined
+        },
+        testID
+      )
   };
 }

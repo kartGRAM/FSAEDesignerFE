@@ -5,6 +5,7 @@ import {ISolver} from '@gd/kinematics/ISolver';
 import {Test} from '@gd/analysis/Test';
 import {ISnapshot} from '@gd/analysis/ISnapshot';
 import {isSkidpadSolver} from '@gd/kinematics/SkidpadSolver';
+import {ParameterSetter} from '@gd/analysis/ParameterSetter';
 import {
   FromParentSweepWorker,
   log,
@@ -32,15 +33,12 @@ ctx.onmessage = async (e: MessageEvent<FromParentSweepWorker>) => {
       getLocalInstances(state, test);
     if (!isSkidpadSolver(solver)) return;
 
+    const setters = message.setters.map((s) => new ParameterSetter(s));
+
     if (message.initialSnapshot) {
       solver.restoreState(message.initialSnapshot);
-    } else {
-      solver.solve({
-        constraintsOptions: {disableSpringElasticity: true},
-        postProcess: true,
-        logOutput: true
-      });
     }
+    setters.forEach((s) => s.set(solver));
 
     log(`worker start...`);
 

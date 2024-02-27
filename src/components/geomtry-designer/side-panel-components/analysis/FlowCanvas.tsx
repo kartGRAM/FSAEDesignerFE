@@ -406,7 +406,7 @@ const Content = React.memo((props: {test: ITest}) => {
     const data = await navigator.clipboard.readText();
     const item = convertJsonToClipboardFlowNodes(data);
     if (item) {
-      const {nodes} = getFlowNodesFromClipboard(item, test.nodes);
+      const {nodes} = getFlowNodesFromClipboard(item, test.nodes, test.nodeID);
       const inheritedParams = tempNodes.nodes.reduce((prev, node) => {
         prev[node.data.oldID] = {position: node.position, nodeID: node.id};
         return prev;
@@ -444,10 +444,10 @@ const Content = React.memo((props: {test: ITest}) => {
         }));
         return;
       }
-      const tmpNode = getRFNode(item.onDrop({x, y}, true));
+      const tmpNode = getRFNode(item.onDrop({x, y}, true, test.nodeID));
       setTempNodes({nodes: [tmpNode], edges: []});
     },
-    [viewX, viewY, zoom, tempNodes]
+    [viewX, zoom, viewY, tempNodes.nodes.length, test.nodeID]
   );
 
   const handleDrop = useCallback(
@@ -458,7 +458,7 @@ const Content = React.memo((props: {test: ITest}) => {
       const {top, left} = ref.current.getBoundingClientRect();
       const x = (e.clientX - left - viewX) / zoom;
       const y = (e.clientY - top - viewY) / zoom;
-      test.addNode(item.onDrop({x, y}, false));
+      test.addNode(item.onDrop({x, y}, false, test.nodeID));
       updateWithSave();
     },
     [test, viewX, viewY, zoom, updateWithSave]
@@ -542,7 +542,11 @@ const Content = React.memo((props: {test: ITest}) => {
     const data = await navigator.clipboard.readText();
     const item = convertJsonToClipboardFlowNodes(data);
     if (item) {
-      const nodesAndEdges = getRFFlowNodesFromClipboard(item, test.nodes);
+      const nodesAndEdges = getRFFlowNodesFromClipboard(
+        item,
+        test.nodes,
+        test.nodeID
+      );
       const minX = nodesAndEdges.nodes.reduce(
         (prev, node) => Math.min(prev, node.position.x),
         Number.MAX_SAFE_INTEGER

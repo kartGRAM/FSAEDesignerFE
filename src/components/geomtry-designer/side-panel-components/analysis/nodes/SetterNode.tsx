@@ -66,12 +66,15 @@ export function getItem(): Item {
     className,
     icon: <Tuning title="Setter" />,
     text: 'Set parameters',
-    onDrop: (position: XYPosition, temporary: boolean) =>
-      new SetterNode({
-        name: 'Parameter setting',
-        position,
-        nodeID: temporary ? 'temp' : undefined
-      })
+    onDrop: (position: XYPosition, temporary: boolean, testID: string) =>
+      new SetterNode(
+        {
+          name: 'Parameter setting',
+          position,
+          nodeID: temporary ? 'temp' : undefined
+        },
+        testID
+      )
   };
 }
 

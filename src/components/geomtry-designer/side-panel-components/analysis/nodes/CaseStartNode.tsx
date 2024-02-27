@@ -43,12 +43,15 @@ export function getItem(): Item {
     className,
     icon: <CaseStart title="Case Start" />,
     text: 'Case start',
-    onDrop: (position: XYPosition, temporary: boolean) =>
-      new CaseStartNode({
-        name: 'Case start',
-        position,
-        nodeID: temporary ? 'temp' : undefined
-      })
+    onDrop: (position: XYPosition, temporary: boolean, testID: string) =>
+      new CaseStartNode(
+        {
+          name: 'Case start',
+          position,
+          nodeID: temporary ? 'temp' : undefined
+        },
+        testID
+      )
   };
 }
 

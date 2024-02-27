@@ -16,7 +16,7 @@ export interface IDataStartNode extends IDataActionNode {
 
 export class StartNode extends ActionNode implements IStartNode {
   // eslint-disable-next-line class-methods-use-this
-  action(solver: ISolver): void {
+  async action(solver: ISolver): Promise<void> {
     solver.restoreInitialQ();
   }
 
@@ -41,16 +41,20 @@ export class StartNode extends ActionNode implements IStartNode {
   }
 
   constructor(
-    params: {name: string; position: {x: number; y: number}} | IDataStartNode
+    params: {name: string; position: {x: number; y: number}} | IDataStartNode,
+    parentTestID: string
   ) {
-    super(params);
+    super(params, parentTestID);
     // eslint-disable-next-line no-empty
     if (isDataFlowNode(params) && isDataStartNode(params)) {
     }
   }
 
   clone(nodes: {[index: string]: IFlowNode | undefined}): IStartNode {
-    return new StartNode({...this.getData(nodes), nodeID: uuidv4()});
+    return new StartNode(
+      {...this.getData(nodes), nodeID: uuidv4()},
+      this.parentTestID
+    );
   }
 }
 

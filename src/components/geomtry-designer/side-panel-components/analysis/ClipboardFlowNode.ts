@@ -7,12 +7,13 @@ import {getEdge, getRFNode} from './nodes/getItems';
 
 export function getFlowNodesFromClipboard(
   item: IClipboardFlowNodes,
-  testNodes: {[index: string]: IFlowNode | undefined}
+  testNodes: {[index: string]: IFlowNode | undefined},
+  testID: string
 ): {
   nodes: IFlowNode[];
   edges: IDataEdge[];
 } {
-  const nodes = item.nodes.map((node) => getFlowNode(node));
+  const nodes = item.nodes.map((node) => getFlowNode(node, testID));
   nodes.forEach((node) => {
     if (node.copyFrom && node.setCopyFrom) {
       const org = testNodes[node.copyFrom ?? ''];
@@ -27,12 +28,13 @@ export function getFlowNodesFromClipboard(
 
 export function getRFFlowNodesFromClipboard(
   item: IClipboardFlowNodes,
-  testNodes: {[index: string]: IFlowNode | undefined}
+  testNodes: {[index: string]: IFlowNode | undefined},
+  testID: string
 ): {
   nodes: Node[];
   edges: Edge[];
 } {
-  const {nodes, edges} = getFlowNodesFromClipboard(item, testNodes);
+  const {nodes, edges} = getFlowNodesFromClipboard(item, testNodes, testID);
   return {
     nodes: nodes.map((node) => getRFNode(node)),
     edges: edges.map((edge) => getEdge(edge))

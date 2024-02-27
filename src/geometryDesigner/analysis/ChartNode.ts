@@ -80,9 +80,10 @@ export class ChartNode extends FlowNode implements IChartNode {
           position: {x: number; y: number};
           nodeID?: string;
         }
-      | IDataChartNode
+      | IDataChartNode,
+    parentTestID: string
   ) {
-    super(params);
+    super(params, parentTestID);
     if (isDataFlowNode(params) && isDataChartNode(params)) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const data = params;
@@ -92,7 +93,10 @@ export class ChartNode extends FlowNode implements IChartNode {
   }
 
   clone(nodes: {[index: string]: IFlowNode | undefined}): IChartNode {
-    const ret = new ChartNode({...this.getData(nodes), nodeID: uuidv4()});
+    const ret = new ChartNode(
+      {...this.getData(nodes), nodeID: uuidv4()},
+      this.parentTestID
+    );
     return ret;
   }
 }

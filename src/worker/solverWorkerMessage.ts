@@ -37,14 +37,18 @@ export type CaseResults = {
   };
 };
 
+export function isCaseResults(object: any): object is CaseResults {
+  return isObject(object) && object.isCaseResults;
+}
+
 export type SweepResults = {
   isSweepResults: true;
   step: number;
   results: Required<ISnapshot>[];
 };
 
-export function isCaseResults(object: any): object is CaseResults {
-  return isObject(object) && object.isCaseResults;
+export function isSweepResults(object: any): object is SweepResults {
+  return isObject(object) && object.isSweepResults;
 }
 
 export type DoneProgress = {

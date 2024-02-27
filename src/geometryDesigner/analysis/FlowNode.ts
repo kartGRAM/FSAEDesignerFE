@@ -19,6 +19,7 @@ export interface IFlowNode {
   isInitialState: boolean;
   position: {x: number; y: number};
   extraFlags: any;
+  parentTestID: string;
   getData(nodes: {[index: string]: IFlowNode | undefined}): IDataFlowNode;
   validate(
     edgesFromTarget: {[index: TargetNodeID]: IDataEdge | undefined},
@@ -55,6 +56,8 @@ export abstract class FlowNode implements IFlowNode {
 
   isInitialState: boolean;
 
+  parentTestID: string;
+
   private _name: string = '';
 
   get name(): string {
@@ -71,9 +74,11 @@ export abstract class FlowNode implements IFlowNode {
   constructor(
     params:
       | {name: string; position: {x: number; y: number}; nodeID?: string}
-      | IDataFlowNode
+      | IDataFlowNode,
+    parentTestID: string
   ) {
     const {name, position} = params;
+    this.parentTestID = parentTestID;
     this.name = name;
     this.position = position;
 
@@ -165,5 +170,9 @@ export type Item = {
   icon: JSX.Element;
 
   text: string | JSX.Element;
-  onDrop: (position: XYPosition, temporary: boolean) => IFlowNode;
+  onDrop: (
+    position: XYPosition,
+    temporary: boolean,
+    testID: string
+  ) => IFlowNode;
 };

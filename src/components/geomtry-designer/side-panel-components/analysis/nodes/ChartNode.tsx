@@ -47,12 +47,15 @@ export function getItem(): Item {
     className,
     icon: <TimelineIcon />,
     text: 'Chart',
-    onDrop: (position: XYPosition, temporary: boolean) =>
-      new ChartNode({
-        name: 'Chart',
-        position,
-        nodeID: temporary ? 'temp' : undefined
-      })
+    onDrop: (position: XYPosition, temporary: boolean, testID: string) =>
+      new ChartNode(
+        {
+          name: 'Chart',
+          position,
+          nodeID: temporary ? 'temp' : undefined
+        },
+        testID
+      )
   };
 }
 

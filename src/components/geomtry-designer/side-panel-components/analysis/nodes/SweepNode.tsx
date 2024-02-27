@@ -75,12 +75,15 @@ export function getItem(): Item {
     className,
     icon: <Sweep title="Sweeper" />,
     text: 'Sweep parameters',
-    onDrop: (position: XYPosition, temporary: boolean) =>
-      new SweepNode({
-        name: 'Parameter sweep',
-        position,
-        nodeID: temporary ? 'temp' : undefined
-      })
+    onDrop: (position: XYPosition, temporary: boolean, testID: string) =>
+      new SweepNode(
+        {
+          name: 'Parameter sweep',
+          position,
+          nodeID: temporary ? 'temp' : undefined
+        },
+        testID
+      )
   };
 }
 

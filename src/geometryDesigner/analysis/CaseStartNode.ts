@@ -56,16 +56,20 @@ export class CaseStartNode extends FlowNode implements ICaseStartNode {
   constructor(
     params:
       | {name: string; position: {x: number; y: number}; nodeID?: string}
-      | IDataCaseStartNode
+      | IDataCaseStartNode,
+    parentTestID: string
   ) {
-    super(params);
+    super(params, parentTestID);
     // eslint-disable-next-line no-empty
     if (isDataFlowNode(params) && isDataCaseStartNode(params)) {
     }
   }
 
   clone(nodes: {[index: string]: IFlowNode | undefined}): ICaseStartNode {
-    return new CaseStartNode({...this.getData(nodes), nodeID: uuidv4()});
+    return new CaseStartNode(
+      {...this.getData(nodes), nodeID: uuidv4()},
+      this.parentTestID
+    );
   }
 }
 

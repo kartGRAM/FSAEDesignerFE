@@ -55,16 +55,20 @@ export class CaseEndNode extends FlowNode implements ICaseEndNode {
   constructor(
     params:
       | {name: string; position: {x: number; y: number}; nodeID?: string}
-      | IDataCaseEndNode
+      | IDataCaseEndNode,
+    parentTestID: string
   ) {
-    super(params);
+    super(params, parentTestID);
     // eslint-disable-next-line no-empty
     if (isDataFlowNode(params) && isDataCaseEndNode(params)) {
     }
   }
 
   clone(nodes: {[index: string]: IFlowNode | undefined}): ICaseEndNode {
-    return new CaseEndNode({...this.getData(nodes), nodeID: uuidv4()});
+    return new CaseEndNode(
+      {...this.getData(nodes), nodeID: uuidv4()},
+      this.parentTestID
+    );
   }
 }
 

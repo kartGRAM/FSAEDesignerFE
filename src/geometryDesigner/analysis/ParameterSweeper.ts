@@ -5,6 +5,7 @@ import {getDgd} from '@store/getDgd';
 import {IFormula, IDataFormula} from '@gd/IFormula';
 import {Formula} from '@gd/Formula';
 import {ISolver} from '@gd/kinematics/ISolver';
+import {IDataParameterSetter} from './ParameterSetter';
 
 export type SweeperType = 'GlobalVariable' | 'Control';
 
@@ -25,6 +26,7 @@ export interface IParameterSweeper {
   getData(): IDataParameterSweeper;
   // endまで行っていたらtrueを返す
   set(solver: ISolver, step: number): boolean;
+  setParallel(step: number): [IDataParameterSetter, boolean];
 }
 
 export interface IDataParameterSweeper {
@@ -62,6 +64,31 @@ export class ParameterSweeper implements IParameterSweeper {
     }
 
     return Math.abs(value - endValue) < eps;
+  }
+
+  setParallel(step: number): [IDataParameterSetter, boolean] {
+    const eps = Number.EPSILON * 2 ** 8;
+    const {startValue, stepValue, endValue} = this;
+    let value = startValue + stepValue * step;
+    if (stepValue >= 0 && value > endValue) value = endValue;
+    if (stepValue < 0 && value < endValue) value = endValue;
+
+    let setter: IDataParameterSetter | undefined;
+    if (this.type === 'Control') {
+      const {target} = this;
+      setter = {
+        isDataParameterSetter: true,
+        type: 'Control',
+        target,
+        valueFormula: new Formula({
+          name: 'SetterValue',
+          formula: value,
+          absPath: `setterFor${this.target}`
+        }).getData()
+      };
+    }
+
+    return [setter!, Math.abs(value - endValue) < eps];
   }
 
   get name(): string {
