@@ -1444,7 +1444,6 @@ export class SkidpadSolver implements IForceSolver {
     const steeringEps = this.config.steeringEps.value;
     const radiusEps = this.config.radiusEps.value;
     const targetRadius = this.config.radius.value;
-    const rMinMin = Number.MAX_SAFE_INTEGER;
     let steeringMaxPos =
       deltaS > 0 ? Number.MAX_SAFE_INTEGER : Number.MIN_SAFE_INTEGER;
     let firstSolved = false;
@@ -1499,10 +1498,11 @@ export class SkidpadSolver implements IForceSolver {
           } else throw e;
         }
       }
-      if (rMinMin < this.state.rMin && !firstSolved) {
+      if (this.state.rMin < targetRadius && !firstSolved) {
         console.log(
           '初回の計算で半径が負になったため、初期のステアリングポジションを修正'
         );
+        if (storedState) this.restoreState(storedState);
         if (!initialPos) {
           deltaS /= 2;
         }
@@ -1513,7 +1513,7 @@ export class SkidpadSolver implements IForceSolver {
       firstSolved = true;
       if (firstSolved && Math.abs(this.state.rMin - targetRadius) < radiusEps)
         break;
-      if (rMinMin < this.state.rMin && storedState) {
+      if (this.state.rMin < targetRadius && storedState) {
         this.restoreState(storedState);
       }
       steeringPos = interpolate2.predict(steeringPos);
@@ -1720,21 +1720,21 @@ class Interpolate2Points {
     const x = (this.targetY - this.last2Y[0]) / this.slope + this.last2X[0];
     const deltaMax = this.deltaXMax();
     if (
-      (deltaMax > 0 && current - x > deltaMax) ||
-      (deltaMax < 0 && current - x < deltaMax)
+      (deltaMax > 0 && x - current > deltaMax) ||
+      (deltaMax < 0 && x - current < deltaMax)
     ) {
       return current + deltaMax;
     }
     if (
-      (deltaMax > 0 && current - x < -deltaMax) ||
-      (deltaMax < 0 && current - x > -deltaMax)
+      (deltaMax > 0 && x - current < -deltaMax) ||
+      (deltaMax < 0 && x - current > -deltaMax)
     ) {
       return current - deltaMax;
     }
     if (this.last2Y[1] > this.targetY) {
       if (
-        (deltaMax > 0 && current - x < deltaMax) ||
-        (deltaMax < 0 && current - x > deltaMax)
+        (deltaMax > 0 && x - current > -deltaMax) ||
+        (deltaMax < 0 && x - current < -deltaMax)
       ) {
         return current + deltaMax;
       }

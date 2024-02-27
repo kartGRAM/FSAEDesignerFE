@@ -154,7 +154,11 @@ const Content = React.memo((props: {test: ITest}) => {
   );
   const controls = useSelector(
     (state: RootState) => state.dgd.present.controls
-  ).filter((c) => (c.configuration ?? 'FixedFrame') === assemblyMode);
+  ).filter(
+    (c) =>
+      (c.configuration ?? 'FixedFrame') === assemblyMode &&
+      !c.disabledWhileDynamicSolverIsActive
+  );
 
   const elements = useSelector(
     (state: RootState) => state.uitgd.collectedAssembly?.children ?? []
@@ -296,7 +300,8 @@ const Content = React.memo((props: {test: ITest}) => {
             let control = controls.find(
               (c) =>
                 c.nodeID === e?.target.value &&
-                (c.configuration ?? 'FixedFrame') === assemblyMode
+                (c.configuration ?? 'FixedFrame') === assemblyMode &&
+                !c.disabledWhileDynamicSolverIsActive
             );
             if (!control) control = createDummyDataControl();
             config.steering = new ParameterSetter({
