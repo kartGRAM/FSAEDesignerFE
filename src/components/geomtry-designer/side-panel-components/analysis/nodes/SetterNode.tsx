@@ -391,6 +391,10 @@ function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
     (state: RootState) => state.dgd.present.controls
   ).filter((c) => (c.configuration ?? 'FixedFrame') === assemblyMode);
 
+  const formulae = useSelector(
+    (state: RootState) => state.dgd.present.formulae
+  ).map((f) => new Formula(f));
+
   const onFormulaValidated = (formula: string) => {
     setEvaluatedValue(new Formula(formula).evaluatedValue);
   };
@@ -463,6 +467,16 @@ function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
         valueForSelectTag: value
       });
       setCategory('Control');
+    } else if (value.includes('@Formula')) {
+      const nodeID = value.split('@')[0];
+      const formula = formulae.find((f) => f.absPath === nodeID);
+      if (!formula) return;
+      setSelectedObject({
+        type: 'GlobalVariable',
+        target: nodeID,
+        valueForSelectTag: value
+      });
+      setCategory('GlobalVariable');
     } else {
       setSelectedObject({
         type: 'NotSelected',
@@ -518,6 +532,18 @@ function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
                   key={control.nodeID}
                 >
                   {getControl(control).name}
+                </option>
+              ))}
+          </optgroup>
+          <optgroup label="Formulae">
+            {formulae
+              .filter((f) => !alreadyExistsInSetterList.includes(f.absPath))
+              .map((formula) => (
+                <option
+                  value={`${formula.absPath}@Formula`}
+                  key={formula.absPath}
+                >
+                  {formula.name}
                 </option>
               ))}
           </optgroup>
