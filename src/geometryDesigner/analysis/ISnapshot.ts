@@ -10,6 +10,7 @@ export interface ISnapshot {
   measureTools?: MeasureSnapshot;
   readonlyVariables?: ROVariablesSnapshot;
   globals?: IDataFormula[];
+  globalsUpdateID?: string;
 }
 
 export type MeasureSnapshot = {

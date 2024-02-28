@@ -56,7 +56,8 @@ ctx.onmessage = async (e: MessageEvent<FromParentSweepWorker>) => {
         /* assemblyData, */
         measureTools: measureToolsManager.getValuesAll(),
         readonlyVariables: roVariablesManager.getValuesAll(),
-        globals: [...state.formulae]
+        globals: [...state.formulae],
+        globalsUpdateID: state.lastGlobalFormulaUpdate
       };
     };
 

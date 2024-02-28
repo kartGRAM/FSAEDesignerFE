@@ -66,12 +66,7 @@ export const CaseResultDialog = React.memo(
       };
       const {localInstances} = test.solver;
       if (!localInstances) return null;
-      dispatch(
-        swapFormulae({
-          formulae: localInstances.formulae,
-          lastUpdateID: localInstances.lastFormulaeUpdateID
-        })
-      );
+
       dispatch(
         setAssemblyAndCollectedAssembly({
           ...localInstances,
@@ -79,27 +74,24 @@ export const CaseResultDialog = React.memo(
         })
       );
       dispatch(setSolver(localInstances.solver));
-      localInstances.collectedAssembly.arrange();
-      localInstances.solver.reConstruct();
-      localInstances.solver.postProcess();
     } else if (!open && firstTime.current) {
       const storedInstances = firstTime.current;
-      dispatch(
-        swapFormulae({
-          formulae: storedInstances.formulae,
-          lastUpdateID: storedInstances.lastFormulaeUpdateID
-        })
-      );
       dispatch(
         setAssemblyAndCollectedAssembly({
           ...storedInstances,
           keepAssembled: true
         })
       );
+      dispatch(
+        swapFormulae({
+          formulae: storedInstances.formulae,
+          lastUpdateID: storedInstances.lastFormulaeUpdateID
+        })
+      );
       dispatch(setSolver(storedInstances.solver));
       storedInstances.assembly?.arrange();
       if (storedInstances.solver) {
-        storedInstances.solver.reConstruct();
+        // storedInstances.solver.reConstruct();
         storedInstances.solver.postProcess();
       }
       firstTime.current = null;
@@ -178,10 +170,19 @@ const CaseResultContent = React.memo((props: {test: ITest}) => {
   const dispatch = useDispatch();
   const id = React.useId();
 
-  const setComponentsState = React.useCallback((ss?: ISnapshot) => {
+  const setComponentsState = React.useCallback((ss?: Required<ISnapshot>) => {
     const {uitgd} = store.getState();
-    const {solver} = uitgd;
-    if (solver && ss) {
+    const {solver, collectedAssembly} = uitgd;
+    if (solver && collectedAssembly && ss) {
+      dispatch(
+        swapFormulae({
+          formulae: ss.globals,
+          lastUpdateID: ss.globalsUpdateID
+        })
+      );
+      collectedAssembly.arrange();
+      solver.reConstruct();
+      solver.postProcess();
       solver.restoreState(ss);
       solver.postProcess(true);
     }
