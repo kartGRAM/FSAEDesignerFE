@@ -99,6 +99,10 @@ interface ISolverState {
   rMin: number;
 
   lapTime: number;
+
+  scale: number;
+
+  forceScale: number;
 }
 
 export class SkidpadSolver implements IForceSolver {
@@ -117,6 +121,8 @@ export class SkidpadSolver implements IForceSolver {
   }
 
   assembly: IAssembly;
+
+  controls: {[index: string]: Control[]};
 
   components: IVariable[][];
 
@@ -153,14 +159,12 @@ export class SkidpadSolver implements IForceSolver {
       omega: 0,
       r: Number.MAX_SAFE_INTEGER,
       rMin: Number.MAX_SAFE_INTEGER,
-      lapTime: Number.MAX_SAFE_INTEGER
+      lapTime: Number.MAX_SAFE_INTEGER,
+      scale,
+      forceScale
     };
-    const vO = () =>
-      new Vector3(this.state.v, 0, 0).multiplyScalar(scale * 1000);
     this.assembly = assembly;
-    const {children} = assembly;
-
-    const controls = Object.keys(controlsAll).reduce((dict, key) => {
+    this.controls = Object.keys(controlsAll).reduce((dict, key) => {
       const cls = controlsAll[key].filter(
         (c) => !c.disabledWhileDynamicSolverIsActive
       );
@@ -169,6 +173,21 @@ export class SkidpadSolver implements IForceSolver {
       }
       return dict;
     }, {} as {[index: string]: Control[]});
+    this.components = [];
+    this.componentsFromNodeID = {};
+    this.reConstruct();
+
+    if (solve) this.firstSolve();
+  }
+
+  reConstruct() {
+    const vO = () =>
+      new Vector3(this.state.v, 0, 0).multiplyScalar(scale * 1000);
+    const {assembly, controls, config} = this;
+    assembly.arrange();
+    const {scale, forceScale} = this.state;
+    const {children} = assembly;
+
     const joints = assembly.getJointsAsVector3();
     const jointDict = getJointDictionary(children, joints);
     const constraints: Constraint[] = [];
@@ -1058,7 +1077,6 @@ export class SkidpadSolver implements IForceSolver {
       });
     }
     // 上記4ステップでプリプロセッサ完了
-    if (solve) this.firstSolve();
   }
 
   getGroupItBelongsTo(component: IVariable): [IVariable, IVariable[]] {

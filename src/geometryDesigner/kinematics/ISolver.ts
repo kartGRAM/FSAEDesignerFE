@@ -9,6 +9,8 @@ export interface ISolver {
   readonly components: IVariable[][];
   readonly componentsFromNodeID: {[index: string]: IComponent};
 
+  reConstruct(): void;
+
   solve(params?: {
     fixSpringDumperAtCurrentPosition?: boolean;
     constraintsOptions?: ConstraintsOptions;

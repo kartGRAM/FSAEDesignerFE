@@ -1,11 +1,11 @@
 import {isObject} from '@utils/helpers';
 import {IDataControl, Control} from '@gd/controls/IControls';
 import {getControl} from '@gd/controls/Controls';
-
 import {IFormula, IDataFormula} from '@gd/IFormula';
 import {Formula} from '@gd/Formula';
-import {getDgd} from '@store/getDgd';
+import {getDgd, dispatch} from '@store/getDgd';
 import {ISolver} from '@gd/kinematics/ISolver';
+import {swapFormulae} from '@store/reducers/dataGeometryDesigner';
 
 export type SetterType = 'GlobalVariable' | 'Control';
 
@@ -39,8 +39,22 @@ export class ParameterSetter implements IParameterSetter {
   set(solver: ISolver): void {
     if (this.type === 'Control') {
       const {control} = this;
-      if (!control) throw new Error('Some Controls are undefinced.');
+      if (!control) throw new Error('Some Controls are undefined.');
       control.preprocess(0, solver, this.evaluatedValue);
+      return;
+    }
+    if (this.type === 'GlobalVariable') {
+      const {formulae} = getDgd();
+      const dFormula = formulae.find((f) => f.absPath === this.target);
+      if (!dFormula) throw new Error('Some formulae are undefined.');
+      const formula = new Formula(dFormula);
+      formula.formula = this.valueFormula.formula;
+      const newFormulae = [
+        ...formulae.filter((f) => f.absPath !== this.target),
+        formula.getData()
+      ];
+      dispatch(swapFormulae(newFormulae));
+      solver.reConstruct();
     }
   }
 
