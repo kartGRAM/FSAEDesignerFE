@@ -14,6 +14,7 @@ import {
   setSolver,
   setAssemblyAndCollectedAssembly
 } from '@store/reducers/uiTempGeometryDesigner';
+import {swapFormulae} from '@store/reducers/dataGeometryDesigner';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import PaperComponentDraggable from '@gdComponents/PaperComponentDraggable';
@@ -52,17 +53,19 @@ export const CaseResultDialog = React.memo(
 
     const firstTime = React.useRef<LocalInstances | null>(null);
     if (!firstTime.current && open) {
-      const {uitgd} = store.getState();
+      const {uitgd, dgd} = store.getState();
       firstTime.current = {
         assembly: uitgd.assembly!,
         collectedAssembly: uitgd.collectedAssembly!,
         datumManager: uitgd.datumManager!,
         measureToolsManager: uitgd.measureToolsManager!,
         roVariablesManager: uitgd.roVariablesManager!,
-        solver: uitgd.solver!
+        solver: uitgd.solver!,
+        formulae: [...dgd.present.formulae]
       };
       const {localInstances} = test.solver;
       if (!localInstances) return null;
+      dispatch(swapFormulae(localInstances.formulae));
       dispatch(
         setAssemblyAndCollectedAssembly({
           ...localInstances,
@@ -70,24 +73,21 @@ export const CaseResultDialog = React.memo(
         })
       );
       dispatch(setSolver(localInstances.solver));
-    } else if (!open) {
-      const fn = async () => {
-        if (!firstTime.current) return;
-        const storedInstances = firstTime.current;
-        await dispatch(
-          setAssemblyAndCollectedAssembly({
-            ...storedInstances,
-            keepAssembled: true
-          })
-        );
-        await dispatch(setSolver(storedInstances.solver));
-        storedInstances.assembly?.arrange();
-        if (storedInstances.solver) {
-          storedInstances.solver.postProcess();
-        }
-        firstTime.current = null;
-      };
-      fn();
+    } else if (!open && firstTime.current) {
+      const storedInstances = firstTime.current;
+      dispatch(swapFormulae(storedInstances.formulae));
+      dispatch(
+        setAssemblyAndCollectedAssembly({
+          ...storedInstances,
+          keepAssembled: true
+        })
+      );
+      dispatch(setSolver(storedInstances.solver));
+      storedInstances.assembly?.arrange();
+      if (storedInstances.solver) {
+        storedInstances.solver.postProcess();
+      }
+      firstTime.current = null;
     }
 
     return (

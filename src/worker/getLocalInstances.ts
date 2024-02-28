@@ -13,6 +13,7 @@ import {IAssembly, isMovingElement} from '@gd/IElements';
 import {ITest} from '@gd/analysis/ITest';
 import {KinematicsSolver} from '@gd/kinematics/KinematicsSolver';
 import {SkidpadSolver} from '@gd/kinematics/SkidpadSolver';
+import {IDataFormula} from '@gd/IFormula';
 
 export type LocalInstances = {
   assembly: IAssembly;
@@ -21,6 +22,7 @@ export type LocalInstances = {
   measureToolsManager: IMeasureToolsManager;
   roVariablesManager: IROVariablesManager;
   solver: ISolver;
+  formulae: IDataFormula[];
 };
 
 export function getLocalInstances(state: GDState, test: ITest): LocalInstances {
@@ -82,6 +84,7 @@ export function getLocalInstances(state: GDState, test: ITest): LocalInstances {
     datumManager,
     measureToolsManager,
     roVariablesManager,
-    solver
+    solver,
+    formulae: [...state.formulae]
   };
 }
