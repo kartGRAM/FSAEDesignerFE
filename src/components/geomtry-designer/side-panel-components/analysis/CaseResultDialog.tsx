@@ -66,7 +66,6 @@ export const CaseResultDialog = React.memo(
       };
       const {localInstances} = test.solver;
       if (!localInstances) return null;
-
       dispatch(
         setAssemblyAndCollectedAssembly({
           ...localInstances,
@@ -82,13 +81,13 @@ export const CaseResultDialog = React.memo(
           keepAssembled: true
         })
       );
+      dispatch(setSolver(storedInstances.solver));
       dispatch(
         swapFormulae({
           formulae: storedInstances.formulae,
           lastUpdateID: storedInstances.lastFormulaeUpdateID
         })
       );
-      dispatch(setSolver(storedInstances.solver));
       storedInstances.assembly?.arrange();
       if (storedInstances.solver) {
         // storedInstances.solver.reConstruct();
@@ -118,7 +117,7 @@ export const CaseResultDialog = React.memo(
         TransitionProps={{unmountOnExit: true}}
       >
         <DialogTitle>Replay Mode</DialogTitle>
-        <CaseResultContent test={test} />
+        <CaseResultContent test={test} open={open} />
         <DialogActions>
           <Button onClick={handleOK}>Back</Button>
         </DialogActions>
@@ -127,8 +126,8 @@ export const CaseResultDialog = React.memo(
   }
 );
 
-const CaseResultContent = React.memo((props: {test: ITest}) => {
-  const {test} = props;
+const CaseResultContent = React.memo((props: {test: ITest; open: boolean}) => {
+  const {test, open} = props;
   const {solver} = test;
 
   const cases = getCases(solver.caseResults).slice(1);
@@ -170,23 +169,25 @@ const CaseResultContent = React.memo((props: {test: ITest}) => {
   const dispatch = useDispatch();
   const id = React.useId();
 
-  const setComponentsState = React.useCallback((ss?: Required<ISnapshot>) => {
-    const {uitgd} = store.getState();
-    const {solver, collectedAssembly} = uitgd;
-    if (solver && collectedAssembly && ss) {
-      dispatch(
-        swapFormulae({
-          formulae: ss.globals,
-          lastUpdateID: ss.globalsUpdateID
-        })
-      );
-      collectedAssembly.arrange();
-      solver.reConstruct();
-      solver.postProcess();
-      solver.restoreState(ss);
-      solver.postProcess(true);
-    }
-  }, []);
+  const setComponentsState = React.useCallback(
+    (ss?: Required<ISnapshot>) => {
+      const {uitgd} = store.getState();
+      const {solver, collectedAssembly} = uitgd;
+      if (solver && collectedAssembly && ss && open) {
+        dispatch(
+          swapFormulae({
+            formulae: ss.globals,
+            lastUpdateID: ss.globalsUpdateID
+          })
+        );
+        collectedAssembly.arrange();
+        solver.reConstruct();
+        solver.restoreState(ss);
+        solver.postProcess(true);
+      }
+    },
+    [dispatch, open]
+  );
 
   React.useEffect(() => {
     if (caseID !== '' && results) {
