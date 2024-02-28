@@ -1511,8 +1511,10 @@ export class SkidpadSolver implements IForceSolver {
         continue;
       }
       firstSolved = true;
-      if (firstSolved && Math.abs(this.state.rMin - targetRadius) < radiusEps)
+      if (firstSolved && Math.abs(this.state.rMin - targetRadius) < radiusEps) {
+        console.log('半径が収束');
         break;
+      }
       if (this.state.rMin < targetRadius && storedState) {
         this.restoreState(storedState);
       }
@@ -1531,6 +1533,9 @@ export class SkidpadSolver implements IForceSolver {
       }
 
       ++count;
+    }
+    if (count === maxCount) {
+      console.log('solver target radius がmaxCountに到達');
     }
     console.log('reached the radius goal');
     return [steeringPos, interpolate2];
@@ -1733,8 +1738,8 @@ class Interpolate2Points {
     }
     if (this.last2Y[1] > this.targetY) {
       if (
-        (deltaMax > 0 && x - current > -deltaMax) ||
-        (deltaMax < 0 && x - current < -deltaMax)
+        (deltaMax > 0 && x - current < deltaMax) ||
+        (deltaMax < 0 && x - current > deltaMax)
       ) {
         return current + deltaMax;
       }

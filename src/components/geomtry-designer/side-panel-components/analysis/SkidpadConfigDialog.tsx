@@ -245,43 +245,85 @@ const Content = React.memo((props: {test: ITest}) => {
       }}
     >
       {test.steadyStateDynamicsMode === 'SkidpadMaxV' ? (
-        <Box
-          component="div"
-          sx={{
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'baseline',
-            justifyContent: 'space-between'
-          }}
-        >
-          <Typography variant="subtitle1">skidpad radius</Typography>
-          <Scalar
-            nameUnvisible
-            value={config.radius}
-            unit="m"
-            onUpdate={apply()}
-            valueFieldProps={{sx: fieldSX}}
-          />
-        </Box>
+        <>
+          <Box
+            component="div"
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'baseline',
+              justifyContent: 'space-between'
+            }}
+          >
+            <Typography variant="subtitle1">skidpad radius</Typography>
+            <Scalar
+              nameUnvisible
+              value={config.radius}
+              unit="m"
+              onUpdate={apply()}
+              valueFieldProps={{sx: fieldSX}}
+            />
+          </Box>
+          <Box
+            component="div"
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'baseline',
+              justifyContent: 'space-between'
+            }}
+          >
+            <Typography variant="subtitle1">initial velocity</Typography>
+            <Scalar
+              nameUnvisible
+              value={config.velocity}
+              unit="m/s"
+              onUpdate={apply()}
+              valueFieldProps={{sx: fieldSX}}
+            />
+          </Box>
+        </>
       ) : (
-        <Box
-          component="div"
-          sx={{
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'baseline',
-            justifyContent: 'space-between'
-          }}
-        >
-          <Typography variant="subtitle1">skidpad constant velocity</Typography>
-          <Scalar
-            nameUnvisible
-            value={config.velocity}
-            unit="m/s"
-            onUpdate={apply()}
-            valueFieldProps={{sx: fieldSX}}
-          />
-        </Box>
+        <>
+          <Box
+            component="div"
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'baseline',
+              justifyContent: 'space-between'
+            }}
+          >
+            <Typography variant="subtitle1">
+              skidpad constant velocity
+            </Typography>
+            <Scalar
+              nameUnvisible
+              value={config.velocity}
+              unit="m/s"
+              onUpdate={apply()}
+              valueFieldProps={{sx: fieldSX}}
+            />
+          </Box>
+          <Box
+            component="div"
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'baseline',
+              justifyContent: 'space-between'
+            }}
+          >
+            <Typography variant="subtitle1">initial radius</Typography>
+            <Scalar
+              nameUnvisible
+              value={config.radius}
+              unit="m"
+              onUpdate={apply()}
+              valueFieldProps={{sx: fieldSX}}
+            />
+          </Box>
+        </>
       )}
       <Box
         component="div"

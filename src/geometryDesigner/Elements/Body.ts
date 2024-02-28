@@ -46,11 +46,12 @@ export class Body extends Element implements IBody {
   obb: IOBB;
 
   getOBB() {
-    return new OBB().setFromVertices(
-      this.getPoints()
-        .filter((n) => !n.meta.isFreeNode)
-        .map((n) => n.value)
-    );
+    const points = this.getPoints()
+      .filter((n) => !n.meta.isFreeNode)
+      .map((n) => n.value);
+    const obb = new OBB();
+    if (points.length > 1) obb.setFromVertices(points);
+    return obb;
   }
 
   getPoints(): INamedVector3[] {

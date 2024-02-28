@@ -258,7 +258,7 @@ export class TestSolver implements ITestSolver {
     wip();
     try {
       if (isActionNode(node)) {
-        node.action(
+        await node.action(
           solver,
           getSnapshot,
           currentCase ? ret.cases[currentCase].results : undefined
