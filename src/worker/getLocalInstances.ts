@@ -23,6 +23,7 @@ export type LocalInstances = {
   roVariablesManager: IROVariablesManager;
   solver: ISolver;
   formulae: IDataFormula[];
+  lastFormulaeUpdateID: string;
 };
 
 export function getLocalInstances(state: GDState, test: ITest): LocalInstances {
@@ -85,6 +86,7 @@ export function getLocalInstances(state: GDState, test: ITest): LocalInstances {
     measureToolsManager,
     roVariablesManager,
     solver,
-    formulae: [...state.formulae]
+    formulae: [...state.formulae],
+    lastFormulaeUpdateID: state.lastGlobalFormulaUpdate
   };
 }

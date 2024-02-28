@@ -121,6 +121,7 @@ export class KinematicsSolver implements ISolver {
   }
 
   reConstruct() {
+    this.firstSnapshot = undefined;
     const {scale, controls, assemblyMode, pinFrameCOV, faceForward, assembly} =
       this;
     assembly.arrange();

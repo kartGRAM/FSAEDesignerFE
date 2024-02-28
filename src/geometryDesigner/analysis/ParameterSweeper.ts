@@ -6,6 +6,7 @@ import {swapFormulae} from '@store/reducers/dataGeometryDesigner';
 import {IFormula, IDataFormula, isFormula} from '@gd/IFormula';
 import {Formula} from '@gd/Formula';
 import {ISolver} from '@gd/kinematics/ISolver';
+import {v4 as uuidv4} from 'uuid';
 import {IDataParameterSetter} from './ParameterSetter';
 
 export type SweeperType = 'GlobalVariable' | 'Control';
@@ -73,7 +74,12 @@ export class ParameterSweeper implements IParameterSweeper {
         ...formulae.filter((f) => f.name !== this.target),
         formula.getData()
       ];
-      dispatch(swapFormulae(newFormulae));
+      dispatch(
+        swapFormulae({
+          formulae: newFormulae,
+          lastUpdateID: uuidv4()
+        })
+      );
       solver.reConstruct();
     }
 

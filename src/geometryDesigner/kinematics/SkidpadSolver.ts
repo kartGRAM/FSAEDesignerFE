@@ -184,6 +184,7 @@ export class SkidpadSolver implements IForceSolver {
     const vO = () =>
       new Vector3(this.state.v, 0, 0).multiplyScalar(scale * 1000);
     const {assembly, controls, config} = this;
+    this.firstSnapshot = undefined;
     assembly.arrange();
     const {scale, forceScale} = this.state;
     const {children} = assembly;
@@ -1495,6 +1496,7 @@ export class SkidpadSolver implements IForceSolver {
             if (storedState) this.restoreState(storedState);
             steeringPos -= deltaS;
           }
+          ++count;
           // eslint-disable-next-line no-continue
           continue;
         } else {
@@ -1510,6 +1512,8 @@ export class SkidpadSolver implements IForceSolver {
           if (storedState) {
             this.restoreState(storedState);
             steeringPos = (lastPos + steeringPos) / 2;
+
+            ++count;
             // eslint-disable-next-line no-continue
             continue;
           } else throw e;
@@ -1588,6 +1592,7 @@ export class SkidpadSolver implements IForceSolver {
         if (this.state.rMin > targetRadius) storedState = this.getSnapshot();
         interpolate3.addNewValue(steeringPos, this.state.rMin);
       } catch (e: unknown) {
+        ++count;
         if (!firstSolved) {
           console.log(
             '初回の計算で収束しなかったため、初期ポジションを修正する'

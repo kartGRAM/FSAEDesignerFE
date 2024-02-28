@@ -61,11 +61,17 @@ export const CaseResultDialog = React.memo(
         measureToolsManager: uitgd.measureToolsManager!,
         roVariablesManager: uitgd.roVariablesManager!,
         solver: uitgd.solver!,
-        formulae: [...dgd.present.formulae]
+        formulae: [...dgd.present.formulae],
+        lastFormulaeUpdateID: dgd.present.lastGlobalFormulaUpdate
       };
       const {localInstances} = test.solver;
       if (!localInstances) return null;
-      dispatch(swapFormulae(localInstances.formulae));
+      dispatch(
+        swapFormulae({
+          formulae: localInstances.formulae,
+          lastUpdateID: localInstances.lastFormulaeUpdateID
+        })
+      );
       dispatch(
         setAssemblyAndCollectedAssembly({
           ...localInstances,
@@ -75,7 +81,12 @@ export const CaseResultDialog = React.memo(
       dispatch(setSolver(localInstances.solver));
     } else if (!open && firstTime.current) {
       const storedInstances = firstTime.current;
-      dispatch(swapFormulae(storedInstances.formulae));
+      dispatch(
+        swapFormulae({
+          formulae: storedInstances.formulae,
+          lastUpdateID: storedInstances.lastFormulaeUpdateID
+        })
+      );
       dispatch(
         setAssemblyAndCollectedAssembly({
           ...storedInstances,

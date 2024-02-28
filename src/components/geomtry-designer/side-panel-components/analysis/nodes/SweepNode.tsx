@@ -515,9 +515,7 @@ function NewRow(props: {
         updateWithSave();
         reset();
       } else if (selectedObject.type === 'GlobalVariable') {
-        const formula = formulae.find(
-          (f) => f.nodeID === selectedObject.target
-        );
+        const formula = formulae.find((f) => f.name === selectedObject.target);
         if (!formula) return;
 
         const setter = new ParameterSweeper({

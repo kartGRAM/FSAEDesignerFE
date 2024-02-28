@@ -122,9 +122,13 @@ export const dataGeometryDesignerSlice = createSlice({
     },
     swapFormulae: (
       state: GDState,
-      action: PayloadAction<SavedData['formulae']>
+      action: PayloadAction<{
+        formulae: SavedData['formulae'];
+        lastUpdateID: string;
+      }>
     ) => {
-      state.formulae = action.payload;
+      state.formulae = action.payload.formulae;
+      state.lastGlobalFormulaUpdate = action.payload.lastUpdateID;
     },
     setControl: (state: GDState, action: PayloadAction<IDataControl>) => {
       const control = action.payload;
