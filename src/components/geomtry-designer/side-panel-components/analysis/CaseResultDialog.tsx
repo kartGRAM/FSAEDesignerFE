@@ -79,6 +79,9 @@ export const CaseResultDialog = React.memo(
         })
       );
       dispatch(setSolver(localInstances.solver));
+      localInstances.collectedAssembly.arrange();
+      localInstances.solver.reConstruct();
+      localInstances.solver.postProcess();
     } else if (!open && firstTime.current) {
       const storedInstances = firstTime.current;
       dispatch(
@@ -95,9 +98,8 @@ export const CaseResultDialog = React.memo(
       );
       dispatch(setSolver(storedInstances.solver));
       storedInstances.assembly?.arrange();
-      if (storedInstances.solver) {
-        storedInstances.solver.postProcess();
-      }
+      storedInstances.solver.reConstruct();
+      storedInstances.solver.postProcess();
       firstTime.current = null;
     }
 
