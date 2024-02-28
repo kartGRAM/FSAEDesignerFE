@@ -1,7 +1,7 @@
 import {isObject} from '@utils/helpers';
 import {IDataControl, Control} from '@gd/controls/IControls';
 import {getControl} from '@gd/controls/Controls';
-import {IFormula, IDataFormula} from '@gd/IFormula';
+import {IFormula, IDataFormula, isFormula} from '@gd/IFormula';
 import {Formula} from '@gd/Formula';
 import {getDgd, dispatch} from '@store/getDgd';
 import {ISolver} from '@gd/kinematics/ISolver';
@@ -45,12 +45,12 @@ export class ParameterSetter implements IParameterSetter {
     }
     if (this.type === 'GlobalVariable') {
       const {formulae} = getDgd();
-      const dFormula = formulae.find((f) => f.absPath === this.target);
+      const dFormula = formulae.find((f) => f.name === this.target);
       if (!dFormula) throw new Error('Some formulae are undefined.');
       const formula = new Formula(dFormula);
       formula.formula = this.valueFormula.formula;
       const newFormulae = [
-        ...formulae.filter((f) => f.absPath !== this.target),
+        ...formulae.filter((f) => f.name !== this.target),
         formula.getData()
       ];
       dispatch(swapFormulae(newFormulae));
@@ -116,7 +116,9 @@ export class ParameterSetter implements IParameterSetter {
       this.target = data.target;
       this.valueFormula = new Formula(data.valueFormula);
     } else {
-      this.target = params.target.nodeID;
+      this.target = isFormula(params.target)
+        ? params.target.name
+        : params.target.nodeID;
       this.valueFormula = new Formula({
         name: 'SetterValue',
         formula: params.valueFormula,

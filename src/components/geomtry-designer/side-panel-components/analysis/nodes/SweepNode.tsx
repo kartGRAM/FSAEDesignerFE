@@ -567,7 +567,7 @@ function NewRow(props: {
       setCategory('Control');
     } else if (value.includes('@Formula')) {
       const nodeID = value.split('@')[0];
-      const formula = formulae.find((f) => f.absPath === nodeID);
+      const formula = formulae.find((f) => f.name === nodeID);
       if (!formula) return;
       setSelectedObject({
         type: 'GlobalVariable',
@@ -622,12 +622,9 @@ function NewRow(props: {
           </optgroup>
           <optgroup label="Formulae">
             {formulae
-              .filter((f) => !alreadyExistsInSetterList.includes(f.absPath))
+              .filter((f) => !alreadyExistsInSetterList.includes(f.name))
               .map((formula) => (
-                <option
-                  value={`${formula.absPath}@Formula`}
-                  key={formula.absPath}
-                >
+                <option value={`${formula.name}@Formula`} key={formula.name}>
                   {formula.name}
                 </option>
               ))}

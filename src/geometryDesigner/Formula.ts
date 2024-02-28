@@ -87,10 +87,6 @@ export class Formula implements IFormula {
 
   readonly absPath: string;
 
-  get nodeID() {
-    return this.absPath;
-  }
-
   get formula(): string {
     return this._formula;
   }

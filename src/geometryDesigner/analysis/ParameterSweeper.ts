@@ -3,7 +3,7 @@ import {IDataControl, Control} from '@gd/controls/IControls';
 import {getControl} from '@gd/controls/Controls';
 import {getDgd, dispatch} from '@store/getDgd';
 import {swapFormulae} from '@store/reducers/dataGeometryDesigner';
-import {IFormula, IDataFormula} from '@gd/IFormula';
+import {IFormula, IDataFormula, isFormula} from '@gd/IFormula';
 import {Formula} from '@gd/Formula';
 import {ISolver} from '@gd/kinematics/ISolver';
 import {IDataParameterSetter} from './ParameterSetter';
@@ -65,12 +65,12 @@ export class ParameterSweeper implements IParameterSweeper {
     }
     if (this.type === 'GlobalVariable') {
       const {formulae} = getDgd();
-      const dFormula = formulae.find((f) => f.absPath === this.target);
+      const dFormula = formulae.find((f) => f.name === this.target);
       if (!dFormula) throw new Error('Some formulae are undefined.');
       const formula = new Formula(dFormula);
       formula.formula = `${value}`;
       const newFormulae = [
-        ...formulae.filter((f) => f.absPath !== this.target),
+        ...formulae.filter((f) => f.name !== this.target),
         formula.getData()
       ];
       dispatch(swapFormulae(newFormulae));
@@ -188,7 +188,9 @@ export class ParameterSweeper implements IParameterSweeper {
       this.stepFormula = new Formula(data.stepFormula);
       this.divisionFormula = new Formula(data.divisionFormula);
     } else {
-      this.target = params.target.nodeID;
+      this.target = isFormula(params.target)
+        ? params.target.name
+        : params.target.nodeID;
       this.startFormula = new Formula({
         name: 'startValue',
         formula: params.startFormula,
