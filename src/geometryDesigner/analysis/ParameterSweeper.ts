@@ -1,7 +1,8 @@
 import {isObject} from '@utils/helpers';
 import {IDataControl, Control} from '@gd/controls/IControls';
 import {getControl} from '@gd/controls/Controls';
-import {getDgd} from '@store/getDgd';
+import {getDgd, dispatch} from '@store/getDgd';
+import {swapFormulae} from '@store/reducers/dataGeometryDesigner';
 import {IFormula, IDataFormula} from '@gd/IFormula';
 import {Formula} from '@gd/Formula';
 import {ISolver} from '@gd/kinematics/ISolver';
@@ -62,6 +63,19 @@ export class ParameterSweeper implements IParameterSweeper {
       if (!control) throw new Error('Some Controls are undefinced.');
       control.preprocess(0, solver, value);
     }
+    if (this.type === 'GlobalVariable') {
+      const {formulae} = getDgd();
+      const dFormula = formulae.find((f) => f.absPath === this.target);
+      if (!dFormula) throw new Error('Some formulae are undefined.');
+      const formula = new Formula(dFormula);
+      formula.formula = `${value}`;
+      const newFormulae = [
+        ...formulae.filter((f) => f.absPath !== this.target),
+        formula.getData()
+      ];
+      dispatch(swapFormulae(newFormulae));
+      solver.reConstruct();
+    }
 
     return Math.abs(value - endValue) < eps;
   }
@@ -73,22 +87,19 @@ export class ParameterSweeper implements IParameterSweeper {
     if (stepValue >= 0 && value > endValue) value = endValue;
     if (stepValue < 0 && value < endValue) value = endValue;
 
-    let setter: IDataParameterSetter | undefined;
-    if (this.type === 'Control') {
-      const {target} = this;
-      setter = {
-        isDataParameterSetter: true,
-        type: 'Control',
-        target,
-        valueFormula: new Formula({
-          name: 'SetterValue',
-          formula: value,
-          absPath: `setterFor${this.target}`
-        }).getData()
-      };
-    }
+    const {target, type} = this;
+    const setter: IDataParameterSetter = {
+      isDataParameterSetter: true,
+      type,
+      target,
+      valueFormula: new Formula({
+        name: 'SetterValue',
+        formula: value,
+        absPath: `setterFor${this.target}`
+      }).getData()
+    };
 
-    return [setter!, Math.abs(value - endValue) < eps];
+    return [setter, Math.abs(value - endValue) < eps];
   }
 
   get name(): string {
