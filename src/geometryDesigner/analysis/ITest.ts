@@ -36,6 +36,8 @@ export interface ISteadySkidpadParams {
   storeIntermidiateResults: boolean;
   velocityStepSize: INamedNumber;
   radiusStepSize: INamedNumber;
+  maxLoopCountR: INamedNumber;
+  maxLoopCountV: INamedNumber;
   gravity: INamedVector3;
 }
 
@@ -57,6 +59,8 @@ export interface IDataSteadySkidpadParams {
   velocityStepSize?: IDataNumber;
   radiusStepSize?: IDataNumber;
   gravity?: IDataVector3;
+  maxLoopCountR: IDataNumber;
+  maxLoopCountV: IDataNumber;
 }
 
 export interface ITest {

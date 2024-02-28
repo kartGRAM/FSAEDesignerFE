@@ -1352,12 +1352,11 @@ export class SkidpadSolver implements IForceSolver {
   }
 
   solveMaxV({
-    maxCount,
     getSnapshot
   }: {
-    maxCount: number;
     getSnapshot: (solver: ISolver) => Required<ISnapshot>;
   }) {
+    const maxCount = this.config.maxLoopCountV.value;
     const start = performance.now();
     let count = 0;
     let deltaV = this.config.velocityStepSize.value;
@@ -1429,7 +1428,6 @@ export class SkidpadSolver implements IForceSolver {
   }
 
   solveTargetRadius({
-    maxCount,
     initialPos,
     interpolate2
   }: {
@@ -1437,6 +1435,7 @@ export class SkidpadSolver implements IForceSolver {
     initialPos?: number;
     interpolate2?: Interpolate2Points;
   }): [number, Interpolate2Points] {
+    const maxCount = this.config.maxLoopCountR.value;
     let count = 0;
     const {steering} = this.config;
     let deltaS = this.config.steeringMaxStepSize.value;

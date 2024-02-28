@@ -65,7 +65,22 @@ export const loadSteadySkidpadParams = (
     storeIntermidiateResults: data.storeIntermidiateResults,
     gravity: data.gravity
       ? new NamedVector3({value: data.gravity})
-      : new NamedVector3({name: 'accOfGravity', value: new Vector3(0, 0, -9.8)})
+      : new NamedVector3({
+          name: 'accOfGravity',
+          value: new Vector3(0, 0, -9.8)
+        }),
+    maxLoopCountR: data.maxLoopCountR
+      ? new NamedNumber({value: data.maxLoopCountR})
+      : new NamedNumber({
+          name: 'maxLoopCountR',
+          value: 100
+        }),
+    maxLoopCountV: data.maxLoopCountV
+      ? new NamedNumber({value: data.maxLoopCountV})
+      : new NamedNumber({
+          name: 'maxLoopCountV',
+          value: 100
+        })
   };
 };
 
@@ -93,7 +108,9 @@ export const saveSteadySkidpadParams = (
     radiusStepSize: params.radiusStepSize
       ? params.radiusStepSize.getData()
       : undefined,
-    storeIntermidiateResults: params.storeIntermidiateResults
+    storeIntermidiateResults: params.storeIntermidiateResults,
+    maxLoopCountR: params.maxLoopCountR.getData(),
+    maxLoopCountV: params.maxLoopCountV.getData()
   };
 };
 
@@ -136,6 +153,14 @@ export const initialSteadySkidpadParams: () => ISteadySkidpadParams = () => ({
   gravity: new NamedVector3({
     name: 'accOfGravity',
     value: new Vector3(0, 0, -9.8)
+  }),
+  maxLoopCountR: new NamedNumber({
+    name: 'maxLoopCountR',
+    value: 100
+  }),
+  maxLoopCountV: new NamedNumber({
+    name: 'maxLoopCountV',
+    value: 100
   })
 });
 

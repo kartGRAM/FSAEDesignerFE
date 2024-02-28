@@ -63,7 +63,7 @@ ctx.onmessage = async (e: MessageEvent<FromParentSweepWorker>) => {
     const results: SweepResults = {
       isSweepResults: true,
       step: message.step,
-      results: solver.solveMaxV({maxCount: 100, getSnapshot})
+      results: solver.solveMaxV({getSnapshot})
     };
 
     ctx.postMessage(results);

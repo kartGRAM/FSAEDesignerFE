@@ -697,6 +697,48 @@ const Content = React.memo((props: {test: ITest}) => {
           valueFieldProps={{sx: fieldSX}}
         />
       </Box>
+      {test.steadyStateDynamicsMode === 'SkidpadMaxV' ? (
+        <Box
+          component="div"
+          sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'baseline',
+            justifyContent: 'space-between'
+          }}
+        >
+          <Typography variant="subtitle1">
+            the number of iterations to determine the maximum speed.
+          </Typography>
+          <Scalar
+            nameUnvisible
+            value={config.maxLoopCountV}
+            unit="-"
+            onUpdate={apply()}
+            valueFieldProps={{sx: fieldSX}}
+          />
+        </Box>
+      ) : null}
+      <Box
+        component="div"
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'baseline',
+          justifyContent: 'space-between'
+        }}
+      >
+        <Typography variant="subtitle1">
+          the number of iterations to determine the radius.
+        </Typography>
+        <Scalar
+          nameUnvisible
+          value={config.maxLoopCountR}
+          unit="-"
+          onUpdate={apply()}
+          valueFieldProps={{sx: fieldSX}}
+        />
+      </Box>
     </Box>
   );
 });
