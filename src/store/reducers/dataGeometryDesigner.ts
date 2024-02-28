@@ -114,7 +114,7 @@ export const dataGeometryDesignerSlice = createSlice({
     ) => {
       if (validateAll(action.payload) === 'OK') {
         state.formulae = action.payload;
-        if (state.topAssembly) state.topAssembly = {...state.topAssembly};
+        // if (state.topAssembly) state.topAssembly = {...state.topAssembly};
       }
       state.idWoTest = uuidv4();
       state.lastGlobalFormulaUpdate = uuidv4();
@@ -127,6 +127,8 @@ export const dataGeometryDesignerSlice = createSlice({
         lastUpdateID: string;
       }>
     ) => {
+      if (validateAll(action.payload.formulae) !== 'OK')
+        throw new Error('validation failed');
       state.formulae = action.payload.formulae;
       state.lastGlobalFormulaUpdate = action.payload.lastUpdateID;
     },

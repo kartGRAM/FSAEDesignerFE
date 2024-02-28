@@ -1,6 +1,7 @@
 import {NamedVector3} from '@gd/NamedValues';
 import {INamedVector3RO, FunctionVector3} from '@gd/INamedValues';
 
+import {Vector3} from 'three';
 import {
   trans,
   isDataElement,
@@ -20,6 +21,39 @@ export class Frame extends Assembly {
   }
 
   readonly frameBody: IBody;
+
+  arrange(parentPosition?: Vector3) {
+    const body = this.frameBody;
+    if (body) {
+      const namedPoints = this.children.reduce(
+        (prev: INamedVector3RO[], child) => {
+          if (child === body) return prev;
+          prev = [
+            ...prev,
+            ...child.getPoints().filter((p) => !p.meta.isFreeNode)
+          ];
+          return prev;
+        },
+        [] as INamedVector3RO[]
+      );
+      body.fixedPoints.splice(0);
+      body.fixedPoints.push(
+        ...namedPoints.map(
+          (p, i) =>
+            new NamedVector3({
+              name: `fixedPoint${i + 1}`,
+              parent: body,
+              value: trans(p)
+            })
+        )
+      );
+      this.joints = namedPoints.map((p, i) => ({
+        lhs: p.nodeID,
+        rhs: body.fixedPoints[i].nodeID
+      }));
+    }
+    super.arrange(parentPosition);
+  }
 
   constructor(
     params:

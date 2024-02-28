@@ -130,7 +130,7 @@ export class SkidpadSolver implements IForceSolver {
 
   componentsFromNodeID: {[index: string]: IComponent};
 
-  restorers: Restorer[] = [];
+  restorers: Restorer[];
 
   running: boolean = false;
 
@@ -175,12 +175,17 @@ export class SkidpadSolver implements IForceSolver {
     }, {} as {[index: string]: Control[]});
     this.components = [];
     this.componentsFromNodeID = {};
+    this.restorers = [];
     this.reConstruct();
 
     if (solve) this.firstSolve();
   }
 
   reConstruct() {
+    this.components = [];
+    this.componentsFromNodeID = {};
+    this.restorers = [];
+
     const vO = () =>
       new Vector3(this.state.v, 0, 0).multiplyScalar(scale * 1000);
     const {assembly, controls, config} = this;

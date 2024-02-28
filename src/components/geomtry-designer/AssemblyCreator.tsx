@@ -254,9 +254,9 @@ export default function AssemblyCreactor() {
     dispatch(setSolver(undefined));
 
     // else not assembled
-    const {assembly} = store.getState().uitgd;
+    const {collectedAssembly} = store.getState().uitgd;
     // resetPositions& set dlCurrent to 0
-    assembly?.arrange();
+    collectedAssembly?.arrange();
   }, [assembled, assembly]);
 
   return null;

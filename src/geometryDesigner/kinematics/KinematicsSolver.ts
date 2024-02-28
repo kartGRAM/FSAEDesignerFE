@@ -70,7 +70,7 @@ export class KinematicsSolver implements ISolver {
 
   componentsFromNodeID: {[index: string]: IComponent};
 
-  restorers: Restorer[] = [];
+  restorers: Restorer[];
 
   running: boolean = false;
 
@@ -107,6 +107,7 @@ export class KinematicsSolver implements ISolver {
     this.assemblyMode = assemblyMode;
     this.components = [];
     this.componentsFromNodeID = {};
+    this.restorers = [];
     this.reConstruct();
 
     if (solve)
@@ -121,6 +122,9 @@ export class KinematicsSolver implements ISolver {
   }
 
   reConstruct() {
+    this.components = [];
+    this.componentsFromNodeID = {};
+    this.restorers = [];
     this.firstSnapshot = undefined;
     const {scale, controls, assemblyMode, pinFrameCOV, faceForward, assembly} =
       this;
