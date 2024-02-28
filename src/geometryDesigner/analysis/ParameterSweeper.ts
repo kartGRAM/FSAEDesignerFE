@@ -169,7 +169,7 @@ export class ParameterSweeper implements IParameterSweeper {
     params:
       | {
           type: SweeperType;
-          target: IDataControl;
+          target: IDataControl | IFormula;
           startFormula: string;
           endFormula: string;
           mode: 'division' | 'step';

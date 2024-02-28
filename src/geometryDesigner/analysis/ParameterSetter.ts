@@ -103,7 +103,11 @@ export class ParameterSetter implements IParameterSetter {
 
   constructor(
     params:
-      | {type: SetterType; target: IDataControl; valueFormula: string}
+      | {
+          type: SetterType;
+          target: IDataControl | IFormula;
+          valueFormula: string;
+        }
       | IDataParameterSetter
   ) {
     this.type = params.type;

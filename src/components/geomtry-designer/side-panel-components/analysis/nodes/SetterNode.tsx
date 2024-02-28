@@ -110,7 +110,7 @@ function useSetterDialog(props: {
 interface Row {
   targetNodeID: string;
   name: string;
-  categories: string;
+  categories: ParameterSetter['type'];
   valueFormula: string;
   evaluatedValue: number;
 }
@@ -435,6 +435,21 @@ function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
         node.listSetters.push(setter);
         updateWithSave();
         reset();
+      } else if (selectedObject.type === 'GlobalVariable') {
+        const formula = formulae.find(
+          (f) => f.absPath === selectedObject.target
+        );
+        if (!formula) return;
+
+        const setter = new ParameterSetter({
+          type: 'GlobalVariable',
+          target: formula,
+          valueFormula: values.formula
+        });
+
+        node.listSetters.push(setter);
+        updateWithSave();
+        reset();
       }
     }
   });
@@ -599,7 +614,7 @@ function ExistingRow(props: {
     }),
     onSubmit: (values) => {
       formik.resetForm();
-      if (row.categories === 'Control') {
+      if (row.categories === 'Control' || row.categories === 'GlobalVariable') {
         const setter = node.listSetters.find(
           (setter) => setter.target === row.targetNodeID
         );

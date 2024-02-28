@@ -15,6 +15,7 @@ export interface IFormula {
   readonly absPath: string;
   getData(): IDataFormula;
   copy(newAbsPath: string): IFormula;
+  nodeID: string;
 
   getEvaluatedValue(formulae: IDataFormula[] | undefined): number;
 }

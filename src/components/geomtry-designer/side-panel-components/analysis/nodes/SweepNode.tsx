@@ -120,7 +120,7 @@ function useSweepDialog(props: {
 interface Row {
   targetNodeID: string;
   name: string;
-  categories: string;
+  categories: ParameterSweeper['type'];
   startFormula: string;
   endFormula: string;
   stepFormula: string;
@@ -514,6 +514,24 @@ function NewRow(props: {
         node.listSweepers.push(setter);
         updateWithSave();
         reset();
+      } else if (selectedObject.type === 'GlobalVariable') {
+        const formula = formulae.find(
+          (f) => f.nodeID === selectedObject.target
+        );
+        if (!formula) return;
+
+        const setter = new ParameterSweeper({
+          type: 'GlobalVariable',
+          target: formula,
+          mode,
+          startFormula: values.startFormula,
+          endFormula: values.endFormula,
+          stepFormula: values.stepFormula
+        });
+
+        node.listSweepers.push(setter);
+        updateWithSave();
+        reset();
       }
     }
   });
@@ -738,7 +756,7 @@ function ExistingRow(props: {
     }),
     onSubmit: (values) => {
       formik.resetForm();
-      if (row.categories === 'Control') {
+      if (row.categories === 'Control' || row.categories === 'GlobalVariable') {
         const sweeper = node.listSweepers.find(
           (s) => s.target === row.targetNodeID
         );
