@@ -26,22 +26,33 @@ const CollectedAssembly = () => {
 
   const groupRef = React.useRef<THREE.Group>(null!);
   const children = assembly?.children ?? [];
-
+  const i = React.useRef(0);
+  i.current = (i.current + 1) % 100;
   return (
     <group ref={groupRef} name="collectedAssembly">
       {children.map((child) => {
-        if (isBody(child)) return <Body element={child} key={child.nodeID} />;
-        if (isAArm(child)) return <AArm element={child} key={child.nodeID} />;
+        if (isBody(child))
+          return <Body element={child} key={child.nodeID + i.current} />;
+        if (isAArm(child))
+          return <AArm element={child} key={child.nodeID + i.current} />;
         if (isSpringDumper(child))
-          return <SpringDumper element={child} key={child.nodeID} />;
-        if (isBar(child)) return <Bar element={child} key={child.nodeID} />;
+          return (
+            <SpringDumper element={child} key={child.nodeID + i.current} />
+          );
+        if (isBar(child))
+          return <Bar element={child} key={child.nodeID + i.current} />;
         if (isBellCrank(child))
-          return <BellCrank element={child} key={child.nodeID} />;
-        if (isTire(child)) return <Tire element={child} key={child.nodeID} />;
+          return <BellCrank element={child} key={child.nodeID + i.current} />;
+        if (isTire(child))
+          return <Tire element={child} key={child.nodeID + i.current} />;
         if (isLinearBushing(child))
-          return <LinearBushing element={child} key={child.nodeID} />;
+          return (
+            <LinearBushing element={child} key={child.nodeID + i.current} />
+          );
         if (isTorsionSpring(child))
-          return <TorsionSpring element={child} key={child.nodeID} />;
+          return (
+            <TorsionSpring element={child} key={child.nodeID + i.current} />
+          );
         return null;
       })}
     </group>

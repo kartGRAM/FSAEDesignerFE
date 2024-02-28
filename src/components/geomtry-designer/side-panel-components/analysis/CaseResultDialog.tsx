@@ -98,8 +98,10 @@ export const CaseResultDialog = React.memo(
       );
       dispatch(setSolver(storedInstances.solver));
       storedInstances.assembly?.arrange();
-      storedInstances.solver.reConstruct();
-      storedInstances.solver.postProcess();
+      if (storedInstances.solver) {
+        storedInstances.solver.reConstruct();
+        storedInstances.solver.postProcess();
+      }
       firstTime.current = null;
     }
 
