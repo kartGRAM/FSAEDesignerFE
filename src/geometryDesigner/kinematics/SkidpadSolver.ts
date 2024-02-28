@@ -126,7 +126,7 @@ export class SkidpadSolver implements IForceSolver {
 
   components: IVariable[][];
 
-  pointComponents: {[index: string]: PointComponent} = {};
+  pointComponents: {[index: string]: PointComponent};
 
   componentsFromNodeID: {[index: string]: IComponent};
 
@@ -174,6 +174,7 @@ export class SkidpadSolver implements IForceSolver {
       return dict;
     }, {} as {[index: string]: Control[]});
     this.components = [];
+    this.pointComponents = {};
     this.componentsFromNodeID = {};
     this.restorers = [];
     this.reConstruct();
@@ -182,15 +183,26 @@ export class SkidpadSolver implements IForceSolver {
   }
 
   reConstruct() {
+    this.state = {
+      stdForce: 1000,
+      v: this.config.velocity.value,
+      omega: 0,
+      r: Number.MAX_SAFE_INTEGER,
+      rMin: Number.MAX_SAFE_INTEGER,
+      lapTime: Number.MAX_SAFE_INTEGER,
+      scale: this.state.scale,
+      forceScale: this.state.forceScale
+    };
+    this.firstSnapshot = undefined;
     this.components = [];
+    this.pointComponents = {};
     this.componentsFromNodeID = {};
     this.restorers = [];
+    this.assembly.arrange();
 
     const vO = () =>
       new Vector3(this.state.v, 0, 0).multiplyScalar(scale * 1000);
     const {assembly, controls, config} = this;
-    this.firstSnapshot = undefined;
-    assembly.arrange();
     const {scale, forceScale} = this.state;
     const {children} = assembly;
 

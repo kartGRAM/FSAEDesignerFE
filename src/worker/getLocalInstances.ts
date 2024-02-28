@@ -62,7 +62,8 @@ export function getLocalInstances(state: GDState, test: ITest): LocalInstances {
     throw new Error('Skidpadの設定を行っていない');
 
   const solver: ISolver = !test.steadyStateDynamicsMode
-    ? new KinematicsSolver(
+    ? // const solver: ISolver = true
+      new KinematicsSolver(
         collectedAssembly,
         assemblyMode,
         pinCenterOfGravityOfFrame,

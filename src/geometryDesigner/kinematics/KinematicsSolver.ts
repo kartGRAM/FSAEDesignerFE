@@ -66,7 +66,7 @@ export class KinematicsSolver implements ISolver {
 
   components: IComponent[][];
 
-  pointComponents: {[index: string]: PointComponent} = {};
+  pointComponents: {[index: string]: PointComponent};
 
   componentsFromNodeID: {[index: string]: IComponent};
 
@@ -106,6 +106,7 @@ export class KinematicsSolver implements ISolver {
     this.faceForward = faceForward;
     this.assemblyMode = assemblyMode;
     this.components = [];
+    this.pointComponents = {};
     this.componentsFromNodeID = {};
     this.restorers = [];
     this.reConstruct();
@@ -123,6 +124,7 @@ export class KinematicsSolver implements ISolver {
 
   reConstruct() {
     this.components = [];
+    this.pointComponents = {};
     this.componentsFromNodeID = {};
     this.restorers = [];
     this.firstSnapshot = undefined;
