@@ -38,6 +38,7 @@ const AArm = (props: {element: IAArm}) => {
   );
 
   useSelector((state: RootState) => state.uitgd.gdSceneState.resetPositions);
+  useSelector((state: RootState) => state.dgd.present.lastGlobalFormulaUpdate);
 
   const moveThisComponent = useSelector((state: RootState) => {
     return (

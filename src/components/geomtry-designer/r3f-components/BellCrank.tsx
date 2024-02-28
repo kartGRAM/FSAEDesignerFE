@@ -23,6 +23,7 @@ const BellCrank = (props: {element: IBellCrank}) => {
   const coMatrix = getMatrix3(
     useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
   );
+  useSelector((state: RootState) => state.dgd.present.lastGlobalFormulaUpdate);
 
   const dispatch = useDispatch();
 

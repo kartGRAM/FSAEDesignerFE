@@ -23,6 +23,7 @@ export class Frame extends Assembly {
   readonly frameBody: IBody;
 
   arrange(parentPosition?: Vector3) {
+    super.arrange(parentPosition);
     const body = this.frameBody;
     if (body) {
       const namedPoints = this.children.reduce(
@@ -52,7 +53,6 @@ export class Frame extends Assembly {
         rhs: body.fixedPoints[i].nodeID
       }));
     }
-    super.arrange(parentPosition);
   }
 
   constructor(

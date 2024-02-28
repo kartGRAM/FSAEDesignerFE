@@ -25,6 +25,7 @@ const ForceArrow = (props: {
   const coMatrix = getMatrix3(
     useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
   );
+  useSelector((state: RootState) => state.dgd.present.lastGlobalFormulaUpdate);
 
   const [show, setShow] = React.useState(false);
   const [pin, setPin] = React.useState(false);
