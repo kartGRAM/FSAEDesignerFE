@@ -58,10 +58,10 @@ export function getLocalInstances(state: GDState, test: ITest): LocalInstances {
     return prev;
   }, {} as {[index: string]: Control[]});
 
-  if (test.steadyStateDynamicsMode && !test.steadySkidpadParams)
+  if (test.calculateSteadyStateDynamics && !test.steadySkidpadParams)
     throw new Error('Skidpadの設定を行っていない');
 
-  const solver: ISolver = !test.steadyStateDynamicsMode
+  const solver: ISolver = !test.calculateSteadyStateDynamics
     ? // const solver: ISolver = true
       new KinematicsSolver(
         collectedAssembly,

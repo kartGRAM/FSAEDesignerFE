@@ -80,7 +80,8 @@ export const loadSteadySkidpadParams = (
       : new NamedNumber({
           name: 'maxLoopCountV',
           value: 100
-        })
+        }),
+    solverMode: data.solverMode ?? 'SkidpadMaxV'
   };
 };
 
@@ -110,7 +111,8 @@ export const saveSteadySkidpadParams = (
       : undefined,
     storeIntermidiateResults: params.storeIntermidiateResults,
     maxLoopCountR: params.maxLoopCountR.getData(),
-    maxLoopCountV: params.maxLoopCountV.getData()
+    maxLoopCountV: params.maxLoopCountV.getData(),
+    solverMode: params.solverMode
   };
 };
 
@@ -161,7 +163,8 @@ export const initialSteadySkidpadParams: () => ISteadySkidpadParams = () => ({
   maxLoopCountV: new NamedNumber({
     name: 'maxLoopCountV',
     value: 100
-  })
+  }),
+  solverMode: 'SkidpadMaxV'
 });
 
 export class Test implements ITest {
@@ -207,8 +210,6 @@ export class Test implements ITest {
       this.description = data.description;
       this.nodeID = data.nodeID;
       this.calculateSteadyStateDynamics = !!data.calculateSteadyStateDynamics;
-      this.steadyStateDynamicsMode =
-        data.steadyStateDynamicsMode ?? 'SkidpadMaxV';
       this.steadySkidpadParams = data.steadySkidpadParams
         ? loadSteadySkidpadParams(data.steadySkidpadParams)
         : undefined;
@@ -431,8 +432,7 @@ export class Test implements ITest {
       edges,
       nodes,
       idWoTest,
-      calculateSteadyStateDynamics,
-      steadyStateDynamicsMode
+      calculateSteadyStateDynamics
     } = this;
     const dataNodes = [
       ...Object.values(nodes)
@@ -452,7 +452,6 @@ export class Test implements ITest {
       edges: Object.values(edges),
       localStateID: uuidv4(),
       calculateSteadyStateDynamics,
-      steadyStateDynamicsMode,
       steadySkidpadParams: saveSteadySkidpadParams(this.steadySkidpadParams)
     };
   }
@@ -519,15 +518,12 @@ export class Test implements ITest {
 
   calculateSteadyStateDynamics: boolean;
 
-  steadyStateDynamicsMode: 'SkidpadMaxV' | 'SkidpadMinR';
-
   steadySkidpadParams?: ISteadySkidpadParams | undefined;
 
   constructor(params: {name: string; description: string} | IDataTest) {
     this.name = params.name;
     this.description = params.description;
     this.calculateSteadyStateDynamics = false;
-    this.steadyStateDynamicsMode = 'SkidpadMaxV';
     this.steadySkidpadParams = undefined;
 
     this.startNode = new StartNode(

@@ -58,6 +58,7 @@ import useTestUpdate from '@hooks/useTestUpdate';
 import {ITest} from '@gd/analysis/ITest';
 
 import useUpdateEffect from '@hooks/useUpdateEffect';
+import {initialSteadySkidpadParams} from '@gd/analysis/Test';
 import {ItemBox} from './ItemBox';
 import CircleNode from './CircleNode';
 import CardNode from './CardNode';
@@ -659,9 +660,12 @@ const Content = React.memo((props: {test: ITest}) => {
   const onSteadyStateDynamicsModeChanged = React.useCallback(
     (
       e: React.ChangeEvent<HTMLInputElement>,
-      mode: typeof test.steadyStateDynamicsMode
+      mode: NonNullable<ITest['steadySkidpadParams']>['solverMode']
     ) => {
-      test.steadyStateDynamicsMode = mode;
+      if (!test.steadySkidpadParams) {
+        test.steadySkidpadParams = initialSteadySkidpadParams();
+      }
+      test.steadySkidpadParams!.solverMode = mode;
       updateWithSave();
     },
     [test, updateWithSave]
@@ -712,7 +716,9 @@ const Content = React.memo((props: {test: ITest}) => {
                   <RadioGroup
                     name="radio-buttons-group"
                     onChange={onSteadyStateDynamicsModeChanged as any}
-                    value={test.steadyStateDynamicsMode}
+                    value={
+                      test.steadySkidpadParams?.solverMode ?? 'SkidpadMaxV'
+                    }
                   >
                     <FormControlLabel
                       value="SkidpadMaxV"

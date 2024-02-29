@@ -45,7 +45,12 @@ export class SetterNode extends ActionNode implements ISetterNode {
     this.listSetters.forEach((setter) => setter.set(solver));
 
     if (isSkidpadSolver(solver)) {
-      const s = solver.solveMaxV({getSnapshot});
+      let s: Required<ISnapshot>[] = [];
+      if (solver.config.solverMode === 'SkidpadMaxV') {
+        s = solver.solveMaxV({getSnapshot});
+      } else {
+        solver.solveTargetRadius({getSnapshot, ss: s});
+      }
       // solver.solve();
       // const s = [getSnapshot(solver)];
 

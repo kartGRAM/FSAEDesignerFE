@@ -1415,7 +1415,6 @@ export class SkidpadSolver implements IForceSolver {
       try {
         console.log(`velocity= ${this.state.v} m/s`);
         [steeringPosition, interpolate2] = this.solveTargetRadius({
-          maxCount,
           initialPos: steeringPosition,
           interpolate2
         });
@@ -1465,11 +1464,14 @@ export class SkidpadSolver implements IForceSolver {
 
   solveTargetRadius({
     initialPos,
-    interpolate2
+    interpolate2,
+    getSnapshot,
+    ss
   }: {
-    maxCount: number;
     initialPos?: number;
     interpolate2?: Interpolate2Points;
+    getSnapshot?: (solver: ISolver) => Required<ISnapshot>;
+    ss?: Required<ISnapshot>[];
   }): [number, Interpolate2Points] {
     const maxCount = this.config.maxLoopCountR.value;
     let count = 0;
@@ -1488,6 +1490,8 @@ export class SkidpadSolver implements IForceSolver {
     interpolate2 =
       interpolate2 || new Interpolate2Points(targetRadius, () => deltaS);
     let lastPos = Number.NaN;
+
+    let minRConverged = Number.MAX_SAFE_INTEGER;
     while (count < maxCount) {
       if (Math.abs(lastPos - steeringPos) < steeringEps)
         throw new Error('目的の半径に収束しなかった');
@@ -1501,6 +1505,14 @@ export class SkidpadSolver implements IForceSolver {
         interpolate3.addNewValue(steeringPos, this.state.rMin);
         interpolate2.addNewValue(steeringPos, this.state.rMin);
         lastPos = steeringPos;
+        if (
+          getSnapshot &&
+          this.state.rMin < minRConverged &&
+          this.config.storeIntermidiateResults
+        ) {
+          ss?.push(getSnapshot(this));
+          minRConverged = this.state.rMin;
+        }
       } catch (e: unknown) {
         if (!firstSolved) {
           console.log(
@@ -1576,6 +1588,9 @@ export class SkidpadSolver implements IForceSolver {
       console.log('solver target radius がmaxCountに到達');
     }
     console.log('reached the radius goal');
+
+    if (!this.config.storeIntermidiateResults && getSnapshot)
+      ss?.push(getSnapshot(this));
     return [steeringPos, interpolate2];
   }
 

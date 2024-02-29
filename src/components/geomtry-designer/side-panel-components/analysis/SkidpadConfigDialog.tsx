@@ -244,7 +244,7 @@ const Content = React.memo((props: {test: ITest}) => {
         flexDirection: 'column'
       }}
     >
-      {test.steadyStateDynamicsMode === 'SkidpadMaxV' ? (
+      {config.solverMode === 'SkidpadMaxV' ? (
         <>
           <Box
             component="div"
@@ -579,7 +579,7 @@ const Content = React.memo((props: {test: ITest}) => {
         </NativeSelect>
       </Box>
       {config.searchMode === 'step' ? (
-        test.steadyStateDynamicsMode === 'SkidpadMaxV' ? (
+        config.solverMode === 'SkidpadMaxV' ? (
           <Box
             component="div"
             sx={{
@@ -697,7 +697,7 @@ const Content = React.memo((props: {test: ITest}) => {
           valueFieldProps={{sx: fieldSX}}
         />
       </Box>
-      {test.steadyStateDynamicsMode === 'SkidpadMaxV' ? (
+      {config.solverMode === 'SkidpadMaxV' ? (
         <Box
           component="div"
           sx={{
