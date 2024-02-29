@@ -61,10 +61,20 @@ ctx.onmessage = async (e: MessageEvent<FromParentSweepWorker>) => {
       };
     };
 
+    let s: Required<ISnapshot>[] = [];
+    if (solver.config.solverMode === 'SkidpadSimple') {
+      solver.solve({postProcess: true});
+      s.push(getSnapshot(solver));
+    } else if (solver.config.solverMode === 'SkidpadMaxV') {
+      s = solver.solveMaxV({getSnapshot});
+    } else {
+      solver.solveTargetRadius({getSnapshot, ss: s, isMinRadiusMode: true});
+    }
+
     const results: SweepResults = {
       isSweepResults: true,
       step: message.step,
-      results: solver.solveMaxV({getSnapshot})
+      results: s
     };
 
     ctx.postMessage(results);

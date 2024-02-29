@@ -1466,12 +1466,14 @@ export class SkidpadSolver implements IForceSolver {
     initialPos,
     interpolate2,
     getSnapshot,
-    ss
+    ss,
+    isMinRadiusMode
   }: {
     initialPos?: number;
     interpolate2?: Interpolate2Points;
     getSnapshot?: (solver: ISolver) => Required<ISnapshot>;
     ss?: Required<ISnapshot>[];
+    isMinRadiusMode?: boolean;
   }): [number, Interpolate2Points] {
     const maxCount = this.config.maxLoopCountR.value;
     let count = 0;
@@ -1493,8 +1495,10 @@ export class SkidpadSolver implements IForceSolver {
 
     let minRConverged = Number.MAX_SAFE_INTEGER;
     while (count < maxCount) {
-      if (Math.abs(lastPos - steeringPos) < steeringEps)
-        throw new Error('目的の半径に収束しなかった');
+      if (Math.abs(lastPos - steeringPos) < steeringEps) {
+        if (!isMinRadiusMode) throw new Error('目的の半径に収束しなかった');
+        else break;
+      }
 
       steering.valueFormula.formula = `${steeringPos}`;
       steering.set(this);
@@ -1534,7 +1538,7 @@ export class SkidpadSolver implements IForceSolver {
           if (interpolate3.isValid) {
             const rEst = interpolate3.getValue(steeringPos);
             console.log(`rEst = ${rEst}`);
-            if (rEst > targetRadius + 0.01) {
+            if (!isMinRadiusMode && rEst > targetRadius + 0.01) {
               throw new Error('目的の半径に収束しない見込みのため早期終了');
             }
           }
@@ -1561,7 +1565,11 @@ export class SkidpadSolver implements IForceSolver {
         continue;
       }
       firstSolved = true;
-      if (firstSolved && Math.abs(this.state.rMin - targetRadius) < radiusEps) {
+      if (
+        firstSolved &&
+        Math.abs(this.state.rMin - targetRadius) < radiusEps &&
+        !isMinRadiusMode
+      ) {
         console.log('半径が収束');
         break;
       }
@@ -1576,7 +1584,7 @@ export class SkidpadSolver implements IForceSolver {
       ) {
         const rEst = interpolate3.getValue(steeringMaxPos);
         console.log(`rEst = ${rEst}`);
-        if (rEst > targetRadius + 0.01) {
+        if (!isMinRadiusMode && rEst > targetRadius + 0.01) {
           throw new Error('目的の半径に収束しない見込みのため早期終了');
         }
         steeringPos = (lastPos + steeringMaxPos) / 2;
@@ -1594,7 +1602,7 @@ export class SkidpadSolver implements IForceSolver {
     return [steeringPos, interpolate2];
   }
 
-  solveTargetRadiusOld({
+  solveTargetRadiusStable({
     maxCount,
     initialPos
   }: {

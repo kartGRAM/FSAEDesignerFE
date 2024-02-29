@@ -46,13 +46,14 @@ export class SetterNode extends ActionNode implements ISetterNode {
 
     if (isSkidpadSolver(solver)) {
       let s: Required<ISnapshot>[] = [];
-      if (solver.config.solverMode === 'SkidpadMaxV') {
+      if (solver.config.solverMode === 'SkidpadSimple') {
+        solver.solve({postProcess: true});
+        s.push(getSnapshot(solver));
+      } else if (solver.config.solverMode === 'SkidpadMaxV') {
         s = solver.solveMaxV({getSnapshot});
       } else {
-        solver.solveTargetRadius({getSnapshot, ss: s});
+        solver.solveTargetRadius({getSnapshot, ss: s, isMinRadiusMode: true});
       }
-      // solver.solve();
-      // const s = [getSnapshot(solver)];
 
       if (ss) {
         ss.push(...s);

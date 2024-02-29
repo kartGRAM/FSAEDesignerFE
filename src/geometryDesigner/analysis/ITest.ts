@@ -39,7 +39,7 @@ export interface ISteadySkidpadParams {
   maxLoopCountR: INamedNumber;
   maxLoopCountV: INamedNumber;
   gravity: INamedVector3;
-  solverMode: 'SkidpadMaxV' | 'SkidpadMinR';
+  solverMode: 'SkidpadSimple' | 'SkidpadMaxV' | 'SkidpadMinR';
 }
 
 export interface IDataSteadySkidpadParams {

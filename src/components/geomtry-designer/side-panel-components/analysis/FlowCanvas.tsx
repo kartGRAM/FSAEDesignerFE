@@ -721,6 +721,11 @@ const Content = React.memo((props: {test: ITest}) => {
                     }
                   >
                     <FormControlLabel
+                      value="SkidpadSimple"
+                      control={<Radio />}
+                      label="Calculate Skidpad. (simple)"
+                    />
+                    <FormControlLabel
                       value="SkidpadMaxV"
                       control={<Radio />}
                       label="Calculate Skidpad. (Max V)"
