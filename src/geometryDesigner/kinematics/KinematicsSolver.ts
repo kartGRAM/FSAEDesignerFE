@@ -55,7 +55,7 @@ import {
   PointComponent
 } from './KinematicComponents';
 import {ISnapshot} from '../analysis/ISnapshot';
-import {ISolver} from './ISolver';
+import {ISolver, PlotVariables} from './ISolver';
 
 export class KinematicsSolver implements ISolver {
   static className = 'KinematicsSolver' as const;
@@ -1206,6 +1206,16 @@ export class KinematicsSolver implements ISolver {
     this.restorers.forEach((restorer) => {
       restorer.restore(unresolvedPoints);
     });
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  get variables(): PlotVariables[] {
+    return [];
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getVariable(): number {
+    return Number.NaN;
   }
 }
 

@@ -1504,11 +1504,15 @@ export class SkidpadSolver implements IForceSolver {
       steering.set(this);
       try {
         console.log(`steeringPos= ${steeringPos.toFixed(5)}`);
-        this.solve({maxCnt: 10});
+        this.solve({maxCnt: 20});
         if (this.state.rMin > targetRadius) storedState = this.getSnapshot();
         interpolate3.addNewValue(steeringPos, this.state.rMin);
         interpolate2.addNewValue(steeringPos, this.state.rMin);
         lastPos = steeringPos;
+        if (steeringMaxPos === steeringPos) {
+          steeringMaxPos =
+            deltaS > 0 ? Number.MAX_SAFE_INTEGER : Number.MIN_SAFE_INTEGER;
+        }
         if (
           getSnapshot &&
           this.state.rMin < minRConverged &&
@@ -1536,7 +1540,7 @@ export class SkidpadSolver implements IForceSolver {
           steeringMaxPos = steeringPos;
           console.log('収束しなかった');
           if (interpolate3.isValid) {
-            const rEst = interpolate3.getValue(steeringPos);
+            const rEst = interpolate3.getValue(steeringMaxPos);
             console.log(`rEst = ${rEst}`);
             if (!isMinRadiusMode && rEst > targetRadius + 0.01) {
               throw new Error('目的の半径に収束しない見込みのため早期終了');
@@ -1577,17 +1581,11 @@ export class SkidpadSolver implements IForceSolver {
         this.restoreState(storedState);
       }
       steeringPos = interpolate2.predict(steeringPos);
-      // 予測値が収束しないことが分かっていれば緩和
       if (
         (deltaS > 0 && steeringPos > steeringMaxPos) ||
         (deltaS < 0 && steeringPos < steeringMaxPos)
       ) {
-        const rEst = interpolate3.getValue(steeringMaxPos);
-        console.log(`rEst = ${rEst}`);
-        if (!isMinRadiusMode && rEst > targetRadius + 0.01) {
-          throw new Error('目的の半径に収束しない見込みのため早期終了');
-        }
-        steeringPos = (lastPos + steeringMaxPos) / 2;
+        steeringPos = steeringMaxPos;
       }
 
       ++count;
@@ -1603,12 +1601,19 @@ export class SkidpadSolver implements IForceSolver {
   }
 
   solveTargetRadiusStable({
-    maxCount,
-    initialPos
+    initialPos,
+    interpolate2,
+    getSnapshot,
+    ss,
+    isMinRadiusMode
   }: {
-    maxCount: number;
     initialPos?: number;
-  }) {
+    interpolate2?: Interpolate2Points;
+    getSnapshot?: (solver: ISolver) => Required<ISnapshot>;
+    ss?: Required<ISnapshot>[];
+    isMinRadiusMode?: boolean;
+  }): [number, Interpolate2Points] {
+    const maxCount = this.config.maxLoopCountR.value;
     let count = 0;
     const {steering} = this.config;
     let deltaS = this.config.steeringMaxStepSize.value;
@@ -1621,16 +1626,31 @@ export class SkidpadSolver implements IForceSolver {
     let firstSolved = false;
     let storedState: ISnapshot | undefined;
     if (initialPos) storedState = this.getSnapshot();
+    let lastPos = Number.NaN;
     const interpolate3 = new Interpolate3Points();
+    interpolate2 =
+      interpolate2 || new Interpolate2Points(targetRadius, () => deltaS);
+    let minRConverged = Number.MAX_SAFE_INTEGER;
     while (count < maxCount) {
-      if (Math.abs(deltaS) < steeringEps)
-        throw new Error('目的の半径に収束しなかった');
+      if (Math.abs(lastPos - steeringPos) < steeringEps) {
+        if (!isMinRadiusMode) throw new Error('目的の半径に収束しなかった');
+        else break;
+      }
       steering.valueFormula.formula = `${steeringPos}`;
       steering.set(this);
       try {
         this.solve({maxCnt: 10});
         if (this.state.rMin > targetRadius) storedState = this.getSnapshot();
         interpolate3.addNewValue(steeringPos, this.state.rMin);
+        lastPos = steeringPos;
+        if (
+          getSnapshot &&
+          this.state.rMin < minRConverged &&
+          this.config.storeIntermidiateResults
+        ) {
+          ss?.push(getSnapshot(this));
+          minRConverged = this.state.rMin;
+        }
       } catch (e: unknown) {
         ++count;
         if (!firstSolved) {
@@ -1651,7 +1671,7 @@ export class SkidpadSolver implements IForceSolver {
           if (interpolate3.isValid) {
             const rEst = interpolate3.getValue(steeringPos);
             console.log(`rEst = ${rEst}`);
-            if (rEst > targetRadius + radiusEps * 10) {
+            if (!isMinRadiusMode && rEst > targetRadius + 0.01) {
               throw new Error('目的の半径に収束しない見込みのため早期終了');
             }
           }
@@ -1702,7 +1722,10 @@ export class SkidpadSolver implements IForceSolver {
       ++count;
     }
     console.log('reached the radius goal');
-    return steeringPos;
+
+    if (!this.config.storeIntermidiateResults && getSnapshot)
+      ss?.push(getSnapshot(this));
+    return [steeringPos, interpolate2];
   }
 
   // ポストプロセス： 要素への位置の反映と、Restorerの適用
@@ -1749,6 +1772,27 @@ export class SkidpadSolver implements IForceSolver {
     this.state.rMin = (minDistance * (this.state.r > 0 ? 1 : -1)) / 1000;
     console.log(`true radius=     ${this.state.rMin.toFixed(4)} m`);
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  get variables(): PlotVariables[] {
+    const names: (keyof ISolverState)[] = [
+      'lapTime',
+      'omega',
+      'r',
+      'rMin',
+      'v'
+    ];
+    return names.map((name) => ({name, key: name}));
+  }
+
+  getVariable(key: keyof ISolverState): number {
+    return this.state[key];
+  }
+}
+
+export interface PlotVariables {
+  name: keyof ISolverState;
+  key: string;
 }
 
 export function isSkidpadSolver(
@@ -1902,12 +1946,64 @@ class Interpolate3Points {
   getValue(x: number) {
     const X = this.last3X;
     const Y = this.last3Y;
-    const a1 = (Y[0] - Y[1]) * (X[0] - X[2]) - (Y[0] - Y[2]) * (X[0] - X[1]);
+    /* const a1 = (Y[0] - Y[1]) * (X[0] - X[2]) - (Y[0] - Y[2]) * (X[0] - X[1]);
     const a2 = (X[0] - X[1]) * (X[0] - X[2]) * (X[1] - X[2]);
     const a = a1 / a2;
     const b = (Y[0] - Y[1]) / (X[0] - X[1]) - a * (X[0] + X[1]);
-    const c = Y[0] - a * X[0] * X[1] - b * X[0];
+    const c = Y[0] - a * X[0] * X[1] - b * X[0]; */
 
-    return a * x * x + b * x + c;
+    const D = det([
+      [X[0] ** 2, X[0], 1],
+      [X[1] ** 2, X[1], 1],
+      [X[2] ** 2, X[2], 1]
+    ]);
+    const a =
+      det([
+        [Y[0], X[0], 1],
+        [Y[1], X[1], 1],
+        [Y[2], X[2], 1]
+      ]) / D;
+    const b =
+      det([
+        [X[0] ** 2, Y[0], 1],
+        [X[1] ** 2, Y[1], 1],
+        [X[2] ** 2, Y[2], 1]
+      ]) / D;
+    const c =
+      det([
+        [X[0] ** 2, X[0], Y[0]],
+        [X[1] ** 2, X[1], Y[1]],
+        [X[2] ** 2, X[2], Y[2]]
+      ]) / D;
+
+    const v = a * x * x + b * x + c;
+    const min = -(b * b - 4 * a * c) / (4 * a);
+    const minRight = this.last3X[0] < x;
+    if (minRight) {
+      if (a > 0) {
+        if (x < -b / (2 * a)) return v;
+        return Number.MIN_SAFE_INTEGER;
+      }
+      return v;
+    }
+    if (a > 0) {
+      if (x > -b / (2 * a)) return v;
+      return Number.MIN_SAFE_INTEGER;
+    }
+    return v;
   }
+}
+
+function det(d: number[][]): number {
+  const a = d[0];
+  const b = d[1];
+  const c = d[2];
+  return (
+    a[0] * b[1] * c[2] +
+    a[1] * b[2] * c[0] +
+    a[2] * b[0] * c[1] -
+    a[2] * b[1] * c[0] -
+    a[1] * b[0] * c[2] -
+    a[0] * b[2] * c[1]
+  );
 }
