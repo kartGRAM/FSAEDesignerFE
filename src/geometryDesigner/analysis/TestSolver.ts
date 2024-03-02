@@ -278,33 +278,32 @@ export class TestSolver implements ITestSolver {
 
     const state = getSnapshot(solver);
     const edges = [...this.test.edgesFromSourceNode[node.nodeID]];
-    const edge = edges.pop();
 
-    if (edge) {
+    let children: Promise<CaseResults>[] = [];
+    if (edges.length === 1) {
+      const edge = edges.pop()!;
       const next = this.test.nodes[edge.target];
-
-      const children = edges.map((edge) => {
+      children = [this.DFSNodes(next, solver, getSnapshot, ret, currentCase)];
+    } else {
+      children = edges.map((edge) => {
         const next = this.test.nodes[edge.target];
         return this.createChildWorker(next, state);
       });
-      // solver.restoreState(state);
-      const child = this.DFSNodes(next, solver, getSnapshot, ret, currentCase);
-
-      const results: CaseResults[] = await Promise.all([...children, child]);
-
-      ret.cases = results.reduce(
-        (prev, current) => {
-          prev = {...prev, ...current.cases};
-          return prev;
-        },
-        {} as {
-          [index: string]: {
-            name: string;
-            results: Required<ISnapshot>[];
-          };
-        }
-      );
     }
+    const results: CaseResults[] = await Promise.all(children);
+
+    ret.cases = results.reduce(
+      (prev, current) => {
+        prev = {...prev, ...current.cases};
+        return prev;
+      },
+      {} as {
+        [index: string]: {
+          name: string;
+          results: Required<ISnapshot>[];
+        };
+      }
+    );
     done(node.nodeID);
 
     return ret;
