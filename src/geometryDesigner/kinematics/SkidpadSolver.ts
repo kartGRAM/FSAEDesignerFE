@@ -1480,7 +1480,7 @@ export class SkidpadSolver implements IForceSolver {
     const maxCount = this.config.maxLoopCountR.value;
     let count = 0;
     const {steering} = this.config;
-    let deltaS = this.config.steeringMaxStepSize.value;
+    const deltaS = this.config.steeringMaxStepSize.value;
     let steeringPos = initialPos || deltaS;
     const steeringEps = this.config.steeringEps.value;
     const radiusEps = this.config.radiusEps.value;
@@ -1532,12 +1532,15 @@ export class SkidpadSolver implements IForceSolver {
       } catch (e: unknown) {
         if (!firstSolved) {
           console.log(
-            '初回の計算で収束しなかったため、初期ポジションを修正する'
+            '初回の計算で収束しなかったため、初期ポジションをリセットする'
           );
           const {v} = this.state;
-          this.restoreInitialQ();
+          this.reConstruct();
           this.state.v = v;
           steeringPos = 0;
+          steering.valueFormula.formula = `${steeringPos}`;
+          steering.set(this);
+          this.solve();
           ++count;
           // eslint-disable-next-line no-continue
           continue;
@@ -1568,13 +1571,18 @@ export class SkidpadSolver implements IForceSolver {
       }
       if (this.state.rMin < targetRadius && !firstSolved) {
         console.log(
-          '初回の計算で半径が負になったため、初期のステアリングポジションを修正'
+          '初回の計算で半径が負になったため、初期ポジションをリセットする'
         );
-        if (storedState) this.restoreState(storedState);
-        if (!initialPos) {
-          deltaS /= 2;
-        }
-        steeringPos -= deltaS;
+        const {v} = this.state;
+        this.reConstruct();
+        this.state.v = v;
+        steeringPos = 0;
+        steering.valueFormula.formula = `${steeringPos}`;
+        steering.set(this);
+        this.solve();
+        steeringPos = 0;
+        ++count;
+
         // eslint-disable-next-line no-continue
         continue;
       }
