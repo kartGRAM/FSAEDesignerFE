@@ -1514,7 +1514,8 @@ export class SkidpadSolver implements IForceSolver {
           storedState = this.getSnapshot();
           storedPos = steeringPos;
         }
-        if (this.state.rMin < targetRadius) disableFastExit = true;
+        if (this.state.rMin < targetRadius && Math.abs(this.state.rMin) < 10000)
+          disableFastExit = true;
         interpolate3.addNewValue(steeringPos, this.state.rMin);
         interpolate2.addNewValue(steeringPos, this.state.rMin);
         lastPos = steeringPos;
@@ -1580,7 +1581,7 @@ export class SkidpadSolver implements IForceSolver {
       if (
         this.state.rMin < targetRadius &&
         !firstSolved &&
-        Math.abs(this.state.rMin) < 1000000
+        Math.abs(this.state.rMin) < 10000
       ) {
         console.log(
           '初回の計算で半径が負になったため、初期ポジションをリセットする'
@@ -1592,7 +1593,6 @@ export class SkidpadSolver implements IForceSolver {
         steering.valueFormula.formula = `${steeringPos}`;
         steering.set(this);
         this.solve();
-        steeringPos = 0;
         ++count;
 
         // eslint-disable-next-line no-continue
@@ -1607,7 +1607,11 @@ export class SkidpadSolver implements IForceSolver {
         console.log('半径が収束');
         break;
       }
-      if (this.state.rMin < targetRadius && storedState) {
+      if (
+        this.state.rMin < targetRadius &&
+        storedState &&
+        Math.abs(this.state.rMin) < 10000
+      ) {
         console.log(`restore steeringPos= ${storedPos.toFixed(5)}`);
         this.restoreState(storedState);
       }
@@ -1888,6 +1892,7 @@ class Interpolate2Points {
   }
 
   addNewValue(x: number, y: number) {
+    if (Math.abs(y) > 10000) return;
     // targetY > 0
     // last2Y[0] > last2Y[1]
     const {targetY, last2X, last2Y} = this;
@@ -1971,6 +1976,7 @@ class Interpolate3Points {
   }
 
   addNewValue(x: number, y: number) {
+    if (Math.abs(y) > 10000) return;
     this.last3X.push(x);
     this.last3Y.push(y);
     if (this.last3X.length > 3) this.last3X.shift();
