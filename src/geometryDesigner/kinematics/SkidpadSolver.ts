@@ -1534,18 +1534,10 @@ export class SkidpadSolver implements IForceSolver {
           console.log(
             '初回の計算で収束しなかったため、初期ポジションを修正する'
           );
-          /* if (!initialPos) {
-            deltaS /= 2;
-            steeringPos -= deltaS;
-          } else if (storedState) {
-            this.restoreState(storedState);
-            steeringPos -= deltaS;
-          } else { */
           const {v} = this.state;
           this.restoreInitialQ();
           this.state.v = v;
           steeringPos = 0;
-          // }
           ++count;
           // eslint-disable-next-line no-continue
           continue;
