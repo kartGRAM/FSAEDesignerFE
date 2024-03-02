@@ -1186,7 +1186,7 @@ export class SkidpadSolver implements IForceSolver {
           const dqMinIdx = dqData.indexOf(dqMin);
           if (i > 20 || logOutput) {
             // const row = constraintsOptions.disableForce ? 0 : 92;
-            const row = 90;
+            /* const row = 90;
             const iPhi_q = inverse(phi_q, true);
             const {data: iData} = iPhi_q as any;
             const id = iData[row];
@@ -1195,7 +1195,7 @@ export class SkidpadSolver implements IForceSolver {
             const dot = dotOrg.map((x, i) => x * large[i]);
 
             const {data} = phi_q as any;
-            const d = data.map((d: any) => d[row]);
+            const d = data.map((d: any) => d[row]); */
 
             console.log(`round: ${i}`);
             console.log(`phi_max   = ${phiMax.toFixed(4)}`);
@@ -1494,7 +1494,7 @@ export class SkidpadSolver implements IForceSolver {
     const interpolate3 = new Interpolate3Points();
     interpolate2 =
       interpolate2 || new Interpolate2Points(targetRadius, () => deltaS);
-    const lastPos = Number.NaN;
+    let lastPos = Number.NaN;
 
     let minRConverged = Number.MAX_SAFE_INTEGER;
     let disableFastExit = false;
@@ -1508,7 +1508,7 @@ export class SkidpadSolver implements IForceSolver {
       steering.set(this);
       try {
         console.log(`steeringPos= ${steeringPos.toFixed(5)}`);
-        this.solve({maxCnt: 100, logOutput: true});
+        this.solve({maxCnt: 40});
         if (this.state.rMin > targetRadius) {
           storedState = this.getSnapshot();
           storedPos = steeringPos;
@@ -1516,7 +1516,7 @@ export class SkidpadSolver implements IForceSolver {
         if (this.state.rMin < targetRadius) disableFastExit = true;
         interpolate3.addNewValue(steeringPos, this.state.rMin);
         interpolate2.addNewValue(steeringPos, this.state.rMin);
-        // lastPos = steeringPos;
+        lastPos = steeringPos;
         if (steeringMaxPos === steeringPos) {
           steeringMaxPos =
             deltaS > 0 ? Number.MAX_SAFE_INTEGER : Number.MIN_SAFE_INTEGER;
@@ -1534,13 +1534,18 @@ export class SkidpadSolver implements IForceSolver {
           console.log(
             '初回の計算で収束しなかったため、初期ポジションを修正する'
           );
-          if (!initialPos) {
+          /* if (!initialPos) {
             deltaS /= 2;
             steeringPos -= deltaS;
-          } else {
-            if (storedState) this.restoreState(storedState);
+          } else if (storedState) {
+            this.restoreState(storedState);
             steeringPos -= deltaS;
-          }
+          } else { */
+          const {v} = this.state;
+          this.restoreInitialQ();
+          this.state.v = v;
+          steeringPos = 0;
+          // }
           ++count;
           // eslint-disable-next-line no-continue
           continue;
@@ -1606,6 +1611,7 @@ export class SkidpadSolver implements IForceSolver {
     }
     if (count === maxCount) {
       console.log('solver target radius がmaxCountに到達');
+      throw new Error('max count');
     }
     console.log('reached the radius goal');
 
