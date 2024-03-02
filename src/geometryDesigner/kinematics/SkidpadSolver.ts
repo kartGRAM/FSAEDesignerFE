@@ -1498,6 +1498,7 @@ export class SkidpadSolver implements IForceSolver {
 
     let minRConverged = Number.MAX_SAFE_INTEGER;
     let disableFastExit = false;
+    let firstResolveCount = 0;
     while (count < maxCount) {
       if (Math.abs(lastPos - steeringPos) < steeringEps) {
         if (!isMinRadiusMode) throw new Error('目的の半径に収束しなかった');
@@ -1531,11 +1532,18 @@ export class SkidpadSolver implements IForceSolver {
         }
       } catch (e: unknown) {
         if (!firstSolved) {
+          ++firstResolveCount;
           console.log(
             '初回の計算で収束しなかったため、初期ポジションをリセットする'
           );
           const {v} = this.state;
-          this.reConstruct();
+          if (firstResolveCount === 1) {
+            this.restoreInitialQ();
+          } else if (firstResolveCount === 2) {
+            this.reConstruct();
+          } else {
+            throw new Error('初回収束しない');
+          }
           this.state.v = v;
           steeringPos = 0;
           steering.valueFormula.formula = `${steeringPos}`;
@@ -1569,12 +1577,16 @@ export class SkidpadSolver implements IForceSolver {
           } else throw e;
         }
       }
-      if (this.state.rMin < targetRadius && !firstSolved) {
+      if (
+        this.state.rMin < targetRadius &&
+        !firstSolved &&
+        Math.abs(this.state.rMin) < 1000000
+      ) {
         console.log(
           '初回の計算で半径が負になったため、初期ポジションをリセットする'
         );
         const {v} = this.state;
-        this.reConstruct();
+        this.restoreInitialQ();
         this.state.v = v;
         steeringPos = 0;
         steering.valueFormula.formula = `${steeringPos}`;
