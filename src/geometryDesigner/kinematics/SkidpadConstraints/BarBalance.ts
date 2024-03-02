@@ -198,7 +198,7 @@ export class BarBalance implements Constraint, Balance {
       const maN = ma.normalize();
 
       // 軸方向の力
-      const fAxis = this.f.map((f, i) =>
+      /* const fAxis = this.f.map((f, i) =>
         f.add(maN.mul(f.dot(maN))).mul(this.pfCoefs[i])
       );
 
@@ -207,14 +207,24 @@ export class BarBalance implements Constraint, Balance {
       const f2 = this.f.map((f) => f.dot(f));
       const fl = f2.map((f2, i) => f2.div(fdotAx[i]));
       const flMean = fl[0].sub(fl[1]).div(2);
-      this.springForceError = flMean.sub(ideal);
+      this.springForceError = flMean.sub(ideal); */
+
+      const f = this.f[0];
+      const fAxis = f.add(maN.mul(f.dot(maN))).mul(this.pfCoefs[0]);
+      // 現在の軸方向の力の大きさ (|f| / cos(Θ) ) = |f|^2 / f・ax
+      const fdotAx = fAxis.dot(axis);
+      const f2 = f.dot(f);
+      const fl = f2.div(fdotAx);
+      this.springForceError = fl.sub(ideal);
 
       this._setPreload = () => {
         l.reset({});
-        flMean.reset({});
+        // flMean.reset({});
+        fl.reset({});
         const length = l.scalarValue;
         const k = (this.getK ? this.getK() : 1) / this.scale;
-        const dl = flMean.scalarValue / k;
+        // const dl = flMean.scalarValue / k;
+        const dl = fl.scalarValue / k;
         this.freeLength.setValue(length + dl);
       };
     }
