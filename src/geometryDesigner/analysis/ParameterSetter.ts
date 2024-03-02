@@ -61,6 +61,7 @@ export class ParameterSetter implements IParameterSetter {
         })
       );
       solver.reConstruct();
+      solver.solve();
     }
   }
 

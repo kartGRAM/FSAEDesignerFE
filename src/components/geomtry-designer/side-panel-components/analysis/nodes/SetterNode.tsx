@@ -258,7 +258,12 @@ function SetterContent(props: {node: ISetterNode; test: ITest}) {
                   );
                 })}
               {!node.copyFrom ? (
-                <NewRow node={node} updateWithSave={updateWithSave} key="new" />
+                <NewRow
+                  node={node}
+                  updateWithSave={updateWithSave}
+                  test={test}
+                  key="new"
+                />
               ) : null}
             </TableBody>
           </Table>
@@ -370,8 +375,12 @@ function EnhancedTableHead(props: {
   );
 }
 
-function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
-  const {updateWithSave, node} = props;
+function NewRow(props: {
+  node: ISetterNode;
+  updateWithSave: () => void;
+  test: ITest;
+}) {
+  const {updateWithSave, node, test} = props;
   const labelId = React.useId();
   const [evaluatedValue, setEvaluatedValue] = React.useState<number | null>(
     null
@@ -389,7 +398,13 @@ function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
   );
   const controls = useSelector(
     (state: RootState) => state.dgd.present.controls
-  ).filter((c) => (c.configuration ?? 'FixedFrame') === assemblyMode);
+  ).filter(
+    (c) =>
+      (c.configuration ?? 'FixedFrame') === assemblyMode &&
+      (test.calculateSteadyStateDynamics
+        ? !c.disabledWhileDynamicSolverIsActive
+        : true)
+  );
 
   const formulae = useSelector(
     (state: RootState) => state.dgd.present.formulae

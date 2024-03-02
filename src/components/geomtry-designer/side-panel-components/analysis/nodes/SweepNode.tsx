@@ -282,6 +282,7 @@ function SweepContent(props: {node: ISweepNode; test: ITest}) {
               {!node.copyFrom ? (
                 <NewRow
                   node={node}
+                  test={test}
                   updateWithSave={updateWithSave}
                   mode={mode}
                   key="new"
@@ -423,9 +424,10 @@ function EnhancedTableHead(props: {
 function NewRow(props: {
   node: ISweepNode;
   mode: Mode;
+  test: ITest;
   updateWithSave: () => void;
 }) {
-  const {updateWithSave, node, mode} = props;
+  const {updateWithSave, node, mode, test} = props;
   const labelId = React.useId();
   const [startValue, setStartValue] = React.useState<number | null>(null);
   const [endValue, setEndValue] = React.useState<number | null>(null);
@@ -443,7 +445,13 @@ function NewRow(props: {
   );
   const controls = useSelector(
     (state: RootState) => state.dgd.present.controls
-  ).filter((c) => (c.configuration ?? 'FixedFrame') === assemblyMode);
+  ).filter(
+    (c) =>
+      (c.configuration ?? 'FixedFrame') === assemblyMode &&
+      (test.calculateSteadyStateDynamics
+        ? !c.disabledWhileDynamicSolverIsActive
+        : true)
+  );
 
   const formulae = useSelector(
     (state: RootState) => state.dgd.present.formulae

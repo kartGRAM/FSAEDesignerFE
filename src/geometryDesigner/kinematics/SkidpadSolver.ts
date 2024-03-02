@@ -1210,7 +1210,7 @@ export class SkidpadSolver implements IForceSolver {
             console.log(`norm_phi=   ${norm_phi.toFixed(4)}`);
             console.log(``);
           }
-          eq = norm_dq < 1e-2 && norm_phi < 1e-2;
+          eq = norm_dq < 1e-4 && norm_phi < 1e-4;
           // eq = norm_phi < 1e-3;
           if (constraintsOptions.disableTireFriction) {
             eq = norm_dq < 2e-1 && norm_phi < 2e-1;
@@ -1542,7 +1542,11 @@ export class SkidpadSolver implements IForceSolver {
           if (interpolate3.isValid) {
             const rEst = interpolate3.getValue(steeringMaxPos);
             console.log(`rEst = ${rEst}`);
-            if (!isMinRadiusMode && rEst > targetRadius + 0.01) {
+            if (
+              !isMinRadiusMode &&
+              interpolate3.length < Math.abs(deltaS) / 4 &&
+              rEst > targetRadius + 0.01
+            ) {
               throw new Error('目的の半径に収束しない見込みのため早期終了');
             }
           }
@@ -1931,6 +1935,10 @@ class Interpolate3Points {
   last3X: number[] = [];
 
   last3Y: number[] = [];
+
+  get length() {
+    return Math.max(...this.last3X) - Math.min(...this.last3X);
+  }
 
   addNewValue(x: number, y: number) {
     this.last3X.push(x);
