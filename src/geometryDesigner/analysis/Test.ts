@@ -81,6 +81,12 @@ export const loadSteadySkidpadParams = (
           name: 'maxLoopCountV',
           value: 100
         }),
+    maxLoopNewton: data.maxLoopNewton
+      ? new NamedNumber({value: data.maxLoopNewton})
+      : new NamedNumber({
+          name: 'maxLoopCountNewton',
+          value: 20
+        }),
     solverMode: data.solverMode ?? 'SkidpadMaxV'
   };
 };
@@ -112,6 +118,7 @@ export const saveSteadySkidpadParams = (
     storeIntermidiateResults: params.storeIntermidiateResults,
     maxLoopCountR: params.maxLoopCountR.getData(),
     maxLoopCountV: params.maxLoopCountV.getData(),
+    maxLoopNewton: params.maxLoopNewton.getData(),
     solverMode: params.solverMode
   };
 };
@@ -163,6 +170,10 @@ export const initialSteadySkidpadParams: () => ISteadySkidpadParams = () => ({
   maxLoopCountV: new NamedNumber({
     name: 'maxLoopCountV',
     value: 100
+  }),
+  maxLoopNewton: new NamedNumber({
+    name: 'maxLoopCountNewton',
+    value: 20
   }),
   solverMode: 'SkidpadMaxV'
 });

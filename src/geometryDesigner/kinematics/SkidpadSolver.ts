@@ -1508,7 +1508,7 @@ export class SkidpadSolver implements IForceSolver {
       steering.set(this);
       try {
         console.log(`steeringPos= ${steeringPos.toFixed(5)}`);
-        this.solve({maxCnt: 40});
+        this.solve({maxCnt: this.config.maxLoopNewton.value});
         if (this.state.rMin > targetRadius) {
           storedState = this.getSnapshot();
           storedPos = steeringPos;
@@ -1660,7 +1660,7 @@ export class SkidpadSolver implements IForceSolver {
       steering.valueFormula.formula = `${steeringPos}`;
       steering.set(this);
       try {
-        this.solve({maxCnt: 10});
+        this.solve({maxCnt: this.config.maxLoopNewton.value});
         if (this.state.rMin > targetRadius) storedState = this.getSnapshot();
         interpolate3.addNewValue(steeringPos, this.state.rMin);
         lastPos = steeringPos;

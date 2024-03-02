@@ -739,6 +739,26 @@ const Content = React.memo((props: {test: ITest}) => {
           valueFieldProps={{sx: fieldSX}}
         />
       </Box>
+      <Box
+        component="div"
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'baseline',
+          justifyContent: 'space-between'
+        }}
+      >
+        <Typography variant="subtitle1">
+          the number of iterations to Newton solver.
+        </Typography>
+        <Scalar
+          nameUnvisible
+          value={config.maxLoopNewton}
+          unit="-"
+          onUpdate={apply()}
+          valueFieldProps={{sx: fieldSX}}
+        />
+      </Box>
     </Box>
   );
 });
