@@ -11,6 +11,7 @@ import {ConvexGeometry} from 'three/examples/jsm/geometries/ConvexGeometry';
 import {MovePointTo} from '@gd/kinematics/Driver';
 import {setMovingMode} from '@store/reducers/uiTempGeometryDesigner';
 import useUpdateEffect from '@app/hooks/useUpdateEffect';
+import {BufferGeometry} from 'three';
 import NodeSphere from './NodeSphere';
 import {PivotControls} from './PivotControls/PivotControls';
 import MeasurablePoint from './MeasurablePointSphere';
@@ -125,7 +126,11 @@ const Body = (props: {element: IBody}) => {
     }
   }, [moveThisComponent]);
 
-  const geometry = new ConvexGeometry(pts);
+  let geometry: BufferGeometry | undefined;
+  try {
+    geometry = new ConvexGeometry(pts);
+    // eslint-disable-next-line no-empty
+  } catch {}
 
   const groupRef = React.useRef<THREE.Group>(null!);
   const materialRef = React.useRef<THREE.MeshBasicMaterial>(null!);
