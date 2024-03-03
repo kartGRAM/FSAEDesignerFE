@@ -1435,9 +1435,9 @@ export class SkidpadSolver implements IForceSolver {
           minLaptimeConverged = this.state.lapTime;
         }
         storedState = this.getSnapshot();
-        if (Math.abs(v + deltaV - maxV) < velocityEps) {
+        /* if (Math.abs(v + deltaV - maxV) < velocityEps) {
           deltaV /= 2;
-        }
+        } */
         this.state.v = v + deltaV;
       } catch (e) {
         console.log(e);
@@ -1561,8 +1561,9 @@ export class SkidpadSolver implements IForceSolver {
             console.log(`rEst = ${rEst}`);
             if (
               !isMinRadiusMode &&
-              interpolate3.length < Math.abs(deltaS) / 4 &&
-              rEst > targetRadius * 1.1
+              interpolate3.length < Math.abs(steeringEps) * 100 &&
+              rEst > targetRadius &&
+              rEst < minRConverged
             ) {
               throw new Error('目的の半径に収束しない見込みのため早期終了');
             }
