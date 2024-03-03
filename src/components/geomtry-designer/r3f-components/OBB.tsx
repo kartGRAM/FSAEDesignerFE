@@ -16,7 +16,7 @@ export const OBB = (props: {obb: IOBB; element?: IElement}) => {
   );
 
   const showOBB = useSelector(
-    (state: RootState) => state.uigd.present.gdSceneState.showOBB
+    (state: RootState) => state.uigd.gdSceneState.showOBB
   );
 
   const center = obb.center.clone().applyMatrix3(coMatrix);

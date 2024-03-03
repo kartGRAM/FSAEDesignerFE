@@ -92,11 +92,11 @@ const LinearBushing = (props: {element: ILinearBushing}) => {
 
   const showLinearBushingForce = useSelector(
     (state: RootState) =>
-      state.uigd.present.gdSceneState.forceViewerState.showLinearBushingForce
+      state.uigd.gdSceneState.forceViewerState.showLinearBushingForce
   );
   const showInertiaForce = useSelector(
     (state: RootState) =>
-      state.uigd.present.gdSceneState.forceViewerState.showInertiaForce
+      state.uigd.gdSceneState.forceViewerState.showInertiaForce
   );
   return (
     <group onDoubleClick={handleOnDoubleClick} ref={groupRef}>

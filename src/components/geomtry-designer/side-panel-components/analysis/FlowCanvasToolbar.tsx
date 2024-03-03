@@ -31,7 +31,7 @@ export const FlowCanvasToolbar = React.memo(
 
     const arrange = () => {
       const {widthSpaceAligningNodes, heightSpaceAligningNodes} =
-        store.getState().uigd.present.analysisPanelState;
+        store.getState().uigd.analysisPanelState;
       test.arrange(widthSpaceAligningNodes, heightSpaceAligningNodes);
       test.saveLocalState();
       setOnArrange((prev) => !prev);

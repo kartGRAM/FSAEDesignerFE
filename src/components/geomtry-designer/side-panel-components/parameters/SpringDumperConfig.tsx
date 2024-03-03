@@ -29,11 +29,10 @@ export default function SpringDumperConfig(params: Params) {
   const dispatch = useDispatch();
   const kinematicParamsDefaultExpanded = useSelector(
     (state: RootState) =>
-      state.uigd.present.parameterConfigState.kinematicParamsExpanded
+      state.uigd.parameterConfigState.kinematicParamsExpanded
   );
   const dynamicParamsDefaultExpanded = useSelector(
-    (state: RootState) =>
-      state.uigd.present.parameterConfigState.dynamicParamsExpanded
+    (state: RootState) => state.uigd.parameterConfigState.dynamicParamsExpanded
   );
 
   React.useEffect(() => {

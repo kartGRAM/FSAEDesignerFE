@@ -27,7 +27,7 @@ export function ElementPoint(props: {
 
   const dispatch = useDispatch();
   const [visModeRestored, setVisModeRestored] = React.useState(
-    store.getState().uigd.present.gdSceneState.componentVisualizationMode
+    store.getState().uigd.gdSceneState.componentVisualizationMode
   );
   const id = React.useId();
 
@@ -43,7 +43,7 @@ export function ElementPoint(props: {
 
   React.useEffect(() => {
     setVisModeRestored(
-      store.getState().uigd.present.gdSceneState.componentVisualizationMode
+      store.getState().uigd.gdSceneState.componentVisualizationMode
     );
     dispatch(setComponentVisualizationMode('WireFrameOnly'));
     dispatch(setMeasureElementPointMode(true));

@@ -14,37 +14,36 @@ export function SkidpadLogOutputs() {
   const solver = useSelector((state: RootState) => state.uitgd.solver);
   const showLapTime = useSelector(
     (state: RootState) =>
-      state.uigd.present.gdSceneState.steadySkidpadViewerState.showLapTime
+      state.uigd.gdSceneState.steadySkidpadViewerState.showLapTime
   );
   const lapTimeRef = React.useRef<HTMLHeadingElement>(null);
 
   const showInnerRadius = useSelector(
     (state: RootState) =>
-      state.uigd.present.gdSceneState.steadySkidpadViewerState.showInnerRadius
+      state.uigd.gdSceneState.steadySkidpadViewerState.showInnerRadius
   );
   const innerRadiusRef = React.useRef<HTMLHeadingElement>(null);
 
   const showCenterRadius = useSelector(
     (state: RootState) =>
-      state.uigd.present.gdSceneState.steadySkidpadViewerState.showCenterRadius
+      state.uigd.gdSceneState.steadySkidpadViewerState.showCenterRadius
   );
   const centerRadiusRef = React.useRef<HTMLHeadingElement>(null);
 
   const showVelocity = useSelector(
     (state: RootState) =>
-      state.uigd.present.gdSceneState.steadySkidpadViewerState.showVelocity
+      state.uigd.gdSceneState.steadySkidpadViewerState.showVelocity
   );
   const velocityRef = React.useRef<HTMLHeadingElement>(null);
 
   const showOmega = useSelector(
     (state: RootState) =>
-      state.uigd.present.gdSceneState.steadySkidpadViewerState.showOmega
+      state.uigd.gdSceneState.steadySkidpadViewerState.showOmega
   );
   const omegaRef = React.useRef<HTMLHeadingElement>(null);
 
   const showColorBar = useSelector(
-    (state: RootState) =>
-      state.uigd.present.gdSceneState.forceViewerState.showColorBar
+    (state: RootState) => state.uigd.gdSceneState.forceViewerState.showColorBar
   );
 
   const stdRef = React.useRef(0);

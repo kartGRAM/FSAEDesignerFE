@@ -79,7 +79,7 @@ export function PointToPlaneControlSettings(props: PointToPlaneControlProps) {
   const zindex = uitgd.fullScreenZIndex + uitgd.dialogZIndex + uitgd.menuZIndex;
 
   const enabledColorLight: number = useSelector(
-    (state: RootState) => state.uigd.present.enabledColorLight
+    (state: RootState) => state.uigd.enabledColorLight
   );
 
   const state = store.getState();

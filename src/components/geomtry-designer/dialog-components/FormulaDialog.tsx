@@ -650,10 +650,10 @@ export function FormulaDialog() {
     const ret = validateAll(rows);
     if (ret === 'OK') {
       dispatch(setFormulae(rows));
-      const assembly = store.getState().uitgd.collectedAssembly;
+      /* const assembly = store.getState().uitgd.collectedAssembly;
       if (assembly) {
         assembly.arrange();
-      }
+      } */
     }
     return ret;
   };

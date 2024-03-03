@@ -8,8 +8,7 @@ import store, {RootState} from '@store/store';
 
 export default function Assemble() {
   const visualizationMode = useSelector(
-    (state: RootState) =>
-      state.uigd.present.gdSceneState.componentVisualizationMode
+    (state: RootState) => state.uigd.gdSceneState.componentVisualizationMode
   );
   const dispatch = useDispatch();
 

@@ -114,7 +114,7 @@ export const dataGeometryDesignerSlice = createSlice({
     ) => {
       if (validateAll(action.payload) === 'OK') {
         state.formulae = action.payload;
-        // if (state.topAssembly) state.topAssembly = {...state.topAssembly};
+        if (state.topAssembly) state.topAssembly = {...state.topAssembly};
       }
       state.idWoTest = uuidv4();
       state.lastGlobalFormulaUpdate = uuidv4();

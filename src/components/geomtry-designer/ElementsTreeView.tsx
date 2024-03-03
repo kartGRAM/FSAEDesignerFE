@@ -67,7 +67,7 @@ const ElementsTreeView = () => {
   */
 
   const fontColor = useSelector(
-    (state: RootState) => state.uigd.present.assemblyTreeViewState.fontColor
+    (state: RootState) => state.uigd.assemblyTreeViewState.fontColor
   );
 
   const assembly = useSelector((state: RootState) => state.uitgd.assembly);
@@ -77,7 +77,7 @@ const ElementsTreeView = () => {
   );
 
   const bgColor: number = useSelector(
-    (state: RootState) => state.uigd.present.backgroundColor
+    (state: RootState) => state.uigd.backgroundColor
   );
 
   const movingElement = useSelector(
@@ -228,12 +228,11 @@ const MyTreeItem = React.memo((props: MyTreeItemProps) => {
     props;
   const selectedColor = numberToRgb(
     useSelector(
-      (state: RootState) =>
-        state.uigd.present.assemblyTreeViewState.selectedColor
+      (state: RootState) => state.uigd.assemblyTreeViewState.selectedColor
     )
   );
   const borderLeft = useSelector(
-    (state: RootState) => state.uigd.present.assemblyTreeViewState.borderLeft
+    (state: RootState) => state.uigd.assemblyTreeViewState.borderLeft
   );
   // if (nodeId === dragTo) console.log(dragTo);
 
@@ -292,12 +291,11 @@ const MyTreeItem = React.memo((props: MyTreeItemProps) => {
 const TemporaryNode = React.memo(() => {
   const selectedColor = numberToRgb(
     useSelector(
-      (state: RootState) =>
-        state.uigd.present.assemblyTreeViewState.selectedColor
+      (state: RootState) => state.uigd.assemblyTreeViewState.selectedColor
     )
   );
   const borderLeft = useSelector(
-    (state: RootState) => state.uigd.present.assemblyTreeViewState.borderLeft
+    (state: RootState) => state.uigd.assemblyTreeViewState.borderLeft
   );
 
   let label = 'temporaryNode';
@@ -349,7 +347,7 @@ const TemporaryNode = React.memo(() => {
 
 const TrashNode = React.memo(() => {
   const borderLeft = useSelector(
-    (state: RootState) => state.uigd.present.assemblyTreeViewState.borderLeft
+    (state: RootState) => state.uigd.assemblyTreeViewState.borderLeft
   );
 
   const label = 'Trash';
@@ -579,8 +577,7 @@ const VisibilityControl = React.memo((props: {absPath: string}) => {
   const nColor = getReversal(
     numberToRgb(
       useSelector(
-        (state: RootState) =>
-          state.uigd.present.assemblyTreeViewState.selectedColor
+        (state: RootState) => state.uigd.assemblyTreeViewState.selectedColor
       )
     )
   );

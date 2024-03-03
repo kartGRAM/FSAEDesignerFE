@@ -29,7 +29,7 @@ export function AxisPointPlane(props: {
   const dispatch = useDispatch();
   const ids = [React.useId(), React.useId(), React.useId()];
   const [visModeRestored, setVisModeRestored] = React.useState(
-    store.getState().uigd.present.gdSceneState.componentVisualizationMode
+    store.getState().uigd.gdSceneState.componentVisualizationMode
   );
 
   const selectedPoint = useSelector(
@@ -93,7 +93,7 @@ export function AxisPointPlane(props: {
 
   React.useEffect(() => {
     setVisModeRestored(
-      store.getState().uigd.present.gdSceneState.componentVisualizationMode
+      store.getState().uigd.gdSceneState.componentVisualizationMode
     );
     dispatch(setDatumPointSelectMode(false));
     dispatch(setDatumLineSelectMode(false));

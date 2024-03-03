@@ -38,7 +38,7 @@ export function PointDirectionLine(props: {
   const dispatch = useDispatch();
 
   const [visModeRestored, setVisModeRestored] = React.useState(
-    store.getState().uigd.present.gdSceneState.componentVisualizationMode
+    store.getState().uigd.gdSceneState.componentVisualizationMode
   );
 
   const ids = [React.useId(), React.useId(), React.useId(), React.useId()];
@@ -125,7 +125,7 @@ export function PointDirectionLine(props: {
 
   React.useEffect(() => {
     setVisModeRestored(
-      store.getState().uigd.present.gdSceneState.componentVisualizationMode
+      store.getState().uigd.gdSceneState.componentVisualizationMode
     );
     dispatch(setSelectedPoint(null));
     dispatch(setDatumLineSelectMode(false));

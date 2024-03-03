@@ -18,22 +18,22 @@ export default function SidePanel() {
   const boxRef = React.useRef<HTMLDivElement>(null);
   const dividerRef = React.useRef<HTMLHRElement>(null);
   const bgColor: number = useSelector(
-    (state: RootState) => state.uigd.present.sidePanelState.backgroundColor
+    (state: RootState) => state.uigd.sidePanelState.backgroundColor
   );
   const fontColor: number = useSelector(
-    (state: RootState) => state.uigd.present.sidePanelState.fontColor
+    (state: RootState) => state.uigd.sidePanelState.fontColor
   );
   const panelWidth: number = useSelector(
-    (state: RootState) => state.uigd.present.sidePanelState.panelWidth
+    (state: RootState) => state.uigd.sidePanelState.panelWidth
   );
   const minWidth: Number = useSelector(
-    (state: RootState) => state.uigd.present.sidePanelState.minWidth
+    (state: RootState) => state.uigd.sidePanelState.minWidth
   );
   const collapsed: boolean = useSelector(
-    (state: RootState) => state.uigd.present.sidePanelState.collapsed
+    (state: RootState) => state.uigd.sidePanelState.collapsed
   );
   const enabledColorLight: number = useSelector(
-    (state: RootState) => state.uigd.present.enabledColorLight
+    (state: RootState) => state.uigd.enabledColorLight
   );
   const selectedTab = useSelector(
     (state: RootState) => state.uitgd.sidePanelState.selectedTab

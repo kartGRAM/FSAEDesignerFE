@@ -78,7 +78,7 @@ export function DatumDialog(props: {
         PaperComponentDraggable({
           ...props,
           position: (state: RootState) =>
-            state.uigd.present.dialogState.datumDialogInitialPosition,
+            state.uigd.dialogState.datumDialogInitialPosition,
           setPosition: setDatumDialogPosition
         })
       }

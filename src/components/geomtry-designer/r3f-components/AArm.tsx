@@ -131,12 +131,11 @@ const AArm = (props: {element: IAArm}) => {
   }, [moveThisComponent]);
 
   const showAArmForce = useSelector(
-    (state: RootState) =>
-      state.uigd.present.gdSceneState.forceViewerState.showAArmForce
+    (state: RootState) => state.uigd.gdSceneState.forceViewerState.showAArmForce
   );
   const showInertiaForce = useSelector(
     (state: RootState) =>
-      state.uigd.present.gdSceneState.forceViewerState.showInertiaForce
+      state.uigd.gdSceneState.forceViewerState.showInertiaForce
   );
 
   return (

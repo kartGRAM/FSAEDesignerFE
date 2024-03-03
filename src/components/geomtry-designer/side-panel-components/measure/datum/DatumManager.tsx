@@ -30,7 +30,7 @@ export default function DatumManager() {
   );
   const datumGroups = datumManager?.children ?? [];
   const datumObjectsAccExpanded =
-    store.getState().uigd.present.measurePanelState.DatumObjectsExpanded;
+    store.getState().uigd.measurePanelState.DatumObjectsExpanded;
 
   const {uitgd} = store.getState();
   const dialogZIndex = uitgd.fullScreenZIndex + uitgd.dialogZIndex;

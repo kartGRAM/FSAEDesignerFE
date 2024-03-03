@@ -80,7 +80,7 @@ export function RecordingDialog() {
         PaperComponentDraggable({
           ...props,
           position: (state: RootState) =>
-            state.uigd.present.dialogState.recordingDialogInitialPosition,
+            state.uigd.dialogState.recordingDialogInitialPosition,
           setPosition: setRecordingDialogPosition
         })
       }

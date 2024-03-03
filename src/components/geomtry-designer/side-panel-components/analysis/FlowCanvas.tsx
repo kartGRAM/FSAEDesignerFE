@@ -264,7 +264,7 @@ const Content = React.memo((props: {test: ITest}) => {
 
   const variant = useSelector(
     (state: RootState) =>
-      state.uigd.present.analysisPanelState.flowCanvasBackgroundVariant
+      state.uigd.analysisPanelState.flowCanvasBackgroundVariant
   );
 
   const [tempNodes, setTempNodes] = React.useState<{

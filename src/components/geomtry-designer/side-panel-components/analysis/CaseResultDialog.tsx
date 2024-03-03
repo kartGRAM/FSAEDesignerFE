@@ -66,23 +66,23 @@ export const CaseResultDialog = React.memo(
       };
       const {localInstances} = test.solver;
       if (!localInstances) return null;
-      dispatch(
+      store.dispatch(
         setAssemblyAndCollectedAssembly({
           ...localInstances,
           keepAssembled: true
         })
       );
-      dispatch(setSolver(localInstances.solver));
+      store.dispatch(setSolver(localInstances.solver));
     } else if (!open && firstTime.current) {
       const storedInstances = firstTime.current;
-      dispatch(
+      store.dispatch(
         setAssemblyAndCollectedAssembly({
           ...storedInstances,
           keepAssembled: true
         })
       );
-      dispatch(setSolver(storedInstances.solver));
-      dispatch(
+      store.dispatch(setSolver(storedInstances.solver));
+      store.dispatch(
         swapFormulae({
           formulae: storedInstances.formulae,
           lastUpdateID: storedInstances.lastFormulaeUpdateID
@@ -104,8 +104,10 @@ export const CaseResultDialog = React.memo(
           PaperComponentDraggable({
             ...props,
             position: (state: RootState) =>
-              state.uigd.present.dialogState
-                .caseResultDialogInitialPosition ?? {x: null, y: null},
+              state.uigd.dialogState.caseResultDialogInitialPosition ?? {
+                x: null,
+                y: null
+              },
             setPosition: setCaseResultDialogPosition
           })
         }

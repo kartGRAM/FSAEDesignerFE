@@ -8,7 +8,7 @@ import store, {RootState} from '@store/store';
 
 export default function ProjectionMode() {
   const projectionMode = useSelector(
-    (state: RootState) => state.uigd.present.gdSceneState.projectionMode
+    (state: RootState) => state.uigd.gdSceneState.projectionMode
   );
   const dispatch = useDispatch();
 
