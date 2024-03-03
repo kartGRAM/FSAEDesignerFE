@@ -49,52 +49,54 @@ export const CaseResultDialog = React.memo(
       } else {
         dispatch(setUIDisabled(false));
       }
-    }, [open, dispatch]);
+      if (!firstTime.current && open) {
+        const {uitgd, dgd} = store.getState();
+        firstTime.current = {
+          assembly: uitgd.assembly!,
+          collectedAssembly: uitgd.collectedAssembly!,
+          datumManager: uitgd.datumManager!,
+          measureToolsManager: uitgd.measureToolsManager!,
+          roVariablesManager: uitgd.roVariablesManager!,
+          solver: uitgd.solver!,
+          formulae: [...dgd.present.formulae],
+          lastFormulaeUpdateID: dgd.present.lastGlobalFormulaUpdate
+        };
+        const {localInstances} = test.solver;
+        if (localInstances) {
+          dispatch(
+            setAssemblyAndCollectedAssembly({
+              ...localInstances,
+              keepAssembled: true
+            })
+          );
+          dispatch(setSolver(localInstances.solver));
+        }
+      } else if (!open && firstTime.current) {
+        const storedInstances = firstTime.current;
+        dispatch(
+          setAssemblyAndCollectedAssembly({
+            ...storedInstances,
+            keepAssembled: true
+          })
+        );
+        dispatch(setSolver(storedInstances.solver));
+        store.dispatch(
+          swapFormulae({
+            formulae: storedInstances.formulae,
+            lastUpdateID: storedInstances.lastFormulaeUpdateID
+          })
+        );
+        storedInstances.assembly?.arrange();
+        if (storedInstances.solver) {
+          // storedInstances.solver.reConstruct();
+          storedInstances.solver.postProcess();
+        }
+        firstTime.current = null;
+      }
+    }, [open, dispatch, test.solver]);
 
     const firstTime = React.useRef<LocalInstances | null>(null);
-    if (!firstTime.current && open) {
-      const {uitgd, dgd} = store.getState();
-      firstTime.current = {
-        assembly: uitgd.assembly!,
-        collectedAssembly: uitgd.collectedAssembly!,
-        datumManager: uitgd.datumManager!,
-        measureToolsManager: uitgd.measureToolsManager!,
-        roVariablesManager: uitgd.roVariablesManager!,
-        solver: uitgd.solver!,
-        formulae: [...dgd.present.formulae],
-        lastFormulaeUpdateID: dgd.present.lastGlobalFormulaUpdate
-      };
-      const {localInstances} = test.solver;
-      if (!localInstances) return null;
-      store.dispatch(
-        setAssemblyAndCollectedAssembly({
-          ...localInstances,
-          keepAssembled: true
-        })
-      );
-      store.dispatch(setSolver(localInstances.solver));
-    } else if (!open && firstTime.current) {
-      const storedInstances = firstTime.current;
-      store.dispatch(
-        setAssemblyAndCollectedAssembly({
-          ...storedInstances,
-          keepAssembled: true
-        })
-      );
-      store.dispatch(setSolver(storedInstances.solver));
-      store.dispatch(
-        swapFormulae({
-          formulae: storedInstances.formulae,
-          lastUpdateID: storedInstances.lastFormulaeUpdateID
-        })
-      );
-      storedInstances.assembly?.arrange();
-      if (storedInstances.solver) {
-        // storedInstances.solver.reConstruct();
-        storedInstances.solver.postProcess();
-      }
-      firstTime.current = null;
-    }
+    // if (!firstTime.current) return null;
 
     return (
       <Dialog
