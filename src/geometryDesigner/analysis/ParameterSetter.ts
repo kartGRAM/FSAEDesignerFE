@@ -1,11 +1,12 @@
 import {isObject} from '@utils/helpers';
 import {IDataControl, Control} from '@gd/controls/IControls';
 import {getControl} from '@gd/controls/Controls';
-
-import {IFormula, IDataFormula} from '@gd/IFormula';
+import {IFormula, IDataFormula, isFormula} from '@gd/IFormula';
 import {Formula} from '@gd/Formula';
-import {getDgd} from '@store/getDgd';
+import {getDgd, dispatch} from '@store/getDgd';
 import {ISolver} from '@gd/kinematics/ISolver';
+import {swapFormulae} from '@store/reducers/dataGeometryDesigner';
+import {v4 as uuidv4} from 'uuid';
 
 export type SetterType = 'GlobalVariable' | 'Control';
 
@@ -39,8 +40,28 @@ export class ParameterSetter implements IParameterSetter {
   set(solver: ISolver): void {
     if (this.type === 'Control') {
       const {control} = this;
-      if (!control) throw new Error('Some Controls are undefinced.');
+      if (!control) throw new Error('Some Controls are undefined.');
       control.preprocess(0, solver, this.evaluatedValue);
+      return;
+    }
+    if (this.type === 'GlobalVariable') {
+      const {formulae} = getDgd();
+      const dFormula = formulae.find((f) => f.name === this.target);
+      if (!dFormula) throw new Error('Some formulae are undefined.');
+      const formula = new Formula(dFormula);
+      formula.formula = this.valueFormula.formula;
+      const newFormulae = [
+        ...formulae.filter((f) => f.name !== this.target),
+        formula.getData()
+      ];
+      dispatch(
+        swapFormulae({
+          formulae: newFormulae,
+          lastUpdateID: uuidv4()
+        })
+      );
+      solver.reConstruct();
+      solver.solve();
     }
   }
 
@@ -89,7 +110,11 @@ export class ParameterSetter implements IParameterSetter {
 
   constructor(
     params:
-      | {type: SetterType; target: IDataControl; valueFormula: string}
+      | {
+          type: SetterType;
+          target: IDataControl | IFormula;
+          valueFormula: string;
+        }
       | IDataParameterSetter
   ) {
     this.type = params.type;
@@ -98,7 +123,9 @@ export class ParameterSetter implements IParameterSetter {
       this.target = data.target;
       this.valueFormula = new Formula(data.valueFormula);
     } else {
-      this.target = params.target.nodeID;
+      this.target = isFormula(params.target)
+        ? params.target.name
+        : params.target.nodeID;
       this.valueFormula = new Formula({
         name: 'SetterValue',
         formula: params.valueFormula,

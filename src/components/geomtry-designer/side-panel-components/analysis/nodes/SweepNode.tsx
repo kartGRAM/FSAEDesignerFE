@@ -120,7 +120,7 @@ function useSweepDialog(props: {
 interface Row {
   targetNodeID: string;
   name: string;
-  categories: string;
+  categories: ParameterSweeper['type'];
   startFormula: string;
   endFormula: string;
   stepFormula: string;
@@ -282,6 +282,7 @@ function SweepContent(props: {node: ISweepNode; test: ITest}) {
               {!node.copyFrom ? (
                 <NewRow
                   node={node}
+                  test={test}
                   updateWithSave={updateWithSave}
                   mode={mode}
                   key="new"
@@ -423,9 +424,10 @@ function EnhancedTableHead(props: {
 function NewRow(props: {
   node: ISweepNode;
   mode: Mode;
+  test: ITest;
   updateWithSave: () => void;
 }) {
-  const {updateWithSave, node, mode} = props;
+  const {updateWithSave, node, mode, test} = props;
   const labelId = React.useId();
   const [startValue, setStartValue] = React.useState<number | null>(null);
   const [endValue, setEndValue] = React.useState<number | null>(null);
@@ -443,7 +445,17 @@ function NewRow(props: {
   );
   const controls = useSelector(
     (state: RootState) => state.dgd.present.controls
-  ).filter((c) => (c.configuration ?? 'FixedFrame') === assemblyMode);
+  ).filter(
+    (c) =>
+      (c.configuration ?? 'FixedFrame') === assemblyMode &&
+      (test.calculateSteadyStateDynamics
+        ? !c.disabledWhileDynamicSolverIsActive
+        : true)
+  );
+
+  const formulae = useSelector(
+    (state: RootState) => state.dgd.present.formulae
+  ).map((f) => new Formula(f));
 
   const onStartFormulaValidated = (formula: string) => {
     setStartValue(new Formula(formula).evaluatedValue);
@@ -510,6 +522,22 @@ function NewRow(props: {
         node.listSweepers.push(setter);
         updateWithSave();
         reset();
+      } else if (selectedObject.type === 'GlobalVariable') {
+        const formula = formulae.find((f) => f.name === selectedObject.target);
+        if (!formula) return;
+
+        const setter = new ParameterSweeper({
+          type: 'GlobalVariable',
+          target: formula,
+          mode,
+          startFormula: values.startFormula,
+          endFormula: values.endFormula,
+          stepFormula: values.stepFormula
+        });
+
+        node.listSweepers.push(setter);
+        updateWithSave();
+        reset();
       }
     }
   });
@@ -543,6 +571,16 @@ function NewRow(props: {
         valueForSelectTag: value
       });
       setCategory('Control');
+    } else if (value.includes('@Formula')) {
+      const nodeID = value.split('@')[0];
+      const formula = formulae.find((f) => f.name === nodeID);
+      if (!formula) return;
+      setSelectedObject({
+        type: 'GlobalVariable',
+        target: nodeID,
+        valueForSelectTag: value
+      });
+      setCategory('GlobalVariable');
     } else {
       setSelectedObject({
         type: 'NotSelected',
@@ -585,6 +623,15 @@ function NewRow(props: {
                   key={control.nodeID}
                 >
                   {getControl(control).name}
+                </option>
+              ))}
+          </optgroup>
+          <optgroup label="Formulae">
+            {formulae
+              .filter((f) => !alreadyExistsInSetterList.includes(f.name))
+              .map((formula) => (
+                <option value={`${formula.name}@Formula`} key={formula.name}>
+                  {formula.name}
                 </option>
               ))}
           </optgroup>
@@ -712,7 +759,7 @@ function ExistingRow(props: {
     }),
     onSubmit: (values) => {
       formik.resetForm();
-      if (row.categories === 'Control') {
+      if (row.categories === 'Control' || row.categories === 'GlobalVariable') {
         const sweeper = node.listSweepers.find(
           (s) => s.target === row.targetNodeID
         );

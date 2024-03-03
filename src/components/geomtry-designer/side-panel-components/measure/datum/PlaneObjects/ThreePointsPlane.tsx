@@ -27,7 +27,7 @@ export function ThreePointsPlane(props: {
   const dispatch = useDispatch();
   const ids = [React.useId(), React.useId(), React.useId()];
   const [visModeRestored, setVisModeRestored] = React.useState(
-    store.getState().uigd.present.gdSceneState.componentVisualizationMode
+    store.getState().uigd.gdSceneState.componentVisualizationMode
   );
   const [setterMode, setSetterMode] = React.useState(-1);
 
@@ -91,7 +91,7 @@ export function ThreePointsPlane(props: {
 
   React.useEffect(() => {
     setVisModeRestored(
-      store.getState().uigd.present.gdSceneState.componentVisualizationMode
+      store.getState().uigd.gdSceneState.componentVisualizationMode
     );
     dispatch(setDatumPointSelectMode(false));
     dispatch(setComponentVisualizationMode('WireFrameOnly'));

@@ -43,16 +43,16 @@ const items2: Item[] = [{text: 'settings', icon: <SettingsIcon />}];
 
 export default function MiniDrawer() {
   const bgColor: number = useSelector(
-    (state: RootState) => state.uigd.present.sidebarState.backgroundColor
+    (state: RootState) => state.uigd.sidebarState.backgroundColor
   );
   const selectedBgColor: number = useSelector(
-    (state: RootState) => state.uigd.present.sidebarState.selectedBgColor
+    (state: RootState) => state.uigd.sidebarState.selectedBgColor
   );
   const selectedTab: string = useSelector(
     (state: RootState) => state.uitgd.sidePanelState.selectedTab
   );
   const iconColor: number = useSelector(
-    (state: RootState) => state.uigd.present.sidebarState.iconColor
+    (state: RootState) => state.uigd.sidebarState.iconColor
   );
   const disabled = useSelector((state: RootState) => state.uitgd.uiDisabled);
   const open = false;

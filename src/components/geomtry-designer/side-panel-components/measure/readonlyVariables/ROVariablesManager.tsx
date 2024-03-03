@@ -36,7 +36,7 @@ export default function ROVariablesManager() {
   const dispatch = useDispatch();
 
   const roVariablesAccExpanded =
-    store.getState().uigd.present.measurePanelState.ROVariablesExpanded;
+    store.getState().uigd.measurePanelState.ROVariablesExpanded;
 
   const roVariablesManager = useSelector(
     (state: RootState) => state.uitgd.roVariablesManager
@@ -55,7 +55,7 @@ export default function ROVariablesManager() {
   );
 
   const enabledColorLight: number = useSelector(
-    (state: RootState) => state.uigd.present.enabledColorLight
+    (state: RootState) => state.uigd.enabledColorLight
   );
 
   const selected = useSelector(
@@ -285,7 +285,7 @@ const Row = React.memo(
     const dispatch = useDispatch();
 
     const enabledColorLight: number = useSelector(
-      (state: RootState) => state.uigd.present.enabledColorLight
+      (state: RootState) => state.uigd.enabledColorLight
     );
 
     const selected = useSelector(

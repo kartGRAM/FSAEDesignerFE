@@ -14,6 +14,7 @@ import {
   setSolver,
   setAssemblyAndCollectedAssembly
 } from '@store/reducers/uiTempGeometryDesigner';
+import {swapFormulae} from '@store/reducers/dataGeometryDesigner';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import PaperComponentDraggable from '@gdComponents/PaperComponentDraggable';
@@ -48,47 +49,54 @@ export const CaseResultDialog = React.memo(
       } else {
         dispatch(setUIDisabled(false));
       }
-    }, [open, dispatch]);
-
-    const firstTime = React.useRef<LocalInstances | null>(null);
-    if (!firstTime.current && open) {
-      const {uitgd} = store.getState();
-      firstTime.current = {
-        assembly: uitgd.assembly!,
-        collectedAssembly: uitgd.collectedAssembly!,
-        datumManager: uitgd.datumManager!,
-        measureToolsManager: uitgd.measureToolsManager!,
-        roVariablesManager: uitgd.roVariablesManager!,
-        solver: uitgd.solver!
-      };
-      const {localInstances} = test.solver;
-      if (!localInstances) return null;
-      dispatch(
-        setAssemblyAndCollectedAssembly({
-          ...localInstances,
-          keepAssembled: true
-        })
-      );
-      dispatch(setSolver(localInstances.solver));
-    } else if (!open) {
-      const fn = async () => {
-        if (!firstTime.current) return;
+      if (!firstTime.current && open) {
+        const {uitgd, dgd} = store.getState();
+        firstTime.current = {
+          assembly: uitgd.assembly!,
+          collectedAssembly: uitgd.collectedAssembly!,
+          datumManager: uitgd.datumManager!,
+          measureToolsManager: uitgd.measureToolsManager!,
+          roVariablesManager: uitgd.roVariablesManager!,
+          solver: uitgd.solver!,
+          formulae: [...dgd.present.formulae],
+          lastFormulaeUpdateID: dgd.present.lastGlobalFormulaUpdate
+        };
+        const {localInstances} = test.solver;
+        if (localInstances) {
+          dispatch(
+            setAssemblyAndCollectedAssembly({
+              ...localInstances,
+              keepAssembled: true
+            })
+          );
+          dispatch(setSolver(localInstances.solver));
+        }
+      } else if (!open && firstTime.current) {
         const storedInstances = firstTime.current;
-        await dispatch(
+        dispatch(
           setAssemblyAndCollectedAssembly({
             ...storedInstances,
             keepAssembled: true
           })
         );
-        await dispatch(setSolver(storedInstances.solver));
+        dispatch(setSolver(storedInstances.solver));
+        store.dispatch(
+          swapFormulae({
+            formulae: storedInstances.formulae,
+            lastUpdateID: storedInstances.lastFormulaeUpdateID
+          })
+        );
         storedInstances.assembly?.arrange();
         if (storedInstances.solver) {
+          // storedInstances.solver.reConstruct();
           storedInstances.solver.postProcess();
         }
         firstTime.current = null;
-      };
-      fn();
-    }
+      }
+    }, [open, dispatch, test.solver]);
+
+    const firstTime = React.useRef<LocalInstances | null>(null);
+    // if (!firstTime.current) return null;
 
     return (
       <Dialog
@@ -98,8 +106,10 @@ export const CaseResultDialog = React.memo(
           PaperComponentDraggable({
             ...props,
             position: (state: RootState) =>
-              state.uigd.present.dialogState
-                .caseResultDialogInitialPosition ?? {x: null, y: null},
+              state.uigd.dialogState.caseResultDialogInitialPosition ?? {
+                x: null,
+                y: null
+              },
             setPosition: setCaseResultDialogPosition
           })
         }
@@ -111,7 +121,7 @@ export const CaseResultDialog = React.memo(
         TransitionProps={{unmountOnExit: true}}
       >
         <DialogTitle>Replay Mode</DialogTitle>
-        <CaseResultContent test={test} />
+        <CaseResultContent test={test} open={open} />
         <DialogActions>
           <Button onClick={handleOK}>Back</Button>
         </DialogActions>
@@ -120,8 +130,8 @@ export const CaseResultDialog = React.memo(
   }
 );
 
-const CaseResultContent = React.memo((props: {test: ITest}) => {
-  const {test} = props;
+const CaseResultContent = React.memo((props: {test: ITest; open: boolean}) => {
+  const {test, open} = props;
   const {solver} = test;
 
   const cases = getCases(solver.caseResults).slice(1);
@@ -163,14 +173,25 @@ const CaseResultContent = React.memo((props: {test: ITest}) => {
   const dispatch = useDispatch();
   const id = React.useId();
 
-  const setComponentsState = React.useCallback((ss?: ISnapshot) => {
-    const {uitgd} = store.getState();
-    const {solver} = uitgd;
-    if (solver && ss) {
-      solver.restoreState(ss);
-      solver.postProcess(true);
-    }
-  }, []);
+  const setComponentsState = React.useCallback(
+    (ss?: Required<ISnapshot>) => {
+      const {uitgd} = store.getState();
+      const {solver, collectedAssembly} = uitgd;
+      if (solver && collectedAssembly && ss && open) {
+        dispatch(
+          swapFormulae({
+            formulae: ss.globals,
+            lastUpdateID: ss.globalsUpdateID
+          })
+        );
+        collectedAssembly.arrange();
+        solver.reConstruct();
+        solver.restoreState(ss);
+        solver.postProcess(true);
+      }
+    },
+    [dispatch, open]
+  );
 
   React.useEffect(() => {
     if (caseID !== '' && results) {

@@ -19,6 +19,7 @@ const Bar = (props: {element: IBar}) => {
   const coMatrix = getMatrix3(
     useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
   );
+  useSelector((state: RootState) => state.dgd.present.lastGlobalFormulaUpdate);
 
   const dispatch = useDispatch();
 
@@ -56,12 +57,11 @@ const Bar = (props: {element: IBar}) => {
   const groupRef = React.useRef<THREE.Group>(null!);
   const meshRef = React.useRef<Line2>(null!);
   const showBarForce = useSelector(
-    (state: RootState) =>
-      state.uigd.present.gdSceneState.forceViewerState.showBarForce
+    (state: RootState) => state.uigd.gdSceneState.forceViewerState.showBarForce
   );
   const showInertiaForce = useSelector(
     (state: RootState) =>
-      state.uigd.present.gdSceneState.forceViewerState.showInertiaForce
+      state.uigd.gdSceneState.forceViewerState.showInertiaForce
   );
   return (
     <group onDoubleClick={handleOnDoubleClick} ref={groupRef}>

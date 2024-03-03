@@ -8,7 +8,7 @@ import store, {RootState} from '@store/store';
 
 export default function GroundPlaneMode() {
   const showGrid = useSelector(
-    (state: RootState) => state.uigd.present.gdSceneState.showGroundPlaneGrid
+    (state: RootState) => state.uigd.gdSceneState.showGroundPlaneGrid
   );
   const dispatch = useDispatch();
 

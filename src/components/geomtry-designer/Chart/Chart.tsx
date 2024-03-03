@@ -103,7 +103,7 @@ export function Chart(props: ChartProps): React.ReactElement {
   // 軸の設定ここまで
 
   const enabledColorLight: number = useSelector(
-    (state: RootState) => state.uigd.present.enabledColorLight
+    (state: RootState) => state.uigd.enabledColorLight
   );
 
   const handleDrawerToggle = React.useCallback(
@@ -116,11 +116,11 @@ export function Chart(props: ChartProps): React.ReactElement {
   const zIndex = uitgd.fullScreenZIndex + uitgd.menuZIndex;
   const widthOnClosed = 60;
   const [open, setOpen] = React.useState<boolean>(
-    uigd.present.chartState?.settingPanelDefaultOpen ?? false
+    uigd.chartState?.settingPanelDefaultOpen ?? false
   );
   const openPrevious = usePrevious(open);
   const [panelWidth, setPanelWidth] = React.useState<string>(
-    uigd.present.chartState?.settingPanelWidth ?? '30%'
+    uigd.chartState?.settingPanelWidth ?? '30%'
   );
 
   const afterPlotFuncsRef = React.useRef<(() => void)[]>([]);

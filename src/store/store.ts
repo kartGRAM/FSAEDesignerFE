@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {configureStore} from '@reduxjs/toolkit';
 import {authSlice} from '@app/store/reducers/auth';
 import {uiSlice} from '@app/store/reducers/ui';
@@ -9,16 +10,22 @@ import {save, load} from 'redux-localstorage-simple';
 import undoable from 'redux-undo';
 import {inWorker} from '@utils/helpers';
 
-const uigd = undoable(uiGeometryDesignerSlice.reducer, {
+/* const uigd = undoable(uiGeometryDesignerSlice.reducer, {
   undoType: 'GD_UNDO',
   redoType: 'GD_REDO'
-});
+}); */
 
 const dgd = undoable(
   dataGeometryDesignerSlice.reducer /* , {
   undoType: 'GD_UNDO',
   redoType: 'GD_REDO'
-} */
+} */,
+  {
+    filter: function filterActions(action) {
+      const ignore = action.type === 'dataGeometryDesigner/swapFormulae';
+      return !ignore;
+    }
+  }
 );
 
 const store = configureStore({
@@ -26,8 +33,8 @@ const store = configureStore({
     auth: authSlice.reducer,
     ui: uiSlice.reducer,
     uitgd: uitGeometryDesignerSlice.reducer,
-    // uigd: uiGeometryDesignerSlice.reducer,
-    uigd,
+    uigd: uiGeometryDesignerSlice.reducer,
+    // uigd,
     dgd
   },
   preloadedState: !inWorker()

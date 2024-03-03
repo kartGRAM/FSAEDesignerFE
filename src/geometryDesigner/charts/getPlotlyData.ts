@@ -87,6 +87,13 @@ export function getDataArray(
       });
     case 'special':
       if (ref.nodeID === 'cases') return Object.keys(caseResults.cases);
+      if (ref.nodeID.includes('@solver')) {
+        const [key] = ref.nodeID.split('@');
+        return results.map((result) => {
+          solver.restoreState(result);
+          return solver.getVariable(key);
+        });
+      }
       return [];
   }
 }
@@ -195,6 +202,14 @@ export function getSelectableData(
             name: 'cases',
             nodeID: 'cases',
             children: getCases(caseResults)
+          },
+          {
+            name: 'solver',
+            nodeID: 'solver',
+            children: localInstances.solver.variables.map((v) => ({
+              name: v.name,
+              nodeID: `${v.key}@solver`
+            }))
           }
         ]
       }

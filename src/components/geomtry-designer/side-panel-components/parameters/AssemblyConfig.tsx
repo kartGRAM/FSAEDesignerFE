@@ -82,11 +82,10 @@ export default function AssemblyConfig(params: Params) {
   const dispatch = useDispatch();
   const kinematicParamsDefaultExpanded = useSelector(
     (state: RootState) =>
-      state.uigd.present.parameterConfigState.kinematicParamsExpanded
+      state.uigd.parameterConfigState.kinematicParamsExpanded
   );
   const dynamicParamsDefaultExpanded = useSelector(
-    (state: RootState) =>
-      state.uigd.present.parameterConfigState.dynamicParamsExpanded
+    (state: RootState) => state.uigd.parameterConfigState.dynamicParamsExpanded
   );
 
   const jointsListSetSelected = React.useCallback((value: number | null) => {
@@ -265,7 +264,7 @@ export function JointsList(props: {
 
   const joints = assembly.getJointsAsVector3();
   const enabledColorLight: number = useSelector(
-    (state: RootState) => state.uigd.present.enabledColorLight
+    (state: RootState) => state.uigd.enabledColorLight
   );
   const dispatch = useDispatch();
   const buttonRef = React.useRef<HTMLButtonElement>(null);
@@ -422,7 +421,7 @@ export function RestOfPoints(props: {
 }) {
   const {element, points, selected, setSelected} = props;
   const enabledColorLight: number = useSelector(
-    (state: RootState) => state.uigd.present.enabledColorLight
+    (state: RootState) => state.uigd.enabledColorLight
   );
   const cancel = () => {
     if (selected.lhs?.parentNodeID === element.nodeID) {

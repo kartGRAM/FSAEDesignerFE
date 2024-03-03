@@ -73,7 +73,7 @@ export function ROVariableDialog(props: {
         PaperComponentDraggable({
           ...props,
           position: (state: RootState) =>
-            state.uigd.present.dialogState.measureToolDialogInitialPosition,
+            state.uigd.dialogState.measureToolDialogInitialPosition,
           setPosition: setMeasureToolDialogPosition
         })
       }

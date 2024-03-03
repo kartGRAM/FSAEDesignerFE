@@ -100,7 +100,7 @@ export function PointOffsetToolDialog(props: PointOffsetToolDialogProps) {
         PaperComponentDraggable({
           ...props,
           position: (state: RootState) =>
-            state.uigd.present.dialogState.pointOffsetToolDialogInitialPosition,
+            state.uigd.dialogState.pointOffsetToolDialogInitialPosition,
           setPosition: setPointOffsetToolDialogPosition
         })
       }

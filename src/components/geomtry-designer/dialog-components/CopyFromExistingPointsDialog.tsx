@@ -59,8 +59,7 @@ export function CopyFromExistingPointsDialog() {
         PaperComponentDraggable({
           ...props,
           position: (state: RootState) =>
-            state.uigd.present.dialogState
-              .copyFromExistingPointDialogInitialPosition,
+            state.uigd.dialogState.copyFromExistingPointDialogInitialPosition,
           setPosition: setCopyFromExistingPointDialogPosition
         })
       }

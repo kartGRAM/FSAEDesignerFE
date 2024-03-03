@@ -18,6 +18,7 @@ const Tire = (props: {element: ITire}) => {
   const coMatrix = getMatrix3(
     useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
   );
+  useSelector((state: RootState) => state.dgd.present.lastGlobalFormulaUpdate);
 
   const dispatch = useDispatch();
 
@@ -83,15 +84,15 @@ const Tire = (props: {element: ITire}) => {
 
   const showTireFriction = useSelector(
     (state: RootState) =>
-      state.uigd.present.gdSceneState.forceViewerState.showTireFriction
+      state.uigd.gdSceneState.forceViewerState.showTireFriction
   );
   const showBearingForce = useSelector(
     (state: RootState) =>
-      state.uigd.present.gdSceneState.forceViewerState.showBearingForce
+      state.uigd.gdSceneState.forceViewerState.showBearingForce
   );
   const showInertiaForce = useSelector(
     (state: RootState) =>
-      state.uigd.present.gdSceneState.forceViewerState.showInertiaForce
+      state.uigd.gdSceneState.forceViewerState.showInertiaForce
   );
 
   return (

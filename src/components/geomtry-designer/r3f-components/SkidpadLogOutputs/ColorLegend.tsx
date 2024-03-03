@@ -28,30 +28,28 @@ export const ColorLegend = ({
   const yScale = d3.scaleLinear().range([0, boundsHeight]).domain([0, max]);
 
   const allTicks = yScale.ticks(6).map((tick) => {
-    return (
-      <>
-        <line
-          x1={-10}
-          x2={boundsWidth}
-          y1={yScale(tick)}
-          y2={yScale(tick)}
-          stroke="#ccc"
-          key={`${tick}line`}
-        />
-        <text
-          x={-15}
-          y={yScale(tick)}
-          fontSize={12}
-          textAnchor="end"
-          fontFamily='"Roboto","Helvetica","Arial",sans-serif'
-          stroke="#ccc"
-          key={`${tick}text`}
-        >
-          {max - tick}
-          {legendSurfix || null}
-        </text>
-      </>
-    );
+    return [
+      <line
+        x1={-10}
+        x2={boundsWidth}
+        y1={yScale(tick)}
+        y2={yScale(tick)}
+        stroke="#ccc"
+        key={`${tick}line`}
+      />,
+      <text
+        x={-15}
+        y={yScale(tick)}
+        fontSize={12}
+        textAnchor="end"
+        fontFamily='"Roboto","Helvetica","Arial",sans-serif'
+        stroke="#ccc"
+        key={`${tick}text`}
+      >
+        {max - tick}
+        {legendSurfix || null}
+      </text>
+    ];
   });
 
   useEffect(() => {
@@ -84,7 +82,7 @@ export const ColorLegend = ({
           height={boundsHeight}
           style={{position: 'absolute', top: 0, left: 0, overflow: 'visible'}}
         >
-          {allTicks}
+          {allTicks.flat()}
         </svg>
       </div>
     </div>

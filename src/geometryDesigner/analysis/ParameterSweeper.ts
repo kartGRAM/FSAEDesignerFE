@@ -1,10 +1,12 @@
 import {isObject} from '@utils/helpers';
 import {IDataControl, Control} from '@gd/controls/IControls';
 import {getControl} from '@gd/controls/Controls';
-import {getDgd} from '@store/getDgd';
-import {IFormula, IDataFormula} from '@gd/IFormula';
+import {getDgd, dispatch} from '@store/getDgd';
+import {swapFormulae} from '@store/reducers/dataGeometryDesigner';
+import {IFormula, IDataFormula, isFormula} from '@gd/IFormula';
 import {Formula} from '@gd/Formula';
 import {ISolver} from '@gd/kinematics/ISolver';
+import {v4 as uuidv4} from 'uuid';
 import {IDataParameterSetter} from './ParameterSetter';
 
 export type SweeperType = 'GlobalVariable' | 'Control';
@@ -62,6 +64,24 @@ export class ParameterSweeper implements IParameterSweeper {
       if (!control) throw new Error('Some Controls are undefinced.');
       control.preprocess(0, solver, value);
     }
+    if (this.type === 'GlobalVariable') {
+      const {formulae} = getDgd();
+      const dFormula = formulae.find((f) => f.name === this.target);
+      if (!dFormula) throw new Error('Some formulae are undefined.');
+      const formula = new Formula(dFormula);
+      formula.formula = `${value}`;
+      const newFormulae = [
+        ...formulae.filter((f) => f.name !== this.target),
+        formula.getData()
+      ];
+      dispatch(
+        swapFormulae({
+          formulae: newFormulae,
+          lastUpdateID: uuidv4()
+        })
+      );
+      solver.reConstruct();
+    }
 
     return Math.abs(value - endValue) < eps;
   }
@@ -73,22 +93,19 @@ export class ParameterSweeper implements IParameterSweeper {
     if (stepValue >= 0 && value > endValue) value = endValue;
     if (stepValue < 0 && value < endValue) value = endValue;
 
-    let setter: IDataParameterSetter | undefined;
-    if (this.type === 'Control') {
-      const {target} = this;
-      setter = {
-        isDataParameterSetter: true,
-        type: 'Control',
-        target,
-        valueFormula: new Formula({
-          name: 'SetterValue',
-          formula: value,
-          absPath: `setterFor${this.target}`
-        }).getData()
-      };
-    }
+    const {target, type} = this;
+    const setter: IDataParameterSetter = {
+      isDataParameterSetter: true,
+      type,
+      target,
+      valueFormula: new Formula({
+        name: 'SetterValue',
+        formula: value,
+        absPath: `setterFor${this.target}`
+      }).getData()
+    };
 
-    return [setter!, Math.abs(value - endValue) < eps];
+    return [setter, Math.abs(value - endValue) < eps];
   }
 
   get name(): string {
@@ -158,7 +175,7 @@ export class ParameterSweeper implements IParameterSweeper {
     params:
       | {
           type: SweeperType;
-          target: IDataControl;
+          target: IDataControl | IFormula;
           startFormula: string;
           endFormula: string;
           mode: 'division' | 'step';
@@ -177,7 +194,9 @@ export class ParameterSweeper implements IParameterSweeper {
       this.stepFormula = new Formula(data.stepFormula);
       this.divisionFormula = new Formula(data.divisionFormula);
     } else {
-      this.target = params.target.nodeID;
+      this.target = isFormula(params.target)
+        ? params.target.name
+        : params.target.nodeID;
       this.startFormula = new Formula({
         name: 'startValue',
         formula: params.startFormula,

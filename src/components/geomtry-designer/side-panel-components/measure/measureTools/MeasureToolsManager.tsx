@@ -39,7 +39,7 @@ export default function MeasureToolsManager() {
   const updateState = useUpdate();
 
   const measureToolsAccExpanded =
-    store.getState().uigd.present.measurePanelState.MeasureToolsExpanded;
+    store.getState().uigd.measurePanelState.MeasureToolsExpanded;
 
   const measureToolsManager = useSelector(
     (state: RootState) => state.uitgd.measureToolsManager
@@ -56,7 +56,7 @@ export default function MeasureToolsManager() {
   }, [dispatch, measureToolsManager]);
 
   const enabledColorLight: number = useSelector(
-    (state: RootState) => state.uigd.present.enabledColorLight
+    (state: RootState) => state.uigd.enabledColorLight
   );
 
   const selected = useSelector(
@@ -298,7 +298,7 @@ const Row = React.memo(
     }, [tool.nodeID, selected, dispatch]);
 
     const enabledColorLight: number = useSelector(
-      (state: RootState) => state.uigd.present.enabledColorLight
+      (state: RootState) => state.uigd.enabledColorLight
     );
     return (
       <TableRow

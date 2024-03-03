@@ -19,6 +19,7 @@ const TorsionSpring = (props: {element: ITorsionSpring}) => {
   const coMatrix = getMatrix3(
     useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
   );
+  useSelector((state: RootState) => state.dgd.present.lastGlobalFormulaUpdate);
 
   const dispatch = useDispatch();
 

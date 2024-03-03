@@ -43,9 +43,7 @@ export function getScreenShot(): Blob | null {
 export default function GDScene() {
   canvas = useRef<HTMLCanvasElement>(null);
 
-  const bgColor = useSelector(
-    (state: RootState) => state.uigd.present.backgroundColor
-  );
+  const bgColor = useSelector((state: RootState) => state.uigd.backgroundColor);
 
   const controls = useSelector(
     (state: RootState) => state.dgd.present.controls
@@ -136,7 +134,7 @@ export default function GDScene() {
 
 function Dolly() {
   const projectionMode = useSelector(
-    (state: RootState) => state.uigd.present.gdSceneState.projectionMode
+    (state: RootState) => state.uigd.gdSceneState.projectionMode
   );
   const set = useThree((state) => state.set);
   const get = useThree((state) => state.get);

@@ -244,7 +244,7 @@ const Content = React.memo((props: {test: ITest}) => {
         flexDirection: 'column'
       }}
     >
-      {test.steadyStateDynamicsMode === 'SkidpadMaxV' ? (
+      {config.solverMode === 'SkidpadMaxV' ? (
         <>
           <Box
             component="div"
@@ -579,7 +579,7 @@ const Content = React.memo((props: {test: ITest}) => {
         </NativeSelect>
       </Box>
       {config.searchMode === 'step' ? (
-        test.steadyStateDynamicsMode === 'SkidpadMaxV' ? (
+        config.solverMode === 'SkidpadMaxV' ? (
           <Box
             component="div"
             sx={{
@@ -697,7 +697,7 @@ const Content = React.memo((props: {test: ITest}) => {
           valueFieldProps={{sx: fieldSX}}
         />
       </Box>
-      {test.steadyStateDynamicsMode === 'SkidpadMaxV' ? (
+      {config.solverMode === 'SkidpadMaxV' ? (
         <Box
           component="div"
           sx={{
@@ -734,6 +734,26 @@ const Content = React.memo((props: {test: ITest}) => {
         <Scalar
           nameUnvisible
           value={config.maxLoopCountR}
+          unit="-"
+          onUpdate={apply()}
+          valueFieldProps={{sx: fieldSX}}
+        />
+      </Box>
+      <Box
+        component="div"
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'baseline',
+          justifyContent: 'space-between'
+        }}
+      >
+        <Typography variant="subtitle1">
+          the number of iterations to Newton solver.
+        </Typography>
+        <Scalar
+          nameUnvisible
+          value={config.maxLoopNewton}
           unit="-"
           onUpdate={apply()}
           valueFieldProps={{sx: fieldSX}}

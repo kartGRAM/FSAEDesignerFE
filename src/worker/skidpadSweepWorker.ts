@@ -56,14 +56,25 @@ ctx.onmessage = async (e: MessageEvent<FromParentSweepWorker>) => {
         /* assemblyData, */
         measureTools: measureToolsManager.getValuesAll(),
         readonlyVariables: roVariablesManager.getValuesAll(),
-        globals: [...state.formulae]
+        globals: [...state.formulae],
+        globalsUpdateID: state.lastGlobalFormulaUpdate
       };
     };
+
+    let s: Required<ISnapshot>[] = [];
+    if (solver.config.solverMode === 'SkidpadSimple') {
+      solver.solve({postProcess: true});
+      s.push(getSnapshot(solver));
+    } else if (solver.config.solverMode === 'SkidpadMaxV') {
+      s = solver.solveMaxV({getSnapshot});
+    } else {
+      solver.solveTargetRadius({getSnapshot, ss: s, isMinRadiusMode: true});
+    }
 
     const results: SweepResults = {
       isSweepResults: true,
       step: message.step,
-      results: solver.solveMaxV({getSnapshot})
+      results: s
     };
 
     ctx.postMessage(results);

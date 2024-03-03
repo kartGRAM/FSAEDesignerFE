@@ -110,13 +110,7 @@ export const dataGeometryDesignerSlice = createSlice({
     },
     setFormulae: (
       state: GDState,
-      action: PayloadAction<
-        {
-          name: string;
-          formula: string;
-          absPath: string;
-        }[]
-      >
+      action: PayloadAction<SavedData['formulae']>
     ) => {
       if (validateAll(action.payload) === 'OK') {
         state.formulae = action.payload;
@@ -125,6 +119,18 @@ export const dataGeometryDesignerSlice = createSlice({
       state.idWoTest = uuidv4();
       state.lastGlobalFormulaUpdate = uuidv4();
       state.changed = true;
+    },
+    swapFormulae: (
+      state: GDState,
+      action: PayloadAction<{
+        formulae: SavedData['formulae'];
+        lastUpdateID: string;
+      }>
+    ) => {
+      if (validateAll(action.payload.formulae) !== 'OK')
+        throw new Error('validation failed');
+      state.formulae = action.payload.formulae;
+      state.lastGlobalFormulaUpdate = action.payload.lastUpdateID;
     },
     setControl: (state: GDState, action: PayloadAction<IDataControl>) => {
       const control = action.payload;
@@ -223,6 +229,7 @@ export const {
   setReadonlyVariables,
   updateAssembly,
   setFormulae,
+  swapFormulae,
   setControl,
   setTests,
   setDriversEye,

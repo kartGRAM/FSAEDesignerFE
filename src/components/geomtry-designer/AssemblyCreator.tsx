@@ -237,9 +237,10 @@ export default function AssemblyCreactor() {
               params,
               controls,
               0.001,
-              1
+              1,
+              true
             );
-            dispatch(setKinematicsSolver(solver));
+            dispatch(setSolver(solver));
           } */
         } catch (e) {
           // eslint-disable-next-line no-console
@@ -254,9 +255,9 @@ export default function AssemblyCreactor() {
     dispatch(setSolver(undefined));
 
     // else not assembled
-    const {assembly} = store.getState().uitgd;
+    const {collectedAssembly} = store.getState().uitgd;
     // resetPositions& set dlCurrent to 0
-    assembly?.arrange();
+    collectedAssembly?.arrange();
   }, [assembled, assembly]);
 
   return null;

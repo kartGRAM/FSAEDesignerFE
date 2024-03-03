@@ -142,6 +142,7 @@ export class BarBalance implements Constraint, Balance {
     this.pfCoefs = this.pfs.map((pf, i) =>
       pf.sign(params.pfsPointNodeIDs[i])
     ) as any;
+    const f = this.f.map((f, i) => f.mul(this.pfCoefs[i]));
     const {mass} = params;
     this.g = new Vector3(0, 0, -9810 * this.components[0].scale).multiplyScalar(
       mass
@@ -172,17 +173,15 @@ export class BarBalance implements Constraint, Balance {
     const ma = g.add(this.c);
 
     // 力のつり合い
-    this.forceError = this.f
-      .reduce((prev: IVector3, current, i) => {
-        const f = current.mul(this.pfCoefs[i]);
+    this.forceError = f
+      .reduce((prev: IVector3, f) => {
         return prev.add(f);
       }, new ConstantVector3())
       .add(ma);
 
     // モーメントのつり合い
-    this.momentError = this.f
-      .reduce((prev: IVector3, current, i) => {
-        const f = current.mul(this.pfCoefs[i]);
+    this.momentError = f
+      .reduce((prev: IVector3, f, i) => {
         const s = pts[i];
         return prev.add(f.cross(s));
       }, new ConstantVector3())
@@ -198,16 +197,21 @@ export class BarBalance implements Constraint, Balance {
       const maN = ma.normalize();
 
       // 軸方向の力
-      const fAxis = this.f.map((f, i) =>
-        f.add(maN.mul(f.dot(maN))).mul(this.pfCoefs[i])
-      );
+      const fAxis = f.map((f) => f.add(maN.mul(f.dot(maN))));
 
       // 現在の軸方向の力の大きさ (|f| / cos(Θ) ) = |f|^2 / f・ax
       const fdotAx = fAxis.map((f) => f.dot(axis));
-      const f2 = this.f.map((f) => f.dot(f));
+      const f2 = f.map((f) => f.dot(f));
       const fl = f2.map((f2, i) => f2.div(fdotAx[i]));
       const flMean = fl[0].sub(fl[1]).div(2);
       this.springForceError = flMean.sub(ideal);
+
+      /* const fAxis = f.add(maN.mul(f.dot(maN)));
+      // 現在の軸方向の力の大きさ (|f| / cos(Θ) ) = |f|^2 / f・ax
+      const fdotAx = fAxis.dot(axis);
+      const f2 = f.dot(f);
+      const fl = f2.div(fdotAx);
+      this.springForceError = fl.sub(ideal); */
 
       this._setPreload = () => {
         l.reset({});

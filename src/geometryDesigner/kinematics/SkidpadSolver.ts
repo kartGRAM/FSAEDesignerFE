@@ -99,6 +99,10 @@ interface ISolverState {
   rMin: number;
 
   lapTime: number;
+
+  scale: number;
+
+  forceScale: number;
 }
 
 export class SkidpadSolver implements IForceSolver {
@@ -118,13 +122,15 @@ export class SkidpadSolver implements IForceSolver {
 
   assembly: IAssembly;
 
+  controls: {[index: string]: Control[]};
+
   components: IVariable[][];
 
-  pointComponents: {[index: string]: PointComponent} = {};
+  pointComponents: {[index: string]: PointComponent};
 
   componentsFromNodeID: {[index: string]: IComponent};
 
-  restorers: Restorer[] = [];
+  restorers: Restorer[];
 
   running: boolean = false;
 
@@ -153,14 +159,12 @@ export class SkidpadSolver implements IForceSolver {
       omega: 0,
       r: Number.MAX_SAFE_INTEGER,
       rMin: Number.MAX_SAFE_INTEGER,
-      lapTime: Number.MAX_SAFE_INTEGER
+      lapTime: Number.MAX_SAFE_INTEGER,
+      scale,
+      forceScale
     };
-    const vO = () =>
-      new Vector3(this.state.v, 0, 0).multiplyScalar(scale * 1000);
     this.assembly = assembly;
-    const {children} = assembly;
-
-    const controls = Object.keys(controlsAll).reduce((dict, key) => {
+    this.controls = Object.keys(controlsAll).reduce((dict, key) => {
       const cls = controlsAll[key].filter(
         (c) => !c.disabledWhileDynamicSolverIsActive
       );
@@ -169,6 +173,39 @@ export class SkidpadSolver implements IForceSolver {
       }
       return dict;
     }, {} as {[index: string]: Control[]});
+    this.components = [];
+    this.pointComponents = {};
+    this.componentsFromNodeID = {};
+    this.restorers = [];
+    this.reConstruct();
+
+    if (solve) this.firstSolve();
+  }
+
+  reConstruct() {
+    this.state = {
+      stdForce: 1000,
+      v: this.config.velocity.value,
+      omega: 0,
+      r: Number.MAX_SAFE_INTEGER,
+      rMin: Number.MAX_SAFE_INTEGER,
+      lapTime: Number.MAX_SAFE_INTEGER,
+      scale: this.state.scale,
+      forceScale: this.state.forceScale
+    };
+    this.firstSnapshot = undefined;
+    this.components = [];
+    this.pointComponents = {};
+    this.componentsFromNodeID = {};
+    this.restorers = [];
+    this.assembly.arrange();
+
+    const vO = () =>
+      new Vector3(this.state.v, 0, 0).multiplyScalar(scale * 1000);
+    const {assembly, controls, config} = this;
+    const {scale, forceScale} = this.state;
+    const {children} = assembly;
+
     const joints = assembly.getJointsAsVector3();
     const jointDict = getJointDictionary(children, joints);
     const constraints: Constraint[] = [];
@@ -1058,7 +1095,6 @@ export class SkidpadSolver implements IForceSolver {
       });
     }
     // 上記4ステップでプリプロセッサ完了
-    if (solve) this.firstSolve();
   }
 
   getGroupItBelongsTo(component: IVariable): [IVariable, IVariable[]] {
@@ -1131,17 +1167,6 @@ export class SkidpadSolver implements IForceSolver {
             .solve(matPhi)
             .mul(1);
 
-          /* const row = constraintsOptions.disableForce ? 0 : 92;
-          const iPhi_q = inverse(phi_q, true);
-          const {data: iData} = iPhi_q as any;
-          const id = iData[row];
-          const dotOrg = phi.map((p, i) => phi[i] * id[i]);
-          const large = dotOrg.map((x) => (x > 0.001 ? 1 : 0));
-          const dot = dotOrg.map((x, i) => x * large[i]);
-
-          const {data} = phi_q as any;
-          const d = data.map((d: any) => d[row]); */
-
           // 差分を反映
           components.forEach((component) => component.applyDq(dq));
 
@@ -1159,7 +1184,19 @@ export class SkidpadSolver implements IForceSolver {
           const dqMin = Math.min(...dqData);
           const dqMaxIdx = dqData.indexOf(dqMax);
           const dqMinIdx = dqData.indexOf(dqMin);
-          if (logOutput) {
+          if (i > 20 || logOutput) {
+            // const row = constraintsOptions.disableForce ? 0 : 92;
+            /* const row = 90;
+            const iPhi_q = inverse(phi_q, true);
+            const {data: iData} = iPhi_q as any;
+            const id = iData[row];
+            const dotOrg = phi.map((p, i) => phi[i] * id[i]);
+            const large = dotOrg.map((x) => (x > 0.001 ? 1 : 0));
+            const dot = dotOrg.map((x, i) => x * large[i]);
+
+            const {data} = phi_q as any;
+            const d = data.map((d: any) => d[row]); */
+
             console.log(`round: ${i}`);
             console.log(`phi_max   = ${phiMax.toFixed(4)}`);
             console.log(`phi_maxIdx= ${phiMaxIdx}`);
@@ -1174,7 +1211,7 @@ export class SkidpadSolver implements IForceSolver {
             console.log(`norm_phi=   ${norm_phi.toFixed(4)}`);
             console.log(``);
           }
-          eq = norm_dq < 1e-2 && norm_phi < 1e-2;
+          eq = norm_dq < 1e-4 && norm_phi < 1e-4;
           // eq = norm_phi < 1e-3;
           if (constraintsOptions.disableTireFriction) {
             eq = norm_dq < 2e-1 && norm_phi < 2e-1;
@@ -1242,18 +1279,6 @@ export class SkidpadSolver implements IForceSolver {
     });
     console.log('');
     // if (true) return;
-    console.log('calculating spring preloads...........');
-    this.components.forEach((components) => {
-      const root = components[0];
-      const constraints = root.getGroupedConstraints().filter((constraint) =>
-        constraint.active({
-          disableTireFriction: true
-        })
-      );
-      constraints.forEach((c) => {
-        if (isBarBalance(c) && c.isSpring) c.setPreload();
-      });
-    });
 
     console.log('');
     console.log('calculating with tire frictions............');
@@ -1265,6 +1290,19 @@ export class SkidpadSolver implements IForceSolver {
       postProcess: true,
       isFirstSolve: true,
       logOutput: true
+    });
+
+    console.log('calculating spring preloads...........');
+    this.components.forEach((components) => {
+      const root = components[0];
+      const constraints = root.getGroupedConstraints().filter((constraint) =>
+        constraint.active({
+          disableTireFriction: true
+        })
+      );
+      constraints.forEach((c) => {
+        if (isBarBalance(c) && c.isSpring) c.setPreload();
+      });
     });
 
     console.log('');
@@ -1379,7 +1417,6 @@ export class SkidpadSolver implements IForceSolver {
       try {
         console.log(`velocity= ${this.state.v} m/s`);
         [steeringPosition, interpolate2] = this.solveTargetRadius({
-          maxCount,
           initialPos: steeringPosition,
           interpolate2
         });
@@ -1398,9 +1435,9 @@ export class SkidpadSolver implements IForceSolver {
           minLaptimeConverged = this.state.lapTime;
         }
         storedState = this.getSnapshot();
-        if (Math.abs(v + deltaV - maxV) < velocityEps) {
+        /* if (Math.abs(v + deltaV - maxV) < velocityEps) {
           deltaV /= 2;
-        }
+        } */
         this.state.v = v + deltaV;
       } catch (e) {
         console.log(e);
@@ -1429,16 +1466,21 @@ export class SkidpadSolver implements IForceSolver {
 
   solveTargetRadius({
     initialPos,
-    interpolate2
+    interpolate2,
+    getSnapshot,
+    ss,
+    isMinRadiusMode
   }: {
-    maxCount: number;
     initialPos?: number;
     interpolate2?: Interpolate2Points;
+    getSnapshot?: (solver: ISolver) => Required<ISnapshot>;
+    ss?: Required<ISnapshot>[];
+    isMinRadiusMode?: boolean;
   }): [number, Interpolate2Points] {
     const maxCount = this.config.maxLoopCountR.value;
     let count = 0;
     const {steering} = this.config;
-    let deltaS = this.config.steeringMaxStepSize.value;
+    const deltaS = this.config.steeringMaxStepSize.value;
     let steeringPos = initialPos || deltaS;
     const steeringEps = this.config.steeringEps.value;
     const radiusEps = this.config.radiusEps.value;
@@ -1447,106 +1489,168 @@ export class SkidpadSolver implements IForceSolver {
       deltaS > 0 ? Number.MAX_SAFE_INTEGER : Number.MIN_SAFE_INTEGER;
     let firstSolved = false;
     let storedState: ISnapshot | undefined;
+    let storedPos = Number.NaN;
     if (initialPos) storedState = this.getSnapshot();
     const interpolate3 = new Interpolate3Points();
     interpolate2 =
       interpolate2 || new Interpolate2Points(targetRadius, () => deltaS);
     let lastPos = Number.NaN;
+
+    let minRConverged = Number.MAX_SAFE_INTEGER;
+    let disableFastExit = false;
+    let firstResolveCount = 0;
     while (count < maxCount) {
-      if (Math.abs(lastPos - steeringPos) < steeringEps)
-        throw new Error('目的の半径に収束しなかった');
+      if (Math.abs(lastPos - steeringPos) < steeringEps) {
+        if (!isMinRadiusMode) throw new Error('目的の半径に収束しなかった');
+        else break;
+      }
 
       steering.valueFormula.formula = `${steeringPos}`;
       steering.set(this);
       try {
         console.log(`steeringPos= ${steeringPos.toFixed(5)}`);
-        this.solve({maxCnt: 10});
-        if (this.state.rMin > targetRadius) storedState = this.getSnapshot();
+        this.solve({maxCnt: this.config.maxLoopNewton.value});
+        if (this.state.rMin > targetRadius) {
+          storedState = this.getSnapshot();
+          storedPos = steeringPos;
+        }
+        if (this.state.rMin < targetRadius && Math.abs(this.state.rMin) < 10000)
+          disableFastExit = true;
         interpolate3.addNewValue(steeringPos, this.state.rMin);
         interpolate2.addNewValue(steeringPos, this.state.rMin);
         lastPos = steeringPos;
+        if (steeringMaxPos === steeringPos) {
+          steeringMaxPos =
+            deltaS > 0 ? Number.MAX_SAFE_INTEGER : Number.MIN_SAFE_INTEGER;
+        }
+        if (
+          getSnapshot &&
+          this.state.rMin < minRConverged &&
+          this.config.storeIntermidiateResults
+        ) {
+          ss?.push(getSnapshot(this));
+          minRConverged = this.state.rMin;
+        }
       } catch (e: unknown) {
         if (!firstSolved) {
+          ++firstResolveCount;
           console.log(
-            '初回の計算で収束しなかったため、初期ポジションを修正する'
+            '初回の計算で収束しなかったため、初期ポジションをリセットする'
           );
-          if (!initialPos) {
-            deltaS /= 2;
-            steeringPos -= deltaS;
+          const {v} = this.state;
+          if (firstResolveCount === 1) {
+            this.restoreInitialQ();
+          } else if (firstResolveCount === 2) {
+            this.reConstruct();
           } else {
-            if (storedState) this.restoreState(storedState);
-            steeringPos -= deltaS;
+            throw new Error('初回収束しない');
           }
+          this.state.v = v;
+          steeringPos = 0;
+          steering.valueFormula.formula = `${steeringPos}`;
+          steering.set(this);
+          this.solve();
+          ++count;
           // eslint-disable-next-line no-continue
           continue;
         } else {
           steeringMaxPos = steeringPos;
           console.log('収束しなかった');
-          if (interpolate3.isValid) {
-            const rEst = interpolate3.getValue(steeringPos);
+          if (interpolate3.isValid && !disableFastExit) {
+            const rEst = interpolate3.getValue(steeringMaxPos);
             console.log(`rEst = ${rEst}`);
-            if (rEst > targetRadius + 0.01) {
+            if (
+              !isMinRadiusMode &&
+              interpolate3.length < Math.abs(steeringEps) * 100 &&
+              rEst > targetRadius &&
+              rEst < minRConverged
+            ) {
               throw new Error('目的の半径に収束しない見込みのため早期終了');
             }
           }
           if (storedState) {
+            console.log(`restore steeringPos= ${storedPos.toFixed(5)}`);
             this.restoreState(storedState);
-            steeringPos = (lastPos + steeringPos) / 2;
+            steeringPos = (storedPos + steeringPos) / 2;
+
+            ++count;
             // eslint-disable-next-line no-continue
             continue;
           } else throw e;
         }
       }
-      if (this.state.rMin < targetRadius && !firstSolved) {
+      if (
+        this.state.rMin < targetRadius &&
+        !firstSolved &&
+        Math.abs(this.state.rMin) < 10000
+      ) {
         console.log(
-          '初回の計算で半径が負になったため、初期のステアリングポジションを修正'
+          '初回の計算で半径が負になったため、初期ポジションをリセットする'
         );
-        if (storedState) this.restoreState(storedState);
-        if (!initialPos) {
-          deltaS /= 2;
-        }
-        steeringPos -= deltaS;
+        const {v} = this.state;
+        this.restoreInitialQ();
+        this.state.v = v;
+        steeringPos = 0;
+        steering.valueFormula.formula = `${steeringPos}`;
+        steering.set(this);
+        this.solve();
+        ++count;
+
         // eslint-disable-next-line no-continue
         continue;
       }
       firstSolved = true;
-      if (firstSolved && Math.abs(this.state.rMin - targetRadius) < radiusEps) {
+      if (
+        firstSolved &&
+        Math.abs(this.state.rMin - targetRadius) < radiusEps &&
+        !isMinRadiusMode
+      ) {
         console.log('半径が収束');
         break;
       }
-      if (this.state.rMin < targetRadius && storedState) {
+      if (
+        this.state.rMin < targetRadius &&
+        storedState &&
+        Math.abs(this.state.rMin) < 10000
+      ) {
+        console.log(`restore steeringPos= ${storedPos.toFixed(5)}`);
         this.restoreState(storedState);
       }
       steeringPos = interpolate2.predict(steeringPos);
-      // 予測値が収束しないことが分かっていれば緩和
       if (
         (deltaS > 0 && steeringPos > steeringMaxPos) ||
         (deltaS < 0 && steeringPos < steeringMaxPos)
       ) {
-        const rEst = interpolate3.getValue(steeringMaxPos);
-        console.log(`rEst = ${rEst}`);
-        if (rEst > targetRadius + 0.01) {
-          throw new Error('目的の半径に収束しない見込みのため早期終了');
-        }
-        steeringPos = (lastPos + steeringMaxPos) / 2;
+        steeringPos = steeringMaxPos;
       }
 
       ++count;
     }
     if (count === maxCount) {
       console.log('solver target radius がmaxCountに到達');
+      throw new Error('max count');
     }
     console.log('reached the radius goal');
+
+    if (!this.config.storeIntermidiateResults && getSnapshot)
+      ss?.push(getSnapshot(this));
     return [steeringPos, interpolate2];
   }
 
-  solveTargetRadiusOld({
-    maxCount,
-    initialPos
+  solveTargetRadiusStable({
+    initialPos,
+    interpolate2,
+    getSnapshot,
+    ss,
+    isMinRadiusMode
   }: {
-    maxCount: number;
     initialPos?: number;
-  }) {
+    interpolate2?: Interpolate2Points;
+    getSnapshot?: (solver: ISolver) => Required<ISnapshot>;
+    ss?: Required<ISnapshot>[];
+    isMinRadiusMode?: boolean;
+  }): [number, Interpolate2Points] {
+    const maxCount = this.config.maxLoopCountR.value;
     let count = 0;
     const {steering} = this.config;
     let deltaS = this.config.steeringMaxStepSize.value;
@@ -1559,17 +1663,35 @@ export class SkidpadSolver implements IForceSolver {
     let firstSolved = false;
     let storedState: ISnapshot | undefined;
     if (initialPos) storedState = this.getSnapshot();
+    let lastPos = Number.NaN;
     const interpolate3 = new Interpolate3Points();
+    interpolate2 =
+      interpolate2 || new Interpolate2Points(targetRadius, () => deltaS);
+    let minRConverged = Number.MAX_SAFE_INTEGER;
+    let disableFastExit = false;
     while (count < maxCount) {
-      if (Math.abs(deltaS) < steeringEps)
-        throw new Error('目的の半径に収束しなかった');
+      if (Math.abs(lastPos - steeringPos) < steeringEps) {
+        if (!isMinRadiusMode) throw new Error('目的の半径に収束しなかった');
+        else break;
+      }
       steering.valueFormula.formula = `${steeringPos}`;
       steering.set(this);
       try {
-        this.solve({maxCnt: 10});
+        this.solve({maxCnt: this.config.maxLoopNewton.value});
         if (this.state.rMin > targetRadius) storedState = this.getSnapshot();
         interpolate3.addNewValue(steeringPos, this.state.rMin);
+        lastPos = steeringPos;
+        if (this.state.rMin < targetRadius) disableFastExit = true;
+        if (
+          getSnapshot &&
+          this.state.rMin < minRConverged &&
+          this.config.storeIntermidiateResults
+        ) {
+          ss?.push(getSnapshot(this));
+          minRConverged = this.state.rMin;
+        }
       } catch (e: unknown) {
+        ++count;
         if (!firstSolved) {
           console.log(
             '初回の計算で収束しなかったため、初期ポジションを修正する'
@@ -1585,10 +1707,10 @@ export class SkidpadSolver implements IForceSolver {
           continue;
         } else {
           // steeringMaxPos = steeringPos;
-          if (interpolate3.isValid) {
+          if (interpolate3.isValid && !disableFastExit) {
             const rEst = interpolate3.getValue(steeringPos);
             console.log(`rEst = ${rEst}`);
-            if (rEst > targetRadius + radiusEps * 10) {
+            if (!isMinRadiusMode && rEst > targetRadius + 0.01) {
               throw new Error('目的の半径に収束しない見込みのため早期終了');
             }
           }
@@ -1639,7 +1761,10 @@ export class SkidpadSolver implements IForceSolver {
       ++count;
     }
     console.log('reached the radius goal');
-    return steeringPos;
+
+    if (!this.config.storeIntermidiateResults && getSnapshot)
+      ss?.push(getSnapshot(this));
+    return [steeringPos, interpolate2];
   }
 
   // ポストプロセス： 要素への位置の反映と、Restorerの適用
@@ -1686,6 +1811,27 @@ export class SkidpadSolver implements IForceSolver {
     this.state.rMin = (minDistance * (this.state.r > 0 ? 1 : -1)) / 1000;
     console.log(`true radius=     ${this.state.rMin.toFixed(4)} m`);
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  get variables(): PlotVariables[] {
+    const names: (keyof ISolverState)[] = [
+      'lapTime',
+      'omega',
+      'r',
+      'rMin',
+      'v'
+    ];
+    return names.map((name) => ({name, key: name}));
+  }
+
+  getVariable(key: keyof ISolverState): number {
+    return this.state[key];
+  }
+}
+
+export interface PlotVariables {
+  name: keyof ISolverState;
+  key: string;
 }
 
 export function isSkidpadSolver(
@@ -1747,6 +1893,7 @@ class Interpolate2Points {
   }
 
   addNewValue(x: number, y: number) {
+    if (Math.abs(y) > 10000) return;
     // targetY > 0
     // last2Y[0] > last2Y[1]
     const {targetY, last2X, last2Y} = this;
@@ -1825,7 +1972,12 @@ class Interpolate3Points {
 
   last3Y: number[] = [];
 
+  get length() {
+    return Math.max(...this.last3X) - Math.min(...this.last3X);
+  }
+
   addNewValue(x: number, y: number) {
+    if (Math.abs(y) > 10000) return;
     this.last3X.push(x);
     this.last3Y.push(y);
     if (this.last3X.length > 3) this.last3X.shift();
@@ -1839,12 +1991,64 @@ class Interpolate3Points {
   getValue(x: number) {
     const X = this.last3X;
     const Y = this.last3Y;
-    const a1 = (Y[0] - Y[1]) * (X[0] - X[2]) - (Y[0] - Y[2]) * (X[0] - X[1]);
+    /* const a1 = (Y[0] - Y[1]) * (X[0] - X[2]) - (Y[0] - Y[2]) * (X[0] - X[1]);
     const a2 = (X[0] - X[1]) * (X[0] - X[2]) * (X[1] - X[2]);
     const a = a1 / a2;
     const b = (Y[0] - Y[1]) / (X[0] - X[1]) - a * (X[0] + X[1]);
-    const c = Y[0] - a * X[0] * X[1] - b * X[0];
+    const c = Y[0] - a * X[0] * X[1] - b * X[0]; */
 
-    return a * x * x + b * x + c;
+    const D = det([
+      [X[0] ** 2, X[0], 1],
+      [X[1] ** 2, X[1], 1],
+      [X[2] ** 2, X[2], 1]
+    ]);
+    const a =
+      det([
+        [Y[0], X[0], 1],
+        [Y[1], X[1], 1],
+        [Y[2], X[2], 1]
+      ]) / D;
+    const b =
+      det([
+        [X[0] ** 2, Y[0], 1],
+        [X[1] ** 2, Y[1], 1],
+        [X[2] ** 2, Y[2], 1]
+      ]) / D;
+    const c =
+      det([
+        [X[0] ** 2, X[0], Y[0]],
+        [X[1] ** 2, X[1], Y[1]],
+        [X[2] ** 2, X[2], Y[2]]
+      ]) / D;
+
+    const v = a * x * x + b * x + c;
+    const min = -(b * b - 4 * a * c) / (4 * a);
+    const minRight = this.last3X[0] < x;
+    if (minRight) {
+      if (a > 0) {
+        if (x < -b / (2 * a)) return v;
+        return Number.MIN_SAFE_INTEGER;
+      }
+      return v;
+    }
+    if (a > 0) {
+      if (x > -b / (2 * a)) return v;
+      return Number.MIN_SAFE_INTEGER;
+    }
+    return v;
   }
+}
+
+function det(d: number[][]): number {
+  const a = d[0];
+  const b = d[1];
+  const c = d[2];
+  return (
+    a[0] * b[1] * c[2] +
+    a[1] * b[2] * c[0] +
+    a[2] * b[0] * c[1] -
+    a[2] * b[1] * c[0] -
+    a[1] * b[0] * c[2] -
+    a[0] * b[2] * c[1]
+  );
 }

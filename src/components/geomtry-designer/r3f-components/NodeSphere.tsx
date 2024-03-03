@@ -67,7 +67,7 @@ const NodeSphere = (props: {
       meshRef.current.visible = node.parent.visible.value ?? false;
       if (!isSelected) {
         const visualizationMode =
-          store.getState().uigd.present.gdSceneState.componentVisualizationMode;
+          store.getState().uigd.gdSceneState.componentVisualizationMode;
         meshRef.current.visible =
           visualizationMode === 'ShowAllNodes' && !!node.parent.visible.value;
       }

@@ -13,6 +13,7 @@ import {IAssembly, isMovingElement} from '@gd/IElements';
 import {ITest} from '@gd/analysis/ITest';
 import {KinematicsSolver} from '@gd/kinematics/KinematicsSolver';
 import {SkidpadSolver} from '@gd/kinematics/SkidpadSolver';
+import {IDataFormula} from '@gd/IFormula';
 
 export type LocalInstances = {
   assembly: IAssembly;
@@ -21,6 +22,8 @@ export type LocalInstances = {
   measureToolsManager: IMeasureToolsManager;
   roVariablesManager: IROVariablesManager;
   solver: ISolver;
+  formulae: IDataFormula[];
+  lastFormulaeUpdateID: string;
 };
 
 export function getLocalInstances(state: GDState, test: ITest): LocalInstances {
@@ -55,11 +58,12 @@ export function getLocalInstances(state: GDState, test: ITest): LocalInstances {
     return prev;
   }, {} as {[index: string]: Control[]});
 
-  if (test.steadyStateDynamicsMode && !test.steadySkidpadParams)
+  if (test.calculateSteadyStateDynamics && !test.steadySkidpadParams)
     throw new Error('Skidpadの設定を行っていない');
 
-  const solver: ISolver = !test.steadyStateDynamicsMode
-    ? new KinematicsSolver(
+  const solver: ISolver = !test.calculateSteadyStateDynamics
+    ? // const solver: ISolver = true
+      new KinematicsSolver(
         collectedAssembly,
         assemblyMode,
         pinCenterOfGravityOfFrame,
@@ -82,6 +86,8 @@ export function getLocalInstances(state: GDState, test: ITest): LocalInstances {
     datumManager,
     measureToolsManager,
     roVariablesManager,
-    solver
+    solver,
+    formulae: [...state.formulae],
+    lastFormulaeUpdateID: state.lastGlobalFormulaUpdate
   };
 }

@@ -19,6 +19,7 @@ const SpringDumper = (props: {element: ISpringDumper}) => {
   const coMatrix = getMatrix3(
     useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
   );
+  useSelector((state: RootState) => state.dgd.present.lastGlobalFormulaUpdate);
 
   const dispatch = useDispatch();
 
@@ -69,11 +70,11 @@ const SpringDumper = (props: {element: ISpringDumper}) => {
   const meshRef = React.useRef<Line2>(null!);
   const showSpringForce = useSelector(
     (state: RootState) =>
-      state.uigd.present.gdSceneState.forceViewerState.showSpringForce
+      state.uigd.gdSceneState.forceViewerState.showSpringForce
   );
   const showInertiaForce = useSelector(
     (state: RootState) =>
-      state.uigd.present.gdSceneState.forceViewerState.showInertiaForce
+      state.uigd.gdSceneState.forceViewerState.showInertiaForce
   );
 
   return (

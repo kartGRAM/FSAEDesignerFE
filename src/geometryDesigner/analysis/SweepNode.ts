@@ -51,7 +51,10 @@ export class SweepNode extends ActionNode implements ISweepNode {
     const state = getDgd();
     const fsddc = state.options.fixSpringDumperDuaringControl;
 
-    if (isSkidpadSolver(solver)) {
+    if (
+      isSkidpadSolver(solver) &&
+      solver.config.solverMode !== 'SkidpadSimple'
+    ) {
       const workers: Promise<SweepResults>[] = [];
       for (let step = 0; ; ++step) {
         let done = true;
@@ -67,7 +70,7 @@ export class SweepNode extends ActionNode implements ISweepNode {
         if (done) break;
       }
       const results: SweepResults[] = await Promise.all([...workers]);
-      results.sort((lhs, rhs) => (lhs.step < rhs.step ? 1 : -1));
+      results.sort((lhs, rhs) => (lhs.step < rhs.step ? -1 : 1));
       results.forEach((result) => {
         if (ss) ss.push(...result.results);
       });

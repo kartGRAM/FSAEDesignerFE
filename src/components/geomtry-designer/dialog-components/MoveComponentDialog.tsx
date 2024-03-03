@@ -30,7 +30,7 @@ export function MoveComponentDialog() {
         PaperComponentDraggable({
           ...props,
           position: (state: RootState) =>
-            state.uigd.present.dialogState.moveDialogInitialPosition,
+            state.uigd.dialogState.moveDialogInitialPosition,
           setPosition: setMoveDialogPosition
         })
       }

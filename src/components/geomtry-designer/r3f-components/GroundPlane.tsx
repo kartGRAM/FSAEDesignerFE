@@ -27,15 +27,13 @@ export default GroundPlane;
 
 const Grid = () => {
   const grid = useSelector(
-    (state: RootState) => state.uigd.present.gdSceneState.showGroundPlaneGrid
+    (state: RootState) => state.uigd.gdSceneState.showGroundPlaneGrid
   );
   const gridSize = useSelector(
-    (state: RootState) =>
-      state.uigd.present.gdSceneState.gridSize ?? initialGridSize
+    (state: RootState) => state.uigd.gdSceneState.gridSize ?? initialGridSize
   );
   const segmentLength = useSelector(
-    (state: RootState) =>
-      state.uigd.present.gdSceneState.gridSegmentLength ?? 200
+    (state: RootState) => state.uigd.gdSceneState.gridSegmentLength ?? 200
   );
 
   const segments = Math.floor(gridSize / segmentLength);
@@ -50,8 +48,7 @@ const SkidpadObjects = () => {
   );
 
   const gridSize = useSelector(
-    (state: RootState) =>
-      state.uigd.present.gdSceneState.gridSize ?? initialGridSize
+    (state: RootState) => state.uigd.gdSceneState.gridSize ?? initialGridSize
   );
 
   const clipPlanes = [
@@ -99,7 +96,7 @@ const Cones = (props: {clipPlanes: THREE.Plane[]}) => {
     if (!solver || !isSkidpadSolver(solver) || !groupRef.current) return;
 
     groupRef.current.visible =
-      store.getState().uigd.present.gdSceneState.steadySkidpadViewerState.showInnerCones;
+      store.getState().uigd.gdSceneState.steadySkidpadViewerState.showInnerCones;
     const offset = Math.abs(solver.state.rMin - solver.state.r);
     const radius = Math.max(
       -maximumRadius + offset,
@@ -111,7 +108,7 @@ const Cones = (props: {clipPlanes: THREE.Plane[]}) => {
     );
     const center = new Vector3(0, radiusC * 1000, 0).applyMatrix3(coMatrix);
     const {coneInterval} =
-      store.getState().uigd.present.gdSceneState.steadySkidpadViewerState;
+      store.getState().uigd.gdSceneState.steadySkidpadViewerState;
     const newNumCones = Math.max(
       1,
       Math.min(
@@ -193,7 +190,7 @@ const SkidpadRingCenter = (props: {clipPlanes: THREE.Plane[]}) => {
 
     // センターライン
     centerLineRef.current.visible =
-      store.getState().uigd.present.gdSceneState.steadySkidpadViewerState.showCenterLine;
+      store.getState().uigd.gdSceneState.steadySkidpadViewerState.showCenterLine;
     const g = centerLineRef.current.geometry.attributes;
     const radius = Math.max(
       -maximumRadius,
@@ -258,7 +255,7 @@ const SkidpadRingInner = (props: {clipPlanes: THREE.Plane[]}) => {
     if (!innerLineRef.current || !solver || !isSkidpadSolver(solver)) return;
 
     innerLineRef.current.visible =
-      store.getState().uigd.present.gdSceneState.steadySkidpadViewerState.showInnerLine;
+      store.getState().uigd.gdSceneState.steadySkidpadViewerState.showInnerLine;
 
     const g = innerLineRef.current.geometry.attributes;
     const offset = Math.abs(solver.state.rMin - solver.state.r);
@@ -288,7 +285,7 @@ const SkidpadRingInner = (props: {clipPlanes: THREE.Plane[]}) => {
     if (!outerLineRef.current || !solver || !isSkidpadSolver(solver)) return;
 
     outerLineRef.current.visible =
-      store.getState().uigd.present.gdSceneState.steadySkidpadViewerState.showOuterLine;
+      store.getState().uigd.gdSceneState.steadySkidpadViewerState.showOuterLine;
 
     const offset = Math.abs(solver.state.rMin - solver.state.r);
     const radius = Math.max(
@@ -299,8 +296,8 @@ const SkidpadRingInner = (props: {clipPlanes: THREE.Plane[]}) => {
     const g2 = outerLineRef.current.geometry.attributes;
 
     const roadWidth =
-      store.getState().uigd.present.gdSceneState.steadySkidpadViewerState
-        ?.roadWidth ?? 2;
+      store.getState().uigd.gdSceneState.steadySkidpadViewerState?.roadWidth ??
+      2;
 
     const ptsOuter = flatten(getVertices(radius + sgn * roadWidth, coMatrix));
     const instanceStartOuter = g2.instanceStart.array as Float32Array;

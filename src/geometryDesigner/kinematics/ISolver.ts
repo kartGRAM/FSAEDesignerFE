@@ -9,6 +9,8 @@ export interface ISolver {
   readonly components: IVariable[][];
   readonly componentsFromNodeID: {[index: string]: IComponent};
 
+  reConstruct(): void;
+
   solve(params?: {
     fixSpringDumperAtCurrentPosition?: boolean;
     constraintsOptions?: ConstraintsOptions;
@@ -34,6 +36,9 @@ export interface ISolver {
   restoreState(snapshot: ISnapshot): void;
 
   postProcess(updateValues?: boolean): void;
+
+  variables: PlotVariables[];
+  getVariable(id: string): number;
 }
 
 export interface IForceSolver extends ISolver {
@@ -42,4 +47,9 @@ export interface IForceSolver extends ISolver {
 }
 export function isForceSolver(solver: ISolver): solver is IForceSolver {
   return 'isForceSolver' in solver;
+}
+
+export interface PlotVariables {
+  name: string;
+  key: string;
 }

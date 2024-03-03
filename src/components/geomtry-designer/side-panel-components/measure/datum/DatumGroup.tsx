@@ -42,7 +42,7 @@ export const DatumGroupTable = React.memo(
     const updateState = useUpdate();
 
     const enabledColorLight: number = useSelector(
-      (state: RootState) => state.uigd.present.enabledColorLight
+      (state: RootState) => state.uigd.enabledColorLight
     );
 
     const selected = useSelector(
@@ -272,7 +272,7 @@ const DatumRow = React.memo(
     const {datum, visibility, onDatumDblClick, update} = props;
     const dispatch = useDispatch();
     const enabledColorLight: number = useSelector(
-      (state: RootState) => state.uigd.present.enabledColorLight
+      (state: RootState) => state.uigd.enabledColorLight
     );
 
     const selected = useSelector(

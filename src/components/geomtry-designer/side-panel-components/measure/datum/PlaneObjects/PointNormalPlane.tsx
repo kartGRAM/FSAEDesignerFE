@@ -37,7 +37,7 @@ export function PointNormalPlane(props: {
   const ids = [React.useId(), React.useId(), React.useId()];
 
   const [visModeRestored, setVisModeRestored] = React.useState(
-    store.getState().uigd.present.gdSceneState.componentVisualizationMode
+    store.getState().uigd.gdSceneState.componentVisualizationMode
   );
 
   const [normalType, setNormalType] = React.useState<NormalType>(
@@ -103,7 +103,7 @@ export function PointNormalPlane(props: {
 
   React.useEffect(() => {
     setVisModeRestored(
-      store.getState().uigd.present.gdSceneState.componentVisualizationMode
+      store.getState().uigd.gdSceneState.componentVisualizationMode
     );
     dispatch(setDatumPointSelectMode(false));
     dispatch(setDatumLineSelectMode(false));

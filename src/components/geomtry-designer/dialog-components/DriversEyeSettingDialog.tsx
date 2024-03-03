@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -33,8 +32,6 @@ export function DriversEyeSettingDialog() {
 
   const {uitgd} = store.getState();
   const dialogZIndex = uitgd.fullScreenZIndex + uitgd.dialogZIndex;
-  const menuZIndex =
-    uitgd.fullScreenZIndex + uitgd.dialogZIndex + uitgd.menuZIndex;
 
   const [applyReady, setApplyReady] =
     React.useState<SavedData['options']['driversEye']>(undefined);
@@ -84,7 +81,7 @@ export function DriversEyeSettingDialog() {
   );
 
   const [visModeRestored, setVisModeRestored] = React.useState(
-    store.getState().uigd.present.gdSceneState.componentVisualizationMode
+    store.getState().uigd.gdSceneState.componentVisualizationMode
   );
   const id = React.useId();
 
@@ -103,7 +100,7 @@ export function DriversEyeSettingDialog() {
   React.useEffect(() => {
     if (open) {
       setVisModeRestored(
-        store.getState().uigd.present.gdSceneState.componentVisualizationMode
+        store.getState().uigd.gdSceneState.componentVisualizationMode
       );
       dispatch(setComponentVisualizationMode('WireFrameOnly'));
       dispatch(setMeasureElementPointMode(true));
@@ -155,7 +152,7 @@ export function DriversEyeSettingDialog() {
         PaperComponentDraggable({
           ...props,
           position: (state: RootState) =>
-            state.uigd.present.dialogState.measureToolDialogInitialPosition,
+            state.uigd.dialogState.measureToolDialogInitialPosition,
           setPosition: setMeasureToolDialogPosition
         })
       }

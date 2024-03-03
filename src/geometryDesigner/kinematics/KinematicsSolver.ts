@@ -55,7 +55,7 @@ import {
   PointComponent
 } from './KinematicComponents';
 import {ISnapshot} from '../analysis/ISnapshot';
-import {ISolver} from './ISolver';
+import {ISolver, PlotVariables} from './ISolver';
 
 export class KinematicsSolver implements ISolver {
   static className = 'KinematicsSolver' as const;
@@ -66,11 +66,11 @@ export class KinematicsSolver implements ISolver {
 
   components: IComponent[][];
 
-  pointComponents: {[index: string]: PointComponent} = {};
+  pointComponents: {[index: string]: PointComponent};
 
   componentsFromNodeID: {[index: string]: IComponent};
 
-  restorers: Restorer[] = [];
+  restorers: Restorer[];
 
   running: boolean = false;
 
@@ -79,6 +79,16 @@ export class KinematicsSolver implements ISolver {
   }
 
   firstSnapshot: ISnapshot | undefined;
+
+  scale: number;
+
+  controls: {[index: string]: Control[]};
+
+  assemblyMode: NonNullable<IDataControl['configuration']>;
+
+  pinFrameCOV: boolean;
+
+  faceForward: boolean;
 
   constructor(
     assembly: IAssembly,
@@ -90,8 +100,40 @@ export class KinematicsSolver implements ISolver {
     solve?: boolean
   ) {
     this.assembly = assembly;
+    this.scale = scale;
+    this.controls = controls;
+    this.pinFrameCOV = pinFrameCOV;
+    this.faceForward = faceForward;
+    this.assemblyMode = assemblyMode;
+    this.components = [];
+    this.pointComponents = {};
+    this.componentsFromNodeID = {};
+    this.restorers = [];
+    this.reConstruct();
+
+    if (solve)
+      this.solve({
+        constraintsOptions: {
+          disableSpringElasticity: true,
+          fixLinearBushing: true
+        },
+        postProcess: true,
+        logOutput: true
+      });
+  }
+
+  reConstruct() {
+    this.components = [];
+    this.pointComponents = {};
+    this.componentsFromNodeID = {};
+    this.restorers = [];
+    this.firstSnapshot = undefined;
+    const {scale, controls, assemblyMode, pinFrameCOV, faceForward, assembly} =
+      this;
+    assembly.arrange();
     const {children} = assembly;
-    const joints = assembly.getJointsAsVector3();
+
+    const joints = this.assembly.getJointsAsVector3();
     const jointDict = getJointDictionary(children, joints);
     const constraints: Constraint[] = [];
     const components: IComponent[] = [];
@@ -759,15 +801,6 @@ export class KinematicsSolver implements ISolver {
       });
     }
     // 上記4ステップでプリプロセッサ完了
-    if (solve)
-      this.solve({
-        constraintsOptions: {
-          disableSpringElasticity: true,
-          fixLinearBushing: true
-        },
-        postProcess: true,
-        logOutput: true
-      });
   }
 
   getGroupItBelongsTo(component: IComponent): [IComponent, IComponent[]] {
@@ -1173,6 +1206,16 @@ export class KinematicsSolver implements ISolver {
     this.restorers.forEach((restorer) => {
       restorer.restore(unresolvedPoints);
     });
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  get variables(): PlotVariables[] {
+    return [];
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getVariable(): number {
+    return Number.NaN;
   }
 }
 

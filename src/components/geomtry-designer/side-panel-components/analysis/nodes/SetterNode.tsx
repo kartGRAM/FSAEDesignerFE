@@ -110,7 +110,7 @@ function useSetterDialog(props: {
 interface Row {
   targetNodeID: string;
   name: string;
-  categories: string;
+  categories: ParameterSetter['type'];
   valueFormula: string;
   evaluatedValue: number;
 }
@@ -258,7 +258,12 @@ function SetterContent(props: {node: ISetterNode; test: ITest}) {
                   );
                 })}
               {!node.copyFrom ? (
-                <NewRow node={node} updateWithSave={updateWithSave} key="new" />
+                <NewRow
+                  node={node}
+                  updateWithSave={updateWithSave}
+                  test={test}
+                  key="new"
+                />
               ) : null}
             </TableBody>
           </Table>
@@ -370,8 +375,12 @@ function EnhancedTableHead(props: {
   );
 }
 
-function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
-  const {updateWithSave, node} = props;
+function NewRow(props: {
+  node: ISetterNode;
+  updateWithSave: () => void;
+  test: ITest;
+}) {
+  const {updateWithSave, node, test} = props;
   const labelId = React.useId();
   const [evaluatedValue, setEvaluatedValue] = React.useState<number | null>(
     null
@@ -389,7 +398,17 @@ function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
   );
   const controls = useSelector(
     (state: RootState) => state.dgd.present.controls
-  ).filter((c) => (c.configuration ?? 'FixedFrame') === assemblyMode);
+  ).filter(
+    (c) =>
+      (c.configuration ?? 'FixedFrame') === assemblyMode &&
+      (test.calculateSteadyStateDynamics
+        ? !c.disabledWhileDynamicSolverIsActive
+        : true)
+  );
+
+  const formulae = useSelector(
+    (state: RootState) => state.dgd.present.formulae
+  ).map((f) => new Formula(f));
 
   const onFormulaValidated = (formula: string) => {
     setEvaluatedValue(new Formula(formula).evaluatedValue);
@@ -431,6 +450,19 @@ function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
         node.listSetters.push(setter);
         updateWithSave();
         reset();
+      } else if (selectedObject.type === 'GlobalVariable') {
+        const formula = formulae.find((f) => f.name === selectedObject.target);
+        if (!formula) return;
+
+        const setter = new ParameterSetter({
+          type: 'GlobalVariable',
+          target: formula,
+          valueFormula: values.formula
+        });
+
+        node.listSetters.push(setter);
+        updateWithSave();
+        reset();
       }
     }
   });
@@ -463,6 +495,16 @@ function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
         valueForSelectTag: value
       });
       setCategory('Control');
+    } else if (value.includes('@Formula')) {
+      const nodeID = value.split('@')[0];
+      const formula = formulae.find((f) => f.name === nodeID);
+      if (!formula) return;
+      setSelectedObject({
+        type: 'GlobalVariable',
+        target: nodeID,
+        valueForSelectTag: value
+      });
+      setCategory('GlobalVariable');
     } else {
       setSelectedObject({
         type: 'NotSelected',
@@ -521,6 +563,15 @@ function NewRow(props: {node: ISetterNode; updateWithSave: () => void}) {
                 </option>
               ))}
           </optgroup>
+          <optgroup label="Formulae">
+            {formulae
+              .filter((f) => !alreadyExistsInSetterList.includes(f.name))
+              .map((formula) => (
+                <option value={`${formula.name}@Formula`} key={formula.name}>
+                  {formula.name}
+                </option>
+              ))}
+          </optgroup>
         </NativeSelect>
       </TableCell>
       <TableCell align="right" padding="none">
@@ -573,7 +624,7 @@ function ExistingRow(props: {
     }),
     onSubmit: (values) => {
       formik.resetForm();
-      if (row.categories === 'Control') {
+      if (row.categories === 'Control' || row.categories === 'GlobalVariable') {
         const setter = node.listSetters.find(
           (setter) => setter.target === row.targetNodeID
         );

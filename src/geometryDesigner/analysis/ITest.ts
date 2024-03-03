@@ -38,7 +38,9 @@ export interface ISteadySkidpadParams {
   radiusStepSize: INamedNumber;
   maxLoopCountR: INamedNumber;
   maxLoopCountV: INamedNumber;
+  maxLoopNewton: INamedNumber;
   gravity: INamedVector3;
+  solverMode: 'SkidpadSimple' | 'SkidpadMaxV' | 'SkidpadMinR';
 }
 
 export interface IDataSteadySkidpadParams {
@@ -61,6 +63,8 @@ export interface IDataSteadySkidpadParams {
   gravity?: IDataVector3;
   maxLoopCountR: IDataNumber;
   maxLoopCountV: IDataNumber;
+  maxLoopNewton: IDataNumber;
+  solverMode: ISteadySkidpadParams['solverMode'];
 }
 
 export interface ITest {
@@ -75,7 +79,6 @@ export interface ITest {
   readonly redoable: boolean;
   readonly undoable: boolean;
   calculateSteadyStateDynamics: boolean;
-  steadyStateDynamicsMode: 'SkidpadMaxV' | 'SkidpadMinR';
   steadySkidpadParams?: ISteadySkidpadParams;
 
   undoBlockPoint: string;

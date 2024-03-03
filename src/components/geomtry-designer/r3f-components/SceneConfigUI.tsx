@@ -18,16 +18,16 @@ export const SceneConfigUI = () => {
   const dispatch = useDispatch();
 
   const showGrids = useSelector(
-    (state: RootState) => state.uigd.present.gdSceneState.showGroundPlaneGrid
+    (state: RootState) => state.uigd.gdSceneState.showGroundPlaneGrid
   );
   const gridSize = useSelector(
-    (state: RootState) => state.uigd.present.gdSceneState.gridSize
+    (state: RootState) => state.uigd.gdSceneState.gridSize
   );
   const segmentLength = useSelector(
-    (state: RootState) => state.uigd.present.gdSceneState.gridSegmentLength
+    (state: RootState) => state.uigd.gdSceneState.gridSegmentLength
   );
   const showOBB = useSelector(
-    (state: RootState) => state.uigd.present.gdSceneState.showOBB
+    (state: RootState) => state.uigd.gdSceneState.showOBB
   );
 
   useControls(
@@ -89,8 +89,7 @@ const SkidpadConfigUI = () => {
   const dispatch = useDispatch();
 
   const config = useSelector(
-    (state: RootState) =>
-      state.uigd.present.gdSceneState.steadySkidpadViewerState
+    (state: RootState) => state.uigd.gdSceneState.steadySkidpadViewerState
   );
   const configRef = React.useRef(config);
   configRef.current = config;
@@ -241,8 +240,7 @@ const ForceConfigUI = () => {
 
   const config = useSelector(
     (state: RootState) =>
-      state.uigd.present.gdSceneState.forceViewerState ??
-      initialForceViewerState
+      state.uigd.gdSceneState.forceViewerState ?? initialForceViewerState
   );
   const configRef = React.useRef(config);
   configRef.current = config;

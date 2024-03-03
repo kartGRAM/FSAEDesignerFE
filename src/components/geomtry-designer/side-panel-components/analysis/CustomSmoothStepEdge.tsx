@@ -23,7 +23,7 @@ export default function CustomStepEdge({
   interactionWidth
 }: SmoothStepEdgeProps) {
   const wSpace =
-    store.getState().uigd.present.analysisPanelState.widthSpaceAligningNodes;
+    store.getState().uigd.analysisPanelState.widthSpaceAligningNodes;
   const [path, labelX, labelY] = getSmoothStepPath({
     sourceX,
     sourceY,

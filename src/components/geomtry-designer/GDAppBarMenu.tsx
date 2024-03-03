@@ -20,10 +20,10 @@ export const GDAppBarMenu = (props: Props) => {
   const [open, setOpen] = React.useState(false);
   const anchorRef = React.useRef<HTMLButtonElement>(null);
   const enabledColorLight: number = useSelector(
-    (state: RootState) => state.uigd.present.enabledColorLight
+    (state: RootState) => state.uigd.enabledColorLight
   );
   const enabledColorDark: number = useSelector(
-    (state: RootState) => state.uigd.present.enabledColorDark
+    (state: RootState) => state.uigd.enabledColorDark
   );
 
   const disabled = useSelector((state: RootState) => state.uitgd.uiDisabled);

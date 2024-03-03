@@ -152,7 +152,18 @@ export class Assembly extends Element implements IAssembly {
       name: 'collectedAssembly',
       joints,
       children,
-      ignoreArrange: true
+      ignoreArrange: true,
+      arrangeCollected: () => {
+        this.arrange();
+        const joints = [...this.joints];
+        this.children.forEach((child) => {
+          if (isAssembly(child)) {
+            const asm = child.collectElements();
+            joints.push(...asm.joints);
+          }
+        });
+        return joints;
+      }
     });
   }
 
@@ -330,6 +341,10 @@ export class Assembly extends Element implements IAssembly {
   }
 
   arrange(parentPosition?: Vector3) {
+    if (this.arrangeCollected) {
+      this.joints = this.arrangeCollected();
+      return;
+    }
     const pp = parentPosition ?? new Vector3();
     this.children.forEach((child) => {
       child.arrange(this.initialPosition.value.clone().add(pp));
@@ -428,6 +443,8 @@ export class Assembly extends Element implements IAssembly {
   // eslint-disable-next-line no-empty-function, class-methods-use-this
   set rotation(mat: NamedQuaternion) {}
 
+  arrangeCollected: (() => Joint[]) | undefined = undefined;
+
   constructor(
     params:
       | {
@@ -436,6 +453,7 @@ export class Assembly extends Element implements IAssembly {
           joints: Joint[];
           initialPosition?: FunctionVector3 | IDataVector3 | INamedVector3;
           ignoreArrange?: boolean;
+          arrangeCollected?: () => Joint[];
         }
       | IDataAssembly
   ) {
@@ -467,6 +485,8 @@ export class Assembly extends Element implements IAssembly {
       this.joints = joints2;
       this.arrange();
     } else {
+      if (params.arrangeCollected)
+        this.arrangeCollected = params.arrangeCollected;
       this._children = params.children;
       this.joints = params.joints;
       if (!params.ignoreArrange) {

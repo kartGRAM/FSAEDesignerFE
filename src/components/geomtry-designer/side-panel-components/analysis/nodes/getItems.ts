@@ -1,6 +1,7 @@
 import {Edge, MarkerType, Node as IRFNode} from 'reactflow';
 import {IDataEdge, IFlowNode, Item} from '@gd/analysis/FlowNode';
 import {ITest} from '@gd/analysis/ITest';
+import {isSweepNode} from '@gd/analysis/SweepNode';
 import {isStartNode, getRFNode as startRF} from './StartNode';
 import {isEndNode, getRFNode as endRF} from './EndNode';
 import {
@@ -18,11 +19,7 @@ import {
   getRFNode as setterRF,
   getItem as setterGI
 } from './SetterNode';
-import {
-  isSweepNode,
-  getRFNode as sweepRF,
-  getItem as sweepGI
-} from './SweepNode';
+import {getRFNode as sweepRF, getItem as sweepGI} from './SweepNode';
 import {
   isChartNode,
   getRFNode as chartRF,

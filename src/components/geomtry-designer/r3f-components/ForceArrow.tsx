@@ -25,6 +25,7 @@ const ForceArrow = (props: {
   const coMatrix = getMatrix3(
     useSelector((state: RootState) => state.dgd.present.transCoordinateMatrix)
   );
+  useSelector((state: RootState) => state.dgd.present.lastGlobalFormulaUpdate);
 
   const [show, setShow] = React.useState(false);
   const [pin, setPin] = React.useState(false);
@@ -34,19 +35,16 @@ const ForceArrow = (props: {
 
   const showParentName = useSelector(
     (state: RootState) =>
-      state.uigd.present.gdSceneState.forceViewerState.showParentName
+      state.uigd.gdSceneState.forceViewerState.showParentName
   );
   const showMagnitude = useSelector(
-    (state: RootState) =>
-      state.uigd.present.gdSceneState.forceViewerState.showMagnitude
+    (state: RootState) => state.uigd.gdSceneState.forceViewerState.showMagnitude
   );
   const showLocalXYZ = useSelector(
-    (state: RootState) =>
-      state.uigd.present.gdSceneState.forceViewerState.showLocalXYZ
+    (state: RootState) => state.uigd.gdSceneState.forceViewerState.showLocalXYZ
   );
   const showGlobalXYZ = useSelector(
-    (state: RootState) =>
-      state.uigd.present.gdSceneState.forceViewerState.showGlobalXYZ
+    (state: RootState) => state.uigd.gdSceneState.forceViewerState.showGlobalXYZ
   );
 
   useFrame(() => {

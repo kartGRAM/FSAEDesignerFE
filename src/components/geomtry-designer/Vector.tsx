@@ -522,7 +522,7 @@ const PointOffsetList = React.memo(
     const {vector, selected, setSelected, disabled} = props;
     const {pointOffsetTools} = vector;
     const enabledColorLight: number = useSelector(
-      (state: RootState) => state.uigd.present.enabledColorLight
+      (state: RootState) => state.uigd.enabledColorLight
     );
     const [open, setOpen] = useState(false);
     const [toolAndIdx, setToolAndIdx] = useState<{
