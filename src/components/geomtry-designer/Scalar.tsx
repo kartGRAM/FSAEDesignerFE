@@ -14,7 +14,6 @@ import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import {getRootAssembly} from '@gd/IElements';
 import {toFixedNoZero, isNumber} from '@app/utils/helpers';
-import {setControlDisabled} from '@store/reducers/uiTempGeometryDesigner';
 import EditableTypography from '@gdComponents/EditableTypography';
 import {ValueField} from './ValueField';
 
@@ -72,7 +71,7 @@ export default function Scalar(props: {
   // eslint-disable-next-line consistent-return
   React.useEffect(() => {
     if (onFocusChanged) return onFocusChanged(focused);
-  }, [focused, onFocusChanged, value]);
+  }, [focused, onFocusChanged]);
 
   const ref = React.useRef<HTMLInputElement>(null);
 
@@ -84,10 +83,6 @@ export default function Scalar(props: {
     formik.handleChange(event);
     setTimeout(formik.handleSubmit, 0);
   };
-
-  const onFocus = React.useCallback(() => {
-    dispatch(setControlDisabled(true));
-  }, [dispatch]);
 
   const handleBlur = () => {
     setFocused(false);
@@ -173,7 +168,6 @@ export default function Scalar(props: {
             label="value"
             name="value"
             variant="outlined"
-            onFocus={onFocus}
             onBlur={formik.handleBlur}
             value={
               focused || !isNumber(formik.values.value)
