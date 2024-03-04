@@ -1,6 +1,6 @@
 /* eslint-disable no-nested-ternary */
 import React, {useState} from 'react';
-import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
+import {OutlinedTextFieldProps} from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import {INamedNumber} from '@gd/INamedValues';
 import Typography from '@mui/material/Typography';
@@ -14,6 +14,8 @@ import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import {getRootAssembly} from '@gd/IElements';
 import {toFixedNoZero, isNumber} from '@app/utils/helpers';
+import {setControlDisabled} from '@store/reducers/uiTempGeometryDesigner';
+import EditableTypography from '@gdComponents/EditableTypography';
 import {ValueField} from './ValueField';
 
 export default function Scalar(props: {
@@ -45,27 +47,7 @@ export default function Scalar(props: {
   const dispatch = useDispatch();
   const sValue = value.getStringValue();
 
-  const [rename, setRename] = React.useState<boolean>(false);
   const [focused, setFocused] = useState<boolean>(false);
-
-  const nameFormik = useFormik({
-    enableReinitialize: true,
-    initialValues: {
-      name: value.name
-    },
-    validationSchema: Yup.object({
-      name: Yup.string()
-        .variableNameFirstChar()
-        .variableName()
-        .noMathFunctionsName()
-        .required('required')
-    }),
-    onSubmit: (values) => {
-      value.name = values.name;
-      dispatch(updateAssembly(getRootAssembly(value)));
-      setRename(false);
-    }
-  });
 
   let schema = Yup.string().gdFormulaIsValid();
   if (min) schema = schema.gdFormulaMin(min);
@@ -94,12 +76,6 @@ export default function Scalar(props: {
 
   const ref = React.useRef<HTMLInputElement>(null);
 
-  React.useEffect(() => {
-    if (rename) {
-      ref.current?.focus();
-    }
-  }, [rename]);
-
   const handleFocus = () => {
     setFocused(true);
   };
@@ -109,26 +85,12 @@ export default function Scalar(props: {
     setTimeout(formik.handleSubmit, 0);
   };
 
+  const onFocus = React.useCallback(() => {
+    dispatch(setControlDisabled(true));
+  }, [dispatch]);
+
   const handleBlur = () => {
     setFocused(false);
-  };
-
-  const handleNameDblClick = () => {
-    nameFormik.resetForm();
-    setRename(true);
-  };
-
-  const onNameEnter = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Enter') {
-      nameFormik.handleSubmit();
-    }
-  };
-
-  const onNameBlur = (
-    e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement, Element>
-  ) => {
-    setRename(false);
-    nameFormik.handleBlur(e);
   };
 
   return (
@@ -149,36 +111,38 @@ export default function Scalar(props: {
           }}
         >
           {!nameUnvisible ? (
-            !rename ? (
-              <Typography
-                sx={{flex: '1 1 100%'}}
-                color="inherit"
-                variant="subtitle1"
-                component="div"
-                onDoubleClick={handleNameDblClick}
-              >
-                {value.name}
-              </Typography>
-            ) : (
-              <TextField
-                inputRef={ref}
-                onChange={nameFormik.handleChange}
-                name="name"
-                variant="outlined"
-                size="small"
-                onKeyDown={onNameEnter}
-                value={nameFormik.values.name}
-                onBlur={onNameBlur}
-                error={
-                  nameFormik.touched.name && Boolean(nameFormik.errors.name)
-                }
-                helperText={nameFormik.touched.name && nameFormik.errors.name}
-                sx={{
+            <EditableTypography
+              typography={
+                <Typography
+                  sx={{flex: '1 1 100%'}}
+                  color="inherit"
+                  variant="subtitle1"
+                  component="div"
+                >
+                  {value.name}
+                </Typography>
+              }
+              initialValue={value.name}
+              validation={Yup.string()
+                .variableNameFirstChar()
+                .variableName()
+                .noMathFunctionsName()
+                .required('required')}
+              onSubmit={(name) => {
+                value.name = name;
+                dispatch(updateAssembly(getRootAssembly(value)));
+              }}
+              textFieldProps={{
+                inputRef: ref,
+                name: 'name',
+                variant: 'outlined',
+                size: 'small',
+                sx: {
                   '& legend': {display: 'none'},
                   '& fieldset': {top: 0}
-                }}
-              />
-            )
+                }
+              }}
+            />
           ) : null}
 
           {removable ? (
@@ -209,6 +173,7 @@ export default function Scalar(props: {
             label="value"
             name="value"
             variant="outlined"
+            onFocus={onFocus}
             onBlur={formik.handleBlur}
             value={
               focused || !isNumber(formik.values.value)

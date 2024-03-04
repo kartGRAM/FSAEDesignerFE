@@ -55,7 +55,12 @@ export default function shortCutKeys(e: KeyboardEvent) {
     .filter((c) => c.type === 'keyboard')
     .map((c) => c.inputButton);
   const orbitControlKeys = ['F4', 'F5', 'F6'];
-  if (controllerKeys.includes(e.key) || orbitControlKeys.includes(e.key)) {
+  const {controlDisabled} = state.uitgd;
+  if (orbitControlKeys.includes(e.key)) {
+    e.preventDefault();
+    return;
+  }
+  if (controllerKeys.includes(e.key) && !controlDisabled) {
     if (!e.key.includes('Arrow')) e.preventDefault();
     return;
   }

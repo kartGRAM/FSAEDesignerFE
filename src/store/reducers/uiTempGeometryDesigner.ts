@@ -45,6 +45,7 @@ export interface GlobalSelected {
 }
 
 export interface GDState {
+  controlDisabled: boolean;
   uiDisabled: boolean;
   uiDisabledAll: boolean;
   isFullScreen: boolean;
@@ -132,6 +133,7 @@ export interface GDTestState {
 }
 
 const initialState: GDState = {
+  controlDisabled: false,
   isFullScreen: true,
   fullScreenZIndex: 100000000,
   dialogZIndex: 20000000,
@@ -312,6 +314,9 @@ export const uitGeometryDesignerSlice = createSlice({
     toggleFullScreen: (state: GDState) => {
       state.isFullScreen = !state.isFullScreen;
       state.fullScreenZIndex = state.isFullScreen ? 1000000 : 0;
+    },
+    setControlDisabled: (state: GDState, action: PayloadAction<boolean>) => {
+      state.controlDisabled = action.payload;
     },
     setUIDisabled: (state: GDState, action: PayloadAction<boolean>) => {
       state.uiDisabled = action.payload;
@@ -614,6 +619,7 @@ export const {
   removeTest,
   setSolver,
   setUIDisabled,
+  setControlDisabled,
   setAllUIDisabled,
   toggleFullScreen,
   selectElement,
