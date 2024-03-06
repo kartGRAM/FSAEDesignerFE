@@ -270,6 +270,7 @@ export const mirrorVec = (
   const v = inplace ? vec : new NamedVector3({value: vec});
   v.meta.mirrorTo = vec.nodeID;
   v.meta.isFreeNode = vec.meta.isFreeNode;
+  v.meta.enclosed = vec.meta.enclosed;
 
   (v.y as NamedNumber).setValue(minus(v.y.getStringValue()));
   v.pointOffsetTools?.forEach((tool) => getMirrorPOT(tool));

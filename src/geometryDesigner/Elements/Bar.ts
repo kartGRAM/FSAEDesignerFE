@@ -52,7 +52,7 @@ export class Bar extends Element implements IBar {
   getOBB() {
     return new OBB().setFromVertices(
       this.getPoints()
-        .filter((n) => !n.meta.isFreeNode)
+        .filter((n) => !n.meta.isFreeNode || n.meta.enclosed)
         .map((n) => n.value)
     );
   }

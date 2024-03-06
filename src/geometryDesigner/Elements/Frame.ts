@@ -31,7 +31,9 @@ export class Frame extends Assembly {
           if (child === body) return prev;
           prev = [
             ...prev,
-            ...child.getPoints().filter((p) => !p.meta.isFreeNode)
+            ...child
+              .getPoints()
+              .filter((p) => !p.meta.isFreeNode || p.meta.enclosed)
           ];
           return prev;
         },
@@ -72,7 +74,9 @@ export class Frame extends Assembly {
       const namedPoints = children.reduce((prev: INamedVector3RO[], child) => {
         prev = [
           ...prev,
-          ...child.getPoints().filter((p) => !p.meta.isFreeNode)
+          ...child
+            .getPoints()
+            .filter((p) => !p.meta.isFreeNode || p.meta.enclosed)
         ];
         return prev;
       }, [] as INamedVector3RO[]);
@@ -106,7 +110,9 @@ export class Frame extends Assembly {
             if (child === body) return prev;
             prev = [
               ...prev,
-              ...child.getPoints().filter((p) => !p.meta.isFreeNode)
+              ...child
+                .getPoints()
+                .filter((p) => !p.meta.isFreeNode || p.meta.enclosed)
             ];
             return prev;
           },

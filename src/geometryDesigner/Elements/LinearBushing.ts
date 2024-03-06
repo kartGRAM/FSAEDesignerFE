@@ -77,7 +77,7 @@ export class LinearBushing extends Element implements ILinearBushing {
   getOBB() {
     return new OBB().setFromVertices(
       this.getPoints()
-        .filter((n) => !n.meta.isFreeNode)
+        .filter((n) => !n.meta.isFreeNode || n.meta.enclosed)
         .map((n) => n.value)
     );
   }

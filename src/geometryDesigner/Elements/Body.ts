@@ -47,7 +47,7 @@ export class Body extends Element implements IBody {
 
   getOBB() {
     const points = this.getPoints()
-      .filter((n) => !n.meta.isFreeNode)
+      .filter((n) => !n.meta.isFreeNode || n.meta.enclosed)
       .map((n) => n.value);
     const obb = new OBB();
     if (points.length > 1) obb.setFromVertices(points);
