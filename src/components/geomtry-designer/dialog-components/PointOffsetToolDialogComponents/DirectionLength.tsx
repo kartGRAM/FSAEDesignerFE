@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
-import TextField from '@mui/material/TextField';
+import StandardTextField from '@gdComponents/StandardTextField';
 import {DirectionLength as Tool} from '@gd/NamedValues';
 import InputAdornment from '@mui/material/InputAdornment';
 import {useFormik} from 'formik';
@@ -162,7 +162,7 @@ export const DirectionLength = (props: Props) => {
           mt: 1
         }}
       >
-        <TextField
+        <StandardTextField
           onChange={handleChange}
           label="name"
           name="name"
@@ -170,7 +170,6 @@ export const DirectionLength = (props: Props) => {
           sx={{
             margin: 1
           }}
-          variant="standard"
           value={formik.values.name}
           error={formik.touched.name && Boolean(formik.errors.name)}
           helperText={formik.touched.name && formik.errors.name}

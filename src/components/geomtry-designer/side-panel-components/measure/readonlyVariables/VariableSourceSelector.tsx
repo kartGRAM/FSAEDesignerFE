@@ -17,7 +17,7 @@ import Tooltip from '@mui/material/Tooltip';
 import DeleteIcon from '@mui/icons-material/Delete';
 import {useFormik} from 'formik';
 import yup from '@app/utils/Yup';
-import TextField from '@mui/material/TextField';
+import StandardTextField from '@gdComponents/StandardTextField';
 import {toFixedNoZero} from '@utils/helpers';
 import NativeSelect, {SelectChangeEvent} from '@mui/material/Select';
 import {
@@ -331,11 +331,10 @@ function Row(props: {
         />
       </TableCell>
       <TableCell component="th" id={labelID} scope="row" padding="none">
-        <TextField
+        <StandardTextField
           sx={{width: '100%'}}
           hiddenLabel
           name="alias"
-          variant="standard"
           onBlur={(e) => {
             formik.handleBlur(e);
             formik.handleSubmit();

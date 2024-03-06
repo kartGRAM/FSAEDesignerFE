@@ -93,13 +93,13 @@ const EditableTypography = React.memo(
 
     const handleNameKeyDown = React.useCallback(
       (e: React.KeyboardEvent<HTMLDivElement>) => {
-        if (e.key === 'Enter' || e.key === 'F2') {
+        if ((e.key === 'Enter' || e.key === 'F2') && !disabled) {
           e.stopPropagation();
           formik.resetForm();
           setRename(true);
         }
       },
-      [formik]
+      [disabled, formik]
     );
 
     const onFocus = React.useCallback(() => {

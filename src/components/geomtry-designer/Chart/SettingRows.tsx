@@ -6,7 +6,7 @@ import NativeSelect, {SelectChangeEvent} from '@mui/material/Select';
 import {MuiColorInput, MuiColorInputColors} from 'mui-color-input';
 import {useFormik} from 'formik';
 import yup from '@app/utils/Yup';
-import TextField from '@mui/material/TextField';
+import StandardTextField from '@gdComponents/StandardTextField';
 import {isNumber, fontFamilies, deepCopy, toFixedNoZero} from '@utils/helpers';
 import {positions} from '@gd/charts/plotlyUtils';
 
@@ -275,11 +275,10 @@ export const NumberRow = React.memo(
           {name}
         </TableCell>
         <TableCell scope="row" padding="none" align="left">
-          <TextField
+          <StandardTextField
             sx={{width: '100%'}}
             hiddenLabel
             name="value"
-            variant="standard"
             onBlur={formik.handleBlur}
             onChange={formik.handleChange}
             onKeyDown={onEnter}
@@ -334,11 +333,10 @@ export const NullableNumberRow = React.memo(
           {name}
         </TableCell>
         <TableCell scope="row" padding="none" align="left">
-          <TextField
+          <StandardTextField
             sx={{width: '100%'}}
             hiddenLabel
             name="value"
-            variant="standard"
             onBlur={formik.handleBlur}
             onChange={formik.handleChange}
             onKeyDown={onEnter}
@@ -401,11 +399,10 @@ export const NullableNumberArrayRow = React.memo(
           {name}
         </TableCell>
         <TableCell scope="row" padding="none" align="left">
-          <TextField
+          <StandardTextField
             sx={{width: '100%'}}
             hiddenLabel
             name="values"
-            variant="standard"
             onBlur={formik.handleBlur}
             onChange={formik.handleChange}
             onKeyDown={onEnter}
@@ -577,11 +574,10 @@ export const StringRow = React.memo(
           {name}
         </TableCell>
         <TableCell scope="row" padding="none" align="left">
-          <TextField
+          <StandardTextField
             sx={{width: '100%'}}
             hiddenLabel
             name="value"
-            variant="standard"
             onBlur={formik.handleBlur}
             onChange={formik.handleChange}
             onKeyDown={onEnter}
@@ -704,12 +700,11 @@ export const NullableRangeRow = React.memo(
           {name}
         </TableCell>
         <TableCell scope="row" padding="none" align="left">
-          <TextField
+          <StandardTextField
             disabled={disabled}
             sx={{width: '45%', maxWidth: '45%', whiteSpace: 'normal'}}
             hiddenLabel
             name="lower"
-            variant="standard"
             onBlur={formik.handleBlur}
             onChange={formik.handleChange}
             onKeyDown={onEnter}
@@ -727,12 +722,11 @@ export const NullableRangeRow = React.memo(
           >
             to
           </Typography>
-          <TextField
+          <StandardTextField
             disabled={disabled}
             sx={{width: '45%', maxWidth: '45%', whiteSpace: 'normal'}}
             hiddenLabel
             name="upper"
-            variant="standard"
             onBlur={formik.handleBlur}
             onChange={formik.handleChange}
             onKeyDown={onEnter}

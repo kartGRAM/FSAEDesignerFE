@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
-import TextField from '@mui/material/TextField';
+import StandardTextField from '@gdComponents/StandardTextField';
 import {DeltaXYZ as Tool} from '@gd/NamedValues';
 import {useFormik} from 'formik';
 import * as Yup from 'yup';
@@ -129,7 +129,7 @@ export const DeltaXYZ = (props: Props) => {
           mt: 1
         }}
       >
-        <TextField
+        <StandardTextField
           onChange={handleChange}
           label="name"
           name="name"
@@ -137,7 +137,6 @@ export const DeltaXYZ = (props: Props) => {
           sx={{
             margin: 1
           }}
-          variant="standard"
           value={formik.values.name}
           error={formik.touched.name && Boolean(formik.errors.name)}
           helperText={formik.touched.name && formik.errors.name}

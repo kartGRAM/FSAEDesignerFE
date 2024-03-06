@@ -31,16 +31,14 @@ import {
   HeadCell,
   getComparator
 } from '@gdComponents/FormulaTable';
-import TextField from '@mui/material/TextField';
+import StandardTextField from '@gdComponents/StandardTextField';
 import Typography from '@mui/material/Typography';
 import {alpha} from '@mui/material/styles';
-
 import Toolbar from '@mui/material/Toolbar';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SwapVertIcon from '@mui/icons-material/SwapVert';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
-
 import {useFormik} from 'formik';
 import yup from '@app/utils/Yup';
 
@@ -246,12 +244,11 @@ function TableRowExistingFormula(props: TableRowExistingFormulaProps) {
       </TableCell>
       <TableCell align="left">{row.id}</TableCell>
       <TableCell id={labelId} scope="row" padding="none">
-        <TextField
+        <StandardTextField
           inputRef={nameRef}
           autoFocus
           hiddenLabel
           name="name"
-          variant="standard"
           onBlur={formik.handleBlur}
           onKeyDown={onEnter}
           onChange={formik.handleChange}
@@ -263,11 +260,10 @@ function TableRowExistingFormula(props: TableRowExistingFormulaProps) {
         />
       </TableCell>
       <TableCell align="right">
-        <TextField
+        <StandardTextField
           inputRef={formulaRef}
           hiddenLabel
           name="formula"
-          variant="standard"
           onBlur={formik.handleBlur}
           onKeyDown={onEnter}
           onChange={handleChange}
@@ -370,12 +366,11 @@ function TableRowNewFormula(props: TableRowNewFormulaProps) {
       </TableCell>
       <TableCell align="left" />
       <TableCell id={labelId} scope="row" padding="none">
-        <TextField
+        <StandardTextField
           inputRef={nameRef}
           autoFocus
           hiddenLabel
           name="name"
-          variant="standard"
           onBlur={formik.handleBlur}
           onKeyDown={onEnter}
           onChange={formik.handleChange}
@@ -387,11 +382,10 @@ function TableRowNewFormula(props: TableRowNewFormulaProps) {
         />
       </TableCell>
       <TableCell align="right">
-        <TextField
+        <StandardTextField
           inputRef={formulaRef}
           hiddenLabel
           name="formula"
-          variant="standard"
           onBlur={formik.handleBlur}
           onKeyDown={onEnter}
           onChange={handleChange}
@@ -442,14 +436,12 @@ export default function OnDeleteDialog(props: OnDeleteDialogProps) {
       <DialogTitle>{`${name} is used in other formulae.`}</DialogTitle>
       <DialogContent>
         <DialogContentText>Replace with a constant value.</DialogContentText>
-
-        <TextField
+        <StandardTextField
           autoFocus
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
           label="Value"
           name="newValue"
-          variant="standard"
           value={formik.values.newValue}
           error={formik.touched.newValue && Boolean(formik.errors.newValue)}
           helperText={formik.touched.newValue && formik.errors.newValue}

@@ -5,7 +5,7 @@ import {useSelector, useDispatch} from 'react-redux';
 import store, {RootState} from '@store/store';
 import {setSaveAsDialogProps} from '@store/reducers/uiTempGeometryDesigner';
 import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
+import StandardTextField from '@gdComponents/StandardTextField';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
@@ -88,13 +88,12 @@ export function SaveAsDialog(props: SaveAsDialogProps) {
     >
       <DialogTitle>Save As...</DialogTitle>
       <DialogContent>
-        <TextField
+        <StandardTextField
           autoFocus
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
           label="filename"
           name="filename"
-          variant="standard"
           value={formik.values.filename}
           error={formik.touched.filename && Boolean(formik.errors.filename)}
           helperText={formik.touched.filename && formik.errors.filename}
@@ -104,13 +103,12 @@ export function SaveAsDialog(props: SaveAsDialogProps) {
         <DialogContentText sx={{pt: 3}}>
           If you wish to annotate a file, please complete the note below.
         </DialogContentText>
-        <TextField
+        <StandardTextField
           autoFocus
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
           label="note"
           name="note"
-          variant="standard"
           value={formik.values.note}
           error={formik.touched.note && Boolean(formik.errors.note)}
           helperText={formik.touched.note && formik.errors.note}

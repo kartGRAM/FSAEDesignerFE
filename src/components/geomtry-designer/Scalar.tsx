@@ -73,8 +73,6 @@ export default function Scalar(props: {
     if (onFocusChanged) return onFocusChanged(focused);
   }, [focused, onFocusChanged]);
 
-  const ref = React.useRef<HTMLInputElement>(null);
-
   const handleFocus = () => {
     setFocused(true);
   };
@@ -128,10 +126,6 @@ export default function Scalar(props: {
                 dispatch(updateAssembly(getRootAssembly(value)));
               }}
               textFieldProps={{
-                inputRef: ref,
-                name: 'name',
-                variant: 'outlined',
-                size: 'small',
                 sx: {
                   '& legend': {display: 'none'},
                   '& fieldset': {top: 0}

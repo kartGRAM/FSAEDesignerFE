@@ -32,7 +32,7 @@ import {visuallyHidden} from '@mui/utils';
 import {getControl} from '@gd/controls/Controls';
 import {useFormik} from 'formik';
 import yup from '@app/utils/Yup';
-import TextField from '@mui/material/TextField';
+import StandardTextField from '@gdComponents/StandardTextField';
 import {toFixedNoZero} from '@utils/helpers';
 import {Formula} from '@gd/Formula';
 import useTestUpdate from '@hooks/useTestUpdate';
@@ -578,11 +578,10 @@ function NewRow(props: {
         {category}
       </TableCell>
       <TableCell align="right">
-        <TextField
+        <StandardTextField
           disabled={!selectedObject.valueForSelectTag}
           hiddenLabel
           name="formula"
-          variant="standard"
           onBlur={(e) => {
             formik.handleBlur(e);
             formik.handleSubmit();
@@ -697,11 +696,10 @@ function ExistingRow(props: {
         {row.categories}
       </TableCell>
       <TableCell align="right">
-        <TextField
+        <StandardTextField
           disabled={!!node.copyFrom && !node.isModRow[row.targetNodeID]}
           hiddenLabel
           name="formula"
-          variant="standard"
           onBlur={(e) => {
             formik.handleBlur(e);
             formik.handleSubmit();

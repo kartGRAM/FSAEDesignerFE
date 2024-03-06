@@ -100,7 +100,6 @@ const Vector = React.memo(
       }
     });
 
-    const ref = React.useRef<HTMLInputElement>(null);
     const refOfVectorField = React.useRef<HTMLInputElement>(null);
 
     React.useEffect(() => {
@@ -208,10 +207,6 @@ const Vector = React.memo(
               dispatch(updateAssembly(getRootAssembly(vector)));
             }}
             textFieldProps={{
-              inputRef: ref,
-              name: 'name',
-              variant: 'outlined',
-              size: 'small',
               sx: {
                 '& legend': {display: 'none'},
                 '& fieldset': {top: 0}
