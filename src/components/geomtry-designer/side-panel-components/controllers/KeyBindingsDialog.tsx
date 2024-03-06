@@ -111,7 +111,7 @@ export function KeyBindingsDialog(props: KeyBindingsDialogProps) {
           })
         );
       });
-      dispatch(setConfirmDialogProps(undefined));
+
       if (ret === 'cancel') return false;
       if (ret === 'save') handleApply();
       else {

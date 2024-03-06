@@ -127,7 +127,6 @@ note: ${params.note}`}
         })
       );
     });
-    dispatch(setConfirmDialogProps(undefined));
   };
   const handleDeleteClick = async (params: SavedData) => {
     const ret = await new Promise<string>((resolve) => {
@@ -144,7 +143,7 @@ note: ${params.note}`}
         })
       );
     });
-    dispatch(setConfirmDialogProps(undefined));
+
     // eslint-disable-next-line no-empty
     if (ret === 'ok') {
       await instance.delete(`/api/gd/delete/${params.id}/`);

@@ -40,7 +40,7 @@ export default function CreateMirror(props: Props) {
           })
         );
       });
-      dispatch(setConfirmDialogProps(undefined));
+
       return;
     }
 
@@ -56,7 +56,7 @@ export default function CreateMirror(props: Props) {
           })
         );
       });
-      dispatch(setConfirmDialogProps(undefined));
+
       return;
     }
     if (!element || !parent) return;
@@ -79,7 +79,6 @@ export default function CreateMirror(props: Props) {
             })
           );
         });
-        dispatch(setConfirmDialogProps(undefined));
       } else {
         // eslint-disable-next-line no-console
         console.log('未知のエラー');

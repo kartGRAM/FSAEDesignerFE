@@ -70,7 +70,7 @@ export default function DatumManager() {
           })
         );
       });
-      dispatch(setConfirmDialogProps(undefined));
+
       if (ret === 'ok') {
         datumManager.removeGroup(nodeID);
         datumManager.dispatch();

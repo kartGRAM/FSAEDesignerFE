@@ -40,7 +40,7 @@ export default function UnlinkMirror(props: Props) {
         })
       );
     });
-    dispatch(setConfirmDialogProps(undefined));
+
     if (ret === 'ok') {
       element.unlinkMirror();
       dispatch(updateAssembly(getRootAssembly(element)));

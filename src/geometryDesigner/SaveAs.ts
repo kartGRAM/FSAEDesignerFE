@@ -1,7 +1,7 @@
 import {getDataToSave, getSetTopAssemblyParams} from '@gd/ISaveData';
 import axios, {AxiosRequestConfig, AxiosPromise} from 'axios';
 import {RefetchOptions} from 'axios-hooks';
-import {Dispatch, AnyAction} from 'redux';
+import {useDispatch} from 'react-redux';
 import {setTopAssembly} from '@store/reducers/dataGeometryDesigner';
 
 import store from '@store/store';
@@ -16,7 +16,7 @@ type Func = (
 ) => AxiosPromise<any>;
 
 export default async function saveAs(params: {
-  dispatch: Dispatch<AnyAction>;
+  dispatch: ReturnType<typeof useDispatch>;
   filename?: string;
   note?: string;
   overwrite: boolean;
@@ -82,7 +82,7 @@ export default async function saveAs(params: {
             })
           );
         });
-        dispatch(setConfirmDialogProps(undefined));
+
         if (ret === 'ok') {
           saveAs({
             ...params,

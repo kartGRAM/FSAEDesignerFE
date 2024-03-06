@@ -5,8 +5,9 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import {useSelector} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 import {RootState} from '@store/store';
+import {setConfirmDialogProps} from '@store/reducers/uiTempGeometryDesigner';
 
 export type ConfirmDialogProps = {
   zindex: number;
@@ -20,14 +21,23 @@ export default function ConfirmDialog() {
   const props = useSelector(
     (state: RootState) => state.uitgd.gdDialogState.confirmDialogProps
   );
+  const {onClose} = props ?? {onClose: () => {}};
+  const dispatch = useDispatch();
+  const onCloseWrapper = React.useCallback(
+    (value: string) => {
+      onClose(value);
+      dispatch(setConfirmDialogProps(undefined));
+    },
+    [dispatch, onClose]
+  );
 
   if (!props) return null;
-  const {zindex, onClose, title, message, buttons} = props;
+  const {zindex, title, message, buttons} = props;
 
   return (
     <Dialog
       open
-      onClose={() => onClose('cancel')}
+      onClose={() => onCloseWrapper('cancel')}
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
       sx={{
@@ -42,7 +52,7 @@ export default function ConfirmDialog() {
       <DialogActions>
         {buttons.map((button) => (
           <Button
-            onClick={() => onClose(button.res)}
+            onClick={() => onCloseWrapper(button.res)}
             autoFocus={button.autoFocus}
             key={button.text}
           >
