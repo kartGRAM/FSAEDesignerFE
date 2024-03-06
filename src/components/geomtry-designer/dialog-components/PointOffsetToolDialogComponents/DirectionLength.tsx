@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
-import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
+import TextField from '@mui/material/TextField';
 import {DirectionLength as Tool} from '@gd/NamedValues';
 import InputAdornment from '@mui/material/InputAdornment';
 import {useFormik} from 'formik';
@@ -13,6 +13,7 @@ import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
 import {getRootAssembly} from '@gd/IElements';
 import {useDispatch} from 'react-redux';
 import {toFixedNoZero} from '@app/utils/helpers';
+import {ValueField} from '@gdComponents/ValueField';
 
 interface Props {
   name: string;
@@ -192,6 +193,7 @@ export const DirectionLength = (props: Props) => {
         >
           <ValueField
             onChange={handleChange}
+            unit=""
             label="NX"
             name="nx"
             variant="outlined"
@@ -203,6 +205,7 @@ export const DirectionLength = (props: Props) => {
           />
           <ValueField
             onChange={handleChange}
+            unit=""
             label="NY"
             name="ny"
             variant="outlined"
@@ -214,6 +217,7 @@ export const DirectionLength = (props: Props) => {
           />
           <ValueField
             onChange={handleChange}
+            unit=""
             label="NZ"
             name="nz"
             variant="outlined"
@@ -241,6 +245,7 @@ export const DirectionLength = (props: Props) => {
           <ValueField
             onChange={handleChange}
             label="L"
+            unit="mm"
             name="l"
             variant="outlined"
             value={formik.values.l}
@@ -269,6 +274,7 @@ export const DirectionLength = (props: Props) => {
         >
           <ValueField
             disabled
+            unit="mm"
             label="ΔX"
             name="nx"
             variant="outlined"
@@ -276,6 +282,7 @@ export const DirectionLength = (props: Props) => {
           />
           <ValueField
             disabled
+            unit="mm"
             label="ΔY"
             name="ny"
             variant="outlined"
@@ -283,6 +290,7 @@ export const DirectionLength = (props: Props) => {
           />
           <ValueField
             disabled
+            unit="mm"
             label="ΔZ"
             name="nz"
             variant="outlined"
@@ -291,19 +299,5 @@ export const DirectionLength = (props: Props) => {
         </Box>
       </FormGroup>
     </FormControl>
-  );
-};
-
-const ValueField = (props: OutlinedTextFieldProps) => {
-  return (
-    <TextField
-      size="small"
-      // margin="none"
-      {...props}
-      sx={{
-        margin: 1
-        // width: '15ch'
-      }}
-    />
   );
 };

@@ -26,7 +26,7 @@ export const ValueField = (props: ValueFieldProps) => {
     [dispatch, onBlur]
   );
 
-  const {unit, sx} = props;
+  const {unit, sx, InputProps} = props;
   return (
     <TextField
       size="small"
@@ -35,12 +35,12 @@ export const ValueField = (props: ValueFieldProps) => {
       onFocus={onFocusWrapper}
       onBlur={onBlurWrapper}
       InputProps={{
-        endAdornment: <InputAdornment position="end">{unit}</InputAdornment>
+        endAdornment: <InputAdornment position="end">{unit}</InputAdornment>,
+        ...InputProps
       }}
       sx={{
-        ...sx,
-        margin: 1
-        // width: '15ch'
+        margin: 1,
+        ...sx
       }}
     />
   );

@@ -1,15 +1,13 @@
 import React from 'react';
 import {DistanceControl} from '@gd/controls/DistanceControl';
 import {IDataControl} from '@gd/controls/IControls';
-import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
-import InputAdornment from '@mui/material/InputAdornment';
 import Slider from '@mui/material/Slider';
 import Box from '@mui/material/Box';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
-import {InputBaseComponentProps} from '@mui/material/InputBase';
 import {isNumber} from '@app/utils/helpers';
 import useUpdateEffect from '@app/hooks/useUpdateEffect';
+import {ValueField} from '@gdComponents/ValueField';
 
 export interface DistanceControlProps {
   control: DistanceControl;
@@ -78,7 +76,14 @@ export function DistanceControlSettings(props: DistanceControlProps) {
           name="speed"
           variant="outlined"
           unit="mm/s"
-          inputProps={{min, max, step: 1}}
+          InputProps={{
+            type: 'number',
+            'aria-labelledby': 'input-slider',
+            inputProps: {min, max, step: 1}
+          }}
+          sx={{
+            marginLeft: 3
+          }}
         />
       </Box>
       <Box
@@ -95,30 +100,3 @@ export function DistanceControlSettings(props: DistanceControlProps) {
     </>
   );
 }
-
-// eslint-disable-next-line no-redeclare
-interface MyOutlinedTextFieldProps extends OutlinedTextFieldProps {
-  unit: string;
-  inputProps?: InputBaseComponentProps;
-}
-
-const ValueField = React.memo((props: MyOutlinedTextFieldProps) => {
-  const {unit, inputProps} = props;
-  return (
-    <TextField
-      size="small"
-      // margin="none"
-      {...props}
-      InputProps={{
-        endAdornment: <InputAdornment position="end">{unit}</InputAdornment>,
-        type: 'number',
-        'aria-labelledby': 'input-slider',
-        inputProps
-      }}
-      sx={{
-        marginLeft: 3
-        // width: '15ch'
-      }}
-    />
-  );
-});
