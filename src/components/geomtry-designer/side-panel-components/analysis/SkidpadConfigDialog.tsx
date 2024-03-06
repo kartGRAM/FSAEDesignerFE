@@ -30,7 +30,7 @@ import {getControl} from '@gd/controls/Controls';
 import yup from '@app/utils/Yup';
 import {isTire, ITire} from '@gd/IElements/ITire';
 import {listTireData} from '@tire/listTireData';
-import TextField from '@mui/material/TextField';
+import StandardTextField from '@gdComponents/StandardTextField';
 
 export const SkidpadConfigDialog = React.memo(
   (props: {
@@ -473,11 +473,10 @@ const Content = React.memo((props: {test: ITest}) => {
                   <Typography variant="subtitle1" sx={{pl: 2}}>
                     {tire.name.value}
                   </Typography>
-                  <TextField
+                  <StandardTextField
                     type="number"
                     hiddenLabel
                     name={tire.nodeID}
-                    variant="standard"
                     onBlur={onBlur}
                     onChange={formik.handleChange}
                     onKeyDown={onEnter}

@@ -2,6 +2,8 @@ import React from 'react';
 import TextField, {TextFieldProps} from '@mui/material/TextField';
 import Box, {BoxProps} from '@mui/material/Box';
 import {useFormik} from 'formik';
+import {setControlDisabled} from '@store/reducers/uiTempGeometryDesigner';
+import {useDispatch} from 'react-redux';
 import * as Yup from 'yup';
 
 const EditableTypography = React.memo(
@@ -38,6 +40,7 @@ const EditableTypography = React.memo(
       }
     };
     const [rename, setRename] = React.useState<boolean>(false);
+    const dispatch = useDispatch();
 
     const formik = useFormik({
       enableReinitialize: true,
@@ -90,24 +93,29 @@ const EditableTypography = React.memo(
 
     const handleNameKeyDown = React.useCallback(
       (e: React.KeyboardEvent<HTMLDivElement>) => {
-        if (e.key === 'Enter' || e.key === 'F2') {
+        if ((e.key === 'Enter' || e.key === 'F2') && !disabled) {
           e.stopPropagation();
           formik.resetForm();
           setRename(true);
         }
       },
-      [formik]
+      [disabled, formik]
     );
+
+    const onFocus = React.useCallback(() => {
+      dispatch(setControlDisabled(true));
+    }, [dispatch]);
 
     const onNameBlur = React.useCallback(
       (
         e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement, Element>
       ) => {
+        dispatch(setControlDisabled(false));
         setRename(false);
         formik.handleSubmit();
         formik.handleBlur(e);
       },
-      [formik]
+      [dispatch, formik]
     );
 
     return !rename ? (
@@ -134,6 +142,7 @@ const EditableTypography = React.memo(
         size="small"
         onKeyDown={onNameEnter}
         value={formik.values.value}
+        onFocus={onFocus}
         onBlur={onNameBlur}
         error={formik.touched.value && Boolean(formik.errors.value)}
         helperText={formik.touched.value && formik.errors.value}

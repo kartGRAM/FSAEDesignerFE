@@ -1,14 +1,9 @@
 import * as React from 'react';
-import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
-import InputAdornment from '@mui/material/InputAdornment';
+import TextField, {StandardTextFieldProps} from '@mui/material/TextField';
 import {setControlDisabled} from '@store/reducers/uiTempGeometryDesigner';
 import {useDispatch} from 'react-redux';
 
-export interface ValueFieldProps extends OutlinedTextFieldProps {
-  unit: string;
-}
-
-export const ValueField = (props: ValueFieldProps) => {
+export const StandardTextField = React.memo((props: StandardTextFieldProps) => {
   const dispatch = useDispatch();
   const {onFocus, onBlur} = props;
   const onFocusWrapper = React.useCallback(
@@ -26,22 +21,14 @@ export const ValueField = (props: ValueFieldProps) => {
     [dispatch, onBlur]
   );
 
-  const {unit, sx, InputProps} = props;
   return (
     <TextField
-      size="small"
-      // margin="none"
+      variant="standard"
       {...props}
       onFocus={onFocusWrapper}
       onBlur={onBlurWrapper}
-      InputProps={{
-        endAdornment: <InputAdornment position="end">{unit}</InputAdornment>,
-        ...InputProps
-      }}
-      sx={{
-        margin: 1,
-        ...sx
-      }}
     />
   );
-};
+});
+
+export default StandardTextField;

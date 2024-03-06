@@ -1,7 +1,7 @@
 import Box from '@mui/material/Box';
 import {useFormik} from 'formik';
 import yup from '@app/utils/Yup';
-import TextField from '@mui/material/TextField';
+import StandardTextField from '@gdComponents/StandardTextField';
 import {Typography} from '@mui/material';
 import {getDgd} from '@store/getDgd';
 import {IReadonlyVariable} from '@gd/measure/readonlyVariables/IReadonlyVariable';
@@ -56,11 +56,10 @@ export function VariableFormula(props: {
         alignItems: 'baseline'
       }}
     >
-      <TextField
+      <StandardTextField
         label="user defined formula"
         sx={{flex: 2}}
         name="formula"
-        variant="standard"
         onBlur={(e) => {
           formik.handleBlur(e);
           formik.handleSubmit();

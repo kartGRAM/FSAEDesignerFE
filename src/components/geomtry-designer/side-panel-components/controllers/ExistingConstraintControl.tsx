@@ -2,13 +2,10 @@ import React from 'react';
 import {ExistingConstraintControl} from '@gd/controls/ExistingConstraintControl';
 import {isDataPointToPlaneControl} from '@gd/controls/PointToPlaneControl';
 import {IDataControl} from '@gd/controls/IControls';
-import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
-import InputAdornment from '@mui/material/InputAdornment';
 import Slider from '@mui/material/Slider';
 import Box from '@mui/material/Box';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
-import {InputBaseComponentProps} from '@mui/material/InputBase';
 import {isNumber} from '@app/utils/helpers';
 import useUpdateEffect from '@app/hooks/useUpdateEffect';
 import InputLabel from '@mui/material/InputLabel';
@@ -18,6 +15,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 import store, {RootState} from '@store/store';
 import {useSelector} from 'react-redux';
+import {ValueField} from '@gdComponents/ValueField';
 
 export interface ExistingConstraintControlProps {
   control: ExistingConstraintControl;
@@ -137,7 +135,14 @@ export function ExistingConstraintControlSettings(
           name="speed"
           variant="outlined"
           unit="mm/s"
-          inputProps={{min, max, step: 1}}
+          InputProps={{
+            type: 'number',
+            'aria-labelledby': 'input-slider',
+            inputProps: {min, max, step: 1}
+          }}
+          sx={{
+            marginLeft: 3
+          }}
         />
       </Box>
       <Box
@@ -154,30 +159,3 @@ export function ExistingConstraintControlSettings(
     </>
   );
 }
-
-// eslint-disable-next-line no-redeclare
-interface MyOutlinedTextFieldProps extends OutlinedTextFieldProps {
-  unit: string;
-  inputProps?: InputBaseComponentProps;
-}
-
-const ValueField = React.memo((props: MyOutlinedTextFieldProps) => {
-  const {unit, inputProps} = props;
-  return (
-    <TextField
-      size="small"
-      // margin="none"
-      {...props}
-      InputProps={{
-        endAdornment: <InputAdornment position="end">{unit}</InputAdornment>,
-        type: 'number',
-        'aria-labelledby': 'input-slider',
-        inputProps
-      }}
-      sx={{
-        marginLeft: 3
-        // width: '15ch'
-      }}
-    />
-  );
-});

@@ -1,8 +1,7 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
-import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
+import StandardTextField from '@gdComponents/StandardTextField';
 import {DeltaXYZ as Tool} from '@gd/NamedValues';
-import InputAdornment from '@mui/material/InputAdornment';
 import {useFormik} from 'formik';
 import * as Yup from 'yup';
 import FormLabel from '@mui/material/FormLabel';
@@ -10,11 +9,10 @@ import FormControl from '@mui/material/FormControl';
 import FormGroup from '@mui/material/FormGroup';
 import {INamedVector3} from '@gd/INamedValues';
 import {updateAssembly} from '@store/reducers/dataGeometryDesigner';
-
 import {getRootAssembly} from '@gd/IElements';
-
 import {useDispatch} from 'react-redux';
 import {toFixedNoZero} from '@app/utils/helpers';
+import {ValueField} from '@gdComponents/ValueField';
 
 interface Props {
   name: string;
@@ -131,7 +129,7 @@ export const DeltaXYZ = (props: Props) => {
           mt: 1
         }}
       >
-        <TextField
+        <StandardTextField
           onChange={handleChange}
           label="name"
           name="name"
@@ -139,7 +137,6 @@ export const DeltaXYZ = (props: Props) => {
           sx={{
             margin: 1
           }}
-          variant="standard"
           value={formik.values.name}
           error={formik.touched.name && Boolean(formik.errors.name)}
           helperText={formik.touched.name && formik.errors.name}
@@ -162,6 +159,7 @@ export const DeltaXYZ = (props: Props) => {
         >
           <ValueField
             onChange={handleChange}
+            unit="mm"
             label="ΔX"
             name="dx"
             variant="outlined"
@@ -173,6 +171,7 @@ export const DeltaXYZ = (props: Props) => {
           />
           <ValueField
             onChange={handleChange}
+            unit="mm"
             label="ΔY"
             name="dy"
             variant="outlined"
@@ -184,6 +183,7 @@ export const DeltaXYZ = (props: Props) => {
           />
           <ValueField
             onChange={handleChange}
+            unit="mm"
             label="ΔZ"
             name="dz"
             variant="outlined"
@@ -209,6 +209,7 @@ export const DeltaXYZ = (props: Props) => {
           }}
         >
           <ValueField
+            unit="mm"
             disabled
             label="ΔX"
             name="dx"
@@ -216,6 +217,7 @@ export const DeltaXYZ = (props: Props) => {
             value={evaluatedValue.x}
           />
           <ValueField
+            unit="mm"
             disabled
             label="ΔY"
             name="dy"
@@ -223,6 +225,7 @@ export const DeltaXYZ = (props: Props) => {
             value={evaluatedValue.y}
           />
           <ValueField
+            unit="mm"
             disabled
             label="ΔZ"
             name="dz"
@@ -232,22 +235,5 @@ export const DeltaXYZ = (props: Props) => {
         </Box>
       </FormGroup>
     </FormControl>
-  );
-};
-
-const ValueField = (props: OutlinedTextFieldProps) => {
-  return (
-    <TextField
-      size="small"
-      // margin="none"
-      {...props}
-      InputProps={{
-        endAdornment: <InputAdornment position="end">mm</InputAdornment>
-      }}
-      sx={{
-        margin: 1
-        // width: '15ch'
-      }}
-    />
   );
 };

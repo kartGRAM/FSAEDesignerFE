@@ -23,14 +23,12 @@ import {ITest} from '@gd/analysis/ITest';
 import Select, {SelectChangeEvent} from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import {getCases} from '@gd/charts/getPlotlyData';
-import TextField, {OutlinedTextFieldProps} from '@mui/material/TextField';
-import InputAdornment from '@mui/material/InputAdornment';
 import Slider from '@mui/material/Slider';
 import {isNumber} from '@app/utils/helpers';
-import {InputBaseComponentProps} from '@mui/material/InputBase';
 import {ISnapshot} from '@gd/analysis/ISnapshot';
 import useUpdateEffect from '@hooks/useUpdateEffect';
 import {LocalInstances} from '@worker/getLocalInstances';
+import {ValueField} from '@gdComponents/ValueField';
 
 export const CaseResultDialog = React.memo(
   (props: {open: boolean; exitReplayMode: () => void; test: ITest}) => {
@@ -254,40 +252,20 @@ const CaseResultContent = React.memo((props: {test: ITest; open: boolean}) => {
           label="frame number"
           name="frame number"
           variant="outlined"
+          InputProps={{
+            type: 'number',
+            'aria-labelledby': 'input-slider',
+            inputProps: {min, max, step: 1}
+          }}
+          sx={{
+            marginLeft: 3
+          }}
           unit={`${
             // eslint-disable-next-line no-nested-ternary
             frame === 1 ? 'st' : frame === 2 ? 'nd' : frame === 3 ? 'rd' : 'th'
           }`}
-          inputProps={{min, max, step: 1}}
         />
       </Box>
     </DialogContent>
-  );
-});
-
-// eslint-disable-next-line no-redeclare
-interface MyOutlinedTextFieldProps extends OutlinedTextFieldProps {
-  unit: string;
-  inputProps?: InputBaseComponentProps;
-}
-
-const ValueField = React.memo((props: MyOutlinedTextFieldProps) => {
-  const {unit, inputProps} = props;
-  return (
-    <TextField
-      size="small"
-      // margin="none"
-      {...props}
-      InputProps={{
-        endAdornment: <InputAdornment position="end">{unit}</InputAdornment>,
-        type: 'number',
-        'aria-labelledby': 'input-slider',
-        inputProps
-      }}
-      sx={{
-        marginLeft: 3
-        // width: '15ch'
-      }}
-    />
   );
 });

@@ -1,6 +1,5 @@
 /* eslint-disable no-nested-ternary */
 import React, {useState} from 'react';
-import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import {DeltaXYZ} from '@gd/NamedValues';
 import {INamedVector3, IPointOffsetTool} from '@gd/INamedValues';
@@ -40,6 +39,8 @@ import Direction from '@gdComponents/svgs/Direction';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import {numberToRgb, toFixedNoZero, isNumber} from '@app/utils/helpers';
+import EditableTypography from '@gdComponents/EditableTypography';
+import {useChanged} from '@hooks/useChanged';
 import {ValueField} from './ValueField';
 
 const Vector = React.memo(
@@ -73,31 +74,12 @@ const Vector = React.memo(
         (state: RootState) => state.uitgd.gdSceneState.selectedPoint
       ) ?? []
     ).at(0);
+    const pointChanged = useChanged(point?.point.nodeID, true);
     const sVector = vector.getStringValue();
 
     const [expanded, setExpanded] = React.useState<boolean>(false);
-    const [rename, setRename] = React.useState<boolean>(false);
     const [selected, setSelected] = React.useState<string>('');
-    const [focused, setFocused] = useState<boolean>(false);
-
-    const nameFormik = useFormik({
-      enableReinitialize: true,
-      initialValues: {
-        name: vector.name
-      },
-      validationSchema: Yup.object({
-        name: Yup.string()
-          .variableNameFirstChar()
-          .variableName()
-          .noMathFunctionsName()
-          .required('required')
-      }),
-      onSubmit: (values) => {
-        vector.name = values.name;
-        dispatch(updateAssembly(getRootAssembly(vector)));
-        setRename(false);
-      }
-    });
+    const [focus, setForcus] = React.useState<string>('');
 
     const formik = useFormik({
       enableReinitialize: true,
@@ -118,47 +100,20 @@ const Vector = React.memo(
       }
     });
 
-    React.useEffect(() => {
-      if (focused && !directionMode)
-        dispatch(setSelectedPoint({point: vector}));
-    }, [directionMode, dispatch, focused, vector]);
-
-    const ref = React.useRef<HTMLInputElement>(null);
     const refOfVectorField = React.useRef<HTMLInputElement>(null);
-
-    React.useEffect(() => {
-      if (rename) {
-        ref.current?.focus();
-      }
-    }, [rename]);
 
     React.useEffect(() => {
       if (
         point &&
+        pointChanged &&
         point.point.nodeID === vector.nodeID &&
-        !focused &&
+        focus === '' &&
         !point.noFocus
       ) {
         refOfVectorField.current?.focus();
+        setForcus('x');
       }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [point, vector.nodeID]);
-
-    const handleFocus = React.useCallback(() => {
-      setFocused(true);
-    }, []);
-
-    const handleChange = React.useCallback(
-      (event: React.ChangeEvent<HTMLInputElement>) => {
-        formik.handleChange(event);
-        setTimeout(formik.handleSubmit, 0);
-      },
-      [formik]
-    );
-
-    const handleBlur = React.useCallback(() => {
-      setFocused(false);
-    }, []);
+    }, [focus, point, pointChanged, vector.nodeID]);
 
     const handlePointOffsetToolAdd = React.useCallback(
       (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -194,55 +149,33 @@ const Vector = React.memo(
       [vector, dispatch, selected]
     );
 
-    const handleNameDblClick = React.useCallback(() => {
-      nameFormik.resetForm();
-      setRename(true);
-    }, [nameFormik]);
-
-    const onNameEnter = React.useCallback(
-      (e: React.KeyboardEvent<HTMLDivElement>) => {
-        if (e.key === 'Enter') {
-          nameFormik.handleSubmit();
-        }
-      },
-      [nameFormik]
-    );
-
-    const onNameBlur = React.useCallback(
-      (
-        e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement, Element>
-      ) => {
-        setRename(false);
-        nameFormik.handleBlur(e);
-      },
-      [nameFormik]
-    );
-
     const handleAccordionOpen = React.useCallback(() => {
       if (expanded) setSelected('');
       setExpanded((prev) => !prev);
     }, [expanded]);
 
-    const [focus, setForcus] = React.useState<string>('');
-
-    const handleForcus = (id: string) => {
+    const handleFocus = (id: string) => {
       return () => {
         setForcus(id);
+        if (!directionMode) dispatch(setSelectedPoint({point: vector}));
       };
     };
 
-    const onBlur = (e: any) => {
+    const handleChange = React.useCallback(
+      (event: React.ChangeEvent<HTMLInputElement>) => {
+        formik.handleChange(event);
+        setTimeout(formik.handleSubmit, 0);
+      },
+      [formik]
+    );
+
+    const handleBlur = (e: any) => {
       setForcus('');
       formik.handleBlur(e);
     };
 
     return (
-      <Box
-        component="div"
-        sx={{padding: 1}}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-      >
+      <Box component="div" sx={{padding: 1}}>
         <Toolbar
           sx={{
             pl: '0.3rem!important',
@@ -252,35 +185,34 @@ const Vector = React.memo(
             flex: '1'
           }}
         >
-          {!rename ? (
-            <Typography
-              sx={{flex: '1 1 100%'}}
-              color="inherit"
-              variant="subtitle1"
-              component="div"
-              onDoubleClick={handleNameDblClick}
-            >
-              {vector.name}
-            </Typography>
-          ) : (
-            <TextField
-              inputRef={ref}
-              onChange={nameFormik.handleChange}
-              // label="name"
-              name="name"
-              variant="outlined"
-              size="small"
-              onKeyDown={onNameEnter}
-              value={nameFormik.values.name}
-              onBlur={onNameBlur}
-              error={nameFormik.touched.name && Boolean(nameFormik.errors.name)}
-              helperText={nameFormik.touched.name && nameFormik.errors.name}
-              sx={{
+          <EditableTypography
+            typography={
+              <Typography
+                sx={{flex: '1 1 100%'}}
+                color="inherit"
+                variant="subtitle1"
+                component="div"
+              >
+                {vector.name}
+              </Typography>
+            }
+            initialValue={vector.name}
+            validation={Yup.string()
+              .variableNameFirstChar()
+              .variableName()
+              .noMathFunctionsName()
+              .required('required')}
+            onSubmit={(name) => {
+              vector.name = name;
+              dispatch(updateAssembly(getRootAssembly(vector)));
+            }}
+            textFieldProps={{
+              sx: {
                 '& legend': {display: 'none'},
                 '& fieldset': {top: 0}
-              }}
-            />
-          )}
+              }
+            }}
+          />
           {isNode && !disabled ? (
             <FormControlLabel
               sx={{margin: 0, whiteSpace: 'nowrap'}}
@@ -323,8 +255,8 @@ const Vector = React.memo(
               inputRef={refOfVectorField}
               disabled={disabled}
               onChange={handleChange}
-              onFocus={handleForcus('x')}
-              onBlur={onBlur}
+              onFocus={handleFocus('x')}
+              onBlur={handleBlur}
               label="X"
               name="x"
               variant="outlined"
@@ -340,8 +272,8 @@ const Vector = React.memo(
               unit={unit}
               disabled={disabled}
               onChange={handleChange}
-              onFocus={handleForcus('y')}
-              onBlur={onBlur}
+              onFocus={handleFocus('y')}
+              onBlur={handleBlur}
               label="Y"
               name="y"
               variant="outlined"
@@ -357,8 +289,8 @@ const Vector = React.memo(
               unit={unit}
               disabled={disabled}
               onChange={handleChange}
-              onFocus={handleForcus('z')}
-              onBlur={onBlur}
+              onFocus={handleFocus('z')}
+              onBlur={handleBlur}
               label="Z"
               name="z"
               variant="outlined"
