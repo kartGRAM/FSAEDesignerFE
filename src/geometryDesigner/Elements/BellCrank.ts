@@ -75,6 +75,7 @@ export class BellCrank extends Element implements IBellCrank {
   setCenterOfGravityAuto() {
     const points = [...this.fixedPoints, this.points[0], this.points[1]];
     this.centerOfGravity.value = points
+      .filter((p) => !p.meta.isFreeNode || p.meta.enclosed)
       .reduce((prev, current) => {
         prev.add(current.value);
         return prev;

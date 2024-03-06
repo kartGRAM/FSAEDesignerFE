@@ -232,11 +232,11 @@ const Vector = React.memo(
               sx={{margin: 0, whiteSpace: 'nowrap'}}
               control={
                 <Checkbox
-                  checked={!!vector.meta.enclosed}
+                  checked={!vector.meta.enclosed}
                   size="small"
                   onChange={(e) => {
                     const {checked} = e.target;
-                    vector.meta.enclosed = checked;
+                    vector.meta.enclosed = !checked;
                     dispatch(updateAssembly(getRootAssembly(vector)));
                   }}
                 />

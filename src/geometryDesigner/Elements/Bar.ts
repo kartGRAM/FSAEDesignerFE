@@ -110,6 +110,7 @@ export class Bar extends Element implements IBar {
   setCenterOfGravityAuto() {
     const points = [this.fixedPoint, this.point];
     this.centerOfGravity.value = points
+      .filter((p) => !p.meta.isFreeNode || p.meta.enclosed)
       .reduce((prev, current) => {
         prev.add(current.value);
         return prev;

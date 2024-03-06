@@ -134,6 +134,7 @@ export class TorsionSpring extends Element implements ITorsionSpring {
     const points = [...this.fixedPoints];
     if (points.length === 0) return;
     this.centerOfGravity.value = points
+      .filter((p) => !p.meta.isFreeNode || p.meta.enclosed)
       .reduce((prev, current) => {
         prev.add(current.value);
         return prev;
