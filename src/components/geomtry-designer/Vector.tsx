@@ -40,6 +40,7 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import {numberToRgb, toFixedNoZero, isNumber} from '@app/utils/helpers';
 import EditableTypography from '@gdComponents/EditableTypography';
+import {useChanged} from '@hooks/useChanged';
 import {ValueField} from './ValueField';
 
 const Vector = React.memo(
@@ -73,6 +74,7 @@ const Vector = React.memo(
         (state: RootState) => state.uitgd.gdSceneState.selectedPoint
       ) ?? []
     ).at(0);
+    const pointChanged = useChanged(point?.point.nodeID, true);
     const sVector = vector.getStringValue();
 
     const [expanded, setExpanded] = React.useState<boolean>(false);
@@ -104,13 +106,15 @@ const Vector = React.memo(
     React.useEffect(() => {
       if (
         point &&
+        pointChanged &&
         point.point.nodeID === vector.nodeID &&
-        focus !== '' &&
+        focus === '' &&
         !point.noFocus
       ) {
         refOfVectorField.current?.focus();
+        setForcus('x');
       }
-    }, [focus, point, vector.nodeID]);
+    }, [focus, point, pointChanged, vector.nodeID]);
 
     const handlePointOffsetToolAdd = React.useCallback(
       (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -153,8 +157,8 @@ const Vector = React.memo(
 
     const handleFocus = (id: string) => {
       return () => {
-        if (!directionMode) dispatch(setSelectedPoint({point: vector}));
         setForcus(id);
+        if (!directionMode) dispatch(setSelectedPoint({point: vector}));
       };
     };
 
