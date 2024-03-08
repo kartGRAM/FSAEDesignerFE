@@ -17,7 +17,8 @@ import {
   INamedVector3,
   INamedVector3RO,
   INamedMatrix3,
-  IPointOffsetTool
+  IPointOffsetTool,
+  IDataString
 } from '@gd/INamedValues';
 import {IOBB} from '@gd/IOBB';
 
@@ -99,7 +100,7 @@ export abstract class Element implements IElement {
 
   constructor(
     params:
-      | {name: string; autoCalculateCenterOfGravity?: boolean}
+      | {name: string | IDataString; autoCalculateCenterOfGravity?: boolean}
       | IDataElement
   ) {
     this._nodeID = uuidv4(); // ⇨ '2c5ea4c0-4067-11e9-8bad-9b1deb4d3b7d'

@@ -7,7 +7,12 @@ import {
   NamedNumber,
   NamedBooleanOrUndefined
 } from '@gd/NamedValues';
-import {IDataVector3, INamedVector3, FunctionVector3} from '@gd/INamedValues';
+import {
+  IDataVector3,
+  INamedVector3,
+  FunctionVector3,
+  IDataNumber
+} from '@gd/INamedValues';
 import {OBB} from '@gd/OBB';
 import {IOBB} from '@gd/IOBB';
 import {
@@ -140,7 +145,7 @@ export class Body extends Element implements IBody {
           fixedPoints: Array<FunctionVector3 | IDataVector3 | INamedVector3>;
           points: Array<FunctionVector3 | IDataVector3 | INamedVector3>;
           initialPosition?: FunctionVector3 | IDataVector3 | INamedVector3;
-          mass?: number;
+          mass?: number | IDataNumber;
           centerOfGravity?: FunctionVector3 | IDataVector3 | INamedVector3;
           autoCalculateCenterOfGravity?: boolean;
         }

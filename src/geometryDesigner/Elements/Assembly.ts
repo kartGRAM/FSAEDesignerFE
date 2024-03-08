@@ -13,7 +13,8 @@ import {
   IDataVector3,
   INamedVector3,
   INamedVector3RO,
-  FunctionVector3
+  FunctionVector3,
+  IDataString
 } from '@gd/INamedValues';
 import {
   isDataElement,
@@ -448,8 +449,8 @@ export class Assembly extends Element implements IAssembly {
   constructor(
     params:
       | {
-          name: string;
-          children: IElement[];
+          name: string | IDataString;
+          children: IElement[] | IDataElement[];
           joints: Joint[];
           initialPosition?: FunctionVector3 | IDataVector3 | INamedVector3;
           ignoreArrange?: boolean;
@@ -487,7 +488,9 @@ export class Assembly extends Element implements IAssembly {
     } else {
       if (params.arrangeCollected)
         this.arrangeCollected = params.arrangeCollected;
-      this._children = params.children;
+      this._children = params.children.map((e) =>
+        isDataElement(e) ? getElement(e) : e
+      );
       this.joints = params.joints;
       if (!params.ignoreArrange) {
         this._children.forEach((child) => {
