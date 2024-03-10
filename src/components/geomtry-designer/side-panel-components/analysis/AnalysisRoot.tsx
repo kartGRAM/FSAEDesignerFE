@@ -133,7 +133,7 @@ const TestRow = React.memo((props: {test: IDataTest}) => {
         })
       );
     });
-    dispatch(setConfirmDialogProps(undefined));
+
     if (ret === 'ok') {
       const dataTests = getDgd().analysis;
       dispatch(setTests(dataTests.filter((t) => t.nodeID !== test.nodeID)));

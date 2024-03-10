@@ -59,13 +59,6 @@ const ElementsTreeView = () => {
     ? dragExpanded[dragExpanded.length - 1]
     : '';
 
-  // 苦肉の策（nodeIDStateをそのまま使用するとアニメーションがカクつく）
-  /*
-  React.useEffect(() => {
-    setNodeID(nodeIDState);
-  }, [nodeIDState]);
-  */
-
   const fontColor = useSelector(
     (state: RootState) => state.uigd.assemblyTreeViewState.fontColor
   );
@@ -177,16 +170,6 @@ const ElementsTreeView = () => {
   );
 };
 
-interface MyTreeItemProps {
-  nodeId: string;
-  label: string;
-  children: PropsTreeNode[];
-  dragTo: string;
-  isAssembly: boolean;
-  isMirror: boolean;
-  isBodyOfFrame: boolean;
-}
-
 type PropsTreeNode = {
   nodeId: string;
   label: string;
@@ -223,70 +206,87 @@ function getPropsTree(element: IElement | undefined): PropsTreeNode {
   };
 }
 
-const MyTreeItem = React.memo((props: MyTreeItemProps) => {
-  const {nodeId, label, children, isAssembly, dragTo, isMirror, isBodyOfFrame} =
-    props;
-  const selectedColor = numberToRgb(
-    useSelector(
-      (state: RootState) => state.uigd.assemblyTreeViewState.selectedColor
-    )
-  );
-  const borderLeft = useSelector(
-    (state: RootState) => state.uigd.assemblyTreeViewState.borderLeft
-  );
-  // if (nodeId === dragTo) console.log(dragTo);
+const MyTreeItem = React.memo(
+  (props: {
+    nodeId: string;
+    label: string;
+    children: PropsTreeNode[];
+    dragTo: string;
+    isAssembly: boolean;
+    isMirror: boolean;
+    isBodyOfFrame: boolean;
+  }) => {
+    const {
+      nodeId,
+      label,
+      children,
+      isAssembly,
+      dragTo,
+      isMirror,
+      isBodyOfFrame
+    } = props;
+    const selectedColor = numberToRgb(
+      useSelector(
+        (state: RootState) => state.uigd.assemblyTreeViewState.selectedColor
+      )
+    );
+    const borderLeft = useSelector(
+      (state: RootState) => state.uigd.assemblyTreeViewState.borderLeft
+    );
+    // if (nodeId === dragTo) console.log(dragTo);
 
-  const childNodes = children.map((child) => {
-    return <MyTreeItem {...child} key={child.nodeId} dragTo={dragTo} />;
-  });
+    const childNodes = children.map((child) => {
+      return <MyTreeItem {...child} key={child.nodeId} dragTo={dragTo} />;
+    });
 
-  if (nodeId === dragTo) childNodes.push(<TemporaryNode key="temporary" />);
+    if (nodeId === dragTo) childNodes.push(<TemporaryNode key="temporary" />);
 
-  return (
-    <TreeItem
-      // キーボード操作が不可能になる。将来的には調整
-      onFocusCapture={(e) => e.stopPropagation()}
-      nodeId={nodeId}
-      label={
-        <MyLabel
-          label={label}
-          absPath={nodeId}
-          isAssembly={isAssembly}
-          isMirror={isMirror}
-          isBodyOfFrame={isBodyOfFrame}
-        />
-      }
-      sx={{
-        [`& .${treeItemClasses.iconContainer}`]: {
-          '& .close': {
-            opacity: 0.3
-          }
-        },
-        [`& .${treeItemClasses.group}`]: {
-          marginLeft: 2,
-          paddingLeft: 1,
-          borderLeft
-        },
-        [`& .Mui-focused`]: {
-          backgroundColor: `${alpha(selectedColor, 0.2)}!important`,
-          transition: 'all 0.3s 0s ease'
-        },
-        [`& .${treeItemClasses.selected}`]: {
-          backgroundColor: `${alpha(selectedColor, 0.8)}!important`,
-          transition: 'all 0.3s 0s ease',
-          '&:hover': {
-            backgroundColor: `${alpha(selectedColor, 0.8)}!important`
-          },
-          [`& .${treeItemClasses.focused}`]: {
-            backgroundColor: `${alpha(selectedColor, 0.8)}!important`
-          }
+    return (
+      <TreeItem
+        // キーボード操作が不可能になる。将来的には調整
+        onFocusCapture={(e) => e.stopPropagation()}
+        nodeId={nodeId}
+        label={
+          <MyLabel
+            label={label}
+            absPath={nodeId}
+            isAssembly={isAssembly}
+            isMirror={isMirror}
+            isBodyOfFrame={isBodyOfFrame}
+          />
         }
-      }}
-    >
-      {childNodes}
-    </TreeItem>
-  );
-});
+        sx={{
+          [`& .${treeItemClasses.iconContainer}`]: {
+            '& .close': {
+              opacity: 0.3
+            }
+          },
+          [`& .${treeItemClasses.group}`]: {
+            marginLeft: 2,
+            paddingLeft: 1,
+            borderLeft
+          },
+          [`& .Mui-focused`]: {
+            backgroundColor: `${alpha(selectedColor, 0.2)}!important`,
+            transition: 'all 0.3s 0s ease'
+          },
+          [`& .${treeItemClasses.selected}`]: {
+            backgroundColor: `${alpha(selectedColor, 0.8)}!important`,
+            transition: 'all 0.3s 0s ease',
+            '&:hover': {
+              backgroundColor: `${alpha(selectedColor, 0.8)}!important`
+            },
+            [`& .${treeItemClasses.focused}`]: {
+              backgroundColor: `${alpha(selectedColor, 0.8)}!important`
+            }
+          }
+        }}
+      >
+        {childNodes}
+      </TreeItem>
+    );
+  }
+);
 
 const TemporaryNode = React.memo(() => {
   const selectedColor = numberToRgb(
@@ -370,6 +370,23 @@ const TrashNode = React.memo(() => {
       if (!element || !element.parent) return;
       const state = store.getState().uitgd;
       const zIndex = state.fullScreenZIndex + state.dialogZIndex;
+      if (element.meta?.mirror) {
+        await new Promise<string>((resolve) => {
+          dispatch(
+            setConfirmDialogProps({
+              zindex: zIndex,
+              onClose: resolve,
+              title: 'Error',
+              message: `Mirror components cannot be deleted.
+                        Please perform "tools => unlink mirror" before
+                        attempting to delete it.`,
+              buttons: [{text: 'OK', res: 'ok'}]
+            })
+          );
+        });
+        return;
+      }
+
       const ret = await new Promise<string>((resolve) => {
         dispatch(
           setConfirmDialogProps({
@@ -384,7 +401,6 @@ const TrashNode = React.memo(() => {
           })
         );
       });
-      dispatch(setConfirmDialogProps(undefined));
       if (ret === 'ok') {
         element.parent.children = element.parent.children.filter(
           (child) => child.nodeID !== element.nodeID

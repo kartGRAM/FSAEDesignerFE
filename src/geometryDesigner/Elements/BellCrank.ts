@@ -53,7 +53,7 @@ export class BellCrank extends Element implements IBellCrank {
   getOBB() {
     return new OBB().setFromVertices(
       this.getPoints()
-        .filter((n) => !n.meta.isFreeNode)
+        .filter((n) => !n.meta.isFreeNode || n.meta.enclosed)
         .map((n) => n.value)
     );
   }
@@ -75,6 +75,7 @@ export class BellCrank extends Element implements IBellCrank {
   setCenterOfGravityAuto() {
     const points = [...this.fixedPoints, this.points[0], this.points[1]];
     this.centerOfGravity.value = points
+      .filter((p) => !p.meta.isFreeNode || p.meta.enclosed)
       .reduce((prev, current) => {
         prev.add(current.value);
         return prev;
@@ -234,24 +235,23 @@ export class BellCrank extends Element implements IBellCrank {
   }
 
   getDataElement(): IDataBellCrank {
-    const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
-    const mir = this.getAnotherElement(mirror);
-    const baseData = super.getDataElementBase(mir);
+    const original = this.syncMirror();
+    const baseData = super.getDataElementBase(original);
 
-    if (mir && isBellCrank(mir)) {
-      return {
-        ...baseData,
-        fixedPoints: [
-          this.fixedPoints[0].setValue(mirrorVec(mir.fixedPoints[0])).getData(),
-          this.fixedPoints[1].setValue(mirrorVec(mir.fixedPoints[1])).getData()
-        ],
-        points: syncPointsMirror(this.points, mir.points)
-      };
-    }
     return {
       ...baseData,
       fixedPoints: this.fixedPoints.map((point) => point.getData()),
       points: this.points.map((point) => point.getData())
     };
+  }
+
+  syncMirror() {
+    const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
+    const original = this.getAnotherElement(mirror);
+    if (!original || !isBellCrank(original)) return null;
+    this.fixedPoints[0].setValue(mirrorVec(original.fixedPoints[0]));
+    this.fixedPoints[1].setValue(mirrorVec(original.fixedPoints[1]));
+    this.points = syncPointsMirror(this.points, original.points) as any;
+    return original;
   }
 }

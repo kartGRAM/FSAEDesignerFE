@@ -71,7 +71,7 @@ export class TorsionSpring extends Element implements ITorsionSpring {
   getOBB() {
     return new OBB().setFromVertices(
       this.getPoints()
-        .filter((n) => !n.meta.isFreeNode)
+        .filter((n) => !n.meta.isFreeNode || n.meta.enclosed)
         .map((n) => n.value)
     );
   }
@@ -134,6 +134,7 @@ export class TorsionSpring extends Element implements ITorsionSpring {
     const points = [...this.fixedPoints];
     if (points.length === 0) return;
     this.centerOfGravity.value = points
+      .filter((p) => !p.meta.isFreeNode || p.meta.enclosed)
       .reduce((prev, current) => {
         prev.add(current.value);
         return prev;
@@ -296,23 +297,10 @@ export class TorsionSpring extends Element implements ITorsionSpring {
   }
 
   getDataElement(): IDataTorsionSpring {
-    const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
-    const mir = this.getAnotherElement(mirror);
-    const baseData = super.getDataElementBase(mir);
+    const original = this.syncMirror();
+    const baseData = super.getDataElementBase(original);
     const {dlCurrentNodeID} = this;
 
-    if (mir && isTorsionSpring(mir)) {
-      return {
-        ...baseData,
-        fixedPoints: [
-          this.fixedPoints[0].setValue(mirrorVec(mir.fixedPoints[0])).getData(),
-          this.fixedPoints[1].setValue(mirrorVec(mir.fixedPoints[1])).getData()
-        ],
-        effortPoints: this.effortPoints.map((to) => to.getData()),
-        k: mir.k.getData(),
-        dlCurrentNodeID
-      };
-    }
     return {
       ...baseData,
       fixedPoints: this.fixedPoints.map((point) => point.getData()),
@@ -320,5 +308,18 @@ export class TorsionSpring extends Element implements ITorsionSpring {
       k: this.k.getData(),
       dlCurrentNodeID
     };
+  }
+
+  syncMirror() {
+    const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
+    const original = this.getAnotherElement(mirror);
+    if (!original || !isTorsionSpring(original)) return null;
+    this.fixedPoints.forEach((p, i) =>
+      p.setValue(mirrorVec(original.fixedPoints[i]))
+    );
+    this.effortPoints.forEach((p, i) =>
+      p.setValue(mirrorVec(original.effortPoints[i]))
+    );
+    return original;
   }
 }

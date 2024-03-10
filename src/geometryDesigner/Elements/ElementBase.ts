@@ -13,11 +13,11 @@ import {
 } from '@gd/NamedValues';
 import {
   INamedNumberRO,
-  IDataVector3,
   INamedVector3,
   INamedVector3RO,
   INamedMatrix3,
-  IPointOffsetTool
+  IPointOffsetTool,
+  IDataString
 } from '@gd/INamedValues';
 import {IOBB} from '@gd/IOBB';
 
@@ -99,10 +99,14 @@ export abstract class Element implements IElement {
 
   constructor(
     params:
-      | {name: string; autoCalculateCenterOfGravity?: boolean}
+      | {
+          name: string | IDataString;
+          autoCalculateCenterOfGravity?: boolean;
+          nodeID?: string;
+        }
       | IDataElement
   ) {
-    this._nodeID = uuidv4(); // ⇨ '2c5ea4c0-4067-11e9-8bad-9b1deb4d3b7d'
+    this._nodeID = params.nodeID ?? uuidv4(); // ⇨ '2c5ea4c0-4067-11e9-8bad-9b1deb4d3b7d'
     const {name, autoCalculateCenterOfGravity} = params;
     this.name = new NamedString({
       name: 'name',
@@ -124,13 +128,13 @@ export abstract class Element implements IElement {
       }
     });
     if (isDataElement(params)) {
-      const element = params;
-      this._nodeID = element.nodeID;
       if (params.mirrorTo) {
         assignMeta(this, {mirror: {to: params.mirrorTo}});
       }
     }
   }
+
+  abstract syncMirror(): IElement | null;
 
   getPointsNodeIDs(): string[] {
     return this.getPoints().map((p) => p.nodeID);
@@ -268,8 +272,8 @@ export const mirrorVec = (
   inplace: boolean = false
 ): INamedVector3 => {
   const v = inplace ? vec : new NamedVector3({value: vec});
+  v.meta = {...vec.meta};
   v.meta.mirrorTo = vec.nodeID;
-  v.meta.isFreeNode = vec.meta.isFreeNode;
 
   (v.y as NamedNumber).setValue(minus(v.y.getStringValue()));
   v.pointOffsetTools?.forEach((tool) => getMirrorPOT(tool));
@@ -300,23 +304,20 @@ export const getMirrorPOT = (tool: IPointOffsetTool): void => {
 };
 
 export const syncPointsMirror = (
-  mirTo: NamedVector3[],
-  mirFrom: INamedVector3[]
-): IDataVector3[] => {
-  const listP = mirTo.reduce(
-    (obj, x) =>
-      Object.assign(obj, {
-        [x.meta.mirrorTo ?? 'なぜかミラー設定されていない']: x
-      }),
-    {} as {[name: string]: INamedVector3}
-  );
-  return mirFrom.map((v) => {
-    if (Object.keys(listP).includes(v.nodeID)) {
-      const mirrorV = mirrorVec(v);
-      const tmp = listP[v.nodeID].setValue(mirrorV);
-      tmp.meta = {...mirrorV.meta};
-      return tmp.getData();
+  mirTo: INamedVector3[],
+  original: INamedVector3[]
+): INamedVector3[] => {
+  const listP = mirTo.reduce((prev, x) => {
+    const to = x.meta.mirrorTo;
+    if (!to) throw new Error('なぜかミラー設定されていない');
+    prev[to] = x;
+    return prev;
+  }, {} as {[name: string]: INamedVector3});
+  return original.map((v) => {
+    const mirrorV = listP[v.nodeID];
+    if (mirrorV) {
+      return mirrorV.setValue(mirrorVec(v));
     }
-    return mirrorVec(v).getData();
+    return new NamedVector3({value: mirrorVec(v)});
   });
 };

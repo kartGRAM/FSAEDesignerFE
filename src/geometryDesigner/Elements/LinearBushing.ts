@@ -77,7 +77,7 @@ export class LinearBushing extends Element implements ILinearBushing {
   getOBB() {
     return new OBB().setFromVertices(
       this.getPoints()
-        .filter((n) => !n.meta.isFreeNode)
+        .filter((n) => !n.meta.isFreeNode || n.meta.enclosed)
         .map((n) => n.value)
     );
   }
@@ -204,6 +204,7 @@ export class LinearBushing extends Element implements ILinearBushing {
     const points = [...this.fixedPoints];
     if (points.length === 0) return;
     this.centerOfGravity.value = points
+      .filter((p) => !p.meta.isFreeNode || p.meta.enclosed)
       .reduce((prev, current) => {
         prev.add(current.value);
         return prev;
@@ -381,24 +382,9 @@ export class LinearBushing extends Element implements ILinearBushing {
   }
 
   getDataElement(): IDataLinearBushing {
-    const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
-    const mir = this.getAnotherElement(mirror);
-    const baseData = super.getDataElementBase(mir);
+    const original = this.syncMirror();
+    const baseData = super.getDataElementBase(original);
     const {dlCurrentNodeID} = this;
-
-    if (mir && isLinearBushing(mir)) {
-      return {
-        ...baseData,
-        fixedPoints: [
-          this.fixedPoints[0].setValue(mirrorVec(mir.fixedPoints[0])).getData(),
-          this.fixedPoints[1].setValue(mirrorVec(mir.fixedPoints[1])).getData()
-        ],
-        toPoints: this.toPoints.map((to) => to.getData()),
-        dlCurrentNodeID,
-        dlMin: this.dlMin.getData(),
-        dlMax: this.dlMax.getData()
-      };
-    }
     return {
       ...baseData,
       fixedPoints: this.fixedPoints.map((point) => point.getData()),
@@ -407,5 +393,14 @@ export class LinearBushing extends Element implements ILinearBushing {
       dlMin: this.dlMin.getData(),
       dlMax: this.dlMax.getData()
     };
+  }
+
+  syncMirror() {
+    const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
+    const original = this.getAnotherElement(mirror);
+    if (!original || !isLinearBushing(original)) return null;
+    this.fixedPoints[0].setValue(mirrorVec(original.fixedPoints[0]));
+    this.fixedPoints[1].setValue(mirrorVec(original.fixedPoints[1]));
+    return original;
   }
 }

@@ -79,7 +79,7 @@ export const FlowNodeDialog = React.memo(
             })
           );
         });
-        dispatch(setConfirmDialogProps(undefined));
+
         if (ret !== 'ok') {
           return;
         }

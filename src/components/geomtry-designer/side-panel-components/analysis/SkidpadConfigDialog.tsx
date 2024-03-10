@@ -91,7 +91,7 @@ export const SkidpadConfigDialog = React.memo(
             })
           );
         });
-        dispatch(setConfirmDialogProps(undefined));
+
         if (ret !== 'ok') {
           return;
         }

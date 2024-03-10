@@ -13,7 +13,8 @@ import {
   IDataVector3,
   INamedVector3,
   INamedVector3RO,
-  FunctionVector3
+  FunctionVector3,
+  IDataString
 } from '@gd/INamedValues';
 import {
   isDataElement,
@@ -448,8 +449,8 @@ export class Assembly extends Element implements IAssembly {
   constructor(
     params:
       | {
-          name: string;
-          children: IElement[];
+          name: string | IDataString;
+          children: IElement[] | IDataElement[];
           joints: Joint[];
           initialPosition?: FunctionVector3 | IDataVector3 | INamedVector3;
           ignoreArrange?: boolean;
@@ -487,7 +488,9 @@ export class Assembly extends Element implements IAssembly {
     } else {
       if (params.arrangeCollected)
         this.arrangeCollected = params.arrangeCollected;
-      this._children = params.children;
+      this._children = params.children.map((e) =>
+        isDataElement(e) ? getElement(e) : e
+      );
       this.joints = params.joints;
       if (!params.ignoreArrange) {
         this._children.forEach((child) => {
@@ -499,53 +502,8 @@ export class Assembly extends Element implements IAssembly {
   }
 
   getDataElement(): IDataAssembly | undefined {
-    const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
-    const mir = this.getAnotherElement(mirror);
-    const baseData = super.getDataElementBase(mir);
-
-    if (mir && isAssembly(mir)) {
-      if (!isMirror(this.parent) && mir.parent !== this.parent)
-        return undefined;
-      const myChildren = this.children.reduce(
-        (obj, x) =>
-          Object.assign(obj, {
-            [x.meta?.mirror?.to ?? 'なぜかミラー設定されていない']: x
-          }),
-        {} as {[name: string]: IElement}
-      );
-
-      let pointsNodeIDs: string[] = [];
-      const children = mir.children
-        .map((child) => {
-          if (Object.keys(myChildren).includes(child.nodeID)) {
-            const myChild = myChildren[child.nodeID];
-            pointsNodeIDs = [...pointsNodeIDs, ...myChild.getPointsNodeIDs()];
-            return myChild.getDataElement();
-          }
-          const myChild = child.getMirror();
-          myChild.parent = this;
-          pointsNodeIDs = [...pointsNodeIDs, ...myChild.getPointsNodeIDs()];
-          return myChild.getDataElement();
-        })
-        .filter((child) => child !== undefined) as IDataElement[];
-
-      const mirPoints = mir.getAllPointsNodeIDsOfChildren();
-
-      const joints = mir.joints.map((joint) => {
-        return {
-          lhs: pointsNodeIDs[mirPoints.findIndex((p) => p === joint.lhs)],
-          rhs: pointsNodeIDs[mirPoints.findIndex((p) => p === joint.rhs)]
-        };
-      });
-      return {
-        ...baseData,
-        visible: this.visible.getData(),
-        isDataAssembly: true,
-        children,
-        joints
-        // joints: []
-      };
-    }
+    const original = this.syncMirror();
+    const baseData = super.getDataElementBase(original);
     return {
       ...baseData,
       isDataAssembly: true,
@@ -556,5 +514,38 @@ export class Assembly extends Element implements IAssembly {
         return {lhs: joint.lhs, rhs: joint.rhs};
       })
     };
+  }
+
+  syncMirror() {
+    const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
+    const original = this.getAnotherElement(mirror);
+    if (!original || !isAssembly(original)) return null;
+    if (!isMirror(this.parent) && original.parent !== this.parent) return null;
+
+    const myChildren = this.children.reduce((prev, x) => {
+      const to = x.meta?.mirror?.to;
+      if (!to) throw new Error('なぜかミラー設定されていない');
+      prev[to] = x;
+      return prev;
+    }, {} as {[name: string]: IElement});
+
+    let pointsNodeIDs: string[] = [];
+    this.children = original.children.map((originalChild) => {
+      const myChild =
+        myChildren[originalChild.nodeID] ?? originalChild.getMirror();
+      myChild.parent = this;
+      myChild.syncMirror();
+      pointsNodeIDs = [...pointsNodeIDs, ...myChild.getPointsNodeIDs()];
+      return myChild;
+    });
+    // .filter((child) => child !== undefined) as IDataElement[];
+
+    const originalPoints = original.getAllPointsNodeIDsOfChildren();
+
+    this.joints = original.joints.map((joint) => ({
+      lhs: pointsNodeIDs[originalPoints.findIndex((p) => p === joint.lhs)],
+      rhs: pointsNodeIDs[originalPoints.findIndex((p) => p === joint.rhs)]
+    }));
+    return original;
   }
 }

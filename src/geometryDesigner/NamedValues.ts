@@ -424,7 +424,8 @@ export class NamedVector3LW extends NamedValue implements INamedVector3LW {
     if (isNamedData(value)) {
       this.meta = {
         mirrorTo: value.mirrorTo,
-        isFreeNode: value.isFreeNode
+        isFreeNode: value.isFreeNode,
+        enclosed: value.enclosed
       };
     } else if (isNamedValue(value)) {
       this.meta = {...value.meta};
@@ -440,7 +441,8 @@ export class NamedVector3LW extends NamedValue implements INamedVector3LW {
       y: this.y.getData(),
       z: this.z.getData(),
       mirrorTo: this.meta.mirrorTo,
-      isFreeNode: this.meta.isFreeNode
+      isFreeNode: this.meta.isFreeNode,
+      enclosed: this.meta.enclosed
     };
   }
 }
@@ -515,6 +517,7 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
           this.pointOffsetTools = newValue.pointOffsetTools.map((tool) =>
             tool.copy(this)
           );
+          this.meta = {...newValue.meta, mirrorTo: this.meta.mirrorTo};
         }
       });
     this.x = new NamedNumber({
@@ -538,7 +541,8 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
     if (isNamedData(value)) {
       this.meta = {
         mirrorTo: value.mirrorTo,
-        isFreeNode: value.isFreeNode
+        isFreeNode: value.isFreeNode,
+        enclosed: value.enclosed
       };
 
       if (value.pointOffsetTools) {
@@ -566,7 +570,8 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
       z: this.z.getData(),
       pointOffsetTools: this.pointOffsetTools?.map((tool) => tool.getData()),
       mirrorTo: this.meta.mirrorTo,
-      isFreeNode: this.meta.isFreeNode
+      isFreeNode: this.meta.isFreeNode,
+      enclosed: this.meta.enclosed
     };
   }
 }

@@ -29,7 +29,7 @@ interface Params {
   element: IBody;
 }
 
-export default function AArmConfig(params: Params) {
+export default function BodyConfig(params: Params) {
   const {element} = params;
   const isMirror = isMirrorElement(element);
 

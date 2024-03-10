@@ -186,13 +186,9 @@ const Vector = React.memo(
           }}
         >
           <EditableTypography
+            boxProps={{sx: {flex: '1 1 100%'}}}
             typography={
-              <Typography
-                sx={{flex: '1 1 100%'}}
-                color="inherit"
-                variant="subtitle1"
-                component="div"
-              >
+              <Typography color="inherit" variant="subtitle1" component="div">
                 {vector.name}
               </Typography>
             }
@@ -208,6 +204,7 @@ const Vector = React.memo(
             }}
             textFieldProps={{
               sx: {
+                flexGrow: 1,
                 '& legend': {display: 'none'},
                 '& fieldset': {top: 0}
               }
@@ -228,6 +225,23 @@ const Vector = React.memo(
                 />
               }
               label="free node"
+            />
+          ) : null}
+          {!disabled && vector.meta.isFreeNode ? (
+            <FormControlLabel
+              sx={{margin: 0, whiteSpace: 'nowrap'}}
+              control={
+                <Checkbox
+                  checked={!vector.meta.enclosed}
+                  size="small"
+                  onChange={(e) => {
+                    const {checked} = e.target;
+                    vector.meta.enclosed = !checked;
+                    dispatch(updateAssembly(getRootAssembly(vector)));
+                  }}
+                />
+              }
+              label="exclude from the body."
             />
           ) : null}
           {removable && !disabled ? (

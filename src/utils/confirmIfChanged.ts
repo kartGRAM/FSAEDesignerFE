@@ -1,4 +1,4 @@
-import {Dispatch, AnyAction} from 'redux';
+import {useDispatch} from 'react-redux';
 import {
   setConfirmDialogProps,
   setSaveAsDialogProps
@@ -6,7 +6,7 @@ import {
 import store from '@store/store';
 
 export default async function confirmIfChanged(
-  dispatch: Dispatch<AnyAction>,
+  dispatch: ReturnType<typeof useDispatch>,
   next: (() => void) | null,
   zindex?: number
 ) {
@@ -28,7 +28,7 @@ export default async function confirmIfChanged(
         })
       );
     });
-    dispatch(setConfirmDialogProps(undefined));
+
     if (ret === 'yes') {
       const ret = await new Promise<string>((resolve) => {
         dispatch(

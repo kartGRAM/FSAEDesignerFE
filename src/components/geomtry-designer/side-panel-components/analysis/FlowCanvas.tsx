@@ -140,7 +140,7 @@ export const FlowCanvas = React.memo(
             })
           );
         });
-        dispatch(setConfirmDialogProps(undefined));
+
         if (ret === 'save') {
           handleApply();
           setOpen(false);
@@ -493,7 +493,7 @@ const Content = React.memo((props: {test: ITest}) => {
               })
             );
           });
-          dispatch(setConfirmDialogProps(undefined));
+
           if (ret === 'ok') {
             test.removeNode(item);
             return true;

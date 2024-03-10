@@ -7,7 +7,12 @@ import {
   NamedNumber,
   NamedBooleanOrUndefined
 } from '@gd/NamedValues';
-import {IDataVector3, INamedVector3, FunctionVector3} from '@gd/INamedValues';
+import {
+  IDataVector3,
+  INamedVector3,
+  FunctionVector3,
+  IDataNumber
+} from '@gd/INamedValues';
 import {OBB} from '@gd/OBB';
 import {IOBB} from '@gd/IOBB';
 import {
@@ -33,9 +38,9 @@ export class Body extends Element implements IBody {
 
   centerOfGravity: NamedVector3;
 
-  fixedPoints: Array<NamedVector3>;
+  fixedPoints: Array<INamedVector3>;
 
-  points: Array<NamedVector3>;
+  points: Array<INamedVector3>;
 
   initialPosition: NamedVector3;
 
@@ -47,7 +52,7 @@ export class Body extends Element implements IBody {
 
   getOBB() {
     const points = this.getPoints()
-      .filter((n) => !n.meta.isFreeNode)
+      .filter((n) => !n.meta.isFreeNode || n.meta.enclosed)
       .map((n) => n.value);
     const obb = new OBB();
     if (points.length > 1) obb.setFromVertices(points);
@@ -72,6 +77,7 @@ export class Body extends Element implements IBody {
     const points = [...this.fixedPoints, ...this.points];
     if (points.length === 0) return;
     this.centerOfGravity.value = points
+      .filter((p) => !p.meta.isFreeNode || p.meta.enclosed)
       .reduce((prev, current) => {
         prev.add(current.value);
         return prev;
@@ -139,7 +145,7 @@ export class Body extends Element implements IBody {
           fixedPoints: Array<FunctionVector3 | IDataVector3 | INamedVector3>;
           points: Array<FunctionVector3 | IDataVector3 | INamedVector3>;
           initialPosition?: FunctionVector3 | IDataVector3 | INamedVector3;
-          mass?: number;
+          mass?: number | IDataNumber;
           centerOfGravity?: FunctionVector3 | IDataVector3 | INamedVector3;
           autoCalculateCenterOfGravity?: boolean;
         }
@@ -206,23 +212,23 @@ export class Body extends Element implements IBody {
     if (bIsBodyOfFrame) {
       this.name.value = `bodyObject_${this.parent?.name.value}`;
     }
-    const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
-    const mir = this.getAnotherElement(mirror);
-    const baseData = super.getDataElementBase(mir);
+    const original = this.syncMirror();
+    const baseData = super.getDataElementBase(original);
 
-    if (mir && isBody(mir)) {
-      return {
-        ...baseData,
-        fixedPoints: syncPointsMirror(this.fixedPoints, mir.fixedPoints),
-        points: syncPointsMirror(this.points, mir.points),
-        isBodyOfFrame: bIsBodyOfFrame
-      };
-    }
     return {
       ...baseData,
       fixedPoints: this.fixedPoints.map((point) => point.getData()),
       points: this.points.map((point) => point.getData()),
       isBodyOfFrame: bIsBodyOfFrame
     };
+  }
+
+  syncMirror() {
+    const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
+    const original = this.getAnotherElement(mirror);
+    if (!original || !isBody(original)) return null;
+    this.fixedPoints = syncPointsMirror(this.fixedPoints, original.fixedPoints);
+    this.points = syncPointsMirror(this.points, original.points);
+    return original;
   }
 }

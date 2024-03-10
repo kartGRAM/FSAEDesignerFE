@@ -105,6 +105,7 @@ export interface IDataNumberLW extends IData<number> {}
 export interface IMetaNamedVector3 {
   mirrorTo?: string;
   isFreeNode?: boolean;
+  enclosed?: boolean;
 }
 
 export interface INamedVector3RO extends Omit<INamedValue, 'getData'> {
@@ -113,6 +114,7 @@ export interface INamedVector3RO extends Omit<INamedValue, 'getData'> {
   readonly z: INamedNumberRO;
   value: Vector3;
   meta: IMetaNamedVector3;
+  enclosed?: boolean;
 }
 
 export function isNamedVector3RO(value: any): value is INamedVector3RO {
@@ -138,6 +140,7 @@ export interface IDataVector3LW extends INamedData {
   z: IDataNumberLW;
   mirrorTo?: string;
   isFreeNode?: boolean;
+  enclosed?: boolean;
 }
 
 export interface INamedVector3 extends INamedVector3RO {
@@ -175,6 +178,7 @@ export interface IDataVector3 extends INamedData {
   pointOffsetTools?: IDataPointOffsetTool[];
   mirrorTo?: string;
   isFreeNode?: boolean;
+  enclosed?: boolean;
 }
 
 export interface INamedMatrix3 extends INamedValue {
