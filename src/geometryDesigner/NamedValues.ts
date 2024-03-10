@@ -517,6 +517,7 @@ export class NamedVector3 extends NamedValue implements INamedVector3 {
           this.pointOffsetTools = newValue.pointOffsetTools.map((tool) =>
             tool.copy(this)
           );
+          this.meta = {...newValue.meta, mirrorTo: this.meta.mirrorTo};
         }
       });
     this.x = new NamedNumber({

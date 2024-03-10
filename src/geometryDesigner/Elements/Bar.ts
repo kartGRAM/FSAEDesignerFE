@@ -220,23 +220,21 @@ export class Bar extends Element implements IBar {
   }
 
   getDataElement(): IDataBar {
-    const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
-    const mir = this.getAnotherElement(mirror);
-    const baseData = super.getDataElementBase(mir);
-
-    if (mir && isBar(mir)) {
-      return {
-        ...baseData,
-        fixedPoint: this.fixedPoint
-          .setValue(mirrorVec(mir.fixedPoint))
-          .getData(),
-        point: this.point.setValue(mirrorVec(mir.point)).getData()
-      };
-    }
+    const original = this.syncMirror();
+    const baseData = super.getDataElementBase(original);
     return {
       ...baseData,
       fixedPoint: this.fixedPoint.getData(),
       point: this.point.getData()
     };
+  }
+
+  syncMirror() {
+    const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
+    const original = this.getAnotherElement(mirror);
+    if (!original || !isBar(original)) return null;
+    this.fixedPoint.setValue(mirrorVec(original.fixedPoint));
+    this.point.setValue(mirrorVec(original.point));
+    return original;
   }
 }

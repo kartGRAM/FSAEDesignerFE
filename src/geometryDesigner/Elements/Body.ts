@@ -38,9 +38,9 @@ export class Body extends Element implements IBody {
 
   centerOfGravity: NamedVector3;
 
-  fixedPoints: Array<NamedVector3>;
+  fixedPoints: Array<INamedVector3>;
 
-  points: Array<NamedVector3>;
+  points: Array<INamedVector3>;
 
   initialPosition: NamedVector3;
 
@@ -212,23 +212,23 @@ export class Body extends Element implements IBody {
     if (bIsBodyOfFrame) {
       this.name.value = `bodyObject_${this.parent?.name.value}`;
     }
-    const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
-    const mir = this.getAnotherElement(mirror);
-    const baseData = super.getDataElementBase(mir);
+    const original = this.syncMirror();
+    const baseData = super.getDataElementBase(original);
 
-    if (mir && isBody(mir)) {
-      return {
-        ...baseData,
-        fixedPoints: syncPointsMirror(this.fixedPoints, mir.fixedPoints),
-        points: syncPointsMirror(this.points, mir.points),
-        isBodyOfFrame: bIsBodyOfFrame
-      };
-    }
     return {
       ...baseData,
       fixedPoints: this.fixedPoints.map((point) => point.getData()),
       points: this.points.map((point) => point.getData()),
       isBodyOfFrame: bIsBodyOfFrame
     };
+  }
+
+  syncMirror() {
+    const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
+    const original = this.getAnotherElement(mirror);
+    if (!original || !isBody(original)) return null;
+    this.fixedPoints = syncPointsMirror(this.fixedPoints, original.fixedPoints);
+    this.points = syncPointsMirror(this.points, original.points);
+    return original;
   }
 }

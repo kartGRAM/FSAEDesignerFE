@@ -42,7 +42,7 @@ export class AArm extends Element implements IAArm {
 
   fixedPoints: [NamedVector3, NamedVector3];
 
-  points: AtLeast1<NamedVector3>;
+  points: AtLeast1<INamedVector3>;
 
   obb: IOBB;
 
@@ -257,24 +257,23 @@ export class AArm extends Element implements IAArm {
   }
 
   getDataElement(): IDataAArm {
-    const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
-    const mir = this.getAnotherElement(mirror);
-    const baseData = super.getDataElementBase(mir);
+    const original = this.syncMirror();
+    const baseData = super.getDataElementBase(original);
 
-    if (mir && isAArm(mir)) {
-      return {
-        ...baseData,
-        fixedPoints: [
-          this.fixedPoints[0].setValue(mirrorVec(mir.fixedPoints[0])).getData(),
-          this.fixedPoints[1].setValue(mirrorVec(mir.fixedPoints[1])).getData()
-        ],
-        points: syncPointsMirror(this.points, mir.points)
-      };
-    }
     return {
       ...baseData,
       fixedPoints: this.fixedPoints.map((point) => point.getData()),
       points: this.points.map((point) => point.getData())
     };
+  }
+
+  syncMirror() {
+    const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
+    const original = this.getAnotherElement(mirror);
+    if (!original || !isAArm(original)) return null;
+    this.fixedPoints[0].setValue(mirrorVec(original.fixedPoints[0]));
+    this.fixedPoints[1].setValue(mirrorVec(original.fixedPoints[1]));
+    this.points = syncPointsMirror(this.points, original.points) as any;
+    return original;
   }
 }

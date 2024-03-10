@@ -50,6 +50,68 @@ export type Elements =
   | 'LinearBushing'
   | 'TorsionSpring';
 
+export interface IElement extends IBidirectionalNode {
+  readonly isElement: true;
+  readonly className: Elements;
+  readonly name: INamedString;
+  readonly inertialTensor: INamedMatrix3;
+  readonly mass: INamedNumber;
+  readonly centerOfGravity: INamedVector3;
+  readonly autoCalculateCenterOfGravity: INamedBoolean;
+  readonly visible: INamedBooleanOrUndefined;
+  parent: IAssembly | null;
+  readonly controllable?: boolean;
+  readonly nodeID: string;
+  readonly absPath: string;
+  readonly obb: IOBB;
+  syncMirror(): IElement | null;
+  setCenterOfGravityAuto(): void;
+  getPoints(): INamedVector3RO[];
+  getForceResults(): {
+    name: string;
+    point: Vector3;
+    force: Vector3;
+    nodeID: string;
+  }[];
+  getVariables(): INamedNumberRO[];
+  getMeasurablePoints(): INamedVector3RO[];
+  getPointsNodeIDs(): string[];
+  getMirror(): IElement;
+  unlinkMirror(): void;
+  getRoot(): IAssembly | null;
+  getDataElement(): IDataElement | undefined;
+  arrange(parentPosition?: Vector3): void;
+  readonly position: INamedVector3LW;
+  readonly rotation: INamedQuaternion;
+  readonly initialPosition: INamedVector3;
+  meta?: Meta;
+}
+
+export interface IDataElement extends INode {
+  isDataElement: true;
+  className: string;
+  name: IData<string>;
+  nodeID: string;
+  absPath: string;
+  visible: IData<boolean | undefined>;
+  autoCalculateCenterOfGravity: IData<boolean>;
+
+  mass: IDataNumber;
+  centerOfGravity: IDataVector3;
+  inertialTensor: IDataMatrix3;
+  position: IDataVector3LW;
+  rotation: IDataQuaternion;
+  initialPosition: IDataVector3;
+
+  mirrorTo?: string;
+  isBodyOfFrame?: boolean;
+}
+
+export interface Meta {
+  isBodyOfFrame?: true;
+  mirror?: MetaMirror;
+}
+
 export interface IMovingElement {
   readonly nodeID: string;
   dlCurrent: number;
@@ -136,67 +198,6 @@ export const trans = (p: INamedVector3RO, coMatrix?: Matrix3): Vector3 => {
   if (coMatrix) v.applyMatrix3(coMatrix);
   return v;
 };
-
-export interface IElement extends IBidirectionalNode {
-  readonly isElement: true;
-  readonly className: Elements;
-  readonly name: INamedString;
-  readonly inertialTensor: INamedMatrix3;
-  readonly mass: INamedNumber;
-  readonly centerOfGravity: INamedVector3;
-  readonly autoCalculateCenterOfGravity: INamedBoolean;
-  readonly visible: INamedBooleanOrUndefined;
-  parent: IAssembly | null;
-  readonly controllable?: boolean;
-  readonly nodeID: string;
-  readonly absPath: string;
-  readonly obb: IOBB;
-  setCenterOfGravityAuto(): void;
-  getPoints(): INamedVector3RO[];
-  getForceResults(): {
-    name: string;
-    point: Vector3;
-    force: Vector3;
-    nodeID: string;
-  }[];
-  getVariables(): INamedNumberRO[];
-  getMeasurablePoints(): INamedVector3RO[];
-  getPointsNodeIDs(): string[];
-  getMirror(): IElement;
-  unlinkMirror(): void;
-  getRoot(): IAssembly | null;
-  getDataElement(): IDataElement | undefined;
-  arrange(parentPosition?: Vector3): void;
-  readonly position: INamedVector3LW;
-  readonly rotation: INamedQuaternion;
-  readonly initialPosition: INamedVector3;
-  meta?: Meta;
-}
-
-export interface IDataElement extends INode {
-  isDataElement: true;
-  className: string;
-  name: IData<string>;
-  nodeID: string;
-  absPath: string;
-  visible: IData<boolean | undefined>;
-  autoCalculateCenterOfGravity: IData<boolean>;
-
-  mass: IDataNumber;
-  centerOfGravity: IDataVector3;
-  inertialTensor: IDataMatrix3;
-  position: IDataVector3LW;
-  rotation: IDataQuaternion;
-  initialPosition: IDataVector3;
-
-  mirrorTo?: string;
-  isBodyOfFrame?: boolean;
-}
-
-export interface Meta {
-  isBodyOfFrame?: true;
-  mirror?: MetaMirror;
-}
 
 export interface MetaMirror {
   to: string;

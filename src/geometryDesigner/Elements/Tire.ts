@@ -383,26 +383,8 @@ export class Tire extends Element implements ITire {
   }
 
   getDataElement(): IDataTire {
-    const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
-    const mir = this.getAnotherElement(mirror);
-    const baseData = super.getDataElementBase(mir);
-
-    if (mir && isTire(mir)) {
-      return {
-        ...baseData,
-        tireCenter: this.tireCenter
-          .setValue(mirrorVec(mir.tireCenter))
-          .getData(),
-        tread: this.tread.setValue(mir.tread.getStringValue()).getData(),
-        tireAxis: this.tireAxis.setValue(mirrorVec(mir.tireAxis)).getData(),
-        toLeftBearing: this.toOuterBearing
-          .setValue(mir.toOuterBearing.getStringValue())
-          .getData(),
-        toRightBearing: this.toInnerBearing
-          .setValue(mir.toInnerBearing.getStringValue())
-          .getData()
-      };
-    }
+    const original = this.syncMirror();
+    const baseData = super.getDataElementBase(original);
     return {
       ...baseData,
       tireCenter: this.tireCenter.getData(),
@@ -411,5 +393,17 @@ export class Tire extends Element implements ITire {
       toLeftBearing: this.toOuterBearing.getData(),
       toRightBearing: this.toInnerBearing.getData()
     };
+  }
+
+  syncMirror() {
+    const mirror = isMirror(this) ? this.meta?.mirror?.to : undefined;
+    const original = this.getAnotherElement(mirror);
+    if (!original || !isTire(original)) return null;
+    this.tireCenter.setValue(mirrorVec(original.tireCenter));
+    this.tread.setValue(original.tread.getStringValue());
+    this.tireAxis.setValue(mirrorVec(original.tireAxis));
+    this.toOuterBearing.setValue(original.toOuterBearing.getStringValue());
+    this.toInnerBearing.setValue(original.toInnerBearing.getStringValue());
+    return original;
   }
 }
