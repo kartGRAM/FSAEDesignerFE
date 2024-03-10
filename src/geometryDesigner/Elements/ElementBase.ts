@@ -99,10 +99,14 @@ export abstract class Element implements IElement {
 
   constructor(
     params:
-      | {name: string | IDataString; autoCalculateCenterOfGravity?: boolean}
+      | {
+          name: string | IDataString;
+          autoCalculateCenterOfGravity?: boolean;
+          nodeID?: string;
+        }
       | IDataElement
   ) {
-    this._nodeID = uuidv4(); // ⇨ '2c5ea4c0-4067-11e9-8bad-9b1deb4d3b7d'
+    this._nodeID = params.nodeID ?? uuidv4(); // ⇨ '2c5ea4c0-4067-11e9-8bad-9b1deb4d3b7d'
     const {name, autoCalculateCenterOfGravity} = params;
     this.name = new NamedString({
       name: 'name',
@@ -124,8 +128,6 @@ export abstract class Element implements IElement {
       }
     });
     if (isDataElement(params)) {
-      const element = params;
-      this._nodeID = element.nodeID;
       if (params.mirrorTo) {
         assignMeta(this, {mirror: {to: params.mirrorTo}});
       }

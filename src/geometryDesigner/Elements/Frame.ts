@@ -30,10 +30,16 @@ export class Frame extends Assembly {
           mass?: number;
           centerOfGravity?: FunctionVector3;
           autoCalculateCenterOfGravity?: boolean;
+          nodeID?: string;
         }
       | IDataFrame
   ) {
-    super({name: params.name, children: params.children, joints: []});
+    super({
+      name: params.name,
+      children: params.children,
+      joints: [],
+      nodeID: params.nodeID
+    });
     const body = this.syncBodyOfFrame(params);
     this.frameBody = body;
   }
