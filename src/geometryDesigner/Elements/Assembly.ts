@@ -493,6 +493,7 @@ export class Assembly extends Element implements IAssembly {
       );
       this.joints = params.joints;
       if (!params.ignoreArrange) {
+        // collectedAssmblyでは実行しないため
         this._children.forEach((child) => {
           child.parent = this;
         });

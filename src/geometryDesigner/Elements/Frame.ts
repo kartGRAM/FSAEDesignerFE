@@ -2,7 +2,13 @@ import {NamedVector3} from '@gd/NamedValues';
 import {INamedVector3RO, FunctionVector3} from '@gd/INamedValues';
 
 import {Vector3} from 'three';
-import {trans, Elements, IElement, assignMeta} from '../IElements';
+import {
+  trans,
+  Elements,
+  IElement,
+  assignMeta,
+  isDataElement
+} from '../IElements';
 import {isBody, IBody} from '../IElements/IBody';
 import {IDataFrame, className} from '../IElements/IFrame';
 import {Assembly} from './Assembly';
@@ -18,7 +24,7 @@ export class Frame extends Assembly {
 
   arrange(parentPosition?: Vector3) {
     super.arrange(parentPosition);
-    this.syncBodyOfFrame({});
+    if (this.frameBody) this.syncBodyOfFrame({});
   }
 
   constructor(
@@ -38,10 +44,15 @@ export class Frame extends Assembly {
       name: params.name,
       children: params.children,
       joints: [],
-      nodeID: params.nodeID
+      nodeID: params.nodeID,
+      ignoreArrange: true
     });
-    const body = this.syncBodyOfFrame(params);
-    this.frameBody = body;
+    // ignoreArrangeされているため
+    this._children.forEach((child) => {
+      child.parent = this;
+    });
+    this.frameBody = this.syncBodyOfFrame(params);
+    if (!isDataElement(params)) this.arrange();
   }
 
   syncBodyOfFrame(
@@ -51,15 +62,18 @@ export class Frame extends Assembly {
           mass?: number;
           centerOfGravity?: FunctionVector3;
           autoCalculateCenterOfGravity?: boolean;
+          bodyID?: string;
         }
       | IDataFrame
   ): IBody {
-    const body: Body =
-      (this.frameBody as Body) ??
-      (this.children.find(
-        (child) => child.nodeID === (params as any).bodyID && isBody(child)
-      ) as Body) ??
-      new Body({
+    let body = this.frameBody as Body | undefined;
+    if (!body) {
+      body = this.children.find(
+        (child) => child.nodeID === params.bodyID && isBody(child)
+      ) as Body | undefined;
+    }
+    if (!body) {
+      body = new Body({
         name: `bodyObject_${this.name.value}`,
         fixedPoints: [],
         points: [],
@@ -69,6 +83,8 @@ export class Frame extends Assembly {
         autoCalculateCenterOfGravity:
           (params as any).autoCalculateCenterOfGravity ?? true
       });
+      this.appendChild(body);
+    }
     assignMeta(body, {isBodyOfFrame: true});
     const namedPoints = this.children.reduce(
       (prev: INamedVector3RO[], child) => {
@@ -91,7 +107,7 @@ export class Frame extends Assembly {
     );
     this.joints = namedPoints.map((p, i) => ({
       lhs: p.nodeID,
-      rhs: body.fixedPoints[i].nodeID
+      rhs: body!.fixedPoints[i].nodeID
     }));
     return body;
   }

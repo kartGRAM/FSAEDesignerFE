@@ -453,8 +453,9 @@ export function canSimplifyAArm(aArm: IAArm, jointDict: JointDict): boolean {
   const fp = aArm.fixedPoints;
   // フレーム側の親を取得
   const parents = fp.map((p) => {
-    const joint = jointDict[p.nodeID][0];
-    return getJointPartner(joint, p.nodeID).parent as IElement;
+    const joint = jointDict[p.nodeID];
+    if (!joint) return undefined;
+    return getJointPartner(joint[0], p.nodeID).parent as IElement;
   });
   // フレームが分割されていたりした場合はfalse;
   if (!parents[0] || !parents[1]) return false;
